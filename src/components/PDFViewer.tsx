@@ -31,6 +31,9 @@ const PDFViewer = ({ pdfUrl }: PDFViewerProps) => {
     setNumPages(numPages);
   }
 
+  // Only show navigation if there's more than one page
+  const showNavigation = numPages !== null && numPages > 1;
+
   return (
     <div className="pdf-viewer w-full mx-auto">
       <Document
@@ -46,25 +49,27 @@ const PDFViewer = ({ pdfUrl }: PDFViewerProps) => {
           className="max-w-full shadow-lg"
         />
       </Document>
-      <div className="flex flex-col sm:flex-row justify-center items-center gap-4 mt-4">
-        <button
-          onClick={() => setPageNumber(page => Math.max(1, page - 1))}
-          disabled={pageNumber <= 1}
-          className="w-full sm:w-auto px-4 py-2 bg-blue-900 text-white rounded disabled:opacity-50"
-        >
-          Previous
-        </button>
-        <p className="text-center">
-          Page {pageNumber} of {numPages}
-        </p>
-        <button
-          onClick={() => setPageNumber(page => Math.min(numPages || page, page + 1))}
-          disabled={pageNumber >= (numPages || 1)}
-          className="w-full sm:w-auto px-4 py-2 bg-blue-900 text-white rounded disabled:opacity-50"
-        >
-          Next
-        </button>
-      </div>
+      {showNavigation && (
+        <div className="flex flex-col sm:flex-row justify-center items-center gap-4 mt-4">
+          <button
+            onClick={() => setPageNumber(page => Math.max(1, page - 1))}
+            disabled={pageNumber <= 1}
+            className="w-full sm:w-auto px-4 py-2 bg-blue-900 text-white rounded disabled:opacity-50"
+          >
+            Previous
+          </button>
+          <p className="text-center">
+            Page {pageNumber} of {numPages}
+          </p>
+          <button
+            onClick={() => setPageNumber(page => Math.min(numPages || page, page + 1))}
+            disabled={pageNumber >= (numPages || 1)}
+            className="w-full sm:w-auto px-4 py-2 bg-blue-900 text-white rounded disabled:opacity-50"
+          >
+            Next
+          </button>
+        </div>
+      )}
     </div>
   );
 };
