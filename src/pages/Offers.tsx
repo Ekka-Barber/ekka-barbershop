@@ -15,6 +15,8 @@ const Offers = () => {
   const { data: offersFiles, isLoading, error } = useQuery({
     queryKey: ['active-offers'],
     queryFn: async () => {
+      console.log('Fetching offers...');
+      
       const { data, error } = await supabase
         .from('marketing_files')
         .select('*')
@@ -27,16 +29,26 @@ const Offers = () => {
         throw error;
       }
       
+      console.log('Raw data from marketing_files:', data);
+      
+      if (!data || data.length === 0) {
+        console.log('No offers found in the database');
+        return [];
+      }
+      
       if (data) {
+        console.log('Found offers, fetching URLs...');
         const filesWithUrls = await Promise.all(data.map(async (file) => {
+          console.log('Processing file:', file);
           const { data: fileUrl } = supabase.storage
             .from('marketing_files')
             .getPublicUrl(file.file_path);
           
+          console.log('Got public URL for file:', file.file_name, fileUrl.publicUrl);
           return { ...file, url: fileUrl.publicUrl };
         }));
         
-        console.log('Fetched offers:', filesWithUrls);
+        console.log('Final offers data:', filesWithUrls);
         return filesWithUrls;
       }
       return [];
