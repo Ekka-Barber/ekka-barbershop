@@ -1,11 +1,36 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { QRCodeSVG } from 'qrcode.react';
+import { Button } from "@/components/ui/button";
+import { useNavigate } from 'react-router-dom';
 
 const Index = () => {
+  const currentUrl = window.location.href;
+  const customerUrl = currentUrl.replace(/\/$/, '') + '/customer';
+  
+  const navigate = useNavigate();
+  
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-gray-600">Start building your amazing project here!</p>
+    <div className="min-h-screen bg-white">
+      <div className="max-w-4xl mx-auto p-6">
+        <h1 className="text-4xl font-bold text-blue-900 mb-8 text-center">QR Code Generator</h1>
+        
+        <div className="bg-white rounded-lg shadow-lg p-8 mb-8">
+          <div className="flex justify-center mb-6">
+            <QRCodeSVG value={customerUrl} size={256} />
+          </div>
+          <p className="text-center text-gray-600 mb-4">
+            Scan this QR code to view the customer interface
+          </p>
+        </div>
+
+        <div className="text-center">
+          <Button
+            variant="outline"
+            className="mx-2"
+            onClick={() => navigate('/preview')}
+          >
+            Preview Customer View
+          </Button>
+        </div>
       </div>
     </div>
   );
