@@ -6,12 +6,13 @@ import { useNavigate } from 'react-router-dom';
 import { Card } from "@/components/ui/card";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { toast } from "sonner";
 
 const Offers = () => {
   const navigate = useNavigate();
   const { t } = useLanguage();
   
-  const { data: offersFiles, isLoading } = useQuery({
+  const { data: offersFiles, isLoading, error } = useQuery({
     queryKey: ['active-offers'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -20,20 +21,33 @@ const Offers = () => {
         .eq('category', 'offer')
         .eq('is_active', true);
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching offers:', error);
+        toast.error(t('error.loading.offers'));
+        throw error;
+      }
       
       if (data) {
-        return await Promise.all(data.map(async (file) => {
+        const filesWithUrls = await Promise.all(data.map(async (file) => {
           const { data: fileUrl } = supabase.storage
             .from('marketing_files')
             .getPublicUrl(file.file_path);
           
           return { ...file, url: fileUrl.publicUrl };
         }));
+        
+        console.log('Fetched offers:', filesWithUrls);
+        return filesWithUrls;
       }
       return [];
-    }
+    },
+    retry: 1,
+    staleTime: 1000 * 60 * 5, // 5 minutes
   });
+
+  if (error) {
+    console.error('Query error:', error);
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 flex flex-col">
@@ -68,6 +82,10 @@ const Offers = () => {
                       src={file.url} 
                       alt="Special Offer"
                       className="w-full max-w-full h-auto rounded-lg"
+                      onError={(e) => {
+                        console.error('Image failed to load:', file.url);
+                        e.currentTarget.src = '/placeholder.svg';
+                      }}
                     />
                   )}
                 </div>
