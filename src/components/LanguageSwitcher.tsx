@@ -5,12 +5,12 @@ export const LanguageSwitcher = () => {
   
   return (
     <div className="fixed bottom-6 left-1/2 -translate-x-1/2">
-      <div className="relative flex h-12 bg-white rounded-full p-1 shadow-lg w-[200px]">
+      <div className="relative flex h-[52px] bg-white rounded-full p-1.5 shadow-lg w-[240px]">
         {/* English Option */}
         <button
           onClick={() => setLanguage('en')}
-          className={`relative z-10 flex-1 text-sm font-medium transition-colors duration-200 rounded-full
-            ${language === 'en' ? 'text-gray-900' : 'text-gray-500'}`}
+          className={`relative z-10 flex-1 text-base font-medium transition-colors duration-200 rounded-full
+            ${language === 'en' ? 'text-white' : 'text-gray-600'}`}
         >
           EN
         </button>
@@ -18,16 +18,16 @@ export const LanguageSwitcher = () => {
         {/* Arabic Option */}
         <button
           onClick={() => setLanguage('ar')}
-          className={`relative z-10 flex-1 text-sm font-medium transition-colors duration-200 rounded-full
-            ${language === 'ar' ? 'text-gray-900' : 'text-gray-500'}`}
+          className={`relative z-10 flex-1 text-base font-medium transition-colors duration-200 rounded-full
+            ${language === 'ar' ? 'text-white' : 'text-gray-600'}`}
         >
           عربي
         </button>
         
         {/* Sliding Background */}
         <div
-          className={`absolute inset-y-1 w-[100px] rounded-full bg-[#C4A36F] transition-transform duration-200 ease-in-out
-            ${language === 'ar' ? 'translate-x-[100px]' : 'translate-x-0'}`}
+          className={`absolute inset-y-1.5 w-[120px] rounded-full bg-[#C4A36F] transition-transform duration-300 ease-in-out
+            ${language === 'ar' ? 'translate-x-[116px]' : 'translate-x-0'}`}
         />
       </div>
     </div>
