@@ -31,34 +31,41 @@ const Menu = () => {
   });
 
   return (
-    <div className="min-h-screen bg-white p-4">
-      <div className="max-w-4xl mx-auto">
-        <div className="flex justify-between items-center mb-4 sm:mb-6">
-          <h1 className="text-xl sm:text-2xl font-bold text-blue-900">Menu</h1>
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
+      <div className="max-w-4xl mx-auto p-4 sm:p-6 lg:p-8">
+        <div className="flex flex-col items-center mb-8">
+          <img 
+            src="/lovable-uploads/8289fb1d-c6e6-4528-980c-6b52313ca898.png"
+            alt="Ekka Barbershop Logo" 
+            className="h-24 mb-6"
+          />
+          <h1 className="text-3xl font-bold text-[#222222] mb-2">Our Menu</h1>
+          <div className="h-1 w-24 bg-[#C4A36F] mx-auto mb-6"></div>
           <Button 
-            variant="outline"
             onClick={() => navigate('/customer')}
-            className="text-sm sm:text-base"
+            className="bg-[#4A4A4A] hover:bg-[#3A3A3A] text-white transition-all duration-300"
           >
-            Back
+            Back to Home
           </Button>
         </div>
         
-        {isLoading ? (
-          <div className="text-center py-8">Loading menu...</div>
-        ) : menuFile ? (
-          menuFile.file_type.includes('pdf') ? (
-            <PDFViewer pdfUrl={menuFile.url} />
+        <div className="bg-white rounded-lg shadow-lg p-6">
+          {isLoading ? (
+            <div className="text-center py-8 text-[#222222]">Loading menu...</div>
+          ) : menuFile ? (
+            menuFile.file_type.includes('pdf') ? (
+              <PDFViewer pdfUrl={menuFile.url} />
+            ) : (
+              <img 
+                src={menuFile.url} 
+                alt="Menu"
+                className="w-full max-w-full h-auto rounded-lg"
+              />
+            )
           ) : (
-            <img 
-              src={menuFile.url} 
-              alt="Menu"
-              className="w-full max-w-full h-auto rounded-lg shadow-lg"
-            />
-          )
-        ) : (
-          <div className="text-center py-8">No menu available at the moment.</div>
-        )}
+            <div className="text-center py-8 text-[#222222]">No menu available at the moment.</div>
+          )}
+        </div>
       </div>
     </div>
   );
