@@ -27,8 +27,8 @@ const translations = {
   },
   ar: {
     // Customer page
-    'welcome': 'مرحباً بكم في',
-    'ekka': 'صالون إيكا للحلاقة',
+    'welcome': 'مرحبا بك في',
+    'ekka': 'صالون إكه للعناية بالرجل',
     'view.menu': 'عرض القائمة',
     'special.offers': 'العروض الخاصة',
     // Menu page
