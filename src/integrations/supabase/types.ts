@@ -478,6 +478,30 @@ export type Database = {
           },
         ]
       }
+      qr_codes: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean | null
+          updated_at: string
+          url: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          updated_at?: string
+          url: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          updated_at?: string
+          url?: string
+        }
+        Relationships: []
+      }
       recurring_expenses: {
         Row: {
           amount: number
