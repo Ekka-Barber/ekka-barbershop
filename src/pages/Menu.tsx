@@ -15,7 +15,7 @@ const Menu = () => {
         .select('*')
         .eq('category', 'menu')
         .eq('is_active', true)
-        .single();
+        .maybeSingle();
       
       if (error) throw error;
       
@@ -33,11 +33,12 @@ const Menu = () => {
   return (
     <div className="min-h-screen bg-white p-4">
       <div className="max-w-4xl mx-auto">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold text-blue-900">Menu</h1>
+        <div className="flex justify-between items-center mb-4 sm:mb-6">
+          <h1 className="text-xl sm:text-2xl font-bold text-blue-900">Menu</h1>
           <Button 
             variant="outline"
             onClick={() => navigate('/customer')}
+            className="text-sm sm:text-base"
           >
             Back
           </Button>
@@ -52,7 +53,7 @@ const Menu = () => {
             <img 
               src={menuFile.url} 
               alt="Menu"
-              className="max-w-full h-auto rounded-lg shadow-lg"
+              className="w-full max-w-full h-auto rounded-lg shadow-lg"
             />
           )
         ) : (
