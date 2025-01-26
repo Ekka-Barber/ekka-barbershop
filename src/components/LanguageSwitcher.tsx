@@ -5,7 +5,7 @@ export const LanguageSwitcher = () => {
   
   return (
     <div className="fixed bottom-6 left-1/2 -translate-x-1/2">
-      <div className="relative flex h-10 bg-white/90 backdrop-blur-md rounded-lg p-1 shadow-lg border border-gray-100">
+      <div className="relative flex h-10 w-[144px] bg-white/90 backdrop-blur-md rounded-lg p-1 shadow-lg border border-gray-100">
         {/* English Option */}
         <button
           onClick={() => setLanguage('en')}
@@ -26,8 +26,8 @@ export const LanguageSwitcher = () => {
         
         {/* Sliding Background */}
         <div
-          className={`absolute inset-y-1 w-[72px] rounded-md bg-primary transition-transform duration-200 ease-in-out
-            ${language === 'ar' ? 'translate-x-[72px]' : 'translate-x-0'}`}
+          className={`absolute left-1 w-[72px] h-8 rounded-md bg-primary transition-transform duration-200 ease-in-out
+            ${language === 'ar' ? 'translate-x-[70px]' : 'translate-x-0'}`}
         />
       </div>
     </div>
