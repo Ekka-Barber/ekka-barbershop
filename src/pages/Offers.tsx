@@ -20,7 +20,7 @@ const Offers = () => {
       const { data, error } = await supabase
         .from('marketing_files')
         .select('*')
-        .eq('category', 'offer')
+        .eq('category', 'offers')  // Changed from 'offer' to 'offers' to match the database
         .eq('is_active', true);
       
       if (error) {
