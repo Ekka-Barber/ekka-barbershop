@@ -6,16 +6,16 @@ export const LanguageSwitcher = () => {
   
   return (
     <div className="flex items-center gap-6 fixed bottom-6 left-1/2 -translate-x-1/2 bg-white/90 backdrop-blur-md px-6 py-3 rounded-full shadow-lg border border-gray-100">
-      <span className={`text-sm font-medium min-w-[24px] text-center transition-colors ${language === 'en' ? 'text-primary font-bold' : 'text-gray-500 hover:text-gray-700'}`}>
-        EN
+      <span className={`text-sm font-medium min-w-[32px] text-center transition-colors ${language === 'en' ? 'text-primary font-bold' : 'text-gray-500 hover:text-gray-700'}`}>
+        {language === 'ar' ? 'عربي' : 'EN'}
       </span>
       <Switch
         checked={language === 'ar'}
         onCheckedChange={(checked) => setLanguage(checked ? 'ar' : 'en')}
-        className="data-[state=checked]:bg-primary"
+        className="data-[state=checked]:bg-primary data-[state=unchecked]:bg-gray-200"
       />
-      <span className={`text-sm font-medium min-w-[32px] text-center transition-colors ${language === 'ar' ? 'text-primary font-bold' : 'text-gray-500 hover:text-gray-700'}`}>
-        عربي
+      <span className={`text-sm font-medium min-w-[32px] text-center transition-colors ${language === 'ar' ? 'text-gray-500 hover:text-gray-700' : 'text-primary font-bold'}`}>
+        {language === 'ar' ? 'EN' : 'عربي'}
       </span>
     </div>
   );
