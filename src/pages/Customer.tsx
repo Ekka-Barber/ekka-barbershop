@@ -38,6 +38,13 @@ const Customer = () => {
           >
             {t('special.offers')}
           </Button>
+
+          <Button 
+            className="w-full h-14 text-lg font-medium bg-[#C4A36F] hover:bg-[#B39260] text-white transition-all duration-300 shadow-lg hover:shadow-xl"
+            onClick={() => navigate('/bookings')}
+          >
+            {t('book.now')}
+          </Button>
         </div>
       </div>
       <LanguageSwitcher />

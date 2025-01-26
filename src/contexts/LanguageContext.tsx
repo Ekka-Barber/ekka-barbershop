@@ -15,6 +15,7 @@ const translations = {
     'ekka': 'Ekka Barbershop',
     'view.menu': 'View Menu',
     'special.offers': 'Special Offers',
+    'book.now': 'Book Now',
     // Menu page
     'our.menu': 'Our Menu',
     'back.home': 'Back to Home',
@@ -24,6 +25,9 @@ const translations = {
     'special.offers.title': 'Special Offers',
     'loading.offers': 'Loading offers...',
     'no.offers': 'No special offers available at the moment.',
+    // Bookings page
+    'book.appointment': 'Book Appointment',
+    'booking.coming.soon': 'Online booking coming soon!',
   },
   ar: {
     // Customer page
@@ -31,6 +35,7 @@ const translations = {
     'ekka': 'صالون إكه للعناية بالرجل',
     'view.menu': 'قائمة الأسعار',
     'special.offers': 'العروض',
+    'book.now': 'لحجز موعد',
     // Menu page
     'our.menu': 'قائمة الأسعار',
     'back.home': 'العودة للرئيسية',
@@ -40,13 +45,16 @@ const translations = {
     'special.offers.title': 'العروض',
     'loading.offers': 'جاري تحميل العروض...',
     'no.offers': 'لا تتوفر عروض خاصة حالياً.',
+    // Bookings page
+    'book.appointment': 'حجز موعد',
+    'booking.coming.soon': 'الحجز عبر الإنترنت قريباً!',
   }
 };
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
 export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [language, setLanguage] = useState<Language>('ar'); // Changed default to 'ar'
+  const [language, setLanguage] = useState<Language>('ar');
 
   const t = (key: string): string => {
     return translations[language][key as keyof typeof translations['en']] || key;

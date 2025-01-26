@@ -9,11 +9,12 @@ import Customer from "./pages/Customer";
 import Menu from "./pages/Menu";
 import Offers from "./pages/Offers";
 import Admin from "./pages/Admin";
+import Bookings from "./pages/Bookings";
 
 const queryClient = new QueryClient();
 
 // List of public routes that customers can access
-const PUBLIC_ROUTES = ['/customer', '/menu', '/offers', '/preview'];
+const PUBLIC_ROUTES = ['/customer', '/menu', '/offers', '/preview', '/bookings'];
 
 // Owner access code - you can change this to any value you prefer
 const OWNER_ACCESS_CODE = 'owner123';
@@ -46,6 +47,7 @@ const App = () => {
               <Route path="/menu" element={<Menu />} />
               <Route path="/offers" element={<Offers />} />
               <Route path="/preview" element={<Customer />} />
+              <Route path="/bookings" element={<Bookings />} />
               
               {/* Protected routes - only accessible with owner access */}
               <Route 
