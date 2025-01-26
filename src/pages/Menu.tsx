@@ -38,7 +38,7 @@ const Menu = () => {
           <img 
             src="/lovable-uploads/8289fb1d-c6e6-4528-980c-6b52313ca898.png"
             alt="Ekka Barbershop Logo" 
-            className="h-24 mb-6"
+            className="h-24 mb-6 object-contain"
           />
           <h1 className="text-3xl font-bold text-[#222222] mb-2">Our Menu</h1>
           <div className="h-1 w-24 bg-[#C4A36F] mx-auto mb-6"></div>
