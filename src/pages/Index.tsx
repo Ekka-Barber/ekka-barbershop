@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 
 const Index = () => {
   const currentUrl = window.location.href;
-  const previewUrl = currentUrl.replace(/\/$/, '') + '/preview';
+  const customerUrl = currentUrl.replace(/\/$/, '') + '/customer';
   
   const navigate = useNavigate();
   
@@ -15,7 +15,7 @@ const Index = () => {
         
         <div className="bg-white rounded-lg shadow-lg p-8 mb-8">
           <div className="flex justify-center mb-6">
-            <QRCodeSVG value={previewUrl} size={256} />
+            <QRCodeSVG value={customerUrl} size={256} />
           </div>
           <p className="text-center text-gray-600 mb-4">
             Scan this QR code to view the customer interface
