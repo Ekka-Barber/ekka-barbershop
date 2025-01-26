@@ -9,7 +9,7 @@ export const LanguageSwitcher = () => {
         {/* English Option */}
         <button
           onClick={() => setLanguage('en')}
-          className={`relative z-10 px-6 text-sm font-medium transition-colors duration-200
+          className={`relative z-10 w-[72px] text-sm font-medium transition-colors duration-200
             ${language === 'en' ? 'text-white' : 'text-gray-600 hover:text-gray-900'}`}
         >
           EN
@@ -18,7 +18,7 @@ export const LanguageSwitcher = () => {
         {/* Arabic Option */}
         <button
           onClick={() => setLanguage('ar')}
-          className={`relative z-10 px-6 text-sm font-medium transition-colors duration-200
+          className={`relative z-10 w-[72px] text-sm font-medium transition-colors duration-200
             ${language === 'ar' ? 'text-white' : 'text-gray-600 hover:text-gray-900'}`}
         >
           عربي
