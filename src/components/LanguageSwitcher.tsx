@@ -26,7 +26,7 @@ export const LanguageSwitcher = () => {
         
         {/* Sliding Background */}
         <div
-          className={`absolute top-1 h-8 w-[72px] rounded-md bg-primary transition-transform duration-200 ease-in-out
+          className={`absolute inset-y-1 w-[72px] rounded-md bg-primary transition-transform duration-200 ease-in-out
             ${language === 'ar' ? 'translate-x-[72px]' : 'translate-x-0'}`}
         />
       </div>
