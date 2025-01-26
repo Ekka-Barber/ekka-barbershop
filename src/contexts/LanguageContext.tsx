@@ -29,15 +29,15 @@ const translations = {
     // Customer page
     'welcome': 'مرحبا بك في',
     'ekka': 'صالون إكه للعناية بالرجل',
-    'view.menu': 'عرض القائمة',
-    'special.offers': 'العروض الخاصة',
+    'view.menu': 'قائمة الأسعار',
+    'special.offers': 'العروض',
     // Menu page
-    'our.menu': 'قائمتنا',
+    'our.menu': 'قائمة الأسعار',
     'back.home': 'العودة للرئيسية',
     'loading.menu': 'جاري تحميل القائمة...',
     'no.menu': 'لا تتوفر قائمة حالياً.',
     // Offers page
-    'special.offers.title': 'العروض الخاصة',
+    'special.offers.title': 'العروض',
     'loading.offers': 'جاري تحميل العروض...',
     'no.offers': 'لا تتوفر عروض خاصة حالياً.',
   }
