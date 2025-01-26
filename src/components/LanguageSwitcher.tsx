@@ -5,32 +5,39 @@ export const LanguageSwitcher = () => {
   
   return (
     <div className="fixed bottom-6 left-1/2 -translate-x-1/2">
-      <div className="flex items-center gap-2 bg-white/90 backdrop-blur-md p-2 rounded-lg shadow-lg border border-gray-100">
-        {/* English Button */}
-        <button
-          onClick={() => setLanguage('en')}
-          className={`relative px-4 py-2 rounded-md transition-all duration-200 min-w-[72px]
-            ${language === 'en' 
-              ? 'bg-primary text-white' 
-              : 'hover:bg-gray-100 text-gray-600'
-            }`}
-          aria-label="Switch to English"
-        >
-          <span className="relative z-10">EN</span>
-        </button>
+      <div className="relative bg-white/90 backdrop-blur-md p-1.5 rounded-lg shadow-lg border border-gray-100">
+        {/* Container for both buttons with fixed width */}
+        <div className="flex items-center gap-1.5">
+          {/* Left button (English) - Always stays on left */}
+          <div className="relative w-[72px]">
+            <button
+              onClick={() => setLanguage('en')}
+              className={`w-full h-9 rounded-md transition-colors duration-200
+                ${language === 'en' ? 'text-white' : 'text-gray-600 hover:bg-gray-50'}`}
+              aria-label="Switch to English"
+            >
+              EN
+            </button>
+            {language === 'en' && (
+              <div className="absolute inset-0 bg-primary rounded-md -z-10" />
+            )}
+          </div>
 
-        {/* Arabic Button */}
-        <button
-          onClick={() => setLanguage('ar')}
-          className={`relative px-4 py-2 rounded-md transition-all duration-200 min-w-[72px]
-            ${language === 'ar' 
-              ? 'bg-primary text-white' 
-              : 'hover:bg-gray-100 text-gray-600'
-            }`}
-          aria-label="Switch to Arabic"
-        >
-          <span className="relative z-10">عربي</span>
-        </button>
+          {/* Right button (Arabic) - Always stays on right */}
+          <div className="relative w-[72px]">
+            <button
+              onClick={() => setLanguage('ar')}
+              className={`w-full h-9 rounded-md transition-colors duration-200
+                ${language === 'ar' ? 'text-white' : 'text-gray-600 hover:bg-gray-50'}`}
+              aria-label="Switch to Arabic"
+            >
+              عربي
+            </button>
+            {language === 'ar' && (
+              <div className="absolute inset-0 bg-primary rounded-md -z-10" />
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );
