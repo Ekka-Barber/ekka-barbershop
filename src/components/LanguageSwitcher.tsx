@@ -4,9 +4,8 @@ export const LanguageSwitcher = () => {
   const { language, setLanguage } = useLanguage();
   
   return (
-    <div className="fixed bottom-6 left-1/2 -translate-x-1/2">
-      <div className="relative bg-white/90 backdrop-blur-md p-1.5 rounded-lg shadow-lg border border-gray-100">
-        {/* Container for both buttons with fixed width */}
+    <footer className="mt-12 pb-6">
+      <div className="relative bg-white/90 backdrop-blur-md p-1.5 rounded-lg shadow-lg border border-gray-100 max-w-fit mx-auto">
         <div className="flex items-center gap-1.5">
           {/* Left button (English) - Always stays on left */}
           <div className="relative w-[72px]">
@@ -39,6 +38,6 @@ export const LanguageSwitcher = () => {
           </div>
         </div>
       </div>
-    </div>
+    </footer>
   );
 };

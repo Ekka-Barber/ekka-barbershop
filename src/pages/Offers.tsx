@@ -36,9 +36,8 @@ const Offers = () => {
   });
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
-      <LanguageSwitcher />
-      <div className="max-w-4xl mx-auto p-4 sm:p-6 lg:p-8">
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 flex flex-col">
+      <div className="flex-grow max-w-4xl mx-auto p-4 sm:p-6 lg:p-8 w-full">
         <div className="flex flex-col items-center mb-8">
           <img 
             src="/lovable-uploads/8289fb1d-c6e6-4528-980c-6b52313ca898.png"
@@ -79,6 +78,7 @@ const Offers = () => {
           )}
         </div>
       </div>
+      <LanguageSwitcher />
     </div>
   );
 };
