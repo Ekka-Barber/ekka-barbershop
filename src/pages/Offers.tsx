@@ -15,7 +15,7 @@ const Offers = () => {
         .select('*')
         .eq('category', 'offers')
         .eq('is_active', true)
-        .single();
+        .maybeSingle();
       
       if (error) throw error;
       
