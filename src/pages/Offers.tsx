@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import PDFViewer from '@/components/PDFViewer';
 import { Button } from "@/components/ui/button";
 import { useNavigate } from 'react-router-dom';
+import { Card } from "@/components/ui/card";
 
 const Offers = () => {
   const navigate = useNavigate();
@@ -55,17 +56,19 @@ const Offers = () => {
             <div className="text-center py-8 text-[#222222]">Loading offers...</div>
           ) : offersFiles && offersFiles.length > 0 ? (
             offersFiles.map((file) => (
-              <div key={file.id} className="bg-white rounded-lg shadow-lg p-6">
-                {file.file_type.includes('pdf') ? (
-                  <PDFViewer pdfUrl={file.url} />
-                ) : (
-                  <img 
-                    src={file.url} 
-                    alt="Special Offer"
-                    className="w-full max-w-full h-auto rounded-lg"
-                  />
-                )}
-              </div>
+              <Card key={file.id} className="overflow-hidden bg-white shadow-xl rounded-xl border-[#C4A36F]/20">
+                <div className="p-6">
+                  {file.file_type.includes('pdf') ? (
+                    <PDFViewer pdfUrl={file.url} />
+                  ) : (
+                    <img 
+                      src={file.url} 
+                      alt="Special Offer"
+                      className="w-full max-w-full h-auto rounded-lg"
+                    />
+                  )}
+                </div>
+              </Card>
             ))
           ) : (
             <div className="text-center py-8 text-[#222222]">No special offers available at the moment.</div>

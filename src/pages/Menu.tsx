@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import PDFViewer from '@/components/PDFViewer';
 import { Button } from "@/components/ui/button";
 import { useNavigate } from 'react-router-dom';
+import { Card } from "@/components/ui/card";
 
 const Menu = () => {
   const navigate = useNavigate();
@@ -49,23 +50,25 @@ const Menu = () => {
           </Button>
         </div>
         
-        <div className="bg-white rounded-lg shadow-lg p-6">
-          {isLoading ? (
-            <div className="text-center py-8 text-[#222222]">Loading menu...</div>
-          ) : menuFile ? (
-            menuFile.file_type.includes('pdf') ? (
-              <PDFViewer pdfUrl={menuFile.url} />
+        <Card className="overflow-hidden bg-white shadow-xl rounded-xl border-[#C4A36F]/20">
+          <div className="p-6">
+            {isLoading ? (
+              <div className="text-center py-8 text-[#222222]">Loading menu...</div>
+            ) : menuFile ? (
+              menuFile.file_type.includes('pdf') ? (
+                <PDFViewer pdfUrl={menuFile.url} />
+              ) : (
+                <img 
+                  src={menuFile.url} 
+                  alt="Menu"
+                  className="w-full max-w-full h-auto rounded-lg"
+                />
+              )
             ) : (
-              <img 
-                src={menuFile.url} 
-                alt="Menu"
-                className="w-full max-w-full h-auto rounded-lg"
-              />
-            )
-          ) : (
-            <div className="text-center py-8 text-[#222222]">No menu available at the moment.</div>
-          )}
-        </div>
+              <div className="text-center py-8 text-[#222222]">No menu available at the moment.</div>
+            )}
+          </div>
+        </Card>
       </div>
     </div>
   );
