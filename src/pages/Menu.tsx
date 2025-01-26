@@ -1,3 +1,5 @@
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from "@/integrations/supabase/client";
 import PDFViewer from '@/components/PDFViewer';
 import { Button } from "@/components/ui/button";
 import { useNavigate } from 'react-router-dom';
@@ -5,6 +7,29 @@ import { useNavigate } from 'react-router-dom';
 const Menu = () => {
   const navigate = useNavigate();
   
+  const { data: menuFile, isLoading } = useQuery({
+    queryKey: ['active-menu'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('marketing_files')
+        .select('*')
+        .eq('category', 'menu')
+        .eq('is_active', true)
+        .single();
+      
+      if (error) throw error;
+      
+      if (data) {
+        const { data: fileUrl } = supabase.storage
+          .from('marketing_files')
+          .getPublicUrl(data.file_path);
+        
+        return { ...data, url: fileUrl.publicUrl };
+      }
+      return null;
+    }
+  });
+
   return (
     <div className="min-h-screen bg-white p-4">
       <div className="max-w-4xl mx-auto">
@@ -18,7 +43,21 @@ const Menu = () => {
           </Button>
         </div>
         
-        <PDFViewer pdfUrl="/sample-menu.pdf" />
+        {isLoading ? (
+          <div className="text-center py-8">Loading menu...</div>
+        ) : menuFile ? (
+          menuFile.file_type.includes('pdf') ? (
+            <PDFViewer pdfUrl={menuFile.url} />
+          ) : (
+            <img 
+              src={menuFile.url} 
+              alt="Menu"
+              className="max-w-full h-auto rounded-lg shadow-lg"
+            />
+          )
+        ) : (
+          <div className="text-center py-8">No menu available at the moment.</div>
+        )}
       </div>
     </div>
   );
