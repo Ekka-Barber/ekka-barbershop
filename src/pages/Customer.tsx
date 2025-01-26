@@ -8,9 +8,8 @@ const Customer = () => {
   const { t } = useLanguage();
   
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
-      <LanguageSwitcher />
-      <div className="max-w-md mx-auto pt-8 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 flex flex-col">
+      <div className="flex-grow max-w-md mx-auto pt-8 px-4 sm:px-6 lg:px-8">
         {/* Logo and Header */}
         <div className="text-center mb-8">
           <img 
@@ -41,6 +40,7 @@ const Customer = () => {
           </Button>
         </div>
       </div>
+      <LanguageSwitcher />
     </div>
   );
 };
