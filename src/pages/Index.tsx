@@ -3,8 +3,9 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from 'react-router-dom';
 
 const Index = () => {
-  const currentUrl = window.location.href;
-  const customerUrl = currentUrl.replace(/\/$/, '') + '/customer';
+  // Get the base URL without any path
+  const baseUrl = window.location.origin;
+  const customerUrl = `${baseUrl}/customer`;
   
   const navigate = useNavigate();
   
