@@ -134,9 +134,9 @@ const Bookings = () => {
       setSelectedServices(prev => [...prev, {
         id: service.id,
         name: language === 'ar' ? service.name_ar : service.name_en,
-        price: discountedPrice,
+        price: roundPrice(discountedPrice),
         duration: service.duration,
-        originalPrice: discountedPrice !== service.price ? service.price : undefined
+        originalPrice: discountedPrice !== service.price ? roundPrice(service.price) : undefined
       }]);
     }
   };
@@ -149,6 +149,16 @@ const Bookings = () => {
     } else {
       return service.price - service.discount_value;
     }
+  };
+
+  const roundPrice = (price: number) => {
+    const decimal = price % 1;
+    if (decimal >= 0.5) {
+      return Math.ceil(price);
+    } else if (decimal <= 0.4) {
+      return Math.floor(price);
+    }
+    return price;
   };
 
   const generateTimeSlots = () => {

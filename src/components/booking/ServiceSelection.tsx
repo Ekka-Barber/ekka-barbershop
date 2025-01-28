@@ -38,6 +38,16 @@ interface ServiceSelectionProps {
   onServiceToggle: (service: Service) => void;
 }
 
+const roundPrice = (price: number) => {
+  const decimal = price % 1;
+  if (decimal >= 0.5) {
+    return Math.ceil(price);
+  } else if (decimal <= 0.4) {
+    return Math.floor(price);
+  }
+  return price;
+};
+
 export const ServiceSelection = ({
   categories,
   isLoading,
@@ -47,17 +57,20 @@ export const ServiceSelection = ({
   const { language } = useLanguage();
 
   const formatPrice = (price: number) => {
-    return `${price} ${language === 'ar' ? 'ريال' : 'SAR'}`;
+    const roundedPrice = roundPrice(price);
+    return `${roundedPrice} ${language === 'ar' ? 'ريال' : 'SAR'}`;
   };
 
   const calculateDiscountedPrice = (service: Service) => {
     if (!service.discount_type || !service.discount_value) return service.price;
     
+    let discountedPrice;
     if (service.discount_type === 'percentage') {
-      return service.price - (service.price * (service.discount_value / 100));
+      discountedPrice = service.price - (service.price * (service.discount_value / 100));
     } else {
-      return service.price - service.discount_value;
+      discountedPrice = service.price - service.discount_value;
     }
+    return roundPrice(discountedPrice);
   };
 
   const hasDiscount = (service: Service) => {

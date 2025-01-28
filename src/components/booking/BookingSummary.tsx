@@ -18,6 +18,16 @@ interface BookingSummaryProps {
   selectedBarberName?: string;
 }
 
+const roundPrice = (price: number) => {
+  const decimal = price % 1;
+  if (decimal >= 0.5) {
+    return Math.ceil(price);
+  } else if (decimal <= 0.4) {
+    return Math.floor(price);
+  }
+  return price;
+};
+
 export const BookingSummary = ({
   selectedServices,
   totalPrice,
@@ -30,7 +40,8 @@ export const BookingSummary = ({
   const totalDuration = selectedServices.reduce((sum, service) => sum + service.duration, 0);
 
   const formatPrice = (price: number) => {
-    return `${price} ${language === 'ar' ? 'ريال' : 'SAR'}`;
+    const roundedPrice = roundPrice(price);
+    return `${roundedPrice} ${language === 'ar' ? 'ريال' : 'SAR'}`;
   };
 
   return (
