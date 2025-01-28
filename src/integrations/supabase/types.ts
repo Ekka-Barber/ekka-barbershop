@@ -823,6 +823,12 @@ export type Database = {
         }
         Returns: undefined
       }
+      set_owner_access: {
+        Args: {
+          value: string
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       basic_payment_method: "cash" | "bank_transfer"
