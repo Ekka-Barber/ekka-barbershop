@@ -73,24 +73,24 @@ const Customer = () => {
 
       {/* Branch Selection Dialog */}
       <Dialog open={branchDialogOpen} onOpenChange={setBranchDialogOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md bg-gradient-to-b from-white to-gray-50 border-0 shadow-2xl">
           <DialogHeader>
-            <DialogTitle className="text-center">
+            <DialogTitle className="text-center text-2xl font-bold text-[#403E43]">
               {language === 'ar' ? 'اختر الفرع' : 'Select Branch'}
             </DialogTitle>
           </DialogHeader>
-          <div className="space-y-3 mt-4">
+          <div className="space-y-4 mt-6">
             {branches?.map((branch) => (
               <Button
                 key={branch.id}
                 variant="outline"
-                className="w-full py-6 flex flex-col items-start space-y-1"
+                className="w-full p-6 flex flex-col items-start space-y-2 bg-white hover:bg-[#F1F1F1] border-2 border-gray-100 hover:border-[#9b87f5] transition-all duration-300 rounded-xl group"
                 onClick={() => handleBranchSelect(branch.id)}
               >
-                <span className="font-medium">
+                <span className="font-semibold text-lg text-[#403E43] group-hover:text-[#9b87f5] transition-colors">
                   {language === 'ar' ? branch.name_ar : branch.name}
                 </span>
-                <span className="text-sm text-muted-foreground">
+                <span className="text-sm text-gray-500 group-hover:text-[#9b87f5]/70 transition-colors">
                   {language === 'ar' ? branch.address_ar : branch.address}
                 </span>
               </Button>
