@@ -610,6 +610,7 @@ export type Database = {
       service_categories: {
         Row: {
           created_at: string
+          display_order: number | null
           id: string
           name_ar: string
           name_en: string
@@ -617,6 +618,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          display_order?: number | null
           id?: string
           name_ar: string
           name_en: string
@@ -624,6 +626,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          display_order?: number | null
           id?: string
           name_ar?: string
           name_en?: string
@@ -637,6 +640,7 @@ export type Database = {
           created_at: string
           description_ar: string | null
           description_en: string | null
+          display_order: number | null
           duration: number
           id: string
           name_ar: string
@@ -649,6 +653,7 @@ export type Database = {
           created_at?: string
           description_ar?: string | null
           description_en?: string | null
+          display_order?: number | null
           duration: number
           id?: string
           name_ar: string
@@ -661,6 +666,7 @@ export type Database = {
           created_at?: string
           description_ar?: string | null
           description_en?: string | null
+          display_order?: number | null
           duration?: number
           id?: string
           name_ar?: string

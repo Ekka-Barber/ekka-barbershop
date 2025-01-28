@@ -3,7 +3,9 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
-import PDFViewer from '@/components/PDFViewer';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import ServiceCategoryList from '@/components/admin/ServiceCategoryList';
+import ServiceList from '@/components/admin/ServiceList';
 
 const Admin = () => {
   const [uploading, setUploading] = useState(false);
@@ -121,69 +123,83 @@ const Admin = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white p-4">
-      <div className="max-w-4xl mx-auto">
-        <h1 className="text-xl sm:text-2xl font-bold text-blue-900 mb-6 sm:mb-8">File Management</h1>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-          <div className="space-y-4">
-            <h2 className="text-lg font-semibold">Upload Menu</h2>
-            <input
-              type="file"
-              accept=".pdf,.png,.jpg,.jpeg"
-              onChange={(e) => handleFileUpload(e, 'menu')}
-              className="w-full text-sm sm:text-base file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-              disabled={uploading}
-            />
-          </div>
+    <div className="min-h-screen bg-background p-4">
+      <div className="max-w-4xl mx-auto space-y-8">
+        <Tabs defaultValue="services" className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="services">Services & Categories</TabsTrigger>
+            <TabsTrigger value="files">File Management</TabsTrigger>
+          </TabsList>
           
-          <div className="space-y-4">
-            <h2 className="text-lg font-semibold">Upload Offers</h2>
-            <input
-              type="file"
-              accept=".pdf,.png,.jpg,.jpeg"
-              onChange={(e) => handleFileUpload(e, 'offers')}
-              className="w-full text-sm sm:text-base file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-              disabled={uploading}
-            />
-          </div>
-        </div>
-
-        <div className="space-y-6">
-          <h2 className="text-lg sm:text-xl font-semibold">Uploaded Files</h2>
-          {isLoading ? (
-            <p>Loading...</p>
-          ) : (
-            <div className="grid gap-4">
-              {files?.map((file) => (
-                <div key={file.id} className="border p-4 rounded-lg space-y-4">
-                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
-                    <div>
-                      <h3 className="font-medium">{file.file_name}</h3>
-                      <p className="text-sm text-gray-500">Category: {file.category}</p>
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      <Button
-                        variant={file.is_active ? "default" : "outline"}
-                        onClick={() => toggleActiveMutation.mutate({ id: file.id, isActive: !file.is_active })}
-                        className="flex-1 sm:flex-none"
-                      >
-                        {file.is_active ? 'Active' : 'Inactive'}
-                      </Button>
-                      <Button
-                        variant="destructive"
-                        onClick={() => deleteMutation.mutate(file.id)}
-                        className="flex-1 sm:flex-none"
-                      >
-                        Delete
-                      </Button>
-                    </div>
-                  </div>
+          <TabsContent value="services" className="space-y-8 mt-6">
+            <ServiceCategoryList />
+            <ServiceList />
+          </TabsContent>
+          
+          <TabsContent value="files">
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <div className="space-y-4">
+                  <h2 className="text-lg font-semibold">Upload Menu</h2>
+                  <input
+                    type="file"
+                    accept=".pdf,.png,.jpg,.jpeg"
+                    onChange={(e) => handleFileUpload(e, 'menu')}
+                    className="w-full text-sm sm:text-base file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20"
+                    disabled={uploading}
+                  />
                 </div>
-              ))}
+                
+                <div className="space-y-4">
+                  <h2 className="text-lg font-semibold">Upload Offers</h2>
+                  <input
+                    type="file"
+                    accept=".pdf,.png,.jpg,.jpeg"
+                    onChange={(e) => handleFileUpload(e, 'offers')}
+                    className="w-full text-sm sm:text-base file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20"
+                    disabled={uploading}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-6">
+                <h2 className="text-lg font-semibold">Uploaded Files</h2>
+                {isLoading ? (
+                  <p>Loading...</p>
+                ) : (
+                  <div className="grid gap-4">
+                    {files?.map((file) => (
+                      <div key={file.id} className="border p-4 rounded-lg space-y-4">
+                        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+                          <div>
+                            <h3 className="font-medium">{file.file_name}</h3>
+                            <p className="text-sm text-muted-foreground">Category: {file.category}</p>
+                          </div>
+                          <div className="flex flex-wrap gap-2">
+                            <Button
+                              variant={file.is_active ? "default" : "outline"}
+                              onClick={() => toggleActiveMutation.mutate({ id: file.id, isActive: !file.is_active })}
+                              className="flex-1 sm:flex-none"
+                            >
+                              {file.is_active ? 'Active' : 'Inactive'}
+                            </Button>
+                            <Button
+                              variant="destructive"
+                              onClick={() => deleteMutation.mutate(file.id)}
+                              className="flex-1 sm:flex-none"
+                            >
+                              Delete
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
-          )}
-        </div>
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
