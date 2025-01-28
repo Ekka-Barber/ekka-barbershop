@@ -1,17 +1,16 @@
 import { useState, useEffect } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
 import { DragDropContext, Droppable } from '@hello-pangea/dnd';
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/components/ui/use-toast";
 import { ServiceDialog } from './ServiceDialog';
 import { CategoryDialog } from './CategoryDialog';
 import { CategoryItem } from './CategoryItem';
-import { Category } from '@/types/service';
+import { useServiceCategories } from '@/hooks/useServiceCategories';
 
 const ServiceCategoryList = () => {
   const [expandedCategories, setExpandedCategories] = useState<string[]>([]);
-  const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { categories, isLoading, deleteCategory, updateOrder } = useServiceCategories();
 
   // Set owner access on component mount
   useEffect(() => {
@@ -21,23 +20,6 @@ const ServiceCategoryList = () => {
       supabase.rpc('set_branch_manager_code', { code: 'true' });
     }
   }, []);
-
-  const { data: categories, isLoading } = useQuery({
-    queryKey: ['service-categories'],
-    queryFn: async () => {
-      const { data: categories, error: categoriesError } = await supabase
-        .from('service_categories')
-        .select('*, services(*)')
-        .order('display_order');
-      
-      if (categoriesError) throw categoriesError;
-
-      return categories.map(category => ({
-        ...category,
-        services: category.services?.sort((a, b) => a.display_order - b.display_order)
-      })) as Category[];
-    }
-  });
 
   // Set up real-time subscription
   useEffect(() => {
@@ -62,92 +44,6 @@ const ServiceCategoryList = () => {
     };
   }, [queryClient]);
 
-  const deleteCategoryMutation = useMutation({
-    mutationFn: async (id: string) => {
-      await supabase.rpc('set_branch_manager_code', { code: 'true' });
-      const { error } = await supabase
-        .from('service_categories')
-        .delete()
-        .eq('id', id);
-      
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['service-categories'] });
-      toast({
-        title: "Success",
-        description: "Category deleted successfully",
-      });
-    }
-  });
-
-  const updateOrderMutation = useMutation({
-    mutationFn: async ({ type, updates }: { 
-      type: 'category' | 'service',
-      updates: { id: string; display_order: number; category_id?: string }[] 
-    }) => {
-      await supabase.rpc('set_branch_manager_code', { code: 'true' });
-      
-      if (type === 'category') {
-        const { data: currentCategories, error: fetchError } = await supabase
-          .from('service_categories')
-          .select('*')
-          .in('id', updates.map(u => u.id));
-        
-        if (fetchError) throw fetchError;
-
-        const mergedUpdates = updates.map(update => {
-          const current = currentCategories?.find(c => c.id === update.id);
-          if (!current) throw new Error(`Category ${update.id} not found`);
-          return {
-            ...current,
-            display_order: update.display_order
-          };
-        });
-
-        const { error } = await supabase
-          .from('service_categories')
-          .upsert(mergedUpdates);
-        
-        if (error) throw error;
-      } else {
-        const { data: currentServices, error: fetchError } = await supabase
-          .from('services')
-          .select('*')
-          .in('id', updates.map(u => u.id));
-        
-        if (fetchError) throw fetchError;
-
-        const mergedUpdates = updates.map(update => {
-          const current = currentServices?.find(s => s.id === update.id);
-          if (!current) throw new Error(`Service ${update.id} not found`);
-          return {
-            ...current,
-            display_order: update.display_order,
-            category_id: update.category_id || current.category_id
-          };
-        });
-
-        const { error } = await supabase
-          .from('services')
-          .upsert(mergedUpdates);
-        
-        if (error) throw error;
-      }
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['service-categories'] });
-    },
-    onError: (error) => {
-      toast({
-        title: "Error",
-        description: "Failed to update order",
-        variant: "destructive",
-      });
-      console.error('Update order error:', error);
-    }
-  });
-
   const handleDragEnd = (result: any) => {
     if (!result.destination || !categories) return;
 
@@ -163,7 +59,7 @@ const ServiceCategoryList = () => {
         display_order: index
       }));
 
-      updateOrderMutation.mutate({ type: 'category', updates });
+      updateOrder({ type: 'category', updates });
     } else {
       const sourceCategory = categories.find(c => c.id === source.droppableId);
       const destCategory = categories.find(c => c.id === destination.droppableId);
@@ -181,7 +77,7 @@ const ServiceCategoryList = () => {
           category_id: source.droppableId
         }));
 
-        updateOrderMutation.mutate({ type: 'service', updates });
+        updateOrder({ type: 'service', updates });
       } else {
         const destServices = Array.from(destCategory.services || []);
         destServices.splice(destination.index, 0, {
@@ -195,7 +91,7 @@ const ServiceCategoryList = () => {
           category_id: destination.droppableId
         }));
 
-        updateOrderMutation.mutate({ type: 'service', updates });
+        updateOrder({ type: 'service', updates });
       }
     }
   };
@@ -235,7 +131,7 @@ const ServiceCategoryList = () => {
                   index={index}
                   isExpanded={expandedCategories.includes(category.id)}
                   onToggle={() => toggleCategory(category.id)}
-                  onDelete={() => deleteCategoryMutation.mutate(category.id)}
+                  onDelete={() => deleteCategory(category.id)}
                 />
               ))}
               {provided.placeholder}

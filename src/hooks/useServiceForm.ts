@@ -1,0 +1,78 @@
+import { useState } from 'react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/components/ui/use-toast";
+import { Service } from '@/types/service';
+
+export const useServiceForm = (onSuccess: () => void) => {
+  const [newService, setNewService] = useState<Partial<Service>>({
+    category_id: '',
+    name_en: '',
+    name_ar: '',
+    description_en: null,
+    description_ar: null,
+    duration: 0,
+    price: 0,
+    discount_type: null,
+    discount_value: null,
+  });
+
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  const addServiceMutation = useMutation({
+    mutationFn: async (service: Partial<Service>) => {
+      if (!service.category_id || !service.name_en || !service.name_ar || 
+          service.duration === undefined || service.price === undefined) {
+        throw new Error('Missing required fields');
+      }
+
+      await supabase.rpc('set_branch_manager_code', { code: 'true' });
+      const { data, error } = await supabase
+        .from('services')
+        .insert([{
+          ...service,
+          display_order: 0 // Will be updated by the backend
+        }])
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['service-categories'] });
+      setNewService({
+        category_id: '',
+        name_en: '',
+        name_ar: '',
+        description_en: null,
+        description_ar: null,
+        duration: 0,
+        price: 0,
+        discount_type: null,
+        discount_value: null,
+      });
+      onSuccess();
+      toast({
+        title: "Success",
+        description: "Service added successfully",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Failed to add service",
+        variant: "destructive",
+      });
+      console.error('Add error:', error);
+    }
+  });
+
+  return {
+    newService,
+    setNewService,
+    addService: addServiceMutation.mutate,
+    isLoading: addServiceMutation.isPending
+  };
+};
