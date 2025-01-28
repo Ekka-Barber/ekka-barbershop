@@ -57,24 +57,19 @@ export const ServiceDialog = ({ categories, editService, onSuccess, trigger }: S
       className="w-full"
     >
       <AccordionItem value={editService ? 'edit-service' : 'add-service'} className="border-none">
-        <div className="flex items-center justify-between">
-          {!editService && (
-            <AccordionTrigger className="hover:no-underline py-0">
-              <Button 
-                variant="outline"
-                size="icon" 
-                className="w-[200px] bg-[#C4A484] hover:bg-[#B8997C] text-white"
-              >
-                Service <Plus className="w-4 h-4 ml-2" />
-              </Button>
-            </AccordionTrigger>
-          )}
-          {editService && trigger && (
-            <AccordionTrigger className="hover:no-underline py-0">
-              {trigger}
-            </AccordionTrigger>
-          )}
-        </div>
+        {!editService ? (
+          <AccordionTrigger className="hover:no-underline py-0">
+            <Button 
+              variant="outline"
+              size="icon" 
+              className="w-[200px] bg-[#C4A484] hover:bg-[#B8997C] text-white"
+            >
+              Service <Plus className="w-4 h-4 ml-2" />
+            </Button>
+          </AccordionTrigger>
+        ) : (
+          <div>{trigger}</div>
+        )}
         <AccordionContent className="pt-4">
           <div className="space-y-4 bg-card rounded-lg border shadow-sm p-6">
             <ServiceForm
