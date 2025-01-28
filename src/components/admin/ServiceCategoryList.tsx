@@ -1,64 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
-import { GripVertical, Plus, Trash, ChevronDown, ChevronRight } from 'lucide-react';
+import { DragDropContext, Droppable } from '@hello-pangea/dnd';
 import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
-
-type Category = {
-  id: string;
-  name_en: string;
-  name_ar: string;
-  display_order: number;
-  services?: Service[];
-};
-
-type Service = {
-  id: string;
-  category_id: string;
-  name_en: string;
-  name_ar: string;
-  description_en: string | null;
-  description_ar: string | null;
-  duration: number;
-  price: number;
-  display_order: number;
-  discount_type: 'percentage' | 'amount' | null;
-  discount_value: number | null;
-};
+import { ServiceDialog } from './ServiceDialog';
+import { CategoryDialog } from './CategoryDialog';
+import { CategoryItem } from './CategoryItem';
+import { Category } from '@/types/service';
 
 const ServiceCategoryList = () => {
-  const [newCategory, setNewCategory] = useState({ name_en: '', name_ar: '' });
-  const [newService, setNewService] = useState<Partial<Service>>({
-    category_id: '',
-    name_en: '',
-    name_ar: '',
-    description_en: null,
-    description_ar: null,
-    duration: 0,
-    price: 0,
-    discount_type: null,
-    discount_value: null,
-  });
-  const [categoryDialogOpen, setCategoryDialogOpen] = useState(false);
-  const [serviceDialogOpen, setServiceDialogOpen] = useState(false);
   const [expandedCategories, setExpandedCategories] = useState<string[]>([]);
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -111,98 +61,6 @@ const ServiceCategoryList = () => {
       supabase.removeChannel(channel);
     };
   }, [queryClient]);
-
-  const addCategoryMutation = useMutation({
-    mutationFn: async (category: { name_en: string; name_ar: string }) => {
-      await supabase.rpc('set_branch_manager_code', { code: 'true' });
-      const { data, error } = await supabase
-        .from('service_categories')
-        .insert([{ 
-          name_en: category.name_en, 
-          name_ar: category.name_ar,
-          display_order: categories ? categories.length : 0 
-        }])
-        .select()
-        .single();
-      
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['service-categories'] });
-      setCategoryDialogOpen(false);
-      setNewCategory({ name_en: '', name_ar: '' });
-      toast({
-        title: "Success",
-        description: "Category added successfully",
-      });
-    },
-    onError: (error) => {
-      toast({
-        title: "Error",
-        description: "Failed to add category",
-        variant: "destructive",
-      });
-      console.error('Add error:', error);
-    }
-  });
-
-  const addServiceMutation = useMutation({
-    mutationFn: async (service: Partial<Service>) => {
-      if (!service.category_id || !service.name_en || !service.name_ar || 
-          service.duration === undefined || service.price === undefined) {
-        throw new Error('Missing required fields');
-      }
-
-      await supabase.rpc('set_branch_manager_code', { code: 'true' });
-      const { data, error } = await supabase
-        .from('services')
-        .insert([{
-          category_id: service.category_id,
-          name_en: service.name_en,
-          name_ar: service.name_ar,
-          description_en: service.description_en,
-          description_ar: service.description_ar,
-          duration: service.duration,
-          price: service.price,
-          discount_type: service.discount_type,
-          discount_value: service.discount_value,
-          display_order: categories?.find(c => c.id === service.category_id)?.services?.length || 0
-        }])
-        .select()
-        .single();
-      
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['service-categories'] });
-      setServiceDialogOpen(false);
-      setNewService({
-        category_id: '',
-        name_en: '',
-        name_ar: '',
-        description_en: null,
-        description_ar: null,
-        duration: 0,
-        price: 0,
-        discount_type: null,
-        discount_value: null,
-      });
-      toast({
-        title: "Success",
-        description: "Service added successfully",
-      });
-    },
-    onError: (error) => {
-      toast({
-        title: "Error",
-        description: "Failed to add service",
-        variant: "destructive",
-      });
-      console.error('Add error:', error);
-    }
-  });
 
   const deleteCategoryMutation = useMutation({
     mutationFn: async (id: string) => {
@@ -295,10 +153,8 @@ const ServiceCategoryList = () => {
 
     const { source, destination, type } = result;
 
-    // Create a new array to avoid mutating state directly
-    const updatedCategories = Array.from(categories);
-
     if (type === 'category') {
+      const updatedCategories = Array.from(categories);
       const [removed] = updatedCategories.splice(source.index, 1);
       updatedCategories.splice(destination.index, 0, removed);
 
@@ -318,7 +174,6 @@ const ServiceCategoryList = () => {
       const [movedService] = sourceServices.splice(source.index, 1);
 
       if (source.droppableId === destination.droppableId) {
-        // Reordering within the same category
         sourceServices.splice(destination.index, 0, movedService);
         const updates = sourceServices.map((service, index) => ({
           id: service.id,
@@ -328,7 +183,6 @@ const ServiceCategoryList = () => {
 
         updateOrderMutation.mutate({ type: 'service', updates });
       } else {
-        // Moving to a different category
         const destServices = Array.from(destCategory.services || []);
         destServices.splice(destination.index, 0, {
           ...movedService,
@@ -361,183 +215,8 @@ const ServiceCategoryList = () => {
       <div className="flex justify-between items-center">
         <h2 className="text-lg font-semibold">Service Categories</h2>
         <div className="flex gap-2">
-          <Dialog open={serviceDialogOpen} onOpenChange={setServiceDialogOpen}>
-            <DialogTrigger asChild>
-              <Button size="sm">
-                <Plus className="w-4 h-4 mr-2" />
-                Service
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-md">
-              <DialogHeader>
-                <DialogTitle>Add New Service</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4 pt-4">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Category</label>
-                  <Select
-                    value={newService.category_id}
-                    onValueChange={(value) => setNewService(prev => ({ ...prev, category_id: value }))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select category" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {categories?.map((category) => (
-                        <SelectItem key={category.id} value={category.id}>
-                          {category.name_en}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">English Name</label>
-                  <Input
-                    value={newService.name_en}
-                    onChange={(e) => setNewService(prev => ({ ...prev, name_en: e.target.value }))}
-                    placeholder="Enter service name in English"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Arabic Name</label>
-                  <Input
-                    value={newService.name_ar}
-                    onChange={(e) => setNewService(prev => ({ ...prev, name_ar: e.target.value }))}
-                    placeholder="Enter service name in Arabic"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">English Description</label>
-                  <Textarea
-                    value={newService.description_en || ''}
-                    onChange={(e) => setNewService(prev => ({ ...prev, description_en: e.target.value }))}
-                    placeholder="Enter service description in English"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Arabic Description</label>
-                  <Textarea
-                    value={newService.description_ar || ''}
-                    onChange={(e) => setNewService(prev => ({ ...prev, description_ar: e.target.value }))}
-                    placeholder="Enter service description in Arabic"
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Duration (minutes)</label>
-                    <Input
-                      type="number"
-                      value={newService.duration || ''}
-                      onChange={(e) => setNewService(prev => ({ ...prev, duration: parseInt(e.target.value) || 0 }))}
-                      placeholder="Enter duration"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Price</label>
-                    <Input
-                      type="number"
-                      value={newService.price || ''}
-                      onChange={(e) => setNewService(prev => ({ ...prev, price: parseFloat(e.target.value) || 0 }))}
-                      placeholder="Enter price"
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Discount Type</label>
-                  <Select
-                    value={newService.discount_type || ''}
-                    onValueChange={(value: 'percentage' | 'amount' | '') => 
-                      setNewService(prev => ({ 
-                        ...prev, 
-                        discount_type: value || null 
-                      }))
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select discount type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="">No discount</SelectItem>
-                      <SelectItem value="percentage">Percentage</SelectItem>
-                      <SelectItem value="amount">Amount</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {newService.discount_type && (
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">
-                      Discount Value {newService.discount_type === 'percentage' ? '(%)' : '($)'}
-                    </label>
-                    <Input
-                      type="number"
-                      value={newService.discount_value || ''}
-                      onChange={(e) => setNewService(prev => ({ 
-                        ...prev, 
-                        discount_value: parseFloat(e.target.value) || 0 
-                      }))}
-                      placeholder={`Enter discount ${newService.discount_type === 'percentage' ? 'percentage' : 'amount'}`}
-                    />
-                  </div>
-                )}
-
-                <Button 
-                  className="w-full"
-                  onClick={() => addServiceMutation.mutate(newService)}
-                  disabled={!newService.category_id || !newService.name_en || !newService.name_ar || !newService.duration || !newService.price}
-                >
-                  Service
-                </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
-
-          <Dialog open={categoryDialogOpen} onOpenChange={setCategoryDialogOpen}>
-            <DialogTrigger asChild>
-              <Button size="sm">
-                <Plus className="w-4 h-4 mr-2" />
-                Category
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Add New Category</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4 pt-4">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">English Name</label>
-                  <Input
-                    value={newCategory.name_en}
-                    onChange={(e) => setNewCategory(prev => ({ ...prev, name_en: e.target.value }))}
-                    placeholder="Enter category name in English"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Arabic Name</label>
-                  <Input
-                    value={newCategory.name_ar}
-                    onChange={(e) => setNewCategory(prev => ({ ...prev, name_ar: e.target.value }))}
-                    placeholder="Enter category name in Arabic"
-                  />
-                </div>
-                <Button 
-                  className="w-full"
-                  onClick={() => addCategoryMutation.mutate(newCategory)}
-                  disabled={!newCategory.name_en || !newCategory.name_ar}
-                >
-                  Category
-                </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
+          <ServiceDialog categories={categories} />
+          <CategoryDialog categories={categories} />
         </div>
       </div>
 
@@ -550,92 +229,14 @@ const ServiceCategoryList = () => {
               className="space-y-2"
             >
               {categories?.map((category, index) => (
-                <Draggable 
-                  key={category.id} 
-                  draggableId={category.id} 
+                <CategoryItem
+                  key={category.id}
+                  category={category}
                   index={index}
-                >
-                  {(provided) => (
-                    <div
-                      ref={provided.innerRef}
-                      {...provided.draggableProps}
-                      className="space-y-2"
-                    >
-                      <div className="flex items-center justify-between p-3 bg-white border rounded-lg shadow-sm">
-                        <div className="flex items-center gap-3">
-                          <div
-                            {...provided.dragHandleProps}
-                            className="cursor-move text-gray-400 hover:text-gray-600"
-                          >
-                            <GripVertical className="w-5 h-5" />
-                          </div>
-                          <button
-                            onClick={() => toggleCategory(category.id)}
-                            className="flex items-center gap-2"
-                          >
-                            {expandedCategories.includes(category.id) ? (
-                              <ChevronDown className="w-4 h-4" />
-                            ) : (
-                              <ChevronRight className="w-4 h-4" />
-                            )}
-                            <div>
-                              <p className="font-medium">{category.name_en}</p>
-                              <p className="text-sm text-gray-500">{category.name_ar}</p>
-                            </div>
-                          </button>
-                        </div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => deleteCategoryMutation.mutate(category.id)}
-                        >
-                          <Trash className="w-4 h-4 text-red-500" />
-                        </Button>
-                      </div>
-
-                      {expandedCategories.includes(category.id) && (
-                        <Droppable droppableId={category.id} type="service">
-                          {(provided) => (
-                            <div
-                              {...provided.droppableProps}
-                              ref={provided.innerRef}
-                              className="ml-8 space-y-2"
-                            >
-                              {category.services?.map((service, index) => (
-                                <Draggable
-                                  key={service.id}
-                                  draggableId={service.id}
-                                  index={index}
-                                >
-                                  {(provided) => (
-                                    <div
-                                      ref={provided.innerRef}
-                                      {...provided.draggableProps}
-                                      {...provided.dragHandleProps}
-                                      className="flex items-center justify-between p-2 bg-gray-50 border rounded-lg"
-                                    >
-                                      <div className="flex items-center gap-2">
-                                        <GripVertical className="w-4 h-4 text-gray-400" />
-                                        <div>
-                                          <p className="text-sm font-medium">{service.name_en}</p>
-                                          <p className="text-xs text-gray-500">{service.name_ar}</p>
-                                        </div>
-                                      </div>
-                                      <div className="text-sm text-gray-500">
-                                        {service.duration} mins • ${service.price}
-                                      </div>
-                                    </div>
-                                  )}
-                                </Draggable>
-                              ))}
-                              {provided.placeholder}
-                            </div>
-                          )}
-                        </Droppable>
-                      )}
-                    </div>
-                  )}
-                </Draggable>
+                  isExpanded={expandedCategories.includes(category.id)}
+                  onToggle={() => toggleCategory(category.id)}
+                  onDelete={() => deleteCategoryMutation.mutate(category.id)}
+                />
               ))}
               {provided.placeholder}
             </div>
