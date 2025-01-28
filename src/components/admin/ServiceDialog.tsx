@@ -36,7 +36,6 @@ export const ServiceDialog = ({ categories, editService, onSuccess, trigger }: S
   useEffect(() => {
     if (editService) {
       setNewService(editService);
-      setIsExpanded('edit-service');
     }
   }, [editService]);
 
@@ -60,11 +59,9 @@ export const ServiceDialog = ({ categories, editService, onSuccess, trigger }: S
     >
       <AccordionItem value={editService ? 'edit-service' : 'add-service'} className="border-none">
         {editService ? (
-          <AccordionTrigger>
-            <div className="w-full">
-              {trigger}
-            </div>
-          </AccordionTrigger>
+          <div className="w-full">
+            {trigger}
+          </div>
         ) : (
           <AccordionTrigger className="hover:no-underline py-0">
             <Button 
