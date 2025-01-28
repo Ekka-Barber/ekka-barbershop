@@ -76,7 +76,7 @@ const Customer = () => {
         <DialogContent className="sm:max-w-2xl bg-white border-0 shadow-2xl p-6">
           <DialogHeader>
             <DialogTitle className="text-center text-2xl font-bold text-[#222222] mb-6">
-              {language === 'ar' ? 'اختر الفرع' : 'Select Branch'}
+              {t('select.branch')}
             </DialogTitle>
           </DialogHeader>
           <div className="grid grid-cols-2 gap-4">
