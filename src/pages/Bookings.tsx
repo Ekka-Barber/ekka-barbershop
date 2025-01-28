@@ -220,30 +220,30 @@ const Bookings = () => {
 
   const generateWhatsAppMessage = () => {
     const serviceSummary = selectedServices
-      .map(service => `${service.name}: ${formatPrice(service.price)}${service.originalPrice ? ` (Original: ${formatPrice(service.originalPrice)})` : ''}`)
+      .map(service => `${service.name}: ${formatPrice(service.price)}${service.originalPrice ? ` (السعر الأصلي: ${formatPrice(service.originalPrice)})` : ''}`)
       .join('\n');
 
     const totalOriginalPrice = selectedServices.reduce((sum, service) => sum + (service.originalPrice || service.price), 0);
     const totalDiscount = totalOriginalPrice - totalPrice;
 
     const message = `
-*New Booking Request*
+${language === 'en' ? '*New Booking Request*' : '*طلب حجز جديد*'}
 
-*Customer Details:*
-Name: ${customerDetails.name}
-Phone: ${customerDetails.phone}
-${customerDetails.email ? `Email: ${customerDetails.email}` : ''}
-${customerDetails.notes ? `Notes: ${customerDetails.notes}` : ''}
+*معلومات العميل:*
+الاسم: ${customerDetails.name}
+رقم الجوال: ${customerDetails.phone}
+${customerDetails.email ? `البريد الإلكتروني: ${customerDetails.email}` : ''}
+${customerDetails.notes ? `ملاحظات: ${customerDetails.notes}` : ''}
 
-*Booking Details:*
+*تفاصيل الحجز:*
 ${serviceSummary}
 
-Total Duration: ${selectedServices.reduce((sum, service) => sum + service.duration, 0)} minutes
-${selectedDate && selectedTime ? `Date & Time: ${format(selectedDate, 'dd/MM/yyyy')} - ${selectedTime}` : ''}
-${selectedBarberName ? `Barber: ${selectedBarberName}` : ''}
-${totalDiscount > 0 ? `Discount: ${formatPrice(totalDiscount)}` : ''}
+المدة الإجمالية: ${selectedServices.reduce((sum, service) => sum + service.duration, 0)} دقيقة
+${selectedDate && selectedTime ? `التاريخ والوقت: ${format(selectedDate, 'dd/MM/yyyy')} - ${selectedTime}` : ''}
+${selectedBarberName ? `الحلاق: ${selectedBarberName}` : ''}
+${totalDiscount > 0 ? `الخصم: ${formatPrice(totalDiscount)}` : ''}
 
-*Total Amount: ${formatPrice(totalPrice)}*
+*المبلغ الإجمالي: ${formatPrice(totalPrice)}*
     `.trim();
 
     return encodeURIComponent(message);
@@ -350,43 +350,63 @@ ${totalDiscount > 0 ? `Discount: ${formatPrice(totalDiscount)}` : ''}
           )}
         </div>
 
-        <div className="flex justify-between gap-4 mb-8">
-          <Button
-            variant="outline"
-            onClick={() => {
-              if (currentStepIndex > 0) {
-                setCurrentStep(STEPS[currentStepIndex - 1]);
-              } else {
-                navigate('/customer');
-              }
-            }}
-            className="flex-1"
-          >
-            {currentStepIndex === 0 ? t('back.home') : t('previous')}
-          </Button>
-          
-          {currentStepIndex < STEPS.length - 1 && (
+        <div className="space-y-4">
+          <div className="flex justify-between gap-4">
             <Button
-              onClick={() => setCurrentStep(STEPS[currentStepIndex + 1])}
-              className="flex-1 bg-[#C4A36F] hover:bg-[#B39260]"
-              disabled={
-                (currentStep === 'services' && selectedServices.length === 0) ||
-                (currentStep === 'barber' && !selectedBarber) ||
-                (currentStep === 'datetime' && (!selectedDate || !selectedTime))
-              }
+              variant="outline"
+              onClick={() => {
+                if (currentStepIndex > 0) {
+                  setCurrentStep(STEPS[currentStepIndex - 1]);
+                } else {
+                  navigate('/customer');
+                }
+              }}
+              className="flex-1"
             >
-              {t('next')}
+              {currentStepIndex === 0 ? t('back.home') : t('previous')}
             </Button>
-          )}
-          
-          {currentStepIndex === STEPS.length - 1 && (
-            <Button
-              onClick={handleBookingConfirmation}
-              className="flex-1 bg-[#C4A36F] hover:bg-[#B39260]"
-              disabled={!customerDetails.name || !customerDetails.phone}
-            >
-              {t('confirm.booking')}
-            </Button>
+            
+            {currentStepIndex < STEPS.length - 1 && (
+              <Button
+                onClick={() => setCurrentStep(STEPS[currentStepIndex + 1])}
+                className="flex-1 bg-[#C4A36F] hover:bg-[#B39260]"
+                disabled={
+                  (currentStep === 'services' && selectedServices.length === 0) ||
+                  (currentStep === 'barber' && !selectedBarber) ||
+                  (currentStep === 'datetime' && (!selectedDate || !selectedTime))
+                }
+              >
+                {t('next')}
+              </Button>
+            )}
+            
+            {currentStepIndex === STEPS.length - 1 && (
+              <Button
+                onClick={handleBookingConfirmation}
+                className="flex-1 bg-[#C4A36F] hover:bg-[#B39260]"
+                disabled={!customerDetails.name || !customerDetails.phone}
+              >
+                {t('confirm.booking')}
+              </Button>
+            )}
+          </div>
+
+          {currentStep === 'details' && (
+            <p className="text-center text-sm text-muted-foreground">
+              {language === 'ar' ? (
+                <>
+                  📱 سيتم تأكيد حجزك على الواتساب.
+                  <br />
+                  📲 سيصلك ردنا بالتأكيد قريباً! ✔️
+                </>
+              ) : (
+                <>
+                  📱 Your booking will be confirmed on WhatsApp
+                  <br />
+                  📲 You'll receive our confirmation shortly! ✔️
+                </>
+              )}
+            </p>
           )}
         </div>
       </div>

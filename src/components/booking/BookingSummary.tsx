@@ -58,7 +58,7 @@ export const BookingSummary = ({
               <div className="flex items-center gap-2">
                 {service.originalPrice && (
                   <span className="flex items-center relative">
-                    <Slash className="w-4 h-4 text-destructive absolute -top-3" />
+                    <Slash className="w-4 h-4 text-destructive absolute -translate-y-[2px]" />
                     <span className="text-muted-foreground">{formatPrice(service.originalPrice)}</span>
                   </span>
                 )}
