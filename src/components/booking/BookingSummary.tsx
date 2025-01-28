@@ -23,9 +23,13 @@ export const BookingSummary = ({
   selectedTime,
   selectedBarberName
 }: BookingSummaryProps) => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   
   const totalDuration = selectedServices.reduce((sum, service) => sum + service.duration, 0);
+
+  const formatPrice = (price: number) => {
+    return `${price} ${language === 'ar' ? 'ريال' : 'SAR'}`;
+  };
 
   return (
     <div className="rounded-lg border p-4 space-y-3">
@@ -36,7 +40,7 @@ export const BookingSummary = ({
           {selectedServices.map((service) => (
             <div key={service.id} className="flex justify-between">
               <span>{service.name}</span>
-              <span>{service.price} SAR</span>
+              <span>{formatPrice(service.price)}</span>
             </div>
           ))}
         </div>
@@ -64,7 +68,7 @@ export const BookingSummary = ({
         
         <div className="border-t pt-2 font-medium flex justify-between">
           <span>{t('total')}</span>
-          <span>{totalPrice} SAR</span>
+          <span>{formatPrice(totalPrice)}</span>
         </div>
       </div>
     </div>

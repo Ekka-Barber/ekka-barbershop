@@ -42,6 +42,10 @@ export const ServiceSelection = ({
 }: ServiceSelectionProps) => {
   const { language } = useLanguage();
 
+  const formatPrice = (price: number) => {
+    return `${price} ${language === 'ar' ? 'ريال' : 'SAR'}`;
+  };
+
   if (isLoading) {
     return (
       <div className="space-y-4">
@@ -76,7 +80,7 @@ export const ServiceSelection = ({
                         {language === 'ar' ? service.description_ar : service.description_en}
                       </p>
                       <div className="mt-1 text-sm">
-                        {service.price} SAR • {service.duration} min
+                        {formatPrice(service.price)} • {service.duration} min
                       </div>
                     </div>
                   </div>

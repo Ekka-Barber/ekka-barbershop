@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/select";
 import { Category } from '@/types/service';
 import { Card, CardContent } from "@/components/ui/card";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 type ServiceFormProps = {
   categories: Category[] | undefined;
@@ -18,6 +19,8 @@ type ServiceFormProps = {
 };
 
 export const ServiceForm = ({ categories, service, onChange }: ServiceFormProps) => {
+  const { language } = useLanguage();
+  
   return (
     <Card className="border-none shadow-none">
       <CardContent className="space-y-6 p-0">
@@ -97,12 +100,14 @@ export const ServiceForm = ({ categories, service, onChange }: ServiceFormProps)
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-2">
-            <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">Price</label>
+            <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+              {language === 'ar' ? 'السعر (ريال)' : 'Price (SAR)'}
+            </label>
             <Input
               type="number"
               value={service.price || ''}
               onChange={(e) => onChange({ ...service, price: parseFloat(e.target.value) || 0 })}
-              placeholder="Enter price"
+              placeholder={language === 'ar' ? 'أدخل السعر' : 'Enter price'}
               className="w-full"
             />
           </div>
