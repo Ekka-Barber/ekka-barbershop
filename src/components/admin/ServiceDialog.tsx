@@ -60,8 +60,10 @@ export const ServiceDialog = ({ categories, editService, onSuccess, trigger }: S
     >
       <AccordionItem value={editService ? 'edit-service' : 'add-service'} className="border-none">
         {editService ? (
-          <AccordionTrigger asChild>
-            {trigger}
+          <AccordionTrigger>
+            <div className="w-full">
+              {trigger}
+            </div>
           </AccordionTrigger>
         ) : (
           <AccordionTrigger className="hover:no-underline py-0">
