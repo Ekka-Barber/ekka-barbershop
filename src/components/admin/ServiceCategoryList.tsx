@@ -139,9 +139,15 @@ const ServiceCategoryList = () => {
 
       <Separator className="my-4" />
       
-      <div className="flex items-center justify-end gap-2">
-        <ServiceDialog categories={categories} />
-        <CategoryDialog categories={categories} />
+      <div className="flex items-center justify-end gap-4">
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-medium">+ Service</span>
+          <ServiceDialog categories={categories} />
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-medium">+ Category</span>
+          <CategoryDialog categories={categories} />
+        </div>
       </div>
     </div>
   );
