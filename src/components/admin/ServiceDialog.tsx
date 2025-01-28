@@ -16,9 +16,10 @@ type ServiceDialogProps = {
   categories: Category[] | undefined;
   editService?: Service;
   onSuccess?: () => void;
+  trigger?: React.ReactElement;
 };
 
-export const ServiceDialog = ({ categories, editService, onSuccess }: ServiceDialogProps) => {
+export const ServiceDialog = ({ categories, editService, onSuccess, trigger }: ServiceDialogProps) => {
   const [isExpanded, setIsExpanded] = useState<string>('');
   const { toast } = useToast();
   const { newService, setNewService, addService, updateService, isLoading } = useServiceForm(() => {
@@ -66,6 +67,11 @@ export const ServiceDialog = ({ categories, editService, onSuccess }: ServiceDia
               >
                 Service <Plus className="w-4 h-4 ml-2" />
               </Button>
+            </AccordionTrigger>
+          )}
+          {editService && trigger && (
+            <AccordionTrigger className="hover:no-underline py-0">
+              {trigger}
             </AccordionTrigger>
           )}
         </div>
