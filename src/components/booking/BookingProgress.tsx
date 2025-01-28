@@ -1,4 +1,5 @@
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export type BookingStep = 'services' | 'datetime' | 'barber' | 'details';
 
@@ -16,11 +17,12 @@ export const BookingProgress = ({
   currentStepIndex 
 }: BookingProgressProps) => {
   const { t } = useLanguage();
+  const isMobile = useIsMobile();
   const progress = ((currentStepIndex + 1) / steps.length) * 100;
 
   return (
     <div className="mb-8">
-      <div className="h-2 bg-gray-200 rounded-full mb-2">
+      <div className="h-2 bg-gray-200 rounded-full mb-4">
         <div 
           className="h-full bg-[#C4A36F] rounded-full transition-all duration-300 ease-in-out"
           style={{ width: `${progress}%` }}
@@ -34,7 +36,7 @@ export const BookingProgress = ({
           return (
             <div
               key={step}
-              className={`flex items-center space-x-1 rtl:space-x-reverse cursor-pointer ${
+              className={`flex flex-col items-center cursor-pointer ${
                 isCompleted ? 'text-[#C4A36F]' : 
                 isCurrent ? 'text-[#222222] font-medium' : 
                 'text-gray-400'
@@ -45,10 +47,10 @@ export const BookingProgress = ({
                 }
               }}
             >
-              <span>
+              <span className="w-6 h-6 flex items-center justify-center border rounded-full mb-1">
                 {isCompleted ? '✓' : index + 1}
               </span>
-              <span className="hidden sm:inline">
+              <span className="text-xs text-center">
                 {t(`step.${step}`)}
               </span>
             </div>

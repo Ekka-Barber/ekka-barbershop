@@ -6,6 +6,7 @@ interface Employee {
   id: string;
   name: string;
   name_ar: string | null;
+  role: string;
 }
 
 interface BarberSelectionProps {
@@ -33,9 +34,13 @@ export const BarberSelection = ({
     );
   }
 
+  const filteredEmployees = employees?.filter(
+    employee => employee.role === 'barber' || employee.role === 'manager'
+  );
+
   return (
     <div className="grid gap-4">
-      {employees?.map((employee) => (
+      {filteredEmployees?.map((employee) => (
         <Button
           key={employee.id}
           variant={selectedBarber === employee.id ? "default" : "outline"}
