@@ -2,10 +2,33 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from "@/contexts/LanguageContext";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 const Customer = () => {
   const navigate = useNavigate();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+  const [branchDialogOpen, setBranchDialogOpen] = useState(false);
+
+  // Fetch branches
+  const { data: branches } = useQuery({
+    queryKey: ['branches'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('branches')
+        .select('*');
+      
+      if (error) throw error;
+      return data;
+    }
+  });
+
+  const handleBranchSelect = (branchId: string) => {
+    setBranchDialogOpen(false);
+    navigate(`/bookings?branch=${branchId}`);
+  };
   
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 flex flex-col">
@@ -41,12 +64,41 @@ const Customer = () => {
 
           <Button 
             className="w-full h-14 text-lg font-medium bg-[#C4A36F] hover:bg-[#B39260] text-white transition-all duration-300 shadow-lg hover:shadow-xl"
-            onClick={() => navigate('/bookings')}
+            onClick={() => setBranchDialogOpen(true)}
           >
             {t('book.now')}
           </Button>
         </div>
       </div>
+
+      {/* Branch Selection Dialog */}
+      <Dialog open={branchDialogOpen} onOpenChange={setBranchDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-center">
+              {language === 'ar' ? 'اختر الفرع' : 'Select Branch'}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 mt-4">
+            {branches?.map((branch) => (
+              <Button
+                key={branch.id}
+                variant="outline"
+                className="w-full py-6 flex flex-col items-start space-y-1"
+                onClick={() => handleBranchSelect(branch.id)}
+              >
+                <span className="font-medium">
+                  {language === 'ar' ? branch.name_ar : branch.name}
+                </span>
+                <span className="text-sm text-muted-foreground">
+                  {language === 'ar' ? branch.address_ar : branch.address}
+                </span>
+              </Button>
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <LanguageSwitcher />
     </div>
   );

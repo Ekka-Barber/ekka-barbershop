@@ -47,6 +47,7 @@ export type Database = {
       branches: {
         Row: {
           address: string | null
+          address_ar: string | null
           created_at: string
           id: string
           is_main: boolean | null
@@ -56,6 +57,7 @@ export type Database = {
         }
         Insert: {
           address?: string | null
+          address_ar?: string | null
           created_at?: string
           id?: string
           is_main?: boolean | null
@@ -65,6 +67,7 @@ export type Database = {
         }
         Update: {
           address?: string | null
+          address_ar?: string | null
           created_at?: string
           id?: string
           is_main?: boolean | null

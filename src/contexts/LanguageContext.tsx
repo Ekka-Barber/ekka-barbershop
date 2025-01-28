@@ -16,6 +16,7 @@ const translations = {
     'view.menu': 'View Menu',
     'special.offers': 'Special Offers',
     'book.now': 'Book Now',
+    'select.branch': 'Select Branch',
     // Menu page
     'our.menu': 'Our Menu',
     'back.home': 'Back to Home',
@@ -36,6 +37,7 @@ const translations = {
     'view.menu': 'قائمة الأسعار',
     'special.offers': 'العروض',
     'book.now': 'لحجز موعد',
+    'select.branch': 'اختر الفرع',
     // Menu page
     'our.menu': 'قائمة الأسعار',
     'back.home': 'العودة للرئيسية',
