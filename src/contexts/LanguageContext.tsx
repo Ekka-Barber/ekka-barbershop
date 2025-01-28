@@ -77,7 +77,7 @@ const translations = {
     'view.menu': 'قائمة الأسعار',
     'special.offers': 'العروض',
     'special.offers.title': 'العروض',
-    'book.now': 'احجز الآن',
+    'book.now': 'لحجز موعد',
     'our.menu': 'قائمتنا',
     'loading.menu': 'جاري تحميل القائمة...',
     'no.menu': 'لا توجد قائمة متاحة',
