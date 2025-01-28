@@ -38,13 +38,6 @@ export const ServiceItem = ({ service, index }: ServiceItemProps) => {
               categories={[{ id: service.category_id, name_en: '', name_ar: '', display_order: 0 }]}
               editService={service}
             />
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-blue-500 hover:text-blue-600"
-            >
-              <Pencil className="w-4 h-4" />
-            </Button>
           </div>
         </div>
       )}
