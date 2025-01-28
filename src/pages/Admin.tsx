@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ServiceCategoryList from '@/components/admin/ServiceCategoryList';
-import ServiceList from '@/components/admin/ServiceList';
 
 const Admin = () => {
   const [uploading, setUploading] = useState(false);
@@ -133,7 +132,6 @@ const Admin = () => {
           
           <TabsContent value="services" className="space-y-8 mt-6">
             <ServiceCategoryList />
-            <ServiceList />
           </TabsContent>
           
           <TabsContent value="files">
