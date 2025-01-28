@@ -6,6 +6,7 @@ import { ServiceDialog } from './ServiceDialog';
 import { CategoryDialog } from './CategoryDialog';
 import { CategoryItem } from './CategoryItem';
 import { useServiceCategories } from '@/hooks/useServiceCategories';
+import { Separator } from "@/components/ui/separator";
 
 const ServiceCategoryList = () => {
   const [expandedCategories, setExpandedCategories] = useState<string[]>([]);
@@ -108,13 +109,15 @@ const ServiceCategoryList = () => {
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-between items-center">
+      <div className="flex items-center justify-between">
         <h2 className="text-lg font-semibold">Service Categories</h2>
-        <div className="flex gap-1">
+        <div className="flex gap-2">
           <ServiceDialog categories={categories} />
           <CategoryDialog categories={categories} />
         </div>
       </div>
+      
+      <Separator className="my-4" />
 
       <DragDropContext onDragEnd={handleDragEnd}>
         <Droppable droppableId="categories" type="category">
