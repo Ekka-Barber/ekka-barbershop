@@ -28,8 +28,11 @@ import { useToast } from "@/components/ui/use-toast";
 import { Category } from "@/types/service";
 
 const formSchema = z.object({
-  name: z.string().min(2, {
-    message: "Name must be at least 2 characters.",
+  name_en: z.string().min(2, {
+    message: "Name (English) must be at least 2 characters.",
+  }),
+  name_ar: z.string().min(2, {
+    message: "Name (Arabic) must be at least 2 characters.",
   }),
 });
 
@@ -45,7 +48,8 @@ export function CategoryDialog({ categories }: CategoryDialogProps) {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: "",
+      name_en: "",
+      name_ar: "",
     },
   });
 
@@ -56,12 +60,11 @@ export function CategoryDialog({ categories }: CategoryDialogProps) {
       
       const { data, error } = await supabase
         .from('service_categories')
-        .insert([
-          { 
-            name: values.name,
-            display_order: maxOrder + 1
-          }
-        ])
+        .insert({
+          name_en: values.name_en,
+          name_ar: values.name_ar,
+          display_order: maxOrder + 1
+        })
         .select()
         .single();
 
@@ -113,12 +116,25 @@ export function CategoryDialog({ categories }: CategoryDialogProps) {
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
             <FormField
               control={form.control}
-              name="name"
+              name="name_en"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Name</FormLabel>
+                  <FormLabel>Name (English)</FormLabel>
                   <FormControl>
-                    <Input placeholder="Category name" {...field} />
+                    <Input placeholder="Category name in English" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="name_ar"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Name (Arabic)</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Category name in Arabic" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

@@ -14,12 +14,14 @@ import { useToast } from "@/components/ui/use-toast";
 import { Category } from "@/types/service";
 
 const formSchema = z.object({
-  name: z.string().min(2, {
-    message: "Name must be at least 2 characters.",
+  name_en: z.string().min(2, {
+    message: "Name (English) must be at least 2 characters.",
   }),
-  price: z.string().min(1, {
-    message: "Price is required",
+  name_ar: z.string().min(2, {
+    message: "Name (Arabic) must be at least 2 characters.",
   }),
+  price: z.string().min(1).transform(val => Number(val)),
+  duration: z.string().min(1).transform(val => Number(val)),
   category_id: z.string({
     required_error: "Please select a category.",
   }),
@@ -37,8 +39,10 @@ export function ServiceDialog({ categories }: ServiceDialogProps) {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: "",
+      name_en: "",
+      name_ar: "",
       price: "",
+      duration: "",
       category_id: "",
     },
   });
@@ -54,8 +58,10 @@ export function ServiceDialog({ categories }: ServiceDialogProps) {
       const { error } = await supabase
         .from('services')
         .insert({
-          name: values.name,
+          name_en: values.name_en,
+          name_ar: values.name_ar,
           price: values.price,
+          duration: values.duration,
           category_id: values.category_id,
           display_order: maxOrder + 1
         });
@@ -117,7 +123,7 @@ export function ServiceDialog({ categories }: ServiceDialogProps) {
                     <SelectContent>
                       {categories?.map((category) => (
                         <SelectItem key={category.id} value={category.id}>
-                          {category.name}
+                          {category.name_en}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -128,12 +134,25 @@ export function ServiceDialog({ categories }: ServiceDialogProps) {
             />
             <FormField
               control={form.control}
-              name="name"
+              name="name_en"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Name</FormLabel>
+                  <FormLabel>Name (English)</FormLabel>
                   <FormControl>
-                    <Input placeholder="Service name" {...field} />
+                    <Input placeholder="Service name in English" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="name_ar"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Name (Arabic)</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Service name in Arabic" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -146,7 +165,20 @@ export function ServiceDialog({ categories }: ServiceDialogProps) {
                 <FormItem>
                   <FormLabel>Price</FormLabel>
                   <FormControl>
-                    <Input placeholder="Service price" {...field} />
+                    <Input type="number" placeholder="Service price" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="duration"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Duration (minutes)</FormLabel>
+                  <FormControl>
+                    <Input type="number" placeholder="Service duration" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
