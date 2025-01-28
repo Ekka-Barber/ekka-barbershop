@@ -65,7 +65,7 @@ export const CategoryDialog = ({ categories }: CategoryDialogProps) => {
         <Button 
           className="w-[200px] bg-[#C4A484] hover:bg-[#B8997C] text-white"
         >
-          Add Category <Plus className="w-4 h-4 ml-2" />
+          Category <Plus className="w-4 h-4 ml-2" />
         </Button>
       </DialogTrigger>
       <DialogContent>
