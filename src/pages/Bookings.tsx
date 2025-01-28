@@ -59,7 +59,7 @@ const Bookings = () => {
     enabled: !!branchId,
   });
 
-  // Update the categories query to include ordering
+  // Update the categories query to include discount fields
   const { data: categories, isLoading: categoriesLoading } = useQuery({
     queryKey: ['service_categories'],
     queryFn: async () => {
@@ -77,14 +77,15 @@ const Bookings = () => {
             description_ar,
             price,
             duration,
-            display_order
+            display_order,
+            discount_type,
+            discount_value
           )
         `)
         .order('display_order', { ascending: true });
       
       if (categoriesError) throw categoriesError;
 
-      // Sort services within each category by display_order
       return categories?.map(category => ({
         ...category,
         services: category.services.sort((a, b) => 
