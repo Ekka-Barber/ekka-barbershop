@@ -14,6 +14,7 @@ import { BarberSelection } from "@/components/booking/BarberSelection";
 import { CustomerForm } from "@/components/booking/CustomerForm";
 import { BookingSummary } from "@/components/booking/BookingSummary";
 import { Category } from "@/types/service";
+import { useToast } from "@/hooks/use-toast";
 
 const STEPS: BookingStep[] = ['services', 'barber', 'datetime', 'details'];
 
@@ -29,6 +30,7 @@ const Bookings = () => {
   const navigate = useNavigate();
   const { t, language } = useLanguage();
   const location = useLocation();
+  const { toast } = useToast();
   const searchParams = new URLSearchParams(location.search);
   const branchId = searchParams.get('branch');
 
@@ -142,6 +144,11 @@ const Bookings = () => {
     ? employees?.find(emp => emp.id === selectedBarber)?.[language === 'ar' ? 'name_ar' : 'name']
     : undefined;
 
+  const formatPrice = (price: number) => {
+    const roundedPrice = roundPrice(price);
+    return `${roundedPrice} ${language === 'ar' ? 'ريال' : 'SAR'}`;
+  };
+
   const handleServiceToggle = (service: any) => {
     const isSelected = selectedServices.some(s => s.id === service.id);
     if (isSelected) {
@@ -211,24 +218,6 @@ const Bookings = () => {
     return validDays.some(day => Array.isArray(hours[day]));
   };
 
-  if (!branchId) {
-    return (
-      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 flex flex-col items-center justify-center p-4">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-800 mb-4">
-            {t('select.branch')}
-          </h1>
-          <Button 
-            className="w-full h-14 text-lg font-medium bg-[#C4A36F] hover:bg-[#B39260] text-white transition-all duration-300 shadow-lg hover:shadow-xl"
-            onClick={() => navigate('/customer')}
-          >
-            {t('go.back')}
-          </Button>
-        </div>
-      </div>
-    );
-  }
-  
   const generateWhatsAppMessage = () => {
     const serviceSummary = selectedServices
       .map(service => `${service.name}: ${formatPrice(service.price)}${service.originalPrice ? ` (Original: ${formatPrice(service.originalPrice)})` : ''}`)
@@ -275,6 +264,24 @@ ${totalDiscount > 0 ? `Discount: ${formatPrice(totalDiscount)}` : ''}
     const whatsappURL = `https://wa.me/${whatsappNumber}?text=${generateWhatsAppMessage()}`;
     window.open(whatsappURL, '_blank');
   };
+
+  if (!branchId) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 flex flex-col items-center justify-center p-4">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-gray-800 mb-4">
+            {t('select.branch')}
+          </h1>
+          <Button 
+            className="w-full h-14 text-lg font-medium bg-[#C4A36F] hover:bg-[#B39260] text-white transition-all duration-300 shadow-lg hover:shadow-xl"
+            onClick={() => navigate('/customer')}
+          >
+            {t('go.back')}
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={`min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 flex flex-col ${language === 'ar' ? 'rtl' : 'ltr'}`}>
