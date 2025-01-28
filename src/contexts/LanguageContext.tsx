@@ -29,6 +29,8 @@ const translations = {
     // Bookings page
     'book.appointment': 'Book Appointment',
     'booking.coming.soon': 'Online booking coming soon!',
+    'available.barbers': 'barbers available',
+    'no.barbers.available': 'No barbers available at this time',
   },
   ar: {
     // Customer page
@@ -50,6 +52,8 @@ const translations = {
     // Bookings page
     'book.appointment': 'حجز موعد',
     'booking.coming.soon': 'الحجز عبر الإنترنت قريباً!',
+    'available.barbers': 'حلاق متوفر',
+    'no.barbers.available': 'لا يوجد حلاقين متوفرين حالياً',
   }
 };
 
