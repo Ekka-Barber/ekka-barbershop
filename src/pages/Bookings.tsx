@@ -99,15 +99,7 @@ const Bookings = () => {
             Array(3).fill(0).map((_, i) => (
               <Skeleton key={i} className="h-16 w-full" />
             ))
-          ) : employees?.length ? (
-            <div className="text-center text-gray-600">
-              {employees.length} {t('available.barbers')}
-            </div>
-          ) : (
-            <div className="text-center text-gray-600">
-              {t('no.barbers.available')}
-            </div>
-          )}
+          ) : null}
         </div>
 
         {/* Navigation Button */}
