@@ -14,7 +14,7 @@ interface DateTimeSelectionProps {
   selectedTime: string | undefined;
   onDateSelect: (date: Date | undefined) => void;
   onTimeSelect: (time: string) => void;
-  employeeWorkingHours?: WorkingHours;
+  employeeWorkingHours?: WorkingHours | null;
 }
 
 export const DateTimeSelection = ({

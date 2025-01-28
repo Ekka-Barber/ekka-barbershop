@@ -127,7 +127,7 @@ const Bookings = () => {
         .from('employees')
         .select('*')
         .eq('id', selectedBarber)
-        .single();
+        .maybeSingle();
       
       if (error) throw error;
       return data;
@@ -254,8 +254,7 @@ const Bookings = () => {
               selectedTime={selectedTime}
               onDateSelect={setSelectedDate}
               onTimeSelect={setSelectedTime}
-              employeeWorkingHours={selectedEmployee?.working_hours}
-              timeSlots={timeSlots}
+              employeeWorkingHours={selectedEmployee?.working_hours as WorkingHours}
             />
           )}
 
