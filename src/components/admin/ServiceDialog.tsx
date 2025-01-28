@@ -48,6 +48,8 @@ export const ServiceDialog = ({ categories, editService, onSuccess, trigger }: S
     }
   };
 
+  if (editService && !trigger) return null;
+
   return (
     <Accordion
       type="single"
@@ -57,7 +59,11 @@ export const ServiceDialog = ({ categories, editService, onSuccess, trigger }: S
       className="w-full"
     >
       <AccordionItem value={editService ? 'edit-service' : 'add-service'} className="border-none">
-        {!editService ? (
+        {editService ? (
+          <AccordionTrigger asChild>
+            {trigger}
+          </AccordionTrigger>
+        ) : (
           <AccordionTrigger className="hover:no-underline py-0">
             <Button 
               variant="outline"
@@ -67,8 +73,6 @@ export const ServiceDialog = ({ categories, editService, onSuccess, trigger }: S
               Service <Plus className="w-4 h-4 ml-2" />
             </Button>
           </AccordionTrigger>
-        ) : (
-          <div>{trigger}</div>
         )}
         <AccordionContent className="pt-4">
           <div className="space-y-4 bg-card rounded-lg border shadow-sm p-6">
