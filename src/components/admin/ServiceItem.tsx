@@ -40,9 +40,18 @@ export const ServiceItem = ({ service, index }: ServiceItemProps) => {
                 name_en: '', 
                 name_ar: '', 
                 display_order: 0,
-                services: [] // Added the required services property
+                services: []
               }]}
               editService={service}
+              trigger={
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-blue-500 hover:text-blue-600"
+                >
+                  <Pencil className="w-4 h-4" />
+                </Button>
+              }
             />
           </div>
         </div>
