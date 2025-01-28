@@ -73,24 +73,24 @@ const Customer = () => {
 
       {/* Branch Selection Dialog */}
       <Dialog open={branchDialogOpen} onOpenChange={setBranchDialogOpen}>
-        <DialogContent className="sm:max-w-md bg-gradient-to-b from-white to-gray-50 border-0 shadow-2xl">
+        <DialogContent className="sm:max-w-3xl bg-gradient-to-b from-white to-gray-50 border-0 shadow-2xl p-8">
           <DialogHeader>
-            <DialogTitle className="text-center text-2xl font-bold text-[#403E43]">
+            <DialogTitle className="text-center text-3xl font-bold text-[#403E43] mb-8">
               {language === 'ar' ? 'اختر الفرع' : 'Select Branch'}
             </DialogTitle>
           </DialogHeader>
-          <div className="space-y-4 mt-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {branches?.map((branch) => (
               <Button
                 key={branch.id}
                 variant="outline"
-                className="w-full p-6 flex flex-col items-start space-y-2 bg-white hover:bg-[#F1F1F1] border-2 border-gray-100 hover:border-[#9b87f5] transition-all duration-300 rounded-xl group"
+                className="h-auto aspect-square p-8 flex flex-col items-center justify-center space-y-4 bg-white hover:bg-[#9b87f5]/5 border-2 border-gray-100 hover:border-[#9b87f5] transition-all duration-300 rounded-2xl group"
                 onClick={() => handleBranchSelect(branch.id)}
               >
-                <span className="font-semibold text-lg text-[#403E43] group-hover:text-[#9b87f5] transition-colors">
+                <span className="font-semibold text-2xl text-[#403E43] group-hover:text-[#9b87f5] transition-colors text-center">
                   {language === 'ar' ? branch.name_ar : branch.name}
                 </span>
-                <span className="text-sm text-gray-500 group-hover:text-[#9b87f5]/70 transition-colors">
+                <span className="text-base text-gray-500 group-hover:text-[#9b87f5]/70 transition-colors text-center">
                   {language === 'ar' ? branch.address_ar : branch.address}
                 </span>
               </Button>
