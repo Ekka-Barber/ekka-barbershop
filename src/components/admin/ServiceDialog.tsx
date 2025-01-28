@@ -45,9 +45,9 @@ export const ServiceDialog = ({ categories }: ServiceDialogProps) => {
             <Button 
               variant="outline"
               size="icon" 
-              className="rounded-full bg-primary hover:bg-primary/90 text-primary-foreground"
+              className="w-[200px] bg-[#C4A484] hover:bg-[#B8997C] text-white"
             >
-              <Plus className="h-4 w-4" />
+              Service <Plus className="w-4 h-4 ml-2" />
             </Button>
           </AccordionTrigger>
         </div>
