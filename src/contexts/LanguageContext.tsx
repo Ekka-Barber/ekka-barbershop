@@ -35,7 +35,7 @@ const translations = {
     'step.barber': 'Barber',
     'step.details': 'Details',
     'welcome.line1': 'Welcome to',
-    'welcome.line2': 'EKKA',
+    'welcome.line2': 'Ekka Barbershop',
     'view.menu': 'View Menu',
     'special.offers': 'Special Offers',
     'special.offers.title': 'Special Offers',
