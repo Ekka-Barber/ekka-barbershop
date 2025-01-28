@@ -217,6 +217,9 @@ const Bookings = () => {
               <BookingSummary
                 selectedServices={selectedServices}
                 totalPrice={totalPrice}
+                selectedDate={selectedDate}
+                selectedTime={selectedTime}
+                selectedBarber={selectedBarber}
               />
             </div>
           )}
