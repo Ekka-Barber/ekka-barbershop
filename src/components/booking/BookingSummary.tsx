@@ -13,7 +13,7 @@ interface BookingSummaryProps {
   totalPrice: number;
   selectedDate?: Date;
   selectedTime?: string;
-  selectedBarber?: string;
+  selectedBarberName?: string;
 }
 
 export const BookingSummary = ({
@@ -21,7 +21,7 @@ export const BookingSummary = ({
   totalPrice,
   selectedDate,
   selectedTime,
-  selectedBarber
+  selectedBarberName
 }: BookingSummaryProps) => {
   const { t } = useLanguage();
   
@@ -55,10 +55,10 @@ export const BookingSummary = ({
           </div>
         )}
 
-        {selectedBarber && (
+        {selectedBarberName && (
           <div className="pt-2 flex justify-between text-muted-foreground">
             <span>{t('barber')}</span>
-            <span>{selectedBarber}</span>
+            <span>{selectedBarberName}</span>
           </div>
         )}
         

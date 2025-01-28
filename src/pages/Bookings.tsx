@@ -104,6 +104,10 @@ const Bookings = () => {
   const currentStepIndex = STEPS.indexOf(currentStep);
   const totalPrice = selectedServices.reduce((sum, service) => sum + service.price, 0);
 
+  const selectedBarberName = selectedBarber 
+    ? employees?.find(emp => emp.id === selectedBarber)?.[language === 'ar' ? 'name_ar' : 'name']
+    : undefined;
+
   const handleServiceToggle = (service: any) => {
     const isSelected = selectedServices.some(s => s.id === service.id);
     if (isSelected) {
@@ -219,7 +223,7 @@ const Bookings = () => {
                 totalPrice={totalPrice}
                 selectedDate={selectedDate}
                 selectedTime={selectedTime}
-                selectedBarber={selectedBarber}
+                selectedBarberName={selectedBarberName}
               />
             </div>
           )}
