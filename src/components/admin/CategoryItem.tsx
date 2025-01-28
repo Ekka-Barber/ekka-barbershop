@@ -1,8 +1,9 @@
-import { GripVertical, Trash, ChevronDown, ChevronRight } from 'lucide-react';
+import { GripVertical, Trash, ChevronDown, ChevronRight, Pencil } from 'lucide-react';
 import { Draggable, Droppable } from '@hello-pangea/dnd';
 import { Button } from "@/components/ui/button";
 import { Category } from '@/types/service';
 import { ServiceItem } from './ServiceItem';
+import { CategoryDialog } from './CategoryDialog';
 
 type CategoryItemProps = {
   category: Category;
@@ -54,13 +55,28 @@ export const CategoryItem = ({
                 </div>
               </button>
             </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onDelete}
-            >
-              <Trash className="w-4 h-4 text-red-500" />
-            </Button>
+            <div className="flex items-center gap-2">
+              <CategoryDialog
+                categories={[category]}
+                editCategory={category}
+                trigger={
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-blue-500 hover:text-blue-600"
+                  >
+                    <Pencil className="w-4 h-4" />
+                  </Button>
+                }
+              />
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onDelete}
+              >
+                <Trash className="w-4 h-4 text-red-500" />
+              </Button>
+            </div>
           </div>
 
           {isExpanded && (

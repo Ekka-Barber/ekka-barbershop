@@ -1,6 +1,8 @@
-import { GripVertical } from 'lucide-react';
+import { GripVertical, Pencil } from 'lucide-react';
 import { Draggable } from '@hello-pangea/dnd';
+import { Button } from "@/components/ui/button";
 import { Service } from '@/types/service';
+import { ServiceDialog } from './ServiceDialog';
 
 type ServiceItemProps = {
   service: Service;
@@ -28,8 +30,21 @@ export const ServiceItem = ({ service, index }: ServiceItemProps) => {
               <p className="text-xs text-gray-500">{service.name_ar}</p>
             </div>
           </div>
-          <div className="text-sm text-gray-500">
-            {service.duration} mins • ${service.price}
+          <div className="flex items-center gap-2">
+            <div className="text-sm text-gray-500">
+              {service.duration} mins • ${service.price}
+            </div>
+            <ServiceDialog
+              categories={[{ id: service.category_id, name_en: '', name_ar: '', display_order: 0 }]}
+              editService={service}
+            />
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-blue-500 hover:text-blue-600"
+            >
+              <Pencil className="w-4 h-4" />
+            </Button>
           </div>
         </div>
       )}

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus } from 'lucide-react';
+import { Plus, Pencil } from 'lucide-react';
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,11 +16,16 @@ import { Category } from '@/types/service';
 
 type CategoryDialogProps = {
   categories: Category[] | undefined;
+  editCategory?: Category;
+  trigger?: React.ReactNode;
 };
 
-export const CategoryDialog = ({ categories }: CategoryDialogProps) => {
+export const CategoryDialog = ({ categories, editCategory, trigger }: CategoryDialogProps) => {
   const [categoryDialogOpen, setCategoryDialogOpen] = useState(false);
-  const [newCategory, setNewCategory] = useState({ name_en: '', name_ar: '' });
+  const [newCategory, setNewCategory] = useState({ 
+    name_en: editCategory?.name_en || '', 
+    name_ar: editCategory?.name_ar || '' 
+  });
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -59,18 +64,63 @@ export const CategoryDialog = ({ categories }: CategoryDialogProps) => {
     }
   });
 
+  const updateCategoryMutation = useMutation({
+    mutationFn: async (category: { name_en: string; name_ar: string }) => {
+      await supabase.rpc('set_branch_manager_code', { code: 'true' });
+      const { data, error } = await supabase
+        .from('service_categories')
+        .update({ 
+          name_en: category.name_en, 
+          name_ar: category.name_ar 
+        })
+        .eq('id', editCategory?.id)
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['service-categories'] });
+      setCategoryDialogOpen(false);
+      setNewCategory({ name_en: '', name_ar: '' });
+      toast({
+        title: "Success",
+        description: "Category updated successfully",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Failed to update category",
+        variant: "destructive",
+      });
+      console.error('Update error:', error);
+    }
+  });
+
+  const handleSubmit = () => {
+    if (editCategory) {
+      updateCategoryMutation.mutate(newCategory);
+    } else {
+      addCategoryMutation.mutate(newCategory);
+    }
+  };
+
   return (
     <Dialog open={categoryDialogOpen} onOpenChange={setCategoryDialogOpen}>
       <DialogTrigger asChild>
-        <Button 
-          className="w-[200px] bg-[#C4A484] hover:bg-[#B8997C] text-white"
-        >
-          Category <Plus className="w-4 h-4 ml-2" />
-        </Button>
+        {trigger || (
+          <Button 
+            className="w-[200px] bg-[#C4A484] hover:bg-[#B8997C] text-white"
+          >
+            Category <Plus className="w-4 h-4 ml-2" />
+          </Button>
+        )}
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Add New Category</DialogTitle>
+          <DialogTitle>{editCategory ? 'Edit Category' : 'Add New Category'}</DialogTitle>
         </DialogHeader>
         <div className="space-y-4 pt-4">
           <div className="space-y-2">
@@ -92,10 +142,10 @@ export const CategoryDialog = ({ categories }: CategoryDialogProps) => {
           </div>
           <Button 
             className="w-full"
-            onClick={() => addCategoryMutation.mutate(newCategory)}
+            onClick={handleSubmit}
             disabled={!newCategory.name_en || !newCategory.name_ar}
           >
-            Add Category
+            {editCategory ? 'Update Category' : 'Add Category'}
           </Button>
         </div>
       </DialogContent>
