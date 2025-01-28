@@ -194,7 +194,7 @@ export const BookingSteps = ({ branch }: BookingStepsProps) => {
             selectedTime={selectedTime}
             onDateSelect={setSelectedDate}
             onTimeSelect={setSelectedTime}
-            employeeWorkingHours={selectedEmployee?.working_hours}
+            employeeWorkingHours={selectedEmployee?.working_hours as WorkingHours}
           />
         )}
 
@@ -211,6 +211,17 @@ export const BookingSteps = ({ branch }: BookingStepsProps) => {
               selectedDate={selectedDate}
               selectedTime={selectedTime}
               selectedBarberName={selectedBarberName}
+            />
+
+            <WhatsAppIntegration
+              selectedServices={selectedServices}
+              totalPrice={totalPrice}
+              selectedDate={selectedDate}
+              selectedTime={selectedTime}
+              selectedBarberName={selectedBarberName}
+              customerDetails={customerDetails}
+              language={language}
+              branch={branch}
             />
           </div>
         )}
@@ -229,18 +240,6 @@ export const BookingSteps = ({ branch }: BookingStepsProps) => {
         customerDetails={customerDetails}
         branch={branch}
       />
-
-      {currentStep === 'details' && (
-        <WhatsAppIntegration
-          selectedServices={selectedServices}
-          totalPrice={totalPrice}
-          selectedDate={selectedDate}
-          selectedTime={selectedTime}
-          selectedBarberName={selectedBarberName}
-          customerDetails={customerDetails}
-          language={language}
-        />
-      )}
     </>
   );
 };

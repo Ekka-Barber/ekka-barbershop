@@ -24,6 +24,7 @@ interface WhatsAppIntegrationProps {
   selectedBarberName?: string;
   customerDetails: CustomerDetails;
   language: string;
+  branch?: { whatsapp_number?: string | null };
 }
 
 export const WhatsAppIntegration = ({
@@ -33,7 +34,8 @@ export const WhatsAppIntegration = ({
   selectedTime,
   selectedBarberName,
   customerDetails,
-  language
+  language,
+  branch
 }: WhatsAppIntegrationProps) => {
   const { toast } = useToast();
 
@@ -73,8 +75,8 @@ ${totalDiscount > 0 ? `الخصم: ${formatPrice(totalDiscount)}` : ''}
     return encodeURIComponent(message);
   };
 
-  const handleBookingConfirmation = (branchWhatsApp?: string) => {
-    if (!branchWhatsApp) {
+  const handleBookingConfirmation = () => {
+    if (!branch?.whatsapp_number) {
       toast({
         title: language === 'ar' ? 'خطأ' : 'Error',
         description: language === 'ar' ? 'رقم الواتساب غير متوفر' : 'WhatsApp number is missing',
@@ -83,10 +85,15 @@ ${totalDiscount > 0 ? `الخصم: ${formatPrice(totalDiscount)}` : ''}
       return;
     }
 
-    const whatsappNumber = branchWhatsApp.startsWith('+') ? branchWhatsApp.slice(1) : branchWhatsApp;
+    const whatsappNumber = branch.whatsapp_number.startsWith('+') ? branch.whatsapp_number.slice(1) : branch.whatsapp_number;
     const whatsappURL = `https://wa.me/${whatsappNumber}?text=${generateWhatsAppMessage()}`;
     window.open(whatsappURL, '_blank');
   };
 
-  return { handleBookingConfirmation };
+  return (
+    <div className="text-center text-sm text-muted-foreground space-y-1 mt-4">
+      <p>{language === 'ar' ? '📱 سيتم تأكيد حجزك على الواتساب.' : '📱 Your booking will be confirmed on WhatsApp'}</p>
+      <p>{language === 'ar' ? '📲 سيصلك ردنا بالتأكيد قريباً! ✔️' : '📲 You\'ll receive our confirmation shortly! ✔️'}</p>
+    </div>
+  );
 };

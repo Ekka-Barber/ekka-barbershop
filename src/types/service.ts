@@ -3,7 +3,7 @@ export type Category = {
   name_en: string;
   name_ar: string;
   display_order: number;
-  services: Service[];  // Changed from optional to required
+  services: Service[];
 };
 
 export type Service = {
@@ -18,4 +18,8 @@ export type Service = {
   display_order: number;
   discount_type: "percentage" | "amount" | null;
   discount_value: number | null;
+};
+
+export type WorkingHours = {
+  [key: string]: string[];
 };
