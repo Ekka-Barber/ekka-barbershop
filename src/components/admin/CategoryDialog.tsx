@@ -63,11 +63,9 @@ export const CategoryDialog = ({ categories }: CategoryDialogProps) => {
     <Dialog open={categoryDialogOpen} onOpenChange={setCategoryDialogOpen}>
       <DialogTrigger asChild>
         <Button 
-          size="icon" 
-          variant="outline"
-          className="rounded-full bg-primary hover:bg-primary/90 text-primary-foreground"
+          className="w-[200px] bg-[#C4A484] hover:bg-[#B8997C] text-white"
         >
-          <Plus className="w-4 h-4" />
+          Add Category <Plus className="w-4 h-4 ml-2" />
         </Button>
       </DialogTrigger>
       <DialogContent>
