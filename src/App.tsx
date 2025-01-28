@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import Index from "./pages/Index";
 import Customer from "./pages/Customer";
@@ -14,7 +14,20 @@ import Bookings from "./pages/Bookings";
 const queryClient = new QueryClient();
 
 // List of public routes that customers can access
-const PUBLIC_ROUTES = ['/customer', '/menu', '/offers', '/preview', '/bookings', '/admin', '/index'];
+const PUBLIC_ROUTES = ['/customer', '/menu', '/offers', '/preview', '/bookings'];
+
+// Protected route component
+const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  const access = searchParams.get('access');
+
+  if (access !== 'owner123') {
+    return <Navigate to="/customer" replace />;
+  }
+
+  return <>{children}</>;
+};
 
 const App = () => {
   return (
@@ -35,9 +48,9 @@ const App = () => {
               <Route path="/preview" element={<Customer />} />
               <Route path="/bookings" element={<Bookings />} />
               
-              {/* Admin routes - now publicly accessible */}
-              <Route path="/admin" element={<Admin />} />
-              <Route path="/index" element={<Index />} />
+              {/* Protected routes */}
+              <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
+              <Route path="/index" element={<ProtectedRoute><Index /></ProtectedRoute>} />
               
               {/* Catch all other routes and redirect to customer page */}
               <Route path="*" element={<Navigate to="/customer" replace />} />
