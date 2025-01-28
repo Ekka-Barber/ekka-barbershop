@@ -109,10 +109,12 @@ export const ServiceSelection = ({
                       <div className="mt-1 text-sm flex items-center gap-2">
                         {hasDiscount(service) ? (
                           <>
-                            <span className="text-destructive flex items-center">
-                              <Slash className="w-4 h-4" />
-                              {formatPrice(service.price)}
-                            </span>
+                            <div className="relative inline-flex items-center">
+                              <span className="text-foreground">
+                                {formatPrice(service.price)}
+                              </span>
+                              <Slash className="w-4 h-4 text-destructive absolute -translate-y-1/2 top-1/2 left-1/2 -translate-x-1/2" />
+                            </div>
                             <span className="font-medium">
                               {formatPrice(calculateDiscountedPrice(service))}
                             </span>
