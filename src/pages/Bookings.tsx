@@ -15,7 +15,7 @@ import { CustomerForm } from "@/components/booking/CustomerForm";
 import { BookingSummary } from "@/components/booking/BookingSummary";
 import { Category, Service } from "@/types/service";
 
-const STEPS: BookingStep[] = ['services', 'datetime', 'barber', 'details'];
+const STEPS: BookingStep[] = ['services', 'barber', 'datetime', 'details'];
 
 interface SelectedService {
   id: string;
@@ -248,22 +248,22 @@ const Bookings = () => {
             />
           )}
 
-          {currentStep === 'datetime' && (
-            <DateTimeSelection
-              selectedDate={selectedDate}
-              selectedTime={selectedTime}
-              onDateSelect={setSelectedDate}
-              onTimeSelect={setSelectedTime}
-              employeeWorkingHours={selectedEmployee?.working_hours as WorkingHours}
-            />
-          )}
-
           {currentStep === 'barber' && (
             <BarberSelection
               employees={employees}
               isLoading={employeesLoading}
               selectedBarber={selectedBarber}
               onBarberSelect={setSelectedBarber}
+            />
+          )}
+
+          {currentStep === 'datetime' && (
+            <DateTimeSelection
+              selectedDate={selectedDate}
+              selectedTime={selectedTime}
+              onDateSelect={setSelectedDate}
+              onTimeSelect={setSelectedTime}
+              employeeWorkingHours={selectedEmployee?.working_hours}
             />
           )}
 
@@ -306,8 +306,8 @@ const Bookings = () => {
               className="flex-1 bg-[#C4A36F] hover:bg-[#B39260]"
               disabled={
                 (currentStep === 'services' && selectedServices.length === 0) ||
-                (currentStep === 'datetime' && (!selectedDate || !selectedTime)) ||
-                (currentStep === 'barber' && !selectedBarber)
+                (currentStep === 'barber' && !selectedBarber) ||
+                (currentStep === 'datetime' && (!selectedDate || !selectedTime))
               }
             >
               {t('next')}
