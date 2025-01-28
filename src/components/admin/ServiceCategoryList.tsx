@@ -110,13 +110,6 @@ const ServiceCategoryList = () => {
   return (
     <div className="space-y-4">
       <h2 className="text-lg font-semibold">Service Categories</h2>
-      
-      <div className="flex flex-col items-center gap-4 mb-6">
-        <CategoryDialog categories={categories} />
-        <ServiceDialog categories={categories} />
-      </div>
-
-      <Separator className="my-4" />
 
       <DragDropContext onDragEnd={handleDragEnd}>
         <Droppable droppableId="categories" type="category">
@@ -141,6 +134,13 @@ const ServiceCategoryList = () => {
           )}
         </Droppable>
       </DragDropContext>
+
+      <Separator className="my-4" />
+      
+      <div className="flex flex-col items-center gap-4">
+        <CategoryDialog categories={categories} />
+        <ServiceDialog categories={categories} />
+      </div>
     </div>
   );
 };
