@@ -13,7 +13,7 @@ import { DateTimeSelection, WorkingHours } from "@/components/booking/DateTimeSe
 import { BarberSelection } from "@/components/booking/BarberSelection";
 import { CustomerForm } from "@/components/booking/CustomerForm";
 import { BookingSummary } from "@/components/booking/BookingSummary";
-import { Category, Service } from "@/types/service";
+import { Category } from "@/types/service";
 
 const STEPS: BookingStep[] = ['services', 'barber', 'datetime', 'details'];
 
@@ -263,7 +263,7 @@ const Bookings = () => {
               selectedTime={selectedTime}
               onDateSelect={setSelectedDate}
               onTimeSelect={setSelectedTime}
-              employeeWorkingHours={selectedEmployee?.working_hours}
+              employeeWorkingHours={selectedEmployee?.working_hours as WorkingHours}
             />
           )}
 
