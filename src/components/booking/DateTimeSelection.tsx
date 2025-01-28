@@ -5,7 +5,7 @@ import { format, addHours, isBefore, parse } from "date-fns";
 import { cn } from "@/lib/utils";
 import { useEffect, useMemo } from "react";
 
-interface WorkingHours {
+export interface WorkingHours {
   [key: string]: string[];
 }
 

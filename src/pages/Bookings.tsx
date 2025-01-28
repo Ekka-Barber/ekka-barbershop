@@ -9,7 +9,7 @@ import { useState } from "react";
 import { BookingHeader } from "@/components/booking/BookingHeader";
 import { BookingProgress, BookingStep } from "@/components/booking/BookingProgress";
 import { ServiceSelection } from "@/components/booking/ServiceSelection";
-import { DateTimeSelection } from "@/components/booking/DateTimeSelection";
+import { DateTimeSelection, WorkingHours } from "@/components/booking/DateTimeSelection";
 import { BarberSelection } from "@/components/booking/BarberSelection";
 import { CustomerForm } from "@/components/booking/CustomerForm";
 import { BookingSummary } from "@/components/booking/BookingSummary";
