@@ -40,10 +40,15 @@ const Customer = () => {
             alt="Ekka Barbershop Logo" 
             className="h-32 mx-auto mb-6"
           />
-          <h1 className="text-3xl font-bold text-[#222222] mb-2">
-            {t('welcome')} {t('ekka')}
-          </h1>
-          <div className="h-1 w-24 bg-[#C4A36F] mx-auto"></div>
+          <div className="space-y-2">
+            <h2 className="text-xl font-medium text-[#222222]">
+              {t('welcome.line1')}
+            </h2>
+            <h1 className="text-3xl font-bold text-[#222222]">
+              {t('welcome.line2')}
+            </h1>
+          </div>
+          <div className="h-1 w-24 bg-[#C4A36F] mx-auto mt-4"></div>
         </div>
 
         {/* Navigation Buttons */}
