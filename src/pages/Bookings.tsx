@@ -59,7 +59,7 @@ const Bookings = () => {
     enabled: !!branchId,
   });
 
-  // Fetch service categories with their services
+  // Update the categories query to include ordering
   const { data: categories, isLoading: categoriesLoading } = useQuery({
     queryKey: ['service_categories'],
     queryFn: async () => {
@@ -76,12 +76,21 @@ const Bookings = () => {
             description_en,
             description_ar,
             price,
-            duration
+            duration,
+            display_order
           )
-        `);
+        `)
+        .order('display_order', { ascending: true });
       
       if (categoriesError) throw categoriesError;
-      return categories;
+
+      // Sort services within each category by display_order
+      return categories?.map(category => ({
+        ...category,
+        services: category.services.sort((a, b) => 
+          (a.display_order ?? 0) - (b.display_order ?? 0)
+        )
+      }));
     },
   });
 
