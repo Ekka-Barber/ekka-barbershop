@@ -110,7 +110,7 @@ const ServiceCategoryList = () => {
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <h2 className="text-lg font-semibold">Service Categories</h2>
-        <div className="flex gap-2">
+        <div className="flex gap-1">
           <ServiceDialog categories={categories} />
           <CategoryDialog categories={categories} />
         </div>

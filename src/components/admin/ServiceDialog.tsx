@@ -42,9 +42,8 @@ export const ServiceDialog = ({ categories }: ServiceDialogProps) => {
       <AccordionItem value="add-service" className="border-none">
         <div className="flex items-center justify-between">
           <AccordionTrigger className="hover:no-underline py-0">
-            <Button variant="ghost" className="gap-2">
-              <Plus className="w-4 h-4" />
-              Add New Service
+            <Button variant="ghost" size="icon">
+              <Plus className="h-4 w-4" />
             </Button>
           </AccordionTrigger>
         </div>
