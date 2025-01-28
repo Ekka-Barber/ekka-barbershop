@@ -7,24 +7,39 @@ import { useQuery } from '@tanstack/react-query';
 const Index = () => {
   const navigate = useNavigate();
   
+  // Get the current window location to create the full URL for the QR code
+  const baseUrl = window.location.origin;
+  const customerUrl = `${baseUrl}/customer`;
+  
   const { data: qrCode, isLoading } = useQuery({
     queryKey: ['qrCode'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('qr_codes')
-        .select('url')
+        .select('*')
         .eq('is_active', true)
         .single();
       
       if (error) throw error;
-      return data;
+      
+      // Update QR code URL if it's different
+      if (data && data.url !== customerUrl) {
+        const { error: updateError } = await supabase
+          .from('qr_codes')
+          .update({ url: customerUrl })
+          .eq('id', data.id);
+        
+        if (updateError) throw updateError;
+      }
+      
+      return { url: customerUrl };
     }
   });
   
   if (isLoading) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="text-xl text-blue-900">Loading QR Code...</div>
+        <div className="text-xl text-[#C4A36F]">Loading QR Code...</div>
       </div>
     );
   }
@@ -32,11 +47,11 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-white">
       <div className="max-w-4xl mx-auto p-6">
-        <h1 className="text-4xl font-bold text-blue-900 mb-8 text-center">QR Code</h1>
+        <h1 className="text-4xl font-bold text-[#222222] mb-8 text-center">QR Code</h1>
         
         <div className="bg-white rounded-lg shadow-lg p-8 mb-8">
           <div className="flex justify-center mb-6">
-            {qrCode && <QRCodeSVG value={qrCode.url} size={256} />}
+            <QRCodeSVG value={customerUrl} size={256} />
           </div>
           <p className="text-center text-gray-600 mb-4">
             Scan this QR code to access our customer interface
@@ -45,8 +60,7 @@ const Index = () => {
 
         <div className="text-center">
           <Button
-            variant="outline"
-            className="mx-2"
+            className="mx-2 bg-[#C4A36F] hover:bg-[#B39260] text-white"
             onClick={() => navigate('/preview')}
           >
             Preview Customer View
