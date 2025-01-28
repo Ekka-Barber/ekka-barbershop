@@ -13,6 +13,7 @@ import { DateTimeSelection } from "@/components/booking/DateTimeSelection";
 import { BarberSelection } from "@/components/booking/BarberSelection";
 import { CustomerForm } from "@/components/booking/CustomerForm";
 import { BookingSummary } from "@/components/booking/BookingSummary";
+import { Category, Service } from "@/types/service";
 
 const STEPS: BookingStep[] = ['services', 'datetime', 'barber', 'details'];
 
@@ -21,6 +22,7 @@ interface SelectedService {
   name: string;
   price: number;
   duration: number;
+  originalPrice?: number;
 }
 
 const Bookings = () => {
@@ -69,6 +71,7 @@ const Bookings = () => {
           id,
           name_en,
           name_ar,
+          display_order,
           services (
             id,
             name_en,
@@ -88,10 +91,14 @@ const Bookings = () => {
 
       return categories?.map(category => ({
         ...category,
-        services: category.services.sort((a, b) => 
-          (a.display_order ?? 0) - (b.display_order ?? 0)
-        )
-      }));
+        services: category.services
+          .map(service => ({
+            ...service,
+            discount_type: service.discount_type as "percentage" | "amount" | null,
+            discount_value: service.discount_value
+          }))
+          .sort((a, b) => (a.display_order ?? 0) - (b.display_order ?? 0))
+      })) as Category[];
     },
   });
 

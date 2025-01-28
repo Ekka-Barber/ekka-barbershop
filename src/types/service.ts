@@ -16,6 +16,6 @@ export type Service = {
   duration: number;
   price: number;
   display_order: number;
-  discount_type: 'percentage' | 'amount' | null;
+  discount_type: "percentage" | "amount" | null;
   discount_value: number | null;
 };
