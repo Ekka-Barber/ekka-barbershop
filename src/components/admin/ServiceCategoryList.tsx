@@ -94,9 +94,27 @@ const ServiceCategoryList = () => {
 
   const updateOrderMutation = useMutation({
     mutationFn: async (updates: { id: string; display_order: number }[]) => {
+      // Fetch current categories first to preserve existing data
+      const { data: currentCategories, error: fetchError } = await supabase
+        .from('service_categories')
+        .select('*')
+        .in('id', updates.map(u => u.id));
+      
+      if (fetchError) throw fetchError;
+
+      // Merge updates with existing data
+      const mergedUpdates = updates.map(update => {
+        const current = currentCategories?.find(c => c.id === update.id);
+        if (!current) throw new Error(`Category ${update.id} not found`);
+        return {
+          ...current,
+          display_order: update.display_order
+        };
+      });
+
       const { error } = await supabase
         .from('service_categories')
-        .upsert(updates);
+        .upsert(mergedUpdates);
       
       if (error) throw error;
     },

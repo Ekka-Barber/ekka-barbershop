@@ -141,9 +141,27 @@ const ServiceList = () => {
 
   const updateOrderMutation = useMutation({
     mutationFn: async (updates: { id: string; display_order: number }[]) => {
+      // Fetch current services first to preserve existing data
+      const { data: currentServices, error: fetchError } = await supabase
+        .from('services')
+        .select('*')
+        .in('id', updates.map(u => u.id));
+      
+      if (fetchError) throw fetchError;
+
+      // Merge updates with existing data
+      const mergedUpdates = updates.map(update => {
+        const current = currentServices?.find(s => s.id === update.id);
+        if (!current) throw new Error(`Service ${update.id} not found`);
+        return {
+          ...current,
+          display_order: update.display_order
+        };
+      });
+
       const { error } = await supabase
         .from('services')
-        .upsert(updates);
+        .upsert(mergedUpdates);
       
       if (error) throw error;
     },
