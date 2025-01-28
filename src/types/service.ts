@@ -3,7 +3,7 @@ export type Category = {
   name_en: string;
   name_ar: string;
   display_order: number;
-  services?: Service[];
+  services: Service[];  // Changed from optional to required
 };
 
 export type Service = {
