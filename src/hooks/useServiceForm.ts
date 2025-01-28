@@ -30,10 +30,18 @@ export const useServiceForm = (onSuccess: () => void) => {
       await supabase.rpc('set_branch_manager_code', { code: 'true' });
       const { data, error } = await supabase
         .from('services')
-        .insert([{
-          ...service,
+        .insert({
+          category_id: service.category_id,
+          name_en: service.name_en,
+          name_ar: service.name_ar,
+          description_en: service.description_en,
+          description_ar: service.description_ar,
+          duration: service.duration,
+          price: service.price,
+          discount_type: service.discount_type,
+          discount_value: service.discount_value,
           display_order: 0 // Will be updated by the backend
-        }])
+        })
         .select()
         .single();
       
