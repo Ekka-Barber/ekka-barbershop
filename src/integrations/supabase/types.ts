@@ -640,6 +640,8 @@ export type Database = {
           created_at: string
           description_ar: string | null
           description_en: string | null
+          discount_type: string | null
+          discount_value: number | null
           display_order: number | null
           duration: number
           id: string
@@ -653,6 +655,8 @@ export type Database = {
           created_at?: string
           description_ar?: string | null
           description_en?: string | null
+          discount_type?: string | null
+          discount_value?: number | null
           display_order?: number | null
           duration: number
           id?: string
@@ -666,6 +670,8 @@ export type Database = {
           created_at?: string
           description_ar?: string | null
           description_en?: string | null
+          discount_type?: string | null
+          discount_value?: number | null
           display_order?: number | null
           duration?: number
           id?: string

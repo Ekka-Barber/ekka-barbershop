@@ -13,6 +13,14 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 
 type Category = {
   id: string;
@@ -32,11 +40,24 @@ type Service = {
   duration: number;
   price: number;
   display_order: number;
+  discount_type: 'percentage' | 'amount' | null;
+  discount_value: number;
 };
 
 const ServiceCategoryList = () => {
   const [newCategory, setNewCategory] = useState({ name_en: '', name_ar: '' });
-  const [dialogOpen, setDialogOpen] = useState(false);
+  const [newService, setNewService] = useState<Partial<Service>>({
+    name_en: '',
+    name_ar: '',
+    description_en: '',
+    description_ar: '',
+    duration: 0,
+    price: 0,
+    discount_type: null,
+    discount_value: 0,
+  });
+  const [categoryDialogOpen, setCategoryDialogOpen] = useState(false);
+  const [serviceDialogOpen, setServiceDialogOpen] = useState(false);
   const [expandedCategories, setExpandedCategories] = useState<string[]>([]);
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -60,7 +81,6 @@ const ServiceCategoryList = () => {
       
       if (categoriesError) throw categoriesError;
 
-      // Sort services within each category
       return categories.map(category => ({
         ...category,
         services: category.services?.sort((a, b) => a.display_order - b.display_order)
@@ -109,7 +129,7 @@ const ServiceCategoryList = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['service-categories'] });
-      setDialogOpen(false);
+      setCategoryDialogOpen(false);
       setNewCategory({ name_en: '', name_ar: '' });
       toast({
         title: "Success",
@@ -120,6 +140,49 @@ const ServiceCategoryList = () => {
       toast({
         title: "Error",
         description: "Failed to add category",
+        variant: "destructive",
+      });
+      console.error('Add error:', error);
+    }
+  });
+
+  const addServiceMutation = useMutation({
+    mutationFn: async (service: Partial<Service>) => {
+      await supabase.rpc('set_branch_manager_code', { code: 'true' });
+      const { data, error } = await supabase
+        .from('services')
+        .insert([{
+          ...service,
+          display_order: categories?.find(c => c.id === service.category_id)?.services?.length || 0
+        }])
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['service-categories'] });
+      setServiceDialogOpen(false);
+      setNewService({
+        name_en: '',
+        name_ar: '',
+        description_en: '',
+        description_ar: '',
+        duration: 0,
+        price: 0,
+        discount_type: null,
+        discount_value: 0,
+      });
+      toast({
+        title: "Success",
+        description: "Service added successfully",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Failed to add service",
         variant: "destructive",
       });
       console.error('Add error:', error);
@@ -282,44 +345,185 @@ const ServiceCategoryList = () => {
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <h2 className="text-lg font-semibold">Service Categories</h2>
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogTrigger asChild>
-            <Button size="sm">
-              <Plus className="w-4 h-4 mr-2" />
-              Add Category
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Add New Category</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4 pt-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">English Name</label>
-                <Input
-                  value={newCategory.name_en}
-                  onChange={(e) => setNewCategory(prev => ({ ...prev, name_en: e.target.value }))}
-                  placeholder="Enter category name in English"
-                />
+        <div className="flex gap-2">
+          <Dialog open={serviceDialogOpen} onOpenChange={setServiceDialogOpen}>
+            <DialogTrigger asChild>
+              <Button size="sm">
+                <Plus className="w-4 h-4 mr-2" />
+                Add Service
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-md">
+              <DialogHeader>
+                <DialogTitle>Add New Service</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4 pt-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Category</label>
+                  <Select
+                    value={newService.category_id}
+                    onValueChange={(value) => setNewService(prev => ({ ...prev, category_id: value }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {categories?.map((category) => (
+                        <SelectItem key={category.id} value={category.id}>
+                          {category.name_en}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">English Name</label>
+                  <Input
+                    value={newService.name_en}
+                    onChange={(e) => setNewService(prev => ({ ...prev, name_en: e.target.value }))}
+                    placeholder="Enter service name in English"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Arabic Name</label>
+                  <Input
+                    value={newService.name_ar}
+                    onChange={(e) => setNewService(prev => ({ ...prev, name_ar: e.target.value }))}
+                    placeholder="Enter service name in Arabic"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">English Description</label>
+                  <Textarea
+                    value={newService.description_en || ''}
+                    onChange={(e) => setNewService(prev => ({ ...prev, description_en: e.target.value }))}
+                    placeholder="Enter service description in English"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Arabic Description</label>
+                  <Textarea
+                    value={newService.description_ar || ''}
+                    onChange={(e) => setNewService(prev => ({ ...prev, description_ar: e.target.value }))}
+                    placeholder="Enter service description in Arabic"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Duration (minutes)</label>
+                    <Input
+                      type="number"
+                      value={newService.duration || ''}
+                      onChange={(e) => setNewService(prev => ({ ...prev, duration: parseInt(e.target.value) || 0 }))}
+                      placeholder="Enter duration"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Price</label>
+                    <Input
+                      type="number"
+                      value={newService.price || ''}
+                      onChange={(e) => setNewService(prev => ({ ...prev, price: parseFloat(e.target.value) || 0 }))}
+                      placeholder="Enter price"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Discount Type</label>
+                  <Select
+                    value={newService.discount_type || ''}
+                    onValueChange={(value: 'percentage' | 'amount' | '') => 
+                      setNewService(prev => ({ 
+                        ...prev, 
+                        discount_type: value || null 
+                      }))
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select discount type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">No discount</SelectItem>
+                      <SelectItem value="percentage">Percentage</SelectItem>
+                      <SelectItem value="amount">Amount</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {newService.discount_type && (
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">
+                      Discount Value {newService.discount_type === 'percentage' ? '(%)' : '($)'}
+                    </label>
+                    <Input
+                      type="number"
+                      value={newService.discount_value || ''}
+                      onChange={(e) => setNewService(prev => ({ 
+                        ...prev, 
+                        discount_value: parseFloat(e.target.value) || 0 
+                      }))}
+                      placeholder={`Enter discount ${newService.discount_type === 'percentage' ? 'percentage' : 'amount'}`}
+                    />
+                  </div>
+                )}
+
+                <Button 
+                  className="w-full"
+                  onClick={() => addServiceMutation.mutate(newService)}
+                  disabled={!newService.category_id || !newService.name_en || !newService.name_ar || !newService.duration || !newService.price}
+                >
+                  Add Service
+                </Button>
               </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Arabic Name</label>
-                <Input
-                  value={newCategory.name_ar}
-                  onChange={(e) => setNewCategory(prev => ({ ...prev, name_ar: e.target.value }))}
-                  placeholder="Enter category name in Arabic"
-                />
-              </div>
-              <Button 
-                className="w-full"
-                onClick={() => addCategoryMutation.mutate(newCategory)}
-                disabled={!newCategory.name_en || !newCategory.name_ar}
-              >
+            </DialogContent>
+          </Dialog>
+
+          <Dialog open={categoryDialogOpen} onOpenChange={setCategoryDialogOpen}>
+            <DialogTrigger asChild>
+              <Button size="sm">
+                <Plus className="w-4 h-4 mr-2" />
                 Add Category
               </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Add New Category</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4 pt-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">English Name</label>
+                  <Input
+                    value={newCategory.name_en}
+                    onChange={(e) => setNewCategory(prev => ({ ...prev, name_en: e.target.value }))}
+                    placeholder="Enter category name in English"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Arabic Name</label>
+                  <Input
+                    value={newCategory.name_ar}
+                    onChange={(e) => setNewCategory(prev => ({ ...prev, name_ar: e.target.value }))}
+                    placeholder="Enter category name in Arabic"
+                  />
+                </div>
+                <Button 
+                  className="w-full"
+                  onClick={() => addCategoryMutation.mutate(newCategory)}
+                  disabled={!newCategory.name_en || !newCategory.name_ar}
+                >
+                  Add Category
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
       <DragDropContext onDragEnd={handleDragEnd}>
