@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, ReactNode } from 'react';
+import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 
 type Language = 'en' | 'ar';
 
@@ -29,6 +29,11 @@ const translations = {
     'minutes': 'minutes',
     'date.time': 'Date & Time',
     'barber': 'Barber',
+    'book.appointment': 'Book Appointment',
+    'step.services': 'Services',
+    'step.datetime': 'Date & Time',
+    'step.barber': 'Barber',
+    'step.details': 'Details',
   },
   ar: {
     'select.branch': 'اختر فرعاً',
@@ -50,6 +55,11 @@ const translations = {
     'minutes': 'دقائق',
     'date.time': 'التاريخ والوقت',
     'barber': 'الحلاق',
+    'book.appointment': 'احجز موعد',
+    'step.services': 'الخدمات',
+    'step.datetime': 'التاريخ والوقت',
+    'step.barber': 'الحلاق',
+    'step.details': 'التفاصيل',
   }
 };
 
@@ -57,6 +67,13 @@ const LanguageContext = createContext<LanguageContextType | undefined>(undefined
 
 export const LanguageProvider = ({ children }: { children: ReactNode }) => {
   const [language, setLanguage] = useState<Language>('en');
+
+  useEffect(() => {
+    // Update document direction based on language
+    document.documentElement.dir = language === 'ar' ? 'rtl' : 'ltr';
+    // Add/remove RTL class on body
+    document.body.classList.toggle('rtl', language === 'ar');
+  }, [language]);
 
   const t = (key: string): string => {
     return translations[language][key] || key;
