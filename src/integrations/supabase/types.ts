@@ -278,27 +278,36 @@ export type Database = {
           created_at: string
           id: string
           name: string
+          name_ar: string | null
+          off_days: string[] | null
           role: Database["public"]["Enums"]["employee_role"]
           salary_plan_id: string | null
           updated_at: string
+          working_hours: Json | null
         }
         Insert: {
           branch_id?: string | null
           created_at?: string
           id?: string
           name: string
+          name_ar?: string | null
+          off_days?: string[] | null
           role: Database["public"]["Enums"]["employee_role"]
           salary_plan_id?: string | null
           updated_at?: string
+          working_hours?: Json | null
         }
         Update: {
           branch_id?: string | null
           created_at?: string
           id?: string
           name?: string
+          name_ar?: string | null
+          off_days?: string[] | null
           role?: Database["public"]["Enums"]["employee_role"]
           salary_plan_id?: string | null
           updated_at?: string
+          working_hours?: Json | null
         }
         Relationships: [
           {
