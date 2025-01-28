@@ -204,6 +204,13 @@ const Bookings = () => {
     }));
   };
 
+  // Add this type guard function at the top level of the component
+  const isValidWorkingHours = (hours: any): hours is WorkingHours => {
+    if (!hours || typeof hours !== 'object') return false;
+    const validDays = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+    return validDays.some(day => Array.isArray(hours[day]));
+  };
+
   if (!branchId) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 flex flex-col items-center justify-center p-4">
@@ -263,7 +270,11 @@ const Bookings = () => {
               selectedTime={selectedTime}
               onDateSelect={setSelectedDate}
               onTimeSelect={setSelectedTime}
-              employeeWorkingHours={selectedEmployee?.working_hours as WorkingHours}
+              employeeWorkingHours={
+                selectedEmployee?.working_hours && isValidWorkingHours(selectedEmployee.working_hours)
+                  ? selectedEmployee.working_hours
+                  : null
+              }
             />
           )}
 

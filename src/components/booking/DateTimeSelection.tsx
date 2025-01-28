@@ -22,15 +22,7 @@ export const DateTimeSelection = ({
   selectedTime,
   onDateSelect,
   onTimeSelect,
-  employeeWorkingHours = {
-    monday: ["12:00-00:00"],
-    tuesday: ["12:00-00:00"],
-    wednesday: ["12:00-00:00"],
-    thursday: ["12:00-00:00"],
-    friday: ["13:00-01:00"],
-    saturday: ["12:00-00:00"],
-    sunday: ["12:00-00:00"]
-  }
+  employeeWorkingHours
 }: DateTimeSelectionProps) => {
   const { t } = useLanguage();
 
@@ -42,13 +34,22 @@ export const DateTimeSelection = ({
     return format(date, 'EEEE').toLowerCase();
   };
 
-  const generateTimeSlots = (workingHoursRanges: string[] = ["09:00-22:00"]) => {
+  const generateTimeSlots = (workingHoursRanges: string[] = []) => {
     const slots: string[] = [];
     
     workingHoursRanges.forEach(range => {
       const [start, end] = range.split('-');
       const startTime = parse(start, 'HH:mm', new Date());
-      const endTime = parse(end, 'HH:mm', new Date());
+      let endTime = parse(end, 'HH:mm', new Date());
+      
+      // If end time is "00:00", set it to midnight of the next day
+      if (end === "00:00") {
+        endTime = addHours(endTime, 24);
+      }
+      // If end time is "01:00", set it to 1 AM of the next day
+      else if (end === "01:00") {
+        endTime = addHours(endTime, 24);
+      }
       
       let currentSlot = startTime;
       while (isBefore(currentSlot, endTime)) {
