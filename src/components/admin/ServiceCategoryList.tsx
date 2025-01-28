@@ -140,26 +140,48 @@ const ServiceCategoryList = () => {
       updates: { id: string; display_order: number; category_id?: string }[] 
     }) => {
       if (type === 'category') {
+        const { data: currentCategories, error: fetchError } = await supabase
+          .from('service_categories')
+          .select('*')
+          .in('id', updates.map(u => u.id));
+        
+        if (fetchError) throw fetchError;
+
+        const mergedUpdates = updates.map(update => {
+          const current = currentCategories?.find(c => c.id === update.id);
+          if (!current) throw new Error(`Category ${update.id} not found`);
+          return {
+            ...current,
+            display_order: update.display_order
+          };
+        });
+
         const { error } = await supabase
           .from('service_categories')
-          .upsert(
-            updates.map(update => ({
-              id: update.id,
-              display_order: update.display_order
-            }))
-          );
+          .upsert(mergedUpdates);
         
         if (error) throw error;
       } else {
+        const { data: currentServices, error: fetchError } = await supabase
+          .from('services')
+          .select('*')
+          .in('id', updates.map(u => u.id));
+        
+        if (fetchError) throw fetchError;
+
+        const mergedUpdates = updates.map(update => {
+          const current = currentServices?.find(s => s.id === update.id);
+          if (!current) throw new Error(`Service ${update.id} not found`);
+          return {
+            ...current,
+            display_order: update.display_order,
+            category_id: update.category_id || current.category_id
+          };
+        });
+
         const { error } = await supabase
           .from('services')
-          .upsert(
-            updates.map(update => ({
-              id: update.id,
-              display_order: update.display_order,
-              category_id: update.category_id
-            }))
-          );
+          .upsert(mergedUpdates);
         
         if (error) throw error;
       }
