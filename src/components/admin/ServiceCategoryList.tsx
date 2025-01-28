@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
-import { GripVertical, Plus, Trash } from 'lucide-react';
+import { GripVertical, Plus, Trash, ChevronDown, ChevronRight } from 'lucide-react';
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,26 +19,68 @@ type Category = {
   name_en: string;
   name_ar: string;
   display_order: number;
+  services?: Service[];
+};
+
+type Service = {
+  id: string;
+  category_id: string;
+  name_en: string;
+  name_ar: string;
+  description_en: string | null;
+  description_ar: string | null;
+  duration: number;
+  price: number;
+  display_order: number;
 };
 
 const ServiceCategoryList = () => {
   const [newCategory, setNewCategory] = useState({ name_en: '', name_ar: '' });
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [expandedCategories, setExpandedCategories] = useState<string[]>([]);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
   const { data: categories, isLoading } = useQuery({
     queryKey: ['service-categories'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data: categories, error: categoriesError } = await supabase
         .from('service_categories')
-        .select('*')
+        .select('*, services(*)')
         .order('display_order');
       
-      if (error) throw error;
-      return data as Category[];
+      if (categoriesError) throw categoriesError;
+
+      // Sort services within each category
+      return categories.map(category => ({
+        ...category,
+        services: category.services?.sort((a, b) => a.display_order - b.display_order)
+      })) as Category[];
     }
   });
+
+  // Set up real-time subscription
+  useEffect(() => {
+    const channel = supabase
+      .channel('schema-db-changes')
+      .on('postgres_changes', 
+        { event: '*', schema: 'public', table: 'service_categories' },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['service-categories'] });
+        }
+      )
+      .on('postgres_changes',
+        { event: '*', schema: 'public', table: 'services' },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['service-categories'] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [queryClient]);
 
   const addCategoryMutation = useMutation({
     mutationFn: async (category: { name_en: string; name_ar: string }) => {
@@ -93,30 +135,56 @@ const ServiceCategoryList = () => {
   });
 
   const updateOrderMutation = useMutation({
-    mutationFn: async (updates: { id: string; display_order: number }[]) => {
-      // Fetch current categories first to preserve existing data
-      const { data: currentCategories, error: fetchError } = await supabase
-        .from('service_categories')
-        .select('*')
-        .in('id', updates.map(u => u.id));
-      
-      if (fetchError) throw fetchError;
+    mutationFn: async ({ type, updates }: { 
+      type: 'category' | 'service',
+      updates: { id: string; display_order: number; category_id?: string }[] 
+    }) => {
+      if (type === 'category') {
+        const { data: currentCategories, error: fetchError } = await supabase
+          .from('service_categories')
+          .select('*')
+          .in('id', updates.map(u => u.id));
+        
+        if (fetchError) throw fetchError;
 
-      // Merge updates with existing data
-      const mergedUpdates = updates.map(update => {
-        const current = currentCategories?.find(c => c.id === update.id);
-        if (!current) throw new Error(`Category ${update.id} not found`);
-        return {
-          ...current,
-          display_order: update.display_order
-        };
-      });
+        const mergedUpdates = updates.map(update => {
+          const current = currentCategories?.find(c => c.id === update.id);
+          if (!current) throw new Error(`Category ${update.id} not found`);
+          return {
+            ...current,
+            display_order: update.display_order
+          };
+        });
 
-      const { error } = await supabase
-        .from('service_categories')
-        .upsert(mergedUpdates);
-      
-      if (error) throw error;
+        const { error } = await supabase
+          .from('service_categories')
+          .upsert(mergedUpdates);
+        
+        if (error) throw error;
+      } else {
+        const { data: currentServices, error: fetchError } = await supabase
+          .from('services')
+          .select('*')
+          .in('id', updates.map(u => u.id));
+        
+        if (fetchError) throw fetchError;
+
+        const mergedUpdates = updates.map(update => {
+          const current = currentServices?.find(s => s.id === update.id);
+          if (!current) throw new Error(`Service ${update.id} not found`);
+          return {
+            ...current,
+            display_order: update.display_order,
+            category_id: update.category_id || current.category_id
+          };
+        });
+
+        const { error } = await supabase
+          .from('services')
+          .upsert(mergedUpdates);
+        
+        if (error) throw error;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['service-categories'] });
@@ -126,16 +194,60 @@ const ServiceCategoryList = () => {
   const handleDragEnd = (result: any) => {
     if (!result.destination || !categories) return;
 
-    const items = Array.from(categories);
-    const [reorderedItem] = items.splice(result.source.index, 1);
-    items.splice(result.destination.index, 0, reorderedItem);
+    const { source, destination, type } = result;
 
-    const updates = items.map((item, index) => ({
-      id: item.id,
-      display_order: index
-    }));
+    if (type === 'category') {
+      const items = Array.from(categories);
+      const [reorderedItem] = items.splice(source.index, 1);
+      items.splice(destination.index, 0, reorderedItem);
 
-    updateOrderMutation.mutate(updates);
+      const updates = items.map((item, index) => ({
+        id: item.id,
+        display_order: index
+      }));
+
+      updateOrderMutation.mutate({ type: 'category', updates });
+    } else {
+      // Handle service reordering
+      const sourceCategory = categories.find(c => c.id === source.droppableId);
+      const destCategory = categories.find(c => c.id === destination.droppableId);
+      
+      if (!sourceCategory?.services || !destCategory?.services) return;
+
+      const sourceServices = Array.from(sourceCategory.services);
+      const [movedService] = sourceServices.splice(source.index, 1);
+
+      if (source.droppableId === destination.droppableId) {
+        // Reordering within the same category
+        sourceServices.splice(destination.index, 0, movedService);
+        const updates = sourceServices.map((service, index) => ({
+          id: service.id,
+          display_order: index,
+          category_id: source.droppableId
+        }));
+
+        updateOrderMutation.mutate({ type: 'service', updates });
+      } else {
+        // Moving to a different category
+        const destServices = Array.from(destCategory.services);
+        destServices.splice(destination.index, 0, movedService);
+        const updates = destServices.map((service, index) => ({
+          id: service.id,
+          display_order: index,
+          category_id: destination.droppableId
+        }));
+
+        updateOrderMutation.mutate({ type: 'service', updates });
+      }
+    }
+  };
+
+  const toggleCategory = (categoryId: string) => {
+    setExpandedCategories(prev => 
+      prev.includes(categoryId)
+        ? prev.filter(id => id !== categoryId)
+        : [...prev, categoryId]
+    );
   };
 
   if (isLoading) return <div>Loading...</div>;
@@ -185,7 +297,7 @@ const ServiceCategoryList = () => {
       </div>
 
       <DragDropContext onDragEnd={handleDragEnd}>
-        <Droppable droppableId="categories">
+        <Droppable droppableId="categories" type="category">
           {(provided) => (
             <div
               {...provided.droppableProps}
@@ -202,27 +314,80 @@ const ServiceCategoryList = () => {
                     <div
                       ref={provided.innerRef}
                       {...provided.draggableProps}
-                      className="flex items-center justify-between p-3 bg-white border rounded-lg shadow-sm"
+                      className="space-y-2"
                     >
-                      <div className="flex items-center gap-3">
-                        <div
-                          {...provided.dragHandleProps}
-                          className="cursor-move text-gray-400 hover:text-gray-600"
+                      <div className="flex items-center justify-between p-3 bg-white border rounded-lg shadow-sm">
+                        <div className="flex items-center gap-3">
+                          <div
+                            {...provided.dragHandleProps}
+                            className="cursor-move text-gray-400 hover:text-gray-600"
+                          >
+                            <GripVertical className="w-5 h-5" />
+                          </div>
+                          <button
+                            onClick={() => toggleCategory(category.id)}
+                            className="flex items-center gap-2"
+                          >
+                            {expandedCategories.includes(category.id) ? (
+                              <ChevronDown className="w-4 h-4" />
+                            ) : (
+                              <ChevronRight className="w-4 h-4" />
+                            )}
+                            <div>
+                              <p className="font-medium">{category.name_en}</p>
+                              <p className="text-sm text-gray-500">{category.name_ar}</p>
+                            </div>
+                          </button>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => deleteCategoryMutation.mutate(category.id)}
                         >
-                          <GripVertical className="w-5 h-5" />
-                        </div>
-                        <div>
-                          <p className="font-medium">{category.name_en}</p>
-                          <p className="text-sm text-gray-500">{category.name_ar}</p>
-                        </div>
+                          <Trash className="w-4 h-4 text-red-500" />
+                        </Button>
                       </div>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => deleteCategoryMutation.mutate(category.id)}
-                      >
-                        <Trash className="w-4 h-4 text-red-500" />
-                      </Button>
+
+                      {expandedCategories.includes(category.id) && (
+                        <Droppable droppableId={category.id} type="service">
+                          {(provided) => (
+                            <div
+                              {...provided.droppableProps}
+                              ref={provided.innerRef}
+                              className="ml-8 space-y-2"
+                            >
+                              {category.services?.map((service, index) => (
+                                <Draggable
+                                  key={service.id}
+                                  draggableId={service.id}
+                                  index={index}
+                                >
+                                  {(provided) => (
+                                    <div
+                                      ref={provided.innerRef}
+                                      {...provided.draggableProps}
+                                      {...provided.dragHandleProps}
+                                      className="flex items-center justify-between p-2 bg-gray-50 border rounded-lg"
+                                    >
+                                      <div className="flex items-center gap-2">
+                                        <GripVertical className="w-4 h-4 text-gray-400" />
+                                        <div>
+                                          <p className="text-sm font-medium">{service.name_en}</p>
+                                          <p className="text-xs text-gray-500">{service.name_ar}</p>
+                                        </div>
+                                      </div>
+                                      <div className="text-sm text-gray-500">
+                                        {service.duration} mins • ${service.price}
+                                      </div>
+                                    </div>
+                                  )}
+                                </Draggable>
+                              ))}
+                              {provided.placeholder}
+                            </div>
+                          )}
+                        </Droppable>
+                      )}
                     </div>
                   )}
                 </Draggable>
