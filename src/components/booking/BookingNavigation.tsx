@@ -55,24 +55,6 @@ export const BookingNavigation = ({
           </Button>
         )}
       </div>
-
-      {currentStep === 'details' && (
-        <p className="text-center text-sm text-muted-foreground">
-          {language === 'ar' ? (
-            <>
-              📱 سيتم تأكيد حجزك على الواتساب.
-              <br />
-              📲 سيصلك ردنا بالتأكيد قريباً! ✔️
-            </>
-          ) : (
-            <>
-              📱 Your booking will be confirmed on WhatsApp
-              <br />
-              📲 You'll receive our confirmation shortly! ✔️
-            </>
-          )}
-        </p>
-      )}
     </div>
   );
 };

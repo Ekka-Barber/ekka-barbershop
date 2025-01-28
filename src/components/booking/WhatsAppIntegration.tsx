@@ -1,5 +1,6 @@
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
+import { Button } from "@/components/ui/button";
 
 interface SelectedService {
   id: string;
@@ -91,9 +92,17 @@ ${totalDiscount > 0 ? `الخصم: ${formatPrice(totalDiscount)}` : ''}
   };
 
   return (
-    <div className="text-center text-sm text-muted-foreground space-y-1 mt-4">
-      <p>{language === 'ar' ? '📱 سيتم تأكيد حجزك على الواتساب.' : '📱 Your booking will be confirmed on WhatsApp'}</p>
-      <p>{language === 'ar' ? '📲 سيصلك ردنا بالتأكيد قريباً! ✔️' : '📲 You\'ll receive our confirmation shortly! ✔️'}</p>
+    <div className="space-y-4">
+      <div className="text-center text-sm text-muted-foreground space-y-1">
+        <p>{language === 'ar' ? '📱 سيتم تأكيد حجزك على الواتساب.' : '📱 Your booking will be confirmed on WhatsApp'}</p>
+        <p>{language === 'ar' ? '📲 سيصلك ردنا بالتأكيد قريباً! ✔️' : '📲 You\'ll receive our confirmation shortly! ✔️'}</p>
+      </div>
+      <Button 
+        onClick={handleBookingConfirmation}
+        className="w-full h-14 text-lg font-medium bg-[#C4A36F] hover:bg-[#B39260] text-white transition-all duration-300 shadow-lg hover:shadow-xl"
+      >
+        {language === 'ar' ? 'تأكيد الحجز' : 'Confirm Booking'}
+      </Button>
     </div>
   );
 };
