@@ -10,7 +10,7 @@ import { BookingNavigation } from "@/components/booking/BookingNavigation";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { WhatsAppIntegration } from "@/components/booking/WhatsAppIntegration";
-import { WorkingHours } from "@/types/service";
+import { WorkingHours, Category, Service } from "@/types/service";
 
 const STEPS: BookingStep[] = ['services', 'barber', 'datetime', 'details'];
 
@@ -77,10 +77,16 @@ export const BookingSteps = ({ branch }: BookingStepsProps) => {
         .order('display_order', { ascending: true });
       
       if (categoriesError) throw categoriesError;
-      return categories.map(category => ({
+      
+      const typedCategories = categories.map(category => ({
         ...category,
-        services: category.services?.sort((a, b) => a.display_order - b.display_order)
-      }));
+        services: (category.services || []).map(service => ({
+          ...service,
+          discount_type: service.discount_type as "percentage" | "amount" | null
+        })).sort((a, b) => a.display_order - b.display_order)
+      })) as Category[];
+      
+      return typedCategories;
     },
   });
 
