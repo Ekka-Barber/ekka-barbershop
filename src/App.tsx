@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import Index from "./pages/Index";
 import Customer from "./pages/Customer";
@@ -20,11 +20,6 @@ const PUBLIC_ROUTES = ['/customer', '/menu', '/offers', '/preview', '/bookings']
 const OWNER_ACCESS_CODE = 'owner123';
 
 const App = () => {
-  // Function to check if the current path is allowed
-  const isPublicRoute = (path: string) => {
-    return PUBLIC_ROUTES.includes(path);
-  };
-
   // Function to check if owner access is granted via URL parameter
   const hasOwnerAccess = () => {
     const params = new URLSearchParams(window.location.search);
@@ -33,8 +28,8 @@ const App = () => {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <LanguageProvider>
+      <LanguageProvider>
+        <TooltipProvider>
           <Toaster />
           <Sonner />
           <BrowserRouter>
@@ -67,8 +62,8 @@ const App = () => {
               <Route path="*" element={<Navigate to="/customer" replace />} />
             </Routes>
           </BrowserRouter>
-        </LanguageProvider>
-      </TooltipProvider>
+        </TooltipProvider>
+      </LanguageProvider>
     </QueryClientProvider>
   );
 };
