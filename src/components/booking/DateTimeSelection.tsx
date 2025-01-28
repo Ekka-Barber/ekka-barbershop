@@ -22,7 +22,15 @@ export const DateTimeSelection = ({
   selectedTime,
   onDateSelect,
   onTimeSelect,
-  employeeWorkingHours
+  employeeWorkingHours = {
+    monday: ["12:00-00:00"],
+    tuesday: ["12:00-00:00"],
+    wednesday: ["12:00-00:00"],
+    thursday: ["12:00-00:00"],
+    friday: ["13:00-01:00"],
+    saturday: ["12:00-00:00"],
+    sunday: ["12:00-00:00"]
+  }
 }: DateTimeSelectionProps) => {
   const { t } = useLanguage();
 
@@ -53,10 +61,10 @@ export const DateTimeSelection = ({
   };
 
   const availableTimeSlots = useMemo(() => {
-    if (!selectedDate || !employeeWorkingHours) return [];
+    if (!selectedDate) return [];
 
     const dayName = getDayName(selectedDate);
-    const workingHours = employeeWorkingHours[dayName] || [];
+    const workingHours = employeeWorkingHours?.[dayName] || [];
     return generateTimeSlots(workingHours);
   }, [selectedDate, employeeWorkingHours]);
 
