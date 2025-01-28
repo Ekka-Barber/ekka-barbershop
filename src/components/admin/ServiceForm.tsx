@@ -99,11 +99,12 @@ export const ServiceForm = ({ categories, service, onChange }: ServiceFormProps)
       <div className="space-y-2">
         <label className="text-sm font-medium">Discount Type</label>
         <Select
-          value={service.discount_type || ''}
-          onValueChange={(value: 'percentage' | 'amount' | '') => 
+          value={service.discount_type || 'none'}
+          onValueChange={(value: 'percentage' | 'amount' | 'none') => 
             onChange({ 
               ...service, 
-              discount_type: value || null 
+              discount_type: value === 'none' ? null : value,
+              discount_value: value === 'none' ? null : service.discount_value
             })
           }
         >
@@ -111,7 +112,7 @@ export const ServiceForm = ({ categories, service, onChange }: ServiceFormProps)
             <SelectValue placeholder="Select discount type" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">No discount</SelectItem>
+            <SelectItem value="none">No discount</SelectItem>
             <SelectItem value="percentage">Percentage</SelectItem>
             <SelectItem value="amount">Amount</SelectItem>
           </SelectContent>
