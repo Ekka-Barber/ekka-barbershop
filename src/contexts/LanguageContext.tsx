@@ -31,6 +31,15 @@ const translations = {
     'booking.coming.soon': 'Online booking coming soon!',
     'available.barbers': 'barbers available',
     'no.barbers.available': 'No barbers available at this time',
+    'next': 'Next',
+    'previous': 'Previous',
+    'confirm.booking': 'Confirm Booking',
+    'total': 'Total',
+    'name': 'Name',
+    'phone': 'Phone',
+    'email': 'Email',
+    'notes': 'Notes',
+    'booking.summary': 'Booking Summary'
   },
   ar: {
     // Customer page
@@ -54,6 +63,15 @@ const translations = {
     'booking.coming.soon': 'الحجز عبر الإنترنت قريباً!',
     'available.barbers': 'حلاق متوفر',
     'no.barbers.available': 'لا يوجد حلاقين متوفرين حالياً',
+    'next': 'التالي',
+    'previous': 'السابق',
+    'confirm.booking': 'تأكيد الحجز',
+    'total': 'المجموع',
+    'name': 'الاسم',
+    'phone': 'رقم الجوال',
+    'email': 'البريد الإلكتروني',
+    'notes': 'ملاحظات',
+    'booking.summary': 'ملخص الحجز'
   }
 };
 
