@@ -74,7 +74,7 @@ const translations = {
     'step.details': 'التفاصيل',
     'welcome.line1': 'مرحبًا بك في صالون',
     'welcome.line2': 'إكّه للعناية بالرجل',
-    'view.menu': 'عرض القائمة',
+    'view.menu': 'قائمة الأسعار',
     'special.offers': 'العروض الخاصة',
     'special.offers.title': 'العروض الخاصة',
     'book.now': 'احجز الآن',
