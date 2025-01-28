@@ -365,7 +365,7 @@ const ServiceCategoryList = () => {
             <DialogTrigger asChild>
               <Button size="sm">
                 <Plus className="w-4 h-4 mr-2" />
-                Add Service
+                Service
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-md">
@@ -494,7 +494,7 @@ const ServiceCategoryList = () => {
                   onClick={() => addServiceMutation.mutate(newService)}
                   disabled={!newService.category_id || !newService.name_en || !newService.name_ar || !newService.duration || !newService.price}
                 >
-                  Add Service
+                  Service
                 </Button>
               </div>
             </DialogContent>
@@ -504,7 +504,7 @@ const ServiceCategoryList = () => {
             <DialogTrigger asChild>
               <Button size="sm">
                 <Plus className="w-4 h-4 mr-2" />
-                Add Category
+                Category
               </Button>
             </DialogTrigger>
             <DialogContent>
@@ -533,7 +533,7 @@ const ServiceCategoryList = () => {
                   onClick={() => addCategoryMutation.mutate(newCategory)}
                   disabled={!newCategory.name_en || !newCategory.name_ar}
                 >
-                  Add Category
+                  Category
                 </Button>
               </div>
             </DialogContent>
