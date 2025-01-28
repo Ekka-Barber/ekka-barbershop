@@ -1,106 +1,135 @@
-import { useState } from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus } from 'lucide-react';
+import { useState } from "react";
+import { Plus } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { useToast } from "@/components/ui/use-toast";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Category } from '@/types/service';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { useToast } from "@/components/ui/use-toast";
+import { Category } from "@/types/service";
 
-type CategoryDialogProps = {
+const formSchema = z.object({
+  name: z.string().min(2, {
+    message: "Name must be at least 2 characters.",
+  }),
+});
+
+interface CategoryDialogProps {
   categories: Category[] | undefined;
-};
+}
 
-export const CategoryDialog = ({ categories }: CategoryDialogProps) => {
+export function CategoryDialog({ categories }: CategoryDialogProps) {
   const [categoryDialogOpen, setCategoryDialogOpen] = useState(false);
-  const [newCategory, setNewCategory] = useState({ name_en: '', name_ar: '' });
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const addCategoryMutation = useMutation({
-    mutationFn: async (category: { name_en: string; name_ar: string }) => {
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      name: "",
+    },
+  });
+
+  const createCategory = useMutation({
+    mutationFn: async (values: z.infer<typeof formSchema>) => {
       await supabase.rpc('set_branch_manager_code', { code: 'true' });
+      const maxOrder = categories?.reduce((max, cat) => Math.max(max, cat.display_order), -1) ?? -1;
+      
       const { data, error } = await supabase
         .from('service_categories')
-        .insert([{ 
-          name_en: category.name_en, 
-          name_ar: category.name_ar,
-          display_order: categories ? categories.length : 0 
-        }])
+        .insert([
+          { 
+            name: values.name,
+            display_order: maxOrder + 1
+          }
+        ])
         .select()
         .single();
-      
+
       if (error) throw error;
       return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['service-categories'] });
-      setCategoryDialogOpen(false);
-      setNewCategory({ name_en: '', name_ar: '' });
       toast({
         title: "Success",
-        description: "Category added successfully",
+        description: "Category created successfully",
       });
+      form.reset();
+      setCategoryDialogOpen(false);
     },
     onError: (error) => {
       toast({
         title: "Error",
-        description: "Failed to add category",
+        description: "Failed to create category",
         variant: "destructive",
       });
-      console.error('Add error:', error);
-    }
+      console.error('Create category error:', error);
+    },
   });
+
+  function onSubmit(values: z.infer<typeof formSchema>) {
+    createCategory.mutate(values);
+  }
 
   return (
     <Dialog open={categoryDialogOpen} onOpenChange={setCategoryDialogOpen}>
       <DialogTrigger asChild>
         <Button 
-          size="icon" 
           variant="outline"
-          className="rounded-full bg-primary hover:bg-primary/90 text-primary-foreground"
+          className="bg-primary hover:bg-primary/90 text-primary-foreground flex items-center gap-2"
         >
           <Plus className="w-4 h-4" />
+          <span>Category</span>
         </Button>
       </DialogTrigger>
-      <DialogContent>
+      <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Add New Category</DialogTitle>
+          <DialogTitle>Create Category</DialogTitle>
+          <DialogDescription>
+            Add a new category to organize services.
+          </DialogDescription>
         </DialogHeader>
-        <div className="space-y-4 pt-4">
-          <div className="space-y-2">
-            <label className="text-sm font-medium">English Name</label>
-            <Input
-              value={newCategory.name_en}
-              onChange={(e) => setNewCategory(prev => ({ ...prev, name_en: e.target.value }))}
-              placeholder="Enter category name in English"
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Name</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Category name" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </div>
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Arabic Name</label>
-            <Input
-              value={newCategory.name_ar}
-              onChange={(e) => setNewCategory(prev => ({ ...prev, name_ar: e.target.value }))}
-              placeholder="Enter category name in Arabic"
-              dir="rtl"
-            />
-          </div>
-          <Button 
-            className="w-full"
-            onClick={() => addCategoryMutation.mutate(newCategory)}
-            disabled={!newCategory.name_en || !newCategory.name_ar}
-          >
-            Add Category
-          </Button>
-        </div>
+            <DialogFooter>
+              <Button type="submit">Create category</Button>
+            </DialogFooter>
+          </form>
+        </Form>
       </DialogContent>
     </Dialog>
   );
-};
+}
