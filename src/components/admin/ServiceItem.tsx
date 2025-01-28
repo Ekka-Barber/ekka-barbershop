@@ -35,7 +35,13 @@ export const ServiceItem = ({ service, index }: ServiceItemProps) => {
               {service.duration} mins • ${service.price}
             </div>
             <ServiceDialog
-              categories={[{ id: service.category_id, name_en: '', name_ar: '', display_order: 0 }]}
+              categories={[{ 
+                id: service.category_id, 
+                name_en: '', 
+                name_ar: '', 
+                display_order: 0,
+                services: [] // Added the required services property
+              }]}
               editService={service}
             />
           </div>
