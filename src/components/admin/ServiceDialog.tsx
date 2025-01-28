@@ -59,36 +59,56 @@ export const ServiceDialog = ({ categories, editService, onSuccess, trigger }: S
     >
       <AccordionItem value={editService ? 'edit-service' : 'add-service'} className="border-none">
         {editService ? (
-          <div className="w-full">
-            {trigger}
-          </div>
+          <>
+            <AccordionTrigger asChild>
+              {trigger}
+            </AccordionTrigger>
+            <AccordionContent className="pt-4">
+              <div className="space-y-4 bg-card rounded-lg border shadow-sm p-6">
+                <ServiceForm
+                  categories={categories}
+                  service={newService}
+                  onChange={setNewService}
+                />
+                <Button 
+                  className="w-full"
+                  onClick={handleSubmit}
+                  disabled={isLoading || !newService.category_id || !newService.name_en || !newService.name_ar || !newService.duration || !newService.price}
+                >
+                  {isLoading ? 'Saving...' : 'Update Service'}
+                </Button>
+              </div>
+            </AccordionContent>
+          </>
         ) : (
-          <AccordionTrigger className="hover:no-underline py-0">
-            <Button 
-              variant="outline"
-              size="icon" 
-              className="w-[200px] bg-[#C4A484] hover:bg-[#B8997C] text-white"
-            >
-              Service <Plus className="w-4 h-4 ml-2" />
-            </Button>
-          </AccordionTrigger>
+          <>
+            <AccordionTrigger className="hover:no-underline py-0">
+              <Button 
+                variant="outline"
+                size="icon" 
+                className="w-[200px] bg-[#C4A484] hover:bg-[#B8997C] text-white"
+              >
+                Service <Plus className="w-4 h-4 ml-2" />
+              </Button>
+            </AccordionTrigger>
+            <AccordionContent className="pt-4">
+              <div className="space-y-4 bg-card rounded-lg border shadow-sm p-6">
+                <ServiceForm
+                  categories={categories}
+                  service={newService}
+                  onChange={setNewService}
+                />
+                <Button 
+                  className="w-full"
+                  onClick={handleSubmit}
+                  disabled={isLoading || !newService.category_id || !newService.name_en || !newService.name_ar || !newService.duration || !newService.price}
+                >
+                  {isLoading ? 'Saving...' : 'Add Service'}
+                </Button>
+              </div>
+            </AccordionContent>
+          </>
         )}
-        <AccordionContent className="pt-4">
-          <div className="space-y-4 bg-card rounded-lg border shadow-sm p-6">
-            <ServiceForm
-              categories={categories}
-              service={newService}
-              onChange={setNewService}
-            />
-            <Button 
-              className="w-full"
-              onClick={handleSubmit}
-              disabled={isLoading || !newService.category_id || !newService.name_en || !newService.name_ar || !newService.duration || !newService.price}
-            >
-              {isLoading ? 'Saving...' : editService ? 'Update Service' : 'Add Service'}
-            </Button>
-          </div>
-        </AccordionContent>
       </AccordionItem>
     </Accordion>
   );
