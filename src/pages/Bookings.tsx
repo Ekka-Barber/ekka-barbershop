@@ -118,6 +118,23 @@ const Bookings = () => {
     enabled: !!branchId,
   });
 
+  // Add this near other useQuery hooks
+  const { data: selectedEmployee } = useQuery({
+    queryKey: ['employee', selectedBarber],
+    queryFn: async () => {
+      if (!selectedBarber) return null;
+      const { data, error } = await supabase
+        .from('employees')
+        .select('*')
+        .eq('id', selectedBarber)
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!selectedBarber
+  });
+
   const currentStepIndex = STEPS.indexOf(currentStep);
   const totalPrice = selectedServices.reduce((sum, service) => sum + service.price, 0);
 
@@ -237,6 +254,7 @@ const Bookings = () => {
               selectedTime={selectedTime}
               onDateSelect={setSelectedDate}
               onTimeSelect={setSelectedTime}
+              employeeWorkingHours={selectedEmployee?.working_hours}
               timeSlots={timeSlots}
             />
           )}
