@@ -62,9 +62,8 @@ export const CategoryDialog = ({ categories }: CategoryDialogProps) => {
   return (
     <Dialog open={categoryDialogOpen} onOpenChange={setCategoryDialogOpen}>
       <DialogTrigger asChild>
-        <Button size="sm">
-          <Plus className="w-4 h-4 mr-2" />
-          Category
+        <Button size="icon" variant="ghost" className="rounded-full">
+          <Plus className="w-4 h-4" />
         </Button>
       </DialogTrigger>
       <DialogContent>
@@ -86,6 +85,7 @@ export const CategoryDialog = ({ categories }: CategoryDialogProps) => {
               value={newCategory.name_ar}
               onChange={(e) => setNewCategory(prev => ({ ...prev, name_ar: e.target.value }))}
               placeholder="Enter category name in Arabic"
+              dir="rtl"
             />
           </div>
           <Button 
@@ -93,7 +93,7 @@ export const CategoryDialog = ({ categories }: CategoryDialogProps) => {
             onClick={() => addCategoryMutation.mutate(newCategory)}
             disabled={!newCategory.name_en || !newCategory.name_ar}
           >
-            Category
+            Add Category
           </Button>
         </div>
       </DialogContent>

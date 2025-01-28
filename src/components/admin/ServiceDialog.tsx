@@ -42,13 +42,13 @@ export const ServiceDialog = ({ categories }: ServiceDialogProps) => {
       <AccordionItem value="add-service" className="border-none">
         <div className="flex items-center justify-between">
           <AccordionTrigger className="hover:no-underline py-0">
-            <Button variant="ghost" size="icon">
+            <Button variant="ghost" size="icon" className="rounded-full">
               <Plus className="h-4 w-4" />
             </Button>
           </AccordionTrigger>
         </div>
         <AccordionContent className="pt-4">
-          <div className="space-y-4 bg-card p-6 rounded-lg border">
+          <div className="space-y-4 bg-card rounded-lg border shadow-sm p-6">
             <ServiceForm
               categories={categories}
               service={newService}
