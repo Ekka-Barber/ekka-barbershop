@@ -122,12 +122,24 @@ const Bookings = () => {
     if (isSelected) {
       setSelectedServices(prev => prev.filter(s => s.id !== service.id));
     } else {
+      const discountedPrice = calculateDiscountedPrice(service);
       setSelectedServices(prev => [...prev, {
         id: service.id,
         name: language === 'ar' ? service.name_ar : service.name_en,
-        price: service.price,
-        duration: service.duration
+        price: discountedPrice,
+        duration: service.duration,
+        originalPrice: discountedPrice !== service.price ? service.price : undefined
       }]);
+    }
+  };
+
+  const calculateDiscountedPrice = (service: any) => {
+    if (!service.discount_type || !service.discount_value) return service.price;
+    
+    if (service.discount_type === 'percentage') {
+      return service.price - (service.price * (service.discount_value / 100));
+    } else {
+      return service.price - service.discount_value;
     }
   };
 

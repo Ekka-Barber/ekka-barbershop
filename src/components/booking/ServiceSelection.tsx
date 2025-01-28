@@ -2,6 +2,8 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Badge } from "@/components/ui/badge";
+import { Slash } from "lucide-react";
 
 interface Service {
   id: string;
@@ -11,6 +13,8 @@ interface Service {
   description_ar: string | null;
   price: number;
   duration: number;
+  discount_type: 'percentage' | 'amount' | null;
+  discount_value: number | null;
 }
 
 interface Category {
@@ -46,6 +50,20 @@ export const ServiceSelection = ({
     return `${price} ${language === 'ar' ? 'ريال' : 'SAR'}`;
   };
 
+  const calculateDiscountedPrice = (service: Service) => {
+    if (!service.discount_type || !service.discount_value) return service.price;
+    
+    if (service.discount_type === 'percentage') {
+      return service.price - (service.price * (service.discount_value / 100));
+    } else {
+      return service.price - service.discount_value;
+    }
+  };
+
+  const hasDiscount = (service: Service) => {
+    return service.discount_type && service.discount_value;
+  };
+
   if (isLoading) {
     return (
       <div className="space-y-4">
@@ -73,14 +91,37 @@ export const ServiceSelection = ({
                       onCheckedChange={() => onServiceToggle(service)}
                     />
                     <div className="flex-1">
-                      <h4 className="font-medium">
-                        {language === 'ar' ? service.name_ar : service.name_en}
-                      </h4>
+                      <div className="flex items-center gap-2">
+                        <h4 className="font-medium">
+                          {language === 'ar' ? service.name_ar : service.name_en}
+                        </h4>
+                        {hasDiscount(service) && (
+                          <Badge variant="destructive" className="text-xs">
+                            {service.discount_type === 'percentage' 
+                              ? `${service.discount_value}%` 
+                              : formatPrice(service.discount_value || 0)}
+                          </Badge>
+                        )}
+                      </div>
                       <p className="text-sm text-muted-foreground">
                         {language === 'ar' ? service.description_ar : service.description_en}
                       </p>
-                      <div className="mt-1 text-sm">
-                        {formatPrice(service.price)} • {service.duration} min
+                      <div className="mt-1 text-sm flex items-center gap-2">
+                        {hasDiscount(service) ? (
+                          <>
+                            <span className="text-destructive flex items-center">
+                              <Slash className="w-4 h-4" />
+                              {formatPrice(service.price)}
+                            </span>
+                            <span className="font-medium">
+                              {formatPrice(calculateDiscountedPrice(service))}
+                            </span>
+                          </>
+                        ) : (
+                          <span>{formatPrice(service.price)}</span>
+                        )}
+                        <span>•</span>
+                        <span>{service.duration} min</span>
                       </div>
                     </div>
                   </div>

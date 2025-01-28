@@ -1,11 +1,13 @@
 import { useLanguage } from "@/contexts/LanguageContext";
 import { format } from "date-fns";
+import { Slash } from "lucide-react";
 
 interface SelectedService {
   id: string;
   name: string;
   price: number;
   duration: number;
+  originalPrice?: number;
 }
 
 interface BookingSummaryProps {
@@ -38,9 +40,17 @@ export const BookingSummary = ({
       <div className="space-y-2 text-sm">
         <div className="space-y-2">
           {selectedServices.map((service) => (
-            <div key={service.id} className="flex justify-between">
+            <div key={service.id} className="flex justify-between items-center">
               <span>{service.name}</span>
-              <span>{formatPrice(service.price)}</span>
+              <div className="flex items-center gap-2">
+                {service.originalPrice && (
+                  <span className="text-destructive flex items-center">
+                    <Slash className="w-4 h-4" />
+                    {formatPrice(service.originalPrice)}
+                  </span>
+                )}
+                <span>{formatPrice(service.price)}</span>
+              </div>
             </div>
           ))}
         </div>
