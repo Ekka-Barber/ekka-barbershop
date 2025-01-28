@@ -38,6 +38,8 @@ export const BookingSummary = ({
   const { t, language } = useLanguage();
   
   const totalDuration = selectedServices.reduce((sum, service) => sum + service.duration, 0);
+  const totalOriginalPrice = selectedServices.reduce((sum, service) => sum + (service.originalPrice || service.price), 0);
+  const totalDiscount = totalOriginalPrice - totalPrice;
 
   const formatPrice = (price: number) => {
     const roundedPrice = roundPrice(price);
@@ -55,9 +57,9 @@ export const BookingSummary = ({
               <span>{service.name}</span>
               <div className="flex items-center gap-2">
                 {service.originalPrice && (
-                  <span className="text-destructive flex items-center">
-                    <Slash className="w-4 h-4" />
-                    {formatPrice(service.originalPrice)}
+                  <span className="flex items-center relative">
+                    <Slash className="w-4 h-4 text-destructive absolute -top-3" />
+                    <span className="text-muted-foreground">{formatPrice(service.originalPrice)}</span>
                   </span>
                 )}
                 <span>{formatPrice(service.price)}</span>
@@ -84,6 +86,13 @@ export const BookingSummary = ({
           <div className="pt-2 flex justify-between text-muted-foreground">
             <span>{t('barber')}</span>
             <span>{selectedBarberName}</span>
+          </div>
+        )}
+
+        {totalDiscount > 0 && (
+          <div className="pt-2 flex justify-between text-destructive">
+            <span>{t('discount')}</span>
+            <span>- {formatPrice(totalDiscount)}</span>
           </div>
         )}
         

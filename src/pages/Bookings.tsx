@@ -229,6 +229,53 @@ const Bookings = () => {
     );
   }
   
+  const generateWhatsAppMessage = () => {
+    const serviceSummary = selectedServices
+      .map(service => `${service.name}: ${formatPrice(service.price)}${service.originalPrice ? ` (Original: ${formatPrice(service.originalPrice)})` : ''}`)
+      .join('\n');
+
+    const totalOriginalPrice = selectedServices.reduce((sum, service) => sum + (service.originalPrice || service.price), 0);
+    const totalDiscount = totalOriginalPrice - totalPrice;
+
+    const message = `
+*New Booking Request*
+
+*Customer Details:*
+Name: ${customerDetails.name}
+Phone: ${customerDetails.phone}
+${customerDetails.email ? `Email: ${customerDetails.email}` : ''}
+${customerDetails.notes ? `Notes: ${customerDetails.notes}` : ''}
+
+*Booking Details:*
+${serviceSummary}
+
+Total Duration: ${selectedServices.reduce((sum, service) => sum + service.duration, 0)} minutes
+${selectedDate && selectedTime ? `Date & Time: ${format(selectedDate, 'dd/MM/yyyy')} - ${selectedTime}` : ''}
+${selectedBarberName ? `Barber: ${selectedBarberName}` : ''}
+${totalDiscount > 0 ? `Discount: ${formatPrice(totalDiscount)}` : ''}
+
+*Total Amount: ${formatPrice(totalPrice)}*
+    `.trim();
+
+    return encodeURIComponent(message);
+  };
+
+  const handleBookingConfirmation = () => {
+    const branchWhatsApp = branch?.whatsapp_number;
+    if (!branchWhatsApp) {
+      toast({
+        title: t('error'),
+        description: t('whatsapp.number.missing'),
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const whatsappNumber = branchWhatsApp.startsWith('+') ? branchWhatsApp.slice(1) : branchWhatsApp;
+    const whatsappURL = `https://wa.me/${whatsappNumber}?text=${generateWhatsAppMessage()}`;
+    window.open(whatsappURL, '_blank');
+  };
+
   return (
     <div className={`min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 flex flex-col ${language === 'ar' ? 'rtl' : 'ltr'}`}>
       <div className="flex-grow max-w-md mx-auto w-full pt-8 px-4 sm:px-6 lg:px-8">
@@ -327,16 +374,7 @@ const Bookings = () => {
           
           {currentStepIndex === STEPS.length - 1 && (
             <Button
-              onClick={() => {
-                // Handle booking submission
-                console.log('Booking submitted:', {
-                  services: selectedServices,
-                  date: selectedDate,
-                  time: selectedTime,
-                  barber: selectedBarber,
-                  customer: customerDetails
-                });
-              }}
+              onClick={handleBookingConfirmation}
               className="flex-1 bg-[#C4A36F] hover:bg-[#B39260]"
               disabled={!customerDetails.name || !customerDetails.phone}
             >
