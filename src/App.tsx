@@ -14,18 +14,9 @@ import Bookings from "./pages/Bookings";
 const queryClient = new QueryClient();
 
 // List of public routes that customers can access
-const PUBLIC_ROUTES = ['/customer', '/menu', '/offers', '/preview', '/bookings'];
-
-// Owner access code - you can change this to any value you prefer
-const OWNER_ACCESS_CODE = 'owner123';
+const PUBLIC_ROUTES = ['/customer', '/menu', '/offers', '/preview', '/bookings', '/admin', '/index'];
 
 const App = () => {
-  // Function to check if owner access is granted via URL parameter
-  const hasOwnerAccess = () => {
-    const params = new URLSearchParams(window.location.search);
-    return params.get('access') === OWNER_ACCESS_CODE;
-  };
-
   return (
     <QueryClientProvider client={queryClient}>
       <LanguageProvider>
@@ -44,19 +35,9 @@ const App = () => {
               <Route path="/preview" element={<Customer />} />
               <Route path="/bookings" element={<Bookings />} />
               
-              {/* Protected routes - only accessible with owner access */}
-              <Route 
-                path="/admin" 
-                element={
-                  hasOwnerAccess() ? <Admin /> : <Navigate to="/customer" replace />
-                } 
-              />
-              <Route
-                path="/index"
-                element={
-                  hasOwnerAccess() ? <Index /> : <Navigate to="/customer" replace />
-                }
-              />
+              {/* Admin routes - now publicly accessible */}
+              <Route path="/admin" element={<Admin />} />
+              <Route path="/index" element={<Index />} />
               
               {/* Catch all other routes and redirect to customer page */}
               <Route path="*" element={<Navigate to="/customer" replace />} />
