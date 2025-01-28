@@ -140,54 +140,40 @@ const ServiceCategoryList = () => {
       updates: { id: string; display_order: number; category_id?: string }[] 
     }) => {
       if (type === 'category') {
-        const { data: currentCategories, error: fetchError } = await supabase
-          .from('service_categories')
-          .select('*')
-          .in('id', updates.map(u => u.id));
-        
-        if (fetchError) throw fetchError;
-
-        const mergedUpdates = updates.map(update => {
-          const current = currentCategories?.find(c => c.id === update.id);
-          if (!current) throw new Error(`Category ${update.id} not found`);
-          return {
-            ...current,
-            display_order: update.display_order
-          };
-        });
-
         const { error } = await supabase
           .from('service_categories')
-          .upsert(mergedUpdates);
+          .upsert(
+            updates.map(update => ({
+              id: update.id,
+              display_order: update.display_order
+            }))
+          );
         
         if (error) throw error;
       } else {
-        const { data: currentServices, error: fetchError } = await supabase
-          .from('services')
-          .select('*')
-          .in('id', updates.map(u => u.id));
-        
-        if (fetchError) throw fetchError;
-
-        const mergedUpdates = updates.map(update => {
-          const current = currentServices?.find(s => s.id === update.id);
-          if (!current) throw new Error(`Service ${update.id} not found`);
-          return {
-            ...current,
-            display_order: update.display_order,
-            category_id: update.category_id || current.category_id
-          };
-        });
-
         const { error } = await supabase
           .from('services')
-          .upsert(mergedUpdates);
+          .upsert(
+            updates.map(update => ({
+              id: update.id,
+              display_order: update.display_order,
+              category_id: update.category_id
+            }))
+          );
         
         if (error) throw error;
       }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['service-categories'] });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Failed to update order",
+        variant: "destructive",
+      });
+      console.error('Update order error:', error);
     }
   });
 
@@ -196,19 +182,20 @@ const ServiceCategoryList = () => {
 
     const { source, destination, type } = result;
 
-    if (type === 'category') {
-      const items = Array.from(categories);
-      const [reorderedItem] = items.splice(source.index, 1);
-      items.splice(destination.index, 0, reorderedItem);
+    // Create a new array to avoid mutating state directly
+    const updatedCategories = Array.from(categories);
 
-      const updates = items.map((item, index) => ({
-        id: item.id,
+    if (type === 'category') {
+      const [removed] = updatedCategories.splice(source.index, 1);
+      updatedCategories.splice(destination.index, 0, removed);
+
+      const updates = updatedCategories.map((category, index) => ({
+        id: category.id,
         display_order: index
       }));
 
       updateOrderMutation.mutate({ type: 'category', updates });
     } else {
-      // Handle service reordering
       const sourceCategory = categories.find(c => c.id === source.droppableId);
       const destCategory = categories.find(c => c.id === destination.droppableId);
       
@@ -229,8 +216,12 @@ const ServiceCategoryList = () => {
         updateOrderMutation.mutate({ type: 'service', updates });
       } else {
         // Moving to a different category
-        const destServices = Array.from(destCategory.services);
-        destServices.splice(destination.index, 0, movedService);
+        const destServices = Array.from(destCategory.services || []);
+        destServices.splice(destination.index, 0, {
+          ...movedService,
+          category_id: destination.droppableId
+        });
+
         const updates = destServices.map((service, index) => ({
           id: service.id,
           display_order: index,
