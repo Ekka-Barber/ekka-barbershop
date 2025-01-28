@@ -41,8 +41,8 @@ export function ServiceDialog({ categories }: ServiceDialogProps) {
     defaultValues: {
       name_en: "",
       name_ar: "",
-      price: "",
-      duration: "",
+      price: "0",
+      duration: "0",
       category_id: "",
     },
   });
