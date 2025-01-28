@@ -41,20 +41,21 @@ type Service = {
   price: number;
   display_order: number;
   discount_type: 'percentage' | 'amount' | null;
-  discount_value: number;
+  discount_value: number | null;
 };
 
 const ServiceCategoryList = () => {
   const [newCategory, setNewCategory] = useState({ name_en: '', name_ar: '' });
   const [newService, setNewService] = useState<Partial<Service>>({
+    category_id: '',
     name_en: '',
     name_ar: '',
-    description_en: '',
-    description_ar: '',
+    description_en: null,
+    description_ar: null,
     duration: 0,
     price: 0,
     discount_type: null,
-    discount_value: 0,
+    discount_value: null,
   });
   const [categoryDialogOpen, setCategoryDialogOpen] = useState(false);
   const [serviceDialogOpen, setServiceDialogOpen] = useState(false);
@@ -148,11 +149,24 @@ const ServiceCategoryList = () => {
 
   const addServiceMutation = useMutation({
     mutationFn: async (service: Partial<Service>) => {
+      if (!service.category_id || !service.name_en || !service.name_ar || 
+          service.duration === undefined || service.price === undefined) {
+        throw new Error('Missing required fields');
+      }
+
       await supabase.rpc('set_branch_manager_code', { code: 'true' });
       const { data, error } = await supabase
         .from('services')
         .insert([{
-          ...service,
+          category_id: service.category_id,
+          name_en: service.name_en,
+          name_ar: service.name_ar,
+          description_en: service.description_en,
+          description_ar: service.description_ar,
+          duration: service.duration,
+          price: service.price,
+          discount_type: service.discount_type,
+          discount_value: service.discount_value,
           display_order: categories?.find(c => c.id === service.category_id)?.services?.length || 0
         }])
         .select()
@@ -165,14 +179,15 @@ const ServiceCategoryList = () => {
       queryClient.invalidateQueries({ queryKey: ['service-categories'] });
       setServiceDialogOpen(false);
       setNewService({
+        category_id: '',
         name_en: '',
         name_ar: '',
-        description_en: '',
-        description_ar: '',
+        description_en: null,
+        description_ar: null,
         duration: 0,
         price: 0,
         discount_type: null,
-        discount_value: 0,
+        discount_value: null,
       });
       toast({
         title: "Success",
