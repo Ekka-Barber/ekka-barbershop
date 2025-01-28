@@ -48,7 +48,7 @@ export const BookingSummary = ({
 
   return (
     <div className="rounded-lg border p-4 space-y-3">
-      <h3 className="font-medium">{t('booking.summary')}</h3>
+      <h3 className="font-medium">{language === 'ar' ? 'ملخص الحجز' : t('booking.summary')}</h3>
       
       <div className="space-y-2 text-sm">
         <div className="space-y-2">
@@ -70,34 +70,34 @@ export const BookingSummary = ({
 
         {totalDuration > 0 && (
           <div className="pt-2 flex justify-between text-muted-foreground">
-            <span>{t('total.duration')}</span>
-            <span>{totalDuration} {t('minutes')}</span>
+            <span>{language === 'ar' ? 'المدة الإجمالية' : t('total.duration')}</span>
+            <span>{totalDuration} {language === 'ar' ? 'دقائق' : t('minutes')}</span>
           </div>
         )}
         
         {selectedDate && selectedTime && (
           <div className="pt-2 flex justify-between text-muted-foreground">
-            <span>{t('date.time')}</span>
+            <span>{language === 'ar' ? 'التاريخ والوقت' : t('date.time')}</span>
             <span>{format(selectedDate, 'dd/MM/yyyy')} - {selectedTime}</span>
           </div>
         )}
 
         {selectedBarberName && (
           <div className="pt-2 flex justify-between text-muted-foreground">
-            <span>{t('barber')}</span>
+            <span>{language === 'ar' ? 'الحلاق' : t('barber')}</span>
             <span>{selectedBarberName}</span>
           </div>
         )}
 
         {totalDiscount > 0 && (
           <div className="pt-2 flex justify-between text-destructive">
-            <span>{t('discount')}</span>
+            <span>{language === 'ar' ? 'الخصم' : t('discount')}</span>
             <span>- {formatPrice(totalDiscount)}</span>
           </div>
         )}
         
         <div className="border-t pt-2 font-medium flex justify-between">
-          <span>{t('total')}</span>
+          <span>{language === 'ar' ? 'المجموع' : t('total')}</span>
           <span>{formatPrice(totalPrice)}</span>
         </div>
       </div>

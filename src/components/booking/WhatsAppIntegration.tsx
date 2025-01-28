@@ -91,6 +91,8 @@ ${totalDiscount > 0 ? `الخصم: ${formatPrice(totalDiscount)}` : ''}
     window.open(whatsappURL, '_blank');
   };
 
+  const isFormValid = customerDetails.name.trim() !== '' && customerDetails.phone.trim() !== '';
+
   return (
     <div className="space-y-4">
       <div className="text-center text-sm text-muted-foreground space-y-1">
@@ -99,7 +101,8 @@ ${totalDiscount > 0 ? `الخصم: ${formatPrice(totalDiscount)}` : ''}
       </div>
       <Button 
         onClick={handleBookingConfirmation}
-        className="w-full h-14 text-lg font-medium bg-[#C4A36F] hover:bg-[#B39260] text-white transition-all duration-300 shadow-lg hover:shadow-xl"
+        disabled={!isFormValid}
+        className="w-full h-14 text-lg font-medium bg-[#C4A36F] hover:bg-[#B39260] text-white transition-all duration-300 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {language === 'ar' ? 'تأكيد الحجز' : 'Confirm Booking'}
       </Button>
