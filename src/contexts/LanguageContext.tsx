@@ -90,7 +90,8 @@ const translations = {
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
 export const LanguageProvider = ({ children }: { children: ReactNode }) => {
-  const [language, setLanguage] = useState<Language>('en');
+  // Changed default language to 'ar'
+  const [language, setLanguage] = useState<Language>('ar');
 
   useEffect(() => {
     // Update document direction based on language
