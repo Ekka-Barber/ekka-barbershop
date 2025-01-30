@@ -1,10 +1,10 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
-import { Loader2 } from "lucide-react";
+import { Loader2, Download } from "lucide-react";
 import { QRCodeSVG } from 'qrcode.react';
 
 const QRCodeManager = () => {
@@ -63,6 +63,32 @@ const QRCodeManager = () => {
     updateUrl.mutate(newUrl);
   };
 
+  const handleDownload = () => {
+    const canvas = document.createElement("canvas");
+    const svg = document.querySelector(".qr-code svg") as SVGElement;
+    const svgData = new XMLSerializer().serializeToString(svg);
+    const img = new Image();
+    
+    img.onload = () => {
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext("2d");
+      if (ctx) {
+        ctx.fillStyle = "white";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0);
+        
+        const pngFile = canvas.toDataURL("image/png");
+        const downloadLink = document.createElement("a");
+        downloadLink.download = "qr-code.png";
+        downloadLink.href = pngFile;
+        downloadLink.click();
+      }
+    };
+    
+    img.src = "data:image/svg+xml;base64," + btoa(svgData);
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center p-8">
@@ -84,8 +110,18 @@ const QRCodeManager = () => {
         {/* QR Code Display */}
         <div className="rounded-lg border p-4 space-y-4">
           <h3 className="font-medium">QR Code</h3>
-          <div className="flex justify-center p-4 bg-white rounded-lg">
+          <div className="flex justify-center p-4 bg-white rounded-lg qr-code">
             <QRCodeSVG value={edgeFunctionUrl} size={200} />
+          </div>
+          <div className="flex justify-center">
+            <Button
+              onClick={handleDownload}
+              variant="outline"
+              className="w-full sm:w-auto"
+            >
+              <Download className="mr-2 h-4 w-4" />
+              Download QR Code
+            </Button>
           </div>
           <p className="text-sm text-muted-foreground text-center">
             Scan this QR code to access the redirect URL
