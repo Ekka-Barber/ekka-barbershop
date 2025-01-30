@@ -13,8 +13,8 @@ const QRCodeManager = () => {
   const queryClient = useQueryClient();
   const [newUrl, setNewUrl] = useState("");
   
-  // Use a fixed identifier for the QR code
-  const staticQrValue = 'ekka-barber-qr-1';
+  // Use a fixed UUID for the QR code
+  const staticQrValue = '550e8400-e29b-41d4-a716-446655440000';
   const edgeFunctionUrl = 'https://jfnjvphxhzxojxgptmtu.supabase.co/functions/v1/qr-redirect?id=' + staticQrValue;
 
   // Set owner access before fetching or mutating data
@@ -51,7 +51,7 @@ const QRCodeManager = () => {
         throw error;
       }
       
-      console.log("Fetched QR code:", data); // Debug log
+      console.log("Fetched QR code:", data);
       return data;
     },
   });

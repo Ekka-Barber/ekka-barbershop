@@ -29,9 +29,12 @@ const CreateQRCodeForm = () => {
         throw new Error("Failed to set owner access");
       }
 
+      // Generate a UUID if not provided
+      const qrId = id || crypto.randomUUID();
+
       const { error } = await supabase
         .from("qr_codes")
-        .insert([{ id, url }]);
+        .insert([{ id: qrId, url }]);
 
       if (error) throw error;
     },
@@ -47,7 +50,7 @@ const CreateQRCodeForm = () => {
     onError: (error) => {
       toast({
         title: "Error",
-        description: "Failed to create QR code",
+        description: "Failed to create QR code. Please ensure the ID is a valid UUID.",
         variant: "destructive",
       });
       console.error("Error creating QR code:", error);
@@ -56,8 +59,11 @@ const CreateQRCodeForm = () => {
 
   const handleCreateQr = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newQrId || !newUrl) return;
-    createQrCode.mutate({ id: newQrId, url: newUrl });
+    if (!newUrl) return;
+    
+    // Generate a UUID if not provided or if the provided ID is not a valid UUID
+    const qrId = newQrId || crypto.randomUUID();
+    createQrCode.mutate({ id: qrId, url: newUrl });
   };
 
   return (
@@ -67,14 +73,14 @@ const CreateQRCodeForm = () => {
         <div className="grid gap-4 md:grid-cols-2">
           <div>
             <label htmlFor="qrId" className="block text-sm font-medium mb-2">
-              QR Code ID
+              QR Code ID (optional)
             </label>
             <Input
               id="qrId"
               type="text"
               value={newQrId}
               onChange={(e) => setNewQrId(e.target.value)}
-              placeholder="Enter unique QR code ID"
+              placeholder="Leave empty for auto-generated UUID"
               className="w-full"
             />
           </div>
@@ -89,12 +95,13 @@ const CreateQRCodeForm = () => {
               onChange={(e) => setNewUrl(e.target.value)}
               placeholder="Enter URL"
               className="w-full"
+              required
             />
           </div>
         </div>
         <Button 
           type="submit" 
-          disabled={!newQrId || !newUrl || createQrCode.isPending}
+          disabled={!newUrl || createQrCode.isPending}
           className="w-full sm:w-auto"
         >
           {createQrCode.isPending ? (
