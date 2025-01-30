@@ -15,6 +15,7 @@ Deno.serve(async (req) => {
     // Get QR code ID from query params
     const url = new URL(req.url)
     const id = url.searchParams.get('id')
+    const access = url.searchParams.get('access')
 
     if (!id) {
       return new Response(
@@ -30,13 +31,13 @@ Deno.serve(async (req) => {
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-      { global: { headers: { Authorization: req.headers.get('Authorization')! } } }
     )
 
     // Get active QR code URL from database
     const { data: qrCode, error } = await supabaseClient
       .from('qr_codes')
       .select('url')
+      .eq('id', id)
       .eq('is_active', true)
       .single()
 
@@ -51,11 +52,18 @@ Deno.serve(async (req) => {
       )
     }
 
+    // Determine the redirect URL based on access
+    let redirectUrl = qrCode.url
+    if (access === 'owner123') {
+      // If owner access, append the access parameter
+      redirectUrl = `${qrCode.url}${qrCode.url.includes('?') ? '&' : '?'}access=owner123`
+    }
+
     // Redirect to the stored URL
     return new Response(null, {
       headers: { 
         ...corsHeaders,
-        'Location': qrCode.url
+        'Location': redirectUrl
       },
       status: 302
     })
