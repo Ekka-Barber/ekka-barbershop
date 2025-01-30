@@ -22,15 +22,24 @@ const QRCodeManager = () => {
     const { error } = await supabase.rpc('set_owner_access', { value: 'owner123' });
     if (error) {
       console.error('Error setting owner access:', error);
+      toast({
+        title: "Error",
+        description: "Failed to set owner access. Please try again.",
+        variant: "destructive",
+      });
       return false;
     }
     return true;
   };
 
-  const { data: qrCode, isLoading } = useQuery({
+  const { data: qrCode, isLoading, error: fetchError } = useQuery({
     queryKey: ["qrCodes", staticQrValue],
     queryFn: async () => {
-      await setOwnerAccess();
+      const ownerAccessSet = await setOwnerAccess();
+      if (!ownerAccessSet) {
+        throw new Error("Failed to set owner access");
+      }
+
       const { data, error } = await supabase
         .from("qr_codes")
         .select("*")
@@ -41,12 +50,16 @@ const QRCodeManager = () => {
         console.error("Error fetching QR code:", error);
         throw error;
       }
+      
+      console.log("Fetched QR code:", data); // Debug log
       return data;
     },
   });
 
   const updateUrl = useMutation({
     mutationFn: async (url: string) => {
+      console.log("Attempting to update URL to:", url); // Debug log
+      
       const ownerAccessSet = await setOwnerAccess();
       if (!ownerAccessSet) {
         throw new Error("Failed to set owner access");
@@ -62,6 +75,8 @@ const QRCodeManager = () => {
         console.error("Error updating QR code URL:", error);
         throw error;
       }
+      
+      console.log("Update response:", data); // Debug log
       return data;
     },
     onSuccess: () => {
@@ -76,7 +91,7 @@ const QRCodeManager = () => {
       console.error("Detailed error:", error);
       toast({
         title: "Error",
-        description: "Failed to update QR code URL",
+        description: "Failed to update QR code URL. Please check console for details.",
         variant: "destructive",
       });
     },
@@ -118,6 +133,17 @@ const QRCodeManager = () => {
     return (
       <div className="flex items-center justify-center p-8">
         <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
+
+  if (fetchError) {
+    return (
+      <div className="p-8 text-center">
+        <div className="text-red-500 mb-4">Error loading QR code: {(fetchError as Error).message}</div>
+        <Button onClick={() => queryClient.invalidateQueries({ queryKey: ["qrCodes"] })}>
+          Retry
+        </Button>
       </div>
     );
   }

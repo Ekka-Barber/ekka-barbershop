@@ -14,6 +14,8 @@ Deno.serve(async (req) => {
     const url = new URL(req.url)
     const id = url.searchParams.get('id')
 
+    console.log('Received request for QR code ID:', id) // Debug log
+
     if (!id) {
       return new Response(
         JSON.stringify({ error: 'Missing QR code ID' }),
@@ -30,14 +32,24 @@ Deno.serve(async (req) => {
     // Query the QR code and ensure it's active
     const { data: qrCode, error } = await supabase
       .from('qr_codes')
-      .select('url')
+      .select('url, is_active')
       .eq('id', id)
-      .eq('is_active', true)
       .single()
 
-    console.log('QR code lookup result:', { qrCode, error, id }) // Added for debugging
+    console.log('QR code lookup result:', { qrCode, error, id }) // Debug log
 
-    if (error || !qrCode) {
+    if (error) {
+      console.error('Database error:', error)
+      return new Response(
+        JSON.stringify({ error: 'Error fetching QR code' }),
+        { 
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        }
+      )
+    }
+
+    if (!qrCode || !qrCode.is_active) {
       return new Response(
         JSON.stringify({ error: 'QR code not found or inactive' }),
         { 
@@ -46,6 +58,8 @@ Deno.serve(async (req) => {
         }
       )
     }
+
+    console.log('Redirecting to:', qrCode.url) // Debug log
 
     // Redirect to the URL
     return new Response(null, {
@@ -57,7 +71,7 @@ Deno.serve(async (req) => {
     })
 
   } catch (error) {
-    console.error('Error in QR redirect:', error) // Added for debugging
+    console.error('Error in QR redirect:', error)
     return new Response(
       JSON.stringify({ error: error.message }),
       { 
