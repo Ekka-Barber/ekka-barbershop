@@ -9,6 +9,7 @@ const Index = () => {
   
   // Use a fixed identifier for the QR code
   const staticQrValue = 'ekka-barber-qr-1'; // This value never changes, keeping QR shape static
+  const edgeFunctionUrl = 'https://jfnjvphxhzxojxgptmtu.supabase.co/functions/v1/qr-redirect?id=' + staticQrValue;
   
   const { data: qrCode, isLoading } = useQuery({
     queryKey: ['qrCode'],
@@ -40,7 +41,7 @@ const Index = () => {
         
         <div className="bg-white rounded-lg shadow-lg p-8 mb-8">
           <div className="flex justify-center mb-6">
-            <QRCodeSVG value={staticQrValue} size={256} />
+            <QRCodeSVG value={edgeFunctionUrl} size={256} />
           </div>
           <p className="text-center text-gray-600 mb-4">
             Scan this QR code to access our customer interface
