@@ -18,27 +18,35 @@ const QRCodeManager = () => {
   const edgeFunctionUrl = 'https://jfnjvphxhzxojxgptmtu.supabase.co/functions/v1/qr-redirect?id=' + staticQrValue;
 
   const { data: qrCode, isLoading } = useQuery({
-    queryKey: ["qrCodes"],
+    queryKey: ["qrCodes", staticQrValue],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("qr_codes")
         .select("*")
-        .eq("id", "ekka-barber-qr-1")
+        .eq("id", staticQrValue)
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching QR code:", error);
+        throw error;
+      }
       return data;
     },
   });
 
   const updateUrl = useMutation({
     mutationFn: async (url: string) => {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from("qr_codes")
         .update({ url })
-        .eq("id", "ekka-barber-qr-1");
+        .eq("id", staticQrValue)
+        .select();
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error updating QR code URL:", error);
+        throw error;
+      }
+      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["qrCodes"] });
@@ -49,12 +57,12 @@ const QRCodeManager = () => {
       setNewUrl("");
     },
     onError: (error) => {
+      console.error("Detailed error:", error);
       toast({
         title: "Error",
         description: "Failed to update QR code URL",
         variant: "destructive",
       });
-      console.error("Error updating QR code URL:", error);
     },
   });
 
