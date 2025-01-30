@@ -17,9 +17,20 @@ const QRCodeManager = () => {
   const staticQrValue = 'ekka-barber-qr-1';
   const edgeFunctionUrl = 'https://jfnjvphxhzxojxgptmtu.supabase.co/functions/v1/qr-redirect?id=' + staticQrValue;
 
+  // Set owner access before fetching or mutating data
+  const setOwnerAccess = async () => {
+    const { error } = await supabase.rpc('set_owner_access', { value: 'owner123' });
+    if (error) {
+      console.error('Error setting owner access:', error);
+      return false;
+    }
+    return true;
+  };
+
   const { data: qrCode, isLoading } = useQuery({
     queryKey: ["qrCodes", staticQrValue],
     queryFn: async () => {
+      await setOwnerAccess();
       const { data, error } = await supabase
         .from("qr_codes")
         .select("*")
@@ -36,6 +47,11 @@ const QRCodeManager = () => {
 
   const updateUrl = useMutation({
     mutationFn: async (url: string) => {
+      const ownerAccessSet = await setOwnerAccess();
+      if (!ownerAccessSet) {
+        throw new Error("Failed to set owner access");
+      }
+
       const { data, error } = await supabase
         .from("qr_codes")
         .update({ url })
