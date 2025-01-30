@@ -3,22 +3,23 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from 'react-router-dom';
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from '@tanstack/react-query';
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const Index = () => {
   const navigate = useNavigate();
   
   // Use a fixed identifier for the QR code
-  const staticQrValue = 'ekka-barber-qr-1'; // This value never changes, keeping QR shape static
+  const staticQrValue = '550e8400-e29b-41d4-a716-446655440000';
   const edgeFunctionUrl = 'https://jfnjvphxhzxojxgptmtu.supabase.co/functions/v1/qr-redirect?id=' + staticQrValue;
   
-  const { data: qrCode, isLoading } = useQuery({
+  const { data: qrCode, isLoading, error } = useQuery({
     queryKey: ['qrCode'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('qr_codes')
         .select('*')
         .eq('is_active', true)
-        .single();
+        .maybeSingle();
       
       if (error) throw error;
       
@@ -30,6 +31,18 @@ const Index = () => {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="text-xl text-[#C4A36F]">Loading QR Code...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-white p-6">
+        <Alert variant="destructive">
+          <AlertDescription>
+            Error loading QR code. Please try again later.
+          </AlertDescription>
+        </Alert>
       </div>
     );
   }
@@ -46,9 +59,15 @@ const Index = () => {
           <p className="text-center text-gray-600 mb-4">
             Scan this QR code to access our customer interface
           </p>
-          <p className="text-center text-sm text-gray-500">
-            Current redirect URL: {qrCode?.url || 'Not set'}
-          </p>
+          {qrCode ? (
+            <p className="text-center text-sm text-gray-500">
+              Current redirect URL: {qrCode.url}
+            </p>
+          ) : (
+            <p className="text-center text-sm text-red-500">
+              No active QR code found. Please contact support.
+            </p>
+          )}
         </div>
 
         <div className="text-center">

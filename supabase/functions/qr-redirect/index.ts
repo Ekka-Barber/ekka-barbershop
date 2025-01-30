@@ -14,7 +14,7 @@ Deno.serve(async (req) => {
     const url = new URL(req.url)
     const id = url.searchParams.get('id')
 
-    console.log('Received request for QR code ID:', id) // Debug log
+    console.log('Received request for QR code ID:', id)
 
     if (!id) {
       return new Response(
@@ -34,9 +34,10 @@ Deno.serve(async (req) => {
       .from('qr_codes')
       .select('url, is_active')
       .eq('id', id)
-      .single()
+      .eq('is_active', true)
+      .maybeSingle()
 
-    console.log('QR code lookup result:', { qrCode, error, id }) // Debug log
+    console.log('QR code lookup result:', { qrCode, error })
 
     if (error) {
       console.error('Database error:', error)
@@ -49,7 +50,7 @@ Deno.serve(async (req) => {
       )
     }
 
-    if (!qrCode || !qrCode.is_active) {
+    if (!qrCode) {
       return new Response(
         JSON.stringify({ error: 'QR code not found or inactive' }),
         { 
@@ -59,7 +60,7 @@ Deno.serve(async (req) => {
       )
     }
 
-    console.log('Redirecting to:', qrCode.url) // Debug log
+    console.log('Redirecting to:', qrCode.url)
 
     // Redirect to the URL
     return new Response(null, {
