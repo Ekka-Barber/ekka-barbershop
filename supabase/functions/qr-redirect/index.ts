@@ -27,16 +27,19 @@ Deno.serve(async (req) => {
     // Initialize Supabase client
     const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
-    // Query the QR code
+    // Query the QR code and ensure it's active
     const { data: qrCode, error } = await supabase
       .from('qr_codes')
       .select('url')
       .eq('id', id)
+      .eq('is_active', true)
       .single()
+
+    console.log('QR code lookup result:', { qrCode, error, id }) // Added for debugging
 
     if (error || !qrCode) {
       return new Response(
-        JSON.stringify({ error: 'QR code not found' }),
+        JSON.stringify({ error: 'QR code not found or inactive' }),
         { 
           status: 404,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -54,6 +57,7 @@ Deno.serve(async (req) => {
     })
 
   } catch (error) {
+    console.error('Error in QR redirect:', error) // Added for debugging
     return new Response(
       JSON.stringify({ error: error.message }),
       { 
