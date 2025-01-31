@@ -34,7 +34,11 @@ const CreateQRCodeForm = () => {
 
       const { error } = await supabase
         .from("qr_codes")
-        .insert([{ id: qrId, url }]);
+        .insert([{ 
+          id: qrId, 
+          url,
+          is_active: true // Always set new QR codes as active
+        }]);
 
       if (error) throw error;
     },

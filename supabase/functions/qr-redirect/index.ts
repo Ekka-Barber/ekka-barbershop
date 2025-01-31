@@ -29,7 +29,7 @@ Deno.serve(async (req) => {
     // Initialize Supabase client
     const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
-    // Query the QR code and ensure it's active
+    // Query the QR code - now we only check if it exists and is active
     const { data: qrCode, error } = await supabase
       .from('qr_codes')
       .select('url, is_active')
