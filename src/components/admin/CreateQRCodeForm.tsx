@@ -29,15 +29,15 @@ const CreateQRCodeForm = () => {
         throw new Error("Failed to set owner access");
       }
 
-      // Generate a UUID if not provided
-      const qrId = id || crypto.randomUUID();
+      // Use provided ID or generate a random one
+      const qrId = id || `qr-${Math.random().toString(36).substring(2, 9)}`;
 
       const { error } = await supabase
         .from("qr_codes")
         .insert([{ 
           id: qrId, 
           url,
-          is_active: true // Always set new QR codes as active
+          is_active: true
         }]);
 
       if (error) throw error;
@@ -54,7 +54,7 @@ const CreateQRCodeForm = () => {
     onError: (error) => {
       toast({
         title: "Error",
-        description: "Failed to create QR code. Please ensure the ID is a valid UUID.",
+        description: "Failed to create QR code. The ID might already be in use.",
         variant: "destructive",
       });
       console.error("Error creating QR code:", error);
@@ -65,9 +65,7 @@ const CreateQRCodeForm = () => {
     e.preventDefault();
     if (!newUrl) return;
     
-    // Generate a UUID if not provided or if the provided ID is not a valid UUID
-    const qrId = newQrId || crypto.randomUUID();
-    createQrCode.mutate({ id: qrId, url: newUrl });
+    createQrCode.mutate({ id: newQrId, url: newUrl });
   };
 
   return (
@@ -84,7 +82,7 @@ const CreateQRCodeForm = () => {
               type="text"
               value={newQrId}
               onChange={(e) => setNewQrId(e.target.value)}
-              placeholder="Leave empty for auto-generated UUID"
+              placeholder="e.g., menu-qr, offers-qr"
               className="w-full"
             />
           </div>
