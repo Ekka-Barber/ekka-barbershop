@@ -78,7 +78,7 @@ const translations = {
     'special.offers': 'العروض',
     'special.offers.title': 'العروض',
     'book.now': 'لحجز موعد',
-    'our.menu': 'قائمتنا',
+    'our.menu': 'قائمة الأسعار',
     'loading.menu': 'جاري تحميل القائمة...',
     'no.menu': 'لا توجد قائمة متاحة',
     'loading.offers': 'جاري تحميل العروض...',
@@ -90,13 +90,10 @@ const translations = {
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
 export const LanguageProvider = ({ children }: { children: ReactNode }) => {
-  // Changed default language to 'ar'
   const [language, setLanguage] = useState<Language>('ar');
 
   useEffect(() => {
-    // Update document direction based on language
     document.documentElement.dir = language === 'ar' ? 'rtl' : 'ltr';
-    // Add/remove RTL class on body
     document.body.classList.toggle('rtl', language === 'ar');
   }, [language]);
 
