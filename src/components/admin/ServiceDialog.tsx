@@ -11,6 +11,8 @@ import { Category, Service } from '@/types/service';
 import { ServiceForm } from './ServiceForm';
 import { useServiceForm } from '@/hooks/useServiceForm';
 import { useToast } from '@/components/ui/use-toast';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from "@/integrations/supabase/client";
 
 type ServiceDialogProps = {
   categories: Category[] | undefined;
@@ -22,7 +24,80 @@ type ServiceDialogProps = {
 export const ServiceDialog = ({ categories, editService, onSuccess, trigger }: ServiceDialogProps) => {
   const [isExpanded, setIsExpanded] = useState<string>('');
   const { toast } = useToast();
-  const { newService, setNewService, addService, updateService, isLoading } = useServiceForm(() => {
+  const queryClient = useQueryClient();
+  const [selectedUpsells, setSelectedUpsells] = useState<Array<{ serviceId: string; discountPercentage: number }>>([]);
+
+  const { data: services } = useQuery({
+    queryKey: ['services'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('services')
+        .select('*');
+      if (error) throw error;
+      return data as Service[];
+    }
+  });
+
+  const { data: existingUpsells } = useQuery({
+    queryKey: ['service-upsells', editService?.id],
+    queryFn: async () => {
+      if (!editService?.id) return [];
+      const { data, error } = await supabase
+        .from('service_upsells')
+        .select('*')
+        .eq('main_service_id', editService.id);
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!editService?.id
+  });
+
+  useEffect(() => {
+    if (existingUpsells) {
+      setSelectedUpsells(
+        existingUpsells.map(upsell => ({
+          serviceId: upsell.upsell_service_id,
+          discountPercentage: upsell.discount_percentage
+        }))
+      );
+    }
+  }, [existingUpsells]);
+
+  const upsellMutation = useMutation({
+    mutationFn: async ({ serviceId, upsells }: { serviceId: string, upsells: typeof selectedUpsells }) => {
+      // First, delete existing upsells
+      await supabase
+        .from('service_upsells')
+        .delete()
+        .eq('main_service_id', serviceId);
+
+      // Then insert new ones
+      if (upsells.length > 0) {
+        const { error } = await supabase
+          .from('service_upsells')
+          .insert(
+            upsells.map(upsell => ({
+              main_service_id: serviceId,
+              upsell_service_id: upsell.serviceId,
+              discount_percentage: upsell.discountPercentage
+            }))
+          );
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['service-upsells'] });
+    }
+  });
+
+  const { newService, setNewService, addService, updateService, isLoading } = useServiceForm(async () => {
+    const serviceId = editService?.id || newService.id;
+    if (serviceId) {
+      await upsellMutation.mutateAsync({
+        serviceId,
+        upsells: selectedUpsells
+      });
+    }
     setIsExpanded('');
     onSuccess?.();
     toast({
@@ -73,6 +148,9 @@ export const ServiceDialog = ({ categories, editService, onSuccess, trigger }: S
                   categories={categories}
                   service={newService}
                   onChange={setNewService}
+                  availableServices={services}
+                  selectedUpsells={selectedUpsells}
+                  onUpsellsChange={setSelectedUpsells}
                 />
                 <Button 
                   className="w-full"
@@ -101,6 +179,9 @@ export const ServiceDialog = ({ categories, editService, onSuccess, trigger }: S
                   categories={categories}
                   service={newService}
                   onChange={setNewService}
+                  availableServices={services}
+                  selectedUpsells={selectedUpsells}
+                  onUpsellsChange={setSelectedUpsells}
                 />
                 <Button 
                   className="w-full"

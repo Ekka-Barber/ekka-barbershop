@@ -634,6 +634,48 @@ export type Database = {
         }
         Relationships: []
       }
+      service_upsells: {
+        Row: {
+          created_at: string
+          discount_percentage: number
+          id: string
+          main_service_id: string
+          updated_at: string
+          upsell_service_id: string
+        }
+        Insert: {
+          created_at?: string
+          discount_percentage: number
+          id?: string
+          main_service_id: string
+          updated_at?: string
+          upsell_service_id: string
+        }
+        Update: {
+          created_at?: string
+          discount_percentage?: number
+          id?: string
+          main_service_id?: string
+          updated_at?: string
+          upsell_service_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_upsells_main_service_id_fkey"
+            columns: ["main_service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_upsells_upsell_service_id_fkey"
+            columns: ["upsell_service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       services: {
         Row: {
           category_id: string
