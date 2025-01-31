@@ -14,6 +14,7 @@ interface BookingNavigationProps {
     phone: string;
   };
   branch: any;
+  onNextClick?: () => void;
 }
 
 export const BookingNavigation = ({
@@ -23,10 +24,19 @@ export const BookingNavigation = ({
   setCurrentStep,
   isNextDisabled,
   customerDetails,
-  branch
+  branch,
+  onNextClick
 }: BookingNavigationProps) => {
   const navigate = useNavigate();
   const { t, language } = useLanguage();
+
+  const handleNext = () => {
+    if (onNextClick) {
+      onNextClick();
+    } else {
+      setCurrentStep(steps[currentStepIndex + 1]);
+    }
+  };
 
   return (
     <div className="space-y-4">
@@ -47,7 +57,7 @@ export const BookingNavigation = ({
         
         {currentStepIndex < steps.length - 1 && (
           <Button
-            onClick={() => setCurrentStep(steps[currentStepIndex + 1])}
+            onClick={handleNext}
             className="flex-1 bg-[#C4A36F] hover:bg-[#B39260]"
             disabled={isNextDisabled}
           >
