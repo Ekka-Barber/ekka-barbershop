@@ -56,11 +56,11 @@ export const BookingSteps = ({ branch }: BookingStepsProps) => {
           upsell_service_id,
           discount_percentage,
           services:upsell_service_id (
-            id,
-            name_en,
-            name_ar,
-            price,
-            duration
+            services.id,
+            services.name_en,
+            services.name_ar,
+            services.price,
+            services.duration
           )
         `)
         .in('main_service_id', selectedServices.map(s => s.id));
