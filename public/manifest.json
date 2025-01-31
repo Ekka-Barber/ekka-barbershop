@@ -1,0 +1,21 @@
+{
+  "name": "Ekka Barbershop",
+  "short_name": "Ekka",
+  "description": "Book your appointment at Ekka Barbershop",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#ffffff",
+  "icons": [
+    {
+      "src": "/lovable-uploads/8289fb1d-c6e6-4528-980c-6b52313ca898.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/lovable-uploads/8289fb1d-c6e6-4528-980c-6b52313ca898.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
