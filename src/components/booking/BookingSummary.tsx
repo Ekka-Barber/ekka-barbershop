@@ -51,22 +51,28 @@ export const BookingSummary = ({
       <h3 className="font-medium">{language === 'ar' ? 'ملخص الحجز' : t('booking.summary')}</h3>
       
       <div className="space-y-2 text-sm">
-        <div className="space-y-2">
-          {selectedServices.map((service) => (
-            <div key={service.id} className="flex justify-between items-center">
-              <span>{service.name}</span>
-              <div className="flex items-center gap-2">
-                {service.originalPrice && (
-                  <span className="flex items-center relative">
-                    <Slash className="w-4 h-4 text-destructive absolute -translate-y-[2px]" />
-                    <span className="text-muted-foreground">{formatPrice(service.originalPrice)}</span>
-                  </span>
-                )}
-                <span>{formatPrice(service.price)}</span>
+        {selectedServices.length > 0 ? (
+          <div className="space-y-2">
+            {selectedServices.map((service) => (
+              <div key={service.id} className="flex justify-between items-center">
+                <span>{service.name}</span>
+                <div className="flex items-center gap-2">
+                  {service.originalPrice && (
+                    <span className="flex items-center relative">
+                      <Slash className="w-4 h-4 text-destructive absolute -translate-y-[2px]" />
+                      <span className="text-muted-foreground">{formatPrice(service.originalPrice)}</span>
+                    </span>
+                  )}
+                  <span>{formatPrice(service.price)}</span>
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        ) : (
+          <div className="text-muted-foreground text-center py-2">
+            {language === 'ar' ? 'لم يتم اختيار أي خدمات' : 'No services selected'}
+          </div>
+        )}
 
         {totalDuration > 0 && (
           <div className="pt-2 flex justify-between text-muted-foreground">
