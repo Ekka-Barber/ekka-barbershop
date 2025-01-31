@@ -63,6 +63,10 @@ export const ServiceSelection = ({
     return `${roundedPrice} ${language === 'ar' ? 'ريال' : 'SAR'}`;
   };
 
+  const getArabicTimeUnit = (duration: number) => {
+    return duration >= 5 && duration <= 10 ? 'دقائق' : 'دقيقة';
+  };
+
   const calculateDiscountedPrice = (service: Service) => {
     if (!service.discount_type || !service.discount_value) return service.price;
     
@@ -145,7 +149,11 @@ export const ServiceSelection = ({
                             <span>{formatPrice(service.price)}</span>
                           )}
                           <span>•</span>
-                          <span>{service.duration} min</span>
+                          <span>
+                            {service.duration} {language === 'ar' 
+                              ? getArabicTimeUnit(service.duration)
+                              : 'min'}
+                          </span>
                         </div>
                       </div>
                     </div>
