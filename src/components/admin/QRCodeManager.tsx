@@ -1,12 +1,11 @@
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
-import { Loader2, Download } from "lucide-react";
-import { QRCodeSVG } from 'qrcode.react';
+import { Loader2 } from "lucide-react";
 import CreateQRCodeForm from "./CreateQRCodeForm";
+import QRCodeDisplay from "./QRCodeDisplay";
+import URLManager from "./URLManager";
 
 const QRCodeManager = () => {
   const { toast } = useToast();
@@ -17,7 +16,6 @@ const QRCodeManager = () => {
   const staticQrValue = '550e8400-e29b-41d4-a716-446655440000';
   const edgeFunctionUrl = 'https://jfnjvphxhzxojxgptmtu.supabase.co/functions/v1/qr-redirect?id=' + staticQrValue;
 
-  // Set owner access before fetching or mutating data
   const setOwnerAccess = async () => {
     const { error } = await supabase.rpc('set_owner_access', { value: 'owner123' });
     if (error) {
@@ -51,15 +49,12 @@ const QRCodeManager = () => {
         throw error;
       }
       
-      console.log("Fetched QR code:", data);
       return data;
     },
   });
 
   const updateUrl = useMutation({
     mutationFn: async (url: string) => {
-      console.log("Attempting to update URL to:", url); // Debug log
-      
       const ownerAccessSet = await setOwnerAccess();
       if (!ownerAccessSet) {
         throw new Error("Failed to set owner access");
@@ -71,12 +66,7 @@ const QRCodeManager = () => {
         .eq("id", staticQrValue)
         .select();
 
-      if (error) {
-        console.error("Error updating QR code URL:", error);
-        throw error;
-      }
-      
-      console.log("Update response:", data); // Debug log
+      if (error) throw error;
       return data;
     },
     onSuccess: () => {
@@ -158,66 +148,19 @@ const QRCodeManager = () => {
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
-        {/* QR Code Display */}
-        <div className="rounded-lg border p-4 space-y-4">
-          <h3 className="font-medium">QR Code</h3>
-          <div className="flex justify-center p-4 bg-white rounded-lg qr-code">
-            <QRCodeSVG value={edgeFunctionUrl} size={200} />
-          </div>
-          <div className="flex justify-center">
-            <Button
-              onClick={handleDownload}
-              variant="outline"
-              className="w-full sm:w-auto"
-            >
-              <Download className="mr-2 h-4 w-4" />
-              Download QR Code
-            </Button>
-          </div>
-          <p className="text-sm text-muted-foreground text-center">
-            Scan this QR code to access the redirect URL
-          </p>
-        </div>
-
-        {/* URL Management */}
-        <div className="rounded-lg border p-4 space-y-4">
-          <div>
-            <h3 className="font-medium mb-2">Current URL</h3>
-            <p className="text-sm text-muted-foreground break-all">
-              {qrCode?.url || "No URL set"}
-            </p>
-          </div>
-
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <h3 className="font-medium mb-2">New URL</h3>
-              <Input
-                type="url"
-                value={newUrl}
-                onChange={(e) => setNewUrl(e.target.value)}
-                placeholder="Enter new URL"
-                className="w-full"
-              />
-            </div>
-            <Button 
-              type="submit" 
-              disabled={!newUrl || updateUrl.isPending}
-              className="w-full sm:w-auto"
-            >
-              {updateUrl.isPending ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Updating...
-                </>
-              ) : (
-                "Update URL"
-              )}
-            </Button>
-          </form>
-        </div>
+        <QRCodeDisplay 
+          edgeFunctionUrl={edgeFunctionUrl}
+          handleDownload={handleDownload}
+        />
+        <URLManager
+          currentUrl={qrCode?.url}
+          newUrl={newUrl}
+          setNewUrl={setNewUrl}
+          handleSubmit={handleSubmit}
+          isUpdating={updateUrl.isPending}
+        />
       </div>
 
-      {/* Create New QR Code Form */}
       <CreateQRCodeForm />
     </div>
   );
