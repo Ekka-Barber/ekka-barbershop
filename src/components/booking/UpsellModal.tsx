@@ -85,50 +85,52 @@ export const UpsellModal = ({
         </div>
 
         <div className="flex-1 overflow-hidden flex flex-col">
-          <ScrollArea className="flex-1 px-6">
-            <div 
-              className={`${useGridLayout ? 'grid grid-cols-2 gap-2.5' : 'space-y-2.5'} pb-4`}
-              dir={language === 'ar' ? 'rtl' : 'ltr'}
-            >
-              {availableUpsells.map((upsell) => {
-                const isSelected = selectedUpsells.some(s => s.id === upsell.id);
-                const discountedPrice = calculateDiscountedPrice(upsell.price, upsell.discountPercentage);
+          <ScrollArea className="flex-1">
+            <div className="px-6 flex justify-center">
+              <div 
+                className={`${useGridLayout ? 'grid grid-cols-2 gap-2.5 w-full max-w-[450px]' : 'flex flex-col gap-2.5 w-full max-w-[400px]'} pb-4`}
+                dir={language === 'ar' ? 'rtl' : 'ltr'}
+              >
+                {availableUpsells.map((upsell) => {
+                  const isSelected = selectedUpsells.some(s => s.id === upsell.id);
+                  const discountedPrice = calculateDiscountedPrice(upsell.price, upsell.discountPercentage);
 
-                return (
-                  <div
-                    key={upsell.id}
-                    className={`p-3 border rounded-lg cursor-pointer transition-all ${
-                      isSelected 
-                        ? 'border-primary bg-primary/5 shadow-sm' 
-                        : 'hover:border-primary/50 hover:shadow-sm'
-                    }`}
-                    onClick={() => handleToggleUpsell(upsell)}
-                  >
-                    <div className="flex flex-col gap-1.5">
-                      <div>
-                        <h3 className={`font-medium ${useGridLayout ? 'text-sm' : 'text-base'} line-clamp-2`}>
-                          {upsell.name}
-                        </h3>
-                        <p className="text-xs text-muted-foreground">
-                          {upsell.duration} {language === 'ar' ? 'دقيقة' : 'min'}
-                        </p>
-                      </div>
-                      <div className={`text-${language === 'ar' ? 'left' : 'right'}`}>
-                        <div className="flex items-center gap-1.5 justify-end">
-                          <span className="flex items-center relative">
-                            <Slash className="w-3.5 h-3.5 text-destructive absolute -translate-y-[2px]" />
-                            <span className="text-sm text-muted-foreground">{formatPrice(upsell.price)}</span>
-                          </span>
-                          <span className="text-sm font-medium">{formatPrice(discountedPrice)}</span>
+                  return (
+                    <div
+                      key={upsell.id}
+                      className={`p-3 border rounded-lg cursor-pointer transition-all ${
+                        isSelected 
+                          ? 'border-primary bg-primary/5 shadow-sm' 
+                          : 'hover:border-primary/50 hover:shadow-sm'
+                      }`}
+                      onClick={() => handleToggleUpsell(upsell)}
+                    >
+                      <div className="flex flex-col gap-1.5">
+                        <div>
+                          <h3 className={`font-medium ${useGridLayout ? 'text-sm' : 'text-base'} line-clamp-2`}>
+                            {upsell.name}
+                          </h3>
+                          <p className="text-xs text-muted-foreground">
+                            {upsell.duration} {language === 'ar' ? 'دقيقة' : 'min'}
+                          </p>
                         </div>
-                        <p className="text-xs text-destructive font-medium">
-                          -{upsell.discountPercentage}%
-                        </p>
+                        <div className={`text-${language === 'ar' ? 'left' : 'right'}`}>
+                          <div className="flex items-center gap-1.5 justify-end">
+                            <span className="flex items-center relative">
+                              <Slash className="w-3.5 h-3.5 text-destructive absolute -translate-y-[2px]" />
+                              <span className="text-sm text-muted-foreground">{formatPrice(upsell.price)}</span>
+                            </span>
+                            <span className="text-sm font-medium">{formatPrice(discountedPrice)}</span>
+                          </div>
+                          <p className="text-xs text-destructive font-medium">
+                            -{upsell.discountPercentage}%
+                          </p>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
             </div>
           </ScrollArea>
 
