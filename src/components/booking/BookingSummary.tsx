@@ -39,7 +39,8 @@ export const BookingSummary = ({
 }: BookingSummaryProps) => {
   const { t, language } = useLanguage();
   
-  const totalDuration = selectedServices.reduce((sum, service) => sum + service.duration, 0);
+  // Calculate total duration by summing up all service durations
+  const totalDuration = selectedServices.reduce((total, service) => total + (service.duration || 0), 0);
   const totalOriginalPrice = selectedServices.reduce((sum, service) => sum + (service.originalPrice || service.price), 0);
   const totalDiscount = totalOriginalPrice - totalPrice;
 
