@@ -40,9 +40,6 @@ export const BookingSummary = ({
 }: BookingSummaryProps) => {
   const { t, language } = useLanguage();
   
-  const mainServices = selectedServices.filter(service => !service.isUpsellItem);
-  const upsellServices = selectedServices.filter(service => service.isUpsellItem);
-  
   const totalDuration = selectedServices.reduce((total, service) => total + (service.duration || 0), 0);
   const totalOriginalPrice = selectedServices.reduce((sum, service) => sum + (service.originalPrice || service.price), 0);
   const totalDiscount = totalOriginalPrice - totalPrice;
@@ -56,56 +53,38 @@ export const BookingSummary = ({
     return duration >= 5 && duration <= 10 ? 'دقائق' : 'دقيقة';
   };
 
-  const renderServiceItem = (service: SelectedService) => (
-    <div key={service.id} className="flex justify-between items-center">
-      <div className="flex items-center gap-2">
-        <span>{service.name}</span>
-        {onRemoveService && service.isUpsellItem && (
-          <button
-            onClick={() => onRemoveService(service.id)}
-            className="p-1 hover:bg-gray-100 rounded-full transition-colors"
-            aria-label="Remove service"
-          >
-            <X className="w-4 h-4 text-gray-500" />
-          </button>
-        )}
-      </div>
-      <div className="flex items-center gap-2">
-        {service.originalPrice && (
-          <span className="flex items-center relative">
-            <Slash className="w-4 h-4 text-destructive absolute -translate-y-[2px]" />
-            <span className="text-muted-foreground">{formatPrice(service.originalPrice)}</span>
-          </span>
-        )}
-        <span>{formatPrice(service.price)}</span>
-      </div>
-    </div>
-  );
-
   return (
     <div className="rounded-lg border p-4 space-y-3">
       <h3 className="font-medium">{language === 'ar' ? 'ملخص الحجز' : t('booking.summary')}</h3>
       
       <div className="space-y-2 text-sm">
         {selectedServices.length > 0 ? (
-          <div className="space-y-4">
-            {mainServices.length > 0 && (
-              <div className="space-y-2">
-                <h4 className="text-sm font-medium text-muted-foreground">
-                  {language === 'ar' ? 'الخدمات الأساسية' : 'Main Services'}
-                </h4>
-                {mainServices.map(renderServiceItem)}
+          <div className="space-y-2">
+            {selectedServices.map((service) => (
+              <div key={service.id} className="flex justify-between items-center">
+                <div className="flex items-center gap-2">
+                  <span>{service.name}</span>
+                  {onRemoveService && service.isUpsellItem && (
+                    <button
+                      onClick={() => onRemoveService(service.id)}
+                      className="p-1 hover:bg-gray-100 rounded-full transition-colors"
+                      aria-label="Remove service"
+                    >
+                      <X className="w-4 h-4 text-gray-500" />
+                    </button>
+                  )}
+                </div>
+                <div className="flex items-center gap-2">
+                  {service.originalPrice && (
+                    <span className="flex items-center relative">
+                      <Slash className="w-4 h-4 text-destructive absolute -translate-y-[2px]" />
+                      <span className="text-muted-foreground">{formatPrice(service.originalPrice)}</span>
+                    </span>
+                  )}
+                  <span>{formatPrice(service.price)}</span>
+                </div>
               </div>
-            )}
-            
-            {upsellServices.length > 0 && (
-              <div className="space-y-2">
-                <h4 className="text-sm font-medium text-muted-foreground">
-                  {language === 'ar' ? 'الخدمات الإضافية' : 'Added Services'}
-                </h4>
-                {upsellServices.map(renderServiceItem)}
-              </div>
-            )}
+            ))}
           </div>
         ) : (
           <div className="text-muted-foreground text-center py-2">
