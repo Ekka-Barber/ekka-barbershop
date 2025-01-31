@@ -51,8 +51,10 @@ export const UpsellModal = ({
     <Dialog open={isOpen} onOpenChange={() => onClose()}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle className="text-center text-xl font-bold mb-4">
-            {language === 'ar' ? 'عروض خاصة متاحة!' : 'Special Offers Available!'}
+          <DialogTitle className="text-center text-xl font-bold mb-4 px-4 whitespace-pre-line">
+            {language === 'ar' 
+              ? "🚀 عروض حصرية لك 🚀\n🔥 اجعل تجربتك أفضل بأقل سعر 🔥"
+              : 'Special Offers Available!'}
           </DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
