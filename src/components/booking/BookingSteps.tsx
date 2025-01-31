@@ -8,6 +8,7 @@ import { BookingNavigation } from "@/components/booking/BookingNavigation";
 import { WhatsAppIntegration } from "@/components/booking/WhatsAppIntegration";
 import { useBooking } from "@/hooks/useBooking";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { WorkingHours } from "@/types/service";
 
 const STEPS: BookingStep[] = ['services', 'barber', 'datetime', 'details'];
 
@@ -43,6 +44,8 @@ export const BookingSteps = ({ branch }: BookingStepsProps) => {
     ? employees?.find(emp => emp.id === selectedBarber)?.[language === 'ar' ? 'name_ar' : 'name']
     : undefined;
 
+  const employeeWorkingHours = selectedEmployee?.working_hours as WorkingHours | undefined;
+
   return (
     <>
       <BookingProgress
@@ -77,7 +80,7 @@ export const BookingSteps = ({ branch }: BookingStepsProps) => {
             selectedTime={selectedTime}
             onDateSelect={setSelectedDate}
             onTimeSelect={setSelectedTime}
-            employeeWorkingHours={selectedEmployee?.working_hours}
+            employeeWorkingHours={employeeWorkingHours}
           />
         )}
 
