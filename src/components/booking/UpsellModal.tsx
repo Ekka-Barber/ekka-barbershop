@@ -103,14 +103,14 @@ export const UpsellModal = ({
         </div>
         <div className="flex gap-3 mt-4">
           <Button
-            variant="outline"
-            className="flex-1"
+            variant="link"
+            className="flex-1 text-sm font-normal hover:no-underline"
             onClick={onClose}
           >
             {language === 'ar' ? 'تخطي' : 'Skip'}
           </Button>
           <Button
-            className="flex-1 bg-[#C4A36F] hover:bg-[#B39260]"
+            className="flex-1 bg-[#C4A36F] hover:bg-[#B39260] h-12 text-lg font-medium"
             onClick={() => {
               onConfirm(selectedUpsells);
               onClose();
