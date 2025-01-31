@@ -1,6 +1,6 @@
 import { useLanguage } from "@/contexts/LanguageContext";
 import { format } from "date-fns";
-import { Slash } from "lucide-react";
+import { Slash, X } from "lucide-react";
 
 interface SelectedService {
   id: string;
@@ -16,6 +16,7 @@ interface BookingSummaryProps {
   selectedDate?: Date;
   selectedTime?: string;
   selectedBarberName?: string;
+  onRemoveService?: (serviceId: string) => void;
 }
 
 const roundPrice = (price: number) => {
@@ -33,7 +34,8 @@ export const BookingSummary = ({
   totalPrice,
   selectedDate,
   selectedTime,
-  selectedBarberName
+  selectedBarberName,
+  onRemoveService
 }: BookingSummaryProps) => {
   const { t, language } = useLanguage();
   
@@ -55,7 +57,18 @@ export const BookingSummary = ({
           <div className="space-y-2">
             {selectedServices.map((service) => (
               <div key={service.id} className="flex justify-between items-center">
-                <span>{service.name}</span>
+                <div className="flex items-center gap-2">
+                  <span>{service.name}</span>
+                  {onRemoveService && service.originalPrice && (
+                    <button
+                      onClick={() => onRemoveService(service.id)}
+                      className="p-1 hover:bg-gray-100 rounded-full transition-colors"
+                      aria-label="Remove service"
+                    >
+                      <X className="w-4 h-4 text-gray-500" />
+                    </button>
+                  )}
+                </div>
                 <div className="flex items-center gap-2">
                   {service.originalPrice && (
                     <span className="flex items-center relative">

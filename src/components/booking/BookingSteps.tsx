@@ -108,6 +108,19 @@ export const BookingSteps = ({ branch }: BookingStepsProps) => {
     }
   };
 
+  const handleRemoveService = (serviceId: string) => {
+    const service = selectedServices.find(s => s.id === serviceId);
+    if (service && service.originalPrice) {
+      handleServiceToggle({
+        id: service.id,
+        name_en: service.name,
+        name_ar: service.name,
+        price: service.price,
+        duration: service.duration
+      });
+    }
+  };
+
   return (
     <>
       <BookingProgress
@@ -159,6 +172,7 @@ export const BookingSteps = ({ branch }: BookingStepsProps) => {
               selectedDate={selectedDate}
               selectedTime={selectedTime}
               selectedBarberName={selectedBarberName}
+              onRemoveService={handleRemoveService}
             />
 
             <WhatsAppIntegration
