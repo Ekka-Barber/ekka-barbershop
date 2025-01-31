@@ -1,4 +1,5 @@
 import { useLanguage } from "@/contexts/LanguageContext";
+import { Link } from "react-router-dom";
 
 interface BookingHeaderProps {
   branchName: string | undefined;
@@ -11,11 +12,13 @@ export const BookingHeader = ({ branchName, branchAddress, isLoading }: BookingH
   
   return (
     <div className="text-center mb-8">
-      <img 
-        src="/lovable-uploads/8289fb1d-c6e6-4528-980c-6b52313ca898.png"
-        alt="Ekka Barbershop Logo" 
-        className="h-32 mx-auto mb-6"
-      />
+      <Link to="/customer">
+        <img 
+          src="/lovable-uploads/8289fb1d-c6e6-4528-980c-6b52313ca898.png"
+          alt="Ekka Barbershop Logo" 
+          className="h-32 mx-auto mb-6 cursor-pointer hover:opacity-90 transition-opacity"
+        />
+      </Link>
       <h1 className="text-3xl font-bold text-[#222222] mb-2">
         {t('book.appointment')}
       </h1>
