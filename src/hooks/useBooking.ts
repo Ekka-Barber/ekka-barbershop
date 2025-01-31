@@ -18,6 +18,7 @@ export interface SelectedService {
   price: number;
   duration: number;
   originalPrice?: number;
+  isUpsellItem?: boolean;
 }
 
 export const useBooking = (branch: any) => {
@@ -100,7 +101,7 @@ export const useBooking = (branch: any) => {
     enabled: !!selectedBarber
   });
 
-  const handleServiceToggle = (service: any) => {
+  const handleServiceToggle = (service: any, isUpsell: boolean = false) => {
     const isSelected = selectedServices.some(s => s.id === service.id);
     if (isSelected) {
       setSelectedServices(prev => prev.filter(s => s.id !== service.id));
@@ -111,7 +112,8 @@ export const useBooking = (branch: any) => {
         name: language === 'ar' ? service.name_ar : service.name_en,
         price: roundPrice(discountedPrice),
         duration: service.duration,
-        originalPrice: discountedPrice !== service.price ? roundPrice(service.price) : undefined
+        originalPrice: discountedPrice !== service.price ? roundPrice(service.price) : undefined,
+        isUpsellItem: isUpsell
       }]);
     }
   };

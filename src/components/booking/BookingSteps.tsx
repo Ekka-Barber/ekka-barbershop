@@ -107,7 +107,7 @@ export const BookingSteps = ({ branch }: BookingStepsProps) => {
         duration: upsell.duration,
         discount_type: 'percentage',
         discount_value: upsell.discountPercentage
-      });
+      }, true); // Pass true to mark as upsell item
     });
     setCurrentStep('barber');
   };
