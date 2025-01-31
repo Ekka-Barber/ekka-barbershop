@@ -8,6 +8,7 @@ interface SelectedService {
   price: number;
   duration: number;
   originalPrice?: number;
+  isUpsellItem?: boolean;
 }
 
 interface BookingSummaryProps {
@@ -52,10 +53,6 @@ export const BookingSummary = ({
     return duration >= 5 && duration <= 10 ? 'دقائق' : 'دقيقة';
   };
 
-  const isDiscountedService = (service: SelectedService) => {
-    return service.originalPrice && service.originalPrice > service.price;
-  };
-
   return (
     <div className="rounded-lg border p-4 space-y-3">
       <h3 className="font-medium">{language === 'ar' ? 'ملخص الحجز' : t('booking.summary')}</h3>
@@ -67,7 +64,7 @@ export const BookingSummary = ({
               <div key={service.id} className="flex justify-between items-center">
                 <div className="flex items-center gap-2">
                   <span>{service.name}</span>
-                  {onRemoveService && isDiscountedService(service) && (
+                  {onRemoveService && service.isUpsellItem && (
                     <button
                       onClick={() => onRemoveService(service.id)}
                       className="p-1 hover:bg-gray-100 rounded-full transition-colors"
