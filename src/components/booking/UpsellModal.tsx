@@ -53,7 +53,7 @@ export const UpsellModal = ({
         <DialogHeader>
           <DialogTitle className="text-center text-2xl font-bold mb-4 px-4 whitespace-pre-line leading-relaxed">
             {language === 'ar' 
-              ? "🚀 عروض حصرية لك 🚀\n🔥 اجعل تجربتك أفضل بأقل سعر 🔥"
+              ? "🚀 عروض حصرية لك\n🔥 اجعل تجربتك أفضل بأقل سعر"
               : 'Special Offers Available!'}
           </DialogTitle>
         </DialogHeader>
