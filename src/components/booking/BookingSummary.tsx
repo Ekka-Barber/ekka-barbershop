@@ -48,6 +48,10 @@ export const BookingSummary = ({
     return `${roundedPrice} ${language === 'ar' ? 'ريال' : 'SAR'}`;
   };
 
+  const getArabicTimeUnit = (duration: number) => {
+    return duration >= 5 && duration <= 10 ? 'دقائق' : 'دقيقة';
+  };
+
   return (
     <div className="rounded-lg border p-4 space-y-3">
       <h3 className="font-medium">{language === 'ar' ? 'ملخص الحجز' : t('booking.summary')}</h3>
@@ -90,7 +94,9 @@ export const BookingSummary = ({
         {totalDuration > 0 && (
           <div className="pt-2 flex justify-between text-muted-foreground">
             <span>{language === 'ar' ? 'المدة الإجمالية' : t('total.duration')}</span>
-            <span>{totalDuration} {language === 'ar' ? 'دقائق' : t('minutes')}</span>
+            <span>{totalDuration} {language === 'ar' 
+              ? getArabicTimeUnit(totalDuration)
+              : t('minutes')}</span>
           </div>
         )}
         
