@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from "@/integrations/supabase/client";
 import { BookingStep } from '@/components/booking/BookingProgress';
 import { validateService, Service, ValidService } from '@/types/service';
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export interface CustomerDetails {
   name: string;
@@ -32,6 +33,8 @@ export const useBooking = (branch: any) => {
     notes: ''
   });
 
+  const { language } = useLanguage();
+
   const { data: categories, isLoading: categoriesLoading } = useQuery({
     queryKey: ['service_categories'],
     queryFn: async () => {
@@ -59,7 +62,6 @@ export const useBooking = (branch: any) => {
       
       if (categoriesError) throw categoriesError;
       
-      // Validate and transform services
       return categories?.map(category => ({
         ...category,
         services: category.services.map(validateService)
@@ -106,7 +108,7 @@ export const useBooking = (branch: any) => {
       const discountedPrice = calculateDiscountedPrice(service);
       setSelectedServices(prev => [...prev, {
         id: service.id,
-        name: service.name,
+        name: language === 'ar' ? service.name_ar : service.name_en,
         price: roundPrice(discountedPrice),
         duration: service.duration,
         originalPrice: discountedPrice !== service.price ? roundPrice(service.price) : undefined
