@@ -60,7 +60,7 @@ export const UpsellModal = ({
         <div className="space-y-4">
           <p className="text-center text-muted-foreground">
             {language === 'ar'
-              ? 'اختر من الخدمات الإضافية التالية بأسعار مخفضة'
+              ? 'اختر من الخدمات الإضافية التالية ما تحب بسعر مخفض'
               : 'Select from the following additional services at discounted prices'}
           </p>
           <div className="space-y-3">
