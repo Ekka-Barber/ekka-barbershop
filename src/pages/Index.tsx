@@ -13,15 +13,26 @@ const Index = () => {
   const edgeFunctionUrl = 'https://jfnjvphxhzxojxgptmtu.supabase.co/functions/v1/qr-redirect?id=' + staticQrValue;
   
   const { data: qrCode, isLoading, error } = useQuery({
-    queryKey: ['qrCode'],
+    queryKey: ['qrCode', staticQrValue],
     queryFn: async () => {
+      // Set owner access before querying
+      const { error: accessError } = await supabase.rpc('set_owner_access', { value: 'owner123' });
+      if (accessError) {
+        console.error('Error setting owner access:', accessError);
+        throw accessError;
+      }
+
       const { data, error } = await supabase
         .from('qr_codes')
         .select('*')
+        .eq('id', staticQrValue)
         .eq('is_active', true)
         .maybeSingle();
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching QR code:', error);
+        throw error;
+      }
       
       return data;
     }
@@ -41,6 +52,11 @@ const Index = () => {
         <Alert variant="destructive">
           <AlertDescription>
             Error loading QR code. Please try again later.
+            {process.env.NODE_ENV === 'development' && (
+              <div className="mt-2 text-sm">
+                {(error as Error).message}
+              </div>
+            )}
           </AlertDescription>
         </Alert>
       </div>
@@ -65,7 +81,7 @@ const Index = () => {
             </p>
           ) : (
             <p className="text-center text-sm text-red-500">
-              No active QR code found. Please contact support.
+              No active QR code found. Please set up a QR code in the admin panel.
             </p>
           )}
         </div>
