@@ -17,12 +17,12 @@ const Menu = () => {
           *,
           category:service_categories(
             id,
-            name,
+            name_en,
             name_ar,
-            order
+            display_order
           )
         `)
-        .order('order');
+        .order('display_order');
       
       if (error) throw error;
       return data;
@@ -74,7 +74,7 @@ const Menu = () => {
             {Object.values(groupedServices || {}).map((group: any) => (
               <div key={group.category.id} className="space-y-4">
                 <h2 className="text-2xl font-semibold text-center text-[#222222]">
-                  {language === 'ar' ? group.category.name_ar : group.category.name}
+                  {language === 'ar' ? group.category.name_ar : group.category.name_en}
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {group.services.map((service: any) => (
@@ -85,10 +85,10 @@ const Menu = () => {
                       <div className="flex justify-between items-start">
                         <div>
                           <h3 className="font-medium text-lg text-[#222222]">
-                            {language === 'ar' ? service.name_ar : service.name}
+                            {language === 'ar' ? service.name_ar : service.name_en}
                           </h3>
                           <p className="text-sm text-gray-600 mt-1">
-                            {language === 'ar' ? service.description_ar : service.description}
+                            {language === 'ar' ? service.description_ar : service.description_en}
                           </p>
                         </div>
                         <div className="text-lg font-semibold text-[#C4A36F]">
