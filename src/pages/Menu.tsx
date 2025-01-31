@@ -1,77 +1,107 @@
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from "@/integrations/supabase/client";
-import PDFViewer from '@/components/PDFViewer';
-import { Button } from "@/components/ui/button";
-import { useNavigate } from 'react-router-dom';
-import { Card } from "@/components/ui/card";
+import { Link } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const Menu = () => {
-  const navigate = useNavigate();
-  const { t } = useLanguage();
-  
-  const { data: menuFile, isLoading } = useQuery({
-    queryKey: ['active-menu'],
+  const { t, language } = useLanguage();
+
+  const { data: services, isLoading } = useQuery({
+    queryKey: ['services'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('marketing_files')
-        .select('*')
-        .eq('category', 'menu')
-        .eq('is_active', true)
-        .maybeSingle();
+        .from('services')
+        .select(`
+          *,
+          category:service_categories(
+            id,
+            name,
+            name_ar,
+            order
+          )
+        `)
+        .order('order');
       
       if (error) throw error;
-      
-      if (data) {
-        const { data: fileUrl } = supabase.storage
-          .from('marketing_files')
-          .getPublicUrl(data.file_path);
-        
-        return { ...data, url: fileUrl.publicUrl };
-      }
-      return null;
-    }
+      return data;
+    },
   });
 
+  const groupedServices = services?.reduce((acc: any, service: any) => {
+    const categoryId = service.category?.id;
+    if (!acc[categoryId]) {
+      acc[categoryId] = {
+        category: service.category,
+        services: []
+      };
+    }
+    acc[categoryId].services.push(service);
+    return acc;
+  }, {});
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 flex flex-col">
-      <div className="flex-grow max-w-4xl mx-auto p-4 sm:p-6 lg:p-8 w-full">
-        <div className="flex flex-col items-center mb-8">
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 p-4">
+      <div className={`max-w-4xl mx-auto ${language === 'ar' ? 'rtl' : 'ltr'}`}>
+        <Link to="/customer">
           <img 
             src="/lovable-uploads/8289fb1d-c6e6-4528-980c-6b52313ca898.png"
             alt="Ekka Barbershop Logo" 
-            className="h-24 mb-6 object-contain"
+            className="h-32 mx-auto mb-6 cursor-pointer hover:opacity-90 transition-opacity"
           />
-          <h1 className="text-3xl font-bold text-[#222222] mb-2">{t('our.menu')}</h1>
-          <div className="h-1 w-24 bg-[#C4A36F] mx-auto mb-6"></div>
-          <Button 
-            onClick={() => navigate('/customer')}
-            className="bg-[#4A4A4A] hover:bg-[#3A3A3A] text-white transition-all duration-300"
-          >
-            {t('back.home')}
-          </Button>
-        </div>
-        
-        <Card className="overflow-hidden bg-white shadow-xl rounded-xl border-[#C4A36F]/20">
-          <div className="p-6">
-            {isLoading ? (
-              <div className="text-center py-8 text-[#222222]">{t('loading.menu')}</div>
-            ) : menuFile ? (
-              menuFile.file_type.includes('pdf') ? (
-                <PDFViewer pdfUrl={menuFile.url} />
-              ) : (
-                <img 
-                  src={menuFile.url} 
-                  alt="Menu"
-                  className="w-full max-w-full h-auto rounded-lg"
-                />
-              )
-            ) : (
-              <div className="text-center py-8 text-[#222222]">{t('no.menu')}</div>
-            )}
+        </Link>
+        <h1 className="text-3xl font-bold text-center text-[#222222] mb-2">
+          {t('menu')}
+        </h1>
+        <div className="h-1 w-24 bg-[#C4A36F] mx-auto mb-8"></div>
+
+        {isLoading ? (
+          <div className="space-y-8">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="space-y-4">
+                <Skeleton className="h-8 w-48 mx-auto" />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {[1, 2, 3, 4].map((j) => (
+                    <Skeleton key={j} className="h-24 w-full" />
+                  ))}
+                </div>
+              </div>
+            ))}
           </div>
-        </Card>
+        ) : (
+          <div className="space-y-8">
+            {Object.values(groupedServices || {}).map((group: any) => (
+              <div key={group.category.id} className="space-y-4">
+                <h2 className="text-2xl font-semibold text-center text-[#222222]">
+                  {language === 'ar' ? group.category.name_ar : group.category.name}
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {group.services.map((service: any) => (
+                    <div
+                      key={service.id}
+                      className="bg-white rounded-lg shadow-md p-4 hover:shadow-lg transition-shadow"
+                    >
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h3 className="font-medium text-lg text-[#222222]">
+                            {language === 'ar' ? service.name_ar : service.name}
+                          </h3>
+                          <p className="text-sm text-gray-600 mt-1">
+                            {language === 'ar' ? service.description_ar : service.description}
+                          </p>
+                        </div>
+                        <div className="text-lg font-semibold text-[#C4A36F]">
+                          {service.price} {t('sar')}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
       <LanguageSwitcher />
     </div>
