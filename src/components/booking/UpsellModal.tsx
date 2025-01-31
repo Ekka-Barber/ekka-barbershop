@@ -52,8 +52,8 @@ export const UpsellModal = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={() => onClose()}>
-      <DialogContent className="sm:max-w-[500px] flex flex-col max-h-[85vh] gap-0 p-0">
-        <DialogHeader className="px-6 pt-6 pb-2">
+      <DialogContent className="sm:max-w-[500px] flex flex-col h-[85vh] sm:h-auto max-h-[85vh] gap-0 p-0">
+        <DialogHeader className="px-6 pt-6 pb-2 sticky top-0 bg-background z-10">
           <DialogTitle className="text-center space-y-2">
             <div className="flex items-center justify-center gap-2 text-xl font-bold">
               {language === 'ar' ? (
@@ -67,7 +67,7 @@ export const UpsellModal = ({
               )}
             </div>
             {language === 'ar' && (
-              <div className="flex items-center justify-center gap-2 text-xl font-bold">
+              <div className="flex items-center justify-center gap-2 text-base font-bold">
                 <span>🔥</span>
                 <span>اجعل تجربتك أفضل بأقل سعر</span>
                 <span>🔥</span>
@@ -76,7 +76,7 @@ export const UpsellModal = ({
           </DialogTitle>
         </DialogHeader>
 
-        <div className="px-6 py-3">
+        <div className="px-6 py-2">
           <p className="text-center text-muted-foreground text-sm">
             {language === 'ar'
               ? 'اختر من الخدمات الإضافية التالية ما تحب بسعر مخفض'
@@ -85,7 +85,10 @@ export const UpsellModal = ({
         </div>
 
         <ScrollArea className="flex-1 px-6 pb-4">
-          <div className={`${useGridLayout ? 'grid grid-cols-2 gap-3' : 'space-y-3'}`}>
+          <div 
+            className={`${useGridLayout ? 'grid grid-cols-2 gap-2.5' : 'space-y-2.5'}`}
+            dir={language === 'ar' ? 'rtl' : 'ltr'}
+          >
             {availableUpsells.map((upsell) => {
               const isSelected = selectedUpsells.some(s => s.id === upsell.id);
               const discountedPrice = calculateDiscountedPrice(upsell.price, upsell.discountPercentage);
@@ -93,29 +96,31 @@ export const UpsellModal = ({
               return (
                 <div
                   key={upsell.id}
-                  className={`p-4 border rounded-lg cursor-pointer transition-all ${
+                  className={`p-3 border rounded-lg cursor-pointer transition-all ${
                     isSelected 
                       ? 'border-primary bg-primary/5 shadow-sm' 
                       : 'hover:border-primary/50 hover:shadow-sm'
                   }`}
                   onClick={() => handleToggleUpsell(upsell)}
                 >
-                  <div className="flex flex-col gap-2">
+                  <div className="flex flex-col gap-1.5">
                     <div>
-                      <h3 className="font-semibold text-lg line-clamp-2">{upsell.name}</h3>
-                      <p className="text-sm text-muted-foreground">
-                        {language === 'ar' ? 'دقيقة' : 'min'} {upsell.duration}
+                      <h3 className={`font-medium ${useGridLayout ? 'text-sm' : 'text-base'} line-clamp-2`}>
+                        {upsell.name}
+                      </h3>
+                      <p className="text-xs text-muted-foreground">
+                        {upsell.duration} {language === 'ar' ? 'دقيقة' : 'min'}
                       </p>
                     </div>
-                    <div className="text-right">
-                      <div className="flex items-center gap-2 justify-end">
+                    <div className={`text-${language === 'ar' ? 'left' : 'right'}`}>
+                      <div className="flex items-center gap-1.5 justify-end">
                         <span className="flex items-center relative">
-                          <Slash className="w-4 h-4 text-destructive absolute -translate-y-[2px]" />
-                          <span className="text-muted-foreground">{formatPrice(upsell.price)}</span>
+                          <Slash className="w-3.5 h-3.5 text-destructive absolute -translate-y-[2px]" />
+                          <span className="text-sm text-muted-foreground">{formatPrice(upsell.price)}</span>
                         </span>
-                        <span className="font-medium">{formatPrice(discountedPrice)}</span>
+                        <span className="text-sm font-medium">{formatPrice(discountedPrice)}</span>
                       </div>
-                      <p className="text-sm text-destructive font-medium">
+                      <p className="text-xs text-destructive font-medium">
                         -{upsell.discountPercentage}%
                       </p>
                     </div>
@@ -126,9 +131,9 @@ export const UpsellModal = ({
           </div>
         </ScrollArea>
 
-        <div className="flex flex-col gap-3 p-6 border-t mt-auto">
+        <div className="flex flex-col gap-3 p-4 border-t mt-auto sticky bottom-0 bg-background">
           <Button
-            className="bg-[#C4A36F] hover:bg-[#B39260] h-12 text-lg font-medium"
+            className="bg-[#C4A36F] hover:bg-[#B39260] h-11 text-base font-medium"
             onClick={() => {
               onConfirm(selectedUpsells);
               onClose();
