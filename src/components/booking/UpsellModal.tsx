@@ -86,7 +86,7 @@ export const UpsellModal = ({
 
         <div className="flex-1 overflow-hidden flex flex-col">
           <ScrollArea className="flex-1">
-            <div className="px-6 py-4 flex justify-center items-center min-h-[200px]">
+            <div className="h-full flex items-center justify-center px-6 py-4 min-h-[200px]">
               <div 
                 className={`${useGridLayout ? 'grid grid-cols-2 gap-2.5 w-full max-w-[450px]' : 'flex flex-col gap-2.5 w-full max-w-[400px]'}`}
                 dir={language === 'ar' ? 'rtl' : 'ltr'}
