@@ -67,13 +67,25 @@ export const BookingSteps = ({ branch }: BookingStepsProps) => {
 
       if (error) throw error;
 
-      return data.map(upsell => ({
-        id: upsell.upsell.id,
-        name: language === 'ar' ? upsell.upsell.name_ar : upsell.upsell.name_en,
-        price: upsell.upsell.price,
-        duration: upsell.upsell.duration,
-        discountPercentage: upsell.discount_percentage
-      }));
+      // Create a map to store unique upsells with their lowest discount percentage
+      const upsellMap = new Map();
+
+      data.forEach(upsell => {
+        const existingUpsell = upsellMap.get(upsell.upsell.id);
+        
+        if (!existingUpsell || upsell.discount_percentage < existingUpsell.discountPercentage) {
+          upsellMap.set(upsell.upsell.id, {
+            id: upsell.upsell.id,
+            name: language === 'ar' ? upsell.upsell.name_ar : upsell.upsell.name_en,
+            price: upsell.upsell.price,
+            duration: upsell.upsell.duration,
+            discountPercentage: upsell.discount_percentage
+          });
+        }
+      });
+
+      // Convert map values back to array
+      return Array.from(upsellMap.values());
     },
     enabled: selectedServices.length > 0
   });
