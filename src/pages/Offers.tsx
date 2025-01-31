@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from "@/integrations/supabase/client";
 import PDFViewer from '@/components/PDFViewer';
 import { Button } from "@/components/ui/button";
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { Card } from "@/components/ui/card";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
@@ -58,11 +58,13 @@ const Offers = () => {
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 flex flex-col">
       <div className="flex-grow max-w-4xl mx-auto p-4 sm:p-6 lg:p-8 w-full">
         <div className="flex flex-col items-center mb-8">
-          <img 
-            src="/lovable-uploads/8289fb1d-c6e6-4528-980c-6b52313ca898.png"
-            alt="Ekka Barbershop Logo" 
-            className="h-24 mb-6 object-contain"
-          />
+          <Link to="/customer" className="transition-opacity hover:opacity-80">
+            <img 
+              src="/lovable-uploads/8289fb1d-c6e6-4528-980c-6b52313ca898.png"
+              alt="Ekka Barbershop Logo" 
+              className="h-24 mb-6 object-contain cursor-pointer"
+            />
+          </Link>
           <h1 className="text-3xl font-bold text-[#222222] mb-2">{t('special.offers.title')}</h1>
           <div className="h-1 w-24 bg-[#C4A36F] mx-auto mb-6"></div>
           <Button 
