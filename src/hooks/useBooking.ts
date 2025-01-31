@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from "@/integrations/supabase/client";
 import { BookingStep } from '@/components/booking/BookingProgress';
+import { validateService, Service, ValidService } from '@/types/service';
 
 export interface CustomerDetails {
   name: string;
@@ -57,7 +58,12 @@ export const useBooking = (branch: any) => {
         .order('display_order', { ascending: true });
       
       if (categoriesError) throw categoriesError;
-      return categories;
+      
+      // Validate and transform services
+      return categories?.map(category => ({
+        ...category,
+        services: category.services.map(validateService)
+      }));
     },
   });
 
