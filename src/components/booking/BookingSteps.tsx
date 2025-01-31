@@ -55,12 +55,12 @@ export const BookingSteps = ({ branch }: BookingStepsProps) => {
         .select(`
           upsell_service_id,
           discount_percentage,
-          services:upsell_service_id (
-            services.id,
-            services.name_en,
-            services.name_ar,
-            services.price,
-            services.duration
+          upsell:services!service_upsells_upsell_service_id_fkey (
+            id,
+            name_en,
+            name_ar,
+            price,
+            duration
           )
         `)
         .in('main_service_id', selectedServices.map(s => s.id));
@@ -68,10 +68,10 @@ export const BookingSteps = ({ branch }: BookingStepsProps) => {
       if (error) throw error;
 
       return data.map(upsell => ({
-        id: upsell.services.id,
-        name: language === 'ar' ? upsell.services.name_ar : upsell.services.name_en,
-        price: upsell.services.price,
-        duration: upsell.services.duration,
+        id: upsell.upsell.id,
+        name: language === 'ar' ? upsell.upsell.name_ar : upsell.upsell.name_en,
+        price: upsell.upsell.price,
+        duration: upsell.upsell.duration,
         discountPercentage: upsell.discount_percentage
       }));
     },
