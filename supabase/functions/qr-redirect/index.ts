@@ -29,6 +29,19 @@ Deno.serve(async (req) => {
     // Initialize Supabase client
     const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
+    // Set owner access before querying
+    const { error: accessError } = await supabase.rpc('set_owner_access', { value: 'owner123' })
+    if (accessError) {
+      console.error('Error setting owner access:', accessError)
+      return new Response(
+        JSON.stringify({ error: 'Error setting owner access' }),
+        { 
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        }
+      )
+    }
+
     // Query the QR code
     const { data: qrCode, error } = await supabase
       .from('qr_codes')
