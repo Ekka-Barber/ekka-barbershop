@@ -42,18 +42,15 @@ Deno.serve(async (req) => {
       )
     }
 
-    // Query the QR code
-    const { data: qrCode, error } = await supabase
+    // First, check if the QR code exists at all
+    const { data: qrCodeExists, error: existsError } = await supabase
       .from('qr_codes')
-      .select('url, is_active')
+      .select('id, url, is_active')
       .eq('id', id)
-      .eq('is_active', true)
       .maybeSingle()
 
-    console.log('QR code lookup result:', { qrCode, error })
-
-    if (error) {
-      console.error('Database error:', error)
+    if (existsError) {
+      console.error('Database error checking QR existence:', existsError)
       return new Response(
         JSON.stringify({ error: 'Error fetching QR code' }),
         { 
@@ -63,9 +60,15 @@ Deno.serve(async (req) => {
       )
     }
 
-    if (!qrCode) {
+    console.log('QR code lookup result:', { 
+      exists: !!qrCodeExists,
+      isActive: qrCodeExists?.is_active,
+      url: qrCodeExists?.url 
+    })
+
+    if (!qrCodeExists) {
       return new Response(
-        JSON.stringify({ error: 'QR code not found or inactive' }),
+        JSON.stringify({ error: 'QR code not found' }),
         { 
           status: 404,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -73,14 +76,24 @@ Deno.serve(async (req) => {
       )
     }
 
-    console.log('Redirecting to:', qrCode.url)
+    if (!qrCodeExists.is_active) {
+      return new Response(
+        JSON.stringify({ error: 'QR code is inactive' }),
+        { 
+          status: 404,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        }
+      )
+    }
+
+    console.log('Redirecting to:', qrCodeExists.url)
 
     // Redirect to the URL
     return new Response(null, {
       status: 302,
       headers: {
         ...corsHeaders,
-        'Location': qrCode.url
+        'Location': qrCodeExists.url
       }
     })
 
