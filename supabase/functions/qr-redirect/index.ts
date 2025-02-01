@@ -14,9 +14,10 @@ Deno.serve(async (req) => {
     const url = new URL(req.url)
     const id = url.searchParams.get('id')
 
-    console.log('Received request for QR code ID:', id)
+    console.log('🔍 Step 1: Received request for QR code ID:', id)
 
     if (!id) {
+      console.error('❌ Error: Missing QR code ID')
       return new Response(
         JSON.stringify({ error: 'Missing QR code ID' }),
         { 
@@ -27,13 +28,14 @@ Deno.serve(async (req) => {
     }
 
     // Initialize Supabase client
+    console.log('🔄 Step 2: Initializing Supabase client...')
     const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
     // Set owner access before querying
-    console.log('Setting owner access...')
+    console.log('🔑 Step 3: Setting owner access...')
     const { error: accessError } = await supabase.rpc('set_owner_access', { value: 'owner123' })
     if (accessError) {
-      console.error('Error setting owner access:', accessError)
+      console.error('❌ Error setting owner access:', accessError)
       return new Response(
         JSON.stringify({ error: 'Error setting owner access', details: accessError.message }),
         { 
@@ -42,10 +44,10 @@ Deno.serve(async (req) => {
         }
       )
     }
-    console.log('Owner access set successfully')
+    console.log('✅ Owner access set successfully')
 
     // Query the QR code with detailed logging
-    console.log('Querying QR code with ID:', id)
+    console.log('🔍 Step 4: Querying QR code with ID:', id)
     const { data: qrCodeExists, error: existsError } = await supabase
       .from('qr_codes')
       .select('*')
@@ -53,7 +55,7 @@ Deno.serve(async (req) => {
       .maybeSingle()
 
     if (existsError) {
-      console.error('Database error checking QR existence:', existsError)
+      console.error('❌ Database error checking QR existence:', existsError)
       return new Response(
         JSON.stringify({ error: 'Error fetching QR code', details: existsError.message }),
         { 
@@ -63,14 +65,15 @@ Deno.serve(async (req) => {
       )
     }
 
-    console.log('Raw database response:', qrCodeExists)
-    console.log('QR code lookup result:', { 
+    console.log('📊 Raw database response:', qrCodeExists)
+    console.log('🔍 QR code lookup result:', { 
       exists: !!qrCodeExists,
       isActive: qrCodeExists?.is_active,
       url: qrCodeExists?.url 
     })
 
     if (!qrCodeExists) {
+      console.log('❌ QR code not found')
       return new Response(
         JSON.stringify({ error: 'QR code not found' }),
         { 
@@ -81,6 +84,7 @@ Deno.serve(async (req) => {
     }
 
     if (!qrCodeExists.is_active) {
+      console.log('❌ QR code is inactive')
       return new Response(
         JSON.stringify({ error: 'QR code is inactive' }),
         { 
@@ -90,7 +94,7 @@ Deno.serve(async (req) => {
       )
     }
 
-    console.log('Redirecting to:', qrCodeExists.url)
+    console.log('✅ Success! Redirecting to:', qrCodeExists.url)
 
     // Redirect to the URL
     return new Response(null, {
@@ -102,7 +106,7 @@ Deno.serve(async (req) => {
     })
 
   } catch (error) {
-    console.error('Error in QR redirect:', error)
+    console.error('❌ Error in QR redirect:', error)
     return new Response(
       JSON.stringify({ error: error.message }),
       { 
