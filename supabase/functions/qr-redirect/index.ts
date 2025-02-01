@@ -15,6 +15,8 @@ Deno.serve(async (req) => {
     const id = url.searchParams.get('id')
 
     console.log('🔍 Step 1: Received request for QR code ID:', id)
+    console.log('ID type:', typeof id)
+    console.log('ID value:', id)
 
     if (!id) {
       console.error('❌ Error: Missing QR code ID')
@@ -48,10 +50,19 @@ Deno.serve(async (req) => {
 
     // Query the QR code with detailed logging
     console.log('🔍 Step 4: Querying QR code with ID:', id)
+    
+    // First, let's get all QR codes to debug
+    const { data: allQrCodes, error: listError } = await supabase
+      .from('qr_codes')
+      .select('*')
+    
+    console.log('📊 All QR codes in database:', allQrCodes)
+    
+    // Now query for our specific QR code
     const { data: qrCodeExists, error: existsError } = await supabase
       .from('qr_codes')
       .select('*')
-      .eq('id', id)
+      .eq('id', id.trim())
       .maybeSingle()
 
     if (existsError) {
