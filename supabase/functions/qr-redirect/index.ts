@@ -44,10 +44,11 @@ Deno.serve(async (req) => {
     }
     console.log('Owner access set successfully')
 
-    // First, check if the QR code exists at all
+    // Query the QR code with detailed logging
+    console.log('Querying QR code with ID:', id)
     const { data: qrCodeExists, error: existsError } = await supabase
       .from('qr_codes')
-      .select('id, url, is_active')
+      .select('*')
       .eq('id', id)
       .maybeSingle()
 
@@ -62,6 +63,7 @@ Deno.serve(async (req) => {
       )
     }
 
+    console.log('Raw database response:', qrCodeExists)
     console.log('QR code lookup result:', { 
       exists: !!qrCodeExists,
       isActive: qrCodeExists?.is_active,
