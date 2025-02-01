@@ -35,7 +35,7 @@ Deno.serve(async (req) => {
     if (accessError) {
       console.error('Error setting owner access:', accessError)
       return new Response(
-        JSON.stringify({ error: 'Error setting owner access' }),
+        JSON.stringify({ error: 'Error setting owner access', details: accessError.message }),
         { 
           status: 500,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -55,7 +55,7 @@ Deno.serve(async (req) => {
     if (existsError) {
       console.error('Database error checking QR existence:', existsError)
       return new Response(
-        JSON.stringify({ error: 'Error fetching QR code' }),
+        JSON.stringify({ error: 'Error fetching QR code', details: existsError.message }),
         { 
           status: 500,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
