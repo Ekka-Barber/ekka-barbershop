@@ -73,6 +73,19 @@ const Customer = () => {
           >
             {t('book.now')}
           </Button>
+
+          {/* New Loyalty Program Button */}
+          <Button 
+            className="w-full h-14 text-lg font-medium bg-white hover:bg-gray-50 text-gray-800 transition-all duration-300 shadow-lg hover:shadow-xl border border-gray-200 flex items-center justify-between px-6"
+            onClick={() => window.open('https://rescale.com', '_blank')}
+          >
+            <img 
+              src="/lovable-uploads/ba9a65f1-bf31-4b9c-ab41-7c7228a2f1b7.png"
+              alt="Rescale Logo" 
+              className="h-8 w-auto"
+            />
+            <span>برنامج ولاء</span>
+          </Button>
         </div>
       </div>
 
