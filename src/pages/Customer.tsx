@@ -79,7 +79,7 @@ const Customer = () => {
             className="w-full h-14 text-lg font-medium bg-white hover:bg-gray-50 text-gray-800 transition-all duration-300 shadow-lg hover:shadow-xl border border-gray-200"
             onClick={() => window.open('https://rescale.com', '_blank')}
           >
-            <div className={`w-full flex items-center ${language === 'ar' ? 'flex-row-reverse' : 'flex-row'} justify-between`}>
+            <div className={`w-full flex items-center ${language === 'ar' ? 'flex-row-reverse' : 'flex-row'} justify-between px-6`}>
               <span>{language === 'ar' ? 'انضم لبرنامج الولاء' : 'Join loyalty program'}</span>
               <img 
                 src="/lovable-uploads/ba9a65f1-bf31-4b9c-ab41-7c7228a2f1b7.png"
