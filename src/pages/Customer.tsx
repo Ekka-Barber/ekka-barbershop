@@ -76,7 +76,7 @@ const Customer = () => {
 
           {/* Loyalty Program Button */}
           <Button 
-            className={`w-full h-14 text-lg font-medium bg-white hover:bg-gray-50 text-gray-800 transition-all duration-300 shadow-lg hover:shadow-xl border border-gray-200 flex ${language === 'ar' ? 'flex-row' : 'flex-row-reverse'} items-center justify-between px-6`}
+            className={`w-full h-14 text-lg font-medium bg-white hover:bg-gray-50 text-gray-800 transition-all duration-300 shadow-lg hover:shadow-xl border border-gray-200 flex ${language === 'ar' ? 'flex-row-reverse' : 'flex-row'} items-center justify-between px-6`}
             onClick={() => window.open('https://rescale.com', '_blank')}
           >
             <span>{language === 'ar' ? 'انضم لبرنامج الولاء' : 'Join loyalty program'}</span>
