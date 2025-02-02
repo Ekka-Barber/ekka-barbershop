@@ -74,9 +74,9 @@ const Customer = () => {
             {t('book.now')}
           </Button>
 
-          {/* New Loyalty Program Button */}
+          {/* Loyalty Program Button */}
           <Button 
-            className="w-full h-14 text-lg font-medium bg-white hover:bg-gray-50 text-gray-800 transition-all duration-300 shadow-lg hover:shadow-xl border border-gray-200 flex flex-row-reverse items-center justify-between px-6"
+            className={`w-full h-14 text-lg font-medium bg-white hover:bg-gray-50 text-gray-800 transition-all duration-300 shadow-lg hover:shadow-xl border border-gray-200 flex ${language === 'ar' ? 'flex-row' : 'flex-row-reverse'} items-center justify-between px-6`}
             onClick={() => window.open('https://rescale.com', '_blank')}
           >
             <span>برنامج ولاء</span>
