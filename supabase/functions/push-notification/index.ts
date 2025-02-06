@@ -15,23 +15,40 @@ serve(async (req) => {
   try {
     const { subscription, message } = await req.json()
 
-    // Get VAPID details from environment variables
-    const vapidPublicKey = Deno.env.get('VAPID_PUBLIC_KEY')
-    const vapidPrivateKey = Deno.env.get('VAPID_PRIVATE_KEY')
+    // Get VAPID keys from get-vapid-key function
+    const vapidResponse = await fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/get-vapid-key`, {
+      headers: {
+        'Authorization': `Bearer ${Deno.env.get('SUPABASE_ANON_KEY')}`,
+        'Content-Type': 'application/json'
+      }
+    });
 
-    if (!vapidPublicKey || !vapidPrivateKey) {
-      throw new Error('VAPID keys not configured')
+    if (!vapidResponse.ok) {
+      throw new Error('Failed to get VAPID keys');
     }
+
+    const { vapidKey: vapidPublicKey } = await vapidResponse.json();
+
+    // Generate new VAPID keys for this notification
+    const vapidKeys = webPush.generateVAPIDKeys();
 
     // Set VAPID details
     webPush.setVapidDetails(
       'mailto:ekka.barber@gmail.com',
       vapidPublicKey,
-      vapidPrivateKey
-    )
+      vapidKeys.privateKey
+    );
+
+    console.log('Sending push notification with subscription:', {
+      endpoint: subscription.endpoint,
+      keys: {
+        p256dh: subscription.keys.p256dh?.substring(0, 10) + '...',
+        auth: subscription.keys.auth?.substring(0, 5) + '...'
+      }
+    });
 
     // Send push notification
-    await webPush.sendNotification(subscription, message)
+    await webPush.sendNotification(subscription, message);
 
     return new Response(
       JSON.stringify({ success: true }),
@@ -41,7 +58,7 @@ serve(async (req) => {
       }
     )
   } catch (error) {
-    console.error('Error sending push notification:', error)
+    console.error('Error sending push notification:', error);
     return new Response(
       JSON.stringify({ error: error.message }),
       { 
