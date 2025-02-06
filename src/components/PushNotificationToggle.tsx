@@ -8,10 +8,18 @@ const PushNotificationToggle = () => {
   const [isSubscribed, setIsSubscribed] = useState(false);
   const { language } = useLanguage();
   const [vapidKey, setVapidKey] = useState<string | null>(null);
+  const [isStandalone, setIsStandalone] = useState(false);
 
   useEffect(() => {
-    // Check if service worker is supported
-    if ('serviceWorker' in navigator && 'PushManager' in window) {
+    // Check if the app is running in standalone mode (installed as PWA)
+    const isRunningStandalone = window.matchMedia('(display-mode: standalone)').matches ||
+      (window.navigator as any).standalone ||
+      document.referrer.includes('android-app://');
+    
+    setIsStandalone(isRunningStandalone);
+
+    // Only proceed with push notification setup if running as PWA
+    if (isRunningStandalone && 'serviceWorker' in navigator && 'PushManager' in window) {
       // Get VAPID key from Edge Function
       supabase.functions.invoke('get-vapid-key')
         .then(({ data }) => {
@@ -21,14 +29,15 @@ const PushNotificationToggle = () => {
             navigator.serviceWorker.ready.then(registration => {
               registration.pushManager.getSubscription().then(subscription => {
                 setIsSubscribed(!!subscription);
-                // If not subscribed, request permission
-                if (!subscription) {
+                // If not subscribed, request permission only once
+                if (!subscription && !localStorage.getItem('notificationPromptShown')) {
                   const message = language === 'ar' 
                     ? 'هل تود تلقي إشعارات من إكّه للعناية بالرجل؟'
                     : 'Would you like to receive notifications from Ekka Barbershop?';
                   if (confirm(message)) {
                     subscribeUser();
                   }
+                  localStorage.setItem('notificationPromptShown', 'true');
                 }
               });
             });
@@ -96,7 +105,8 @@ const PushNotificationToggle = () => {
     }
   };
 
-  if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+  // Only show the button if the app is installed as PWA
+  if (!isStandalone || !('serviceWorker' in navigator) || !('PushManager' in window)) {
     return null;
   }
 
