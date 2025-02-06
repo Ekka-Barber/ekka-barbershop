@@ -27,16 +27,13 @@ serve(async (req) => {
       throw new Error('Failed to get VAPID keys');
     }
 
-    const { vapidKey: vapidPublicKey } = await vapidResponse.json();
+    const { vapidKey: publicKey, privateKey } = await vapidResponse.json();
 
-    // Generate new VAPID keys for this notification
-    const vapidKeys = webPush.generateVAPIDKeys();
-
-    // Set VAPID details
+    // Set VAPID details using the matching key pair
     webPush.setVapidDetails(
       'mailto:ekka.barber@gmail.com',
-      vapidPublicKey,
-      vapidKeys.privateKey
+      publicKey,
+      privateKey
     );
 
     console.log('Sending push notification with subscription:', {
@@ -53,8 +50,10 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ success: true }),
       { 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 200 
+        headers: { 
+          ...corsHeaders,
+          'Content-Type': 'application/json'
+        }
       }
     )
   } catch (error) {
@@ -62,7 +61,10 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ error: error.message }),
       { 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        headers: { 
+          ...corsHeaders,
+          'Content-Type': 'application/json'
+        },
         status: 500 
       }
     )

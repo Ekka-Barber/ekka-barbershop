@@ -25,12 +25,14 @@ serve(async (req) => {
 
     console.log('Generated new VAPID keys:', {
       publicKey: vapidKeys.publicKey,
-      // Don't log the full private key for security
       privateKeyLength: vapidKeys.privateKey.length
     });
 
     return new Response(
-      JSON.stringify({ vapidKey: vapidKeys.publicKey }),
+      JSON.stringify({ 
+        vapidKey: vapidKeys.publicKey,
+        privateKey: vapidKeys.privateKey 
+      }),
       { 
         headers: { 
           ...corsHeaders,
