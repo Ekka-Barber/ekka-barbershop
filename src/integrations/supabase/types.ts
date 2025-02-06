@@ -435,6 +435,7 @@ export type Database = {
           category: string
           created_at: string
           display_order: number | null
+          end_date: string | null
           file_name: string
           file_path: string
           file_type: string
@@ -448,6 +449,7 @@ export type Database = {
           category: string
           created_at?: string
           display_order?: number | null
+          end_date?: string | null
           file_name: string
           file_path: string
           file_type: string
@@ -461,6 +463,7 @@ export type Database = {
           category?: string
           created_at?: string
           display_order?: number | null
+          end_date?: string | null
           file_name?: string
           file_path?: string
           file_type?: string

@@ -7,11 +7,18 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
+import { Clock } from 'lucide-react';
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { format } from "date-fns";
+import { Input } from "@/components/ui/input";
 
 export const FileManagement = () => {
   const [uploading, setUploading] = useState(false);
   const [selectedBranch, setSelectedBranch] = useState<string | null>(null);
   const [isAllBranches, setIsAllBranches] = useState(true);
+  const [selectedDate, setSelectedDate] = useState<Date>();
+  const [selectedTime, setSelectedTime] = useState<string>("23:59");
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -60,6 +67,14 @@ export const FileManagement = () => {
           ? branches?.find(b => b.id === selectedBranch)?.name 
           : null;
 
+        let endDate = null;
+        if (selectedDate && selectedTime) {
+          const [hours, minutes] = selectedTime.split(':');
+          const date = new Date(selectedDate);
+          date.setHours(parseInt(hours), parseInt(minutes));
+          endDate = date.toISOString();
+        }
+
         const { error: dbError } = await supabase
           .from('marketing_files')
           .insert({
@@ -68,7 +83,8 @@ export const FileManagement = () => {
             file_type: file.type,
             category,
             is_active: true,
-            branch_name: selectedBranchName
+            branch_name: selectedBranchName,
+            end_date: endDate
           });
 
         if (dbError) throw dbError;
@@ -84,6 +100,8 @@ export const FileManagement = () => {
       });
       setSelectedBranch(null);
       setIsAllBranches(true);
+      setSelectedDate(undefined);
+      setSelectedTime("23:59");
     },
     onError: (error) => {
       toast({
@@ -212,6 +230,12 @@ export const FileManagement = () => {
                         {file.branch_name && (
                           <p className="text-sm text-muted-foreground">Branch: {file.branch_name}</p>
                         )}
+                        {file.end_date && (
+                          <p className="text-sm text-muted-foreground flex items-center gap-1">
+                            <Clock className="h-4 w-4" />
+                            Ends: {format(new Date(file.end_date), "PPp")}
+                          </p>
+                        )}
                       </div>
                       <div className="flex flex-wrap gap-2">
                         <Button
@@ -284,6 +308,37 @@ export const FileManagement = () => {
                 </SelectContent>
               </Select>
             )}
+
+            <div className="flex flex-col space-y-2">
+              <Label>End Date & Time</Label>
+              <div className="flex gap-2">
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={`w-[240px] justify-start text-left font-normal ${!selectedDate && "text-muted-foreground"}`}
+                    >
+                      <Clock className="mr-2 h-4 w-4" />
+                      {selectedDate ? format(selectedDate, "PPP") : <span>Pick a date</span>}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={selectedDate}
+                      onSelect={setSelectedDate}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+                <Input
+                  type="time"
+                  value={selectedTime}
+                  onChange={(e) => setSelectedTime(e.target.value)}
+                  className="w-[120px]"
+                />
+              </div>
+            </div>
             
             <input
               type="file"
