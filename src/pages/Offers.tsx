@@ -14,7 +14,7 @@ const Offers = () => {
   const { t, language } = useLanguage();
   
   const { data: offersFiles, isLoading, error } = useQuery({
-    queryKey: ['active-offers', language], // Add language as part of the query key
+    queryKey: ['active-offers', language],
     queryFn: async () => {
       console.log('Fetching offers...');
       
@@ -63,9 +63,9 @@ const Offers = () => {
     if (!branchName) return '';
     
     if (language === 'ar') {
-      return `متوفر في ${branchName} فقط`;
+      return `فرع ${branchName} فقط`;
     } else {
-      return `Available at ${branchName} only`;
+      return `On ${branchName} only`;
     }
   };
 
