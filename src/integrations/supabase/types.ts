@@ -239,7 +239,7 @@ export type Database = {
           created_at?: string
           date?: string
           description?: string
-          employee_id?: string
+          employee_id: string
           employee_name?: string
           id?: string
           updated_at?: string
@@ -430,42 +430,52 @@ export type Database = {
       }
       marketing_files: {
         Row: {
-          branch_name: string | null
-          category: string
-          created_at: string
-          display_order: number | null
-          file_name: string
-          file_path: string
-          file_type: string
-          id: string
-          is_active: boolean | null
-          updated_at: string
-        }
+          id: uuid;
+          file_name: text;
+          file_path: text;
+          file_type: text;
+          category: text;
+          is_active: boolean | null;
+          created_at: string;
+          updated_at: string;
+          branch_name: string | null;
+          display_order: number | null;
+          branches?: {
+            name: string;
+            name_ar: string | null;
+          } | null;
+        };
         Insert: {
-          branch_name?: string | null
-          category: string
-          created_at?: string
-          display_order?: number | null
-          file_name: string
-          file_path: string
-          file_type: string
-          id?: string
-          is_active?: boolean | null
-          updated_at?: string
-        }
+          file_name: text;
+          file_path: text;
+          file_type: text;
+          category: text;
+          is_active?: boolean | null;
+          created_at?: string;
+          updated_at?: string;
+          branch_name?: string | null;
+          display_order?: number | null;
+        };
         Update: {
-          branch_name?: string | null
-          category?: string
-          created_at?: string
-          display_order?: number | null
-          file_name?: string
-          file_path?: string
-          file_type?: string
-          id?: string
-          is_active?: boolean | null
-          updated_at?: string
-        }
-        Relationships: []
+          file_name?: text;
+          file_path?: text;
+          file_type?: text;
+          category?: text;
+          is_active?: boolean | null;
+          created_at?: string;
+          updated_at?: string;
+          branch_name?: string | null;
+          display_order?: number | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "marketing_files_branch_name_fkey"
+            columns: ["branch_name"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["name"]
+          }
+        ]
       }
       payment_method_fees: {
         Row: {
@@ -553,7 +563,7 @@ export type Database = {
           last_generated_date?: string | null
           payment_method: Database["public"]["Enums"]["basic_payment_method"]
           start_date: string
-          updated_at?: string
+          updated_at: string
         }
         Update: {
           amount?: number
@@ -720,7 +730,7 @@ export type Database = {
           description_en?: string | null
           discount_type?: string | null
           discount_value?: number | null
-          display_order?: number | null
+          display_order?: string | null
           duration?: number
           id?: string
           name_ar?: string
@@ -927,7 +937,7 @@ export type Tables<
   TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
     ? keyof (Database[PublicTableNameOrOptions["schema"]]["Tables"] &
         Database[PublicTableNameOrOptions["schema"]]["Views"])
-    : never = never,
+    : never,
 > = PublicTableNameOrOptions extends { schema: keyof Database }
   ? (Database[PublicTableNameOrOptions["schema"]]["Tables"] &
       Database[PublicTableNameOrOptions["schema"]]["Views"])[TableName] extends {
@@ -981,10 +991,10 @@ export type TablesUpdate<
     : never
   : PublicTableNameOrOptions extends keyof PublicSchema["Tables"]
     ? PublicSchema["Tables"][PublicTableNameOrOptions] extends {
-        Update: infer U
-      }
-      ? U
-      : never
+      Update: infer U
+    }
+    ? U
+    : never
     : never
 
 export type Enums<

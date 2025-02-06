@@ -20,7 +20,7 @@ const Offers = () => {
       
       const { data, error } = await supabase
         .from('marketing_files')
-        .select('*, branches!inner(name, name_ar)')
+        .select('*, branches(name, name_ar)')
         .eq('category', 'offers')
         .eq('is_active', true)
         .order('display_order', { ascending: true });
