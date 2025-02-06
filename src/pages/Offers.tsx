@@ -14,7 +14,7 @@ const Offers = () => {
   const { t, language } = useLanguage();
   
   const { data: offersFiles, isLoading, error } = useQuery({
-    queryKey: ['active-offers'],
+    queryKey: ['active-offers', language], // Add language as part of the query key
     queryFn: async () => {
       console.log('Fetching offers...');
       
