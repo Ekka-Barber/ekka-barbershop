@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 
 const Offers = () => {
   const navigate = useNavigate();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   
   const { data: offersFiles, isLoading, error } = useQuery({
     queryKey: ['active-offers'],
@@ -22,7 +22,8 @@ const Offers = () => {
         .from('marketing_files')
         .select('*')
         .eq('category', 'offers')
-        .eq('is_active', true);
+        .eq('is_active', true)
+        .order('display_order', { ascending: true });
       
       if (error) {
         console.error('Error fetching offers:', error);
@@ -85,8 +86,22 @@ const Offers = () => {
                 <div className="p-6">
                   {file.branch_name && (
                     <div className="mb-4">
-                      <Badge variant="secondary" className="text-sm">
-                        Available at {file.branch_name} only
+                      <Badge 
+                        variant="secondary" 
+                        className={`
+                          text-sm font-medium px-4 py-1.5 
+                          bg-gradient-to-r from-[#C4A36F] to-[#D4B37F] 
+                          text-white shadow-sm 
+                          border-none
+                          transition-all duration-300 
+                          hover:opacity-90
+                          ${language === 'ar' ? 'rtl' : 'ltr'}
+                        `}
+                      >
+                        {language === 'ar' ? 
+                          `متوفر في ${file.branch_name} فقط` : 
+                          `Available at ${file.branch_name} only`
+                        }
                       </Badge>
                     </div>
                   )}
