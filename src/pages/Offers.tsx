@@ -42,11 +42,10 @@ const Offers = () => {
           .from('marketing_files')
           .getPublicUrl(file.file_path);
         
-        console.log('Got public URL for file:', file.file_name, fileUrl.publicUrl);
         return { 
           ...file, 
           url: fileUrl.publicUrl,
-          branchName: file.branches ? (language === 'ar' ? file.branches.name_ar : file.branches.name) : null
+          branchName: file.branch_name // Use the direct branch_name from marketing_files table
         };
       }));
       
