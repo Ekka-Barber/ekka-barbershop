@@ -8,6 +8,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
+import CountdownTimer from '@/components/CountdownTimer';
 
 const Offers = () => {
   const navigate = useNavigate();
@@ -128,6 +129,9 @@ const Offers = () => {
                         e.currentTarget.src = '/placeholder.svg';
                       }}
                     />
+                  )}
+                  {file.end_date && (
+                    <CountdownTimer endDate={file.end_date} />
                   )}
                 </div>
               </Card>
