@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -8,6 +8,7 @@ import data from '@emoji-mart/data';
 import Picker from '@emoji-mart/react';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { SmilePlus } from "lucide-react";
+import { format } from "date-fns";
 
 const NotificationManager = () => {
   const [title_en, setTitleEn] = useState("");
@@ -16,6 +17,29 @@ const NotificationManager = () => {
   const [body_ar, setBodyAr] = useState("");
   const [sending, setSending] = useState(false);
   const [activeInput, setActiveInput] = useState<'title_en' | 'title_ar' | 'body_en' | 'body_ar' | null>(null);
+  const [messages, setMessages] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchMessages();
+  }, []);
+
+  const fetchMessages = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('notification_messages')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setMessages(data || []);
+    } catch (error) {
+      console.error('Error fetching messages:', error);
+      toast.error("Error loading message history");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleEmojiSelect = (emoji: any) => {
     if (!activeInput) return;
@@ -90,6 +114,10 @@ const NotificationManager = () => {
       setTitleAr("");
       setBodyEn("");
       setBodyAr("");
+
+      // Refresh messages after sending
+      await fetchMessages();
+      
     } catch (error) {
       console.error('Error sending notification:', error);
       toast.error("Error sending notification");
@@ -121,70 +149,104 @@ const NotificationManager = () => {
   );
 
   return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Title (English)</label>
-          <div className="flex gap-2">
-            <Input
-              value={title_en}
-              onChange={(e) => setTitleEn(e.target.value)}
-              placeholder="Enter title in English"
-            />
-            <EmojiPickerButton inputId="title_en" />
+    <div className="space-y-8">
+      <div className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Title (English)</label>
+            <div className="flex gap-2">
+              <Input
+                value={title_en}
+                onChange={(e) => setTitleEn(e.target.value)}
+                placeholder="Enter title in English"
+              />
+              <EmojiPickerButton inputId="title_en" />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Title (Arabic)</label>
+            <div className="flex gap-2">
+              <Input
+                value={title_ar}
+                onChange={(e) => setTitleAr(e.target.value)}
+                placeholder="أدخل العنوان بالعربية"
+                className="text-right"
+                dir="rtl"
+              />
+              <EmojiPickerButton inputId="title_ar" />
+            </div>
           </div>
         </div>
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Title (Arabic)</label>
-          <div className="flex gap-2">
-            <Input
-              value={title_ar}
-              onChange={(e) => setTitleAr(e.target.value)}
-              placeholder="أدخل العنوان بالعربية"
-              className="text-right"
-              dir="rtl"
-            />
-            <EmojiPickerButton inputId="title_ar" />
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Message (English)</label>
+            <div className="flex gap-2">
+              <Textarea
+                value={body_en}
+                onChange={(e) => setBodyEn(e.target.value)}
+                placeholder="Enter message in English"
+                rows={4}
+              />
+              <EmojiPickerButton inputId="body_en" />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Message (Arabic)</label>
+            <div className="flex gap-2">
+              <Textarea
+                value={body_ar}
+                onChange={(e) => setBodyAr(e.target.value)}
+                placeholder="أدخل الرسالة بالعربية"
+                className="text-right"
+                dir="rtl"
+                rows={4}
+              />
+              <EmojiPickerButton inputId="body_ar" />
+            </div>
           </div>
         </div>
+
+        <Button 
+          onClick={handleSendNotification} 
+          disabled={sending || !title_en || !title_ar || !body_en || !body_ar}
+          className="w-full"
+        >
+          {sending ? "Sending..." : "Send Notification"}
+        </Button>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Message (English)</label>
-          <div className="flex gap-2">
-            <Textarea
-              value={body_en}
-              onChange={(e) => setBodyEn(e.target.value)}
-              placeholder="Enter message in English"
-              rows={4}
-            />
-            <EmojiPickerButton inputId="body_en" />
+      <div className="space-y-4">
+        <h2 className="text-lg font-semibold">Message History</h2>
+        {loading ? (
+          <p className="text-center text-muted-foreground">Loading messages...</p>
+        ) : messages.length === 0 ? (
+          <p className="text-center text-muted-foreground">No messages sent yet</p>
+        ) : (
+          <div className="space-y-4">
+            {messages.map((message) => (
+              <div 
+                key={message.id} 
+                className="border rounded-lg p-4 space-y-3 hover:bg-muted/50 transition-colors"
+              >
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <h3 className="font-medium">{message.title_en}</h3>
+                    <p className="text-sm text-muted-foreground">{message.body_en}</p>
+                  </div>
+                  <div className="text-right">
+                    <h3 className="font-medium" dir="rtl">{message.title_ar}</h3>
+                    <p className="text-sm text-muted-foreground" dir="rtl">{message.body_ar}</p>
+                  </div>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Sent on: {format(new Date(message.created_at), 'PPpp')}
+                </p>
+              </div>
+            ))}
           </div>
-        </div>
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Message (Arabic)</label>
-          <div className="flex gap-2">
-            <Textarea
-              value={body_ar}
-              onChange={(e) => setBodyAr(e.target.value)}
-              placeholder="أدخل الرسالة بالعربية"
-              className="text-right"
-              dir="rtl"
-              rows={4}
-            />
-            <EmojiPickerButton inputId="body_ar" />
-          </div>
-        </div>
+        )}
       </div>
-
-      <Button 
-        onClick={handleSendNotification} 
-        disabled={sending || !title_en || !title_ar || !body_en || !body_ar}
-        className="w-full"
-      >
-        {sending ? "Sending..." : "Send Notification"}
-      </Button>
     </div>
   );
 };
