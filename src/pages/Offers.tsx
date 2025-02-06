@@ -60,6 +60,16 @@ const Offers = () => {
     console.error('Query error:', error);
   }
 
+  const getBadgeText = (branchName: string | null) => {
+    if (!branchName) return '';
+    
+    if (language === 'ar') {
+      return `متوفر في ${branchName} فقط`;
+    } else {
+      return `Available at ${branchName} only`;
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 flex flex-col">
       <div className="flex-grow max-w-4xl mx-auto p-4 sm:p-6 lg:p-8 w-full">
@@ -102,10 +112,7 @@ const Offers = () => {
                           ${language === 'ar' ? 'rtl' : 'ltr'}
                         `}
                       >
-                        {language === 'ar' ? 
-                          `متوفر في ${file.branchName} فقط` : 
-                          `Available at ${file.branchName} only`
-                        }
+                        {getBadgeText(file.branchName)}
                       </Badge>
                     </div>
                   )}
