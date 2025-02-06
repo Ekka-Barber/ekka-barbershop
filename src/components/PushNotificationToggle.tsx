@@ -7,26 +7,39 @@ import { toast } from "sonner";
 const PushNotificationToggle = () => {
   const [isSubscribed, setIsSubscribed] = useState(false);
   const { t, language } = useLanguage();
-  const VAPID_PUBLIC_KEY = 'YOUR_PUBLIC_VAPID_KEY';
+  const [vapidKey, setVapidKey] = useState<string | null>(null);
 
   useEffect(() => {
     // Check if service worker is supported
     if ('serviceWorker' in navigator && 'PushManager' in window) {
-      navigator.serviceWorker.ready.then(registration => {
-        registration.pushManager.getSubscription().then(subscription => {
-          setIsSubscribed(!!subscription);
-        });
-      });
+      // Get VAPID key from Edge Function
+      supabase.functions.invoke('get-vapid-key')
+        .then(({ data }) => {
+          if (data?.vapidKey) {
+            setVapidKey(data.vapidKey);
+            // Check subscription status
+            navigator.serviceWorker.ready.then(registration => {
+              registration.pushManager.getSubscription().then(subscription => {
+                setIsSubscribed(!!subscription);
+              });
+            });
+          }
+        })
+        .catch(console.error);
     }
   }, []);
 
   const subscribeUser = async () => {
     try {
+      if (!vapidKey) {
+        throw new Error('VAPID key not available');
+      }
+
       const registration = await navigator.serviceWorker.ready;
       
       const subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
-        applicationServerKey: VAPID_PUBLIC_KEY
+        applicationServerKey: vapidKey
       });
 
       // Store subscription in Supabase
