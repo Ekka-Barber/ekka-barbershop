@@ -431,6 +431,7 @@ export type Database = {
       marketing_files: {
         Row: {
           branch_name: string | null
+          branch_name_ar: string | null
           category: string
           created_at: string
           display_order: number | null
@@ -443,6 +444,7 @@ export type Database = {
         }
         Insert: {
           branch_name?: string | null
+          branch_name_ar?: string | null
           category: string
           created_at?: string
           display_order?: number | null
@@ -455,6 +457,7 @@ export type Database = {
         }
         Update: {
           branch_name?: string | null
+          branch_name_ar?: string | null
           category?: string
           created_at?: string
           display_order?: number | null

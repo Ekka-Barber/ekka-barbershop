@@ -45,7 +45,7 @@ const Offers = () => {
         return { 
           ...file, 
           url: fileUrl.publicUrl,
-          branchName: file.branch_name // Use the direct branch_name from marketing_files table
+          branchName: language === 'ar' ? file.branch_name_ar : file.branch_name
         };
       }));
       
