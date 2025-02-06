@@ -34,7 +34,7 @@ export const FileManagement = () => {
       
       const { data, error } = await supabase
         .from('marketing_files')
-        .select('*, branches(name)')
+        .select('*')
         .order('created_at', { ascending: false });
       
       if (error) throw error;
@@ -55,6 +55,10 @@ export const FileManagement = () => {
         
         if (uploadError) throw uploadError;
 
+        const selectedBranchName = !isAllBranches && selectedBranch 
+          ? branches?.find(b => b.id === selectedBranch)?.name 
+          : null;
+
         const { error: dbError } = await supabase
           .from('marketing_files')
           .insert({
@@ -63,7 +67,7 @@ export const FileManagement = () => {
             file_type: file.type,
             category,
             is_active: true,
-            branch_name: !isAllBranches ? branches?.find(b => b.id === selectedBranch)?.name : null
+            branch_name: selectedBranchName
           });
 
         if (dbError) throw dbError;

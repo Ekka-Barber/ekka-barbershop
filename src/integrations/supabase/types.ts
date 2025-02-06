@@ -430,6 +430,7 @@ export type Database = {
       }
       marketing_files: {
         Row: {
+          branch_name: string | null
           category: string
           created_at: string
           file_name: string
@@ -440,6 +441,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          branch_name?: string | null
           category: string
           created_at?: string
           file_name: string
@@ -450,6 +452,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          branch_name?: string | null
           category?: string
           created_at?: string
           file_name?: string
