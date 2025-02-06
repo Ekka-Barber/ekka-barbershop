@@ -46,7 +46,9 @@ const Offers = () => {
         return { 
           ...file, 
           url: fileUrl.publicUrl,
-          branchName: language === 'ar' && file.branches?.name_ar ? file.branches.name_ar : file.branches?.name
+          branchName: language === 'ar' && file.branches?.name_ar 
+            ? file.branches.name_ar 
+            : file.branches?.name
         };
       }));
       

@@ -465,7 +465,15 @@ export type Database = {
           is_active?: boolean | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "marketing_files_branch_name_fkey"
+            columns: ["branch_name"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["name"]
+          },
+        ]
       }
       payment_method_fees: {
         Row: {
