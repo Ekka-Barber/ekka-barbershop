@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
-import { Clock } from 'lucide-react';
+import { Clock, X } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
@@ -176,6 +176,47 @@ export const FileManagement = () => {
     }
   });
 
+  const updateEndDateMutation = useMutation({
+    mutationFn: async ({ id, endDate }: { id: string, endDate: string | null }) => {
+      const { error } = await supabase
+        .from('marketing_files')
+        .update({ end_date: endDate })
+        .eq('id', id);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['marketing-files'] });
+      toast({
+        title: "Success",
+        description: "End date updated successfully",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Failed to update end date",
+        variant: "destructive",
+      });
+      console.error('Update error:', error);
+    }
+  });
+
+  const handleEndDateUpdate = (file: any) => {
+    let endDate = null;
+    if (selectedDate && selectedTime) {
+      const [hours, minutes] = selectedTime.split(':');
+      const date = new Date(selectedDate);
+      date.setHours(parseInt(hours), parseInt(minutes));
+      endDate = date.toISOString();
+    }
+    updateEndDateMutation.mutate({ id: file.id, endDate });
+  };
+
+  const handleRemoveEndDate = (fileId: string) => {
+    updateEndDateMutation.mutate({ id: fileId, endDate: null });
+  };
+
   const handleDragEnd = async (result: any, category: string) => {
     if (!result.destination || !files) return;
 
@@ -223,7 +264,7 @@ export const FileManagement = () => {
                     {...provided.dragHandleProps}
                     className="border p-4 rounded-lg space-y-4 bg-white"
                   >
-                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
                       <div>
                         <h3 className="font-medium">{file.file_name}</h3>
                         <p className="text-sm text-muted-foreground">Category: {file.category}</p>
@@ -231,10 +272,56 @@ export const FileManagement = () => {
                           <p className="text-sm text-muted-foreground">Branch: {file.branch_name}</p>
                         )}
                         {file.end_date && (
-                          <p className="text-sm text-muted-foreground flex items-center gap-1">
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
                             <Clock className="h-4 w-4" />
-                            Ends: {format(new Date(file.end_date), "PPp")}
-                          </p>
+                            <span>Ends: {format(new Date(file.end_date), "PPp")}</span>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-4 w-4 p-0"
+                              onClick={() => handleRemoveEndDate(file.id)}
+                            >
+                              <X className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        )}
+                        {!file.end_date && (
+                          <div className="mt-2 space-y-2">
+                            <div className="flex gap-2">
+                              <Popover>
+                                <PopoverTrigger asChild>
+                                  <Button
+                                    variant="outline"
+                                    className="text-sm h-8"
+                                  >
+                                    <Clock className="mr-2 h-4 w-4" />
+                                    Set end date
+                                  </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-auto p-0" align="start">
+                                  <Calendar
+                                    mode="single"
+                                    selected={selectedDate}
+                                    onSelect={setSelectedDate}
+                                    initialFocus
+                                  />
+                                </PopoverContent>
+                              </Popover>
+                              <Input
+                                type="time"
+                                value={selectedTime}
+                                onChange={(e) => setSelectedTime(e.target.value)}
+                                className="w-[120px] h-8"
+                              />
+                              <Button 
+                                size="sm"
+                                onClick={() => handleEndDateUpdate(file)}
+                                className="h-8"
+                              >
+                                Save
+                              </Button>
+                            </div>
+                          </div>
                         )}
                       </div>
                       <div className="flex flex-wrap gap-2">
