@@ -103,10 +103,11 @@ const Offers = () => {
                         variant="secondary" 
                         className={`
                           text-sm font-medium px-4 py-1.5 
-                          bg-gradient-to-r from-[#C4A36F] to-[#D4B37F] 
+                          bg-gradient-to-r from-red-600 to-red-400 
                           text-white shadow-sm 
                           border-none
                           transition-all duration-300 
+                          animate-flash
                           hover:opacity-90
                           ${language === 'ar' ? 'rtl' : 'ltr'}
                         `}
