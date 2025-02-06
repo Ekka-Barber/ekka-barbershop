@@ -20,7 +20,7 @@ const Offers = () => {
       
       const { data, error } = await supabase
         .from('marketing_files')
-        .select('*')
+        .select('*, branches!inner(name, name_ar)')
         .eq('category', 'offers')
         .eq('is_active', true)
         .order('display_order', { ascending: true });
@@ -43,7 +43,11 @@ const Offers = () => {
           .getPublicUrl(file.file_path);
         
         console.log('Got public URL for file:', file.file_name, fileUrl.publicUrl);
-        return { ...file, url: fileUrl.publicUrl };
+        return { 
+          ...file, 
+          url: fileUrl.publicUrl,
+          branchName: language === 'ar' && file.branches?.name_ar ? file.branches.name_ar : file.branches?.name
+        };
       }));
       
       return filesWithUrls;
@@ -84,7 +88,7 @@ const Offers = () => {
             offersFiles.map((file) => (
               <Card key={file.id} className="overflow-hidden bg-white shadow-xl rounded-xl border-[#C4A36F]/20">
                 <div className="p-6">
-                  {file.branch_name && (
+                  {file.branchName && (
                     <div className="mb-4">
                       <Badge 
                         variant="secondary" 
@@ -99,8 +103,8 @@ const Offers = () => {
                         `}
                       >
                         {language === 'ar' ? 
-                          `متوفر في ${file.branch_name} فقط` : 
-                          `Available at ${file.branch_name} only`
+                          `متوفر في ${file.branchName} فقط` : 
+                          `Available at ${file.branchName} only`
                         }
                       </Badge>
                     </div>
