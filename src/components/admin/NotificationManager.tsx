@@ -70,41 +70,45 @@ const NotificationManager = () => {
     <div className="space-y-6">
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
-          <label className="text-sm font-medium">Title (English)</label>
+          <label className="text-sm font-medium">Title (English) 😊</label>
           <Input
             value={title_en}
             onChange={(e) => setTitleEn(e.target.value)}
-            placeholder="Enter title in English"
+            placeholder="Enter title in English (emoji supported 😊)"
+            className="font-emoji"
           />
         </div>
         <div className="space-y-2">
-          <label className="text-sm font-medium">Title (Arabic)</label>
+          <label className="text-sm font-medium">Title (Arabic) 😊</label>
           <Input
             value={title_ar}
             onChange={(e) => setTitleAr(e.target.value)}
-            placeholder="Enter title in Arabic"
-            className="text-right"
+            placeholder="أدخل العنوان بالعربية (الرموز التعبيرية مدعومة 😊)"
+            className="text-right font-emoji"
+            dir="rtl"
           />
         </div>
       </div>
 
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
-          <label className="text-sm font-medium">Message (English)</label>
+          <label className="text-sm font-medium">Message (English) 😊</label>
           <Textarea
             value={body_en}
             onChange={(e) => setBodyEn(e.target.value)}
-            placeholder="Enter message in English"
+            placeholder="Enter message in English (emoji supported 😊)"
             rows={4}
+            className="font-emoji"
           />
         </div>
         <div className="space-y-2">
-          <label className="text-sm font-medium">Message (Arabic)</label>
+          <label className="text-sm font-medium">Message (Arabic) 😊</label>
           <Textarea
             value={body_ar}
             onChange={(e) => setBodyAr(e.target.value)}
-            placeholder="Enter message in Arabic"
-            className="text-right"
+            placeholder="أدخل الرسالة بالعربية (الرموز التعبيرية مدعومة 😊)"
+            className="text-right font-emoji"
+            dir="rtl"
             rows={4}
           />
         </div>
@@ -115,7 +119,7 @@ const NotificationManager = () => {
         disabled={sending || !title_en || !title_ar || !body_en || !body_ar}
         className="w-full"
       >
-        {sending ? "Sending..." : "Send Notification"}
+        {sending ? "Sending..." : "Send Notification 📨"}
       </Button>
     </div>
   );
