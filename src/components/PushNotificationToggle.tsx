@@ -7,6 +7,7 @@ import { toast } from "sonner";
 const PushNotificationToggle = () => {
   const [isSubscribed, setIsSubscribed] = useState(false);
   const { t, language } = useLanguage();
+  const VAPID_PUBLIC_KEY = 'YOUR_PUBLIC_VAPID_KEY';
 
   useEffect(() => {
     // Check if service worker is supported
@@ -25,20 +26,17 @@ const PushNotificationToggle = () => {
       
       const subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
-        applicationServerKey: 'YOUR_PUBLIC_VAPID_KEY' // We'll need to set this up
+        applicationServerKey: VAPID_PUBLIC_KEY
       });
-
-      const { endpoint, keys } = subscription.toJSON();
 
       // Store subscription in Supabase
       const { error } = await supabase
         .from('push_subscriptions')
         .insert([{ 
-          endpoint: endpoint,
-          p256dh: keys.p256dh,
-          auth: keys.auth,
-          status: 'active',
-          created_at: new Date().toISOString()
+          endpoint: subscription.endpoint,
+          p256dh: subscription.toJSON().keys.p256dh,
+          auth: subscription.toJSON().keys.auth,
+          status: 'active'
         }]);
 
       if (error) throw error;
