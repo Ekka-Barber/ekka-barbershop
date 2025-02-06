@@ -41,6 +41,13 @@ const NotificationManager = () => {
     try {
       setSending(true);
 
+      // Set owner access before performing operations
+      const { error: accessError } = await supabase.rpc('set_owner_access', {
+        value: 'owner123'
+      });
+
+      if (accessError) throw accessError;
+
       // First, save the notification message to the database
       const { error: dbError } = await supabase
         .from('notification_messages')
