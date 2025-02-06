@@ -28,11 +28,16 @@ const PushNotificationToggle = () => {
         applicationServerKey: 'YOUR_PUBLIC_VAPID_KEY' // We'll need to set this up
       });
 
+      const { endpoint, keys } = subscription.toJSON();
+
       // Store subscription in Supabase
       const { error } = await supabase
         .from('push_subscriptions')
         .insert([{ 
-          subscription: subscription,
+          endpoint: endpoint,
+          p256dh: keys.p256dh,
+          auth: keys.auth,
+          status: 'active',
           created_at: new Date().toISOString()
         }]);
 
@@ -58,7 +63,7 @@ const PushNotificationToggle = () => {
         const { error } = await supabase
           .from('push_subscriptions')
           .delete()
-          .eq('subscription', subscription);
+          .eq('endpoint', subscription.endpoint);
 
         if (error) throw error;
       }

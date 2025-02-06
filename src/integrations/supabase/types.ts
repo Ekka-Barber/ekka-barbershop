@@ -516,6 +516,36 @@ export type Database = {
           },
         ]
       }
+      push_subscriptions: {
+        Row: {
+          auth: string
+          created_at: string
+          endpoint: string
+          id: string
+          p256dh: string
+          status: Database["public"]["Enums"]["subscription_status"] | null
+          updated_at: string
+        }
+        Insert: {
+          auth: string
+          created_at?: string
+          endpoint: string
+          id?: string
+          p256dh: string
+          status?: Database["public"]["Enums"]["subscription_status"] | null
+          updated_at?: string
+        }
+        Update: {
+          auth?: string
+          created_at?: string
+          endpoint?: string
+          id?: string
+          p256dh?: string
+          status?: Database["public"]["Enums"]["subscription_status"] | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       qr_codes: {
         Row: {
           created_at: string
@@ -923,6 +953,7 @@ export type Database = {
         | "fresha_online"
         | "bank_transfer"
         | "deposit"
+      subscription_status: "active" | "inactive"
       transaction_type: "income" | "expense"
       user_role: "owner" | "employee" | "shop_manager" | "accountant"
     }
