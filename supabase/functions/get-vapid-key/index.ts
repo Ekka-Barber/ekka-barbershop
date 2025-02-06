@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+import * as webPush from 'npm:web-push';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -12,14 +13,24 @@ serve(async (req) => {
   }
 
   try {
-    const vapidKey = Deno.env.get('VAPID_PUBLIC_KEY')
+    // Generate VAPID keys if they don't exist
+    const vapidKeys = webPush.generateVAPIDKeys();
     
-    if (!vapidKey) {
-      throw new Error('VAPID public key not configured')
-    }
+    // Set VAPID details
+    webPush.setVapidDetails(
+      'mailto:ekka.barber@gmail.com',
+      vapidKeys.publicKey,
+      vapidKeys.privateKey
+    );
+
+    console.log('Generated new VAPID keys:', {
+      publicKey: vapidKeys.publicKey,
+      // Don't log the full private key for security
+      privateKeyLength: vapidKeys.privateKey.length
+    });
 
     return new Response(
-      JSON.stringify({ vapidKey }),
+      JSON.stringify({ vapidKey: vapidKeys.publicKey }),
       { 
         headers: { 
           ...corsHeaders,
@@ -29,7 +40,7 @@ serve(async (req) => {
       }
     )
   } catch (error) {
-    console.error('Error getting VAPID key:', error)
+    console.error('Error generating VAPID keys:', error)
     return new Response(
       JSON.stringify({ error: error.message }),
       { 
