@@ -3,18 +3,38 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 
 export const FileManagement = () => {
   const [uploading, setUploading] = useState(false);
+  const [selectedBranch, setSelectedBranch] = useState<string | null>(null);
+  const [isAllBranches, setIsAllBranches] = useState(true);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  const { data: branches } = useQuery({
+    queryKey: ['branches'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('branches')
+        .select('*')
+        .order('name', { ascending: true });
+      
+      if (error) throw error;
+      return data;
+    }
+  });
 
   const { data: files, isLoading } = useQuery({
     queryKey: ['marketing-files'],
     queryFn: async () => {
+      console.log('Fetching files...');
+      
       const { data, error } = await supabase
         .from('marketing_files')
-        .select('*')
+        .select('*, branches(name)')
         .order('created_at', { ascending: false });
       
       if (error) throw error;
@@ -42,7 +62,8 @@ export const FileManagement = () => {
             file_path: fileName,
             file_type: file.type,
             category,
-            is_active: true
+            is_active: true,
+            branch_name: !isAllBranches ? branches?.find(b => b.id === selectedBranch)?.name : null
           });
 
         if (dbError) throw dbError;
@@ -56,6 +77,8 @@ export const FileManagement = () => {
         title: "Success",
         description: "File uploaded successfully",
       });
+      setSelectedBranch(null);
+      setIsAllBranches(true);
     },
     onError: (error) => {
       toast({
@@ -135,13 +158,42 @@ export const FileManagement = () => {
         
         <div className="space-y-4">
           <h2 className="text-lg font-semibold">Upload Offers</h2>
-          <input
-            type="file"
-            accept=".pdf,.png,.jpg,.jpeg"
-            onChange={(e) => handleFileUpload(e, 'offers')}
-            className="w-full text-sm sm:text-base file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20"
-            disabled={uploading}
-          />
+          <div className="space-y-4">
+            <div className="flex items-center space-x-2">
+              <Checkbox 
+                id="allBranches" 
+                checked={isAllBranches}
+                onCheckedChange={(checked) => {
+                  setIsAllBranches(checked === true);
+                  if (checked) setSelectedBranch(null);
+                }}
+              />
+              <Label htmlFor="allBranches">Available at all branches</Label>
+            </div>
+            
+            {!isAllBranches && (
+              <Select value={selectedBranch || ''} onValueChange={setSelectedBranch}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select branch" />
+                </SelectTrigger>
+                <SelectContent>
+                  {branches?.map((branch) => (
+                    <SelectItem key={branch.id} value={branch.id}>
+                      {branch.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+            
+            <input
+              type="file"
+              accept=".pdf,.png,.jpg,.jpeg"
+              onChange={(e) => handleFileUpload(e, 'offers')}
+              className="w-full text-sm sm:text-base file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20"
+              disabled={uploading || (!isAllBranches && !selectedBranch)}
+            />
+          </div>
         </div>
       </div>
 
@@ -157,6 +209,9 @@ export const FileManagement = () => {
                   <div>
                     <h3 className="font-medium">{file.file_name}</h3>
                     <p className="text-sm text-muted-foreground">Category: {file.category}</p>
+                    {file.branch_name && (
+                      <p className="text-sm text-muted-foreground">Branch: {file.branch_name}</p>
+                    )}
                   </div>
                   <div className="flex flex-wrap gap-2">
                     <Button

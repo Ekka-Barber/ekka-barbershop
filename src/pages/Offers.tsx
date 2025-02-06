@@ -7,6 +7,7 @@ import { Card } from "@/components/ui/card";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { toast } from "sonner";
+import { Badge } from "@/components/ui/badge";
 
 const Offers = () => {
   const navigate = useNavigate();
@@ -82,6 +83,13 @@ const Offers = () => {
             offersFiles.map((file) => (
               <Card key={file.id} className="overflow-hidden bg-white shadow-xl rounded-xl border-[#C4A36F]/20">
                 <div className="p-6">
+                  {file.branch_name && (
+                    <div className="mb-4">
+                      <Badge variant="secondary" className="text-sm">
+                        Available at {file.branch_name} only
+                      </Badge>
+                    </div>
+                  )}
                   {file.file_type.includes('pdf') ? (
                     <PDFViewer pdfUrl={file.url} />
                   ) : (
