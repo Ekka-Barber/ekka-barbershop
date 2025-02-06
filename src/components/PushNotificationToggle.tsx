@@ -6,7 +6,7 @@ import { toast } from "sonner";
 
 const PushNotificationToggle = () => {
   const [isSubscribed, setIsSubscribed] = useState(false);
-  const { t, language } = useLanguage();
+  const { language } = useLanguage();
   const [vapidKey, setVapidKey] = useState<string | null>(null);
 
   useEffect(() => {
@@ -21,13 +21,22 @@ const PushNotificationToggle = () => {
             navigator.serviceWorker.ready.then(registration => {
               registration.pushManager.getSubscription().then(subscription => {
                 setIsSubscribed(!!subscription);
+                // If not subscribed, request permission
+                if (!subscription) {
+                  const message = language === 'ar' 
+                    ? 'هل تود تلقي إشعارات من إكّه للعناية بالرجل؟'
+                    : 'Would you like to receive notifications from Ekka Barbershop?';
+                  if (confirm(message)) {
+                    subscribeUser();
+                  }
+                }
               });
             });
           }
         })
         .catch(console.error);
     }
-  }, []);
+  }, [vapidKey]);
 
   const subscribeUser = async () => {
     try {

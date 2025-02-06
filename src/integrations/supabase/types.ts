@@ -481,6 +481,36 @@ export type Database = {
           },
         ]
       }
+      notification_messages: {
+        Row: {
+          body_ar: string
+          body_en: string
+          created_at: string
+          id: string
+          title_ar: string
+          title_en: string
+          updated_at: string
+        }
+        Insert: {
+          body_ar: string
+          body_en: string
+          created_at?: string
+          id?: string
+          title_ar: string
+          title_en: string
+          updated_at?: string
+        }
+        Update: {
+          body_ar?: string
+          body_en?: string
+          created_at?: string
+          id?: string
+          title_ar?: string
+          title_en?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       payment_method_fees: {
         Row: {
           created_at: string
