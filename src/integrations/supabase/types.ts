@@ -433,6 +433,7 @@ export type Database = {
           branch_name: string | null
           category: string
           created_at: string
+          display_order: number | null
           file_name: string
           file_path: string
           file_type: string
@@ -444,6 +445,7 @@ export type Database = {
           branch_name?: string | null
           category: string
           created_at?: string
+          display_order?: number | null
           file_name: string
           file_path: string
           file_type: string
@@ -455,6 +457,7 @@ export type Database = {
           branch_name?: string | null
           category?: string
           created_at?: string
+          display_order?: number | null
           file_name?: string
           file_path?: string
           file_type?: string
