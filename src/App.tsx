@@ -1,9 +1,12 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { LanguageProvider } from "@/contexts/LanguageContext";
+import { useEffect } from "react";
+import { trackClick } from "@/utils/clickTracking";
 import Index from "./pages/Index";
 import Customer from "./pages/Customer";
 import Menu from "./pages/Menu";
@@ -30,6 +33,12 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 };
 
 const App = () => {
+  useEffect(() => {
+    // Add click tracking
+    window.addEventListener('click', trackClick);
+    return () => window.removeEventListener('click', trackClick);
+  }, []);
+
   return (
     <QueryClientProvider client={queryClient}>
       <LanguageProvider>

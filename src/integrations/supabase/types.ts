@@ -155,6 +155,45 @@ export type Database = {
           },
         ]
       }
+      click_tracking: {
+        Row: {
+          created_at: string
+          device_type: Database["public"]["Enums"]["device_type"]
+          element_class: string | null
+          element_id: string | null
+          id: string
+          page_url: string
+          screen_height: number
+          screen_width: number
+          x_coordinate: number
+          y_coordinate: number
+        }
+        Insert: {
+          created_at?: string
+          device_type: Database["public"]["Enums"]["device_type"]
+          element_class?: string | null
+          element_id?: string | null
+          id?: string
+          page_url: string
+          screen_height: number
+          screen_width: number
+          x_coordinate: number
+          y_coordinate: number
+        }
+        Update: {
+          created_at?: string
+          device_type?: Database["public"]["Enums"]["device_type"]
+          element_class?: string | null
+          element_id?: string | null
+          id?: string
+          page_url?: string
+          screen_height?: number
+          screen_width?: number
+          x_coordinate?: number
+          y_coordinate?: number
+        }
+        Relationships: []
+      }
       employee_bonuses: {
         Row: {
           amount: number
@@ -1011,6 +1050,7 @@ export type Database = {
     }
     Enums: {
       basic_payment_method: "cash" | "bank_transfer"
+      device_type: "mobile" | "tablet" | "desktop"
       employee_role:
         | "manager"
         | "barber"
