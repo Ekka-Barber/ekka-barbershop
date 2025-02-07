@@ -4,6 +4,7 @@ import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import h337 from 'heatmap.js';
+import { toast } from "sonner";
 
 interface ClickData {
   x_coordinate: number;
@@ -24,14 +25,25 @@ export const ClickHeatmap = () => {
   // Fetch unique pages
   useEffect(() => {
     const fetchPages = async () => {
-      const { data } = await supabase
-        .from('click_tracking')
-        .select('page_url')
-        .eq('page_url', 'page_url');
-      
-      if (data) {
-        const uniquePages = [...new Set(data.map(item => item.page_url))];
-        setPages(uniquePages);
+      try {
+        const { data, error } = await supabase
+          .from('click_tracking')
+          .select('page_url');
+        
+        if (error) {
+          console.error('Error fetching pages:', error);
+          toast.error('Error fetching pages');
+          return;
+        }
+        
+        if (data) {
+          const uniquePages = [...new Set(data.map(item => item.page_url))];
+          setPages(uniquePages);
+          console.log('Unique pages:', uniquePages);
+        }
+      } catch (error) {
+        console.error('Error fetching pages:', error);
+        toast.error('Error fetching pages');
       }
     };
     
@@ -54,28 +66,43 @@ export const ClickHeatmap = () => {
   // Update heatmap data
   useEffect(() => {
     const fetchClicks = async () => {
-      let query = supabase
-        .from('click_tracking')
-        .select('x_coordinate, y_coordinate, device_type')
-        .eq('page_url', selectedPage);
-      
-      if (selectedDevice !== 'all') {
-        query = query.eq('device_type', selectedDevice as 'mobile' | 'tablet' | 'desktop');
-      }
-      
-      const { data } = await query;
-      
-      if (data && heatmapInstance.current) {
-        const points = data.map(click => ({
-          x: click.x_coordinate,
-          y: click.y_coordinate,
-          value: 1
-        }));
+      try {
+        console.log('Fetching clicks for:', { selectedPage, selectedDevice });
         
-        heatmapInstance.current.setData({
-          max: points.length,
-          data: points
-        });
+        let query = supabase
+          .from('click_tracking')
+          .select('x_coordinate, y_coordinate, device_type')
+          .eq('page_url', selectedPage);
+        
+        if (selectedDevice !== 'all') {
+          query = query.eq('device_type', selectedDevice);
+        }
+        
+        const { data, error } = await query;
+        
+        if (error) {
+          console.error('Error fetching clicks:', error);
+          toast.error('Error fetching click data');
+          return;
+        }
+        
+        console.log('Click data:', data);
+        
+        if (data && heatmapInstance.current) {
+          const points = data.map(click => ({
+            x: click.x_coordinate,
+            y: click.y_coordinate,
+            value: 1
+          }));
+          
+          heatmapInstance.current.setData({
+            max: Math.max(1, points.length),
+            data: points
+          });
+        }
+      } catch (error) {
+        console.error('Error fetching clicks:', error);
+        toast.error('Error fetching click data');
       }
     };
     
