@@ -14,7 +14,7 @@ interface ClickData {
 
 export const ClickHeatmap = () => {
   const [selectedPage, setSelectedPage] = useState<string>('/customer');
-  const [selectedDevice, setSelectedDevice] = useState<string>('all');
+  const [selectedDevice, setSelectedDevice] = useState<'all' | 'mobile' | 'tablet' | 'desktop'>('all');
   const [pages, setPages] = useState<string[]>([]);
   const containerRef = useRef<HTMLDivElement>(null);
   const heatmapInstance = useRef<any>(null);
@@ -25,10 +25,11 @@ export const ClickHeatmap = () => {
       const { data } = await supabase
         .from('click_tracking')
         .select('page_url')
-        .distinct();
+        .eq('page_url', 'page_url');
       
       if (data) {
-        setPages([...new Set(data.map(item => item.page_url))]);
+        const uniquePages = [...new Set(data.map(item => item.page_url))];
+        setPages(uniquePages);
       }
     };
     
@@ -57,7 +58,7 @@ export const ClickHeatmap = () => {
         .eq('page_url', selectedPage);
       
       if (selectedDevice !== 'all') {
-        query = query.eq('device_type', selectedDevice);
+        query = query.eq('device_type', selectedDevice as 'mobile' | 'tablet' | 'desktop');
       }
       
       const { data } = await query;
