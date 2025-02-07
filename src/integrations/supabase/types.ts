@@ -9,6 +9,30 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      booking_behavior: {
+        Row: {
+          created_at: string
+          id: string
+          step: string
+          timestamp: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          step: string
+          timestamp?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          step?: string
+          timestamp?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       branch_managers: {
         Row: {
           access_code: string
@@ -711,6 +735,33 @@ export type Database = {
           name_ar?: string
           name_en?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      service_tracking: {
+        Row: {
+          action: string
+          created_at: string
+          id: string
+          service_name: string
+          timestamp: string
+          user_id: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          id?: string
+          service_name: string
+          timestamp?: string
+          user_id?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          id?: string
+          service_name?: string
+          timestamp?: string
+          user_id?: string | null
         }
         Relationships: []
       }
