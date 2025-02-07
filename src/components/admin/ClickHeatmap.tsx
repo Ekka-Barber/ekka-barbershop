@@ -12,9 +12,11 @@ interface ClickData {
   page_url: string;
 }
 
+type DeviceType = 'all' | 'mobile' | 'tablet' | 'desktop';
+
 export const ClickHeatmap = () => {
   const [selectedPage, setSelectedPage] = useState<string>('/customer');
-  const [selectedDevice, setSelectedDevice] = useState<'all' | 'mobile' | 'tablet' | 'desktop'>('all');
+  const [selectedDevice, setSelectedDevice] = useState<DeviceType>('all');
   const [pages, setPages] = useState<string[]>([]);
   const containerRef = useRef<HTMLDivElement>(null);
   const heatmapInstance = useRef<any>(null);
@@ -80,6 +82,10 @@ export const ClickHeatmap = () => {
     fetchClicks();
   }, [selectedPage, selectedDevice]);
 
+  const handleDeviceChange = (value: string) => {
+    setSelectedDevice(value as DeviceType);
+  };
+
   return (
     <Card className="p-6">
       <div className="mb-6 flex gap-4">
@@ -96,7 +102,7 @@ export const ClickHeatmap = () => {
           </SelectContent>
         </Select>
 
-        <Select value={selectedDevice} onValueChange={setSelectedDevice}>
+        <Select value={selectedDevice} onValueChange={handleDeviceChange}>
           <SelectTrigger className="w-[200px]">
             <SelectValue placeholder="Select device" />
           </SelectTrigger>
