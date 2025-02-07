@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { toast } from "sonner";
 
 interface ServiceTracking {
   service_name: string;
@@ -33,13 +34,21 @@ const CustomerTrackingDashboard = () => {
 
   const fetchTrackingData = async () => {
     try {
+      console.log('Fetching tracking data...');
+      
       // Fetch service tracking data
       const { data: serviceData, error: serviceError } = await supabase
         .from('service_tracking')
         .select('*')
         .order('timestamp', { ascending: false });
 
-      if (serviceError) throw serviceError;
+      if (serviceError) {
+        console.error('Service tracking error:', serviceError);
+        toast.error('Error fetching service tracking data');
+        throw serviceError;
+      }
+
+      console.log('Service tracking data:', serviceData);
 
       // Fetch booking behavior data
       const { data: bookingData, error: bookingError } = await supabase
@@ -47,12 +56,19 @@ const CustomerTrackingDashboard = () => {
         .select('*')
         .order('timestamp', { ascending: false });
 
-      if (bookingError) throw bookingError;
+      if (bookingError) {
+        console.error('Booking behavior error:', bookingError);
+        toast.error('Error fetching booking behavior data');
+        throw bookingError;
+      }
+
+      console.log('Booking behavior data:', bookingData);
 
       setServiceTracking(serviceData || []);
       setBookingBehavior(bookingData || []);
     } catch (error) {
       console.error('Error fetching tracking data:', error);
+      toast.error('Error fetching tracking data');
     } finally {
       setLoading(false);
     }
@@ -69,7 +85,7 @@ const CustomerTrackingDashboard = () => {
       const current = stats.get(track.service_name)!;
       if (track.action === 'added') {
         current.added++;
-      } else {
+      } else if (track.action === 'removed') {
         current.removed++;
       }
     });
@@ -97,6 +113,18 @@ const CustomerTrackingDashboard = () => {
     return <div className="text-center p-4">Loading tracking data...</div>;
   }
 
+  const serviceStats = processServiceStats();
+  const bookingStats = processBookingSteps();
+
+  if (!loading && serviceStats.length === 0 && bookingStats.length === 0) {
+    return (
+      <div className="text-center p-8">
+        <p className="text-lg text-gray-600">No tracking data available yet.</p>
+        <p className="text-sm text-gray-500 mt-2">Data will appear here once customers interact with the services and booking system.</p>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <Tabs defaultValue="services" className="w-full">
@@ -110,7 +138,7 @@ const CustomerTrackingDashboard = () => {
             <h3 className="text-lg font-semibold mb-4">Service Selection Statistics</h3>
             <div className="h-[400px]">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={processServiceStats()}>
+                <BarChart data={serviceStats}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="service_name" />
                   <YAxis />
@@ -152,7 +180,7 @@ const CustomerTrackingDashboard = () => {
             <h3 className="text-lg font-semibold mb-4">Booking Step Completion</h3>
             <div className="h-[400px]">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={processBookingSteps()}>
+                <BarChart data={bookingStats}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="step" />
                   <YAxis />
