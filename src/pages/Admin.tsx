@@ -1,15 +1,17 @@
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ServiceCategoryList from '@/components/admin/ServiceCategoryList';
 import { FileManagement } from '@/components/admin/FileManagement';
 import QRCodeManager from "@/components/admin/QRCodeManager";
 import NotificationManager from "@/components/admin/NotificationManager";
+import CustomerTrackingDashboard from "@/components/admin/CustomerTrackingDashboard";
 
 const Admin = () => {
   return (
     <div className="min-h-screen bg-background p-2 sm:p-4">
       <div className="max-w-4xl mx-auto space-y-8">
         <Tabs defaultValue="services" className="w-full">
-          <TabsList className="w-full flex flex-col sm:grid sm:grid-cols-4 gap-2 sm:gap-0 h-auto sm:h-10">
+          <TabsList className="w-full flex flex-col sm:grid sm:grid-cols-5 gap-2 sm:gap-0 h-auto sm:h-10">
             <TabsTrigger 
               value="services"
               className="w-full data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
@@ -34,6 +36,12 @@ const Admin = () => {
             >
               Notifications
             </TabsTrigger>
+            <TabsTrigger 
+              value="tracking"
+              className="w-full data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+            >
+              Customer Tracking
+            </TabsTrigger>
           </TabsList>
           
           <TabsContent value="services" className="space-y-8 mt-6">
@@ -50,6 +58,10 @@ const Admin = () => {
 
           <TabsContent value="notifications">
             <NotificationManager />
+          </TabsContent>
+
+          <TabsContent value="tracking">
+            <CustomerTrackingDashboard />
           </TabsContent>
         </Tabs>
       </div>

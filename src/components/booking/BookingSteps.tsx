@@ -97,6 +97,29 @@ export const BookingSteps = ({ branch }: BookingStepsProps) => {
 
   const employeeWorkingHours = selectedEmployee?.working_hours as WorkingHours | undefined;
 
+  const trackBookingStep = async (step: BookingStep) => {
+    try {
+      await supabase
+        .from('booking_behavior')
+        .insert([{
+          step,
+          timestamp: new Date().toISOString()
+        }]);
+    } catch (error) {
+      console.error('Error tracking booking step:', error);
+    }
+  };
+
+  const handleNextStep = () => {
+    if (currentStep === 'services' && availableUpsells?.length > 0) {
+      setShowUpsellModal(true);
+    } else {
+      const nextStep = STEPS[currentStepIndex + 1];
+      setCurrentStep(nextStep);
+      trackBookingStep(nextStep);
+    }
+  };
+
   const handleUpsellConfirm = (selectedUpsells: any[]) => {
     selectedUpsells.forEach(upsell => {
       handleServiceToggle({
@@ -109,15 +132,9 @@ export const BookingSteps = ({ branch }: BookingStepsProps) => {
         discount_value: upsell.discountPercentage
       });
     });
-    setCurrentStep('barber');
-  };
-
-  const handleNextStep = () => {
-    if (currentStep === 'services' && availableUpsells?.length > 0) {
-      setShowUpsellModal(true);
-    } else {
-      setCurrentStep(STEPS[currentStepIndex + 1]);
-    }
+    const nextStep = 'barber';
+    setCurrentStep(nextStep);
+    trackBookingStep(nextStep);
   };
 
   const handleRemoveService = (serviceId: string) => {

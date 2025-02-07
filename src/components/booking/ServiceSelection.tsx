@@ -4,6 +4,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Slash } from "lucide-react";
+import { supabase } from "@/lib/supabase";
 
 interface Service {
   id: string;
@@ -57,6 +58,26 @@ export const ServiceSelection = ({
   onServiceToggle
 }: ServiceSelectionProps) => {
   const { language } = useLanguage();
+
+  const trackServiceAction = async (service: Service, action: 'added' | 'removed') => {
+    try {
+      await supabase
+        .from('service_tracking')
+        .insert([{
+          service_name: language === 'ar' ? service.name_ar : service.name_en,
+          action,
+          timestamp: new Date().toISOString()
+        }]);
+    } catch (error) {
+      console.error('Error tracking service action:', error);
+    }
+  };
+
+  const handleServiceToggle = (service: Service) => {
+    const isSelected = selectedServices.some(s => s.id === service.id);
+    trackServiceAction(service, isSelected ? 'removed' : 'added');
+    onServiceToggle(service);
+  };
 
   const formatPrice = (price: number) => {
     const roundedPrice = roundPrice(price);
@@ -114,7 +135,7 @@ export const ServiceSelection = ({
                     <div key={service.id} className="flex items-start space-x-4 rtl:space-x-reverse">
                       <Checkbox
                         checked={selectedServices.some(s => s.id === service.id)}
-                        onCheckedChange={() => onServiceToggle(service)}
+                        onCheckedChange={() => handleServiceToggle(service)}
                       />
                       <div className="flex-1">
                         <div className="flex items-center gap-2">
