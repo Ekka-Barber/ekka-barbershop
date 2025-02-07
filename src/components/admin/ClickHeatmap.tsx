@@ -20,7 +20,7 @@ export const ClickHeatmap = () => {
   const [selectedDevice, setSelectedDevice] = useState<DeviceType>('all');
   const [pages, setPages] = useState<string[]>([]);
   const containerRef = useRef<HTMLDivElement>(null);
-  const heatmapInstance = useRef<any>(null);
+  const heatmapInstanceRef = useRef<any>(null);
 
   // Fetch unique pages
   useEffect(() => {
@@ -52,8 +52,8 @@ export const ClickHeatmap = () => {
 
   // Initialize heatmap
   useEffect(() => {
-    if (containerRef.current && !heatmapInstance.current) {
-      heatmapInstance.current = h337.create({
+    if (containerRef.current && !heatmapInstanceRef.current) {
+      heatmapInstanceRef.current = h337.create({
         container: containerRef.current,
         radius: 25,
         maxOpacity: .6,
@@ -61,11 +61,20 @@ export const ClickHeatmap = () => {
         blur: .75
       });
     }
+
+    return () => {
+      if (heatmapInstanceRef.current) {
+        // Clean up the heatmap instance
+        heatmapInstanceRef.current = null;
+      }
+    };
   }, []);
 
   // Update heatmap data
   useEffect(() => {
     const fetchClicks = async () => {
+      if (!heatmapInstanceRef.current) return;
+
       try {
         console.log('Fetching clicks for:', { selectedPage, selectedDevice });
         
@@ -88,16 +97,26 @@ export const ClickHeatmap = () => {
         
         console.log('Click data:', data);
         
-        if (data && heatmapInstance.current) {
-          const points = data.map(click => ({
-            x: click.x_coordinate,
-            y: click.y_coordinate,
-            value: 1
-          }));
+        if (data) {
+          // Create a new data object for the heatmap
+          const heatmapData = {
+            max: Math.max(1, data.length),
+            min: 0,
+            data: data.map(click => ({
+              x: click.x_coordinate,
+              y: click.y_coordinate,
+              value: 1
+            }))
+          };
+
+          // Clear existing data
+          heatmapInstanceRef.current.setData({ max: 0, min: 0, data: [] });
           
-          heatmapInstance.current.setData({
-            max: Math.max(1, points.length),
-            data: points
+          // Set new data
+          requestAnimationFrame(() => {
+            if (heatmapInstanceRef.current) {
+              heatmapInstanceRef.current.setData(heatmapData);
+            }
           });
         }
       } catch (error) {
