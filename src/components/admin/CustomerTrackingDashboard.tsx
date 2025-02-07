@@ -36,10 +36,10 @@ const CustomerTrackingDashboard = () => {
     try {
       console.log('Fetching tracking data...');
       
-      // Fetch service tracking data with a timeout of 10 seconds
+      // Fetch service tracking data
       const { data: serviceData, error: serviceError } = await supabase
         .from('service_tracking')
-        .select('*')
+        .select('service_name, action, timestamp')
         .order('timestamp', { ascending: false });
 
       if (serviceError) {
@@ -50,10 +50,10 @@ const CustomerTrackingDashboard = () => {
 
       console.log('Service tracking data:', serviceData);
 
-      // Fetch booking behavior data with a timeout of 10 seconds
+      // Fetch booking behavior data
       const { data: bookingData, error: bookingError } = await supabase
         .from('booking_behavior')
-        .select('*')
+        .select('step, timestamp')
         .order('timestamp', { ascending: false });
 
       if (bookingError) {
@@ -115,18 +115,6 @@ const CustomerTrackingDashboard = () => {
 
   const serviceStats = processServiceStats();
   const bookingStats = processBookingSteps();
-
-  // Only show the "no data" message if both arrays are empty
-  const hasNoData = serviceStats.length === 0 && bookingStats.length === 0;
-
-  if (hasNoData) {
-    return (
-      <div className="text-center p-8">
-        <p className="text-lg text-gray-600">No tracking data available yet.</p>
-        <p className="text-sm text-gray-500 mt-2">Data will appear here once customers interact with the services and booking system.</p>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-6">
