@@ -17,27 +17,51 @@ serve(async (req) => {
   }
 
   try {
-    const { subscriptions, message } = await req.json()
+    const body = await req.json();
+    console.log('Received request body:', body);
+
+    if (!body || !body.subscriptions || !Array.isArray(body.subscriptions)) {
+      console.error('Invalid request body: subscriptions array is missing or invalid');
+      throw new Error('Invalid request: subscriptions array is required');
+    }
+
+    const { subscriptions, message } = body;
+    
+    if (!message) {
+      console.error('Invalid request body: message is missing');
+      throw new Error('Invalid request: message is required');
+    }
+
     console.log(`Processing notification request for ${subscriptions.length} subscriptions`);
     
     const publicKey = Deno.env.get('VAPID_PUBLIC_KEY')
     const privateKey = Deno.env.get('VAPID_PRIVATE_KEY')
 
     if (!publicKey || !privateKey) {
-      console.error('VAPID keys not configured')
-      throw new Error('Push notification configuration not available')
+      console.error('VAPID keys not configured');
+      throw new Error('Push notification configuration not available');
     }
 
     webPush.setVapidDetails(
       'mailto:ekka.barber@gmail.com',
       publicKey,
       privateKey
-    )
+    );
 
     const processBatch = async (batch: any[]) => {
       console.log(`Processing batch of ${batch.length} subscriptions`);
       
       const notificationPromises = batch.map(async (subscription) => {
+        if (!subscription.endpoint || !subscription.p256dh || !subscription.auth) {
+          console.error('Invalid subscription object:', subscription);
+          return { 
+            success: false, 
+            endpoint: subscription.endpoint || 'unknown',
+            error: 'Invalid subscription data',
+            statusCode: 400
+          };
+        }
+
         console.log(`Attempting to send to endpoint: ${subscription.endpoint}`);
         try {
           await webPush.sendNotification(
