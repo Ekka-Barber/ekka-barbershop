@@ -59,9 +59,9 @@ const PushNotificationToggle = () => {
       if ('permissions' in navigator) {
         navigator.permissions.query({ name: 'notifications' })
           .then(permissionStatus => {
-            setPermissionState(permissionStatus.state);
+            setPermissionState(permissionStatus.state as NotificationPermission);
             permissionStatus.onchange = () => {
-              setPermissionState(permissionStatus.state);
+              setPermissionState(permissionStatus.state as NotificationPermission);
             };
           });
       }
@@ -215,3 +215,4 @@ const PushNotificationToggle = () => {
 };
 
 export default PushNotificationToggle;
+
