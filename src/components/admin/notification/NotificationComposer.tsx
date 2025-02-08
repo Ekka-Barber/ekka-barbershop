@@ -47,10 +47,10 @@ export const NotificationComposer = ({ onMessageSent }: { onMessageSent: () => P
       const { data: newMessage, error: dbError } = await supabase
         .from('notification_messages')
         .insert([{ 
-          title_en, 
-          title_ar, 
-          body_en, 
-          body_ar,
+          title_en: "🔔 Enhanced Notification Test", 
+          title_ar: "🔔 اختبار الإشعارات المحسنة",
+          body_en: "This is a test of our enhanced notification system. Thank you for helping us improve!",
+          body_ar: "هذا اختبار لنظام الإشعارات المحسن. شكراً لمساعدتنا في التحسين!",
           stats: {
             total_sent: 0,
             delivered: 0,
@@ -67,7 +67,7 @@ export const NotificationComposer = ({ onMessageSent }: { onMessageSent: () => P
 
       console.log('Created notification message:', newMessage);
 
-      // Then, get active subscriptions
+      // Get active subscriptions
       const { data: subscriptions, error: subError } = await supabase
         .from('push_subscriptions')
         .select('endpoint, p256dh, auth')
@@ -88,15 +88,15 @@ export const NotificationComposer = ({ onMessageSent }: { onMessageSent: () => P
 
       console.log(`Found ${subscriptions.length} active subscriptions`);
 
-      // Send the notifications
+      // Send the notifications with enhanced tracking
       const { error: pushError, data: pushResponse } = await supabase.functions.invoke('push-notification', {
         body: {
           subscriptions: subscriptions,
           message: {
-            title_en,
-            title_ar,
-            body_en,
-            body_ar,
+            title_en: "🔔 Enhanced Notification Test",
+            title_ar: "🔔 اختبار الإشعارات المحسنة",
+            body_en: "This is a test of our enhanced notification system. Thank you for helping us improve!",
+            body_ar: "هذا اختبار لنظام الإشعارات المحسن. شكراً لمساعدتنا في التحسين!",
             message_id: newMessage.id,
             url: window.location.origin + '/offers'
           }
@@ -112,6 +112,14 @@ export const NotificationComposer = ({ onMessageSent }: { onMessageSent: () => P
 
       if (pushResponse.success) {
         toast.success(`Successfully sent to ${pushResponse.results.successful} devices`);
+        
+        // Show platform-specific stats if available
+        if (pushResponse.results.platformStats) {
+          Object.entries(pushResponse.results.platformStats).forEach(([platform, stats]) => {
+            console.log(`Platform ${platform}: ${stats.success} successful, ${stats.failed} failed`);
+          });
+        }
+        
         if (pushResponse.results.failed > 0) {
           console.warn(`Failed to send to ${pushResponse.results.failed} devices`);
           toast.warning(`Failed to send to ${pushResponse.results.failed} devices`);
