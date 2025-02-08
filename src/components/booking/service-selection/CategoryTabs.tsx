@@ -17,7 +17,7 @@ export const CategoryTabs = ({
   language
 }: CategoryTabsProps) => {
   return (
-    <div className="flex overflow-x-auto pb-2 hide-scrollbar sticky top-11 bg-white z-10 pt-4">
+    <div className="flex overflow-x-auto pb-2 hide-scrollbar sticky top-0 bg-white z-10 pt-2">
       {categories?.map((category) => (
         <button
           key={category.id}
