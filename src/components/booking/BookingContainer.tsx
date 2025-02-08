@@ -6,6 +6,7 @@ import { BookingSteps } from "@/components/booking/BookingSteps";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
 export const BookingContainer = () => {
   const navigate = useNavigate();
@@ -50,6 +51,14 @@ export const BookingContainer = () => {
 
   return (
     <div className={`min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 flex flex-col ${language === 'ar' ? 'rtl' : 'ltr'}`}>
+      <div className="sticky top-0 z-50 bg-gradient-to-b from-gray-50 to-transparent h-11">
+        <div className="max-w-md mx-auto h-full">
+          <div className="flex justify-end h-full">
+            <LanguageSwitcher />
+          </div>
+        </div>
+      </div>
+
       <div className="flex-grow max-w-md mx-auto w-full pt-8 px-4 sm:px-6 lg:px-8">
         <BookingHeader
           branchName={language === 'ar' ? branch?.name_ar : branch?.name}
