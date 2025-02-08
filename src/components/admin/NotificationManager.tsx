@@ -263,7 +263,7 @@ const NotificationManager = () => {
     <Tabs defaultValue="compose" className="space-y-8">
       <TabsList>
         <TabsTrigger value="compose" className="flex items-center gap-2">
-          <BellRing className="h-4 w-4" />
+          <MessageCircle className="h-4 w-4" />
           Compose
         </TabsTrigger>
         <TabsTrigger value="analytics" className="flex items-center gap-2">

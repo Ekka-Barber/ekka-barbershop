@@ -603,6 +603,7 @@ export type Database = {
           body_en: string
           created_at: string
           id: string
+          stats: Json | null
           title_ar: string
           title_en: string
           updated_at: string
@@ -612,6 +613,7 @@ export type Database = {
           body_en: string
           created_at?: string
           id?: string
+          stats?: Json | null
           title_ar: string
           title_en: string
           updated_at?: string
@@ -621,6 +623,7 @@ export type Database = {
           body_en?: string
           created_at?: string
           id?: string
+          stats?: Json | null
           title_ar?: string
           title_en?: string
           updated_at?: string
