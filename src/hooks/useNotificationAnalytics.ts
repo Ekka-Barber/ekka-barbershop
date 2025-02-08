@@ -28,16 +28,16 @@ export const useNotificationAnalytics = (messages: NotificationMessage[]) => {
 
       if (subError) throw subError;
 
-      const { data: tracking, error: trackingError } = await supabase
+      const { data: deliveries, error: deliveryError } = await supabase
         .from('notification_deliveries')
-        .select('status') as { data: { status: string }[] | null, error: any };
+        .select('status');
 
-      if (trackingError) throw trackingError;
+      if (deliveryError) throw deliveryError;
 
       setAnalytics({
         totalSent: messages.reduce((acc, msg) => acc + (msg.stats?.total_sent || 0), 0),
-        totalClicked: tracking?.filter(e => e.status === 'clicked').length || 0,
-        totalReceived: tracking?.filter(e => e.status === 'delivered').length || 0,
+        totalClicked: deliveries?.filter(d => d.status === 'clicked').length || 0,
+        totalReceived: deliveries?.filter(d => d.status === 'delivered').length || 0,
         activeSubscriptions: subscriptions?.length || 0
       });
     } catch (error) {

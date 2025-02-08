@@ -19,7 +19,7 @@ export const useNotificationMessages = () => {
       
       // Convert the raw data to match NotificationMessage type
       const typedMessages: NotificationMessage[] = data?.map(msg => {
-        const statsData = msg.stats as Record<string, number>;
+        const stats = msg.stats as Record<string, number> || {};
         
         return {
           id: msg.id,
@@ -29,9 +29,9 @@ export const useNotificationMessages = () => {
           body_ar: msg.body_ar,
           created_at: msg.created_at,
           stats: {
-            total_sent: statsData?.total_sent || 0,
-            delivered: statsData?.delivered || 0,
-            user_actions: statsData?.user_actions || 0
+            total_sent: Number(stats.total_sent || 0),
+            delivered: Number(stats.delivered || 0),
+            user_actions: Number(stats.user_actions || 0)
           } as NotificationStats
         };
       }) || [];
@@ -47,4 +47,3 @@ export const useNotificationMessages = () => {
 
   return { messages, loading, setMessages, fetchMessages };
 };
-
