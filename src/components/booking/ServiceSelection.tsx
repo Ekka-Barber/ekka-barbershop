@@ -7,6 +7,7 @@ import { CategoryTabs } from "./service-selection/CategoryTabs";
 import { ServiceCard } from "./service-selection/ServiceCard";
 import { ServicesSummary } from "./service-selection/ServicesSummary";
 import { cacheServices, getCachedServices, cacheActiveCategory, getCachedActiveCategory } from "@/utils/serviceCache";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface ServiceSelectionProps {
   categories: any[] | undefined;

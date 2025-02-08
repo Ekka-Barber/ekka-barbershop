@@ -3,20 +3,22 @@ import { Timer, Slash, Plus, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
+interface Service {
+  id: string;
+  name_ar: string;
+  name_en: string;
+  duration: number;
+  price: number;
+  discount_type: 'percentage' | 'amount' | null;
+  discount_value: number | null;
+}
+
 interface ServiceCardProps {
-  service: {
-    id: string;
-    name_ar: string;
-    name_en: string;
-    duration: number;
-    price: number;
-    discount_type: 'percentage' | 'amount' | null;
-    discount_value: number | null;
-  };
+  service: Service;
   language: string;
   isSelected: boolean;
-  onServiceClick: (service: any) => void;
-  onServiceToggle: (service: any) => void;
+  onServiceClick: (service: Service) => void;
+  onServiceToggle: (service: Service) => void;
 }
 
 export const ServiceCard = ({ 
@@ -35,11 +37,11 @@ export const ServiceCard = ({
     return duration >= 5 && duration <= 10 ? 'دقائق' : 'دقيقة';
   };
 
-  const hasDiscount = (service: typeof ServiceCardProps.prototype.service) => {
+  const hasDiscount = (service: Service) => {
     return service.discount_type && service.discount_value;
   };
 
-  const calculateDiscountedPrice = (service: typeof ServiceCardProps.prototype.service) => {
+  const calculateDiscountedPrice = (service: Service) => {
     if (!service.discount_type || !service.discount_value) return service.price;
     
     let discountedPrice;
