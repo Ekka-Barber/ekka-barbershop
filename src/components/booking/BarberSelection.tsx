@@ -20,18 +20,6 @@ interface BarberSelectionProps {
   onBarberSelect: (barberId: string) => void;
 }
 
-// Map of country codes to emojis
-const countryEmojis: { [key: string]: string } = {
-  'sa': '🇸🇦',
-  'eg': '🇪🇬',
-  'jo': '🇯🇴',
-  'sy': '🇸🇾',
-  'ye': '🇾🇪',
-  'pk': '🇵🇰',
-  'in': '🇮🇳',
-  'bd': '🇧🇩',
-};
-
 export const BarberSelection = ({
   employees,
   isLoading,
@@ -44,7 +32,7 @@ export const BarberSelection = ({
     return (
       <div className="grid grid-cols-2 gap-4">
         {Array(4).fill(0).map((_, i) => (
-          <Skeleton key={i} className="h-32 w-full" />
+          <Skeleton key={i} className="h-[200px] w-full rounded-lg" />
         ))}
       </div>
     );
@@ -61,21 +49,21 @@ export const BarberSelection = ({
           key={employee.id}
           variant={selectedBarber === employee.id ? "default" : "outline"}
           onClick={() => onBarberSelect(employee.id)}
-          className="h-32 py-4 flex flex-col items-center justify-center space-y-2 relative"
+          className="flex flex-col items-center justify-center p-6 h-[200px] space-y-4 rounded-lg hover:bg-accent"
         >
-          <Avatar className="h-16 w-16">
-            <AvatarImage src={employee.photo_url || undefined} alt={employee.name} />
+          <Avatar className="h-24 w-24">
+            <AvatarImage 
+              src={employee.photo_url || undefined} 
+              alt={employee.name}
+              className="object-cover"
+            />
             <AvatarFallback>{employee.name.charAt(0)}</AvatarFallback>
           </Avatar>
-          <div className="text-center">
-            <div className="font-medium">
+          <div className="flex flex-col items-center justify-center gap-2">
+            <span className="font-medium text-lg">
               {language === 'ar' ? employee.name_ar : employee.name}
-            </div>
-            {employee.nationality && (
-              <div className="text-2xl mt-1">
-                {countryEmojis[employee.nationality.toLowerCase()] || '🌍'}
-              </div>
-            )}
+            </span>
+            <span className="text-2xl">🌍</span>
           </div>
         </Button>
       ))}
