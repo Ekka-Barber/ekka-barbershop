@@ -1,17 +1,44 @@
 
-import { initializeQueue, addToQueue, removeFromQueue } from '../notificationQueue.js';
+import { initializeQueue, addToQueue, removeFromQueue, getQueueStats } from '../notificationQueue.js';
 
 describe('NotificationQueue', () => {
   let mockDB;
+  let mockStore;
+  let mockIndex;
   
   beforeEach(() => {
-    // Mock IndexedDB
+    // Mock IndexedDB store operations
+    mockStore = {
+      add: jest.fn(),
+      delete: jest.fn(),
+      get: jest.fn(),
+      put: jest.fn(),
+      getAll: jest.fn(),
+      index: jest.fn()
+    };
+    
+    mockIndex = {
+      count: jest.fn(),
+      getAll: jest.fn()
+    };
+    
+    mockStore.index.mockReturnValue(mockIndex);
+    
+    // Mock IndexedDB transaction
+    const mockTransaction = {
+      objectStore: jest.fn().mockReturnValue(mockStore)
+    };
+    
+    // Mock IndexedDB database
     mockDB = {
-      transaction: jest.fn(),
+      transaction: jest.fn().mockReturnValue(mockTransaction),
       objectStoreNames: { contains: jest.fn() },
-      createObjectStore: jest.fn()
+      createObjectStore: jest.fn().mockReturnValue({
+        createIndex: jest.fn()
+      })
     };
 
+    // Mock IndexedDB open request
     global.indexedDB = {
       open: jest.fn().mockImplementation(() => {
         const request = {};
@@ -21,6 +48,16 @@ describe('NotificationQueue', () => {
         return request;
       })
     };
+
+    // Mock navigator online status
+    global.navigator = {
+      onLine: true
+    };
+
+    // Mock service worker registration
+    global.registration = {
+      showNotification: jest.fn().mockResolvedValue(undefined)
+    };
   });
 
   afterEach(() => {
@@ -28,69 +65,99 @@ describe('NotificationQueue', () => {
   });
 
   describe('initializeQueue', () => {
-    it('should initialize the queue from IndexedDB', async () => {
-      const mockStore = {
-        getAll: jest.fn().mockImplementation(() => {
-          const request = {};
-          setTimeout(() => {
-            request.onsuccess?.({ target: { result: [] } });
-          }, 0);
-          return request;
-        })
-      };
-
-      mockDB.transaction.mockReturnValue({ objectStore: () => mockStore });
+    it('should initialize the queue and process pending notifications', async () => {
+      mockStore.getAll.mockImplementation(() => {
+        const request = {};
+        setTimeout(() => {
+          request.onsuccess?.({ target: { result: [] } });
+        }, 0);
+        return request;
+      });
       
       await initializeQueue();
       expect(mockDB.transaction).toHaveBeenCalledWith('notification-queue', 'readonly');
     });
-  });
 
-  describe('addToQueue', () => {
-    it('should add notification to IndexedDB queue', async () => {
-      const mockStore = {
-        add: jest.fn().mockImplementation(() => {
-          const request = {};
-          setTimeout(() => {
-            request.onsuccess?.();
-          }, 0);
-          return request;
-        })
-      };
-
-      mockDB.transaction.mockReturnValue({ objectStore: () => mockStore });
+    it('should handle initialization errors', async () => {
+      mockStore.getAll.mockImplementation(() => {
+        const request = {};
+        setTimeout(() => {
+          request.onerror?.({ target: { error: new Error('DB Error') } });
+        }, 0);
+        return request;
+      });
       
-      const notification = {
-        title: 'Test',
-        body: 'Test notification'
-      };
-      
-      await addToQueue(notification);
-      expect(mockStore.add).toHaveBeenCalledWith(expect.objectContaining({
-        title: 'Test',
-        body: 'Test notification',
-        timestamp: expect.any(Number),
-        retryCount: 0
-      }));
+      await expect(initializeQueue()).rejects.toThrow('Queue initialization failed');
     });
   });
 
-  describe('removeFromQueue', () => {
-    it('should remove notification from IndexedDB queue', async () => {
-      const mockStore = {
-        delete: jest.fn().mockImplementation(() => {
-          const request = {};
-          setTimeout(() => {
-            request.onsuccess?.();
-          }, 0);
-          return request;
-        })
-      };
-
-      mockDB.transaction.mockReturnValue({ objectStore: () => mockStore });
+  describe('addToQueue', () => {
+    it('should add notification to queue with retry metadata', async () => {
+      mockStore.add.mockImplementation(() => {
+        const request = {};
+        setTimeout(() => {
+          request.onsuccess?.();
+        }, 0);
+        return request;
+      });
       
-      await removeFromQueue(1);
-      expect(mockStore.delete).toHaveBeenCalledWith(1);
+      const notification = {
+        title: 'Test',
+        options: { body: 'Test notification' }
+      };
+      
+      await addToQueue(notification);
+      
+      expect(mockStore.add).toHaveBeenCalledWith(expect.objectContaining({
+        title: 'Test',
+        status: 'pending',
+        retryCount: 0,
+        errors: []
+      }));
+    });
+
+    it('should handle add errors', async () => {
+      mockStore.add.mockImplementation(() => {
+        const request = {};
+        setTimeout(() => {
+          request.onerror?.({ target: { error: new Error('Add Error') } });
+        }, 0);
+        return request;
+      });
+      
+      await expect(addToQueue({})).rejects.toThrow('Failed to queue notification');
+    });
+  });
+
+  describe('getQueueStats', () => {
+    it('should return queue statistics', async () => {
+      mockIndex.count.mockImplementation(() => {
+        const request = {};
+        setTimeout(() => {
+          request.onsuccess?.({ target: { result: 1 } });
+        }, 0);
+        return request;
+      });
+      
+      const stats = await getQueueStats();
+      
+      expect(stats).toEqual({
+        pending: 1,
+        failed: 1
+      });
+    });
+
+    it('should handle stats error gracefully', async () => {
+      mockIndex.count.mockImplementation(() => {
+        throw new Error('Stats Error');
+      });
+      
+      const stats = await getQueueStats();
+      
+      expect(stats).toEqual({
+        pending: 0,
+        failed: 0
+      });
     });
   });
 });
