@@ -25,7 +25,11 @@ export const useNotificationMessages = () => {
         body_en: msg.body_en,
         body_ar: msg.body_ar,
         created_at: msg.created_at,
-        stats: msg.stats as NotificationStats
+        stats: {
+          total_sent: msg.stats?.total_sent || 0,
+          delivered: msg.stats?.delivered || 0,
+          user_actions: msg.stats?.user_actions || 0
+        } as NotificationStats
       })) || [];
       
       setMessages(typedMessages);
@@ -39,4 +43,3 @@ export const useNotificationMessages = () => {
 
   return { messages, loading, setMessages, fetchMessages };
 };
-

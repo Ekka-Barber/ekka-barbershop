@@ -29,15 +29,15 @@ export const useNotificationAnalytics = (messages: NotificationMessage[]) => {
       if (subError) throw subError;
 
       const { data: tracking, error: trackingError } = await supabase
-        .from('notification_tracking')
-        .select('event_type, action') as { data: NotificationTracking[] | null, error: any };
+        .from('notification_deliveries')
+        .select('status') as { data: { status: string }[] | null, error: any };
 
       if (trackingError) throw trackingError;
 
       setAnalytics({
         totalSent: messages.reduce((acc, msg) => acc + (msg.stats?.total_sent || 0), 0),
-        totalClicked: tracking?.filter(e => e.event_type === 'clicked').length || 0,
-        totalReceived: tracking?.filter(e => e.event_type === 'received').length || 0,
+        totalClicked: tracking?.filter(e => e.status === 'clicked').length || 0,
+        totalReceived: tracking?.filter(e => e.status === 'delivered').length || 0,
         activeSubscriptions: subscriptions?.length || 0
       });
     } catch (error) {
@@ -48,4 +48,3 @@ export const useNotificationAnalytics = (messages: NotificationMessage[]) => {
 
   return { analytics, fetchAnalytics };
 };
-
