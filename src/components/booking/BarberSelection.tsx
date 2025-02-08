@@ -1,12 +1,16 @@
+
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface Employee {
   id: string;
   name: string;
   name_ar: string | null;
   role: string;
+  photo_url: string | null;
+  nationality: string | null;
 }
 
 interface BarberSelectionProps {
@@ -15,6 +19,18 @@ interface BarberSelectionProps {
   selectedBarber: string | undefined;
   onBarberSelect: (barberId: string) => void;
 }
+
+// Map of country codes to emojis
+const countryEmojis: { [key: string]: string } = {
+  'sa': '🇸🇦',
+  'eg': '🇪🇬',
+  'jo': '🇯🇴',
+  'sy': '🇸🇾',
+  'ye': '🇾🇪',
+  'pk': '🇵🇰',
+  'in': '🇮🇳',
+  'bd': '🇧🇩',
+};
 
 export const BarberSelection = ({
   employees,
@@ -26,9 +42,9 @@ export const BarberSelection = ({
 
   if (isLoading) {
     return (
-      <div className="space-y-4">
-        {Array(3).fill(0).map((_, i) => (
-          <Skeleton key={i} className="h-16 w-full" />
+      <div className="grid grid-cols-2 gap-4">
+        {Array(4).fill(0).map((_, i) => (
+          <Skeleton key={i} className="h-32 w-full" />
         ))}
       </div>
     );
@@ -39,18 +55,27 @@ export const BarberSelection = ({
   );
 
   return (
-    <div className="grid gap-4">
+    <div className="grid grid-cols-2 gap-4">
       {filteredEmployees?.map((employee) => (
         <Button
           key={employee.id}
           variant={selectedBarber === employee.id ? "default" : "outline"}
           onClick={() => onBarberSelect(employee.id)}
-          className="h-auto py-4 justify-start"
+          className="h-32 py-4 flex flex-col items-center justify-center space-y-2 relative"
         >
-          <div className="text-left rtl:text-right">
+          <Avatar className="h-16 w-16">
+            <AvatarImage src={employee.photo_url || undefined} alt={employee.name} />
+            <AvatarFallback>{employee.name.charAt(0)}</AvatarFallback>
+          </Avatar>
+          <div className="text-center">
             <div className="font-medium">
               {language === 'ar' ? employee.name_ar : employee.name}
             </div>
+            {employee.nationality && (
+              <div className="text-2xl mt-1">
+                {countryEmojis[employee.nationality.toLowerCase()] || '🌍'}
+              </div>
+            )}
           </div>
         </Button>
       ))}
