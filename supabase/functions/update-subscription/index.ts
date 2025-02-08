@@ -38,6 +38,13 @@ serve(async (req) => {
 
     // Create or update new subscription with enhanced tracking
     if (newSubscription?.endpoint) {
+      // Check if subscription already exists
+      const { data: existingSub } = await supabase
+        .from('push_subscriptions')
+        .select('status, error_count')
+        .eq('endpoint', newSubscription.endpoint)
+        .single()
+
       const { error: upsertError } = await supabase
         .from('push_subscriptions')
         .upsert({
@@ -47,7 +54,7 @@ serve(async (req) => {
           status: 'active',
           last_active: new Date().toISOString(),
           device_type: deviceType || 'unknown',
-          error_count: 0,
+          error_count: existingSub?.status === 'expired' ? 0 : (existingSub?.error_count ?? 0),
           last_error_at: null,
           last_error_details: null
         })
@@ -55,6 +62,19 @@ serve(async (req) => {
       if (upsertError) {
         throw upsertError
       }
+
+      // Log subscription update event
+      await supabase
+        .from('notification_events')
+        .insert({
+          event_type: 'subscription_updated',
+          action: existingSub ? 'update' : 'create',
+          subscription_endpoint: newSubscription.endpoint,
+          notification_data: {
+            device_type: deviceType,
+            previous_status: existingSub?.status
+          }
+        })
     }
 
     return new Response(

@@ -1,6 +1,7 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import * as webPush from 'npm:web-push';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.7'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -15,6 +16,10 @@ serve(async (req) => {
 
   try {
     const { subscription, message } = await req.json()
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    )
 
     // Get VAPID keys from environment
     const publicKey = Deno.env.get('VAPID_PUBLIC_KEY')
@@ -24,40 +29,55 @@ serve(async (req) => {
       throw new Error('VAPID keys not configured')
     }
 
-    // Set VAPID details using stored keys
+    // Set VAPID details
     webPush.setVapidDetails(
       'mailto:ekka.barber@gmail.com',
       publicKey,
       privateKey
     )
 
-    console.log('Sending push notification with subscription:', {
-      endpoint: subscription.endpoint,
-      keys: {
-        p256dh: subscription.keys.p256dh?.substring(0, 10) + '...',
-        auth: subscription.keys.auth?.substring(0, 5) + '...'
-      }
-    })
-
     try {
+      // Check if subscription is still valid
+      const { data: subData } = await supabase
+        .from('push_subscriptions')
+        .select('status, error_count')
+        .eq('endpoint', subscription.endpoint)
+        .single()
+
+      if (!subData || subData.status !== 'active') {
+        throw new Error('Subscription not found or inactive')
+      }
+
+      console.log('Sending push notification to:', {
+        endpoint: subscription.endpoint,
+        status: subData.status,
+        errorCount: subData.error_count
+      })
+
       // Send push notification
       await webPush.sendNotification(subscription, message)
 
-      // Track successful delivery
-      await fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/track-notification`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${Deno.env.get('SUPABASE_ANON_KEY')}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          event: 'notification_sent',
-          action: 'send',
-          subscription,
-          notification: { message },
-          deliveryStatus: 'delivered'
+      // Update last active timestamp and reset error count on success
+      await supabase
+        .from('push_subscriptions')
+        .update({ 
+          last_active: new Date().toISOString(),
+          error_count: 0,
+          last_error_at: null,
+          last_error_details: null
         })
-      })
+        .eq('endpoint', subscription.endpoint)
+
+      // Track successful delivery
+      await supabase
+        .from('notification_events')
+        .insert({
+          event_type: 'notification_sent',
+          action: 'send',
+          subscription_endpoint: subscription.endpoint,
+          notification_data: { message },
+          delivery_status: 'delivered'
+        })
 
       return new Response(
         JSON.stringify({ success: true }),
@@ -69,26 +89,38 @@ serve(async (req) => {
         }
       )
     } catch (pushError) {
+      console.error('Push notification error:', pushError)
+
+      // Update subscription error count
+      const { data: subData } = await supabase
+        .from('push_subscriptions')
+        .update({ 
+          error_count: pushError.statusCode === 410 ? 999 : supabase.rpc('increment', { x: 1 }),
+          last_error_at: new Date().toISOString(),
+          last_error_details: {
+            code: pushError.statusCode,
+            message: pushError.message
+          }
+        })
+        .eq('endpoint', subscription.endpoint)
+        .select()
+        .single()
+
       // Track delivery failure
-      await fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/track-notification`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${Deno.env.get('SUPABASE_ANON_KEY')}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          event: 'notification_failed',
+      await supabase
+        .from('notification_events')
+        .insert({
+          event_type: 'notification_failed',
           action: 'send',
-          subscription,
-          notification: { message },
-          deliveryStatus: 'failed',
-          error: {
+          subscription_endpoint: subscription.endpoint,
+          notification_data: { message },
+          delivery_status: 'failed',
+          error_details: {
             code: pushError.statusCode,
             message: pushError.message,
             timestamp: new Date().toISOString()
           }
         })
-      })
 
       throw pushError
     }

@@ -1,7 +1,5 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-import * as webPush from 'npm:web-push';
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.7'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -15,42 +13,16 @@ serve(async (req) => {
   }
 
   try {
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    )
+    // Only return public key
+    const publicKey = Deno.env.get('VAPID_PUBLIC_KEY')
 
-    // Check if VAPID keys exist in secrets
-    let publicKey = Deno.env.get('VAPID_PUBLIC_KEY')
-    let privateKey = Deno.env.get('VAPID_PRIVATE_KEY')
-
-    if (!publicKey || !privateKey) {
-      // Generate new VAPID keys if they don't exist
-      console.log('Generating new VAPID keys...')
-      const vapidKeys = webPush.generateVAPIDKeys()
-      publicKey = vapidKeys.publicKey
-      privateKey = vapidKeys.privateKey
-
-      // Store generated keys in Supabase secrets
-      // Note: This is just informational, actual key storage will be done manually
-      console.log('New VAPID keys generated:', {
-        publicKey,
-        privateKeyLength: privateKey.length
-      })
+    if (!publicKey) {
+      console.error('VAPID public key not configured')
+      throw new Error('Push notification configuration not available')
     }
 
-    // Set VAPID details
-    webPush.setVapidDetails(
-      'mailto:ekka.barber@gmail.com',
-      publicKey,
-      privateKey
-    )
-
     return new Response(
-      JSON.stringify({ 
-        vapidKey: publicKey,
-        privateKey: privateKey 
-      }),
+      JSON.stringify({ vapidKey: publicKey }),
       { 
         headers: { 
           ...corsHeaders,
@@ -60,7 +32,7 @@ serve(async (req) => {
       }
     )
   } catch (error) {
-    console.error('Error handling VAPID keys:', error)
+    console.error('Error retrieving VAPID key:', error)
     return new Response(
       JSON.stringify({ error: error.message }),
       { 
