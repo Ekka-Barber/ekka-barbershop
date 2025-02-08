@@ -351,7 +351,9 @@ export type Database = {
           id: string
           name: string
           name_ar: string | null
+          nationality: string | null
           off_days: string[] | null
+          photo_url: string | null
           role: Database["public"]["Enums"]["employee_role"]
           salary_plan_id: string | null
           updated_at: string
@@ -363,7 +365,9 @@ export type Database = {
           id?: string
           name: string
           name_ar?: string | null
+          nationality?: string | null
           off_days?: string[] | null
+          photo_url?: string | null
           role: Database["public"]["Enums"]["employee_role"]
           salary_plan_id?: string | null
           updated_at?: string
@@ -375,7 +379,9 @@ export type Database = {
           id?: string
           name?: string
           name_ar?: string | null
+          nationality?: string | null
           off_days?: string[] | null
+          photo_url?: string | null
           role?: Database["public"]["Enums"]["employee_role"]
           salary_plan_id?: string | null
           updated_at?: string
