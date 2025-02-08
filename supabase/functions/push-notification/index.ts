@@ -16,26 +16,20 @@ serve(async (req) => {
   try {
     const { subscription, message } = await req.json()
 
-    // Get VAPID keys from get-vapid-key function
-    const vapidResponse = await fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/get-vapid-key`, {
-      headers: {
-        'Authorization': `Bearer ${Deno.env.get('SUPABASE_ANON_KEY')}`,
-        'Content-Type': 'application/json'
-      }
-    });
+    // Get VAPID keys from environment
+    const publicKey = Deno.env.get('VAPID_PUBLIC_KEY')
+    const privateKey = Deno.env.get('VAPID_PRIVATE_KEY')
 
-    if (!vapidResponse.ok) {
-      throw new Error('Failed to get VAPID keys');
+    if (!publicKey || !privateKey) {
+      throw new Error('VAPID keys not configured')
     }
 
-    const { vapidKey: publicKey, privateKey } = await vapidResponse.json();
-
-    // Set VAPID details using the matching key pair
+    // Set VAPID details using stored keys
     webPush.setVapidDetails(
       'mailto:ekka.barber@gmail.com',
       publicKey,
       privateKey
-    );
+    )
 
     console.log('Sending push notification with subscription:', {
       endpoint: subscription.endpoint,
@@ -43,11 +37,11 @@ serve(async (req) => {
         p256dh: subscription.keys.p256dh?.substring(0, 10) + '...',
         auth: subscription.keys.auth?.substring(0, 5) + '...'
       }
-    });
+    })
 
     try {
       // Send push notification
-      await webPush.sendNotification(subscription, message);
+      await webPush.sendNotification(subscription, message)
 
       // Track successful delivery
       await fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/track-notification`, {
@@ -63,7 +57,7 @@ serve(async (req) => {
           notification: { message },
           deliveryStatus: 'delivered'
         })
-      });
+      })
 
       return new Response(
         JSON.stringify({ success: true }),
@@ -94,12 +88,12 @@ serve(async (req) => {
             timestamp: new Date().toISOString()
           }
         })
-      });
+      })
 
-      throw pushError;
+      throw pushError
     }
   } catch (error) {
-    console.error('Error sending push notification:', error);
+    console.error('Error sending push notification:', error)
     return new Response(
       JSON.stringify({ error: error.message }),
       { 
