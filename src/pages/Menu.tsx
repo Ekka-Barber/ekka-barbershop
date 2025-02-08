@@ -1,3 +1,4 @@
+
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from "@/integrations/supabase/client";
 import PDFViewer from '@/components/PDFViewer';
@@ -36,6 +37,14 @@ const Menu = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 flex flex-col">
+      <div className="sticky top-0 z-50 bg-gradient-to-b from-gray-50 to-transparent h-11">
+        <div className="max-w-md mx-auto h-full">
+          <div className="flex justify-end h-full">
+            <LanguageSwitcher />
+          </div>
+        </div>
+      </div>
+      
       <div className="flex-grow max-w-4xl mx-auto p-4 sm:p-6 lg:p-8 w-full">
         <div className="flex flex-col items-center mb-8">
           <Link to="/customer" className="transition-opacity hover:opacity-80">
@@ -75,7 +84,6 @@ const Menu = () => {
           </div>
         </Card>
       </div>
-      <LanguageSwitcher />
     </div>
   );
 };
