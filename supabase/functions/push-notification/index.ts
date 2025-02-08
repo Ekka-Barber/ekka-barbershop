@@ -12,8 +12,23 @@ const BATCH_SIZE = 50;
 const MAX_RETRIES = 3;
 const INITIAL_BACKOFF = 1000;
 
+// Enhanced logging function
+const log = (message: string, data?: any) => {
+  const timestamp = new Date().toISOString();
+  console.log(`[Push Notification ${timestamp}] ${message}`, data ? JSON.stringify(data, null, 2) : '');
+};
+
+// Error logging function
+const logError = (message: string, error: any) => {
+  const timestamp = new Date().toISOString();
+  console.error(`[Push Notification Error ${timestamp}] ${message}`, error);
+  if (error?.stack) {
+    console.error('Stack trace:', error.stack);
+  }
+};
+
 serve(async (req) => {
-  console.log('[Push Notification] Function called with method:', req.method);
+  log('Function called with method:', req.method);
   
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
@@ -23,9 +38,9 @@ serve(async (req) => {
     let body;
     try {
       body = await req.json();
-      console.log('[Push Notification] Received request body:', JSON.stringify(body, null, 2));
+      log('Received request body:', body);
     } catch (error) {
-      console.error('[Push Notification] Error parsing request body:', error);
+      logError('Error parsing request body:', error);
       throw new Error('Invalid request: Could not parse JSON body');
     }
 
@@ -34,17 +49,17 @@ serve(async (req) => {
     }
 
     if (!Array.isArray(body.subscriptions)) {
-      console.error('[Push Notification] Invalid subscriptions array:', body.subscriptions);
+      logError('Invalid subscriptions array:', body.subscriptions);
       throw new Error('Invalid request: subscriptions must be an array');
     }
 
     if (!body.message || typeof body.message !== 'object') {
-      console.error('[Push Notification] Invalid message:', body.message);
+      logError('Invalid message:', body.message);
       throw new Error('Invalid request: message must be an object');
     }
 
     const { subscriptions, message } = body;
-    console.log(`[Push Notification] Processing ${subscriptions.length} subscriptions`);
+    log(`Processing ${subscriptions.length} subscriptions`);
 
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
@@ -65,11 +80,11 @@ serve(async (req) => {
     );
 
     const processBatch = async (batch: any[]) => {
-      console.log(`[Push Notification] Processing batch of ${batch.length} subscriptions`);
+      log(`Processing batch of ${batch.length} subscriptions`);
       
       const notificationPromises = batch.map(async (subscription) => {
         if (!subscription.endpoint || !subscription.p256dh || !subscription.auth) {
-          console.error('[Push Notification] Invalid subscription:', subscription);
+          logError('Invalid subscription:', subscription);
           return { success: false, endpoint: subscription.endpoint || 'unknown', error: 'Invalid subscription data' };
         }
 
@@ -81,13 +96,43 @@ serve(async (req) => {
           }
         };
 
+        // Get platform details from subscription
+        const { data: subData } = await supabase
+          .from('push_subscriptions')
+          .select('platform_details, device_type')
+          .eq('endpoint', subscription.endpoint)
+          .single();
+
+        const platform = subData?.device_type || 'unknown';
+        log('Detected platform:', { platform, details: subData?.platform_details });
+
         let attempt = 0;
         while (attempt < MAX_RETRIES) {
           try {
             const retryDelay = Math.pow(2, attempt) * INITIAL_BACKOFF;
-            console.log(`[Push Notification] Sending to ${subscription.endpoint} (attempt ${attempt + 1}/${MAX_RETRIES})`);
+            log(`Sending to ${subscription.endpoint} (attempt ${attempt + 1}/${MAX_RETRIES})`, {
+              platform,
+              messageId: message.message_id
+            });
             
-            await webPush.sendNotification(pushSubscription, JSON.stringify(message));
+            // Track notification attempt
+            await supabase.functions.invoke('track-notification', {
+              body: {
+                event: 'notification_sent',
+                subscription: {
+                  endpoint: subscription.endpoint,
+                  platform
+                },
+                notification: message,
+                deliveryStatus: 'pending'
+              }
+            });
+
+            await webPush.sendNotification(pushSubscription, JSON.stringify({
+              ...message,
+              platform,
+              timestamp: new Date().toISOString()
+            }));
             
             // Update subscription stats on success
             await supabase
@@ -102,15 +147,50 @@ serve(async (req) => {
               })
               .eq('endpoint', subscription.endpoint);
 
-            console.log(`[Push Notification] Successfully sent to ${subscription.endpoint}`);
-            return { success: true, endpoint: subscription.endpoint };
+            // Track successful delivery
+            await supabase.functions.invoke('track-notification', {
+              body: {
+                event: 'delivered',
+                subscription: {
+                  endpoint: subscription.endpoint,
+                  platform
+                },
+                notification: message,
+                deliveryStatus: 'delivered'
+              }
+            });
+
+            log(`Successfully sent to ${subscription.endpoint}`, {
+              platform,
+              messageId: message.message_id
+            });
+            
+            return { success: true, endpoint: subscription.endpoint, platform };
           } catch (error: any) {
             attempt++;
-            console.error(`[Push Notification] Error sending to ${subscription.endpoint} (attempt ${attempt}):`, error);
+            logError(`Error sending to ${subscription.endpoint} (attempt ${attempt}):`, error);
             
             const isPermanentError = error.statusCode === 410 || error.statusCode === 404;
             
             if (isPermanentError || attempt === MAX_RETRIES) {
+              // Track failed delivery
+              await supabase.functions.invoke('track-notification', {
+                body: {
+                  event: 'failed',
+                  subscription: {
+                    endpoint: subscription.endpoint,
+                    platform
+                  },
+                  notification: message,
+                  deliveryStatus: 'failed',
+                  error: {
+                    code: error.statusCode,
+                    message: error.message,
+                    permanent: isPermanentError
+                  }
+                }
+              });
+
               // Update subscription status for permanent failure
               await supabase
                 .from('push_subscriptions')
@@ -131,6 +211,7 @@ serve(async (req) => {
               return { 
                 success: false, 
                 endpoint: subscription.endpoint,
+                platform,
                 error: error.message,
                 statusCode: error.statusCode,
                 permanent: isPermanentError
@@ -145,6 +226,7 @@ serve(async (req) => {
         return { 
           success: false, 
           endpoint: subscription.endpoint,
+          platform,
           error: 'Max retries exceeded'
         };
       });
@@ -158,7 +240,8 @@ serve(async (req) => {
       failures: [] as any[],
       total: subscriptions.length,
       permanentFailures: 0,
-      retriableFailures: 0
+      retriableFailures: 0,
+      platformStats: {} as Record<string, { success: number; failed: number }>
     };
 
     // Process subscriptions in smaller batches
@@ -167,10 +250,17 @@ serve(async (req) => {
       const batchResults = await processBatch(batch);
       
       batchResults.forEach((result) => {
+        // Initialize platform stats if not exist
+        if (!results.platformStats[result.platform]) {
+          results.platformStats[result.platform] = { success: 0, failed: 0 };
+        }
+
         if (result.success) {
           results.successful++;
+          results.platformStats[result.platform].success++;
         } else {
           results.failed++;
+          results.platformStats[result.platform].failed++;
           if (result.permanent) {
             results.permanentFailures++;
           } else {
@@ -182,11 +272,11 @@ serve(async (req) => {
 
       // Log progress for large batches
       if (subscriptions.length > BATCH_SIZE) {
-        console.log(`[Push Notification] Progress: ${Math.min((i + BATCH_SIZE), subscriptions.length)}/${subscriptions.length} processed`);
+        log(`Progress: ${Math.min((i + BATCH_SIZE), subscriptions.length)}/${subscriptions.length} processed`);
       }
     }
 
-    // Log notification event
+    // Log notification event with detailed stats
     await supabase
       .from('notification_events')
       .insert({
@@ -194,19 +284,24 @@ serve(async (req) => {
         delivery_status: results.failed === 0 ? 'success' : 'partial',
         notification_data: {
           message_id: message.message_id,
-          stats: results
+          stats: results,
+          platformStats: results.platformStats
         }
       });
 
-    console.log('[Push Notification] Completed:', JSON.stringify(results, null, 2));
+    log('Completed sending notifications:', results);
     
     return new Response(
-      JSON.stringify({ success: true, results }),
+      JSON.stringify({ 
+        success: true, 
+        results,
+        timestamp: new Date().toISOString()
+      }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
   } catch (error) {
-    console.error('[Push Notification] Error:', error);
+    logError('Error in push notification function:', error);
     return new Response(
       JSON.stringify({ 
         error: error.message, 
@@ -225,4 +320,3 @@ serve(async (req) => {
 const increment = (column: string) => {
   return `COALESCE(${column}, 0) + 1`;
 };
-
