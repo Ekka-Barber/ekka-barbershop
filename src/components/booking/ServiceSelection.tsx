@@ -1,11 +1,13 @@
 
 import { useLanguage } from "@/contexts/LanguageContext";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import { Slash } from "lucide-react";
+import { Slash, Timer, Plus, Check } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Button } from "@/components/ui/button";
+import { useState } from "react";
 
 interface Service {
   id: string;
@@ -59,6 +61,11 @@ export const ServiceSelection = ({
   onServiceToggle
 }: ServiceSelectionProps) => {
   const { language } = useLanguage();
+  const [activeCategory, setActiveCategory] = useState<string | null>(
+    categories?.[0]?.id || null
+  );
+  const [selectedService, setSelectedService] = useState<Service | null>(null);
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
 
   const trackServiceAction = async (service: Service, action: 'added' | 'removed') => {
     try {
@@ -105,87 +112,205 @@ export const ServiceSelection = ({
     return service.discount_type && service.discount_value;
   };
 
+  const handleServiceClick = (service: Service) => {
+    setSelectedService(service);
+    setIsSheetOpen(true);
+  };
+
   // Sort categories by display_order
   const sortedCategories = categories?.slice().sort((a, b) => a.display_order - b.display_order);
 
   if (isLoading) {
     return (
       <div className="space-y-4">
-        {Array(3).fill(0).map((_, i) => (
-          <Skeleton key={i} className="h-24 w-full" />
-        ))}
+        <div className="flex overflow-x-auto pb-2 hide-scrollbar">
+          {Array(4).fill(0).map((_, i) => (
+            <Skeleton key={i} className="h-10 w-32 mx-1 flex-shrink-0 rounded-full" />
+          ))}
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          {Array(4).fill(0).map((_, i) => (
+            <Skeleton key={i} className="h-48 w-full rounded-lg" />
+          ))}
+        </div>
       </div>
     );
   }
 
+  const activeCategoryServices = sortedCategories?.find(
+    cat => cat.id === activeCategory
+  )?.services.sort((a, b) => a.display_order - b.display_order);
+
   return (
-    <div className="space-y-4">
-      <Accordion type="single" collapsible className="w-full">
-        {sortedCategories?.map((category) => {
-          // Sort services by display_order within each category
-          const sortedServices = category.services?.slice().sort((a, b) => a.display_order - b.display_order);
-          
-          return (
-            <AccordionItem key={category.id} value={category.id}>
-              <AccordionTrigger className="text-lg font-semibold">
-                {language === 'ar' ? category.name_ar : category.name_en}
-              </AccordionTrigger>
-              <AccordionContent>
-                <div className="space-y-4 p-4">
-                  {sortedServices?.map((service) => (
-                    <div key={service.id} className="flex items-start space-x-4 rtl:space-x-reverse">
-                      <Checkbox
-                        checked={selectedServices.some(s => s.id === service.id)}
-                        onCheckedChange={() => handleServiceToggle(service)}
-                      />
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2">
-                          <h4 className="font-medium">
-                            {language === 'ar' ? service.name_ar : service.name_en}
-                          </h4>
-                          {hasDiscount(service) && (
-                            <Badge variant="destructive" className="text-xs">
-                              {service.discount_type === 'percentage' 
-                                ? `${service.discount_value}%` 
-                                : formatPrice(service.discount_value || 0)}
-                            </Badge>
-                          )}
-                        </div>
-                        <p className="text-sm text-muted-foreground">
-                          {language === 'ar' ? service.description_ar : service.description_en}
-                        </p>
-                        <div className="mt-1 text-sm flex items-center gap-2">
-                          {hasDiscount(service) ? (
-                            <>
-                              <div className="relative inline-flex items-center">
-                                <span className="text-foreground">
-                                  {formatPrice(service.price)}
-                                </span>
-                                <Slash className="w-4 h-4 text-destructive absolute -translate-y-1/2 top-1/2 left-1/2 -translate-x-1/2" />
-                              </div>
-                              <span className="font-medium">
-                                {formatPrice(calculateDiscountedPrice(service))}
-                              </span>
-                            </>
-                          ) : (
-                            <span>{formatPrice(service.price)}</span>
-                          )}
-                          <span>•</span>
-                          <span>
-                            {service.duration} {language === 'ar' 
-                              ? getArabicTimeUnit(service.duration)
-                              : 'min'}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
+    <div className="space-y-6">
+      {/* Categories Pills */}
+      <div className="flex overflow-x-auto pb-2 hide-scrollbar sticky top-0 bg-white z-10 pt-2">
+        {sortedCategories?.map((category) => (
+          <button
+            key={category.id}
+            onClick={() => setActiveCategory(category.id)}
+            className={`flex-shrink-0 px-6 py-2 rounded-full mx-1 transition-all ${
+              activeCategory === category.id
+                ? 'bg-[#e7bd71] text-white'
+                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+            }`}
+          >
+            {language === 'ar' ? category.name_ar : category.name_en}
+          </button>
+        ))}
+      </div>
+
+      {/* Services Grid */}
+      <div className="grid grid-cols-2 gap-4">
+        {activeCategoryServices?.map((service) => (
+          <div
+            key={service.id}
+            className={`rounded-lg border p-4 space-y-2 transition-all cursor-pointer relative ${
+              selectedServices.some(s => s.id === service.id)
+                ? 'bg-[#e7bd71]/10 border-[#e7bd71]'
+                : 'hover:border-gray-300'
+            }`}
+            onClick={() => handleServiceClick(service)}
+          >
+            <div className="flex justify-between items-start">
+              <h3 className="font-medium">
+                {language === 'ar' ? service.name_ar : service.name_en}
+              </h3>
+              {hasDiscount(service) && (
+                <Badge variant="destructive" className="text-xs">
+                  {service.discount_type === 'percentage' 
+                    ? `${service.discount_value}%` 
+                    : formatPrice(service.discount_value || 0)}
+                </Badge>
+              )}
+            </div>
+
+            <div className="flex items-center text-sm text-gray-500">
+              <Timer className="w-4 h-4 mr-1" />
+              <span>
+                {service.duration} {language === 'ar' 
+                  ? getArabicTimeUnit(service.duration)
+                  : 'min'}
+              </span>
+            </div>
+
+            <div className="flex items-center justify-between mt-2">
+              <div className="flex items-center gap-2">
+                {hasDiscount(service) ? (
+                  <>
+                    <span className="relative inline-flex items-center text-sm text-gray-500">
+                      {formatPrice(service.price)}
+                      <Slash className="w-4 h-4 text-destructive absolute -translate-y-1/2 top-1/2 left-1/2 -translate-x-1/2" />
+                    </span>
+                    <span className="font-medium">
+                      {formatPrice(calculateDiscountedPrice(service))}
+                    </span>
+                  </>
+                ) : (
+                  <span>{formatPrice(service.price)}</span>
+                )}
+              </div>
+              
+              <Button
+                size="sm"
+                variant={selectedServices.some(s => s.id === service.id) ? "default" : "outline"}
+                className={`rounded-full p-2 h-8 w-8 ${
+                  selectedServices.some(s => s.id === service.id)
+                    ? 'bg-[#e7bd71] hover:bg-[#d4ad65]'
+                    : ''
+                }`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleServiceToggle(service);
+                }}
+              >
+                {selectedServices.some(s => s.id === service.id) ? (
+                  <Check className="h-4 w-4" />
+                ) : (
+                  <Plus className="h-4 w-4" />
+                )}
+              </Button>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Service Details Sheet */}
+      <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
+        <SheetContent side="bottom" className="h-[80vh]">
+          {selectedService && (
+            <>
+              <SheetHeader>
+                <SheetTitle>
+                  {language === 'ar' ? selectedService.name_ar : selectedService.name_en}
+                </SheetTitle>
+              </SheetHeader>
+              <div className="mt-6 space-y-4">
+                <p className="text-gray-600">
+                  {language === 'ar' ? selectedService.description_ar : selectedService.description_en}
+                </p>
+                
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Timer className="w-4 h-4" />
+                    <span>
+                      {selectedService.duration} {language === 'ar' 
+                        ? getArabicTimeUnit(selectedService.duration)
+                        : 'min'}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {hasDiscount(selectedService) ? (
+                      <>
+                        <span className="relative inline-flex items-center text-gray-500">
+                          {formatPrice(selectedService.price)}
+                          <Slash className="w-4 h-4 text-destructive absolute -translate-y-1/2 top-1/2 left-1/2 -translate-x-1/2" />
+                        </span>
+                        <span className="font-medium">
+                          {formatPrice(calculateDiscountedPrice(selectedService))}
+                        </span>
+                      </>
+                    ) : (
+                      <span>{formatPrice(selectedService.price)}</span>
+                    )}
+                  </div>
                 </div>
-              </AccordionContent>
-            </AccordionItem>
-          );
-        })}
-      </Accordion>
+
+                <Button
+                  className="w-full mt-4"
+                  onClick={() => {
+                    handleServiceToggle(selectedService);
+                    setIsSheetOpen(false);
+                  }}
+                >
+                  {selectedServices.some(s => s.id === selectedService.id)
+                    ? language === 'ar' ? 'إزالة الخدمة' : 'Remove Service'
+                    : language === 'ar' ? 'إضافة الخدمة' : 'Add Service'}
+                </Button>
+              </div>
+            </>
+          )}
+        </SheetContent>
+      </Sheet>
+
+      {/* Selected Services Summary */}
+      {selectedServices.length > 0 && (
+        <div className="fixed bottom-0 left-0 right-0 bg-white border-t p-4 shadow-lg">
+          <div className="flex justify-between items-center">
+            <div>
+              <span className="font-medium">
+                {selectedServices.length} {language === 'ar' ? 'خدمات' : 'services'}
+              </span>
+              <span className="text-gray-500 mx-2">•</span>
+              <span>
+                {formatPrice(
+                  selectedServices.reduce((total, service) => total + service.price, 0)
+                )}
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

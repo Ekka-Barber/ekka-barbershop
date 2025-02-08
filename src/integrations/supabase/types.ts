@@ -866,6 +866,7 @@ export type Database = {
           display_order: number | null
           duration: number
           id: string
+          mobile_display_order: number | null
           name_ar: string
           name_en: string
           price: number
@@ -881,6 +882,7 @@ export type Database = {
           display_order?: number | null
           duration: number
           id?: string
+          mobile_display_order?: number | null
           name_ar: string
           name_en: string
           price: number
@@ -896,6 +898,7 @@ export type Database = {
           display_order?: number | null
           duration?: number
           id?: string
+          mobile_display_order?: number | null
           name_ar?: string
           name_en?: string
           price?: number
