@@ -67,6 +67,7 @@ export const ServiceSelection = ({
   );
   const [selectedService, setSelectedService] = useState<Service | null>(null);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const [currentStep, setCurrentStep] = useState('barber');
 
   useEffect(() => {
     if (activeCategory) {
@@ -210,6 +211,8 @@ export const ServiceSelection = ({
     </div>
   );
 
+  const totalDuration = selectedServices.reduce((total, service) => total + service.duration, 0);
+
   return (
     <div className="space-y-6">
       <div className="flex overflow-x-auto pb-2 hide-scrollbar sticky top-0 bg-white z-10 pt-2">
@@ -296,17 +299,32 @@ export const ServiceSelection = ({
       {selectedServices.length > 0 && (
         <div className="fixed bottom-0 left-0 right-0 bg-white border-t p-4 shadow-lg">
           <div className="flex justify-between items-center">
-            <div>
-              <span className="font-medium">
-                {selectedServices.length} {language === 'ar' ? 'خدمات' : 'services'}
-              </span>
-              <span className="text-gray-500 mx-2">•</span>
-              <span>
-                {formatPrice(
-                  selectedServices.reduce((total, service) => total + service.price, 0)
-                )}
-              </span>
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <span className="font-medium">
+                  {selectedServices.length} {language === 'ar' ? 'خدمات' : 'services'}
+                </span>
+                <span className="text-gray-500">•</span>
+                <span className="flex items-center gap-1">
+                  <Timer className="w-4 h-4" />
+                  {totalDuration} {language === 'ar' 
+                    ? getArabicTimeUnit(totalDuration)
+                    : 'min'}
+                </span>
+                <span className="text-gray-500">•</span>
+                <span>
+                  {formatPrice(
+                    selectedServices.reduce((total, service) => total + service.price, 0)
+                  )}
+                </span>
+              </div>
             </div>
+            <Button 
+              className="bg-[#e7bd71] hover:bg-[#d4ad65]"
+              onClick={() => setCurrentStep('barber')}
+            >
+              {language === 'ar' ? 'التالي' : 'Next'}
+            </Button>
           </div>
         </div>
       )}
