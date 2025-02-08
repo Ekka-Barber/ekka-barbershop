@@ -48,10 +48,11 @@ const Customer = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 flex flex-col">
+    <div dir={language === 'ar' ? 'rtl' : 'ltr'} className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 flex flex-col">
       <div className="sticky top-0 z-50 bg-gradient-to-b from-gray-50 to-transparent h-11">
-        <div className="max-w-md mx-auto h-full">
-          <div className="flex justify-end h-full">
+        <div className="max-w-md mx-auto h-full relative">
+          {/* Force the language switcher to stay in the right corner regardless of dir attribute */}
+          <div className="absolute right-0 top-0 h-full" style={{ direction: 'ltr' }}>
             <LanguageSwitcher />
           </div>
         </div>
