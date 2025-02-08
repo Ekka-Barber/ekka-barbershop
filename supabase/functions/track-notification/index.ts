@@ -8,7 +8,6 @@ const corsHeaders = {
 }
 
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
   }
@@ -21,7 +20,6 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    // Update subscription status and error tracking
     if (subscription?.endpoint) {
       const updateData: any = {
         last_active: new Date().toISOString(),
@@ -31,9 +29,8 @@ serve(async (req) => {
         updateData.error_count = error.increment('error_count', 1)
         updateData.last_error_at = new Date().toISOString()
         updateData.last_error_details = error
-        updateData.status = 'active' // Keep it active until cleanup job runs
+        updateData.status = 'active'
       } else {
-        // Reset error count on successful delivery
         updateData.error_count = 0
         updateData.status = 'active'
       }
@@ -48,19 +45,27 @@ serve(async (req) => {
       }
     }
 
-    // Log the notification event with enhanced error tracking
+    // Enhanced event tracking with message_id
+    const eventData = {
+      event_type: event,
+      action: action,
+      notification_data: {
+        ...notification,
+        message_id: notification?.message_id
+      },
+      subscription_endpoint: subscription?.endpoint,
+      error_details: error || null,
+      delivery_status: deliveryStatus || 'pending'
+    }
+
+    console.log('Tracking notification event:', eventData)
+
     const { error: insertError } = await supabase
       .from('notification_events')
-      .insert([{
-        event_type: event,
-        action: action,
-        notification_data: notification,
-        subscription_endpoint: subscription?.endpoint,
-        error_details: error || null,
-        delivery_status: deliveryStatus || 'pending'
-      }])
+      .insert([eventData])
 
     if (insertError) {
+      console.error('Error inserting notification event:', insertError)
       throw insertError
     }
 

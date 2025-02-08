@@ -34,17 +34,57 @@ export const useNotificationAnalytics = (messages: NotificationMessage[]) => {
 
       if (eventsError) throw eventsError;
 
-      setAnalytics({
-        totalSent: messages.length,
+      const analytics = {
+        totalSent: messages.reduce((acc, msg) => acc + (msg.stats?.total_sent || 0), 0),
         totalClicked: events?.filter(e => e.event_type === 'clicked').length || 0,
         totalReceived: events?.filter(e => e.event_type === 'received').length || 0,
         activeSubscriptions: subscriptions?.length || 0
-      });
+      };
+
+      console.log('Updated analytics:', analytics);
+      setAnalytics(analytics);
     } catch (error) {
       console.error('Error fetching analytics:', error);
       toast.error("Error loading analytics");
     }
   };
+
+  useEffect(() => {
+    fetchAnalytics();
+    
+    // Subscribe to real-time updates
+    const channel = supabase
+      .channel('analytics-updates')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'notification_events'
+        },
+        () => {
+          console.log('Notification event updated, refreshing analytics...');
+          fetchAnalytics();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'push_subscriptions'
+        },
+        () => {
+          console.log('Subscription updated, refreshing analytics...');
+          fetchAnalytics();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [messages]);
 
   return { analytics, fetchAnalytics };
 };

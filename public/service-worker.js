@@ -1,4 +1,3 @@
-
 // Cache name for offline support
 const CACHE_NAME = 'ekka-v2';
 
@@ -87,7 +86,6 @@ self.addEventListener('push', (event) => {
       return;
     }
     
-    // Get browser language and platform info
     const userLang = self.navigator?.language || 'en';
     const isArabic = userLang.startsWith('ar');
     const userAgent = self.navigator.userAgent.toLowerCase();
@@ -104,12 +102,14 @@ self.addEventListener('push', (event) => {
       body: JSON.stringify({
         event: 'received',
         subscription: self.registration.pushManager.getSubscription(),
-        notification: notificationData,
+        notification: {
+          ...notificationData,
+          message_id: notificationData.message_id
+        },
         platform: isIOS ? 'ios' : 'android'
       })
     }).catch(error => {
       console.error('Error tracking notification received:', error);
-      // Continue showing notification even if tracking fails
     });
 
     // Platform-specific notification options
@@ -157,7 +157,6 @@ self.addEventListener('push', (event) => {
         baseOptions
       ).catch(error => {
         console.error('Error showing notification:', error);
-        // Track error using absolute URL
         return fetch(trackEndpoint, {
           method: 'POST',
           headers: {
@@ -166,7 +165,10 @@ self.addEventListener('push', (event) => {
           body: JSON.stringify({
             event: 'error',
             error: error.message,
-            notification: notificationData
+            notification: {
+              ...notificationData,
+              message_id: notificationData.message_id
+            }
           })
         });
       })
@@ -179,8 +181,7 @@ self.addEventListener('push', (event) => {
 // Enhanced notification click handling
 self.addEventListener('notificationclick', (event) => {
   try {
-    // Track notification click with platform info
-    fetch(`${self.registration.scope}functions/v1/track-notification`, {
+    fetch('https://jfnjvphxhzxojxgptmtu.supabase.co/functions/v1/track-notification', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -188,7 +189,10 @@ self.addEventListener('notificationclick', (event) => {
       body: JSON.stringify({
         event: 'clicked',
         action: event.action,
-        notification: event.notification.data,
+        notification: {
+          ...event.notification.data,
+          message_id: event.notification.data.message_id
+        },
         platform: /iphone|ipad|ipod/.test(self.navigator.userAgent.toLowerCase()) ? 'ios' : 'android'
       })
     }).catch(error => console.error('Error tracking notification click:', error));
