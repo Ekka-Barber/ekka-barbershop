@@ -34,7 +34,7 @@ export const ServicesSummary = ({
   if (selectedServices.length === 0) return null;
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-white border-t p-3 shadow-lg">
+    <div className="fixed bottom-0 left-0 right-0 bg-white border-t p-2.5 shadow-lg">
       <div className="flex justify-between items-center">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
