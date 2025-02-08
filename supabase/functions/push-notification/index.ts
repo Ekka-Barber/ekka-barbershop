@@ -8,9 +8,9 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-const BATCH_SIZE = 50; // Reduced batch size for better handling
+const BATCH_SIZE = 50;
 const MAX_RETRIES = 3;
-const INITIAL_BACKOFF = 1000; // 1 second
+const INITIAL_BACKOFF = 1000;
 
 serve(async (req) => {
   console.log('[Push Notification] Function called with method:', req.method);
@@ -19,25 +19,37 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders })
   }
 
-  const supabase = createClient(
-    Deno.env.get('SUPABASE_URL') ?? '',
-    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-  )
-
   try {
-    const body = await req.json();
-    console.log('[Push Notification] Request body:', JSON.stringify(body, null, 2));
-
-    if (!body?.subscriptions || !Array.isArray(body.subscriptions)) {
-      throw new Error('Invalid request: subscriptions array is required');
+    let body;
+    try {
+      body = await req.json();
+      console.log('[Push Notification] Received request body:', JSON.stringify(body, null, 2));
+    } catch (error) {
+      console.error('[Push Notification] Error parsing request body:', error);
+      throw new Error('Invalid request: Could not parse JSON body');
     }
 
-    if (!body.message) {
-      throw new Error('Invalid request: message is required');
+    if (!body || typeof body !== 'object') {
+      throw new Error('Invalid request: Request body must be a JSON object');
+    }
+
+    if (!Array.isArray(body.subscriptions)) {
+      console.error('[Push Notification] Invalid subscriptions array:', body.subscriptions);
+      throw new Error('Invalid request: subscriptions must be an array');
+    }
+
+    if (!body.message || typeof body.message !== 'object') {
+      console.error('[Push Notification] Invalid message:', body.message);
+      throw new Error('Invalid request: message must be an object');
     }
 
     const { subscriptions, message } = body;
     console.log(`[Push Notification] Processing ${subscriptions.length} subscriptions`);
+
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    )
     
     const publicKey = Deno.env.get('VAPID_PUBLIC_KEY')
     const privateKey = Deno.env.get('VAPID_PRIVATE_KEY')
@@ -196,8 +208,15 @@ serve(async (req) => {
   } catch (error) {
     console.error('[Push Notification] Error:', error);
     return new Response(
-      JSON.stringify({ error: error.message, success: false }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
+      JSON.stringify({ 
+        error: error.message, 
+        success: false,
+        timestamp: new Date().toISOString()
+      }),
+      { 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }, 
+        status: 400 
+      }
     );
   }
 });
@@ -206,3 +225,4 @@ serve(async (req) => {
 const increment = (column: string) => {
   return `COALESCE(${column}, 0) + 1`;
 };
+
