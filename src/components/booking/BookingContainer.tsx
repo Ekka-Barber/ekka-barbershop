@@ -60,7 +60,7 @@ export const BookingContainer = () => {
         </div>
       </div>
 
-      <div className="flex-grow max-w-md mx-auto w-full pt-8 px-4 sm:px-6 lg:px-8">
+      <div className="flex-grow max-w-md mx-auto w-full pt-2 px-4 sm:px-6 lg:px-8">
         <BookingHeader
           branchName={language === 'ar' ? branch?.name_ar : branch?.name}
           branchAddress={language === 'ar' ? branch?.address_ar : branch?.address}
