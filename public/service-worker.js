@@ -7,7 +7,6 @@ const filesToCache = [
   '/index.html',
   '/manifest.json',
   '/favicon.ico',
-  // Add more static assets here
 ];
 
 // Install event - cache static assets
@@ -72,7 +71,7 @@ self.addEventListener('fetch', (event) => {
   );
 });
 
-// Enhanced push event with platform-specific handling
+// Enhanced push event with platform-specific handling and proper tracking
 self.addEventListener('push', (event) => {
   try {
     const data = event.data.text();
@@ -92,21 +91,19 @@ self.addEventListener('push', (event) => {
     const isIOS = /iphone|ipad|ipod/.test(userAgent);
     
     // Track notification received using absolute URL
-    const trackEndpoint = 'https://jfnjvphxhzxojxgptmtu.supabase.co/functions/v1/track-notification';
-    
-    fetch(trackEndpoint, {
+    fetch('https://jfnjvphxhzxojxgptmtu.supabase.co/functions/v1/track-notification', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
         event: 'received',
-        subscription: self.registration.pushManager.getSubscription(),
-        notification: {
-          ...notificationData,
-          message_id: notificationData.message_id
+        notification: notificationData,
+        subscription: {
+          endpoint: self.registration.pushManager.getSubscription().then(sub => sub?.endpoint)
         },
-        platform: isIOS ? 'ios' : 'android'
+        platform: isIOS ? 'ios' : 'android',
+        delivery_status: 'delivered'
       })
     }).catch(error => {
       console.error('Error tracking notification received:', error);
@@ -119,6 +116,7 @@ self.addEventListener('push', (event) => {
       badge: '/lovable-uploads/8289fb1d-c6e6-4528-980c-6b52313ca898.png',
       data: {
         url: notificationData.url || 'https://ekka.lovableproject.com/offers',
+        message_id: notificationData.message_id,
         dateOfArrival: Date.now(),
         primaryKey: 1
       },
@@ -139,8 +137,8 @@ self.addEventListener('push', (event) => {
     // iOS-specific options
     if (isIOS) {
       Object.assign(baseOptions, {
-        vibrate: [50, 50], // Shorter vibration for iOS
-        sound: 'default' // iOS notification sound
+        vibrate: [50, 50],
+        sound: 'default'
       });
     } else {
       // Android-specific options
@@ -155,32 +153,19 @@ self.addEventListener('push', (event) => {
       self.registration.showNotification(
         isArabic ? notificationData.title_ar : notificationData.title_en,
         baseOptions
-      ).catch(error => {
-        console.error('Error showing notification:', error);
-        return fetch(trackEndpoint, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            event: 'error',
-            error: error.message,
-            notification: {
-              ...notificationData,
-              message_id: notificationData.message_id
-            }
-          })
-        });
-      })
+      )
     );
   } catch (error) {
     console.error('Error processing push notification:', error);
   }
 });
 
-// Enhanced notification click handling
+// Enhanced notification click handling with proper tracking
 self.addEventListener('notificationclick', (event) => {
   try {
+    const messageId = event.notification.data.message_id;
+    console.log('Notification clicked with message_id:', messageId);
+
     fetch('https://jfnjvphxhzxojxgptmtu.supabase.co/functions/v1/track-notification', {
       method: 'POST',
       headers: {
@@ -190,8 +175,8 @@ self.addEventListener('notificationclick', (event) => {
         event: 'clicked',
         action: event.action,
         notification: {
-          ...event.notification.data,
-          message_id: event.notification.data.message_id
+          message_id: messageId,
+          ...event.notification.data
         },
         platform: /iphone|ipad|ipod/.test(self.navigator.userAgent.toLowerCase()) ? 'ios' : 'android'
       })
@@ -210,25 +195,16 @@ self.addEventListener('notificationclick', (event) => {
         includeUncontrolled: true
       })
       .then(windowClients => {
-        // Try to focus existing window first
         for (let i = 0; i < windowClients.length; i++) {
           const client = windowClients[i];
           if (client.url === event.notification.data.url && 'focus' in client) {
             return client.focus();
           }
         }
-        
-        // If no window exists, open new one
         if (clients.openWindow) {
-          return clients.openWindow(event.notification.data.url).then(windowClient => {
-            // Wait for window to load and focus it
-            if (windowClient) {
-              return windowClient.focus();
-            }
-          });
+          return clients.openWindow(event.notification.data.url);
         }
       })
-      .catch(error => console.error('Error handling notification click:', error))
     );
   } catch (error) {
     console.error('Error in notification click handler:', error);

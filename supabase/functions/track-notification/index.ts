@@ -13,13 +13,15 @@ serve(async (req) => {
   }
 
   try {
-    const { event, action, subscription, notification, error, deliveryStatus } = await req.json()
+    const { event, action, subscription, notification, error, delivery_status } = await req.json()
+    console.log('Received tracking request:', { event, action, notification, delivery_status });
 
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
+    // Update subscription status if provided
     if (subscription?.endpoint) {
       const updateData: any = {
         last_active: new Date().toISOString(),
@@ -45,17 +47,19 @@ serve(async (req) => {
       }
     }
 
+    // Map event types to database values
+    const eventType = event === 'received' ? 'received' :
+                     event === 'clicked' ? 'clicked' :
+                     'notification_sent';
+
     // Enhanced event tracking with message_id
     const eventData = {
-      event_type: event,
-      action: action,
-      notification_data: {
-        ...notification,
-        message_id: notification?.message_id
-      },
+      event_type: eventType,
+      action: action || null,
+      notification_data: notification,
       subscription_endpoint: subscription?.endpoint,
       error_details: error || null,
-      delivery_status: deliveryStatus || 'pending'
+      delivery_status: delivery_status || 'pending'
     }
 
     console.log('Tracking notification event:', eventData)

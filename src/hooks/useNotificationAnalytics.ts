@@ -30,14 +30,14 @@ export const useNotificationAnalytics = (messages: NotificationMessage[]) => {
 
       const { data: events, error: eventsError } = await supabase
         .from('notification_events')
-        .select('event_type, action') as { data: NotificationEvent[] | null, error: any };
+        .select('event_type, delivery_status') as { data: NotificationEvent[] | null, error: any };
 
       if (eventsError) throw eventsError;
 
       const analytics = {
         totalSent: messages.reduce((acc, msg) => acc + (msg.stats?.total_sent || 0), 0),
         totalClicked: events?.filter(e => e.event_type === 'clicked').length || 0,
-        totalReceived: events?.filter(e => e.event_type === 'received').length || 0,
+        totalReceived: events?.filter(e => e.event_type === 'received' && e.delivery_status === 'delivered').length || 0,
         activeSubscriptions: subscriptions?.length || 0
       };
 
@@ -52,7 +52,7 @@ export const useNotificationAnalytics = (messages: NotificationMessage[]) => {
   useEffect(() => {
     fetchAnalytics();
     
-    // Subscribe to real-time updates
+    // Subscribe to real-time updates for both events and messages
     const channel = supabase
       .channel('analytics-updates')
       .on(
@@ -62,8 +62,20 @@ export const useNotificationAnalytics = (messages: NotificationMessage[]) => {
           schema: 'public',
           table: 'notification_events'
         },
-        () => {
-          console.log('Notification event updated, refreshing analytics...');
+        (payload) => {
+          console.log('Notification event updated:', payload);
+          fetchAnalytics();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'notification_messages'
+        },
+        (payload) => {
+          console.log('Notification message updated:', payload);
           fetchAnalytics();
         }
       )
