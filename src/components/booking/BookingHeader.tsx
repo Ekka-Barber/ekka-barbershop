@@ -14,8 +14,10 @@ export const BookingHeader = ({ branchName, branchAddress, isLoading }: BookingH
   
   return (
     <div className="text-center">
-      <div className="sticky top-0 z-50 bg-gradient-to-b from-gray-50 to-transparent py-2 px-4">
-        <LanguageSwitcher />
+      <div className="sticky top-0 z-50 bg-gradient-to-b from-gray-50 to-transparent py-2">
+        <div className="flex justify-center">
+          <LanguageSwitcher />
+        </div>
       </div>
       <Link to="/customer">
         <img 
