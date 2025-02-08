@@ -3,6 +3,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Flag } from "lucide-react";
 
 interface Employee {
   id: string;
@@ -20,7 +21,7 @@ interface BarberSelectionProps {
   onBarberSelect: (barberId: string) => void;
 }
 
-// Map of country codes to full names
+// Map of country codes to flag icons and names
 const countryNames: { [key: string]: { en: string; ar: string } } = {
   'sa': { en: 'Saudi Arabia', ar: 'السعودية' },
   'eg': { en: 'Egypt', ar: 'مصر' },
@@ -82,10 +83,10 @@ export const BarberSelection = ({
               {language === 'ar' ? employee.name_ar : employee.name}
             </span>
             {employee.nationality && (
-              <span className="text-sm text-muted-foreground">
-                {countryNames[employee.nationality.toLowerCase()]?.[language] || 
-                 (language === 'ar' ? employee.nationality.toUpperCase() : employee.nationality.toUpperCase())}
-              </span>
+              <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                <Flag className="w-4 h-4" />
+                <span>{employee.nationality.toUpperCase()}</span>
+              </div>
             )}
           </div>
         </Button>
@@ -93,3 +94,4 @@ export const BarberSelection = ({
     </div>
   );
 };
+
