@@ -18,20 +18,19 @@ serve(async (req) => {
 
   try {
     const body = await req.json();
-    console.log('Received request body:', body);
+    console.log('Request body:', JSON.stringify(body, null, 2));
 
-    if (!body || !body.subscriptions || !Array.isArray(body.subscriptions)) {
-      console.error('Invalid request body: subscriptions array is missing or invalid');
-      throw new Error('Invalid request: subscriptions array is required');
+    if (!body?.subscriptions || !Array.isArray(body.subscriptions) || body.subscriptions.length === 0) {
+      console.error('Invalid request body: subscriptions array is missing, empty, or invalid');
+      throw new Error('Invalid request: subscriptions array is required and must not be empty');
     }
 
-    const { subscriptions, message } = body;
-    
-    if (!message) {
+    if (!body.message) {
       console.error('Invalid request body: message is missing');
       throw new Error('Invalid request: message is required');
     }
 
+    const { subscriptions, message } = body;
     console.log(`Processing notification request for ${subscriptions.length} subscriptions`);
     
     const publicKey = Deno.env.get('VAPID_PUBLIC_KEY')
@@ -57,26 +56,27 @@ serve(async (req) => {
           return { 
             success: false, 
             endpoint: subscription.endpoint || 'unknown',
-            error: 'Invalid subscription data',
-            statusCode: 400
+            error: 'Invalid subscription data'
           };
         }
 
-        console.log(`Attempting to send to endpoint: ${subscription.endpoint}`);
+        const pushSubscription = {
+          endpoint: subscription.endpoint,
+          keys: {
+            p256dh: subscription.p256dh,
+            auth: subscription.auth
+          }
+        };
+
         try {
+          console.log(`Sending notification to endpoint: ${subscription.endpoint}`);
           await webPush.sendNotification(
-            {
-              endpoint: subscription.endpoint,
-              keys: {
-                p256dh: subscription.p256dh,
-                auth: subscription.auth
-              }
-            }, 
+            pushSubscription,
             JSON.stringify(message)
           );
           console.log(`Successfully sent to ${subscription.endpoint}`);
           return { success: true, endpoint: subscription.endpoint };
-        } catch (error) {
+        } catch (error: any) {
           console.error(`Error sending to ${subscription.endpoint}:`, error);
           return { 
             success: false, 
@@ -90,72 +90,49 @@ serve(async (req) => {
       return Promise.all(notificationPromises);
     };
 
-    const processAllBatches = async () => {
-      const results = {
-        total: subscriptions.length,
-        successful: 0,
-        failed: 0,
-        failures: [] as any[]
-      };
-
-      for (let i = 0; i < subscriptions.length; i += BATCH_SIZE) {
-        console.log(`Processing batch ${Math.floor(i/BATCH_SIZE) + 1}`);
-        const batch = subscriptions.slice(i, i + BATCH_SIZE);
-        const batchResults = await processBatch(batch);
-        
-        batchResults.forEach((result) => {
-          if (result.success) {
-            results.successful++;
-          } else {
-            results.failed++;
-            results.failures.push(result);
-          }
-        });
-      }
-
-      console.log('Notification sending completed:', results);
-      return results;
+    // Process all subscriptions
+    const results = {
+      successful: 0,
+      failed: 0,
+      failures: [] as any[],
+      total: subscriptions.length
     };
 
-    if (subscriptions.length > BATCH_SIZE) {
-      console.log(`Starting background processing for ${subscriptions.length} notifications`);
-      EdgeRuntime.waitUntil(processAllBatches());
+    for (let i = 0; i < subscriptions.length; i += BATCH_SIZE) {
+      const batch = subscriptions.slice(i, i + BATCH_SIZE);
+      const batchResults = await processBatch(batch);
       
-      return new Response(
-        JSON.stringify({ 
-          message: `Processing ${subscriptions.length} notifications in background`,
-          started: true 
-        }),
-        { 
-          headers: { 
-            ...corsHeaders,
-            'Content-Type': 'application/json'
-          }
+      batchResults.forEach((result) => {
+        if (result.success) {
+          results.successful++;
+        } else {
+          results.failed++;
+          results.failures.push(result);
         }
-      );
-    } else {
-      const results = await processBatch(subscriptions);
-      console.log('Small batch processing completed:', results);
-      
-      return new Response(
-        JSON.stringify({ 
-          success: true,
-          results 
-        }),
-        { 
-          headers: { 
-            ...corsHeaders,
-            'Content-Type': 'application/json'
-          }
-        }
-      );
+      });
     }
+
+    console.log('Notification sending completed:', JSON.stringify(results, null, 2));
+    
+    return new Response(
+      JSON.stringify({ 
+        success: true,
+        results 
+      }),
+      { 
+        headers: { 
+          ...corsHeaders,
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+
   } catch (error) {
     console.error('Error in push notification function:', error);
     return new Response(
       JSON.stringify({ 
         error: error.message,
-        errorCode: error.statusCode 
+        success: false
       }),
       { 
         headers: { 

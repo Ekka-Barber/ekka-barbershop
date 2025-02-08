@@ -41,6 +41,7 @@ export const NotificationComposer = ({ onMessageSent }: { onMessageSent: () => P
   const handleSendNotification = async () => {
     try {
       setSending(true);
+      console.log('Starting notification sending process...');
 
       // First, create the notification message
       const { data: newMessage, error: dbError } = await supabase
@@ -59,7 +60,12 @@ export const NotificationComposer = ({ onMessageSent }: { onMessageSent: () => P
         .select()
         .single();
 
-      if (dbError) throw dbError;
+      if (dbError) {
+        console.error('Database error:', dbError);
+        throw dbError;
+      }
+
+      console.log('Created notification message:', newMessage);
 
       // Then, get active subscriptions
       const { data: subscriptions, error: subError } = await supabase
@@ -69,14 +75,18 @@ export const NotificationComposer = ({ onMessageSent }: { onMessageSent: () => P
         .lt('error_count', 3)
         .gte('last_active', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString());
 
-      if (subError) throw subError;
+      if (subError) {
+        console.error('Subscription fetch error:', subError);
+        throw subError;
+      }
 
       if (!subscriptions?.length) {
+        console.log('No active subscriptions found');
         toast.info("No active subscriptions found");
         return;
       }
 
-      console.log('Sending notifications to subscriptions:', subscriptions);
+      console.log(`Found ${subscriptions.length} active subscriptions`);
 
       // Send the notifications
       const { error: pushError, data: pushResponse } = await supabase.functions.invoke('push-notification', {
@@ -99,7 +109,14 @@ export const NotificationComposer = ({ onMessageSent }: { onMessageSent: () => P
       }
 
       console.log('Push notification response:', pushResponse);
-      toast.success(`Sending notifications to ${subscriptions.length} subscribers`);
+
+      if (pushResponse.success) {
+        toast.success(`Successfully sent to ${pushResponse.results.successful} devices`);
+        if (pushResponse.results.failed > 0) {
+          console.warn(`Failed to send to ${pushResponse.results.failed} devices`);
+          toast.warning(`Failed to send to ${pushResponse.results.failed} devices`);
+        }
+      }
       
       setTitleEn("");
       setTitleAr("");
