@@ -2,6 +2,7 @@
 // Cache name for offline support
 const CACHE_NAME = 'ekka-v1';
 const SW_VERSION = '1.0.0';
+const RATE_LIMIT_PER_DAY = 50; // Maximum notifications per day per subscription
 
 // Enhanced logging function
 const log = (message, data = {}) => {
@@ -68,6 +69,27 @@ self.addEventListener('push', async (event) => {
       throw new Error('Invalid notification data');
     }
 
+    // Check rate limit before proceeding
+    const rateLimitCheck = await fetch('/api/check-rate-limit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        endpoint: self.registration.pushManager.getSubscription().endpoint
+      })
+    });
+
+    if (!rateLimitCheck.ok) {
+      logError('Rate limit exceeded');
+      return;
+    }
+
+    // Get device info
+    const deviceInfo = {
+      os: self.navigator?.platform || 'unknown',
+      browser: self.navigator?.userAgent || 'unknown',
+      version: SW_VERSION
+    };
+
     const options = {
       body: notificationData.body,
       icon: '/lovable-uploads/8289fb1d-c6e6-4528-980c-6b52313ca898.png',
@@ -94,19 +116,39 @@ self.addEventListener('push', async (event) => {
           await self.registration.showNotification(notificationData.title, options);
           log('Notification shown successfully');
           
-          // Track successful delivery
+          // Track successful delivery with enhanced data
           await fetch('/api/track-notification', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               event: 'delivered',
               messageId: notificationData.message_id,
-              timestamp: new Date().toISOString()
+              timestamp: new Date().toISOString(),
+              deviceInfo,
+              platform: getPlatformType()
             })
           });
         } catch (error) {
           logError('Error showing notification:', error);
           notificationQueue.push({ title: notificationData.title, options });
+          
+          // Track failure
+          await fetch('/api/track-notification', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              event: 'failed',
+              messageId: notificationData.message_id,
+              error: {
+                message: error.message,
+                stack: error.stack,
+                timestamp: new Date().toISOString()
+              },
+              deviceInfo,
+              platform: getPlatformType()
+            })
+          });
+          
           throw error;
         }
       })()
@@ -128,7 +170,7 @@ self.addEventListener('online', () => {
   }
 });
 
-// Notification click event
+// Enhanced notification click event with tracking
 self.addEventListener('notificationclick', (event) => {
   log('Notification clicked', {
     tag: event.notification.tag,
@@ -140,24 +182,36 @@ self.addEventListener('notificationclick', (event) => {
   event.waitUntil(
     (async () => {
       try {
-        // Track the click
+        // Track the click with enhanced data
         await fetch('/api/track-notification', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             event: 'clicked',
             messageId: event.notification.data.messageId,
-            timestamp: new Date().toISOString()
+            timestamp: new Date().toISOString(),
+            deviceInfo: {
+              os: self.navigator?.platform || 'unknown',
+              browser: self.navigator?.userAgent || 'unknown',
+              version: SW_VERSION
+            },
+            platform: getPlatformType(),
+            action: event.action || 'default'
           })
         });
 
         // Try to focus existing window
-        const windowClients = await clients.matchAll({ type: 'window', includeUncontrolled: true });
+        const windowClients = await clients.matchAll({ 
+          type: 'window', 
+          includeUncontrolled: true 
+        });
+        
         for (let client of windowClients) {
           if (client.url === event.notification.data.url && 'focus' in client) {
             return client.focus();
           }
         }
+        
         // If no window exists, open new one
         if (clients.openWindow) {
           return clients.openWindow(event.notification.data.url);
@@ -168,6 +222,14 @@ self.addEventListener('notificationclick', (event) => {
     })()
   );
 });
+
+// Helper function to determine platform type
+const getPlatformType = () => {
+  const userAgent = self.navigator.userAgent.toLowerCase();
+  if (/iphone|ipad|ipod/.test(userAgent)) return 'ios';
+  if (/android/.test(userAgent)) return 'android';
+  return 'web';
+};
 
 // Fetch event - Basic offline support
 self.addEventListener('fetch', (event) => {

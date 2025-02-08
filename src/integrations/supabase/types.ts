@@ -652,6 +652,69 @@ export type Database = {
         }
         Relationships: []
       }
+      notification_rate_limits: {
+        Row: {
+          created_at: string | null
+          id: string
+          last_notification_time: string | null
+          notification_count: number | null
+          reset_at: string | null
+          subscription_endpoint: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          last_notification_time?: string | null
+          notification_count?: number | null
+          reset_at?: string | null
+          subscription_endpoint: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          last_notification_time?: string | null
+          notification_count?: number | null
+          reset_at?: string | null
+          subscription_endpoint?: string
+        }
+        Relationships: []
+      }
+      notification_tracking: {
+        Row: {
+          created_at: string | null
+          delivery_status: string | null
+          device_info: Json | null
+          error_details: Json | null
+          event_type: string
+          id: string
+          notification_data: Json | null
+          platform: string | null
+          subscription_endpoint: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          delivery_status?: string | null
+          device_info?: Json | null
+          error_details?: Json | null
+          event_type: string
+          id?: string
+          notification_data?: Json | null
+          platform?: string | null
+          subscription_endpoint?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          delivery_status?: string | null
+          device_info?: Json | null
+          error_details?: Json | null
+          event_type?: string
+          id?: string
+          notification_data?: Json | null
+          platform?: string | null
+          subscription_endpoint?: string | null
+        }
+        Relationships: []
+      }
       payment_method_fees: {
         Row: {
           created_at: string
@@ -691,10 +754,12 @@ export type Database = {
         Row: {
           auth: string
           created_at: string | null
+          device_info: Json | null
           endpoint: string
           error_count: number | null
           id: string
           last_active: string | null
+          notification_preferences: Json | null
           p256dh: string
           platform: string | null
           status: string | null
@@ -704,10 +769,12 @@ export type Database = {
         Insert: {
           auth: string
           created_at?: string | null
+          device_info?: Json | null
           endpoint: string
           error_count?: number | null
           id?: string
           last_active?: string | null
+          notification_preferences?: Json | null
           p256dh: string
           platform?: string | null
           status?: string | null
@@ -717,10 +784,12 @@ export type Database = {
         Update: {
           auth?: string
           created_at?: string | null
+          device_info?: Json | null
           endpoint?: string
           error_count?: number | null
           id?: string
           last_active?: string | null
+          notification_preferences?: Json | null
           p256dh?: string
           platform?: string | null
           status?: string | null
@@ -1114,6 +1183,13 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      check_notification_rate_limit: {
+        Args: {
+          p_endpoint: string
+          p_limit: number
+        }
+        Returns: boolean
+      }
       cleanup_invalid_subscriptions: {
         Args: Record<PropertyKey, never>
         Returns: undefined

@@ -76,4 +76,13 @@ export interface NotificationSubscription {
   created_at: string;
   last_active?: string;
   error_count: number;
+  device_info?: {
+    os?: string;
+    browser?: string;
+    version?: string;
+  };
+  notification_preferences?: {
+    enabled: boolean;
+    categories: string[];
+  };
 }
