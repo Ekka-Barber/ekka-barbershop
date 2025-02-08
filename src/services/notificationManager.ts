@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { getPlatformType } from './platformDetection';
 import { Json } from "@/integrations/supabase/types";
@@ -10,7 +9,7 @@ interface PlatformDetails {
   os: string;
   browser: string;
   version: string;
-  [key: string]: string; // Add index signature to make it compatible with Json type
+  [key: string]: string;
 }
 
 export class NotificationManager {
@@ -18,6 +17,7 @@ export class NotificationManager {
   private currentSubscription: PushSubscription | null = null;
   private retryTimeout: NodeJS.Timeout | null = null;
   private maxRetries = 5;
+  private batchSize = 100;
 
   private constructor() {}
 
@@ -47,27 +47,27 @@ export class NotificationManager {
     return 'other';
   }
 
-  async updateSubscriptionStatus(
-    subscription: PushSubscription, 
-    status: NotificationStatus,
-    error?: Error
+  async updateSubscriptionStatuses(
+    results: { endpoint: string; success: boolean; error?: string }[]
   ): Promise<void> {
-    const platformDetails = await this.getPlatformDetails();
-    const { error: updateError } = await supabase
-      .from('push_subscriptions')
-      .update({
-        status,
-        platform_details: platformDetails as Json,
-        last_active: new Date().toISOString(),
-        error_count: error ? await supabase.rpc('increment', { x: 1 }).then(result => result.data || 0) : 0,
-        last_error_at: error ? new Date().toISOString() : null,
-        last_error_details: error ? { message: error.message } : null
-      })
-      .eq('endpoint', subscription.endpoint);
+    const updates = results.map(async (result) => {
+      const status: NotificationStatus = result.success ? 'active' : 'retry';
+      const { error } = await supabase
+        .from('push_subscriptions')
+        .update({
+          status,
+          error_count: result.success ? 0 : supabase.rpc('increment', { x: 1 }),
+          last_error_at: result.success ? null : new Date().toISOString(),
+          last_error_details: result.success ? null : { message: result.error }
+        })
+        .eq('endpoint', result.endpoint);
 
-    if (updateError) {
-      console.error('Error updating subscription status:', updateError);
-    }
+      if (error) {
+        console.error('Error updating subscription status:', error);
+      }
+    });
+
+    await Promise.all(updates);
   }
 
   async handlePermissionChange(state: NotificationPermission): Promise<void> {
@@ -84,6 +84,22 @@ export class NotificationManager {
     if (error) {
       console.error('Error updating permission state:', error);
     }
+  }
+
+  async getActiveSubscriptions(): Promise<any[]> {
+    const { data, error } = await supabase
+      .from('push_subscriptions')
+      .select('endpoint, p256dh, auth')
+      .eq('status', 'active')
+      .lt('error_count', 3)
+      .gte('last_active', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString());
+
+    if (error) {
+      console.error('Error fetching active subscriptions:', error);
+      return [];
+    }
+
+    return data || [];
   }
 
   async retrySubscription(subscription: PushSubscription): Promise<void> {

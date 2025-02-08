@@ -62,35 +62,35 @@ export const NotificationComposer = ({ onMessageSent }: { onMessageSent: () => P
 
       const { data: subscriptions, error: subError } = await supabase
         .from('push_subscriptions')
-        .select('*')
+        .select('endpoint, p256dh, auth')
         .eq('status', 'active')
         .lt('error_count', 3)
         .gte('last_active', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString());
 
       if (subError) throw subError;
 
-      await Promise.all(subscriptions?.map(async (subscription) => {
-        const { endpoint, p256dh, auth } = subscription;
-        
-        await supabase.functions.invoke('push-notification', {
-          body: {
-            subscription: {
-              endpoint,
-              keys: { p256dh, auth }
-            },
-            message: {
-              title_en,
-              title_ar,
-              body_en,
-              body_ar,
-              message_id: newMessage.id,
-              url: window.location.origin + '/offers'
-            }
-          }
-        });
-      }) || []);
+      if (!subscriptions?.length) {
+        toast.info("No active subscriptions found");
+        return;
+      }
 
-      toast.success("Notification sent successfully!");
+      const { error: pushError } = await supabase.functions.invoke('push-notification', {
+        body: {
+          subscriptions,
+          message: {
+            title_en,
+            title_ar,
+            body_en,
+            body_ar,
+            message_id: newMessage.id,
+            url: window.location.origin + '/offers'
+          }
+        }
+      });
+
+      if (pushError) throw pushError;
+
+      toast.success(`Sending notifications to ${subscriptions.length} subscribers`);
       
       setTitleEn("");
       setTitleAr("");
