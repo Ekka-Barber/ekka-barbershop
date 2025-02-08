@@ -5,40 +5,35 @@ export const LanguageSwitcher = () => {
   const { language, setLanguage } = useLanguage();
   
   return (
-    <div className="flex items-center gap-1">
+    <div className="flex items-center">
       {/* Container with fixed width to prevent movement */}
-      <div className="w-[92px] flex items-center gap-1">
-        {/* Left button (English) - Always stays on left */}
-        <div className="relative">
-          <button
-            onClick={() => setLanguage('en')}
-            className={`min-w-[44px] h-11 px-3 rounded-md transition-colors duration-200
-              ${language === 'en' 
-                ? 'text-white bg-primary' 
-                : 'text-gray-600 hover:bg-gray-50 active:bg-gray-100'
-              }`}
-            aria-label="Switch to English"
-          >
-            EN
-          </button>
-        </div>
+      <div className="w-[100px] flex items-center justify-between">
+        {/* Left button (English) - Fixed width */}
+        <button
+          onClick={() => setLanguage('en')}
+          className={`w-[48px] h-11 rounded-md transition-colors duration-200 flex items-center justify-center
+            ${language === 'en' 
+              ? 'text-white bg-primary' 
+              : 'text-gray-600 hover:bg-gray-50 active:bg-gray-100'
+            }`}
+          aria-label="Switch to English"
+        >
+          EN
+        </button>
 
-        {/* Right button (Arabic) - Always stays on right */}
-        <div className="relative">
-          <button
-            onClick={() => setLanguage('ar')}
-            className={`min-w-[44px] h-11 px-3 rounded-md transition-colors duration-200
-              ${language === 'ar' 
-                ? 'text-white bg-primary' 
-                : 'text-gray-600 hover:bg-gray-50 active:bg-gray-100'
-              }`}
-            aria-label="Switch to Arabic"
-          >
-            عربي
-          </button>
-        </div>
+        {/* Right button (Arabic) - Fixed width */}
+        <button
+          onClick={() => setLanguage('ar')}
+          className={`w-[48px] h-11 rounded-md transition-colors duration-200 flex items-center justify-center
+            ${language === 'ar' 
+              ? 'text-white bg-primary' 
+              : 'text-gray-600 hover:bg-gray-50 active:bg-gray-100'
+            }`}
+          aria-label="Switch to Arabic"
+        >
+          عربي
+        </button>
       </div>
     </div>
   );
 };
-
