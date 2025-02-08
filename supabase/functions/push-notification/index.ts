@@ -51,11 +51,12 @@ serve(async (req) => {
       console.log('Sending push notification to:', {
         endpoint: subscription.endpoint,
         status: subData.status,
-        errorCount: subData.error_count
+        errorCount: subData.error_count,
+        message
       })
 
-      // Send push notification
-      await webPush.sendNotification(subscription, message)
+      // Send push notification with stringified message
+      await webPush.sendNotification(subscription, JSON.stringify(message))
 
       // Update last active timestamp and reset error count on success
       await supabase
@@ -75,7 +76,7 @@ serve(async (req) => {
           event_type: 'notification_sent',
           action: 'send',
           subscription_endpoint: subscription.endpoint,
-          notification_data: { message },
+          notification_data: message,
           delivery_status: 'delivered'
         })
 
@@ -92,19 +93,22 @@ serve(async (req) => {
       console.error('Push notification error:', pushError)
 
       // Update subscription error count
-      const { data: subData } = await supabase
+      const { error: updateError } = await supabase
         .from('push_subscriptions')
         .update({ 
           error_count: pushError.statusCode === 410 ? 999 : supabase.rpc('increment', { x: 1 }),
           last_error_at: new Date().toISOString(),
           last_error_details: {
             code: pushError.statusCode,
-            message: pushError.message
+            message: pushError.message,
+            stack: pushError.stack
           }
         })
         .eq('endpoint', subscription.endpoint)
-        .select()
-        .single()
+
+      if (updateError) {
+        console.error('Error updating subscription:', updateError)
+      }
 
       // Track delivery failure
       await supabase
@@ -113,7 +117,7 @@ serve(async (req) => {
           event_type: 'notification_failed',
           action: 'send',
           subscription_endpoint: subscription.endpoint,
-          notification_data: { message },
+          notification_data: message,
           delivery_status: 'failed',
           error_details: {
             code: pushError.statusCode,

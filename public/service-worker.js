@@ -76,7 +76,16 @@ self.addEventListener('fetch', (event) => {
 // Enhanced push event with platform-specific handling
 self.addEventListener('push', (event) => {
   try {
-    const data = JSON.parse(event.data.text());
+    const data = event.data.text();
+    console.log('Received push event with data:', data);
+    
+    let notificationData;
+    try {
+      notificationData = JSON.parse(data);
+    } catch (parseError) {
+      console.error('Error parsing notification data:', parseError);
+      return;
+    }
     
     // Get browser language and platform info
     const userLang = self.navigator?.language || 'en';
@@ -84,8 +93,10 @@ self.addEventListener('push', (event) => {
     const userAgent = self.navigator.userAgent.toLowerCase();
     const isIOS = /iphone|ipad|ipod/.test(userAgent);
     
-    // Track notification received
-    fetch(`${self.registration.scope}functions/v1/track-notification`, {
+    // Track notification received using absolute URL
+    const trackEndpoint = 'https://jfnjvphxhzxojxgptmtu.supabase.co/functions/v1/track-notification';
+    
+    fetch(trackEndpoint, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -93,18 +104,21 @@ self.addEventListener('push', (event) => {
       body: JSON.stringify({
         event: 'received',
         subscription: self.registration.pushManager.getSubscription(),
-        notification: data,
+        notification: notificationData,
         platform: isIOS ? 'ios' : 'android'
       })
-    }).catch(error => console.error('Error tracking notification received:', error));
+    }).catch(error => {
+      console.error('Error tracking notification received:', error);
+      // Continue showing notification even if tracking fails
+    });
 
     // Platform-specific notification options
     const baseOptions = {
-      body: isArabic ? data.body_ar : data.body_en,
+      body: isArabic ? notificationData.body_ar : notificationData.body_en,
       icon: '/lovable-uploads/8289fb1d-c6e6-4528-980c-6b52313ca898.png',
       badge: '/lovable-uploads/8289fb1d-c6e6-4528-980c-6b52313ca898.png',
       data: {
-        url: data.url || 'https://ekka.lovableproject.com/offers',
+        url: notificationData.url || 'https://ekka.lovableproject.com/offers',
         dateOfArrival: Date.now(),
         primaryKey: 1
       },
@@ -139,12 +153,12 @@ self.addEventListener('push', (event) => {
 
     event.waitUntil(
       self.registration.showNotification(
-        isArabic ? data.title_ar : data.title_en,
+        isArabic ? notificationData.title_ar : notificationData.title_en,
         baseOptions
       ).catch(error => {
         console.error('Error showing notification:', error);
-        // Track error
-        return fetch(`${self.registration.scope}functions/v1/track-notification`, {
+        // Track error using absolute URL
+        return fetch(trackEndpoint, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -152,7 +166,7 @@ self.addEventListener('push', (event) => {
           body: JSON.stringify({
             event: 'error',
             error: error.message,
-            notification: data
+            notification: notificationData
           })
         });
       })

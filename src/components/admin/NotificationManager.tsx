@@ -117,16 +117,20 @@ const NotificationManager = () => {
 
       if (dbError) throw dbError;
 
-      // Get all active subscriptions
+      // Get all active and valid subscriptions
       const { data: subscriptions, error: subError } = await supabase
         .from('push_subscriptions')
         .select('*')
-        .eq('status', 'active');
+        .eq('status', 'active')
+        .lt('error_count', 3)
+        .gte('last_active', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString());
 
       if (subError) throw subError;
 
+      console.log('Sending notifications to:', subscriptions?.length, 'subscribers');
+
       // Send notification to each subscription
-      await Promise.all(subscriptions.map(async (subscription) => {
+      await Promise.all(subscriptions?.map(async (subscription) => {
         const { endpoint, p256dh, auth } = subscription;
         
         await supabase.functions.invoke('push-notification', {
@@ -135,15 +139,16 @@ const NotificationManager = () => {
               endpoint,
               keys: { p256dh, auth }
             },
-            message: JSON.stringify({
+            message: {
               title_en,
               title_ar,
               body_en,
-              body_ar
-            })
+              body_ar,
+              url: window.location.origin + '/offers'
+            }
           }
         });
-      }));
+      }) || []);
 
       toast.success("Notification sent successfully!");
       
