@@ -236,7 +236,7 @@ export const ServiceSelection = ({
 
       {/* Service Details Sheet */}
       <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-        <SheetContent side="bottom" className="h-[80vh]">
+        <SheetContent side="bottom" className="max-h-[80vh] h-fit">
           {selectedService && (
             <>
               <SheetHeader>
