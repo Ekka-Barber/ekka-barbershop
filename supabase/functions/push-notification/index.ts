@@ -8,9 +8,10 @@ const corsHeaders = {
 }
 
 const BATCH_SIZE = 100;
+const MAX_RETRIES = 3;
 
 serve(async (req) => {
-  console.log('Push notification function called with method:', req.method);
+  console.log('[Push Notification] Function called with method:', req.method);
   
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
@@ -18,26 +19,26 @@ serve(async (req) => {
 
   try {
     const body = await req.json();
-    console.log('Request body:', JSON.stringify(body, null, 2));
+    console.log('[Push Notification] Request body:', JSON.stringify(body, null, 2));
 
     if (!body?.subscriptions || !Array.isArray(body.subscriptions) || body.subscriptions.length === 0) {
-      console.error('Invalid request body: subscriptions array is missing, empty, or invalid');
+      console.error('[Push Notification] Invalid request: subscriptions array is missing or empty');
       throw new Error('Invalid request: subscriptions array is required and must not be empty');
     }
 
     if (!body.message) {
-      console.error('Invalid request body: message is missing');
+      console.error('[Push Notification] Invalid request: message is missing');
       throw new Error('Invalid request: message is required');
     }
 
     const { subscriptions, message } = body;
-    console.log(`Processing notification request for ${subscriptions.length} subscriptions`);
+    console.log(`[Push Notification] Processing ${subscriptions.length} subscriptions`);
     
     const publicKey = Deno.env.get('VAPID_PUBLIC_KEY')
     const privateKey = Deno.env.get('VAPID_PRIVATE_KEY')
 
     if (!publicKey || !privateKey) {
-      console.error('VAPID keys not configured');
+      console.error('[Push Notification] VAPID keys not configured');
       throw new Error('Push notification configuration not available');
     }
 
@@ -48,11 +49,11 @@ serve(async (req) => {
     );
 
     const processBatch = async (batch: any[]) => {
-      console.log(`Processing batch of ${batch.length} subscriptions`);
+      console.log(`[Push Notification] Processing batch of ${batch.length} subscriptions`);
       
       const notificationPromises = batch.map(async (subscription) => {
         if (!subscription.endpoint || !subscription.p256dh || !subscription.auth) {
-          console.error('Invalid subscription object:', subscription);
+          console.error('[Push Notification] Invalid subscription:', subscription);
           return { 
             success: false, 
             endpoint: subscription.endpoint || 'unknown',
@@ -68,23 +69,40 @@ serve(async (req) => {
           }
         };
 
-        try {
-          console.log(`Sending notification to endpoint: ${subscription.endpoint}`);
-          await webPush.sendNotification(
-            pushSubscription,
-            JSON.stringify(message)
-          );
-          console.log(`Successfully sent to ${subscription.endpoint}`);
-          return { success: true, endpoint: subscription.endpoint };
-        } catch (error: any) {
-          console.error(`Error sending to ${subscription.endpoint}:`, error);
-          return { 
-            success: false, 
-            endpoint: subscription.endpoint,
-            error: error.message,
-            statusCode: error.statusCode 
-          };
+        let attempt = 0;
+        while (attempt < MAX_RETRIES) {
+          try {
+            console.log(`[Push Notification] Sending to ${subscription.endpoint} (attempt ${attempt + 1}/${MAX_RETRIES})`);
+            await webPush.sendNotification(
+              pushSubscription,
+              JSON.stringify(message)
+            );
+            console.log(`[Push Notification] Successfully sent to ${subscription.endpoint}`);
+            return { success: true, endpoint: subscription.endpoint };
+          } catch (error: any) {
+            attempt++;
+            console.error(`[Push Notification] Error sending to ${subscription.endpoint} (attempt ${attempt}):`, error);
+            
+            if (attempt === MAX_RETRIES || error.statusCode === 410) { // 410 = Gone (subscription expired)
+              return { 
+                success: false, 
+                endpoint: subscription.endpoint,
+                error: error.message,
+                statusCode: error.statusCode,
+                permanent: error.statusCode === 410
+              };
+            }
+            
+            // Wait before retry (exponential backoff)
+            await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempt) * 1000));
+          }
         }
+        
+        return { 
+          success: false, 
+          endpoint: subscription.endpoint,
+          error: 'Max retries exceeded'
+        };
       });
 
       return Promise.all(notificationPromises);
@@ -95,7 +113,8 @@ serve(async (req) => {
       successful: 0,
       failed: 0,
       failures: [] as any[],
-      total: subscriptions.length
+      total: subscriptions.length,
+      permanentFailures: 0
     };
 
     for (let i = 0; i < subscriptions.length; i += BATCH_SIZE) {
@@ -107,12 +126,20 @@ serve(async (req) => {
           results.successful++;
         } else {
           results.failed++;
+          if (result.permanent) {
+            results.permanentFailures++;
+          }
           results.failures.push(result);
         }
       });
+
+      // Log progress for large batches
+      if (subscriptions.length > BATCH_SIZE) {
+        console.log(`[Push Notification] Progress: ${Math.min((i + BATCH_SIZE), subscriptions.length)}/${subscriptions.length} processed`);
+      }
     }
 
-    console.log('Notification sending completed:', JSON.stringify(results, null, 2));
+    console.log('[Push Notification] Completed:', JSON.stringify(results, null, 2));
     
     return new Response(
       JSON.stringify({ 
@@ -128,7 +155,7 @@ serve(async (req) => {
     );
 
   } catch (error) {
-    console.error('Error in push notification function:', error);
+    console.error('[Push Notification] Error:', error);
     return new Response(
       JSON.stringify({ 
         error: error.message,

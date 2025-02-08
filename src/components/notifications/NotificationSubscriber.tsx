@@ -39,9 +39,29 @@ export const useNotificationSubscriber = ({
         return;
       }
 
-      const registration = await navigator.serviceWorker.ready;
+      // First, unregister any existing service workers
+      const registrations = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(registrations.map(registration => registration.unregister()));
+
+      // Register a new service worker
+      const registration = await navigator.serviceWorker.register('/service-worker.js', {
+        scope: '/'
+      });
+      
+      console.log('Service Worker registered:', registration);
+
+      // Wait for the service worker to be ready
+      await navigator.serviceWorker.ready;
       console.log('Service Worker ready, proceeding with subscription');
       
+      // Get existing subscription
+      const existingSubscription = await registration.pushManager.getSubscription();
+      if (existingSubscription) {
+        await existingSubscription.unsubscribe();
+        console.log('Unsubscribed from existing subscription');
+      }
+
+      // Create new subscription
       const subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey: vapidKey
@@ -49,7 +69,10 @@ export const useNotificationSubscriber = ({
 
       console.log('Push subscription successful:', subscription.endpoint);
 
-      // Store subscription with minimal data
+      // Get platform details
+      const platformDetails = await notificationManager.getPlatformDetails();
+
+      // Store subscription
       const { error } = await supabase
         .from('push_subscriptions')
         .upsert({
@@ -60,6 +83,9 @@ export const useNotificationSubscriber = ({
           device_type: platform,
           permission_state: permissionState,
           last_active: new Date().toISOString(),
+          platform_details: platformDetails,
+          error_count: 0,
+          retry_count: 0
         });
 
       if (error) throw error;
