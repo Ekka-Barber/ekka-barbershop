@@ -5,34 +5,35 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import NotificationPermissionDialog from './NotificationPermissionDialog';
+import InstallationGuide from './InstallationGuide';
 import { BellRing, BellOff } from 'lucide-react';
+import { 
+  getPlatformType, 
+  getInstallationStatus, 
+  isServiceWorkerSupported 
+} from '@/services/platformDetection';
 
 const PushNotificationToggle = () => {
   const [isSubscribed, setIsSubscribed] = useState(false);
-  const [dialogOpen, setDialogOpen] = useState(false);
+  const [permissionDialogOpen, setPermissionDialogOpen] = useState(false);
+  const [installationGuideOpen, setInstallationGuideOpen] = useState(false);
   const { language } = useLanguage();
   const [vapidKey, setVapidKey] = useState<string | null>(null);
-  const [isStandalone, setIsStandalone] = useState(false);
-  const [deviceType, setDeviceType] = useState<'ios' | 'android' | 'other'>('other');
+  const [platform] = useState(getPlatformType());
+  const [installationStatus, setInstallationStatus] = useState(getInstallationStatus());
 
   useEffect(() => {
-    // Check if the app is running in standalone mode (installed as PWA)
-    const isRunningStandalone = window.matchMedia('(display-mode: standalone)').matches ||
-      (window.navigator as any).standalone ||
-      document.referrer.includes('android-app://');
-    
-    setIsStandalone(isRunningStandalone);
+    // Update installation status on mount and when visibility changes
+    const handleVisibilityChange = () => {
+      setInstallationStatus(getInstallationStatus());
+    };
 
-    // Detect device type
-    const userAgent = navigator.userAgent.toLowerCase();
-    if (/iphone|ipad|ipod/.test(userAgent)) {
-      setDeviceType('ios');
-    } else if (/android/.test(userAgent)) {
-      setDeviceType('android');
-    }
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, []);
 
-    // Only proceed with push notification setup if running as PWA
-    if (isRunningStandalone && 'serviceWorker' in navigator && 'PushManager' in window) {
+  useEffect(() => {
+    if (installationStatus === 'installed' && isServiceWorkerSupported()) {
       // Get VAPID key from Edge Function
       supabase.functions.invoke('get-vapid-key')
         .then(({ data }) => {
@@ -48,7 +49,25 @@ const PushNotificationToggle = () => {
         })
         .catch(console.error);
     }
-  }, [vapidKey]);
+  }, [installationStatus, vapidKey]);
+
+  const handleEnableNotifications = () => {
+    if (installationStatus !== 'installed') {
+      setInstallationGuideOpen(true);
+      return;
+    }
+
+    if (!isServiceWorkerSupported()) {
+      toast.error(
+        language === 'ar' 
+          ? 'عذراً، متصفحك لا يدعم الإشعارات'
+          : 'Sorry, your browser does not support notifications'
+      );
+      return;
+    }
+
+    setPermissionDialogOpen(true);
+  };
 
   const subscribeUser = async () => {
     try {
@@ -71,16 +90,24 @@ const PushNotificationToggle = () => {
           p256dh: subscription.toJSON().keys.p256dh,
           auth: subscription.toJSON().keys.auth,
           status: 'active',
-          device_type: deviceType
+          device_type: platform
         }]);
 
       if (error) throw error;
 
       setIsSubscribed(true);
-      toast.success(language === 'ar' ? 'تم تفعيل الإشعارات بنجاح' : 'Notifications enabled successfully');
+      toast.success(
+        language === 'ar' 
+          ? 'تم تفعيل الإشعارات بنجاح'
+          : 'Notifications enabled successfully'
+      );
     } catch (err) {
       console.error('Error subscribing to push notifications:', err);
-      toast.error(language === 'ar' ? 'حدث خطأ أثناء تفعيل الإشعارات' : 'Error enabling notifications');
+      toast.error(
+        language === 'ar' 
+          ? 'حدث خطأ أثناء تفعيل الإشعارات'
+          : 'Error enabling notifications'
+      );
     }
   };
 
@@ -102,36 +129,30 @@ const PushNotificationToggle = () => {
       }
       
       setIsSubscribed(false);
-      toast.success(language === 'ar' ? 'تم إلغاء تفعيل الإشعارات' : 'Notifications disabled');
+      toast.success(
+        language === 'ar' 
+          ? 'تم إلغاء تفعيل الإشعارات'
+          : 'Notifications disabled'
+      );
     } catch (err) {
       console.error('Error unsubscribing from push notifications:', err);
-      toast.error(language === 'ar' ? 'حدث خطأ أثناء إلغاء تفعيل الإشعارات' : 'Error disabling notifications');
+      toast.error(
+        language === 'ar' 
+          ? 'حدث خطأ أثناء إلغاء تفعيل الإشعارات'
+          : 'Error disabling notifications'
+      );
     }
   };
 
-  // Only show the button if the app is installed as PWA
-  if (!isStandalone || !('serviceWorker' in navigator) || !('PushManager' in window)) {
+  // Hide the button if notifications are not supported
+  if (!isServiceWorkerSupported() && installationStatus !== 'not-installed') {
     return null;
-  }
-
-  // For iOS, show installation instruction if not installed
-  if (deviceType === 'ios' && !isStandalone) {
-    return (
-      <div className="mt-4 p-4 bg-yellow-50 rounded-lg">
-        <p className="text-sm text-yellow-800">
-          {language === 'ar' 
-            ? 'لتفعيل الإشعارات، يرجى إضافة التطبيق إلى الشاشة الرئيسية أولاً'
-            : 'To enable notifications, please add this app to your home screen first'
-          }
-        </p>
-      </div>
-    );
   }
 
   return (
     <>
       <Button
-        onClick={() => isSubscribed ? unsubscribeUser() : setDialogOpen(true)}
+        onClick={() => isSubscribed ? unsubscribeUser() : handleEnableNotifications()}
         variant="outline"
         className="mt-4"
       >
@@ -149,13 +170,21 @@ const PushNotificationToggle = () => {
       </Button>
 
       <NotificationPermissionDialog
-        open={dialogOpen}
-        onOpenChange={setDialogOpen}
+        open={permissionDialogOpen}
+        onOpenChange={setPermissionDialogOpen}
         onAccept={subscribeUser}
+      />
+
+      <InstallationGuide
+        open={installationGuideOpen}
+        onOpenChange={setInstallationGuideOpen}
+        onComplete={() => {
+          setInstallationGuideOpen(false);
+          setPermissionDialogOpen(true);
+        }}
       />
     </>
   );
 };
 
 export default PushNotificationToggle;
-
