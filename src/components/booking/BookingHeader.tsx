@@ -1,5 +1,7 @@
+
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Link } from "react-router-dom";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
 interface BookingHeaderProps {
   branchName: string | undefined;
@@ -12,6 +14,9 @@ export const BookingHeader = ({ branchName, branchAddress, isLoading }: BookingH
   
   return (
     <div className="text-center mb-8">
+      <div className="flex justify-end mb-4">
+        <LanguageSwitcher />
+      </div>
       <Link to="/customer">
         <img 
           src="/lovable-uploads/8289fb1d-c6e6-4528-980c-6b52313ca898.png"

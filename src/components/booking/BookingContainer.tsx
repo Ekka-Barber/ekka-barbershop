@@ -1,6 +1,6 @@
+
 import { useNavigate, useLocation } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { BookingHeader } from "@/components/booking/BookingHeader";
 import { BookingSteps } from "@/components/booking/BookingSteps";
 import { useQuery } from "@tanstack/react-query";
@@ -58,7 +58,6 @@ export const BookingContainer = () => {
         />
         <BookingSteps branch={branch} />
       </div>
-      <LanguageSwitcher />
     </div>
   );
 };
