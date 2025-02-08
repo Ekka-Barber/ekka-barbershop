@@ -553,6 +553,44 @@ export type Database = {
           },
         ]
       }
+      notification_events: {
+        Row: {
+          action: string | null
+          created_at: string
+          event_type: string
+          id: string
+          notification_data: Json | null
+          subscription_endpoint: string | null
+          updated_at: string
+        }
+        Insert: {
+          action?: string | null
+          created_at?: string
+          event_type: string
+          id?: string
+          notification_data?: Json | null
+          subscription_endpoint?: string | null
+          updated_at?: string
+        }
+        Update: {
+          action?: string | null
+          created_at?: string
+          event_type?: string
+          id?: string
+          notification_data?: Json | null
+          subscription_endpoint?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_events_subscription_endpoint_fkey"
+            columns: ["subscription_endpoint"]
+            isOneToOne: false
+            referencedRelation: "push_subscriptions"
+            referencedColumns: ["endpoint"]
+          },
+        ]
+      }
       notification_messages: {
         Row: {
           body_ar: string
