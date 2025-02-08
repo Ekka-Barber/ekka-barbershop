@@ -553,80 +553,84 @@ export type Database = {
           },
         ]
       }
-      notification_events: {
+      notification_deliveries: {
         Row: {
-          action: string | null
-          created_at: string
-          delivery_status: string | null
-          error_details: Json | null
-          event_type: string
+          clicked_at: string | null
+          created_at: string | null
+          delivered_at: string | null
+          error: string | null
           id: string
-          notification_data: Json | null
-          subscription_endpoint: string | null
-          updated_at: string
+          message_id: string | null
+          sent_at: string | null
+          status: string | null
+          subscription_id: string | null
         }
         Insert: {
-          action?: string | null
-          created_at?: string
-          delivery_status?: string | null
-          error_details?: Json | null
-          event_type: string
+          clicked_at?: string | null
+          created_at?: string | null
+          delivered_at?: string | null
+          error?: string | null
           id?: string
-          notification_data?: Json | null
-          subscription_endpoint?: string | null
-          updated_at?: string
+          message_id?: string | null
+          sent_at?: string | null
+          status?: string | null
+          subscription_id?: string | null
         }
         Update: {
-          action?: string | null
-          created_at?: string
-          delivery_status?: string | null
-          error_details?: Json | null
-          event_type?: string
+          clicked_at?: string | null
+          created_at?: string | null
+          delivered_at?: string | null
+          error?: string | null
           id?: string
-          notification_data?: Json | null
-          subscription_endpoint?: string | null
-          updated_at?: string
+          message_id?: string | null
+          sent_at?: string | null
+          status?: string | null
+          subscription_id?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "notification_events_subscription_endpoint_fkey"
-            columns: ["subscription_endpoint"]
+            foreignKeyName: "notification_deliveries_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "notification_messages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notification_deliveries_subscription_id_fkey"
+            columns: ["subscription_id"]
             isOneToOne: false
             referencedRelation: "push_subscriptions"
-            referencedColumns: ["endpoint"]
+            referencedColumns: ["id"]
           },
         ]
       }
       notification_messages: {
         Row: {
-          body_ar: string
-          body_en: string
-          created_at: string
+          body: string
+          created_at: string | null
+          icon: string | null
           id: string
-          stats: Json | null
-          title_ar: string
-          title_en: string
-          updated_at: string
+          sent_at: string | null
+          title: string
+          url: string | null
         }
         Insert: {
-          body_ar: string
-          body_en: string
-          created_at?: string
+          body: string
+          created_at?: string | null
+          icon?: string | null
           id?: string
-          stats?: Json | null
-          title_ar: string
-          title_en: string
-          updated_at?: string
+          sent_at?: string | null
+          title: string
+          url?: string | null
         }
         Update: {
-          body_ar?: string
-          body_en?: string
-          created_at?: string
+          body?: string
+          created_at?: string | null
+          icon?: string | null
           id?: string
-          stats?: Json | null
-          title_ar?: string
-          title_en?: string
-          updated_at?: string
+          sent_at?: string | null
+          title?: string
+          url?: string | null
         }
         Relationships: []
       }
@@ -668,57 +672,42 @@ export type Database = {
       push_subscriptions: {
         Row: {
           auth: string
-          created_at: string
-          device_type: string | null
+          created_at: string | null
           endpoint: string
           error_count: number | null
           id: string
           last_active: string | null
-          last_error_at: string | null
-          last_error_details: Json | null
-          last_retry_at: string | null
           p256dh: string
-          permission_state: string | null
-          platform_details: Json | null
-          retry_count: number | null
+          platform: string | null
           status: string | null
-          updated_at: string
+          updated_at: string | null
+          user_agent: string | null
         }
         Insert: {
           auth: string
-          created_at?: string
-          device_type?: string | null
+          created_at?: string | null
           endpoint: string
           error_count?: number | null
           id?: string
           last_active?: string | null
-          last_error_at?: string | null
-          last_error_details?: Json | null
-          last_retry_at?: string | null
           p256dh: string
-          permission_state?: string | null
-          platform_details?: Json | null
-          retry_count?: number | null
+          platform?: string | null
           status?: string | null
-          updated_at?: string
+          updated_at?: string | null
+          user_agent?: string | null
         }
         Update: {
           auth?: string
-          created_at?: string
-          device_type?: string | null
+          created_at?: string | null
           endpoint?: string
           error_count?: number | null
           id?: string
           last_active?: string | null
-          last_error_at?: string | null
-          last_error_details?: Json | null
-          last_retry_at?: string | null
           p256dh?: string
-          permission_state?: string | null
-          platform_details?: Json | null
-          retry_count?: number | null
+          platform?: string | null
           status?: string | null
-          updated_at?: string
+          updated_at?: string | null
+          user_agent?: string | null
         }
         Relationships: []
       }
@@ -984,41 +973,6 @@ export type Database = {
             columns: ["category_id"]
             isOneToOne: false
             referencedRelation: "service_categories"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      subscription_retries: {
-        Row: {
-          error_details: Json | null
-          id: string
-          retry_reason: string | null
-          retry_timestamp: string | null
-          subscription_id: string | null
-          success: boolean | null
-        }
-        Insert: {
-          error_details?: Json | null
-          id?: string
-          retry_reason?: string | null
-          retry_timestamp?: string | null
-          subscription_id?: string | null
-          success?: boolean | null
-        }
-        Update: {
-          error_details?: Json | null
-          id?: string
-          retry_reason?: string | null
-          retry_timestamp?: string | null
-          subscription_id?: string | null
-          success?: boolean | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "subscription_retries_subscription_id_fkey"
-            columns: ["subscription_id"]
-            isOneToOne: false
-            referencedRelation: "push_subscriptions"
             referencedColumns: ["id"]
           },
         ]
