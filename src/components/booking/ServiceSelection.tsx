@@ -43,6 +43,7 @@ interface ServiceSelectionProps {
   isLoading: boolean;
   selectedServices: SelectedService[];
   onServiceToggle: (service: Service) => void;
+  onStepChange?: (step: string) => void;
 }
 
 const roundPrice = (price: number) => {
@@ -59,7 +60,8 @@ export const ServiceSelection = ({
   categories,
   isLoading,
   selectedServices,
-  onServiceToggle
+  onServiceToggle,
+  onStepChange
 }: ServiceSelectionProps) => {
   const { language } = useLanguage();
   const [activeCategory, setActiveCategory] = useState<string | null>(
@@ -67,7 +69,6 @@ export const ServiceSelection = ({
   );
   const [selectedService, setSelectedService] = useState<Service | null>(null);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
-  const [currentStep, setCurrentStep] = useState('barber');
 
   useEffect(() => {
     if (activeCategory) {
@@ -239,7 +240,7 @@ export const ServiceSelection = ({
 
       {/* Service Details Sheet */}
       <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-        <SheetContent side="bottom" className="max-h-[80vh] h-fit">
+        <SheetContent side="bottom" className="h-fit">
           {selectedService && (
             <>
               <SheetHeader>
@@ -321,7 +322,8 @@ export const ServiceSelection = ({
             </div>
             <Button 
               className="bg-[#e7bd71] hover:bg-[#d4ad65]"
-              onClick={() => setCurrentStep('barber')}
+              onClick={() => onStepChange?.('barber')}
+              disabled={selectedServices.length === 0}
             >
               {language === 'ar' ? 'التالي' : 'Next'}
             </Button>
