@@ -48,3 +48,4 @@ export const useNotificationAnalytics = (messages: NotificationMessage[]) => {
 
   return { analytics, fetchAnalytics };
 };
+

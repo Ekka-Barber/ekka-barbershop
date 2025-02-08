@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { NotificationMessage } from "@/types/notifications";
+import { NotificationMessage, NotificationStats } from "@/types/notifications";
 
 export const useNotificationMessages = () => {
   const [messages, setMessages] = useState<NotificationMessage[]>([]);
@@ -39,3 +39,4 @@ export const useNotificationMessages = () => {
 
   return { messages, loading, setMessages, fetchMessages };
 };
+

@@ -36,3 +36,4 @@ export interface NotificationTracking {
   };
   created_at: string;
 }
+
