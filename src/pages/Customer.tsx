@@ -49,9 +49,9 @@ const Customer = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 flex flex-col">
-      <div className="sticky top-0 z-50 bg-gradient-to-b from-gray-50 to-transparent p-4">
-        <div className="max-w-md mx-auto">
-          <div className="flex justify-end">
+      <div className="sticky top-0 z-50 bg-gradient-to-b from-gray-50 to-transparent h-11">
+        <div className="max-w-md mx-auto h-full">
+          <div className="flex justify-end h-full">
             <LanguageSwitcher />
           </div>
         </div>
@@ -184,3 +184,4 @@ const Customer = () => {
 };
 
 export default Customer;
+
