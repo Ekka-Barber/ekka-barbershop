@@ -1,6 +1,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { getPlatformType } from './platformDetection';
+import { Json } from "@/integrations/supabase/types";
 
 export type PermissionState = 'pending' | 'granted' | 'denied' | 'prompt';
 export type NotificationStatus = 'active' | 'inactive' | 'expired' | 'retry';
@@ -9,6 +10,7 @@ interface PlatformDetails {
   os: string;
   browser: string;
   version: string;
+  [key: string]: string; // Add index signature to make it compatible with Json type
 }
 
 export class NotificationManager {
@@ -55,9 +57,9 @@ export class NotificationManager {
       .from('push_subscriptions')
       .update({
         status,
-        platform_details: platformDetails,
+        platform_details: platformDetails as Json,
         last_active: new Date().toISOString(),
-        error_count: error ? supabase.rpc('increment', { x: 1 }) : 0,
+        error_count: error ? await supabase.rpc('increment', { x: 1 }).then(result => result.data || 0) : 0,
         last_error_at: error ? new Date().toISOString() : null,
         last_error_details: error ? { message: error.message } : null
       })
@@ -68,7 +70,7 @@ export class NotificationManager {
     }
   }
 
-  async handlePermissionChange(state: PermissionState): Promise<void> {
+  async handlePermissionChange(state: NotificationPermission): Promise<void> {
     if (!this.currentSubscription) return;
 
     const { error } = await supabase

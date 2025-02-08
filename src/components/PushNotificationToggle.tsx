@@ -12,7 +12,9 @@ import {
   getInstallationStatus, 
   isServiceWorkerSupported 
 } from '@/services/platformDetection';
-import { notificationManager, type NotificationStatus } from '@/services/notificationManager';
+import { notificationManager } from '@/services/notificationManager';
+import type { NotificationStatus } from '@/services/notificationManager';
+import type { Json } from '@/integrations/supabase/types';
 
 const PushNotificationToggle = () => {
   const [isSubscribed, setIsSubscribed] = useState(false);
@@ -98,6 +100,7 @@ const PushNotificationToggle = () => {
       });
 
       // Store subscription with enhanced tracking
+      const platformDetails = await notificationManager.getPlatformDetails();
       const { error } = await supabase
         .from('push_subscriptions')
         .upsert({
@@ -106,8 +109,8 @@ const PushNotificationToggle = () => {
           auth: subscription.toJSON().keys.auth,
           status: 'active' as NotificationStatus,
           device_type: platform,
-          permission_state: 'granted',
-          platform_details: await notificationManager.getPlatformDetails(),
+          permission_state: permissionState,
+          platform_details: platformDetails as Json,
           last_active: new Date().toISOString(),
           error_count: 0,
           retry_count: 0
