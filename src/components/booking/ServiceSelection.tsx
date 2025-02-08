@@ -61,7 +61,7 @@ export const ServiceSelection = ({
   }
 
   return (
-    <div className="space-y-6 pb-[4.5rem]">
+    <div className="space-y-6 pb-4">
       <CategoryTabs
         categories={sortedCategories || []}
         activeCategory={activeCategory}
