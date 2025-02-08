@@ -19,13 +19,38 @@ const logError = (message, error) => {
 self.addEventListener('install', (event) => {
   log('Installing service worker');
   self.skipWaiting();
+
+  event.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => {
+      return cache.addAll([
+        '/',
+        '/index.html',
+        '/manifest.json'
+      ]);
+    })
+  );
 });
 
 // Activate event - Clean up old caches
 self.addEventListener('activate', (event) => {
   log('Activating service worker');
-  event.waitUntil(self.clients.claim());
+  
+  event.waitUntil(
+    Promise.all([
+      self.clients.claim(),
+      caches.keys().then((cacheNames) => {
+        return Promise.all(
+          cacheNames
+            .filter((cacheName) => cacheName !== CACHE_NAME)
+            .map((cacheName) => caches.delete(cacheName))
+        );
+      })
+    ])
+  );
 });
+
+// Queue for storing failed notification attempts
+let notificationQueue = [];
 
 // Push event - Handle incoming notifications
 self.addEventListener('push', async (event) => {
@@ -53,13 +78,38 @@ self.addEventListener('push', async (event) => {
         timestamp: Date.now()
       },
       requireInteraction: true,
-      tag: `ekka-notification-${notificationData.message_id || Date.now()}`
+      tag: `ekka-notification-${notificationData.message_id || Date.now()}`,
+      ...(notificationData.platform_data || {})
     };
 
+    // If offline, queue the notification
+    if (!navigator.onLine) {
+      notificationQueue.push({ title: notificationData.title, options });
+      return;
+    }
+
     event.waitUntil(
-      self.registration.showNotification(notificationData.title, options)
-        .then(() => log('Notification shown successfully'))
-        .catch(error => logError('Error showing notification:', error))
+      (async () => {
+        try {
+          await self.registration.showNotification(notificationData.title, options);
+          log('Notification shown successfully');
+          
+          // Track successful delivery
+          await fetch('/api/track-notification', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              event: 'delivered',
+              messageId: notificationData.message_id,
+              timestamp: new Date().toISOString()
+            })
+          });
+        } catch (error) {
+          logError('Error showing notification:', error);
+          notificationQueue.push({ title: notificationData.title, options });
+          throw error;
+        }
+      })()
     );
   } catch (error) {
     logError('Error handling push event:', error);
@@ -67,19 +117,43 @@ self.addEventListener('push', async (event) => {
   }
 });
 
+// Process queued notifications when coming back online
+self.addEventListener('online', () => {
+  log('Connection restored, processing queued notifications');
+  
+  while (notificationQueue.length > 0) {
+    const { title, options } = notificationQueue.shift();
+    self.registration.showNotification(title, options)
+      .catch(error => logError('Error showing queued notification:', error));
+  }
+});
+
 // Notification click event
 self.addEventListener('notificationclick', (event) => {
   log('Notification clicked', {
-    tag: event.notification.tag
+    tag: event.notification.tag,
+    data: event.notification.data
   });
   
   event.notification.close();
   
   event.waitUntil(
-    clients.matchAll({ type: 'window', includeUncontrolled: true })
-      .then(clientList => {
+    (async () => {
+      try {
+        // Track the click
+        await fetch('/api/track-notification', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            event: 'clicked',
+            messageId: event.notification.data.messageId,
+            timestamp: new Date().toISOString()
+          })
+        });
+
         // Try to focus existing window
-        for (let client of clientList) {
+        const windowClients = await clients.matchAll({ type: 'window', includeUncontrolled: true });
+        for (let client of windowClients) {
           if (client.url === event.notification.data.url && 'focus' in client) {
             return client.focus();
           }
@@ -88,8 +162,10 @@ self.addEventListener('notificationclick', (event) => {
         if (clients.openWindow) {
           return clients.openWindow(event.notification.data.url);
         }
-      })
-      .catch(error => logError('Error handling notification click:', error))
+      } catch (error) {
+        logError('Error handling notification click:', error);
+      }
+    })()
   );
 });
 
@@ -101,4 +177,14 @@ self.addEventListener('fetch', (event) => {
         return caches.match(event.request);
       })
   );
+});
+
+// Error handling
+self.addEventListener('error', (event) => {
+  logError('Service worker error:', event.error);
+});
+
+// Unhandled rejection handling
+self.addEventListener('unhandledrejection', (event) => {
+  logError('Unhandled promise rejection:', event.reason);
 });

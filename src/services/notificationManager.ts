@@ -1,5 +1,7 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { getPlatformType } from './platformDetection';
+import type { NotificationStats, NotificationSubscription } from '@/types/notifications';
 
 export type PermissionState = 'pending' | 'granted' | 'denied' | 'prompt';
 export type NotificationStatus = 'active' | 'inactive' | 'expired' | 'retry';
@@ -17,14 +19,68 @@ export class NotificationManager {
   private retryTimeout: NodeJS.Timeout | null = null;
   private maxRetries = 5;
   private batchSize = 100;
+  private retryDelayBase = 1000; // Base delay in milliseconds
 
-  private constructor() {}
+  private constructor() {
+    // Initialize offline support
+    if (typeof window !== 'undefined') {
+      window.addEventListener('online', this.handleNetworkChange.bind(this));
+      window.addEventListener('offline', this.handleNetworkChange.bind(this));
+    }
+  }
 
   static getInstance(): NotificationManager {
     if (!this.instance) {
       this.instance = new NotificationManager();
     }
     return this.instance;
+  }
+
+  private async handleNetworkChange(event: Event): Promise<void> {
+    if (event.type === 'online') {
+      await this.processPendingNotifications();
+    }
+  }
+
+  private async processPendingNotifications(): Promise<void> {
+    try {
+      const { data: pendingDeliveries } = await supabase
+        .from('notification_deliveries')
+        .select('*')
+        .eq('status', 'pending')
+        .limit(this.batchSize);
+
+      if (pendingDeliveries) {
+        for (const delivery of pendingDeliveries) {
+          await this.retryDelivery(delivery);
+        }
+      }
+    } catch (error) {
+      console.error('Error processing pending notifications:', error);
+    }
+  }
+
+  private async retryDelivery(delivery: any): Promise<void> {
+    try {
+      // Implement retry logic here
+      const { data: subscription } = await supabase
+        .from('push_subscriptions')
+        .select('*')
+        .eq('id', delivery.subscription_id)
+        .single();
+
+      if (subscription) {
+        // Retry the notification delivery
+        await supabase.functions.invoke('push-notification', {
+          body: { 
+            subscription,
+            message: delivery.notification_data
+          }
+        });
+      }
+    } catch (error) {
+      console.error('Error retrying delivery:', error);
+    }
   }
 
   async getPlatformDetails(): Promise<PlatformDetails> {
@@ -58,47 +114,63 @@ export class NotificationManager {
         .single();
 
       const newErrorCount = result.success ? 0 : ((currentData?.error_count || 0) + 1);
+      const now = new Date().toISOString();
+
+      const updateData: any = {
+        status,
+        error_count: newErrorCount,
+        last_active: now,
+        updated_at: now
+      };
+
+      if (!result.success) {
+        updateData.last_error_at = now;
+        updateData.last_error_details = { 
+          message: result.error,
+          timestamp: now
+        };
+      }
 
       const { error } = await supabase
         .from('push_subscriptions')
-        .update({
-          status,
-          error_count: newErrorCount,
-          last_error_at: result.success ? null : new Date().toISOString(),
-          last_error_details: result.success ? null : { message: result.error }
-        })
+        .update(updateData)
         .eq('endpoint', result.endpoint);
 
       if (error) {
         console.error('Error updating subscription status:', error);
       }
+
+      // Track the event
+      await this.trackNotificationEvent(result.endpoint, result.success ? 'success' : 'failed', result.error);
     });
 
     await Promise.all(updates);
   }
 
-  async handlePermissionChange(state: NotificationPermission): Promise<void> {
-    if (!this.currentSubscription) return;
-
-    const { error } = await supabase
-      .from('push_subscriptions')
-      .update({
-        permission_state: state,
-        updated_at: new Date().toISOString()
-      })
-      .eq('endpoint', this.currentSubscription.endpoint);
-
-    if (error) {
-      console.error('Error updating permission state:', error);
+  private async trackNotificationEvent(
+    endpoint: string,
+    status: 'success' | 'failed',
+    error?: string
+  ): Promise<void> {
+    try {
+      await supabase.functions.invoke('track-notification', {
+        body: {
+          event: status,
+          subscription: { endpoint },
+          error: error ? { message: error, timestamp: new Date().toISOString() } : undefined
+        }
+      });
+    } catch (err) {
+      console.error('Error tracking notification event:', err);
     }
   }
 
-  async getActiveSubscriptions(): Promise<any[]> {
+  async getActiveSubscriptions(): Promise<NotificationSubscription[]> {
     const { data, error } = await supabase
       .from('push_subscriptions')
-      .select('endpoint, p256dh, auth')
+      .select('*')
       .eq('status', 'active')
-      .lt('error_count', 3)
+      .lt('error_count', this.maxRetries)
       .gte('last_active', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString());
 
     if (error) {
@@ -109,23 +181,52 @@ export class NotificationManager {
     return data || [];
   }
 
+  async cleanupExpiredSubscriptions(): Promise<void> {
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+    try {
+      const { error } = await supabase
+        .from('push_subscriptions')
+        .update({ status: 'expired' })
+        .lt('last_active', thirtyDaysAgo.toISOString())
+        .eq('status', 'active');
+
+      if (error) {
+        console.error('Error cleaning up expired subscriptions:', error);
+      }
+    } catch (err) {
+      console.error('Error in cleanup process:', err);
+    }
+  }
+
   async retrySubscription(subscription: PushSubscription): Promise<void> {
     const { data: subData } = await supabase
       .from('push_subscriptions')
-      .select('error_count')
+      .select('error_count, status')
       .eq('endpoint', subscription.endpoint)
       .single();
 
     if (!subData || (subData.error_count || 0) >= this.maxRetries) {
-      await this.updateSubscriptionStatuses([{ endpoint: subscription.endpoint, success: false, error: 'Max retries exceeded' }]);
+      await this.updateSubscriptionStatuses([
+        { 
+          endpoint: subscription.endpoint, 
+          success: false, 
+          error: 'Max retries exceeded' 
+        }
+      ]);
       return;
     }
 
     try {
-      // Attempt to resubscribe
       const newSubscription = await this.resubscribe(subscription);
       if (newSubscription) {
-        await this.updateSubscriptionStatuses([{ endpoint: newSubscription.endpoint, success: true }]);
+        await this.updateSubscriptionStatuses([
+          { 
+            endpoint: newSubscription.endpoint, 
+            success: true 
+          }
+        ]);
       }
     } catch (error) {
       console.error('Error retrying subscription:', error);
@@ -157,7 +258,17 @@ export class NotificationManager {
   }
 
   private async scheduleRetry(subscription: PushSubscription): Promise<void> {
-    const retryDelay = Math.pow(2, (subscription as any).retry_count || 0) * 1000 * 60; // Exponential backoff
+    const { data: subData } = await supabase
+      .from('push_subscriptions')
+      .select('error_count')
+      .eq('endpoint', subscription.endpoint)
+      .single();
+
+    const retryCount = (subData?.error_count || 0);
+    const retryDelay = Math.min(
+      Math.pow(2, retryCount) * this.retryDelayBase,
+      30 * 60 * 1000 // Max 30 minutes
+    );
     
     if (this.retryTimeout) {
       clearTimeout(this.retryTimeout);
