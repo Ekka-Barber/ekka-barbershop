@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -177,7 +176,9 @@ const Customer = () => {
         </DialogContent>
       </Dialog>
 
-      <LanguageSwitcher />
+      <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2">
+        <LanguageSwitcher />
+      </div>
     </div>
   );
 };
