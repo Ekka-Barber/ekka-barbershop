@@ -1,13 +1,15 @@
-
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Skeleton } from "@/components/ui/skeleton";
+import { ServicesSkeleton } from "./ServicesSkeleton";
 import { Badge } from "@/components/ui/badge";
 import { Slash, Timer, Plus, Check } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
+import { FixedSizeGrid as Grid } from 'react-window';
+import PullToRefresh from 'react-pull-to-refresh';
+import { cacheServices, getCachedServices, cacheActiveCategory, getCachedActiveCategory } from "@/utils/serviceCache";
 
 interface Service {
   id: string;
@@ -62,10 +64,35 @@ export const ServiceSelection = ({
 }: ServiceSelectionProps) => {
   const { language } = useLanguage();
   const [activeCategory, setActiveCategory] = useState<string | null>(
-    categories?.[0]?.id || null
+    getCachedActiveCategory() || categories?.[0]?.id || null
   );
   const [selectedService, setSelectedService] = useState<Service | null>(null);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  useEffect(() => {
+    if (activeCategory) {
+      cacheActiveCategory(activeCategory);
+    }
+  }, [activeCategory]);
+
+  useEffect(() => {
+    if (selectedServices.length > 0) {
+      cacheServices(selectedServices);
+    }
+  }, [selectedServices]);
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    try {
+      // Trigger a refetch of the categories data
+      // This should be handled by the parent component's refetch function
+      // For now, we'll just simulate a refresh
+      await new Promise(resolve => setTimeout(resolve, 1000));
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
 
   const trackServiceAction = async (service: Service, action: 'added' | 'removed') => {
     try {
@@ -117,33 +144,88 @@ export const ServiceSelection = ({
     setIsSheetOpen(true);
   };
 
-  // Sort categories by display_order
   const sortedCategories = categories?.slice().sort((a, b) => a.display_order - b.display_order);
-
-  if (isLoading) {
-    return (
-      <div className="space-y-4">
-        <div className="flex overflow-x-auto pb-2 hide-scrollbar">
-          {Array(4).fill(0).map((_, i) => (
-            <Skeleton key={i} className="h-10 w-32 mx-1 flex-shrink-0 rounded-full" />
-          ))}
-        </div>
-        <div className="grid grid-cols-2 gap-4">
-          {Array(4).fill(0).map((_, i) => (
-            <Skeleton key={i} className="h-48 w-full rounded-lg" />
-          ))}
-        </div>
-      </div>
-    );
-  }
-
   const activeCategoryServices = sortedCategories?.find(
     cat => cat.id === activeCategory
   )?.services.sort((a, b) => a.display_order - b.display_order);
 
+  if (isLoading) {
+    return <ServicesSkeleton />;
+  }
+
+  const ServiceCard = ({ service }: { service: Service }) => (
+    <div
+      className={`rounded-lg border p-4 space-y-2 transition-all cursor-pointer relative ${
+        selectedServices.some(s => s.id === service.id)
+          ? 'bg-[#e7bd71]/10 border-[#e7bd71]'
+          : 'hover:border-gray-300'
+      }`}
+      onClick={() => handleServiceClick(service)}
+    >
+      <div className="flex justify-between items-start">
+        <h3 className="font-medium">
+          {language === 'ar' ? service.name_ar : service.name_en}
+        </h3>
+        {hasDiscount(service) && (
+          <Badge variant="destructive" className="text-xs">
+            {service.discount_type === 'percentage' 
+              ? `${service.discount_value}%` 
+              : formatPrice(service.discount_value || 0)}
+          </Badge>
+        )}
+      </div>
+
+      <div className="flex items-center text-sm text-gray-500">
+        <Timer className="w-4 h-4 mr-1" />
+        <span>
+          {service.duration} {language === 'ar' 
+            ? getArabicTimeUnit(service.duration)
+            : 'min'}
+        </span>
+      </div>
+
+      <div className="flex items-center justify-between mt-2">
+        <div className="flex items-center gap-2">
+          {hasDiscount(service) ? (
+            <>
+              <span className="relative inline-flex items-center text-sm text-gray-500">
+                {formatPrice(service.price)}
+                <Slash className="w-4 h-4 text-destructive absolute -translate-y-1/2 top-1/2 left-1/2 -translate-x-1/2" />
+              </span>
+              <span className="font-medium">
+                {formatPrice(calculateDiscountedPrice(service))}
+              </span>
+            </>
+          ) : (
+            <span>{formatPrice(service.price)}</span>
+          )}
+        </div>
+        
+        <Button
+          size="sm"
+          variant={selectedServices.some(s => s.id === service.id) ? "default" : "outline"}
+          className={`rounded-full p-2 h-8 w-8 ${
+            selectedServices.some(s => s.id === service.id)
+              ? 'bg-[#e7bd71] hover:bg-[#d4ad65]'
+              : ''
+          }`}
+          onClick={(e) => {
+            e.stopPropagation();
+            handleServiceToggle(service);
+          }}
+        >
+          {selectedServices.some(s => s.id === service.id) ? (
+            <Check className="h-4 w-4" />
+          ) : (
+            <Plus className="h-4 w-4" />
+          )}
+        </Button>
+      </div>
+    </div>
+  );
+
   return (
     <div className="space-y-6">
-      {/* Categories Pills */}
       <div className="flex overflow-x-auto pb-2 hide-scrollbar sticky top-0 bg-white z-10 pt-2">
         {sortedCategories?.map((category) => (
           <button
@@ -160,80 +242,18 @@ export const ServiceSelection = ({
         ))}
       </div>
 
-      {/* Services Grid */}
-      <div className="grid grid-cols-2 gap-4">
-        {activeCategoryServices?.map((service) => (
-          <div
-            key={service.id}
-            className={`rounded-lg border p-4 space-y-2 transition-all cursor-pointer relative ${
-              selectedServices.some(s => s.id === service.id)
-                ? 'bg-[#e7bd71]/10 border-[#e7bd71]'
-                : 'hover:border-gray-300'
-            }`}
-            onClick={() => handleServiceClick(service)}
-          >
-            <div className="flex justify-between items-start">
-              <h3 className="font-medium">
-                {language === 'ar' ? service.name_ar : service.name_en}
-              </h3>
-              {hasDiscount(service) && (
-                <Badge variant="destructive" className="text-xs">
-                  {service.discount_type === 'percentage' 
-                    ? `${service.discount_value}%` 
-                    : formatPrice(service.discount_value || 0)}
-                </Badge>
-              )}
-            </div>
-
-            <div className="flex items-center text-sm text-gray-500">
-              <Timer className="w-4 h-4 mr-1" />
-              <span>
-                {service.duration} {language === 'ar' 
-                  ? getArabicTimeUnit(service.duration)
-                  : 'min'}
-              </span>
-            </div>
-
-            <div className="flex items-center justify-between mt-2">
-              <div className="flex items-center gap-2">
-                {hasDiscount(service) ? (
-                  <>
-                    <span className="relative inline-flex items-center text-sm text-gray-500">
-                      {formatPrice(service.price)}
-                      <Slash className="w-4 h-4 text-destructive absolute -translate-y-1/2 top-1/2 left-1/2 -translate-x-1/2" />
-                    </span>
-                    <span className="font-medium">
-                      {formatPrice(calculateDiscountedPrice(service))}
-                    </span>
-                  </>
-                ) : (
-                  <span>{formatPrice(service.price)}</span>
-                )}
-              </div>
-              
-              <Button
-                size="sm"
-                variant={selectedServices.some(s => s.id === service.id) ? "default" : "outline"}
-                className={`rounded-full p-2 h-8 w-8 ${
-                  selectedServices.some(s => s.id === service.id)
-                    ? 'bg-[#e7bd71] hover:bg-[#d4ad65]'
-                    : ''
-                }`}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleServiceToggle(service);
-                }}
-              >
-                {selectedServices.some(s => s.id === service.id) ? (
-                  <Check className="h-4 w-4" />
-                ) : (
-                  <Plus className="h-4 w-4" />
-                )}
-              </Button>
-            </div>
-          </div>
-        ))}
-      </div>
+      <PullToRefresh
+        onRefresh={handleRefresh}
+        className="pull-to-refresh"
+        pullDownThreshold={70}
+        resistance={2.5}
+      >
+        <div className="grid grid-cols-2 gap-4">
+          {activeCategoryServices?.map((service) => (
+            <ServiceCard key={service.id} service={service} />
+          ))}
+        </div>
+      </PullToRefresh>
 
       {/* Service Details Sheet */}
       <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
