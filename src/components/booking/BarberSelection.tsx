@@ -27,6 +27,8 @@ const countryNames: { [key: string]: { en: string; ar: string } } = {
   'jo': { en: 'Jordan', ar: 'الأردن' },
   'sy': { en: 'Syria', ar: 'سوريا' },
   'ye': { en: 'Yemen', ar: 'اليمن' },
+  'lb': { en: 'Lebanon', ar: 'لبنان' },
+  'ma': { en: 'Morocco', ar: 'المغرب' },
   'pk': { en: 'Pakistan', ar: 'باكستان' },
   'in': { en: 'India', ar: 'الهند' },
   'bd': { en: 'Bangladesh', ar: 'بنغلاديش' },
@@ -63,7 +65,7 @@ export const BarberSelection = ({
           onClick={() => onBarberSelect(employee.id)}
           className={`flex flex-col items-center justify-center p-6 h-[200px] space-y-4 rounded-lg transition-all duration-300 ${
             selectedBarber === employee.id 
-              ? "bg-[#FDE1D3] hover:bg-[#FEC6A1] border-[#FEC6A1]" 
+              ? "bg-[#e7bd71] hover:bg-[#d4ad65] border-[#d4ad65]" 
               : "hover:bg-accent"
           }`}
         >
@@ -76,13 +78,13 @@ export const BarberSelection = ({
             <AvatarFallback>{employee.name.charAt(0)}</AvatarFallback>
           </Avatar>
           <div className="flex flex-col items-center justify-center gap-2">
-            <span className="font-medium text-lg">
+            <span className="font-medium text-lg text-gray-700">
               {language === 'ar' ? employee.name_ar : employee.name}
             </span>
             {employee.nationality && (
               <span className="text-sm text-muted-foreground">
                 {countryNames[employee.nationality.toLowerCase()]?.[language] || 
-                 (language === 'ar' ? 'دولي' : 'International')}
+                 (language === 'ar' ? employee.nationality.toUpperCase() : employee.nationality.toUpperCase())}
               </span>
             )}
           </div>
