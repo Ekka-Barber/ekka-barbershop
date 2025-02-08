@@ -245,8 +245,9 @@ export const ServiceSelection = ({
       <PullToRefresh
         onRefresh={handleRefresh}
         className="pull-to-refresh"
-        pullDownThreshold={70}
-        resistance={2.5}
+        pullDownContent={<span>Pull down to refresh</span>}
+        releaseContent={<span>Release to refresh</span>}
+        refreshContent={<span>Refreshing...</span>}
       >
         <div className="grid grid-cols-2 gap-4">
           {activeCategoryServices?.map((service) => (
