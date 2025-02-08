@@ -1,7 +1,7 @@
 
 // Cache name for offline support
 const CACHE_NAME = 'ekka-v3';
-const SW_VERSION = '1.0.0';
+const SW_VERSION = '1.0.1';
 
 // Files to cache for offline support
 const filesToCache = [
@@ -11,14 +11,32 @@ const filesToCache = [
   '/favicon.ico',
 ];
 
-// Enhanced logging function
+// Enhanced logging function with timestamp
 const log = (message, data = {}) => {
-  console.log(`[ServiceWorker ${SW_VERSION}] ${message}`, data);
+  const timestamp = new Date().toISOString();
+  console.log(`[ServiceWorker ${SW_VERSION}] ${timestamp} - ${message}`, data);
 };
 
-// Error logging function
+// Error logging function with stack trace
 const logError = (message, error) => {
-  console.error(`[ServiceWorker ${SW_VERSION}] ${message}`, error);
+  const timestamp = new Date().toISOString();
+  console.error(`[ServiceWorker ${SW_VERSION}] ${timestamp} - ${message}`, error);
+  if (error?.stack) {
+    console.error(`Stack trace:`, error.stack);
+  }
+};
+
+// Platform detection
+const getPlatformInfo = () => {
+  const ua = self.navigator?.userAgent.toLowerCase() || '';
+  const isIOS = /iphone|ipad|ipod/.test(ua);
+  const isAndroid = /android/.test(ua);
+  return {
+    isIOS,
+    isAndroid,
+    platform: isIOS ? 'ios' : isAndroid ? 'android' : 'other',
+    userAgent: ua
+  };
 };
 
 // Install event - cache static assets
@@ -60,11 +78,12 @@ self.addEventListener('activate', (event) => {
 
 // Enhanced push event with better error handling and logging
 self.addEventListener('push', async (event) => {
-  log('Push received');
+  const platform = getPlatformInfo();
+  log('Push received', { platform });
   
   try {
     const data = event.data.text();
-    log('Push data:', data);
+    log('Raw push data:', data);
     
     let notificationData;
     try {
@@ -78,9 +97,12 @@ self.addEventListener('push', async (event) => {
     // Get browser language and platform info
     const userLang = self.navigator?.language || 'en';
     const isArabic = userLang.startsWith('ar');
-    const isIOS = /iphone|ipad|ipod/.test(self.navigator.userAgent.toLowerCase());
     
-    log('User info:', { language: userLang, platform: isIOS ? 'iOS' : 'Other' });
+    log('User info:', { 
+      language: userLang, 
+      platform: platform.platform,
+      isArabic
+    });
 
     // Platform-specific notification options
     const baseOptions = {
@@ -90,11 +112,25 @@ self.addEventListener('push', async (event) => {
       data: {
         url: notificationData.url || 'https://ekka.lovableproject.com/offers',
         messageId: notificationData.message_id,
-        timestamp: Date.now()
+        timestamp: Date.now(),
+        platform: platform.platform
       },
-      vibrate: isIOS ? [50, 50] : [100, 50, 100],
-      renotify: true,
-      tag: `ekka-notification-${notificationData.message_id || Date.now()}`
+      // Platform-specific vibration patterns
+      vibrate: platform.isIOS ? [50, 50] : [100, 50, 100],
+      // Force notification renotify on Android
+      renotify: platform.isAndroid,
+      tag: `ekka-notification-${notificationData.message_id || Date.now()}`,
+      // Platform specific options
+      ...(platform.isIOS ? {
+        silent: false, // Ensure sound on iOS
+        sound: 'default'
+      } : {}),
+      ...(platform.isAndroid ? {
+        // Android specific options
+        importance: 'high',
+        priority: 'high',
+        timestamp: Date.now()
+      } : {})
     };
 
     // Track notification received event
@@ -107,9 +143,15 @@ self.addEventListener('push', async (event) => {
         body: JSON.stringify({
           event: 'received',
           notification: notificationData,
-          deliveryStatus: 'delivered'
+          deliveryStatus: 'delivered',
+          platform: platform.platform,
+          timestamp: new Date().toISOString()
         })
       });
+      
+      if (!trackResponse.ok) {
+        throw new Error(`Tracking failed with status: ${trackResponse.status}`);
+      }
       
       const trackResult = await trackResponse.json();
       log('Tracked notification received:', trackResult);
@@ -123,11 +165,20 @@ self.addEventListener('push', async (event) => {
     
     const showNotification = async () => {
       try {
+        log('Attempting to show notification', { 
+          attempt: retryCount + 1, 
+          platform: platform.platform 
+        });
+
         await self.registration.showNotification(
           isArabic ? notificationData.title_ar : notificationData.title_en,
           baseOptions
         );
-        log('Notification shown successfully');
+        
+        log('Notification shown successfully', {
+          messageId: notificationData.message_id,
+          platform: platform.platform
+        });
       } catch (error) {
         logError('Error showing notification:', error);
         if (retryCount < maxRetries) {
@@ -147,14 +198,17 @@ self.addEventListener('push', async (event) => {
   }
 });
 
-// Enhanced notification click handler with tracking
+// Enhanced notification click handler with tracking and error handling
 self.addEventListener('notificationclick', async (event) => {
-  log('Notification click received');
+  log('Notification clicked', { 
+    tag: event.notification.tag,
+    platform: getPlatformInfo().platform
+  });
   
   event.notification.close();
   
   try {
-    // Track the click event
+    // Track the click event with platform info
     const trackResponse = await fetch('https://jfnjvphxhzxojxgptmtu.supabase.co/functions/v1/track-notification', {
       method: 'POST',
       headers: {
@@ -164,9 +218,14 @@ self.addEventListener('notificationclick', async (event) => {
         event: 'clicked',
         notification: event.notification.data,
         action: 'click',
-        timestamp: Date.now()
+        platform: getPlatformInfo().platform,
+        timestamp: new Date().toISOString()
       })
     });
+    
+    if (!trackResponse.ok) {
+      throw new Error(`Tracking failed with status: ${trackResponse.status}`);
+    }
     
     const trackResult = await trackResponse.json();
     log('Tracked notification click:', trackResult);
@@ -180,11 +239,13 @@ self.addEventListener('notificationclick', async (event) => {
         // Try to focus existing window
         for (let client of windowClients) {
           if (client.url === event.notification.data.url && 'focus' in client) {
+            log('Focusing existing window', { url: client.url });
             return client.focus();
           }
         }
         // If no window exists, open new one
         if (clients.openWindow) {
+          log('Opening new window', { url: event.notification.data.url });
           return clients.openWindow(event.notification.data.url);
         }
       })
@@ -192,7 +253,7 @@ self.addEventListener('notificationclick', async (event) => {
   );
 });
 
-// Enhanced fetch event handler with proper caching
+// Enhanced fetch event handler with proper caching and error handling
 self.addEventListener('fetch', (event) => {
   event.respondWith(
     fetch(event.request)
