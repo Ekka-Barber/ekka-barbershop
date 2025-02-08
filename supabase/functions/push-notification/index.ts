@@ -7,15 +7,18 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-const BATCH_SIZE = 100; // Process subscribers in batches of 100
+const BATCH_SIZE = 100;
 
 serve(async (req) => {
+  console.log('Push notification function called with method:', req.method);
+  
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
   }
 
   try {
     const { subscriptions, message } = await req.json()
+    console.log(`Processing notification request for ${subscriptions.length} subscriptions`);
     
     const publicKey = Deno.env.get('VAPID_PUBLIC_KEY')
     const privateKey = Deno.env.get('VAPID_PRIVATE_KEY')
@@ -31,11 +34,11 @@ serve(async (req) => {
       privateKey
     )
 
-    // Process subscriptions in batches
     const processBatch = async (batch: any[]) => {
       console.log(`Processing batch of ${batch.length} subscriptions`);
       
       const notificationPromises = batch.map(async (subscription) => {
+        console.log(`Attempting to send to endpoint: ${subscription.endpoint}`);
         try {
           await webPush.sendNotification(
             {
@@ -47,6 +50,7 @@ serve(async (req) => {
             }, 
             JSON.stringify(message)
           );
+          console.log(`Successfully sent to ${subscription.endpoint}`);
           return { success: true, endpoint: subscription.endpoint };
         } catch (error) {
           console.error(`Error sending to ${subscription.endpoint}:`, error);
@@ -62,7 +66,6 @@ serve(async (req) => {
       return Promise.all(notificationPromises);
     };
 
-    // Start processing all batches in the background
     const processAllBatches = async () => {
       const results = {
         total: subscriptions.length,
@@ -72,6 +75,7 @@ serve(async (req) => {
       };
 
       for (let i = 0; i < subscriptions.length; i += BATCH_SIZE) {
+        console.log(`Processing batch ${Math.floor(i/BATCH_SIZE) + 1}`);
         const batch = subscriptions.slice(i, i + BATCH_SIZE);
         const batchResults = await processBatch(batch);
         
@@ -89,9 +93,8 @@ serve(async (req) => {
       return results;
     };
 
-    // Use background processing for large batches
     if (subscriptions.length > BATCH_SIZE) {
-      // Start processing in the background
+      console.log(`Starting background processing for ${subscriptions.length} notifications`);
       EdgeRuntime.waitUntil(processAllBatches());
       
       return new Response(
@@ -107,8 +110,8 @@ serve(async (req) => {
         }
       );
     } else {
-      // For small batches, process immediately
       const results = await processBatch(subscriptions);
+      console.log('Small batch processing completed:', results);
       
       return new Response(
         JSON.stringify({ 

@@ -8,32 +8,35 @@ const corsHeaders = {
 }
 
 serve(async (req) => {
-  // Handle CORS preflight requests
+  console.log('Track notification function called with method:', req.method);
+  
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
   }
 
   try {
     const { event, action, subscription, notification, error, deliveryStatus } = await req.json()
+    console.log('Tracking notification event:', { event, action, deliveryStatus });
 
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    // Update subscription status and error tracking
     if (subscription?.endpoint) {
+      console.log(`Updating subscription status for endpoint: ${subscription.endpoint}`);
       const updateData: any = {
         last_active: new Date().toISOString(),
       }
 
       if (error) {
+        console.log('Recording error for subscription:', error);
         updateData.error_count = error.increment('error_count', 1)
         updateData.last_error_at = new Date().toISOString()
         updateData.last_error_details = error
         updateData.status = 'active' // Keep it active until cleanup job runs
       } else {
-        // Reset error count on successful delivery
+        console.log('Resetting error count for successful delivery');
         updateData.error_count = 0
         updateData.status = 'active'
       }
@@ -48,7 +51,7 @@ serve(async (req) => {
       }
     }
 
-    // Log the notification event with enhanced error tracking
+    console.log('Logging notification event to database');
     const { error: insertError } = await supabase
       .from('notification_events')
       .insert([{
@@ -64,6 +67,7 @@ serve(async (req) => {
       throw insertError
     }
 
+    console.log('Successfully tracked notification event');
     return new Response(
       JSON.stringify({ success: true }),
       { 

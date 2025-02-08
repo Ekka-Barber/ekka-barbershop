@@ -8,21 +8,27 @@ const corsHeaders = {
 }
 
 serve(async (req) => {
-  // Handle CORS preflight requests
+  console.log('Update subscription function called with method:', req.method);
+  
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
   }
 
   try {
     const { oldSubscription, newSubscription, deviceType } = await req.json()
+    console.log('Processing subscription update:', { 
+      oldEndpoint: oldSubscription?.endpoint,
+      newEndpoint: newSubscription?.endpoint,
+      deviceType 
+    });
 
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    // Mark old subscription as expired and log final status
     if (oldSubscription?.endpoint) {
+      console.log('Marking old subscription as expired:', oldSubscription.endpoint);
       const { error: updateError } = await supabase
         .from('push_subscriptions')
         .update({ 
@@ -36,14 +42,15 @@ serve(async (req) => {
       }
     }
 
-    // Create or update new subscription with enhanced tracking
     if (newSubscription?.endpoint) {
-      // Check if subscription already exists
+      console.log('Processing new subscription:', newSubscription.endpoint);
       const { data: existingSub } = await supabase
         .from('push_subscriptions')
         .select('status, error_count')
         .eq('endpoint', newSubscription.endpoint)
         .single()
+
+      console.log('Existing subscription status:', existingSub);
 
       const { error: upsertError } = await supabase
         .from('push_subscriptions')
@@ -63,7 +70,7 @@ serve(async (req) => {
         throw upsertError
       }
 
-      // Log subscription update event
+      console.log('Logging subscription update event');
       await supabase
         .from('notification_events')
         .insert({
@@ -77,6 +84,7 @@ serve(async (req) => {
         })
     }
 
+    console.log('Subscription update completed successfully');
     return new Response(
       JSON.stringify({ success: true }),
       { 
