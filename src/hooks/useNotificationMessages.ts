@@ -18,19 +18,23 @@ export const useNotificationMessages = () => {
       if (error) throw error;
       
       // Convert the raw data to match NotificationMessage type
-      const typedMessages: NotificationMessage[] = data?.map(msg => ({
-        id: msg.id,
-        title_en: msg.title_en,
-        title_ar: msg.title_ar,
-        body_en: msg.body_en,
-        body_ar: msg.body_ar,
-        created_at: msg.created_at,
-        stats: {
-          total_sent: msg.stats?.total_sent || 0,
-          delivered: msg.stats?.delivered || 0,
-          user_actions: msg.stats?.user_actions || 0
-        } as NotificationStats
-      })) || [];
+      const typedMessages: NotificationMessage[] = data?.map(msg => {
+        const statsData = msg.stats as Record<string, number>;
+        
+        return {
+          id: msg.id,
+          title_en: msg.title_en,
+          title_ar: msg.title_ar,
+          body_en: msg.body_en,
+          body_ar: msg.body_ar,
+          created_at: msg.created_at,
+          stats: {
+            total_sent: statsData?.total_sent || 0,
+            delivered: statsData?.delivered || 0,
+            user_actions: statsData?.user_actions || 0
+          } as NotificationStats
+        };
+      }) || [];
       
       setMessages(typedMessages);
     } catch (error) {
@@ -43,3 +47,4 @@ export const useNotificationMessages = () => {
 
   return { messages, loading, setMessages, fetchMessages };
 };
+
