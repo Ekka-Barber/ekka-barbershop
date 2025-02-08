@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { getPlatformType } from './platformDetection';
 import { Json } from "@/integrations/supabase/types";
@@ -52,11 +53,19 @@ export class NotificationManager {
   ): Promise<void> {
     const updates = results.map(async (result) => {
       const status: NotificationStatus = result.success ? 'active' : 'retry';
+      const { data: currentErrorCount } = await supabase
+        .from('push_subscriptions')
+        .select('error_count')
+        .eq('endpoint', result.endpoint)
+        .single();
+
+      const newErrorCount = result.success ? 0 : ((currentErrorCount?.error_count || 0) + 1);
+
       const { error } = await supabase
         .from('push_subscriptions')
         .update({
           status,
-          error_count: result.success ? 0 : supabase.rpc('increment', { x: 1 }),
+          error_count: newErrorCount,
           last_error_at: result.success ? null : new Date().toISOString(),
           last_error_details: result.success ? null : { message: result.error }
         })
@@ -110,7 +119,7 @@ export class NotificationManager {
       .single();
 
     if (!subData || subData.retry_count >= this.maxRetries) {
-      await this.updateSubscriptionStatus(subscription, 'expired');
+      await this.updateSubscriptionStatuses([{ endpoint: subscription.endpoint, success: false, error: 'Max retries exceeded' }]);
       return;
     }
 
@@ -118,7 +127,7 @@ export class NotificationManager {
       // Attempt to resubscribe
       const newSubscription = await this.resubscribe(subscription);
       if (newSubscription) {
-        await this.updateSubscriptionStatus(newSubscription, 'active');
+        await this.updateSubscriptionStatuses([{ endpoint: newSubscription.endpoint, success: true }]);
       }
     } catch (error) {
       console.error('Error retrying subscription:', error);

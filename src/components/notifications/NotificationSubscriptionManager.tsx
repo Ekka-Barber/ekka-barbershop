@@ -23,7 +23,7 @@ export const useNotificationSubscription = () => {
               registration.pushManager.getSubscription().then(subscription => {
                 setIsSubscribed(!!subscription);
                 if (subscription) {
-                  notificationManager.updateSubscriptionStatus(subscription, 'active');
+                  notificationManager.updateSubscriptionStatuses([{ endpoint: subscription.endpoint, success: true }]);
                 }
               });
             });
