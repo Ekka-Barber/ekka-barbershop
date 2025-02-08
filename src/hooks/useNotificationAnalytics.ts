@@ -30,73 +30,21 @@ export const useNotificationAnalytics = (messages: NotificationMessage[]) => {
 
       const { data: events, error: eventsError } = await supabase
         .from('notification_events')
-        .select('event_type, delivery_status') as { data: NotificationEvent[] | null, error: any };
+        .select('event_type, action') as { data: NotificationEvent[] | null, error: any };
 
       if (eventsError) throw eventsError;
 
-      const analytics = {
-        totalSent: messages.reduce((acc, msg) => acc + (msg.stats?.total_sent || 0), 0),
+      setAnalytics({
+        totalSent: messages.length,
         totalClicked: events?.filter(e => e.event_type === 'clicked').length || 0,
-        totalReceived: events?.filter(e => e.event_type === 'received' && e.delivery_status === 'delivered').length || 0,
+        totalReceived: events?.filter(e => e.event_type === 'received').length || 0,
         activeSubscriptions: subscriptions?.length || 0
-      };
-
-      console.log('Updated analytics:', analytics);
-      setAnalytics(analytics);
+      });
     } catch (error) {
       console.error('Error fetching analytics:', error);
       toast.error("Error loading analytics");
     }
   };
-
-  useEffect(() => {
-    fetchAnalytics();
-    
-    // Subscribe to real-time updates for both events and messages
-    const channel = supabase
-      .channel('analytics-updates')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'notification_events'
-        },
-        (payload) => {
-          console.log('Notification event updated:', payload);
-          fetchAnalytics();
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'notification_messages'
-        },
-        (payload) => {
-          console.log('Notification message updated:', payload);
-          fetchAnalytics();
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'push_subscriptions'
-        },
-        () => {
-          console.log('Subscription updated, refreshing analytics...');
-          fetchAnalytics();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [messages]);
 
   return { analytics, fetchAnalytics };
 };

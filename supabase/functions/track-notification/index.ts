@@ -8,91 +8,60 @@ const corsHeaders = {
 }
 
 serve(async (req) => {
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
   }
 
   try {
-    const { event, action, subscription, notification, delivery_status } = await req.json()
-    console.log('Received tracking request:', { event, action, notification, delivery_status });
+    const { event, action, subscription, notification, error, deliveryStatus } = await req.json()
 
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    // Update subscription status if provided
+    // Update subscription status and error tracking
     if (subscription?.endpoint) {
-      const { data: existingSub } = await supabase
+      const updateData: any = {
+        last_active: new Date().toISOString(),
+      }
+
+      if (error) {
+        updateData.error_count = error.increment('error_count', 1)
+        updateData.last_error_at = new Date().toISOString()
+        updateData.last_error_details = error
+        updateData.status = 'active' // Keep it active until cleanup job runs
+      } else {
+        // Reset error count on successful delivery
+        updateData.error_count = 0
+        updateData.status = 'active'
+      }
+
+      const { error: updateError } = await supabase
         .from('push_subscriptions')
-        .select('status, error_count')
+        .update(updateData)
         .eq('endpoint', subscription.endpoint)
-        .single();
 
-      if (existingSub) {
-        const updateData = {
-          last_active: new Date().toISOString(),
-          status: 'active',
-          error_count: 0
-        };
-
-        const { error: updateError } = await supabase
-          .from('push_subscriptions')
-          .update(updateData)
-          .eq('endpoint', subscription.endpoint);
-
-        if (updateError) {
-          console.error('Error updating subscription:', updateError);
-        }
+      if (updateError) {
+        console.error('Error updating subscription:', updateError)
       }
     }
 
-    // Track event
-    const eventData = {
-      event_type: event,
-      action: action || null,
-      notification_data: notification,
-      subscription_endpoint: subscription?.endpoint,
-      delivery_status: delivery_status || 'pending'
-    }
-
-    console.log('Tracking notification event:', eventData);
-
+    // Log the notification event with enhanced error tracking
     const { error: insertError } = await supabase
       .from('notification_events')
-      .insert([eventData]);
+      .insert([{
+        event_type: event,
+        action: action,
+        notification_data: notification,
+        subscription_endpoint: subscription?.endpoint,
+        error_details: error || null,
+        delivery_status: deliveryStatus || 'pending'
+      }])
 
     if (insertError) {
-      console.error('Error inserting notification event:', insertError);
-      throw insertError;
-    }
-
-    // Update message stats if it's a received or clicked event
-    if (notification?.message_id && (event === 'received' || event === 'clicked')) {
-      const { data: message } = await supabase
-        .from('notification_messages')
-        .select('stats')
-        .eq('id', notification.message_id)
-        .single();
-
-      if (message) {
-        const stats = message.stats || { total_sent: 0, delivered: 0, user_actions: 0 };
-        
-        if (event === 'received' && delivery_status === 'delivered') {
-          stats.delivered = (stats.delivered || 0) + 1;
-        } else if (event === 'clicked') {
-          stats.user_actions = (stats.user_actions || 0) + 1;
-        }
-
-        const { error: statsError } = await supabase
-          .from('notification_messages')
-          .update({ stats })
-          .eq('id', notification.message_id);
-
-        if (statsError) {
-          console.error('Error updating message stats:', statsError);
-        }
-      }
+      throw insertError
     }
 
     return new Response(
@@ -105,7 +74,7 @@ serve(async (req) => {
       }
     )
   } catch (error) {
-    console.error('Error tracking notification:', error);
+    console.error('Error tracking notification:', error)
     return new Response(
       JSON.stringify({ error: error.message }),
       { 

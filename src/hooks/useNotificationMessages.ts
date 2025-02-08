@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { NotificationMessage, NotificationStats } from "@/types/notifications";
@@ -25,10 +25,10 @@ export const useNotificationMessages = () => {
         body_en: message.body_en,
         body_ar: message.body_ar,
         created_at: message.created_at,
-        stats: message.stats as unknown as NotificationStats ?? {
-          total_sent: 0,
-          delivered: 0,
-          user_actions: 0
+        stats: {
+          total_sent: ((message.stats as unknown) as { total_sent?: number })?.total_sent || 0,
+          delivered: ((message.stats as unknown) as { delivered?: number })?.delivered || 0,
+          user_actions: ((message.stats as unknown) as { user_actions?: number })?.user_actions || 0
         }
       }));
 
@@ -40,48 +40,6 @@ export const useNotificationMessages = () => {
       setLoading(false);
     }
   };
-
-  useEffect(() => {
-    fetchMessages();
-    
-    // Subscribe to real-time updates for both tables
-    const messagesChannel = supabase
-      .channel('notification-updates')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'notification_messages'
-        },
-        () => {
-          console.log('Notification messages updated, refreshing...');
-          fetchMessages();
-        }
-      )
-      .subscribe();
-
-    const eventsChannel = supabase
-      .channel('notification-events')
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'notification_events'
-        },
-        () => {
-          console.log('New notification event, refreshing messages...');
-          fetchMessages();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(messagesChannel);
-      supabase.removeChannel(eventsChannel);
-    };
-  }, []);
 
   return { messages, loading, setMessages, fetchMessages };
 };
