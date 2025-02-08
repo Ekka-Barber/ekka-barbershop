@@ -74,8 +74,8 @@ export const BarberSelection = ({
                   countryCode={employee.nationality}
                   svg
                   style={{
-                    width: '1.5em',
-                    height: '1.5em',
+                    width: '2em',
+                    height: '2em',
                   }}
                   title={employee.nationality}
                 />
