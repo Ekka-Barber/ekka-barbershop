@@ -179,12 +179,13 @@ export class NotificationManager {
     }
 
     return (data || []).map(sub => ({
+      id: sub.id,
       endpoint: sub.endpoint,
       keys: {
         p256dh: sub.p256dh,
         auth: sub.auth
       },
-      status: sub.status as 'active' | 'expired' | 'retry',
+      status: sub.status as 'active' | 'expired' | 'retry' | 'failed',
       platform: sub.platform,
       created_at: sub.created_at,
       last_active: sub.last_active,
@@ -294,3 +295,4 @@ export class NotificationManager {
 }
 
 export const notificationManager = NotificationManager.getInstance();
+
