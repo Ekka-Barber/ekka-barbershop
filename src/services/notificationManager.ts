@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { getPlatformType } from './platformDetection';
 import type { NotificationStats, NotificationSubscription } from '@/types/notifications';
@@ -188,8 +189,8 @@ export class NotificationManager {
       created_at: sub.created_at,
       last_active: sub.last_active,
       error_count: sub.error_count,
-      device_info: sub.device_info,
-      notification_preferences: sub.notification_preferences
+      device_info: (sub.device_info as { os?: string; browser?: string; version?: string; }) || {},
+      notification_preferences: (sub.notification_preferences as { enabled: boolean; categories: string[]; }) || { enabled: true, categories: [] }
     }));
   }
 
