@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -16,7 +15,6 @@ const Customer = () => {
   const [branchDialogOpen, setBranchDialogOpen] = useState(false);
   const [locationDialogOpen, setLocationDialogOpen] = useState(false);
 
-  // Fetch branches
   const { data: branches } = useQuery({
     queryKey: ['branches'],
     queryFn: async () => {
@@ -98,7 +96,6 @@ const Customer = () => {
             {t('book.now')}
           </Button>
 
-          {/* Our Branches Button */}
           <Button 
             className="w-full h-14 text-lg font-medium bg-[#4A4A4A] hover:bg-[#3A3A3A] text-white transition-all duration-300 shadow-lg hover:shadow-xl"
             onClick={() => setLocationDialogOpen(true)}
@@ -109,7 +106,6 @@ const Customer = () => {
             </div>
           </Button>
 
-          {/* Loyalty Program Button */}
           <Button 
             className="w-full h-14 text-lg font-medium bg-white hover:bg-gray-50 text-gray-800 transition-all duration-300 shadow-lg hover:shadow-xl border border-gray-200"
             onClick={() => window.open('https://enroll.boonus.app/64b7c34953090f001de0fb6c/wallet/64b7efed53090f001de815b4', '_blank')}
@@ -128,7 +124,6 @@ const Customer = () => {
         </div>
       </div>
 
-      {/* Booking Dialog */}
       <Dialog open={branchDialogOpen} onOpenChange={setBranchDialogOpen}>
         <DialogContent className="sm:max-w-2xl bg-white border-0 shadow-2xl p-6">
           <DialogHeader>
@@ -156,7 +151,6 @@ const Customer = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Locations Dialog */}
       <Dialog open={locationDialogOpen} onOpenChange={setLocationDialogOpen}>
         <DialogContent className="sm:max-w-2xl bg-white border-0 shadow-2xl p-6">
           <DialogHeader>
