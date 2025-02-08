@@ -7,10 +7,11 @@ import { supabase } from "@/integrations/supabase/client";
 import data from '@emoji-mart/data';
 import Picker from '@emoji-mart/react';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { SmilePlus, BarChart3, BellRing } from "lucide-react";
+import { SmilePlus, BarChart3, BellRing, RefreshCw, Send, MessageCircle, UserX } from "lucide-react";
 import { format } from "date-fns";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 const NotificationManager = () => {
   const [title_en, setTitleEn] = useState("");
@@ -31,6 +32,27 @@ const NotificationManager = () => {
   useEffect(() => {
     fetchMessages();
     fetchAnalytics();
+    
+    // Subscribe to real-time updates for notification events
+    const channel = supabase
+      .channel('notification-updates')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'notification_events'
+        },
+        () => {
+          fetchMessages();
+          fetchAnalytics();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const fetchAnalytics = async () => {
@@ -99,21 +121,68 @@ const NotificationManager = () => {
     setValue(currentValue + emoji.native);
   };
 
+  const handleResend = async (message: any) => {
+    try {
+      setSending(true);
+
+      // Get all active and valid subscriptions
+      const { data: subscriptions, error: subError } = await supabase
+        .from('push_subscriptions')
+        .select('*')
+        .eq('status', 'active')
+        .lt('error_count', 3)
+        .gte('last_active', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString());
+
+      if (subError) throw subError;
+
+      // Send notification to each subscription
+      await Promise.all(subscriptions?.map(async (subscription) => {
+        const { endpoint, p256dh, auth } = subscription;
+        
+        await supabase.functions.invoke('push-notification', {
+          body: {
+            subscription: {
+              endpoint,
+              keys: { p256dh, auth }
+            },
+            message: {
+              ...message,
+              message_id: message.id, // Include message ID for tracking
+              url: window.location.origin + '/offers'
+            }
+          }
+        });
+      }) || []);
+
+      toast.success("Notification resent successfully!");
+    } catch (error) {
+      console.error('Error resending notification:', error);
+      toast.error("Error resending notification");
+    } finally {
+      setSending(false);
+    }
+  };
+
   const handleSendNotification = async () => {
     try {
       setSending(true);
 
-      // Set owner access before performing operations
-      const { error: accessError } = await supabase.rpc('set_owner_access', {
-        value: 'owner123'
-      });
-
-      if (accessError) throw accessError;
-
       // First, save the notification message to the database
-      const { error: dbError } = await supabase
+      const { data: newMessage, error: dbError } = await supabase
         .from('notification_messages')
-        .insert([{ title_en, title_ar, body_en, body_ar }]);
+        .insert([{ 
+          title_en, 
+          title_ar, 
+          body_en, 
+          body_ar,
+          stats: {
+            total_sent: 0,
+            delivered: 0,
+            user_actions: 0
+          }
+        }])
+        .select()
+        .single();
 
       if (dbError) throw dbError;
 
@@ -126,8 +195,6 @@ const NotificationManager = () => {
         .gte('last_active', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString());
 
       if (subError) throw subError;
-
-      console.log('Sending notifications to:', subscriptions?.length, 'subscribers');
 
       // Send notification to each subscription
       await Promise.all(subscriptions?.map(async (subscription) => {
@@ -144,6 +211,7 @@ const NotificationManager = () => {
               title_ar,
               body_en,
               body_ar,
+              message_id: newMessage.id, // Include message ID for tracking
               url: window.location.origin + '/offers'
             }
           }
@@ -284,6 +352,65 @@ const NotificationManager = () => {
                   key={message.id} 
                   className="border rounded-lg p-4 space-y-3 hover:bg-muted/50 transition-colors"
                 >
+                  <div className="flex items-center justify-between">
+                    <div className="space-x-4 flex items-center">
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button 
+                              variant="ghost" 
+                              size="icon"
+                              onClick={() => handleResend(message)}
+                              disabled={sending}
+                            >
+                              <RefreshCw className="h-4 w-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>Resend notification</TooltipContent>
+                        </Tooltip>
+
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <div className="flex items-center gap-2">
+                              <Send className="h-4 w-4 text-muted-foreground" />
+                              <span className="text-sm text-muted-foreground">
+                                {message.stats?.total_sent || 0}
+                              </span>
+                            </div>
+                          </TooltipTrigger>
+                          <TooltipContent>Total notifications sent</TooltipContent>
+                        </Tooltip>
+
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <div className="flex items-center gap-2">
+                              <MessageCircle className="h-4 w-4 text-muted-foreground" />
+                              <span className="text-sm text-muted-foreground">
+                                {message.stats?.delivered || 0}
+                              </span>
+                            </div>
+                          </TooltipTrigger>
+                          <TooltipContent>Successfully delivered</TooltipContent>
+                        </Tooltip>
+
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <div className="flex items-center gap-2">
+                              <UserX className="h-4 w-4 text-muted-foreground" />
+                              <span className="text-sm text-muted-foreground">
+                                {message.stats?.user_actions || 0}
+                              </span>
+                            </div>
+                          </TooltipTrigger>
+                          <TooltipContent>User interactions</TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      {format(new Date(message.created_at), 'PPpp')}
+                    </p>
+                  </div>
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <h3 className="font-medium">{message.title_en}</h3>
@@ -294,9 +421,6 @@ const NotificationManager = () => {
                       <p className="text-sm text-muted-foreground" dir="rtl">{message.body_ar}</p>
                     </div>
                   </div>
-                  <p className="text-xs text-muted-foreground">
-                    Sent on: {format(new Date(message.created_at), 'PPpp')}
-                  </p>
                 </div>
               ))}
             </div>
