@@ -1,9 +1,9 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from "@/integrations/supabase/client";
-import { Service } from '@/types/service';
+import { SelectedService } from '@/types/service';
 
-export const useBookingUpsells = (selectedServices: Service[], language: 'en' | 'ar') => {
+export const useBookingUpsells = (selectedServices: SelectedService[], language: 'en' | 'ar') => {
   return useQuery({
     queryKey: ['upsells', selectedServices.map(s => s.id)],
     queryFn: async () => {
