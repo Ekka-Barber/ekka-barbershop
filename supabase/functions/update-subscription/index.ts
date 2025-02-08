@@ -14,18 +14,21 @@ serve(async (req) => {
   }
 
   try {
-    const { oldSubscription, newSubscription } = await req.json()
+    const { oldSubscription, newSubscription, deviceType } = await req.json()
 
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    // Mark old subscription as expired
+    // Mark old subscription as expired and log final status
     if (oldSubscription?.endpoint) {
       const { error: updateError } = await supabase
         .from('push_subscriptions')
-        .update({ status: 'expired' })
+        .update({ 
+          status: 'expired',
+          last_active: new Date().toISOString()
+        })
         .eq('endpoint', oldSubscription.endpoint)
 
       if (updateError) {
@@ -33,7 +36,7 @@ serve(async (req) => {
       }
     }
 
-    // Create or update new subscription
+    // Create or update new subscription with enhanced tracking
     if (newSubscription?.endpoint) {
       const { error: upsertError } = await supabase
         .from('push_subscriptions')
@@ -42,7 +45,11 @@ serve(async (req) => {
           p256dh: newSubscription.keys.p256dh,
           auth: newSubscription.keys.auth,
           status: 'active',
-          last_active: new Date().toISOString()
+          last_active: new Date().toISOString(),
+          device_type: deviceType || 'unknown',
+          error_count: 0,
+          last_error_at: null,
+          last_error_details: null
         })
 
       if (upsertError) {

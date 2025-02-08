@@ -557,6 +557,8 @@ export type Database = {
         Row: {
           action: string | null
           created_at: string
+          delivery_status: string | null
+          error_details: Json | null
           event_type: string
           id: string
           notification_data: Json | null
@@ -566,6 +568,8 @@ export type Database = {
         Insert: {
           action?: string | null
           created_at?: string
+          delivery_status?: string | null
+          error_details?: Json | null
           event_type: string
           id?: string
           notification_data?: Json | null
@@ -575,6 +579,8 @@ export type Database = {
         Update: {
           action?: string | null
           created_at?: string
+          delivery_status?: string | null
+          error_details?: Json | null
           event_type?: string
           id?: string
           notification_data?: Json | null
@@ -662,8 +668,11 @@ export type Database = {
           created_at: string
           device_type: string | null
           endpoint: string
+          error_count: number | null
           id: string
           last_active: string | null
+          last_error_at: string | null
+          last_error_details: Json | null
           p256dh: string
           status: string | null
           updated_at: string
@@ -673,8 +682,11 @@ export type Database = {
           created_at?: string
           device_type?: string | null
           endpoint: string
+          error_count?: number | null
           id?: string
           last_active?: string | null
+          last_error_at?: string | null
+          last_error_details?: Json | null
           p256dh: string
           status?: string | null
           updated_at?: string
@@ -684,8 +696,11 @@ export type Database = {
           created_at?: string
           device_type?: string | null
           endpoint?: string
+          error_count?: number | null
           id?: string
           last_active?: string | null
+          last_error_at?: string | null
+          last_error_details?: Json | null
           p256dh?: string
           status?: string | null
           updated_at?: string
@@ -1077,6 +1092,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      cleanup_invalid_subscriptions: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       generate_recurring_expenses: {
         Args: Record<PropertyKey, never>
         Returns: undefined

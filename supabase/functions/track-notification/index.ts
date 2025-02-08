@@ -14,21 +14,33 @@ serve(async (req) => {
   }
 
   try {
-    const { event, action, subscription, notification } = await req.json()
+    const { event, action, subscription, notification, error, deliveryStatus } = await req.json()
 
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    // Update last_active timestamp for the subscription
+    // Update subscription status and error tracking
     if (subscription?.endpoint) {
+      const updateData: any = {
+        last_active: new Date().toISOString(),
+      }
+
+      if (error) {
+        updateData.error_count = error.increment('error_count', 1)
+        updateData.last_error_at = new Date().toISOString()
+        updateData.last_error_details = error
+        updateData.status = 'active' // Keep it active until cleanup job runs
+      } else {
+        // Reset error count on successful delivery
+        updateData.error_count = 0
+        updateData.status = 'active'
+      }
+
       const { error: updateError } = await supabase
         .from('push_subscriptions')
-        .update({ 
-          last_active: new Date().toISOString(),
-          status: 'active'
-        })
+        .update(updateData)
         .eq('endpoint', subscription.endpoint)
 
       if (updateError) {
@@ -36,14 +48,16 @@ serve(async (req) => {
       }
     }
 
-    // Log the notification event
+    // Log the notification event with enhanced error tracking
     const { error: insertError } = await supabase
       .from('notification_events')
       .insert([{
         event_type: event,
         action: action,
         notification_data: notification,
-        subscription_endpoint: subscription?.endpoint
+        subscription_endpoint: subscription?.endpoint,
+        error_details: error || null,
+        delivery_status: deliveryStatus || 'pending'
       }])
 
     if (insertError) {

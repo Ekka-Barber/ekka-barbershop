@@ -1,3 +1,4 @@
+
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import * as webPush from 'npm:web-push';
 
@@ -44,18 +45,59 @@ serve(async (req) => {
       }
     });
 
-    // Send push notification
-    await webPush.sendNotification(subscription, message);
+    try {
+      // Send push notification
+      await webPush.sendNotification(subscription, message);
 
-    return new Response(
-      JSON.stringify({ success: true }),
-      { 
-        headers: { 
-          ...corsHeaders,
+      // Track successful delivery
+      await fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/track-notification`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${Deno.env.get('SUPABASE_ANON_KEY')}`,
           'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          event: 'notification_sent',
+          action: 'send',
+          subscription,
+          notification: { message },
+          deliveryStatus: 'delivered'
+        })
+      });
+
+      return new Response(
+        JSON.stringify({ success: true }),
+        { 
+          headers: { 
+            ...corsHeaders,
+            'Content-Type': 'application/json'
+          }
         }
-      }
-    )
+      )
+    } catch (pushError) {
+      // Track delivery failure
+      await fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/track-notification`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${Deno.env.get('SUPABASE_ANON_KEY')}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          event: 'notification_failed',
+          action: 'send',
+          subscription,
+          notification: { message },
+          deliveryStatus: 'failed',
+          error: {
+            code: pushError.statusCode,
+            message: pushError.message,
+            timestamp: new Date().toISOString()
+          }
+        })
+      });
+
+      throw pushError;
+    }
   } catch (error) {
     console.error('Error sending push notification:', error);
     return new Response(
