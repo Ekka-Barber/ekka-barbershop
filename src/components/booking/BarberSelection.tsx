@@ -13,6 +13,13 @@ interface Employee {
   nationality: string | null;
 }
 
+interface BarberSelectionProps {
+  employees: Employee[] | undefined;
+  isLoading: boolean;
+  selectedBarber: string | undefined;
+  onBarberSelect: (barberId: string) => void;
+}
+
 // Map of country codes to full names
 const countryNames: { [key: string]: { en: string; ar: string } } = {
   'sa': { en: 'Saudi Arabia', ar: 'السعودية' },
