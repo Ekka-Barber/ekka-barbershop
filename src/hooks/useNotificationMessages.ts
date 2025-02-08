@@ -26,9 +26,9 @@ export const useNotificationMessages = () => {
         body_ar: message.body_ar,
         created_at: message.created_at,
         stats: {
-          total_sent: message.stats?.total_sent || 0,
-          delivered: message.stats?.delivered || 0,
-          user_actions: message.stats?.user_actions || 0
+          total_sent: (message.stats as NotificationStats)?.total_sent || 0,
+          delivered: (message.stats as NotificationStats)?.delivered || 0,
+          user_actions: (message.stats as NotificationStats)?.user_actions || 0
         }
       }));
 
