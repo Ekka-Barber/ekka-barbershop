@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -49,6 +50,14 @@ const Customer = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 flex flex-col">
+      <div className="sticky top-0 z-50 bg-gradient-to-b from-gray-50 to-transparent p-4">
+        <div className="max-w-md mx-auto">
+          <div className="flex justify-end">
+            <LanguageSwitcher />
+          </div>
+        </div>
+      </div>
+
       <div className="flex-grow max-w-md mx-auto pt-8 px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-8">
           <img 
