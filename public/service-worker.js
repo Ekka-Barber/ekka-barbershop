@@ -1,6 +1,7 @@
 
 // Cache name for offline support
-const CACHE_NAME = 'ekka-v2';
+const CACHE_NAME = 'ekka-v3';
+const SW_VERSION = '1.0.0';
 
 // Files to cache for offline support
 const filesToCache = [
@@ -10,30 +11,40 @@ const filesToCache = [
   '/favicon.ico',
 ];
 
+// Enhanced logging function
+const log = (message, data = {}) => {
+  console.log(`[ServiceWorker ${SW_VERSION}] ${message}`, data);
+};
+
+// Error logging function
+const logError = (message, error) => {
+  console.error(`[ServiceWorker ${SW_VERSION}] ${message}`, error);
+};
+
 // Install event - cache static assets
 self.addEventListener('install', (event) => {
-  console.log('[ServiceWorker] Install');
+  log('Installing service worker');
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => {
-        console.log('[ServiceWorker] Caching app shell');
+        log('Caching app shell');
         return cache.addAll(filesToCache);
       })
-      .catch(error => console.error('[ServiceWorker] Cache installation failed:', error))
+      .catch(error => logError('Cache installation failed:', error))
   );
   self.skipWaiting();
 });
 
 // Activate event - clean up old caches
 self.addEventListener('activate', (event) => {
-  console.log('[ServiceWorker] Activate');
+  log('Activating service worker');
   event.waitUntil(
     Promise.all([
       caches.keys().then(cacheNames => {
         return Promise.all(
           cacheNames.map(cacheName => {
             if (cacheName !== CACHE_NAME) {
-              console.log('[ServiceWorker] Removing old cache:', cacheName);
+              log('Removing old cache:', cacheName);
               return caches.delete(cacheName);
             }
           })
@@ -41,7 +52,7 @@ self.addEventListener('activate', (event) => {
       }),
       // Immediately claim any new clients
       self.clients.claim().then(() => {
-        console.log('[ServiceWorker] Clients claimed');
+        log('Clients claimed');
       })
     ])
   );
@@ -49,18 +60,18 @@ self.addEventListener('activate', (event) => {
 
 // Enhanced push event with better error handling and logging
 self.addEventListener('push', async (event) => {
-  console.log('[ServiceWorker] Push received');
+  log('Push received');
   
   try {
     const data = event.data.text();
-    console.log('[ServiceWorker] Push data:', data);
+    log('Push data:', data);
     
     let notificationData;
     try {
       notificationData = JSON.parse(data);
-      console.log('[ServiceWorker] Parsed notification data:', notificationData);
+      log('Parsed notification data:', notificationData);
     } catch (parseError) {
-      console.error('[ServiceWorker] Error parsing notification data:', parseError);
+      logError('Error parsing notification data:', parseError);
       throw new Error('Invalid notification data format');
     }
 
@@ -69,7 +80,7 @@ self.addEventListener('push', async (event) => {
     const isArabic = userLang.startsWith('ar');
     const isIOS = /iphone|ipad|ipod/.test(self.navigator.userAgent.toLowerCase());
     
-    console.log('[ServiceWorker] User language:', userLang, 'Platform:', isIOS ? 'iOS' : 'Other');
+    log('User info:', { language: userLang, platform: isIOS ? 'iOS' : 'Other' });
 
     // Platform-specific notification options
     const baseOptions = {
@@ -78,7 +89,8 @@ self.addEventListener('push', async (event) => {
       badge: '/lovable-uploads/8289fb1d-c6e6-4528-980c-6b52313ca898.png',
       data: {
         url: notificationData.url || 'https://ekka.lovableproject.com/offers',
-        messageId: notificationData.message_id
+        messageId: notificationData.message_id,
+        timestamp: Date.now()
       },
       vibrate: isIOS ? [50, 50] : [100, 50, 100],
       renotify: true,
@@ -98,38 +110,52 @@ self.addEventListener('push', async (event) => {
           deliveryStatus: 'delivered'
         })
       });
-      console.log('[ServiceWorker] Tracked notification received:', await trackResponse.json());
+      
+      const trackResult = await trackResponse.json();
+      log('Tracked notification received:', trackResult);
     } catch (trackError) {
-      console.error('[ServiceWorker] Error tracking notification:', trackError);
+      logError('Error tracking notification:', trackError);
     }
 
-    // Show the notification
-    event.waitUntil(
-      self.registration.showNotification(
-        isArabic ? notificationData.title_ar : notificationData.title_en,
-        baseOptions
-      ).then(() => {
-        console.log('[ServiceWorker] Notification shown successfully');
-      }).catch(error => {
-        console.error('[ServiceWorker] Error showing notification:', error);
+    // Show the notification with retry mechanism
+    const maxRetries = 3;
+    let retryCount = 0;
+    
+    const showNotification = async () => {
+      try {
+        await self.registration.showNotification(
+          isArabic ? notificationData.title_ar : notificationData.title_en,
+          baseOptions
+        );
+        log('Notification shown successfully');
+      } catch (error) {
+        logError('Error showing notification:', error);
+        if (retryCount < maxRetries) {
+          retryCount++;
+          log(`Retrying notification display (attempt ${retryCount}/${maxRetries})`);
+          await new Promise(resolve => setTimeout(resolve, 1000 * retryCount));
+          return showNotification();
+        }
         throw error;
-      })
-    );
+      }
+    };
+
+    event.waitUntil(showNotification());
   } catch (error) {
-    console.error('[ServiceWorker] Error processing push notification:', error);
-    throw error; // Re-throw to ensure the push event fails properly
+    logError('Error processing push notification:', error);
+    throw error;
   }
 });
 
 // Enhanced notification click handler with tracking
 self.addEventListener('notificationclick', async (event) => {
-  console.log('[ServiceWorker] Notification click received');
+  log('Notification click received');
   
   event.notification.close();
   
   try {
     // Track the click event
-    await fetch('https://jfnjvphxhzxojxgptmtu.supabase.co/functions/v1/track-notification', {
+    const trackResponse = await fetch('https://jfnjvphxhzxojxgptmtu.supabase.co/functions/v1/track-notification', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -137,12 +163,15 @@ self.addEventListener('notificationclick', async (event) => {
       body: JSON.stringify({
         event: 'clicked',
         notification: event.notification.data,
-        action: 'click'
+        action: 'click',
+        timestamp: Date.now()
       })
     });
-    console.log('[ServiceWorker] Tracked notification click');
+    
+    const trackResult = await trackResponse.json();
+    log('Tracked notification click:', trackResult);
   } catch (error) {
-    console.error('[ServiceWorker] Error tracking notification click:', error);
+    logError('Error tracking notification click:', error);
   }
   
   event.waitUntil(
@@ -159,18 +188,23 @@ self.addEventListener('notificationclick', async (event) => {
           return clients.openWindow(event.notification.data.url);
         }
       })
-      .catch(error => console.error('[ServiceWorker] Error handling notification click:', error))
+      .catch(error => logError('Error handling notification click:', error))
   );
 });
 
-// Simple fetch event handler
+// Enhanced fetch event handler with proper caching
 self.addEventListener('fetch', (event) => {
   event.respondWith(
     fetch(event.request)
       .catch(() => {
         return caches.match(event.request)
           .then(response => {
-            return response || caches.match('/');
+            if (response) {
+              log('Serving from cache:', event.request.url);
+              return response;
+            }
+            log('Resource not in cache:', event.request.url);
+            return caches.match('/');
           });
       })
   );

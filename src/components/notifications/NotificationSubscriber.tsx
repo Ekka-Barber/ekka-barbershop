@@ -23,10 +23,11 @@ export const useNotificationSubscriber = ({
   const subscribeUser = async () => {
     try {
       if (!vapidKey) {
-        throw new Error('VAPID key not available');
+        console.error('VAPID key not available');
+        throw new Error('Push notification configuration not available');
       }
 
-      // Check if running in standalone mode (PWA or added to home screen)
+      // Check if running in standalone mode (PWA)
       const isStandalone = window.matchMedia('(display-mode: standalone)').matches ||
         (window.navigator as any).standalone;
 
@@ -39,35 +40,51 @@ export const useNotificationSubscriber = ({
         return;
       }
 
-      // First, unregister any existing service workers
-      const registrations = await navigator.serviceWorker.getRegistrations();
-      await Promise.all(registrations.map(registration => registration.unregister()));
+      console.log('Starting subscription process...');
 
-      // Register a new service worker
-      const registration = await navigator.serviceWorker.register('/service-worker.js', {
-        scope: '/'
-      });
-      
-      console.log('Service Worker registered:', registration);
+      // Get existing registrations but don't unregister yet
+      const registrations = await navigator.serviceWorker.getRegistrations();
+      let activeRegistration = registrations.find(reg => 
+        reg.active && reg.scope === window.location.origin + '/'
+      );
+
+      if (!activeRegistration) {
+        console.log('No active registration found, registering new service worker');
+        activeRegistration = await navigator.serviceWorker.register('/service-worker.js', {
+          scope: '/'
+        });
+        console.log('Service Worker registered:', activeRegistration);
+      }
 
       // Wait for the service worker to be ready
       await navigator.serviceWorker.ready;
-      console.log('Service Worker ready, proceeding with subscription');
+      console.log('Service Worker ready, checking existing subscription');
       
       // Get existing subscription
-      const existingSubscription = await registration.pushManager.getSubscription();
+      const existingSubscription = await activeRegistration.pushManager.getSubscription();
+      
+      // Only unsubscribe if we have a new valid VAPID key that's different
       if (existingSubscription) {
-        await existingSubscription.unsubscribe();
-        console.log('Unsubscribed from existing subscription');
+        const currentVapidKey = new Uint8Array(existingSubscription.options.applicationServerKey as ArrayBuffer);
+        const newVapidKey = new Uint8Array(Buffer.from(vapidKey, 'base64'));
+        
+        if (!areBuffersEqual(currentVapidKey, newVapidKey)) {
+          console.log('VAPID key changed, unsubscribing from existing subscription');
+          await existingSubscription.unsubscribe();
+        } else {
+          console.log('Using existing subscription with same VAPID key');
+          setIsSubscribed(true);
+          return;
+        }
       }
 
-      // Create new subscription
-      const subscription = await registration.pushManager.subscribe({
+      console.log('Creating new push subscription');
+      const subscription = await activeRegistration.pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey: vapidKey
       });
 
-      console.log('Push subscription successful:', subscription.endpoint);
+      console.log('Push subscription created:', subscription.endpoint);
 
       // Get platform details
       const platformDetails = await notificationManager.getPlatformDetails();
@@ -85,7 +102,9 @@ export const useNotificationSubscriber = ({
           last_active: new Date().toISOString(),
           platform_details: platformDetails,
           error_count: 0,
-          retry_count: 0
+          retry_count: 0,
+          last_error_at: null,
+          last_error_details: null
         });
 
       if (error) throw error;
@@ -117,7 +136,7 @@ export const useNotificationSubscriber = ({
         const { error } = await supabase
           .from('push_subscriptions')
           .update({ 
-            status: 'inactive' as NotificationStatus,
+            status: 'expired' as NotificationStatus,
             permission_state: 'denied',
             last_active: new Date().toISOString()
           })
@@ -140,6 +159,12 @@ export const useNotificationSubscriber = ({
           : 'Error disabling notifications'
       );
     }
+  };
+
+  // Helper function to compare ArrayBuffers
+  const areBuffersEqual = (buf1: Uint8Array, buf2: Uint8Array) => {
+    if (buf1.byteLength !== buf2.byteLength) return false;
+    return buf1.every((val, i) => val === buf2[i]);
   };
 
   return {

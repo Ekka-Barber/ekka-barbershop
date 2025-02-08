@@ -16,15 +16,16 @@ serve(async (req) => {
 
   try {
     const { event, action, subscription, notification, error, deliveryStatus } = await req.json()
-    console.log('[Track Notification] Event details:', { event, action, deliveryStatus });
+    console.log('[Track Notification] Processing event:', { event, action, deliveryStatus });
 
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
+    // Update subscription status
     if (subscription?.endpoint) {
-      console.log(`[Track Notification] Updating subscription status for endpoint: ${subscription.endpoint}`);
+      console.log(`[Track Notification] Updating subscription for endpoint: ${subscription.endpoint}`);
       const updateData: any = {
         last_active: new Date().toISOString(),
       }
@@ -34,10 +35,20 @@ serve(async (req) => {
         updateData.error_count = error.increment('error_count', 1)
         updateData.last_error_at = new Date().toISOString()
         updateData.last_error_details = error
-        updateData.status = 'active' // Keep it active until cleanup job runs
+        
+        // If error is fatal (e.g. unsubscribed), mark as expired
+        if (error.fatal) {
+          updateData.status = 'expired'
+        } else if (updateData.error_count >= 3) {
+          updateData.status = 'retry'
+        } else {
+          updateData.status = 'active'
+        }
       } else {
-        console.log('[Track Notification] Resetting error count for successful delivery');
+        console.log('[Track Notification] Successful delivery, resetting error count');
         updateData.error_count = 0
+        updateData.last_error_at = null
+        updateData.last_error_details = null
         updateData.status = 'active'
       }
 
@@ -51,6 +62,7 @@ serve(async (req) => {
       }
     }
 
+    // Log notification event
     console.log('[Track Notification] Logging notification event');
     const { error: insertError } = await supabase
       .from('notification_events')
@@ -60,7 +72,8 @@ serve(async (req) => {
         notification_data: notification,
         subscription_endpoint: subscription?.endpoint,
         error_details: error || null,
-        delivery_status: deliveryStatus || 'pending'
+        delivery_status: deliveryStatus || 'pending',
+        timestamp: new Date().toISOString()
       }])
 
     if (insertError) {
