@@ -35,7 +35,7 @@ export const useNotificationAnalytics = (messages: NotificationMessage[]) => {
       if (trackingError) throw trackingError;
 
       setAnalytics({
-        totalSent: messages.length,
+        totalSent: messages.reduce((acc, msg) => acc + (msg.stats?.total_sent || 0), 0),
         totalClicked: tracking?.filter(e => e.event_type === 'clicked').length || 0,
         totalReceived: tracking?.filter(e => e.event_type === 'received').length || 0,
         activeSubscriptions: subscriptions?.length || 0

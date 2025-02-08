@@ -17,7 +17,18 @@ export const useNotificationMessages = () => {
 
       if (error) throw error;
       
-      setMessages(data || []);
+      // Convert the raw data to match NotificationMessage type
+      const typedMessages: NotificationMessage[] = data?.map(msg => ({
+        id: msg.id,
+        title_en: msg.title_en,
+        title_ar: msg.title_ar,
+        body_en: msg.body_en,
+        body_ar: msg.body_ar,
+        created_at: msg.created_at,
+        stats: msg.stats as NotificationStats
+      })) || [];
+      
+      setMessages(typedMessages);
     } catch (error) {
       console.error('Error fetching messages:', error);
       toast.error("Error loading message history");

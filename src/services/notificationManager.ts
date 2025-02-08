@@ -112,11 +112,11 @@ export class NotificationManager {
   async retrySubscription(subscription: PushSubscription): Promise<void> {
     const { data: subData } = await supabase
       .from('push_subscriptions')
-      .select('retry_count')
+      .select('error_count')
       .eq('endpoint', subscription.endpoint)
       .single();
 
-    if (!subData || subData.retry_count >= this.maxRetries) {
+    if (!subData || (subData.error_count || 0) >= this.maxRetries) {
       await this.updateSubscriptionStatuses([{ endpoint: subscription.endpoint, success: false, error: 'Max retries exceeded' }]);
       return;
     }
