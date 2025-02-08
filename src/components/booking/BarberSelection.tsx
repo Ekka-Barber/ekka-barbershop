@@ -3,7 +3,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Flag } from "lucide-react";
+import ReactCountryFlag from "react-country-flag";
 
 interface Employee {
   id: string;
@@ -20,20 +20,6 @@ interface BarberSelectionProps {
   selectedBarber: string | undefined;
   onBarberSelect: (barberId: string) => void;
 }
-
-// Map of country codes to flag icons and names
-const countryNames: { [key: string]: { en: string; ar: string } } = {
-  'sa': { en: 'Saudi Arabia', ar: 'السعودية' },
-  'eg': { en: 'Egypt', ar: 'مصر' },
-  'jo': { en: 'Jordan', ar: 'الأردن' },
-  'sy': { en: 'Syria', ar: 'سوريا' },
-  'ye': { en: 'Yemen', ar: 'اليمن' },
-  'lb': { en: 'Lebanon', ar: 'لبنان' },
-  'ma': { en: 'Morocco', ar: 'المغرب' },
-  'pk': { en: 'Pakistan', ar: 'باكستان' },
-  'in': { en: 'India', ar: 'الهند' },
-  'bd': { en: 'Bangladesh', ar: 'بنغلاديش' },
-};
 
 export const BarberSelection = ({
   employees,
@@ -83,9 +69,16 @@ export const BarberSelection = ({
               {language === 'ar' ? employee.name_ar : employee.name}
             </span>
             {employee.nationality && (
-              <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                <Flag className="w-4 h-4" />
-                <span>{employee.nationality.toUpperCase()}</span>
+              <div className="flex items-center justify-center">
+                <ReactCountryFlag
+                  countryCode={employee.nationality}
+                  svg
+                  style={{
+                    width: '1.5em',
+                    height: '1.5em',
+                  }}
+                  title={employee.nationality}
+                />
               </div>
             )}
           </div>
@@ -94,4 +87,3 @@ export const BarberSelection = ({
     </div>
   );
 };
-
