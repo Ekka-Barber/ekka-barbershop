@@ -55,15 +55,20 @@ export const NotificationComposer = ({ onMessageSent }: { onMessageSent: () => P
   const handleSendNotification = async () => {
     try {
       setSending(true);
-      console.log('Starting notification sending process...');
+      console.log('Starting notification sending process with:', {
+        title_en,
+        title_ar,
+        body_en,
+        body_ar
+      });
 
       const { data: newMessage, error: dbError } = await supabase
         .from('notification_messages')
         .insert([{ 
-          title_en: "🔔 Enhanced Notification Test", 
-          title_ar: "🔔 اختبار الإشعارات المحسنة",
-          body_en: "This is a test of our enhanced notification system. Thank you for helping us improve!",
-          body_ar: "هذا اختبار لنظام الإشعارات المحسن. شكراً لمساعدتنا في التحسين!",
+          title_en, 
+          title_ar,
+          body_en,
+          body_ar,
           stats: {
             total_sent: 0,
             delivered: 0,
@@ -104,10 +109,10 @@ export const NotificationComposer = ({ onMessageSent }: { onMessageSent: () => P
         body: {
           subscriptions: subscriptions,
           message: {
-            title_en: "🔔 Enhanced Notification Test",
-            title_ar: "🔔 اختبار الإشعارات المحسنة",
-            body_en: "This is a test of our enhanced notification system. Thank you for helping us improve!",
-            body_ar: "هذا اختبار لنظام الإشعارات المحسن. شكراً لمساعدتنا في التحسين!",
+            title_en,
+            title_ar,
+            body_en,
+            body_ar,
             message_id: newMessage.id,
             url: window.location.origin + '/offers'
           }
