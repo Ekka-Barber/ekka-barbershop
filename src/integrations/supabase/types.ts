@@ -611,10 +611,13 @@ export type Database = {
           created_at: string | null
           icon: string | null
           id: string
+          scheduled_for: string | null
           sent_at: string | null
           stats: Json | null
+          status: string | null
           title_ar: string
           title_en: string
+          updated_at: string | null
           url: string | null
         }
         Insert: {
@@ -623,10 +626,13 @@ export type Database = {
           created_at?: string | null
           icon?: string | null
           id?: string
+          scheduled_for?: string | null
           sent_at?: string | null
           stats?: Json | null
+          status?: string | null
           title_ar: string
           title_en: string
+          updated_at?: string | null
           url?: string | null
         }
         Update: {
@@ -635,10 +641,13 @@ export type Database = {
           created_at?: string | null
           icon?: string | null
           id?: string
+          scheduled_for?: string | null
           sent_at?: string | null
           stats?: Json | null
+          status?: string | null
           title_ar?: string
           title_en?: string
+          updated_at?: string | null
           url?: string | null
         }
         Relationships: []

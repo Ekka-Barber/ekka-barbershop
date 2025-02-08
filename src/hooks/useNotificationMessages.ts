@@ -18,23 +18,24 @@ export const useNotificationMessages = () => {
       if (error) throw error;
       
       // Convert the raw data to match NotificationMessage type
-      const typedMessages: NotificationMessage[] = data?.map(msg => {
-        const stats = msg.stats as Record<string, number> || {};
-        
-        return {
-          id: msg.id,
-          title_en: msg.title_en,
-          title_ar: msg.title_ar,
-          body_en: msg.body_en,
-          body_ar: msg.body_ar,
-          created_at: msg.created_at,
-          stats: {
-            total_sent: Number(stats.total_sent || 0),
-            delivered: Number(stats.delivered || 0),
-            user_actions: Number(stats.user_actions || 0)
-          } as NotificationStats
-        };
-      }) || [];
+      const typedMessages: NotificationMessage[] = data?.map(msg => ({
+        id: msg.id,
+        title_en: msg.title_en,
+        title_ar: msg.title_ar,
+        body_en: msg.body_en,
+        body_ar: msg.body_ar,
+        created_at: msg.created_at,
+        updated_at: msg.updated_at,
+        status: msg.status || 'draft',
+        scheduled_for: msg.scheduled_for,
+        url: msg.url,
+        icon: msg.icon,
+        stats: {
+          total_sent: Number(msg.stats?.total_sent || 0),
+          delivered: Number(msg.stats?.delivered || 0),
+          user_actions: Number(msg.stats?.user_actions || 0)
+        } as NotificationStats
+      })) || [];
       
       setMessages(typedMessages);
     } catch (error) {
@@ -47,3 +48,4 @@ export const useNotificationMessages = () => {
 
   return { messages, loading, setMessages, fetchMessages };
 };
+

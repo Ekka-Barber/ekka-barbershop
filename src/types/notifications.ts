@@ -6,7 +6,12 @@ export interface NotificationMessage {
   body_en: string;
   body_ar: string;
   created_at: string;
+  updated_at: string;
+  status: 'draft' | 'sent' | 'failed';
+  scheduled_for?: string;
   stats: NotificationStats;
+  url?: string;
+  icon?: string;
 }
 
 export interface NotificationStats {
@@ -36,3 +41,4 @@ export interface NotificationTracking {
   };
   created_at: string;
 }
+
