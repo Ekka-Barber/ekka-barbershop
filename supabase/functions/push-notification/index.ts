@@ -1,14 +1,16 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import * as webPush from 'npm:web-push';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.7'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-const BATCH_SIZE = 100;
+const BATCH_SIZE = 50; // Reduced batch size for better handling
 const MAX_RETRIES = 3;
+const INITIAL_BACKOFF = 1000; // 1 second
 
 serve(async (req) => {
   console.log('[Push Notification] Function called with method:', req.method);
@@ -17,17 +19,20 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders })
   }
 
+  const supabase = createClient(
+    Deno.env.get('SUPABASE_URL') ?? '',
+    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+  )
+
   try {
     const body = await req.json();
     console.log('[Push Notification] Request body:', JSON.stringify(body, null, 2));
 
-    if (!body?.subscriptions || !Array.isArray(body.subscriptions) || body.subscriptions.length === 0) {
-      console.error('[Push Notification] Invalid request: subscriptions array is missing or empty');
-      throw new Error('Invalid request: subscriptions array is required and must not be empty');
+    if (!body?.subscriptions || !Array.isArray(body.subscriptions)) {
+      throw new Error('Invalid request: subscriptions array is required');
     }
 
     if (!body.message) {
-      console.error('[Push Notification] Invalid request: message is missing');
       throw new Error('Invalid request: message is required');
     }
 
@@ -38,7 +43,6 @@ serve(async (req) => {
     const privateKey = Deno.env.get('VAPID_PRIVATE_KEY')
 
     if (!publicKey || !privateKey) {
-      console.error('[Push Notification] VAPID keys not configured');
       throw new Error('Push notification configuration not available');
     }
 
@@ -54,11 +58,7 @@ serve(async (req) => {
       const notificationPromises = batch.map(async (subscription) => {
         if (!subscription.endpoint || !subscription.p256dh || !subscription.auth) {
           console.error('[Push Notification] Invalid subscription:', subscription);
-          return { 
-            success: false, 
-            endpoint: subscription.endpoint || 'unknown',
-            error: 'Invalid subscription data'
-          };
+          return { success: false, endpoint: subscription.endpoint || 'unknown', error: 'Invalid subscription data' };
         }
 
         const pushSubscription = {
@@ -72,29 +72,61 @@ serve(async (req) => {
         let attempt = 0;
         while (attempt < MAX_RETRIES) {
           try {
+            const retryDelay = Math.pow(2, attempt) * INITIAL_BACKOFF;
             console.log(`[Push Notification] Sending to ${subscription.endpoint} (attempt ${attempt + 1}/${MAX_RETRIES})`);
-            await webPush.sendNotification(
-              pushSubscription,
-              JSON.stringify(message)
-            );
+            
+            await webPush.sendNotification(pushSubscription, JSON.stringify(message));
+            
+            // Update subscription stats on success
+            await supabase
+              .from('push_subscriptions')
+              .update({
+                last_successful_delivery: new Date().toISOString(),
+                last_attempted_delivery: new Date().toISOString(),
+                delivery_success_count: increment('delivery_success_count'),
+                error_count: 0,
+                status: 'active',
+                last_active: new Date().toISOString()
+              })
+              .eq('endpoint', subscription.endpoint);
+
             console.log(`[Push Notification] Successfully sent to ${subscription.endpoint}`);
             return { success: true, endpoint: subscription.endpoint };
           } catch (error: any) {
             attempt++;
             console.error(`[Push Notification] Error sending to ${subscription.endpoint} (attempt ${attempt}):`, error);
             
-            if (attempt === MAX_RETRIES || error.statusCode === 410) { // 410 = Gone (subscription expired)
+            const isPermanentError = error.statusCode === 410 || error.statusCode === 404;
+            
+            if (isPermanentError || attempt === MAX_RETRIES) {
+              // Update subscription status for permanent failure
+              await supabase
+                .from('push_subscriptions')
+                .update({
+                  status: isPermanentError ? 'expired' : 'retry',
+                  last_attempted_delivery: new Date().toISOString(),
+                  delivery_failure_count: increment('delivery_failure_count'),
+                  error_count: increment('error_count'),
+                  last_error_at: new Date().toISOString(),
+                  last_error_details: {
+                    statusCode: error.statusCode,
+                    message: error.message,
+                    timestamp: new Date().toISOString()
+                  }
+                })
+                .eq('endpoint', subscription.endpoint);
+
               return { 
                 success: false, 
                 endpoint: subscription.endpoint,
                 error: error.message,
                 statusCode: error.statusCode,
-                permanent: error.statusCode === 410
+                permanent: isPermanentError
               };
             }
             
-            // Wait before retry (exponential backoff)
-            await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempt) * 1000));
+            // Wait before retry with exponential backoff
+            await new Promise(resolve => setTimeout(resolve, retryDelay));
           }
         }
         
@@ -108,15 +140,16 @@ serve(async (req) => {
       return Promise.all(notificationPromises);
     };
 
-    // Process all subscriptions
     const results = {
       successful: 0,
       failed: 0,
       failures: [] as any[],
       total: subscriptions.length,
-      permanentFailures: 0
+      permanentFailures: 0,
+      retriableFailures: 0
     };
 
+    // Process subscriptions in smaller batches
     for (let i = 0; i < subscriptions.length; i += BATCH_SIZE) {
       const batch = subscriptions.slice(i, i + BATCH_SIZE);
       const batchResults = await processBatch(batch);
@@ -128,6 +161,8 @@ serve(async (req) => {
           results.failed++;
           if (result.permanent) {
             results.permanentFailures++;
+          } else {
+            results.retriableFailures++;
           }
           results.failures.push(result);
         }
@@ -139,35 +174,35 @@ serve(async (req) => {
       }
     }
 
+    // Log notification event
+    await supabase
+      .from('notification_events')
+      .insert({
+        event_type: 'batch_completed',
+        delivery_status: results.failed === 0 ? 'success' : 'partial',
+        notification_data: {
+          message_id: message.message_id,
+          stats: results
+        }
+      });
+
     console.log('[Push Notification] Completed:', JSON.stringify(results, null, 2));
     
     return new Response(
-      JSON.stringify({ 
-        success: true,
-        results 
-      }),
-      { 
-        headers: { 
-          ...corsHeaders,
-          'Content-Type': 'application/json'
-        }
-      }
+      JSON.stringify({ success: true, results }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
   } catch (error) {
     console.error('[Push Notification] Error:', error);
     return new Response(
-      JSON.stringify({ 
-        error: error.message,
-        success: false
-      }),
-      { 
-        headers: { 
-          ...corsHeaders,
-          'Content-Type': 'application/json'
-        },
-        status: 500 
-      }
+      JSON.stringify({ error: error.message, success: false }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
     );
   }
 });
+
+// Helper function to generate increment SQL
+const increment = (column: string) => {
+  return `COALESCE(${column}, 0) + 1`;
+};
