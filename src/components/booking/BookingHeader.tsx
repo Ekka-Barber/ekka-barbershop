@@ -13,8 +13,8 @@ export const BookingHeader = ({ branchName, branchAddress, isLoading }: BookingH
   const { t, language } = useLanguage();
   
   return (
-    <div className="text-center mb-8">
-      <div className="flex justify-end mb-4">
+    <div className="text-center">
+      <div className="sticky top-0 z-50 bg-gradient-to-b from-gray-50 to-transparent py-2 px-4">
         <LanguageSwitcher />
       </div>
       <Link to="/customer">
