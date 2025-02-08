@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { NotificationMessage } from "@/types/notifications";
+import { NotificationMessage, NotificationStats } from "@/types/notifications";
 
 export const useNotificationMessages = () => {
   const [messages, setMessages] = useState<NotificationMessage[]>([]);
@@ -16,7 +16,23 @@ export const useNotificationMessages = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setMessages(data || []);
+      
+      // Transform the data to ensure stats is properly typed
+      const transformedData: NotificationMessage[] = (data || []).map(message => ({
+        id: message.id,
+        title_en: message.title_en,
+        title_ar: message.title_ar,
+        body_en: message.body_en,
+        body_ar: message.body_ar,
+        created_at: message.created_at,
+        stats: {
+          total_sent: message.stats?.total_sent || 0,
+          delivered: message.stats?.delivered || 0,
+          user_actions: message.stats?.user_actions || 0
+        }
+      }));
+
+      setMessages(transformedData);
     } catch (error) {
       console.error('Error fetching messages:', error);
       toast.error("Error loading message history");
