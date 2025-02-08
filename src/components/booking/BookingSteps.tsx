@@ -13,6 +13,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { WorkingHours } from "@/types/service";
 
 const STEPS: BookingStep[] = ['services', 'barber', 'datetime', 'details'];
 
@@ -43,6 +44,30 @@ export const BookingSteps = ({ branch }: BookingStepsProps) => {
     handleServiceToggle,
     totalPrice
   } = useBooking(branch);
+
+  // Type guard to validate working hours structure
+  const isValidWorkingHours = (hours: any): hours is WorkingHours => {
+    if (!hours || typeof hours !== 'object') return false;
+    
+    const daysOfWeek = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+    return daysOfWeek.every(day => 
+      !hours[day] || (Array.isArray(hours[day]) && hours[day].every((slot: any) => typeof slot === 'string'))
+    );
+  };
+
+  // Safely transform working hours
+  const transformWorkingHours = (rawHours: any): WorkingHours | null => {
+    try {
+      if (isValidWorkingHours(rawHours)) {
+        return rawHours;
+      }
+      console.error('Invalid working hours format:', rawHours);
+      return null;
+    } catch (error) {
+      console.error('Error transforming working hours:', error);
+      return null;
+    }
+  };
 
   // Fetch available upsells for selected services
   const { data: availableUpsells } = useQuery({
@@ -101,6 +126,11 @@ export const BookingSteps = ({ branch }: BookingStepsProps) => {
                         currentStep === 'details' ? !customerDetails.name || !customerDetails.phone :
                         false;
 
+  // Transform working hours before passing to DateTimeSelection
+  const employeeWorkingHours = selectedEmployee?.working_hours 
+    ? transformWorkingHours(selectedEmployee.working_hours)
+    : null;
+
   return (
     <>
       <BookingProgress
@@ -136,7 +166,7 @@ export const BookingSteps = ({ branch }: BookingStepsProps) => {
             selectedTime={selectedTime}
             onDateSelect={setSelectedDate}
             onTimeSelect={setSelectedTime}
-            employeeWorkingHours={selectedEmployee?.working_hours}
+            employeeWorkingHours={employeeWorkingHours}
           />
         )}
 
