@@ -622,28 +622,34 @@ export type Database = {
         Row: {
           auth: string
           created_at: string
+          device_type: string | null
           endpoint: string
           id: string
+          last_active: string | null
           p256dh: string
-          status: Database["public"]["Enums"]["subscription_status"] | null
+          status: string | null
           updated_at: string
         }
         Insert: {
           auth: string
           created_at?: string
+          device_type?: string | null
           endpoint: string
           id?: string
+          last_active?: string | null
           p256dh: string
-          status?: Database["public"]["Enums"]["subscription_status"] | null
+          status?: string | null
           updated_at?: string
         }
         Update: {
           auth?: string
           created_at?: string
+          device_type?: string | null
           endpoint?: string
           id?: string
+          last_active?: string | null
           p256dh?: string
-          status?: Database["public"]["Enums"]["subscription_status"] | null
+          status?: string | null
           updated_at?: string
         }
         Relationships: []

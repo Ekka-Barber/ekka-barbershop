@@ -1,14 +1,19 @@
+
 import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import NotificationPermissionDialog from './NotificationPermissionDialog';
+import { BellRing, BellOff } from 'lucide-react';
 
 const PushNotificationToggle = () => {
   const [isSubscribed, setIsSubscribed] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState(false);
   const { language } = useLanguage();
   const [vapidKey, setVapidKey] = useState<string | null>(null);
   const [isStandalone, setIsStandalone] = useState(false);
+  const [deviceType, setDeviceType] = useState<'ios' | 'android' | 'other'>('other');
 
   useEffect(() => {
     // Check if the app is running in standalone mode (installed as PWA)
@@ -17,6 +22,14 @@ const PushNotificationToggle = () => {
       document.referrer.includes('android-app://');
     
     setIsStandalone(isRunningStandalone);
+
+    // Detect device type
+    const userAgent = navigator.userAgent.toLowerCase();
+    if (/iphone|ipad|ipod/.test(userAgent)) {
+      setDeviceType('ios');
+    } else if (/android/.test(userAgent)) {
+      setDeviceType('android');
+    }
 
     // Only proceed with push notification setup if running as PWA
     if (isRunningStandalone && 'serviceWorker' in navigator && 'PushManager' in window) {
@@ -29,16 +42,6 @@ const PushNotificationToggle = () => {
             navigator.serviceWorker.ready.then(registration => {
               registration.pushManager.getSubscription().then(subscription => {
                 setIsSubscribed(!!subscription);
-                // If not subscribed, request permission only once
-                if (!subscription && !localStorage.getItem('notificationPromptShown')) {
-                  const message = language === 'ar' 
-                    ? 'هل تود تلقي إشعارات من إكّه للعناية بالرجل؟'
-                    : 'Would you like to receive notifications from Ekka Barbershop?';
-                  if (confirm(message)) {
-                    subscribeUser();
-                  }
-                  localStorage.setItem('notificationPromptShown', 'true');
-                }
               });
             });
           }
@@ -60,14 +63,15 @@ const PushNotificationToggle = () => {
         applicationServerKey: vapidKey
       });
 
-      // Store subscription in Supabase
+      // Store subscription in Supabase with device type
       const { error } = await supabase
         .from('push_subscriptions')
         .insert([{ 
           endpoint: subscription.endpoint,
           p256dh: subscription.toJSON().keys.p256dh,
           auth: subscription.toJSON().keys.auth,
-          status: 'active'
+          status: 'active',
+          device_type: deviceType
         }]);
 
       if (error) throw error;
@@ -88,10 +92,10 @@ const PushNotificationToggle = () => {
       if (subscription) {
         await subscription.unsubscribe();
         
-        // Remove subscription from Supabase
+        // Update subscription status in Supabase
         const { error } = await supabase
           .from('push_subscriptions')
-          .delete()
+          .update({ status: 'inactive' })
           .eq('endpoint', subscription.endpoint);
 
         if (error) throw error;
@@ -110,18 +114,48 @@ const PushNotificationToggle = () => {
     return null;
   }
 
+  // For iOS, show installation instruction if not installed
+  if (deviceType === 'ios' && !isStandalone) {
+    return (
+      <div className="mt-4 p-4 bg-yellow-50 rounded-lg">
+        <p className="text-sm text-yellow-800">
+          {language === 'ar' 
+            ? 'لتفعيل الإشعارات، يرجى إضافة التطبيق إلى الشاشة الرئيسية أولاً'
+            : 'To enable notifications, please add this app to your home screen first'
+          }
+        </p>
+      </div>
+    );
+  }
+
   return (
-    <Button
-      onClick={isSubscribed ? unsubscribeUser : subscribeUser}
-      variant="outline"
-      className="mt-4"
-    >
-      {isSubscribed ? 
-        (language === 'ar' ? 'إلغاء تفعيل الإشعارات' : 'Disable Notifications') :
-        (language === 'ar' ? 'تفعيل الإشعارات' : 'Enable Notifications')
-      }
-    </Button>
+    <>
+      <Button
+        onClick={() => isSubscribed ? unsubscribeUser() : setDialogOpen(true)}
+        variant="outline"
+        className="mt-4"
+      >
+        {isSubscribed ? (
+          <>
+            <BellOff className="mr-2 h-4 w-4" />
+            {language === 'ar' ? 'إلغاء تفعيل الإشعارات' : 'Disable Notifications'}
+          </>
+        ) : (
+          <>
+            <BellRing className="mr-2 h-4 w-4" />
+            {language === 'ar' ? 'تفعيل الإشعارات' : 'Enable Notifications'}
+          </>
+        )}
+      </Button>
+
+      <NotificationPermissionDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        onAccept={subscribeUser}
+      />
+    </>
   );
 };
 
 export default PushNotificationToggle;
+
