@@ -1,3 +1,4 @@
+
 // Cache name for offline support
 const CACHE_NAME = 'ekka-v2';
 
@@ -71,11 +72,12 @@ self.addEventListener('fetch', (event) => {
   );
 });
 
-// Enhanced push event with platform-specific handling and proper tracking
-self.addEventListener('push', (event) => {
+// Simplified push event handler
+self.addEventListener('push', async (event) => {
   try {
+    console.log('Push event received');
     const data = event.data.text();
-    console.log('Received push event with data:', data);
+    console.log('Push data:', data);
     
     let notificationData;
     try {
@@ -84,41 +86,38 @@ self.addEventListener('push', (event) => {
       console.error('Error parsing notification data:', parseError);
       return;
     }
+
+    // Get the subscription for tracking
+    const subscription = await self.registration.pushManager.getSubscription();
     
+    // Track notification received
+    try {
+      const trackResponse = await fetch('https://jfnjvphxhzxojxgptmtu.supabase.co/functions/v1/track-notification', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          event: 'received',
+          notification: notificationData,
+          subscription: { endpoint: subscription?.endpoint },
+          delivery_status: 'delivered'
+        })
+      });
+      console.log('Tracking response:', await trackResponse.json());
+    } catch (trackError) {
+      console.error('Error tracking notification:', trackError);
+    }
+
     const userLang = self.navigator?.language || 'en';
     const isArabic = userLang.startsWith('ar');
-    const userAgent = self.navigator.userAgent.toLowerCase();
-    const isIOS = /iphone|ipad|ipod/.test(userAgent);
-    
-    // Track notification received using absolute URL
-    fetch('https://jfnjvphxhzxojxgptmtu.supabase.co/functions/v1/track-notification', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        event: 'received',
-        notification: notificationData,
-        subscription: {
-          endpoint: self.registration.pushManager.getSubscription().then(sub => sub?.endpoint)
-        },
-        platform: isIOS ? 'ios' : 'android',
-        delivery_status: 'delivered'
-      })
-    }).catch(error => {
-      console.error('Error tracking notification received:', error);
-    });
 
-    // Platform-specific notification options
-    const baseOptions = {
+    const notificationOptions = {
       body: isArabic ? notificationData.body_ar : notificationData.body_en,
       icon: '/lovable-uploads/8289fb1d-c6e6-4528-980c-6b52313ca898.png',
       badge: '/lovable-uploads/8289fb1d-c6e6-4528-980c-6b52313ca898.png',
       data: {
         url: notificationData.url || 'https://ekka.lovableproject.com/offers',
         message_id: notificationData.message_id,
-        dateOfArrival: Date.now(),
-        primaryKey: 1
+        dateOfArrival: Date.now()
       },
       actions: [
         {
@@ -131,99 +130,89 @@ self.addEventListener('push', (event) => {
         }
       ],
       tag: 'ekka-notification',
-      renotify: true
+      renotify: true,
+      requireInteraction: true,
+      vibrate: [100, 50, 100]
     };
-
-    // iOS-specific options
-    if (isIOS) {
-      Object.assign(baseOptions, {
-        vibrate: [50, 50],
-        sound: 'default'
-      });
-    } else {
-      // Android-specific options
-      Object.assign(baseOptions, {
-        vibrate: [100, 50, 100],
-        requireInteraction: true,
-        silent: false
-      });
-    }
 
     event.waitUntil(
       self.registration.showNotification(
         isArabic ? notificationData.title_ar : notificationData.title_en,
-        baseOptions
+        notificationOptions
       )
     );
   } catch (error) {
-    console.error('Error processing push notification:', error);
+    console.error('Error in push event handler:', error);
   }
 });
 
-// Enhanced notification click handling with proper tracking
+// Simplified notification click handler
 self.addEventListener('notificationclick', (event) => {
   try {
+    console.log('Notification clicked');
     const messageId = event.notification.data.message_id;
-    console.log('Notification clicked with message_id:', messageId);
 
+    // Track the click
     fetch('https://jfnjvphxhzxojxgptmtu.supabase.co/functions/v1/track-notification', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         event: 'clicked',
         action: event.action,
         notification: {
           message_id: messageId,
           ...event.notification.data
-        },
-        platform: /iphone|ipad|ipod/.test(self.navigator.userAgent.toLowerCase()) ? 'ios' : 'android'
+        }
       })
-    }).catch(error => console.error('Error tracking notification click:', error));
+    }).catch(error => console.error('Error tracking click:', error));
 
     event.notification.close();
 
-    if (event.action === 'close') {
-      return;
-    }
+    if (event.action === 'close') return;
 
-    // Enhanced client focusing/opening
+    // Open or focus window
     event.waitUntil(
-      clients.matchAll({ 
-        type: 'window',
-        includeUncontrolled: true
-      })
-      .then(windowClients => {
-        for (let i = 0; i < windowClients.length; i++) {
-          const client = windowClients[i];
-          if (client.url === event.notification.data.url && 'focus' in client) {
-            return client.focus();
+      clients.matchAll({ type: 'window', includeUncontrolled: true })
+        .then(windowClients => {
+          const url = event.notification.data.url;
+          
+          // Try to focus an existing window
+          for (const client of windowClients) {
+            if (client.url === url && 'focus' in client) {
+              return client.focus();
+            }
           }
-        }
-        if (clients.openWindow) {
-          return clients.openWindow(event.notification.data.url);
-        }
-      })
+          
+          // If no existing window, open a new one
+          if (clients.openWindow) {
+            return clients.openWindow(url);
+          }
+        })
     );
   } catch (error) {
-    console.error('Error in notification click handler:', error);
+    console.error('Error in click handler:', error);
   }
 });
 
-// Enhanced subscription change handling
-self.addEventListener('pushsubscriptionchange', (event) => {
-  event.waitUntil(
-    fetch(`${self.registration.scope}functions/v1/update-subscription`, {
+// Handle subscription changes
+self.addEventListener('pushsubscriptionchange', async (event) => {
+  try {
+    console.log('Subscription changed');
+    const newSubscription = await event.target.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: event.oldSubscription?.options?.applicationServerKey
+    });
+
+    // Update subscription in backend
+    await fetch('https://jfnjvphxhzxojxgptmtu.supabase.co/functions/v1/update-subscription', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         oldSubscription: event.oldSubscription?.toJSON(),
-        newSubscription: event.newSubscription?.toJSON(),
-        deviceType: /iphone|ipad|ipod/.test(self.navigator.userAgent.toLowerCase()) ? 'ios' : 'android'
+        newSubscription: newSubscription.toJSON()
       })
-    }).catch(error => console.error('Error updating subscription:', error))
-  );
+    });
+  } catch (error) {
+    console.error('Error handling subscription change:', error);
+  }
 });
