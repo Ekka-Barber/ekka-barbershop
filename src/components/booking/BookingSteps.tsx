@@ -1,3 +1,4 @@
+
 import { BookingProgress, BookingStep } from "@/components/booking/BookingProgress";
 import { ServiceSelection } from "@/components/booking/ServiceSelection";
 import { DateTimeSelection } from "@/components/booking/DateTimeSelection";
@@ -84,70 +85,14 @@ export const BookingSteps = ({ branch }: BookingStepsProps) => {
         }
       });
 
-      // Convert map values back to array
       return Array.from(upsellMap.values());
     },
     enabled: selectedServices.length > 0
   });
 
-  const currentStepIndex = STEPS.indexOf(currentStep);
-  const selectedBarberName = selectedBarber 
-    ? employees?.find(emp => emp.id === selectedBarber)?.[language === 'ar' ? 'name_ar' : 'name']
-    : undefined;
-
-  const employeeWorkingHours = selectedEmployee?.working_hours as WorkingHours | undefined;
-
-  const trackBookingStep = async (step: BookingStep) => {
-    try {
-      await supabase
-        .from('booking_behavior')
-        .insert([{
-          step,
-          timestamp: new Date().toISOString()
-        }]);
-    } catch (error) {
-      console.error('Error tracking booking step:', error);
-    }
-  };
-
-  const handleNextStep = () => {
-    if (currentStep === 'services' && availableUpsells?.length > 0) {
-      setShowUpsellModal(true);
-    } else {
-      const nextStep = STEPS[currentStepIndex + 1];
-      setCurrentStep(nextStep);
-      trackBookingStep(nextStep);
-    }
-  };
-
-  const handleUpsellConfirm = (selectedUpsells: any[]) => {
-    selectedUpsells.forEach(upsell => {
-      handleServiceToggle({
-        id: upsell.id,
-        name_en: upsell.name,
-        name_ar: upsell.name,
-        price: upsell.price,
-        duration: upsell.duration,
-        discount_type: 'percentage',
-        discount_value: upsell.discountPercentage
-      });
-    });
-    const nextStep = 'barber';
-    setCurrentStep(nextStep);
-    trackBookingStep(nextStep);
-  };
-
-  const handleRemoveService = (serviceId: string) => {
-    const service = selectedServices.find(s => s.id === serviceId);
-    if (service && service.originalPrice) {
-      handleServiceToggle({
-        id: service.id,
-        name_en: service.name,
-        name_ar: service.name,
-        price: service.price,
-        duration: service.duration
-      });
-    }
+  const handleStepChange = (step: string) => {
+    console.log('Changing step to:', step);
+    setCurrentStep(step as BookingStep);
   };
 
   return (
@@ -156,7 +101,7 @@ export const BookingSteps = ({ branch }: BookingStepsProps) => {
         currentStep={currentStep}
         steps={STEPS}
         onStepClick={setCurrentStep}
-        currentStepIndex={currentStepIndex}
+        currentStepIndex={STEPS.indexOf(currentStep)}
       />
 
       <div className="mb-8">
@@ -166,6 +111,7 @@ export const BookingSteps = ({ branch }: BookingStepsProps) => {
             isLoading={categoriesLoading}
             selectedServices={selectedServices}
             onServiceToggle={handleServiceToggle}
+            onStepChange={handleStepChange}
           />
         )}
 
@@ -200,8 +146,19 @@ export const BookingSteps = ({ branch }: BookingStepsProps) => {
               totalPrice={totalPrice}
               selectedDate={selectedDate}
               selectedTime={selectedTime}
-              selectedBarberName={selectedBarberName}
-              onRemoveService={handleRemoveService}
+              selectedBarberName={selectedBarber ? employees?.find(emp => emp.id === selectedBarber)?.[language === 'ar' ? 'name_ar' : 'name'] : undefined}
+              onRemoveService={(serviceId) => {
+                const service = selectedServices.find(s => s.id === serviceId);
+                if (service) {
+                  handleServiceToggle({
+                    id: service.id,
+                    name_en: service.name,
+                    name_ar: service.name,
+                    price: service.price,
+                    duration: service.duration
+                  });
+                }
+              }}
             />
 
             <WhatsAppIntegration
@@ -209,7 +166,7 @@ export const BookingSteps = ({ branch }: BookingStepsProps) => {
               totalPrice={totalPrice}
               selectedDate={selectedDate}
               selectedTime={selectedTime}
-              selectedBarberName={selectedBarberName}
+              selectedBarberName={selectedBarber ? employees?.find(emp => emp.id === selectedBarber)?.[language === 'ar' ? 'name_ar' : 'name'] : undefined}
               customerDetails={customerDetails}
               language={language}
               branch={branch}
@@ -218,28 +175,26 @@ export const BookingSteps = ({ branch }: BookingStepsProps) => {
         )}
       </div>
 
-      <BookingNavigation
-        currentStepIndex={currentStepIndex}
-        steps={STEPS}
-        currentStep={currentStep}
-        setCurrentStep={setCurrentStep}
-        isNextDisabled={
-          (currentStep === 'services' && selectedServices.length === 0) ||
-          (currentStep === 'barber' && !selectedBarber) ||
-          (currentStep === 'datetime' && (!selectedDate || !selectedTime))
-        }
-        customerDetails={customerDetails}
-        branch={branch}
-        onNextClick={handleNextStep}
-      />
-
       <UpsellModal
         isOpen={showUpsellModal}
         onClose={() => {
           setShowUpsellModal(false);
           setCurrentStep('barber');
         }}
-        onConfirm={handleUpsellConfirm}
+        onConfirm={(selectedUpsells) => {
+          selectedUpsells.forEach(upsell => {
+            handleServiceToggle({
+              id: upsell.id,
+              name_en: upsell.name,
+              name_ar: upsell.name,
+              price: upsell.price,
+              duration: upsell.duration,
+              discount_type: 'percentage',
+              discount_value: upsell.discountPercentage
+            });
+          });
+          setCurrentStep('barber');
+        }}
         availableUpsells={availableUpsells || []}
       />
     </>
