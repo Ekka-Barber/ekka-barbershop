@@ -1,26 +1,16 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import data from '@emoji-mart/data';
-import Picker from '@emoji-mart/react';
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { SmilePlus } from "lucide-react";
-
-interface PlatformStats {
-  success: number;
-  failed: number;
-}
+import { ComposerInput } from "./composer/ComposerInput";
 
 interface PushNotificationResponse {
   success: boolean;
   results: {
     successful: number;
     failed: number;
-    platformStats?: Record<string, PlatformStats>;
+    platformStats?: Record<string, { success: number; failed: number }>;
   };
 }
 
@@ -78,12 +68,7 @@ export const NotificationComposer = ({ onMessageSent }: { onMessageSent: () => P
         .select()
         .single();
 
-      if (dbError) {
-        console.error('Database error:', dbError);
-        throw dbError;
-      }
-
-      console.log('Created notification message:', newMessage);
+      if (dbError) throw dbError;
 
       const { data: subscriptions, error: subError } = await supabase
         .from('push_subscriptions')
@@ -92,18 +77,12 @@ export const NotificationComposer = ({ onMessageSent }: { onMessageSent: () => P
         .lt('error_count', 3)
         .gte('last_active', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString());
 
-      if (subError) {
-        console.error('Subscription fetch error:', subError);
-        throw subError;
-      }
+      if (subError) throw subError;
 
       if (!subscriptions?.length) {
-        console.log('No active subscriptions found');
         toast.info("No active subscriptions found");
         return;
       }
-
-      console.log(`Found ${subscriptions.length} active subscriptions`);
 
       const { error: pushError, data: pushResponse } = await supabase.functions.invoke<PushNotificationResponse>('push-notification', {
         body: {
@@ -119,24 +98,12 @@ export const NotificationComposer = ({ onMessageSent }: { onMessageSent: () => P
         }
       });
 
-      if (pushError) {
-        console.error('Push notification error:', pushError);
-        throw pushError;
-      }
-
-      console.log('Push notification response:', pushResponse);
+      if (pushError) throw pushError;
 
       if (pushResponse?.success) {
         toast.success(`Successfully sent to ${pushResponse.results.successful} devices`);
         
-        if (pushResponse.results.platformStats) {
-          Object.entries(pushResponse.results.platformStats).forEach(([platform, stats]) => {
-            console.log(`Platform ${platform}: ${stats.success} successful, ${stats.failed} failed`);
-          });
-        }
-        
         if (pushResponse.results.failed > 0) {
-          console.warn(`Failed to send to ${pushResponse.results.failed} devices`);
           toast.warning(`Failed to send to ${pushResponse.results.failed} devices`);
         }
       }
@@ -156,84 +123,52 @@ export const NotificationComposer = ({ onMessageSent }: { onMessageSent: () => P
     }
   };
 
-  const EmojiPickerButton = ({ inputId }: { inputId: typeof activeInput }) => (
-    <Popover>
-      <PopoverTrigger asChild>
-        <Button 
-          variant="ghost" 
-          size="icon"
-          className="h-8 w-8"
-          onClick={() => setActiveInput(inputId)}
-        >
-          <SmilePlus className="h-4 w-4" />
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-full p-0" align="start">
-        <Picker 
-          data={data} 
-          onEmojiSelect={handleEmojiSelect}
-          theme="light"
-        />
-      </PopoverContent>
-    </Popover>
-  );
-
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Title (English)</label>
-          <div className="flex gap-2">
-            <Input
-              value={title_en}
-              onChange={(e) => setTitleEn(e.target.value)}
-              placeholder="Enter title in English"
-            />
-            <EmojiPickerButton inputId="title_en" />
-          </div>
-        </div>
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Title (Arabic)</label>
-          <div className="flex gap-2">
-            <Input
-              value={title_ar}
-              onChange={(e) => setTitleAr(e.target.value)}
-              placeholder="أدخل العنوان بالعربية"
-              className="text-right"
-              dir="rtl"
-            />
-            <EmojiPickerButton inputId="title_ar" />
-          </div>
-        </div>
+        <ComposerInput
+          label="Title (English)"
+          value={title_en}
+          onChange={setTitleEn}
+          placeholder="Enter title in English"
+          inputId="title_en"
+          onEmojiSelect={handleEmojiSelect}
+          onEmojiPickerOpen={setActiveInput}
+        />
+        <ComposerInput
+          label="Title (Arabic)"
+          value={title_ar}
+          onChange={setTitleAr}
+          placeholder="أدخل العنوان بالعربية"
+          inputId="title_ar"
+          isRtl
+          onEmojiSelect={handleEmojiSelect}
+          onEmojiPickerOpen={setActiveInput}
+        />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Message (English)</label>
-          <div className="flex gap-2">
-            <Textarea
-              value={body_en}
-              onChange={(e) => setBodyEn(e.target.value)}
-              placeholder="Enter message in English"
-              rows={4}
-            />
-            <EmojiPickerButton inputId="body_en" />
-          </div>
-        </div>
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Message (Arabic)</label>
-          <div className="flex gap-2">
-            <Textarea
-              value={body_ar}
-              onChange={(e) => setBodyAr(e.target.value)}
-              placeholder="أدخل الرسالة بالعربية"
-              className="text-right"
-              dir="rtl"
-              rows={4}
-            />
-            <EmojiPickerButton inputId="body_ar" />
-          </div>
-        </div>
+        <ComposerInput
+          label="Message (English)"
+          value={body_en}
+          onChange={setBodyEn}
+          placeholder="Enter message in English"
+          inputId="body_en"
+          isTextArea
+          onEmojiSelect={handleEmojiSelect}
+          onEmojiPickerOpen={setActiveInput}
+        />
+        <ComposerInput
+          label="Message (Arabic)"
+          value={body_ar}
+          onChange={setBodyAr}
+          placeholder="أدخل الرسالة بالعربية"
+          inputId="body_ar"
+          isTextArea
+          isRtl
+          onEmojiSelect={handleEmojiSelect}
+          onEmojiPickerOpen={setActiveInput}
+        />
       </div>
 
       <Button 
