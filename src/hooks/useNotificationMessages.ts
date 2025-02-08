@@ -18,24 +18,34 @@ export const useNotificationMessages = () => {
       if (error) throw error;
       
       // Convert the raw data to match NotificationMessage type
-      const typedMessages: NotificationMessage[] = data?.map(msg => ({
-        id: msg.id,
-        title_en: msg.title_en,
-        title_ar: msg.title_ar,
-        body_en: msg.body_en,
-        body_ar: msg.body_ar,
-        created_at: msg.created_at,
-        updated_at: msg.updated_at,
-        status: msg.status || 'draft',
-        scheduled_for: msg.scheduled_for,
-        url: msg.url,
-        icon: msg.icon,
-        stats: {
-          total_sent: Number(msg.stats?.total_sent || 0),
-          delivered: Number(msg.stats?.delivered || 0),
-          user_actions: Number(msg.stats?.user_actions || 0)
-        } as NotificationStats
-      })) || [];
+      const typedMessages: NotificationMessage[] = data?.map(msg => {
+        // Ensure status is one of the allowed values
+        const validStatus = (msg.status === 'draft' || msg.status === 'sent' || msg.status === 'failed') 
+          ? msg.status 
+          : 'draft';
+
+        // Parse stats object with type safety
+        const statsObj = msg.stats as Record<string, number> | null;
+        
+        return {
+          id: msg.id,
+          title_en: msg.title_en,
+          title_ar: msg.title_ar,
+          body_en: msg.body_en,
+          body_ar: msg.body_ar,
+          created_at: msg.created_at,
+          updated_at: msg.updated_at,
+          status: validStatus,
+          scheduled_for: msg.scheduled_for,
+          url: msg.url,
+          icon: msg.icon,
+          stats: {
+            total_sent: Number(statsObj?.total_sent || 0),
+            delivered: Number(statsObj?.delivered || 0),
+            user_actions: Number(statsObj?.user_actions || 0)
+          } as NotificationStats
+        };
+      }) || [];
       
       setMessages(typedMessages);
     } catch (error) {
