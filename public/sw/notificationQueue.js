@@ -28,88 +28,6 @@ const openDB = async () => {
   });
 };
 
-export const initializeQueue = async () => {
-  try {
-    const db = await openDB();
-    const tx = db.transaction(QUEUE_NAME, 'readonly');
-    const store = tx.objectStore(QUEUE_NAME);
-    const notificationQueue = await new Promise((resolve, reject) => {
-      const request = store.getAll();
-      request.onsuccess = () => resolve(request.result);
-      request.onerror = () => {
-        logError('Failed to get notifications from queue', request.error);
-        reject(request.error);
-      };
-    });
-    
-    log('Notification queue initialized', { queueSize: notificationQueue.length });
-    
-    // Process any pending notifications that might have failed during previous session
-    await processPendingNotifications();
-  } catch (error) {
-    logError('Failed to initialize queue', error);
-    throw new Error('Queue initialization failed');
-  }
-};
-
-export const addToQueue = async (notification) => {
-  try {
-    const db = await openDB();
-    const tx = db.transaction(QUEUE_NAME, 'readwrite');
-    const store = tx.objectStore(QUEUE_NAME);
-    
-    const queueItem = {
-      ...notification,
-      status: 'pending',
-      timestamp: Date.now(),
-      retryCount: 0,
-      lastAttempt: null,
-      errors: []
-    };
-
-    await new Promise((resolve, reject) => {
-      const request = store.add(queueItem);
-      request.onsuccess = () => resolve();
-      request.onerror = () => {
-        logError('Failed to add notification to queue', request.error);
-        reject(request.error);
-      };
-    });
-    
-    log('Added notification to queue', notification);
-    
-    // Attempt to process the notification immediately if online
-    if (navigator.onLine) {
-      await processNotification(queueItem);
-    }
-  } catch (error) {
-    logError('Failed to add notification to queue', error);
-    throw new Error('Failed to queue notification');
-  }
-};
-
-export const removeFromQueue = async (id) => {
-  try {
-    const db = await openDB();
-    const tx = db.transaction(QUEUE_NAME, 'readwrite');
-    const store = tx.objectStore(QUEUE_NAME);
-    
-    await new Promise((resolve, reject) => {
-      const request = store.delete(id);
-      request.onsuccess = () => resolve();
-      request.onerror = () => {
-        logError('Failed to remove notification from queue', request.error);
-        reject(request.error);
-      };
-    });
-    
-    log('Removed notification from queue', { id });
-  } catch (error) {
-    logError('Failed to remove notification from queue', error);
-    throw new Error('Failed to remove notification from queue');
-  }
-};
-
 const updateQueueItem = async (id, updates) => {
   const db = await openDB();
   const tx = db.transaction(QUEUE_NAME, 'readwrite');
@@ -183,6 +101,77 @@ const processPendingNotifications = async () => {
     }
   } catch (error) {
     logError('Error processing pending notifications', error);
+  }
+};
+
+// Public API
+export const initializeQueue = async () => {
+  try {
+    const db = await openDB();
+    const tx = db.transaction(QUEUE_NAME, 'readonly');
+    const store = tx.objectStore(QUEUE_NAME);
+    const notificationQueue = await new Promise((resolve, reject) => {
+      const request = store.getAll();
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+    
+    log('Notification queue initialized', { queueSize: notificationQueue.length });
+    await processPendingNotifications();
+  } catch (error) {
+    logError('Failed to initialize queue', error);
+    throw new Error('Queue initialization failed');
+  }
+};
+
+export const addToQueue = async (notification) => {
+  try {
+    const db = await openDB();
+    const tx = db.transaction(QUEUE_NAME, 'readwrite');
+    const store = tx.objectStore(QUEUE_NAME);
+    
+    const queueItem = {
+      ...notification,
+      status: 'pending',
+      timestamp: Date.now(),
+      retryCount: 0,
+      lastAttempt: null,
+      errors: []
+    };
+
+    await new Promise((resolve, reject) => {
+      const request = store.add(queueItem);
+      request.onsuccess = () => resolve();
+      request.onerror = () => reject(request.error);
+    });
+    
+    log('Added notification to queue', notification);
+    
+    if (navigator.onLine) {
+      await processNotification(queueItem);
+    }
+  } catch (error) {
+    logError('Failed to add notification to queue', error);
+    throw new Error('Failed to queue notification');
+  }
+};
+
+export const removeFromQueue = async (id) => {
+  try {
+    const db = await openDB();
+    const tx = db.transaction(QUEUE_NAME, 'readwrite');
+    const store = tx.objectStore(QUEUE_NAME);
+    
+    await new Promise((resolve, reject) => {
+      const request = store.delete(id);
+      request.onsuccess = () => resolve();
+      request.onerror = () => reject(request.error);
+    });
+    
+    log('Removed notification from queue', { id });
+  } catch (error) {
+    logError('Failed to remove notification from queue', error);
+    throw new Error('Failed to remove notification from queue');
   }
 };
 
