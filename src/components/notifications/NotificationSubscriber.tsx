@@ -26,15 +26,30 @@ export const useNotificationSubscriber = ({
         throw new Error('VAPID key not available');
       }
 
+      // Check if running in standalone mode (PWA or added to home screen)
+      const isStandalone = window.matchMedia('(display-mode: standalone)').matches ||
+        (window.navigator as any).standalone;
+
+      if (!isStandalone) {
+        toast.error(
+          language === 'ar' 
+            ? 'يجب تثبيت التطبيق أولاً'
+            : 'Please install the app first'
+        );
+        return;
+      }
+
       const registration = await navigator.serviceWorker.ready;
+      console.log('Service Worker ready, proceeding with subscription');
       
       const subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey: vapidKey
       });
 
-      // Store subscription with enhanced tracking
-      const platformDetails = await notificationManager.getPlatformDetails();
+      console.log('Push subscription successful:', subscription.endpoint);
+
+      // Store subscription with minimal data
       const { error } = await supabase
         .from('push_subscriptions')
         .upsert({
@@ -44,10 +59,7 @@ export const useNotificationSubscriber = ({
           status: 'active' as NotificationStatus,
           device_type: platform,
           permission_state: permissionState,
-          platform_details: platformDetails as Json,
           last_active: new Date().toISOString(),
-          error_count: 0,
-          retry_count: 0
         });
 
       if (error) throw error;
@@ -76,7 +88,6 @@ export const useNotificationSubscriber = ({
       if (subscription) {
         await subscription.unsubscribe();
         
-        // Update subscription status with enhanced tracking
         const { error } = await supabase
           .from('push_subscriptions')
           .update({ 
