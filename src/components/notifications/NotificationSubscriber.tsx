@@ -23,7 +23,7 @@ export const useNotificationSubscriber = ({
   const subscribeUser = async () => {
     try {
       if (!vapidKey) {
-        console.error('VAPID key not available');
+        console.error('[Notification] VAPID key not available');
         throw new Error('Push notification configuration not available');
       }
 
@@ -40,28 +40,40 @@ export const useNotificationSubscriber = ({
         return;
       }
 
-      console.log('Starting subscription process...');
+      console.log('[Notification] Starting subscription process...');
 
-      // Get existing registrations but don't unregister yet
+      // Get existing registrations and unregister them to ensure clean state
       const registrations = await navigator.serviceWorker.getRegistrations();
-      let activeRegistration = registrations.find(reg => 
-        reg.active && reg.scope === window.location.origin + '/'
-      );
-
-      if (!activeRegistration) {
-        console.log('No active registration found, registering new service worker');
-        activeRegistration = await navigator.serviceWorker.register('/service-worker.js', {
-          scope: '/'
-        });
-        console.log('Service Worker registered:', activeRegistration);
+      for (const registration of registrations) {
+        console.log('[Notification] Unregistering existing service worker:', registration.scope);
+        await registration.unregister();
       }
 
-      // Wait for the service worker to be ready
-      await navigator.serviceWorker.ready;
-      console.log('Service Worker ready, checking existing subscription');
+      // Register new service worker
+      console.log('[Notification] Registering new service worker');
+      const registration = await navigator.serviceWorker.register('/service-worker.js', {
+        scope: '/',
+        updateViaCache: 'none'
+      });
       
+      console.log('[Notification] Service Worker registered:', registration);
+
+      // Wait for the service worker to be ready and active
+      if (registration.installing) {
+        console.log('[Notification] Service worker installing');
+        await new Promise<void>((resolve) => {
+          registration.installing?.addEventListener('statechange', (e) => {
+            if ((e.target as ServiceWorker).state === 'activated') {
+              console.log('[Notification] Service worker activated');
+              resolve();
+            }
+          });
+        });
+      }
+
       // Get existing subscription
-      const existingSubscription = await activeRegistration.pushManager.getSubscription();
+      console.log('[Notification] Checking existing subscription');
+      const existingSubscription = await registration.pushManager.getSubscription();
       
       // Only unsubscribe if we have a new valid VAPID key that's different
       if (existingSubscription) {
@@ -69,45 +81,77 @@ export const useNotificationSubscriber = ({
         const newVapidKey = new Uint8Array(Buffer.from(vapidKey, 'base64'));
         
         if (!areBuffersEqual(currentVapidKey, newVapidKey)) {
-          console.log('VAPID key changed, unsubscribing from existing subscription');
+          console.log('[Notification] VAPID key changed, unsubscribing');
           await existingSubscription.unsubscribe();
         } else {
-          console.log('Using existing subscription with same VAPID key');
+          console.log('[Notification] Using existing subscription');
           setIsSubscribed(true);
           return;
         }
       }
 
-      console.log('Creating new push subscription');
-      const subscription = await activeRegistration.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: vapidKey
-      });
+      // Create new push subscription with retry logic
+      let subscription;
+      let retryCount = 0;
+      const maxRetries = 3;
 
-      console.log('Push subscription created:', subscription.endpoint);
+      while (!subscription && retryCount < maxRetries) {
+        try {
+          console.log(`[Notification] Attempting to create push subscription (attempt ${retryCount + 1})`);
+          subscription = await registration.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey: vapidKey
+          });
+          console.log('[Notification] Push subscription created:', subscription.endpoint);
+        } catch (error) {
+          console.error(`[Notification] Subscription attempt ${retryCount + 1} failed:`, error);
+          retryCount++;
+          if (retryCount === maxRetries) throw error;
+          await new Promise(resolve => setTimeout(resolve, 1000 * retryCount));
+        }
+      }
+
+      if (!subscription) {
+        throw new Error('Failed to create push subscription after retries');
+      }
 
       // Get platform details
       const platformDetails = await notificationManager.getPlatformDetails();
+      console.log('[Notification] Platform details:', platformDetails);
 
-      // Store subscription
-      const { error } = await supabase
-        .from('push_subscriptions')
-        .upsert({
-          endpoint: subscription.endpoint,
-          p256dh: subscription.toJSON().keys.p256dh,
-          auth: subscription.toJSON().keys.auth,
-          status: 'active' as NotificationStatus,
-          device_type: platform,
-          permission_state: permissionState,
-          last_active: new Date().toISOString(),
-          platform_details: platformDetails,
-          error_count: 0,
-          retry_count: 0,
-          last_error_at: null,
-          last_error_details: null
-        });
+      // Store subscription with retry logic
+      let stored = false;
+      retryCount = 0;
 
-      if (error) throw error;
+      while (!stored && retryCount < maxRetries) {
+        try {
+          const { error } = await supabase
+            .from('push_subscriptions')
+            .upsert({
+              endpoint: subscription.endpoint,
+              p256dh: subscription.toJSON().keys.p256dh,
+              auth: subscription.toJSON().keys.auth,
+              status: 'active' as NotificationStatus,
+              device_type: platform,
+              permission_state: permissionState,
+              last_active: new Date().toISOString(),
+              platform_details: platformDetails,
+              error_count: 0,
+              retry_count: 0,
+              last_error_at: null,
+              last_error_details: null
+            });
+
+          if (error) throw error;
+          stored = true;
+          console.log('[Notification] Subscription stored successfully');
+        } catch (error) {
+          console.error(`[Notification] Storage attempt ${retryCount + 1} failed:`, error);
+          retryCount++;
+          if (retryCount === maxRetries) throw error;
+          await new Promise(resolve => setTimeout(resolve, 1000 * retryCount));
+        }
+      }
 
       setIsSubscribed(true);
       toast.success(
@@ -116,22 +160,35 @@ export const useNotificationSubscriber = ({
           : 'Notifications enabled successfully'
       );
     } catch (err) {
-      console.error('Error subscribing to push notifications:', err);
+      console.error('[Notification] Error in subscription process:', err);
       toast.error(
         language === 'ar' 
           ? 'حدث خطأ أثناء تفعيل الإشعارات'
           : 'Error enabling notifications'
       );
+      // Attempt cleanup
+      try {
+        const registration = await navigator.serviceWorker.ready;
+        const subscription = await registration.pushManager.getSubscription();
+        if (subscription) {
+          await subscription.unsubscribe();
+          console.log('[Notification] Cleaned up failed subscription');
+        }
+      } catch (cleanupError) {
+        console.error('[Notification] Error during cleanup:', cleanupError);
+      }
     }
   };
 
   const unsubscribeUser = async () => {
     try {
+      console.log('[Notification] Starting unsubscribe process');
       const registration = await navigator.serviceWorker.ready;
       const subscription = await registration.pushManager.getSubscription();
       
       if (subscription) {
         await subscription.unsubscribe();
+        console.log('[Notification] Unsubscribed from push notifications');
         
         const { error } = await supabase
           .from('push_subscriptions')
@@ -143,6 +200,7 @@ export const useNotificationSubscriber = ({
           .eq('endpoint', subscription.endpoint);
 
         if (error) throw error;
+        console.log('[Notification] Updated subscription status in database');
       }
       
       setIsSubscribed(false);
@@ -152,7 +210,7 @@ export const useNotificationSubscriber = ({
           : 'Notifications disabled'
       );
     } catch (err) {
-      console.error('Error unsubscribing from push notifications:', err);
+      console.error('[Notification] Error unsubscribing:', err);
       toast.error(
         language === 'ar' 
           ? 'حدث خطأ أثناء إلغاء تفعيل الإشعارات'
