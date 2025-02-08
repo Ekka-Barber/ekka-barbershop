@@ -2,9 +2,10 @@
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { NotificationMessage } from "@/types/notifications";
 
 export const useNotificationMessages = () => {
-  const [messages, setMessages] = useState<any[]>([]);
+  const [messages, setMessages] = useState<NotificationMessage[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchMessages = async () => {

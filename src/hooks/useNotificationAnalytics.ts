@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { NotificationMessage, NotificationEvent } from "@/types/notifications";
 
 export interface NotificationAnalytics {
   totalSent: number;
@@ -10,7 +11,7 @@ export interface NotificationAnalytics {
   activeSubscriptions: number;
 }
 
-export const useNotificationAnalytics = (messages: any[]) => {
+export const useNotificationAnalytics = (messages: NotificationMessage[]) => {
   const [analytics, setAnalytics] = useState<NotificationAnalytics>({
     totalSent: 0,
     totalClicked: 0,
@@ -29,7 +30,7 @@ export const useNotificationAnalytics = (messages: any[]) => {
 
       const { data: events, error: eventsError } = await supabase
         .from('notification_events')
-        .select('event_type, action');
+        .select('event_type, action') as { data: NotificationEvent[] | null, error: any };
 
       if (eventsError) throw eventsError;
 

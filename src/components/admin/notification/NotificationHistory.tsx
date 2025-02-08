@@ -6,9 +6,10 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useState } from "react";
+import { NotificationMessage } from "@/types/notifications";
 
 interface NotificationHistoryProps {
-  messages: any[];
+  messages: NotificationMessage[];
   loading: boolean;
   onMessageResent: () => Promise<void>;
 }
@@ -16,7 +17,7 @@ interface NotificationHistoryProps {
 export const NotificationHistory = ({ messages, loading, onMessageResent }: NotificationHistoryProps) => {
   const [sending, setSending] = useState(false);
 
-  const handleResend = async (message: any) => {
+  const handleResend = async (message: NotificationMessage) => {
     try {
       setSending(true);
 
