@@ -42,6 +42,7 @@ export const NotificationComposer = ({ onMessageSent }: { onMessageSent: () => P
     try {
       setSending(true);
 
+      // First, create the notification message
       const { data: newMessage, error: dbError } = await supabase
         .from('notification_messages')
         .insert([{ 
@@ -60,6 +61,7 @@ export const NotificationComposer = ({ onMessageSent }: { onMessageSent: () => P
 
       if (dbError) throw dbError;
 
+      // Then, get active subscriptions
       const { data: subscriptions, error: subError } = await supabase
         .from('push_subscriptions')
         .select('endpoint, p256dh, auth')
@@ -74,9 +76,12 @@ export const NotificationComposer = ({ onMessageSent }: { onMessageSent: () => P
         return;
       }
 
-      const { error: pushError } = await supabase.functions.invoke('push-notification', {
+      console.log('Sending notifications to subscriptions:', subscriptions);
+
+      // Send the notifications
+      const { error: pushError, data: pushResponse } = await supabase.functions.invoke('push-notification', {
         body: {
-          subscriptions,
+          subscriptions: subscriptions,
           message: {
             title_en,
             title_ar,
@@ -88,8 +93,12 @@ export const NotificationComposer = ({ onMessageSent }: { onMessageSent: () => P
         }
       });
 
-      if (pushError) throw pushError;
+      if (pushError) {
+        console.error('Push notification error:', pushError);
+        throw pushError;
+      }
 
+      console.log('Push notification response:', pushResponse);
       toast.success(`Sending notifications to ${subscriptions.length} subscribers`);
       
       setTitleEn("");
