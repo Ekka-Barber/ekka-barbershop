@@ -10,7 +10,6 @@ import { WhatsAppIntegration } from "@/components/booking/WhatsAppIntegration";
 import { UpsellModal } from "@/components/booking/UpsellModal";
 import { useBooking } from "@/hooks/useBooking";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { WorkingHours } from "@/types/service";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -95,13 +94,20 @@ export const BookingSteps = ({ branch }: BookingStepsProps) => {
     setCurrentStep(step as BookingStep);
   };
 
+  const currentStepIndex = STEPS.indexOf(currentStep);
+  const isNextDisabled = currentStep === 'services' ? selectedServices.length === 0 : 
+                        currentStep === 'barber' ? !selectedBarber :
+                        currentStep === 'datetime' ? !selectedDate || !selectedTime :
+                        currentStep === 'details' ? !customerDetails.name || !customerDetails.phone :
+                        false;
+
   return (
     <>
       <BookingProgress
         currentStep={currentStep}
         steps={STEPS}
         onStepClick={setCurrentStep}
-        currentStepIndex={STEPS.indexOf(currentStep)}
+        currentStepIndex={currentStepIndex}
       />
 
       <div className="mb-8">
@@ -130,7 +136,7 @@ export const BookingSteps = ({ branch }: BookingStepsProps) => {
             selectedTime={selectedTime}
             onDateSelect={setSelectedDate}
             onTimeSelect={setSelectedTime}
-            employeeWorkingHours={employeeWorkingHours}
+            employeeWorkingHours={selectedEmployee?.working_hours}
           />
         )}
 
@@ -174,6 +180,19 @@ export const BookingSteps = ({ branch }: BookingStepsProps) => {
           </div>
         )}
       </div>
+
+      {/* Show BookingNavigation for all steps except services */}
+      {currentStep !== 'services' && (
+        <BookingNavigation
+          currentStepIndex={currentStepIndex}
+          steps={STEPS}
+          currentStep={currentStep}
+          setCurrentStep={setCurrentStep}
+          isNextDisabled={isNextDisabled}
+          customerDetails={customerDetails}
+          branch={branch}
+        />
+      )}
 
       <UpsellModal
         isOpen={showUpsellModal}
