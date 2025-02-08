@@ -1,3 +1,4 @@
+
 export type Category = {
   id: string;
   name_en: string;
@@ -18,6 +19,15 @@ export type Service = {
   display_order: number;
   discount_type: string | null;
   discount_value: number | null;
+};
+
+export type SelectedService = {
+  id: string;
+  name: string;
+  price: number;
+  duration: number;
+  originalPrice?: number;
+  isUpsellItem?: boolean;
 };
 
 export type ValidService = Omit<Service, 'discount_type'> & {
@@ -41,3 +51,4 @@ export const validateService = (service: Service): ValidService => {
   }
   return service as ValidService;
 };
+

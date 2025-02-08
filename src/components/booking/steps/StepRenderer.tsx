@@ -6,15 +6,14 @@ import { BarberSelection } from "@/components/booking/BarberSelection";
 import { CustomerForm } from "@/components/booking/CustomerForm";
 import { BookingSummary } from "@/components/booking/BookingSummary";
 import { WhatsAppIntegration } from "@/components/booking/WhatsAppIntegration";
-import { Service } from "@/types/service";
-import { WorkingHours } from "@/types/service";
+import { Service, SelectedService, WorkingHours } from "@/types/service";
 
 interface StepRendererProps {
   currentStep: BookingStep;
   categories: any[];
   categoriesLoading: boolean;
-  selectedServices: Service[];
-  handleServiceToggle: (service: any) => void;
+  selectedServices: SelectedService[];
+  handleServiceToggle: (service: Service) => void;
   handleStepChange: (step: string) => void;
   employees: any[];
   employeesLoading: boolean;
@@ -107,10 +106,16 @@ export const StepRenderer = ({
             if (service) {
               handleServiceToggle({
                 id: service.id,
+                category_id: '', // Required by Service type
                 name_en: service.name,
                 name_ar: service.name,
+                description_en: null,
+                description_ar: null,
                 price: service.price,
-                duration: service.duration
+                duration: service.duration,
+                display_order: 0,
+                discount_type: null,
+                discount_value: null
               });
             }
           }}
@@ -131,3 +136,4 @@ export const StepRenderer = ({
 
   return null;
 };
+
