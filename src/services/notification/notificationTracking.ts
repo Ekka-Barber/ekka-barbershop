@@ -52,8 +52,6 @@ export class NotificationTrackingService {
         .from('push_subscriptions')
         .update(updateData)
         .eq('endpoint', result.endpoint);
-
-      await this.trackEvent(result.endpoint, result.success ? 'success' : 'failed', result.error);
     });
 
     await Promise.all(updates);

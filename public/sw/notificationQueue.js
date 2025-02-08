@@ -3,7 +3,7 @@ import { log, logError } from './logger.js';
 
 const QUEUE_NAME = 'notification-queue';
 const MAX_RETRIES = 3;
-const RETRY_DELAYS = [1000, 5000, 15000]; // Exponential backoff delays in ms
+const RETRY_DELAYS = [1000, 5000, 15000];
 
 const openDB = async () => {
   return new Promise((resolve, reject) => {
@@ -48,10 +48,7 @@ const updateQueueItem = async (id, updates) => {
 
 const processNotification = async (queueItem) => {
   try {
-    // Attempt to show the notification
     await self.registration.showNotification(queueItem.title, queueItem.options);
-    
-    // If successful, remove from queue
     await removeFromQueue(queueItem.id);
     log('Successfully processed notification', { id: queueItem.id });
   } catch (error) {
@@ -72,7 +69,6 @@ const processNotification = async (queueItem) => {
     await updateQueueItem(queueItem.id, updates);
     
     if (retryCount < MAX_RETRIES) {
-      // Schedule retry with exponential backoff
       const delay = RETRY_DELAYS[retryCount - 1] || RETRY_DELAYS[RETRY_DELAYS.length - 1];
       setTimeout(() => processNotification(queueItem), delay);
     }
