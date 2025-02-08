@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { NotificationMessage, NotificationEvent } from "@/types/notifications";
+import { NotificationMessage, NotificationTracking } from "@/types/notifications";
 
 export interface NotificationAnalytics {
   totalSent: number;
@@ -28,16 +28,16 @@ export const useNotificationAnalytics = (messages: NotificationMessage[]) => {
 
       if (subError) throw subError;
 
-      const { data: events, error: eventsError } = await supabase
-        .from('notification_events')
-        .select('event_type, action') as { data: NotificationEvent[] | null, error: any };
+      const { data: tracking, error: trackingError } = await supabase
+        .from('notification_tracking')
+        .select('event_type, action') as { data: NotificationTracking[] | null, error: any };
 
-      if (eventsError) throw eventsError;
+      if (trackingError) throw trackingError;
 
       setAnalytics({
         totalSent: messages.length,
-        totalClicked: events?.filter(e => e.event_type === 'clicked').length || 0,
-        totalReceived: events?.filter(e => e.event_type === 'received').length || 0,
+        totalClicked: tracking?.filter(e => e.event_type === 'clicked').length || 0,
+        totalReceived: tracking?.filter(e => e.event_type === 'received').length || 0,
         activeSubscriptions: subscriptions?.length || 0
       });
     } catch (error) {

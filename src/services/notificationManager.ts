@@ -1,7 +1,5 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { getPlatformType } from './platformDetection';
-import { Json } from "@/integrations/supabase/types";
 
 export type PermissionState = 'pending' | 'granted' | 'denied' | 'prompt';
 export type NotificationStatus = 'active' | 'inactive' | 'expired' | 'retry';
@@ -53,13 +51,13 @@ export class NotificationManager {
   ): Promise<void> {
     const updates = results.map(async (result) => {
       const status: NotificationStatus = result.success ? 'active' : 'retry';
-      const { data: currentErrorCount } = await supabase
+      const { data: currentData } = await supabase
         .from('push_subscriptions')
         .select('error_count')
         .eq('endpoint', result.endpoint)
         .single();
 
-      const newErrorCount = result.success ? 0 : ((currentErrorCount?.error_count || 0) + 1);
+      const newErrorCount = result.success ? 0 : ((currentData?.error_count || 0) + 1);
 
       const { error } = await supabase
         .from('push_subscriptions')

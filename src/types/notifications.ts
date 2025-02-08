@@ -15,7 +15,7 @@ export interface NotificationStats {
   user_actions: number;
 }
 
-export interface NotificationEvent {
+export interface NotificationTracking {
   id: string;
   event_type: 'notification_sent' | 'received' | 'clicked';
   action?: string;

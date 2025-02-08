@@ -606,30 +606,39 @@ export type Database = {
       }
       notification_messages: {
         Row: {
-          body: string
+          body_ar: string
+          body_en: string
           created_at: string | null
           icon: string | null
           id: string
           sent_at: string | null
-          title: string
+          stats: Json | null
+          title_ar: string
+          title_en: string
           url: string | null
         }
         Insert: {
-          body: string
+          body_ar: string
+          body_en: string
           created_at?: string | null
           icon?: string | null
           id?: string
           sent_at?: string | null
-          title: string
+          stats?: Json | null
+          title_ar: string
+          title_en: string
           url?: string | null
         }
         Update: {
-          body?: string
+          body_ar?: string
+          body_en?: string
           created_at?: string | null
           icon?: string | null
           id?: string
           sent_at?: string | null
-          title?: string
+          stats?: Json | null
+          title_ar?: string
+          title_en?: string
           url?: string | null
         }
         Relationships: []
