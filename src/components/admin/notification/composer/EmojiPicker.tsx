@@ -5,10 +5,12 @@ import { SmilePlus } from "lucide-react";
 import data from '@emoji-mart/data';
 import Picker from '@emoji-mart/react';
 
+type InputId = 'title_en' | 'title_ar' | 'body_en' | 'body_ar';
+
 interface EmojiPickerButtonProps {
   onEmojiSelect: (emoji: any) => void;
-  inputId: string;
-  onOpen: (inputId: string) => void;
+  inputId: InputId;
+  onOpen: (inputId: InputId) => void;
 }
 
 export const EmojiPickerButton = ({ onEmojiSelect, inputId, onOpen }: EmojiPickerButtonProps) => (

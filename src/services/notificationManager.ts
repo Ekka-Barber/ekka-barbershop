@@ -1,4 +1,5 @@
 
+import { supabase } from "@/integrations/supabase/client";
 import { notificationRetryService } from './notification/notificationRetry';
 import { notificationTrackingService } from './notification/notificationTracking';
 import { notificationSubscriptionService } from './notification/notificationSubscriptionService';

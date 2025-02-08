@@ -1,6 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import type { NotificationStatus } from '@/types/notifications';
+import type { NotificationSubscriptionStatus } from '@/types/notifications';
 
 export class NotificationRetryService {
   private maxRetries = 5;
@@ -84,7 +84,7 @@ export class NotificationRetryService {
     success: boolean,
     error?: string
   ): Promise<void> {
-    const status: NotificationStatus = success ? 'active' : 'retry';
+    const status: NotificationSubscriptionStatus = success ? 'active' : 'retry';
     const now = new Date().toISOString();
 
     const { data: currentData } = await supabase

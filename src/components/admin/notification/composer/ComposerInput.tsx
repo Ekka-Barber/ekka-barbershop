@@ -3,16 +3,18 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { EmojiPickerButton } from "./EmojiPicker";
 
+type InputId = 'title_en' | 'title_ar' | 'body_en' | 'body_ar';
+
 interface ComposerInputProps {
   label: string;
   value: string;
   onChange: (value: string) => void;
   placeholder: string;
-  inputId: string;
+  inputId: InputId;
   isTextArea?: boolean;
   isRtl?: boolean;
   onEmojiSelect: (emoji: any) => void;
-  onEmojiPickerOpen: (inputId: string) => void;
+  onEmojiPickerOpen: (inputId: InputId) => void;
 }
 
 export const ComposerInput = ({
