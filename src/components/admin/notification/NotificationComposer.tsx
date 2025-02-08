@@ -10,6 +10,20 @@ import Picker from '@emoji-mart/react';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { SmilePlus } from "lucide-react";
 
+interface PlatformStats {
+  success: number;
+  failed: number;
+}
+
+interface PushNotificationResponse {
+  success: boolean;
+  results: {
+    successful: number;
+    failed: number;
+    platformStats?: Record<string, PlatformStats>;
+  };
+}
+
 export const NotificationComposer = ({ onMessageSent }: { onMessageSent: () => Promise<void> }) => {
   const [title_en, setTitleEn] = useState("");
   const [title_ar, setTitleAr] = useState("");
@@ -43,7 +57,6 @@ export const NotificationComposer = ({ onMessageSent }: { onMessageSent: () => P
       setSending(true);
       console.log('Starting notification sending process...');
 
-      // First, create the notification message
       const { data: newMessage, error: dbError } = await supabase
         .from('notification_messages')
         .insert([{ 
@@ -67,7 +80,6 @@ export const NotificationComposer = ({ onMessageSent }: { onMessageSent: () => P
 
       console.log('Created notification message:', newMessage);
 
-      // Get active subscriptions
       const { data: subscriptions, error: subError } = await supabase
         .from('push_subscriptions')
         .select('endpoint, p256dh, auth')
@@ -88,8 +100,7 @@ export const NotificationComposer = ({ onMessageSent }: { onMessageSent: () => P
 
       console.log(`Found ${subscriptions.length} active subscriptions`);
 
-      // Send the notifications with enhanced tracking
-      const { error: pushError, data: pushResponse } = await supabase.functions.invoke('push-notification', {
+      const { error: pushError, data: pushResponse } = await supabase.functions.invoke<PushNotificationResponse>('push-notification', {
         body: {
           subscriptions: subscriptions,
           message: {
@@ -110,10 +121,9 @@ export const NotificationComposer = ({ onMessageSent }: { onMessageSent: () => P
 
       console.log('Push notification response:', pushResponse);
 
-      if (pushResponse.success) {
+      if (pushResponse?.success) {
         toast.success(`Successfully sent to ${pushResponse.results.successful} devices`);
         
-        // Show platform-specific stats if available
         if (pushResponse.results.platformStats) {
           Object.entries(pushResponse.results.platformStats).forEach(([platform, stats]) => {
             console.log(`Platform ${platform}: ${stats.success} successful, ${stats.failed} failed`);
