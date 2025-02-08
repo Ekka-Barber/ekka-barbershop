@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { getPlatformType } from './platformDetection';
 import type { NotificationStats, NotificationSubscription } from '@/types/notifications';
@@ -178,7 +177,20 @@ export class NotificationManager {
       return [];
     }
 
-    return data || [];
+    return (data || []).map(sub => ({
+      endpoint: sub.endpoint,
+      keys: {
+        p256dh: sub.p256dh,
+        auth: sub.auth
+      },
+      status: sub.status as 'active' | 'expired' | 'retry',
+      platform: sub.platform,
+      created_at: sub.created_at,
+      last_active: sub.last_active,
+      error_count: sub.error_count,
+      device_info: sub.device_info,
+      notification_preferences: sub.notification_preferences
+    }));
   }
 
   async cleanupExpiredSubscriptions(): Promise<void> {
