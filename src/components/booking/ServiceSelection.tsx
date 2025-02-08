@@ -8,7 +8,6 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import { Button } from "@/components/ui/button";
 import { useState, useEffect, useCallback } from "react";
 import { FixedSizeGrid as Grid } from 'react-window';
-import PullToRefresh from 'react-pull-to-refresh';
 import { cacheServices, getCachedServices, cacheActiveCategory, getCachedActiveCategory } from "@/utils/serviceCache";
 
 interface Service {
@@ -68,7 +67,6 @@ export const ServiceSelection = ({
   );
   const [selectedService, setSelectedService] = useState<Service | null>(null);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
-  const [isRefreshing, setIsRefreshing] = useState(false);
 
   useEffect(() => {
     if (activeCategory) {
@@ -81,18 +79,6 @@ export const ServiceSelection = ({
       cacheServices(selectedServices);
     }
   }, [selectedServices]);
-
-  const handleRefresh = async () => {
-    setIsRefreshing(true);
-    try {
-      // Trigger a refetch of the categories data
-      // This should be handled by the parent component's refetch function
-      // For now, we'll just simulate a refresh
-      await new Promise(resolve => setTimeout(resolve, 1000));
-    } finally {
-      setIsRefreshing(false);
-    }
-  };
 
   const trackServiceAction = async (service: Service, action: 'added' | 'removed') => {
     try {
@@ -242,18 +228,11 @@ export const ServiceSelection = ({
         ))}
       </div>
 
-      <PullToRefresh
-        onRefresh={handleRefresh}
-        className="pull-to-refresh"
-        distanceToRefresh={70}
-        resistance={2.5}
-      >
-        <div className="grid grid-cols-2 gap-4">
-          {activeCategoryServices?.map((service) => (
-            <ServiceCard key={service.id} service={service} />
-          ))}
-        </div>
-      </PullToRefresh>
+      <div className="grid grid-cols-2 gap-4">
+        {activeCategoryServices?.map((service) => (
+          <ServiceCard key={service.id} service={service} />
+        ))}
+      </div>
 
       {/* Service Details Sheet */}
       <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>

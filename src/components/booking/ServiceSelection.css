@@ -27,14 +27,3 @@
     background-position: 200% 0;
   }
 }
-
-.pull-to-refresh {
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-}
-
-.pull-to-refresh__content {
-  will-change: transform;
-  transform-origin: top;
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
