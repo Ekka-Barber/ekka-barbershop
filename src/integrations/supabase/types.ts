@@ -73,6 +73,7 @@ export type Database = {
           address: string | null
           address_ar: string | null
           created_at: string
+          google_maps_url: string | null
           id: string
           is_main: boolean | null
           name: string
@@ -84,6 +85,7 @@ export type Database = {
           address?: string | null
           address_ar?: string | null
           created_at?: string
+          google_maps_url?: string | null
           id?: string
           is_main?: boolean | null
           name: string
@@ -95,6 +97,7 @@ export type Database = {
           address?: string | null
           address_ar?: string | null
           created_at?: string
+          google_maps_url?: string | null
           id?: string
           is_main?: boolean | null
           name?: string

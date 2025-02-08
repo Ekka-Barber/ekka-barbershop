@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -7,11 +8,13 @@ import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import PushNotificationToggle from "@/components/PushNotificationToggle";
+import { MapPin } from "lucide-react";
 
 const Customer = () => {
   const navigate = useNavigate();
   const { t, language } = useLanguage();
   const [branchDialogOpen, setBranchDialogOpen] = useState(false);
+  const [locationDialogOpen, setLocationDialogOpen] = useState(false);
 
   // Fetch branches
   const { data: branches } = useQuery({
@@ -29,6 +32,12 @@ const Customer = () => {
   const handleBranchSelect = (branchId: string) => {
     setBranchDialogOpen(false);
     navigate(`/bookings?branch=${branchId}`);
+  };
+
+  const handleLocationClick = (url: string | null) => {
+    if (url) {
+      window.open(url, '_blank');
+    }
   };
 
   useEffect(() => {
@@ -81,6 +90,17 @@ const Customer = () => {
             {t('book.now')}
           </Button>
 
+          {/* Our Branches Button */}
+          <Button 
+            className="w-full h-14 text-lg font-medium bg-white hover:bg-gray-50 text-gray-800 transition-all duration-300 shadow-lg hover:shadow-xl border border-gray-200"
+            onClick={() => setLocationDialogOpen(true)}
+          >
+            <div className={`w-full flex items-center ${language === 'ar' ? 'flex-row-reverse' : 'flex-row'} justify-center gap-2`}>
+              <MapPin className="h-5 w-5" />
+              <span>{language === 'ar' ? 'فروعنا' : 'Our Branches'}</span>
+            </div>
+          </Button>
+
           {/* Loyalty Program Button */}
           <Button 
             className="w-full h-14 text-lg font-medium bg-white hover:bg-gray-50 text-gray-800 transition-all duration-300 shadow-lg hover:shadow-xl border border-gray-200"
@@ -100,6 +120,7 @@ const Customer = () => {
         </div>
       </div>
 
+      {/* Booking Dialog */}
       <Dialog open={branchDialogOpen} onOpenChange={setBranchDialogOpen}>
         <DialogContent className="sm:max-w-2xl bg-white border-0 shadow-2xl p-6">
           <DialogHeader>
@@ -121,6 +142,35 @@ const Customer = () => {
                 <span className="text-sm text-gray-500 group-hover:text-[#C4A36F]/70 transition-colors text-center px-4">
                   {language === 'ar' ? branch.address_ar : branch.address}
                 </span>
+              </Button>
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Locations Dialog */}
+      <Dialog open={locationDialogOpen} onOpenChange={setLocationDialogOpen}>
+        <DialogContent className="sm:max-w-2xl bg-white border-0 shadow-2xl p-6">
+          <DialogHeader>
+            <DialogTitle className="text-center text-2xl font-bold text-[#222222] mb-6">
+              {language === 'ar' ? 'فروعنا' : 'Our Branches'}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {branches?.map((branch) => (
+              <Button
+                key={branch.id}
+                variant="outline"
+                className="h-[160px] flex flex-col items-center justify-center space-y-3 bg-white hover:bg-[#C4A36F]/5 border-2 border-gray-200 hover:border-[#C4A36F] transition-all duration-300 rounded-lg group"
+                onClick={() => handleLocationClick(branch.google_maps_url)}
+              >
+                <span className="font-semibold text-xl text-[#222222] group-hover:text-[#C4A36F] transition-colors text-center">
+                  {language === 'ar' ? branch.name_ar : branch.name}
+                </span>
+                <span className="text-sm text-gray-500 group-hover:text-[#C4A36F]/70 transition-colors text-center px-4">
+                  {language === 'ar' ? branch.address_ar : branch.address}
+                </span>
+                <MapPin className="h-6 w-6 text-[#C4A36F] mt-2" />
               </Button>
             ))}
           </div>
