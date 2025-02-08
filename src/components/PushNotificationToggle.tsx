@@ -12,6 +12,7 @@ import {
   getInstallationStatus, 
   isServiceWorkerSupported 
 } from '@/services/platformDetection';
+import { notificationManager, type NotificationStatus } from '@/services/notificationManager';
 
 const PushNotificationToggle = () => {
   const [isSubscribed, setIsSubscribed] = useState(false);
@@ -21,6 +22,7 @@ const PushNotificationToggle = () => {
   const [vapidKey, setVapidKey] = useState<string | null>(null);
   const [platform] = useState(getPlatformType());
   const [installationStatus, setInstallationStatus] = useState(getInstallationStatus());
+  const [permissionState, setPermissionState] = useState<NotificationPermission>('default');
 
   useEffect(() => {
     // Update installation status on mount and when visibility changes
@@ -34,20 +36,33 @@ const PushNotificationToggle = () => {
 
   useEffect(() => {
     if (installationStatus === 'installed' && isServiceWorkerSupported()) {
-      // Get VAPID key from Edge Function
+      // Get VAPID key and check subscription status
       supabase.functions.invoke('get-vapid-key')
         .then(({ data }) => {
           if (data?.vapidKey) {
             setVapidKey(data.vapidKey);
-            // Check subscription status
             navigator.serviceWorker.ready.then(registration => {
               registration.pushManager.getSubscription().then(subscription => {
                 setIsSubscribed(!!subscription);
+                if (subscription) {
+                  notificationManager.updateSubscriptionStatus(subscription, 'active');
+                }
               });
             });
           }
         })
         .catch(console.error);
+
+      // Check permission state
+      if ('permissions' in navigator) {
+        navigator.permissions.query({ name: 'notifications' })
+          .then(permissionStatus => {
+            setPermissionState(permissionStatus.state);
+            permissionStatus.onchange = () => {
+              setPermissionState(permissionStatus.state);
+            };
+          });
+      }
     }
   }, [installationStatus, vapidKey]);
 
@@ -82,16 +97,21 @@ const PushNotificationToggle = () => {
         applicationServerKey: vapidKey
       });
 
-      // Store subscription in Supabase with device type
+      // Store subscription with enhanced tracking
       const { error } = await supabase
         .from('push_subscriptions')
-        .insert([{ 
+        .upsert({
           endpoint: subscription.endpoint,
           p256dh: subscription.toJSON().keys.p256dh,
           auth: subscription.toJSON().keys.auth,
-          status: 'active',
-          device_type: platform
-        }]);
+          status: 'active' as NotificationStatus,
+          device_type: platform,
+          permission_state: 'granted',
+          platform_details: await notificationManager.getPlatformDetails(),
+          last_active: new Date().toISOString(),
+          error_count: 0,
+          retry_count: 0
+        });
 
       if (error) throw error;
 
@@ -119,10 +139,14 @@ const PushNotificationToggle = () => {
       if (subscription) {
         await subscription.unsubscribe();
         
-        // Update subscription status in Supabase
+        // Update subscription status with enhanced tracking
         const { error } = await supabase
           .from('push_subscriptions')
-          .update({ status: 'inactive' })
+          .update({ 
+            status: 'inactive' as NotificationStatus,
+            permission_state: 'denied',
+            last_active: new Date().toISOString()
+          })
           .eq('endpoint', subscription.endpoint);
 
         if (error) throw error;

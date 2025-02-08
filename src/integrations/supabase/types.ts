@@ -673,7 +673,11 @@ export type Database = {
           last_active: string | null
           last_error_at: string | null
           last_error_details: Json | null
+          last_retry_at: string | null
           p256dh: string
+          permission_state: string | null
+          platform_details: Json | null
+          retry_count: number | null
           status: string | null
           updated_at: string
         }
@@ -687,7 +691,11 @@ export type Database = {
           last_active?: string | null
           last_error_at?: string | null
           last_error_details?: Json | null
+          last_retry_at?: string | null
           p256dh: string
+          permission_state?: string | null
+          platform_details?: Json | null
+          retry_count?: number | null
           status?: string | null
           updated_at?: string
         }
@@ -701,7 +709,11 @@ export type Database = {
           last_active?: string | null
           last_error_at?: string | null
           last_error_details?: Json | null
+          last_retry_at?: string | null
           p256dh?: string
+          permission_state?: string | null
+          platform_details?: Json | null
+          retry_count?: number | null
           status?: string | null
           updated_at?: string
         }
@@ -969,6 +981,41 @@ export type Database = {
             columns: ["category_id"]
             isOneToOne: false
             referencedRelation: "service_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      subscription_retries: {
+        Row: {
+          error_details: Json | null
+          id: string
+          retry_reason: string | null
+          retry_timestamp: string | null
+          subscription_id: string | null
+          success: boolean | null
+        }
+        Insert: {
+          error_details?: Json | null
+          id?: string
+          retry_reason?: string | null
+          retry_timestamp?: string | null
+          subscription_id?: string | null
+          success?: boolean | null
+        }
+        Update: {
+          error_details?: Json | null
+          id?: string
+          retry_reason?: string | null
+          retry_timestamp?: string | null
+          subscription_id?: string | null
+          success?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscription_retries_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "push_subscriptions"
             referencedColumns: ["id"]
           },
         ]
