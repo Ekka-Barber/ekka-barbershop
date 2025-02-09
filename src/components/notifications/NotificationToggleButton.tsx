@@ -13,6 +13,10 @@ export const NotificationToggleButton = ({
   onClick,
   language
 }: NotificationToggleButtonProps) => {
+  // Temporarily hide the button by returning null
+  return null;
+
+  /* Original button code kept for reference but not rendered
   return (
     <Button
       onClick={onClick}
@@ -32,4 +36,6 @@ export const NotificationToggleButton = ({
       )}
     </Button>
   );
+  */
 };
+
