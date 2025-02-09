@@ -1,9 +1,6 @@
 
 import { initializeCache, cleanupOldCaches, handleFetch } from './sw/cacheManager.js';
 import { log, logError } from './sw/logger.js';
-import { initializeQueue } from './sw/notificationQueue.js';
-import { handlePushEvent } from './sw/pushHandler.js';
-import { handleNotificationClick } from './sw/notificationClickHandler.js';
 
 // Install event
 self.addEventListener('install', (event) => {
@@ -19,20 +16,9 @@ self.addEventListener('activate', (event) => {
   event.waitUntil(
     Promise.all([
       self.clients.claim(),
-      cleanupOldCaches(),
-      initializeQueue()
+      cleanupOldCaches()
     ])
   );
-});
-
-// Push event
-self.addEventListener('push', (event) => {
-  event.waitUntil(handlePushEvent(event));
-});
-
-// Notification click event
-self.addEventListener('notificationclick', (event) => {
-  event.waitUntil(handleNotificationClick(event));
 });
 
 // Fetch event
@@ -49,3 +35,4 @@ self.addEventListener('error', (event) => {
 self.addEventListener('unhandledrejection', (event) => {
   logError('Unhandled promise rejection:', event.reason);
 });
+
