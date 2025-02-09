@@ -35,4 +35,3 @@ self.addEventListener('error', (event) => {
 self.addEventListener('unhandledrejection', (event) => {
   logError('Unhandled promise rejection:', event.reason);
 });
-
