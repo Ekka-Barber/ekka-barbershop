@@ -2,16 +2,7 @@
 import { useLanguage } from "@/contexts/LanguageContext";
 import { format } from "date-fns";
 import { Slash, X } from "lucide-react";
-
-interface SelectedService {
-  id: string;
-  name_en: string;
-  name_ar: string;
-  price: number;
-  duration: number;
-  originalPrice?: number;
-  isUpsellItem?: boolean;
-}
+import { SelectedService } from "@/types/service";
 
 interface BookingSummaryProps {
   selectedServices: SelectedService[];
