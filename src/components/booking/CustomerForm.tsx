@@ -1,6 +1,8 @@
+
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useState } from "react";
 
 interface CustomerDetails {
   name: string;
@@ -19,10 +21,21 @@ export const CustomerForm = ({
   onCustomerDetailsChange
 }: CustomerFormProps) => {
   const { t, language } = useLanguage();
+  const [phoneError, setPhoneError] = useState<string>("");
 
   const handlePhoneChange = (value: string) => {
     // Only allow numbers
     const numbersOnly = value.replace(/[^0-9]/g, '');
+    
+    // Validate phone number length
+    if (numbersOnly.length < 8) {
+      setPhoneError(language === 'ar' ? 'رقم الهاتف يجب أن يكون 8 أرقام على الأقل' : 'Phone number must be at least 8 digits');
+    } else if (numbersOnly.length > 15) {
+      setPhoneError(language === 'ar' ? 'رقم الهاتف يجب أن لا يتجاوز 15 رقم' : 'Phone number must not exceed 15 digits');
+    } else {
+      setPhoneError("");
+    }
+    
     onCustomerDetailsChange('phone', numbersOnly);
   };
 
@@ -51,7 +64,11 @@ export const CustomerForm = ({
             value={customerDetails.phone}
             onChange={(e) => handlePhoneChange(e.target.value)}
             required
+            className={phoneError ? "border-destructive" : ""}
           />
+          {phoneError && (
+            <p className="text-sm text-destructive mt-1">{phoneError}</p>
+          )}
         </div>
         
         <div>

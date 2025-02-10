@@ -18,6 +18,7 @@ interface BookingStepsProps {
 export const BookingSteps = ({ branch }: BookingStepsProps) => {
   const { language } = useLanguage();
   const [showUpsellModal, setShowUpsellModal] = useState(false);
+  const [pendingStep, setPendingStep] = useState<BookingStep | null>(null);
   const {
     currentStep,
     setCurrentStep,
@@ -44,9 +45,33 @@ export const BookingSteps = ({ branch }: BookingStepsProps) => {
   const handleStepChange = (step: string) => {
     if (currentStep === 'services' && step === 'datetime' && availableUpsells?.length) {
       setShowUpsellModal(true);
+      setPendingStep('datetime');
     } else {
       setCurrentStep(step as BookingStep);
     }
+  };
+
+  const handleUpsellModalClose = () => {
+    setShowUpsellModal(false);
+    if (pendingStep) {
+      setCurrentStep(pendingStep);
+      setPendingStep(null);
+    }
+  };
+
+  const handleUpsellConfirm = (selectedUpsells: any[]) => {
+    selectedUpsells.forEach(upsell => {
+      handleServiceToggle({
+        id: upsell.id,
+        name_en: upsell.name,
+        name_ar: upsell.name,
+        price: upsell.price,
+        duration: upsell.duration,
+        discount_type: 'percentage',
+        discount_value: upsell.discountPercentage
+      });
+    });
+    handleUpsellModalClose();
   };
 
   const currentStepIndex = STEPS.indexOf(currentStep);
@@ -108,24 +133,8 @@ export const BookingSteps = ({ branch }: BookingStepsProps) => {
 
       <UpsellModal
         isOpen={showUpsellModal}
-        onClose={() => {
-          setShowUpsellModal(false);
-          setCurrentStep('datetime');
-        }}
-        onConfirm={(selectedUpsells) => {
-          selectedUpsells.forEach(upsell => {
-            handleServiceToggle({
-              id: upsell.id,
-              name_en: upsell.name,
-              name_ar: upsell.name,
-              price: upsell.price,
-              duration: upsell.duration,
-              discount_type: 'percentage',
-              discount_value: upsell.discountPercentage
-            });
-          });
-          setCurrentStep('datetime');
-        }}
+        onClose={handleUpsellModalClose}
+        onConfirm={handleUpsellConfirm}
         availableUpsells={availableUpsells || []}
       />
     </>
