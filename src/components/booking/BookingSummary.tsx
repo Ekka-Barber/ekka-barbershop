@@ -1,10 +1,12 @@
+
 import { useLanguage } from "@/contexts/LanguageContext";
 import { format } from "date-fns";
 import { Slash, X } from "lucide-react";
 
 interface SelectedService {
   id: string;
-  name: string;
+  name_en: string;
+  name_ar: string;
   price: number;
   duration: number;
   originalPrice?: number;
@@ -63,7 +65,7 @@ export const BookingSummary = ({
             {selectedServices.map((service) => (
               <div key={service.id} className="flex justify-between items-center">
                 <div className="flex items-center gap-2">
-                  <span>{service.name}</span>
+                  <span>{language === 'ar' ? service.name_ar : service.name_en}</span>
                   {onRemoveService && service.isUpsellItem && (
                     <button
                       onClick={() => onRemoveService(service.id)}

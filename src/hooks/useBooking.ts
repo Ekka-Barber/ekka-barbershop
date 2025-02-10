@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from "@/integrations/supabase/client";
@@ -14,7 +15,8 @@ export interface CustomerDetails {
 
 export interface SelectedService {
   id: string;
-  name: string;
+  name_en: string;
+  name_ar: string;
   price: number;
   duration: number;
   originalPrice?: number;
@@ -108,7 +110,8 @@ export const useBooking = (branch: any) => {
       const discountedPrice = calculateDiscountedPrice(service);
       setSelectedServices(prev => [...prev, {
         id: service.id,
-        name: language === 'ar' ? service.name_ar : service.name_en,
+        name_en: service.name_en,
+        name_ar: service.name_ar,
         price: roundPrice(discountedPrice),
         duration: service.duration,
         originalPrice: discountedPrice !== service.price ? roundPrice(service.price) : undefined

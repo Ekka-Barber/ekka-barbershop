@@ -23,7 +23,8 @@ export type Service = {
 
 export type SelectedService = {
   id: string;
-  name: string;
+  name_en: string;
+  name_ar: string;
   price: number;
   duration: number;
   originalPrice?: number;
