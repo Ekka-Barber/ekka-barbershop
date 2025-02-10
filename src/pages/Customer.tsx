@@ -8,6 +8,7 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { MapPin } from "lucide-react";
+import { transformWorkingHours } from "@/utils/workingHoursUtils";
 
 const Customer = () => {
   const navigate = useNavigate();
@@ -36,6 +37,36 @@ const Customer = () => {
     if (url) {
       window.open(url, '_blank');
     }
+  };
+
+  const formatTimeRange = (timeRange: string, isArabic: boolean) => {
+    const [start, end] = timeRange.split('-');
+    if (isArabic) {
+      // Convert to Arabic numerals and format
+      const convertToArabic = (str: string) => {
+        return str.replace(/[0-9]/g, d => String.fromCharCode(1632 + parseInt(d)));
+      };
+      return `${convertToArabic(start)} - ${convertToArabic(end)}`;
+    }
+    return `${start} - ${end}`;
+  };
+
+  const getCurrentDayHours = (workingHours: any, isArabic: boolean) => {
+    if (!workingHours) return null;
+
+    const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+    const dayIndex = new Date().getDay();
+    const currentDay = days[dayIndex];
+    
+    const hours = transformWorkingHours(workingHours);
+    if (!hours || !hours[currentDay] || !hours[currentDay].length) return null;
+
+    const timeRanges = hours[currentDay].map(range => formatTimeRange(range, isArabic));
+    
+    if (isArabic) {
+      return `ساعات العمل اليوم: ${timeRanges.join(' , ')}`;
+    }
+    return `Today's hours: ${timeRanges.join(', ')}`;
   };
 
   return (
@@ -135,6 +166,9 @@ const Customer = () => {
                 <span className="text-sm text-gray-500 group-hover:text-[#C4A36F]/70 transition-colors text-center px-4">
                   {language === 'ar' ? branch.address_ar : branch.address}
                 </span>
+                <span className="text-xs text-gray-400 group-hover:text-[#C4A36F]/60 transition-colors text-center px-4">
+                  {getCurrentDayHours(branch.working_hours, language === 'ar')}
+                </span>
               </Button>
             ))}
           </div>
@@ -162,6 +196,9 @@ const Customer = () => {
                 <span className="text-sm text-gray-500 group-hover:text-[#C4A36F]/70 transition-colors text-center px-4">
                   {language === 'ar' ? branch.address_ar : branch.address}
                 </span>
+                <span className="text-xs text-gray-400 group-hover:text-[#C4A36F]/60 transition-colors text-center px-4">
+                  {getCurrentDayHours(branch.working_hours, language === 'ar')}
+                </span>
                 <MapPin className="h-6 w-6 text-[#C4A36F] mt-2" />
               </Button>
             ))}
@@ -173,3 +210,4 @@ const Customer = () => {
 };
 
 export default Customer;
+

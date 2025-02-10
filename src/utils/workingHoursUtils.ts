@@ -22,3 +22,4 @@ export const transformWorkingHours = (rawHours: any): WorkingHours | null => {
     return null;
   }
 };
+
