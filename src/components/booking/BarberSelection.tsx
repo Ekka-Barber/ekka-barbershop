@@ -1,4 +1,3 @@
-
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -6,7 +5,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { CustomBadge } from "@/components/ui/custom-badge";
 import ReactCountryFlag from "react-country-flag";
-import { format, parse } from "date-fns";
+import { format, parse, isToday, isBefore, addHours } from "date-fns";
 import { cn } from "@/lib/utils";
 
 interface Employee {
@@ -30,7 +29,7 @@ interface BarberSelectionProps {
   onTimeSelect: (time: string) => void;
 }
 
-const generateTimeSlots = (workingHoursRanges: string[] = []) => {
+const generateTimeSlots = (workingHoursRanges: string[] = [], selectedDate?: Date) => {
   const slots: string[] = [];
   
   workingHoursRanges.forEach(range => {
@@ -48,6 +47,21 @@ const generateTimeSlots = (workingHoursRanges: string[] = []) => {
       currentSlot = new Date(currentSlot.getTime() + 30 * 60000);
     }
   });
+
+  // Filter out past slots and add 1-hour buffer if the selected date is today
+  if (selectedDate && isToday(selectedDate)) {
+    const now = new Date();
+    const minimumBookingTime = addHours(now, 1);
+
+    return slots
+      .filter(slot => {
+        const [hours, minutes] = slot.split(':').map(Number);
+        const slotTime = new Date();
+        slotTime.setHours(hours, minutes, 0, 0);
+        return !isBefore(slotTime, minimumBookingTime);
+      })
+      .sort();
+  }
 
   return slots.sort();
 };
@@ -74,7 +88,7 @@ export const BarberSelection = ({
       return [];
     }
     
-    return generateTimeSlots(workingHours);
+    return generateTimeSlots(workingHours, selectedDate);
   };
 
   const isEmployeeAvailable = (employee: Employee): boolean => {
