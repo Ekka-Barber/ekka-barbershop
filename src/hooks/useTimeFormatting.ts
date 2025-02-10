@@ -1,6 +1,6 @@
 
+import { Fragment, type ReactNode } from "react";
 import { transformWorkingHours } from "@/utils/workingHoursUtils";
-import type { ReactNode } from "react";
 
 type WorkingHoursType = {
   [key: string]: string[];
@@ -64,17 +64,17 @@ export const useTimeFormatting = () => {
     
     if (isArabic) {
       return (
-        <>
+        <Fragment>
           <div>ساعات العمل اليوم</div>
           <div>{timeRanges.join(' , ')}</div>
-        </>
+        </Fragment>
       );
     }
     return (
-      <>
+      <Fragment>
         <div>Today's hours</div>
         <div>{timeRanges.join(', ')}</div>
-      </>
+      </Fragment>
     );
   };
 
