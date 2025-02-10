@@ -151,7 +151,7 @@ ${totalDiscount > 0 ? `💰 الخصم: ${formatPrice(totalDiscount)}` : ''}
   return (
     <div className="space-y-4">
       <div className="text-center text-sm text-muted-foreground space-y-1">
-        <p>{language === 'ar' ? '📱 سيتم تأكيد حجزك على الواتساب.' : '📱 Your booking will be confirmed on WhatsApp'}</p>
+        <p>حجزك هذا <span className="font-bold text-red-500">غير مؤكد</span>، تأكيد الحجز سيتم عن طريق الواتساب</p>
         <p>{language === 'ar' ? '📲 سيصلك ردنا بالتأكيد قريباً! ✔️' : '📲 You\'ll receive our confirmation shortly! ✔️'}</p>
       </div>
       <Button 
