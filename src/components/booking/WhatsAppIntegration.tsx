@@ -11,14 +11,7 @@ import {
 } from "@/components/ui/dialog";
 import { useState } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
-
-interface SelectedService {
-  id: string;
-  name: string;
-  price: number;
-  duration: number;
-  originalPrice?: number;
-}
+import { SelectedService } from "@/types/service";
 
 interface CustomerDetails {
   name: string;
@@ -60,7 +53,7 @@ export const WhatsAppIntegration = ({
 
   const generateWhatsAppMessage = () => {
     const serviceSummary = selectedServices
-      .map(service => `${service.name}: ${formatPrice(service.price)}${service.originalPrice ? ` (السعر الأصلي: ${formatPrice(service.originalPrice)})` : ''}`)
+      .map(service => `${language === 'ar' ? service.name_ar : service.name_en}: ${formatPrice(service.price)}${service.originalPrice ? ` (السعر الأصلي: ${formatPrice(service.originalPrice)})` : ''}`)
       .join('\n');
 
     const totalOriginalPrice = selectedServices.reduce((sum, service) => sum + (service.originalPrice || service.price), 0);
