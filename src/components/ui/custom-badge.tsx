@@ -13,10 +13,10 @@ export function CustomBadge({ className, variant = "default", ...props }: Custom
   
   const variantClasses = {
     default: "bg-primary text-primary-foreground hover:bg-primary/80",
-    secondary: "bg-[#FEF7CD] text-amber-700 hover:bg-[#FEF7CD]/80",
+    secondary: "bg-[#F2FCE2] text-green-700 font-bold hover:bg-[#F2FCE2]/80",
     destructive: "bg-[#FFDEE2] text-red-700 hover:bg-[#FFDEE2]/80",
     outline: "text-foreground",
-    success: "bg-[#F2FCE2] text-green-700 hover:bg-[#F2FCE2]/80",
+    success: "bg-[#F2FCE2] text-green-700 font-bold hover:bg-[#F2FCE2]/80",
   };
 
   return (
