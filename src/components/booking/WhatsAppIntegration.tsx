@@ -1,3 +1,4 @@
+
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
@@ -149,10 +150,6 @@ ${totalDiscount > 0 ? `💰 الخصم: ${formatPrice(totalDiscount)}` : ''}
 
   return (
     <div className="space-y-4">
-      <div className="text-center text-sm text-muted-foreground space-y-1">
-        <p>حجزك هذا <span className="font-bold text-red-500">غير مؤكد</span>، تأكيد الحجز سيتم عن طريق الواتساب</p>
-        <p>{language === 'ar' ? '📲 سيصلك ردنا بالتأكيد قريباً! ✔️' : '📲 You\'ll receive our confirmation shortly! ✔️'}</p>
-      </div>
       <Button 
         onClick={handleBookingRequest}
         className="w-full h-14 text-lg font-medium bg-[#C4A36F] hover:bg-[#B39260] text-white transition-all duration-300 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
