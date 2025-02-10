@@ -24,10 +24,15 @@ export const useTimeFormatting = () => {
       const period = hour >= 12 ? 'م' : 'ص';
       const formattedHour = hour % 12 || 12;
       const convertToArabic = (str: string): string => {
-        return str.replace(/[0-9]/g, (d) => String.fromCharCode(1632 + parseInt(d)));
+        const arabicNumerals: { [key: string]: string } = {
+          '0': '٠', '1': '١', '2': '٢', '3': '٣', '4': '٤',
+          '5': '٥', '6': '٦', '7': '٧', '8': '٨', '9': '٩'
+        };
+        return str.replace(/[0-9]/g, digit => arabicNumerals[digit] || digit);
       };
+      
       return minutes === '00' 
-        ? `${convertToArabic(`${formattedHour}`)} ${period}`
+        ? `${convertToArabic(formattedHour.toString())} ${period}`
         : `${convertToArabic(`${formattedHour}:${minutes}`)} ${period}`;
     };
 
