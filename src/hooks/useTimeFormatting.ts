@@ -23,11 +23,11 @@ export const useTimeFormatting = () => {
       const hour = parseInt(hours);
       const period = hour >= 12 ? 'م' : 'ص';
       const formattedHour = hour % 12 || 12;
+      const arabicNumerals: { [key: string]: string } = {
+        '0': '٠', '1': '١', '2': '٢', '3': '٣', '4': '٤',
+        '5': '٥', '6': '٦', '7': '٧', '8': '٨', '9': '٩'
+      };
       const convertToArabic = (str: string): string => {
-        const arabicNumerals: { [key: string]: string } = {
-          '0': '٠', '1': '١', '2': '٢', '3': '٣', '4': '٤',
-          '5': '٥', '6': '٦', '7': '٧', '8': '٨', '9': '٩'
-        };
         return str.replace(/[0-9]/g, digit => arabicNumerals[digit] || digit);
       };
       
@@ -75,3 +75,4 @@ export const useTimeFormatting = () => {
     getCurrentDayHours
   };
 };
+
