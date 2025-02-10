@@ -1,3 +1,4 @@
+
 import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 
 type Language = 'en' | 'ar';
@@ -27,8 +28,8 @@ const translations = {
     'select.barber': 'Select Barber',
     'total.duration': 'Total Duration',
     'minutes': 'minutes',
-    'date.time': 'Date & Time',
-    'barber': 'Barber',
+    'date.time': 'Date',
+    'barber': 'Barber & Time',
     'book.appointment': 'Book Appointment',
     'step.services': 'Services',
     'step.datetime': 'Date & Time',
@@ -68,8 +69,8 @@ const translations = {
     'select.barber': 'اختر الحلاق',
     'total.duration': 'المدة الإجمالية',
     'minutes': 'دقائق',
-    'date.time': 'التاريخ والوقت',
-    'barber': 'الحلاق',
+    'date.time': 'التاريخ',
+    'barber': 'الحلاق والوقت',
     'book.appointment': 'احجز موعد',
     'step.services': 'الخدمات',
     'step.datetime': 'التاريخ والوقت',
@@ -121,3 +122,4 @@ export const useLanguage = () => {
   }
   return context;
 };
+
