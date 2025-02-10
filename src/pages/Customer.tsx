@@ -49,8 +49,8 @@ const Customer = () => {
         </div>
       </div>
 
-      <div className="flex-grow max-w-md mx-auto pt-8 px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-8">
+      <div className="flex-grow max-w-md mx-auto w-full px-4 sm:px-6 lg:px-8 pb-8">
+        <div className="text-center mb-8 pt-8">
           <img 
             src="/lovable-uploads/8289fb1d-c6e6-4528-980c-6b52313ca898.png"
             alt="Ekka Barbershop Logo" 
@@ -129,9 +129,10 @@ const Customer = () => {
         onLocationClick={handleLocationClick}
       />
 
-      <footer className="page-footer" />
+      <footer className="page-footer mt-auto" />
     </div>
   );
 };
 
 export default Customer;
+
