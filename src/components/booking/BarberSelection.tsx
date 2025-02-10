@@ -1,4 +1,3 @@
-
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -104,8 +103,8 @@ export const BarberSelection = ({
             onClick={() => onBarberSelect(employee.id)}
             className={cn(
               "relative flex flex-col items-center justify-start h-auto min-h-[200px] p-4 rounded-lg overflow-hidden",
-              "hover:border-gray-300 space-y-2 border transition-all duration-200",
-              selectedBarber === employee.id ? "bg-[#e7bd71]/10 border-[#e7bd71]" : ""
+              "space-y-2 border transition-all duration-200",
+              selectedBarber === employee.id ? "bg-[#e7bd71]/10 border-[#e7bd71]" : "hover:border-gray-300"
             )}
           >
             <Avatar className="h-16 w-16 mb-2">
@@ -146,4 +145,3 @@ export const BarberSelection = ({
     </div>
   );
 };
-
