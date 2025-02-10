@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from "@/integrations/supabase/client";
@@ -20,6 +19,7 @@ export interface SelectedService {
   price: number;
   duration: number;
   originalPrice?: number;
+  isUpsellItem?: boolean;
 }
 
 export const useBooking = (branch: any) => {
@@ -102,7 +102,7 @@ export const useBooking = (branch: any) => {
     enabled: !!selectedBarber
   });
 
-  const handleServiceToggle = (service: any) => {
+  const handleServiceToggle = (service: any, isUpsell: boolean = false) => {
     const isSelected = selectedServices.some(s => s.id === service.id);
     if (isSelected) {
       setSelectedServices(prev => prev.filter(s => s.id !== service.id));
@@ -114,9 +114,24 @@ export const useBooking = (branch: any) => {
         name_ar: service.name_ar,
         price: roundPrice(discountedPrice),
         duration: service.duration,
-        originalPrice: discountedPrice !== service.price ? roundPrice(service.price) : undefined
+        originalPrice: discountedPrice !== service.price ? roundPrice(service.price) : undefined,
+        isUpsellItem: isUpsell
       }]);
     }
+  };
+
+  const handleUpsellServiceAdd = (upsellServices: any[]) => {
+    upsellServices.forEach(upsell => {
+      handleServiceToggle({
+        id: upsell.id,
+        name_en: upsell.name_en,
+        name_ar: upsell.name_ar,
+        price: upsell.discountedPrice,
+        duration: upsell.duration,
+        discount_type: 'percentage',
+        discount_value: upsell.discountPercentage
+      }, true);
+    });
   };
 
   const calculateDiscountedPrice = (service: any) => {
@@ -166,6 +181,7 @@ export const useBooking = (branch: any) => {
     employeesLoading,
     selectedEmployee,
     handleServiceToggle,
+    handleUpsellServiceAdd,
     totalPrice
   };
 };

@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { BookingProgress, BookingStep } from "@/components/booking/BookingProgress";
 import { BookingNavigation } from "@/components/booking/BookingNavigation";
@@ -36,6 +37,7 @@ export const BookingSteps = ({ branch }: BookingStepsProps) => {
     employeesLoading,
     selectedEmployee,
     handleServiceToggle,
+    handleUpsellServiceAdd,
     totalPrice
   } = useBooking(branch);
 
@@ -59,17 +61,7 @@ export const BookingSteps = ({ branch }: BookingStepsProps) => {
   };
 
   const handleUpsellConfirm = (selectedUpsells: any[]) => {
-    selectedUpsells.forEach(upsell => {
-      handleServiceToggle({
-        id: upsell.id,
-        name_en: upsell.name,
-        name_ar: upsell.name,
-        price: upsell.price,
-        duration: upsell.duration,
-        discount_type: 'percentage',
-        discount_value: upsell.discountPercentage
-      });
-    });
+    handleUpsellServiceAdd(selectedUpsells);
     handleUpsellModalClose();
   };
 
