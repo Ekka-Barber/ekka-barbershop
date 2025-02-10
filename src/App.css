@@ -50,13 +50,13 @@
 }
 
 .page-footer {
-  height: 2.5rem;
+  height: 3mm;
   width: 100%;
   margin-top: auto;
 }
 
 @media (min-width: 640px) {
   .page-footer {
-    height: 3rem;
+    height: 3mm;
   }
 }
