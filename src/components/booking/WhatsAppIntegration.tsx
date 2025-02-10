@@ -157,7 +157,7 @@ ${totalDiscount > 0 ? `💰 الخصم: ${formatPrice(totalDiscount)}` : ''}
       >
         {isLoading ? 
           (language === 'ar' ? 'جاري المعالجة...' : 'Processing...') : 
-          (language === 'ar' ? 'تأكيد الحجز' : 'Confirm Booking')}
+          'تأكيد تفاصيل الحجز'}
       </Button>
 
       <Dialog open={isConfirmDialogOpen} onOpenChange={setIsConfirmDialogOpen}>
@@ -167,7 +167,7 @@ ${totalDiscount > 0 ? `💰 الخصم: ${formatPrice(totalDiscount)}` : ''}
               {language === 'ar' ? 'تأكيد الحجز' : 'Confirm Booking'}
             </DialogTitle>
             <DialogDescription>
-              حجزك هذا <span className="font-bold text-red-500">غير مؤكد</span>، تأكيد الحجز سيتم عن طريق الواتساب
+              حجزك هذا <span className="font-bold text-red-500">غير مؤكد</span>
             </DialogDescription>
           </DialogHeader>
           <div className="flex justify-center space-x-2 rtl:space-x-reverse">
