@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from "@/integrations/supabase/client";
@@ -210,17 +209,16 @@ export const FileManagement = () => {
 
     const updates = categoryFiles.map((file, index) => ({
       id: file.id,
+      category: file.category,
+      file_name: file.file_name,
+      file_path: file.file_path,
+      file_type: file.file_type,
       display_order: index
     }));
 
     const { error } = await supabase
       .from('marketing_files')
-      .upsert(
-        updates.map(update => ({
-          id: update.id,
-          display_order: update.display_order
-        }))
-      );
+      .upsert(updates);
 
     if (error) {
       console.error('Error updating order:', error);
