@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -71,6 +72,9 @@
     @apply border-border font-sans;
   }
   body {
-    @apply bg-background text-foreground font-sans;
+    @apply bg-background text-foreground font-sans min-h-screen overflow-x-hidden;
+  }
+  html {
+    @apply h-full;
   }
 }

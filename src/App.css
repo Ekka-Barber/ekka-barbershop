@@ -1,8 +1,16 @@
+
 #root {
   max-width: 1280px;
   margin: 0 auto;
-  padding: 2rem;
+  padding: 1rem 1rem 4rem;
   text-align: center;
+  min-height: 100vh;
+}
+
+@media (min-width: 640px) {
+  #root {
+    padding: 2rem 2rem 3rem;
+  }
 }
 
 .logo {
