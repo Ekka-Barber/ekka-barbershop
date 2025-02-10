@@ -128,6 +128,8 @@ const Customer = () => {
         branches={branches}
         onLocationClick={handleLocationClick}
       />
+
+      <footer className="page-footer" />
     </div>
   );
 };

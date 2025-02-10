@@ -5,7 +5,12 @@ import { LanguageProvider } from "@/contexts/LanguageContext";
 const Bookings = () => {
   return (
     <LanguageProvider>
-      <BookingContainer />
+      <div className="flex flex-col min-h-screen">
+        <div className="flex-grow">
+          <BookingContainer />
+        </div>
+        <footer className="page-footer" />
+      </div>
     </LanguageProvider>
   );
 };
