@@ -32,9 +32,10 @@ const isBarberAvailableNow = (employee: Employee) => {
   const now = new Date();
   const dayOfWeek = format(now, 'EEEE').toLowerCase();
   const currentTime = format(now, 'HH:mm');
+  const today = format(now, 'yyyy-MM-dd');
   
   // Check if it's an off day
-  if (employee.off_days?.includes(format(now, 'yyyy-MM-dd'))) {
+  if (employee.off_days?.includes(today)) {
     return false;
   }
 
@@ -48,14 +49,21 @@ const isBarberAvailableNow = (employee: Employee) => {
 };
 
 const getAvailabilityStatus = (employee: Employee) => {
+  const now = new Date();
+  const today = format(now, 'yyyy-MM-dd');
+  
+  // Check if it's an off day first
+  if (employee.off_days?.includes(today)) {
+    return { text: "barber.off.today", variant: "destructive" as const };
+  }
+  
   if (isBarberAvailableNow(employee)) {
     return { text: "barber.available.now", variant: "success" as const };
   }
   
-  const now = new Date();
   const dayOfWeek = format(now, 'EEEE').toLowerCase();
   
-  if (employee.working_hours?.[dayOfWeek]) {
+  if (employee.working_hours?.[dayOfWeek]?.length) {
     return { text: "barber.available.today", variant: "secondary" as const };
   }
   

@@ -42,8 +42,11 @@ export const BookingSteps = ({ branch }: BookingStepsProps) => {
   const { data: availableUpsells } = useBookingUpsells(selectedServices, language);
 
   const handleStepChange = (step: string) => {
-    console.log('Changing step to:', step);
-    setCurrentStep(step as BookingStep);
+    if (currentStep === 'services' && step === 'barber' && availableUpsells?.length) {
+      setShowUpsellModal(true);
+    } else {
+      setCurrentStep(step as BookingStep);
+    }
   };
 
   const currentStepIndex = STEPS.indexOf(currentStep);
