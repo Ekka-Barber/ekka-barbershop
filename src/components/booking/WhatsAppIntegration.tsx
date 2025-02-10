@@ -1,6 +1,15 @@
+
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { useState } from "react";
 
 interface SelectedService {
   id: string;
@@ -39,6 +48,8 @@ export const WhatsAppIntegration = ({
   branch
 }: WhatsAppIntegrationProps) => {
   const { toast } = useToast();
+  const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const formatPrice = (price: number) => {
     const roundedPrice = Math.round(price);
@@ -54,44 +65,88 @@ export const WhatsAppIntegration = ({
     const totalDiscount = totalOriginalPrice - totalPrice;
 
     const message = `
-${language === 'en' ? '*New Booking Request*' : '*طلب حجز جديد*'}
+✨ *طلب حجز جديد*
 
-*معلومات العميل:*
+👤 *معلومات العميل:*
 الاسم: ${customerDetails.name}
 رقم الجوال: ${customerDetails.phone}
-${customerDetails.email ? `البريد الإلكتروني: ${customerDetails.email}` : ''}
+البريد الإلكتروني: ${customerDetails.email}
 ${customerDetails.notes ? `ملاحظات: ${customerDetails.notes}` : ''}
 
-*تفاصيل الحجز:*
+✂️ *تفاصيل الحجز:*
 ${serviceSummary}
 
-المدة الإجمالية: ${selectedServices.reduce((sum, service) => sum + service.duration, 0)} دقيقة
-${selectedDate && selectedTime ? `التاريخ والوقت: ${format(selectedDate, 'dd/MM/yyyy')} - ${selectedTime}` : ''}
-${selectedBarberName ? `الحلاق: ${selectedBarberName}` : ''}
-${totalDiscount > 0 ? `الخصم: ${formatPrice(totalDiscount)}` : ''}
+⏰ المدة الإجمالية: ${selectedServices.reduce((sum, service) => sum + service.duration, 0)} دقيقة
+${selectedDate && selectedTime ? `📅 التاريخ والوقت: ${format(selectedDate, 'dd/MM/yyyy')} - ${selectedTime}` : ''}
+${selectedBarberName ? `💈 الحلاق: ${selectedBarberName}` : ''}
+${totalDiscount > 0 ? `💰 الخصم: ${formatPrice(totalDiscount)}` : ''}
 
-*المبلغ الإجمالي: ${formatPrice(totalPrice)}*
+💵 *المبلغ الإجمالي: ${formatPrice(totalPrice)}*
     `.trim();
 
     return encodeURIComponent(message);
   };
 
-  const handleBookingConfirmation = () => {
+  const isFormValid = () => {
+    if (!customerDetails.name.trim()) {
+      showError(language === 'ar' ? 'الرجاء إدخال الاسم' : 'Please enter your name');
+      return false;
+    }
+    if (!customerDetails.phone.trim() || customerDetails.phone.length !== 10) {
+      showError(language === 'ar' ? 'الرجاء إدخال رقم هاتف صحيح' : 'Please enter a valid phone number');
+      return false;
+    }
+    if (!customerDetails.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customerDetails.email)) {
+      showError(language === 'ar' ? 'الرجاء إدخال بريد إلكتروني صحيح' : 'Please enter a valid email');
+      return false;
+    }
+    if (!selectedDate || !selectedTime) {
+      showError(language === 'ar' ? 'الرجاء اختيار التاريخ والوقت' : 'Please select date and time');
+      return false;
+    }
+    return true;
+  };
+
+  const showError = (message: string) => {
+    toast({
+      title: language === 'ar' ? 'تنبيه' : 'Alert',
+      description: message,
+      variant: "destructive"
+    });
+  };
+
+  const handleBookingRequest = () => {
+    if (!isFormValid()) return;
+    setIsConfirmDialogOpen(true);
+  };
+
+  const handleBookingConfirmation = async () => {
     if (!branch?.whatsapp_number) {
-      toast({
-        title: language === 'ar' ? 'خطأ' : 'Error',
-        description: language === 'ar' ? 'رقم الواتساب غير متوفر' : 'WhatsApp number is missing',
-        variant: "destructive"
-      });
+      showError(language === 'ar' ? 'رقم الواتساب غير متوفر' : 'WhatsApp number is missing');
       return;
     }
 
-    const whatsappNumber = branch.whatsapp_number.startsWith('+') ? branch.whatsapp_number.slice(1) : branch.whatsapp_number;
-    const whatsappURL = `https://wa.me/${whatsappNumber}?text=${generateWhatsAppMessage()}`;
-    window.open(whatsappURL, '_blank');
+    try {
+      setIsLoading(true);
+      const whatsappNumber = branch.whatsapp_number.startsWith('+') ? 
+        branch.whatsapp_number.slice(1) : 
+        branch.whatsapp_number;
+      const whatsappURL = `https://wa.me/${whatsappNumber}?text=${generateWhatsAppMessage()}`;
+      window.open(whatsappURL, '_blank');
+      setIsConfirmDialogOpen(false);
+      toast({
+        description: language === 'ar' ? 
+          'تم فتح واتساب لتأكيد حجزك' : 
+          'WhatsApp opened to confirm your booking',
+      });
+    } catch (error) {
+      showError(language === 'ar' ? 
+        'حدث خطأ أثناء فتح واتساب' : 
+        'Error opening WhatsApp');
+    } finally {
+      setIsLoading(false);
+    }
   };
-
-  const isFormValid = customerDetails.name.trim() !== '' && customerDetails.phone.trim() !== '';
 
   return (
     <div className="space-y-4">
@@ -100,12 +155,44 @@ ${totalDiscount > 0 ? `الخصم: ${formatPrice(totalDiscount)}` : ''}
         <p>{language === 'ar' ? '📲 سيصلك ردنا بالتأكيد قريباً! ✔️' : '📲 You\'ll receive our confirmation shortly! ✔️'}</p>
       </div>
       <Button 
-        onClick={handleBookingConfirmation}
-        disabled={!isFormValid}
+        onClick={handleBookingRequest}
         className="w-full h-14 text-lg font-medium bg-[#C4A36F] hover:bg-[#B39260] text-white transition-all duration-300 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+        disabled={isLoading}
       >
-        {language === 'ar' ? 'تأكيد الحجز' : 'Confirm Booking'}
+        {isLoading ? 
+          (language === 'ar' ? 'جاري المعالجة...' : 'Processing...') : 
+          (language === 'ar' ? 'تأكيد الحجز' : 'Confirm Booking')}
       </Button>
+
+      <Dialog open={isConfirmDialogOpen} onOpenChange={setIsConfirmDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {language === 'ar' ? 'تأكيد الحجز' : 'Confirm Booking'}
+            </DialogTitle>
+            <DialogDescription>
+              {language === 'ar' 
+                ? 'هل أنت متأكد من تفاصيل الحجز؟ سيتم فتح واتساب لإكمال عملية الحجز.' 
+                : 'Are you sure about the booking details? WhatsApp will open to complete the booking process.'}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-end space-x-2 rtl:space-x-reverse">
+            <Button
+              variant="outline"
+              onClick={() => setIsConfirmDialogOpen(false)}
+            >
+              {language === 'ar' ? 'إلغاء' : 'Cancel'}
+            </Button>
+            <Button
+              onClick={handleBookingConfirmation}
+              disabled={isLoading}
+            >
+              {language === 'ar' ? 'تأكيد' : 'Confirm'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
+
