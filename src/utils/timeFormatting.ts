@@ -1,4 +1,6 @@
 
+import { convertToArabic } from './arabicNumerals';
+
 export const formatTime = (time: string, isArabic: boolean): string => {
   const [hours, minutes] = time.trim().split(':');
   const hour = parseInt(hours);
@@ -6,7 +8,6 @@ export const formatTime = (time: string, isArabic: boolean): string => {
   const formattedHour = hour % 12 || 12;
 
   if (isArabic) {
-    const { convertToArabic } = require('./arabicNumerals');
     return minutes === '00'
       ? `${convertToArabic(formattedHour.toString())} ${period}`
       : `${convertToArabic(`${formattedHour}:${minutes}`)} ${period}`;
@@ -21,3 +22,4 @@ export const formatTimeRange = (timeRange: string, isArabic: boolean): string =>
   const [start, end] = timeRange.split('-');
   return `${formatTime(start, isArabic)} - ${formatTime(end, isArabic)}`;
 };
+
