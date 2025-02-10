@@ -25,4 +25,5 @@ export interface PushSubscription {
   status: 'active' | 'inactive';
   platform?: string;
   last_active: string;
+  created_at: string;
 }

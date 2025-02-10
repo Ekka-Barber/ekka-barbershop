@@ -16,7 +16,7 @@ export const useNotificationMessages = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setMessages(data as NotificationMessage[]);
+      setMessages(data || []);
     } catch (error) {
       console.error('Error fetching notifications:', error);
     } finally {

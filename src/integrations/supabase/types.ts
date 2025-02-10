@@ -553,6 +553,75 @@ export type Database = {
           },
         ]
       }
+      notification_events: {
+        Row: {
+          body: string
+          created_at: string
+          data: Json | null
+          id: string
+          title: string
+          url: string | null
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          data?: Json | null
+          id?: string
+          title: string
+          url?: string | null
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          data?: Json | null
+          id?: string
+          title?: string
+          url?: string | null
+        }
+        Relationships: []
+      }
+      notification_tracking: {
+        Row: {
+          created_at: string
+          event_type: string
+          id: string
+          metadata: Json | null
+          notification_id: string | null
+          subscription_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          event_type: string
+          id?: string
+          metadata?: Json | null
+          notification_id?: string | null
+          subscription_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          event_type?: string
+          id?: string
+          metadata?: Json | null
+          notification_id?: string | null
+          subscription_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_tracking_notification_id_fkey"
+            columns: ["notification_id"]
+            isOneToOne: false
+            referencedRelation: "notification_events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notification_tracking_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "push_subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payment_method_fees: {
         Row: {
           created_at: string
@@ -587,6 +656,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      push_subscriptions: {
+        Row: {
+          auth: string
+          created_at: string
+          endpoint: string
+          id: string
+          last_active: string
+          p256dh: string
+          platform: string | null
+          status: Database["public"]["Enums"]["subscription_status"] | null
+        }
+        Insert: {
+          auth: string
+          created_at?: string
+          endpoint: string
+          id?: string
+          last_active?: string
+          p256dh: string
+          platform?: string | null
+          status?: Database["public"]["Enums"]["subscription_status"] | null
+        }
+        Update: {
+          auth?: string
+          created_at?: string
+          endpoint?: string
+          id?: string
+          last_active?: string
+          p256dh?: string
+          platform?: string | null
+          status?: Database["public"]["Enums"]["subscription_status"] | null
+        }
+        Relationships: []
       }
       qr_codes: {
         Row: {

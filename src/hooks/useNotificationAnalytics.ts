@@ -1,8 +1,8 @@
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { NotificationMessage, NotificationTracking } from "@/types/notifications";
+import { NotificationMessage, NotificationTracking, PushSubscription } from '@/types/notifications';
 
 export interface NotificationAnalytics {
   totalSent: number;
@@ -16,11 +16,11 @@ export interface NotificationAnalytics {
 }
 
 const calculateAnalytics = (
-  subscriptions: any[],
+  subscriptions: PushSubscription[],
   trackingEvents: NotificationTracking[]
 ): NotificationAnalytics => {
   const platformCounts: Record<string, number> = {};
-  subscriptions?.forEach(sub => {
+  subscriptions.forEach(sub => {
     const platform = sub.platform || 'unknown';
     platformCounts[platform] = (platformCounts[platform] || 0) + 1;
   });
@@ -34,7 +34,7 @@ const calculateAnalytics = (
     totalSent: sent,
     totalClicked: clicked,
     totalReceived: delivered,
-    activeSubscriptions: subscriptions?.length || 0,
+    activeSubscriptions: subscriptions.length,
     deliveryRate: sent > 0 ? (delivered / sent) * 100 : 0,
     clickThroughRate: delivered > 0 ? (clicked / delivered) * 100 : 0,
     errorRate: sent > 0 ? (failed / sent) * 100 : 0,
@@ -71,7 +71,7 @@ export const useNotificationAnalytics = (messages: NotificationMessage[]) => {
       if (trackingResponse.error) throw trackingResponse.error;
 
       setAnalytics(calculateAnalytics(
-        subsResponse.data || [],
+        subsResponse.data as PushSubscription[],
         trackingResponse.data as NotificationTracking[]
       ));
 

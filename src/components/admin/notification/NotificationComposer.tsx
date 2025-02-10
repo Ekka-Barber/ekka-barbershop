@@ -30,8 +30,9 @@ export const NotificationComposer = ({ onMessageSent }: NotificationComposerProp
       const { error } = await supabase
         .from('notification_events')
         .insert({
-          event_type: 'notification_sent',
-          data: { title, body, url }
+          title,
+          body,
+          url: url || null
         });
 
       if (error) throw error;
