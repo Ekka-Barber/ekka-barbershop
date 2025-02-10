@@ -1,12 +1,10 @@
+
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { CustomBadge } from "@/components/ui/custom-badge";
-import ReactCountryFlag from "react-country-flag";
-import { format, parse, isToday, isBefore, addHours } from "date-fns";
-import { cn } from "@/lib/utils";
+import { BarberCard } from "./barber/BarberCard";
+import { TimeSlotPicker } from "./barber/TimeSlotPicker";
+import { useTimeSlots } from "@/hooks/useTimeSlots";
 
 interface Employee {
   id: string;
@@ -29,43 +27,6 @@ interface BarberSelectionProps {
   onTimeSelect: (time: string) => void;
 }
 
-const generateTimeSlots = (workingHoursRanges: string[] = [], selectedDate?: Date) => {
-  const slots: string[] = [];
-  
-  workingHoursRanges.forEach(range => {
-    const [start, end] = range.split('-');
-    const startTime = parse(start, 'HH:mm', new Date());
-    let endTime = parse(end, 'HH:mm', new Date());
-    
-    if (end === "00:00" || end === "01:00") {
-      endTime = new Date(endTime.getTime() + 24 * 60 * 60 * 1000);
-    }
-    
-    let currentSlot = startTime;
-    while (currentSlot < endTime) {
-      slots.push(format(currentSlot, 'HH:mm'));
-      currentSlot = new Date(currentSlot.getTime() + 30 * 60000);
-    }
-  });
-
-  // Filter out past slots and add 1-hour buffer if the selected date is today
-  if (selectedDate && isToday(selectedDate)) {
-    const now = new Date();
-    const minimumBookingTime = addHours(now, 1);
-
-    return slots
-      .filter(slot => {
-        const [hours, minutes] = slot.split(':').map(Number);
-        const slotTime = new Date();
-        slotTime.setHours(hours, minutes, 0, 0);
-        return !isBefore(slotTime, minimumBookingTime);
-      })
-      .sort();
-  }
-
-  return slots.sort();
-};
-
 export const BarberSelection = ({
   employees,
   isLoading,
@@ -75,34 +36,9 @@ export const BarberSelection = ({
   selectedTime,
   onTimeSelect
 }: BarberSelectionProps) => {
-  const { language, t } = useLanguage();
+  const { language } = useLanguage();
   const [showAllSlots, setShowAllSlots] = useState(false);
-
-  const getAvailableTimeSlots = (employee: Employee) => {
-    if (!selectedDate || !employee.working_hours) return [];
-    
-    const dayName = format(selectedDate, 'EEEE').toLowerCase();
-    const workingHours = employee.working_hours[dayName] || [];
-    
-    if (employee.off_days?.includes(format(selectedDate, 'yyyy-MM-dd'))) {
-      return [];
-    }
-    
-    return generateTimeSlots(workingHours, selectedDate);
-  };
-
-  const isEmployeeAvailable = (employee: Employee): boolean => {
-    if (!selectedDate || !employee.working_hours) return false;
-    
-    const dayName = format(selectedDate, 'EEEE').toLowerCase();
-    const workingHours = employee.working_hours[dayName] || [];
-    
-    if (employee.off_days?.includes(format(selectedDate, 'yyyy-MM-dd'))) {
-      return false;
-    }
-    
-    return workingHours.length > 0;
-  };
+  const { getAvailableTimeSlots, isEmployeeAvailable } = useTimeSlots();
 
   if (isLoading) {
     return (
@@ -121,130 +57,47 @@ export const BarberSelection = ({
   if (filteredEmployees?.length === 0) {
     return (
       <div className="text-center p-8">
-        <p className="text-gray-500">{t('no.barbers.available')}</p>
+        <p className="text-gray-500">{language === 'ar' ? 'لا يوجد حلاقين متاحين' : 'No barbers available'}</p>
       </div>
     );
   }
 
   const selectedEmployeeTimeSlots = selectedBarber 
-    ? getAvailableTimeSlots(filteredEmployees?.find(emp => emp.id === selectedBarber)!)
+    ? getAvailableTimeSlots(filteredEmployees?.find(emp => emp.id === selectedBarber), selectedDate)
     : [];
-
-  const displayedTimeSlots = showAllSlots 
-    ? selectedEmployeeTimeSlots 
-    : selectedEmployeeTimeSlots.slice(0, 6);
-
-  const selectedEmployeeData = filteredEmployees?.find(emp => emp.id === selectedBarber);
 
   return (
     <div className="space-y-8">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {filteredEmployees?.map((employee) => {
-          const isAvailable = isEmployeeAvailable(employee);
+          const isAvailable = isEmployeeAvailable(employee, selectedDate);
           const isSelected = selectedBarber === employee.id;
           
           return (
             <div key={employee.id} className="space-y-4">
-              <Button
-                variant={isSelected ? "default" : "outline"}
-                onClick={() => {
+              <BarberCard
+                id={employee.id}
+                name={employee.name}
+                name_ar={employee.name_ar}
+                photo_url={employee.photo_url}
+                nationality={employee.nationality}
+                isAvailable={isAvailable}
+                isSelected={isSelected}
+                onSelect={() => {
                   onBarberSelect(employee.id);
                   onTimeSelect('');
                   setShowAllSlots(false);
                 }}
-                className={cn(
-                  "relative flex flex-col items-center justify-start h-auto min-h-[200px] p-4 rounded-lg overflow-hidden w-full",
-                  "space-y-2 border transition-all duration-200",
-                  isSelected 
-                    ? "bg-[#e7bd71]/10 border-[#e7bd71]" 
-                    : "hover:bg-accent"
-                )}
-              >
-                <div className="absolute top-2 right-2">
-                  <CustomBadge
-                    variant={isAvailable ? "success" : "destructive"}
-                  >
-                    {isAvailable 
-                      ? (language === 'ar' ? 'متاح اليوم' : 'Available Today')
-                      : (language === 'ar' ? 'غير متاح' : 'Off Today')
-                    }
-                  </CustomBadge>
-                </div>
-                
-                <Avatar className="h-16 w-16 mb-2">
-                  <AvatarImage 
-                    src={employee.photo_url || undefined} 
-                    alt={employee.name}
-                    className="object-cover"
-                  />
-                  <AvatarFallback>{employee.name.charAt(0)}</AvatarFallback>
-                </Avatar>
-                
-                <div className="flex flex-col items-center justify-center gap-2 w-full">
-                  <span className="font-medium text-base text-gray-700 text-center line-clamp-1 px-2">
-                    {language === 'ar' ? employee.name_ar : employee.name}
-                  </span>
-                  
-                  {employee.nationality && (
-                    <div className="flex items-center justify-center mt-1">
-                      <ReactCountryFlag
-                        countryCode={employee.nationality}
-                        svg
-                        style={{
-                          width: '1.2em',
-                          height: '1.2em',
-                        }}
-                        title={employee.nationality}
-                      />
-                    </div>
-                  )}
-                </div>
-              </Button>
+              />
 
-              {isSelected && selectedEmployeeTimeSlots.length > 0 && (
-                <div className="space-y-4">
-                  <h3 className="text-lg font-medium text-center">
-                    {language === 'ar' ? 'اختر الوقت المناسب' : 'Select Available Time'}
-                  </h3>
-                  <div className="w-screen -mx-4 md:-mx-8">
-                    <div className="bg-gradient-to-b from-white to-gray-50 shadow-sm border-b border-gray-100">
-                      <div className="overflow-x-auto hide-scrollbar px-6 py-4">
-                        <div className="flex space-x-3 rtl:space-x-reverse min-w-full">
-                          {displayedTimeSlots.map((time) => (
-                            <Button
-                              key={time}
-                              variant={selectedTime === time ? "default" : "outline"}
-                              onClick={() => onTimeSelect(time)}
-                              className="flex-shrink-0"
-                            >
-                              {time}
-                            </Button>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  {selectedEmployeeTimeSlots.length > 6 && (
-                    <Button
-                      variant="ghost"
-                      onClick={() => setShowAllSlots(!showAllSlots)}
-                      className="w-full mt-2"
-                    >
-                      {showAllSlots 
-                        ? (language === 'ar' ? 'عرض أقل' : 'Show Less')
-                        : (language === 'ar' ? 'للمزيد' : 'Show More')}
-                    </Button>
-                  )}
-                </div>
-              )}
-
-              {isSelected && selectedEmployeeTimeSlots.length === 0 && (
-                <div className="text-center text-gray-500">
-                  {language === 'ar' 
-                    ? 'لا توجد مواعيد متاحة في هذا اليوم' 
-                    : 'No available time slots for this day'}
-                </div>
+              {isSelected && (
+                <TimeSlotPicker
+                  timeSlots={selectedEmployeeTimeSlots}
+                  selectedTime={selectedTime}
+                  onTimeSelect={onTimeSelect}
+                  showAllSlots={showAllSlots}
+                  onToggleShowAll={() => setShowAllSlots(!showAllSlots)}
+                />
               )}
             </div>
           );
@@ -253,3 +106,4 @@ export const BarberSelection = ({
     </div>
   );
 };
+
