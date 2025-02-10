@@ -80,6 +80,7 @@ export type Database = {
           name_ar: string | null
           updated_at: string
           whatsapp_number: string | null
+          working_hours: Json | null
         }
         Insert: {
           address?: string | null
@@ -92,6 +93,7 @@ export type Database = {
           name_ar?: string | null
           updated_at?: string
           whatsapp_number?: string | null
+          working_hours?: Json | null
         }
         Update: {
           address?: string | null
@@ -104,6 +106,7 @@ export type Database = {
           name_ar?: string | null
           updated_at?: string
           whatsapp_number?: string | null
+          working_hours?: Json | null
         }
         Relationships: []
       }
