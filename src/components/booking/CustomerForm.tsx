@@ -73,13 +73,14 @@ export const CustomerForm = ({
         
         <div>
           <Label htmlFor="email">
-            {t('email')} ({language === 'ar' ? 'اختياري' : 'optional'})
+            {t('email')} <span className="text-destructive">*</span>
           </Label>
           <Input
             id="email"
             type="email"
             value={customerDetails.email}
             onChange={(e) => onCustomerDetailsChange('email', e.target.value)}
+            required
           />
         </div>
         
