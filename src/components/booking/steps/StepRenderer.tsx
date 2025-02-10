@@ -99,7 +99,7 @@ export const StepRenderer = ({
           totalPrice={totalPrice}
           selectedDate={selectedDate}
           selectedTime={selectedTime}
-          selectedBarberName={selectedBarber ? employees?.find(emp => emp.id === selectedBarber)?.[language === 'ar' ? 'name_ar' : 'name'] : undefined}
+          selectedBarberName={selectedBarber ? employees?.find(emp => emp.id === selectedBarber)?.[language === 'ar' ? 'name_ar' : 'name_en'] : undefined}
           onRemoveService={(serviceId) => {
             const service = selectedServices.find(s => s.id === serviceId);
             if (service) {
@@ -124,7 +124,7 @@ export const StepRenderer = ({
           totalPrice={totalPrice}
           selectedDate={selectedDate}
           selectedTime={selectedTime}
-          selectedBarberName={selectedBarber ? employees?.find(emp => emp.id === selectedBarber)?.[language === 'ar' ? 'name_ar' : 'name'] : undefined}
+          selectedBarberName={selectedBarber ? employees?.find(emp => emp.id === selectedBarber)?.[language === 'ar' ? 'name_ar' : 'name_en'] : undefined}
           customerDetails={customerDetails}
           language={language}
           branch={branch}
@@ -135,3 +135,4 @@ export const StepRenderer = ({
 
   return null;
 };
+
