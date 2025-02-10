@@ -40,11 +40,17 @@ export const DateTimeSelection = ({
   const cutoffTime = addDays(new Date(), 1);
 
   const getDayName = (date: Date): string => {
-    return format(date, 'EEEE').toLowerCase();
+    // Add console.log to debug day name
+    const dayName = format(date, 'EEEE').toLowerCase();
+    console.log('Day name:', dayName);
+    return dayName;
   };
 
   const generateTimeSlots = (workingHoursRanges: string[] = []) => {
     const slots: string[] = [];
+    
+    // Add console.log to debug working hours
+    console.log('Working hours ranges:', workingHoursRanges);
     
     workingHoursRanges.forEach(range => {
       const [start, end] = range.split('-');
@@ -69,9 +75,20 @@ export const DateTimeSelection = ({
     if (!selectedDate) return [];
 
     const dayName = getDayName(selectedDate);
+    // Add console.log to debug employee working hours
+    console.log('Employee working hours:', employeeWorkingHours);
+    console.log('Looking for working hours for day:', dayName);
+    
     const workingHours = employeeWorkingHours?.[dayName] || [];
     return generateTimeSlots(workingHours);
   }, [selectedDate, employeeWorkingHours]);
+
+  // Add console.log to debug available time slots
+  useEffect(() => {
+    if (selectedDate) {
+      console.log('Available time slots:', availableTimeSlots);
+    }
+  }, [availableTimeSlots, selectedDate]);
 
   const isTimeSlotDisabled = (time: string): boolean => {
     if (!selectedDate) return true;
