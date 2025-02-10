@@ -6,6 +6,10 @@ type WorkingHoursType = {
   [key: string]: string[];
 } | null;
 
+interface ArabicNumerals {
+  [key: string]: string;
+}
+
 export const useTimeFormatting = () => {
   const formatTimeRange = (timeRange: string, isArabic: boolean): string => {
     const [start, end] = timeRange.split('-');
@@ -23,7 +27,7 @@ export const useTimeFormatting = () => {
       const hour = parseInt(hours);
       const period = hour >= 12 ? 'م' : 'ص';
       const formattedHour = hour % 12 || 12;
-      const arabicNumerals: { [key: string]: string } = {
+      const arabicNumerals: ArabicNumerals = {
         '0': '٠', '1': '١', '2': '٢', '3': '٣', '4': '٤',
         '5': '٥', '6': '٦', '7': '٧', '8': '٨', '9': '٩'
       };
