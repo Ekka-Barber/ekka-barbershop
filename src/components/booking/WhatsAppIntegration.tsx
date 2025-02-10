@@ -1,4 +1,3 @@
-
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
@@ -175,12 +174,6 @@ ${totalDiscount > 0 ? `💰 الخصم: ${formatPrice(totalDiscount)}` : ''}
             </DialogDescription>
           </DialogHeader>
           <div className="flex justify-center space-x-2 rtl:space-x-reverse">
-            <Button
-              variant="outline"
-              onClick={() => setIsConfirmDialogOpen(false)}
-            >
-              {language === 'ar' ? 'إلغاء' : 'Cancel'}
-            </Button>
             <Button
               onClick={handleBookingConfirmation}
               disabled={isLoading}
