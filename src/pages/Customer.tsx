@@ -41,14 +41,30 @@ const Customer = () => {
 
   const formatTimeRange = (timeRange: string, isArabic: boolean) => {
     const [start, end] = timeRange.split('-');
-    if (isArabic) {
-      // Convert to Arabic numerals and format
+    
+    const formatTime = (time: string) => {
+      const [hours, minutes] = time.trim().split(':');
+      const hour = parseInt(hours);
+      const ampm = hour >= 12 ? 'PM' : 'AM';
+      const formattedHour = hour % 12 || 12;
+      return `${formattedHour}:${minutes} ${ampm}`;
+    };
+
+    const formatArabicTime = (time: string) => {
+      const [hours, minutes] = time.trim().split(':');
+      const hour = parseInt(hours);
+      const period = hour >= 12 ? 'م' : 'ص';
+      const formattedHour = hour % 12 || 12;
       const convertToArabic = (str: string) => {
         return str.replace(/[0-9]/g, d => String.fromCharCode(1632 + parseInt(d)));
       };
-      return `${convertToArabic(start)} - ${convertToArabic(end)}`;
+      return `${convertToArabic(`${formattedHour}:${minutes}`)} ${period}`;
+    };
+
+    if (isArabic) {
+      return `${formatArabicTime(start)} - ${formatArabicTime(end)}`;
     }
-    return `${start} - ${end}`;
+    return `${formatTime(start)} - ${formatTime(end)}`;
   };
 
   const getCurrentDayHours = (workingHours: any, isArabic: boolean) => {
