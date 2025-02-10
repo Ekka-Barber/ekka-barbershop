@@ -121,10 +121,11 @@ export const BarberSelection = ({
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {filteredEmployees?.map((employee) => {
           const isAvailable = isEmployeeAvailable(employee);
+          const isSelected = selectedBarber === employee.id;
           return (
             <Button
               key={employee.id}
-              variant={selectedBarber === employee.id ? "default" : "outline"}
+              variant={isSelected ? "default" : "outline"}
               onClick={() => {
                 onBarberSelect(employee.id);
                 onTimeSelect(''); // Reset time when changing barber
@@ -132,7 +133,9 @@ export const BarberSelection = ({
               className={cn(
                 "relative flex flex-col items-center justify-start h-auto min-h-[200px] p-4 rounded-lg overflow-hidden",
                 "space-y-2 border transition-all duration-200",
-                selectedBarber === employee.id ? "bg-[#e7bd71]/10 border-[#e7bd71]" : ""
+                isSelected 
+                  ? "bg-[#e7bd71]/10 border-[#e7bd71] hover:bg-[#e7bd71]/10" 
+                  : "hover:bg-accent"
               )}
             >
               <div className="absolute top-2 right-2">
@@ -209,4 +212,3 @@ export const BarberSelection = ({
     </div>
   );
 };
-
