@@ -1,3 +1,4 @@
+
 import { BookingStep } from "@/components/booking/BookingProgress";
 import { ServiceSelection } from "@/components/booking/ServiceSelection";
 import { DateTimeSelection } from "@/components/booking/DateTimeSelection";
@@ -105,8 +106,8 @@ export const StepRenderer = ({
               handleServiceToggle({
                 id: service.id,
                 category_id: '',
-                name_en: service.name,
-                name_ar: service.name,
+                name_en: service.name_en,
+                name_ar: service.name_ar,
                 description_en: null,
                 description_ar: null,
                 price: service.price,
