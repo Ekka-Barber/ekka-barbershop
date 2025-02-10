@@ -16,7 +16,18 @@ export const useNotificationMessages = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setMessages(data || []);
+      
+      // Transform the data to ensure correct typing
+      const transformedMessages: NotificationMessage[] = (data || []).map(msg => ({
+        id: msg.id,
+        title: msg.title,
+        body: msg.body,
+        url: msg.url || undefined,
+        created_at: msg.created_at,
+        data: msg.data as Record<string, any> || undefined
+      }));
+
+      setMessages(transformedMessages);
     } catch (error) {
       console.error('Error fetching notifications:', error);
     } finally {
