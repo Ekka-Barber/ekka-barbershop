@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { format, addDays, isBefore, parse, startOfDay } from "date-fns";
 import { cn } from "@/lib/utils";
 import { useEffect, useMemo, useState } from "react";
+import { ar } from 'date-fns/locale';
 
 export interface WorkingHours {
   [key: string]: string[];
@@ -98,6 +99,12 @@ export const DateTimeSelection = ({
       : format(date, 'MMM dd');
   };
 
+  const formatDay = (date: Date) => {
+    return language === 'ar'
+      ? format(date, 'EEEE', { locale: ar })
+      : format(date, 'EEE');
+  };
+
   return (
     <div className="space-y-6">
       {!showFullCalendar ? (
@@ -115,7 +122,7 @@ export const DateTimeSelection = ({
                 disabled={isBefore(date, startOfDay(new Date()))}
               >
                 <span className="text-sm font-medium">
-                  {language === 'ar' ? format(date, 'EEEE') : format(date, 'EEE')}
+                  {formatDay(date)}
                 </span>
                 <span className="text-lg font-bold">{formatDate(date)}</span>
               </Button>
@@ -136,6 +143,7 @@ export const DateTimeSelection = ({
             onSelect={onDateSelect}
             className="rounded-md border mx-auto"
             disabled={(date) => isBefore(date, startOfDay(new Date()))}
+            locale={language === 'ar' ? ar : undefined}
           />
           <button
             onClick={() => setShowFullCalendar(false)}
@@ -169,3 +177,4 @@ export const DateTimeSelection = ({
     </div>
   );
 };
+
