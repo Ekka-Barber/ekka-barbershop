@@ -10,6 +10,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useState } from "react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface SelectedService {
   id: string;
@@ -48,6 +49,7 @@ export const WhatsAppIntegration = ({
   branch
 }: WhatsAppIntegrationProps) => {
   const { toast } = useToast();
+  const { t } = useLanguage();
   const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -89,19 +91,19 @@ ${totalDiscount > 0 ? `💰 الخصم: ${formatPrice(totalDiscount)}` : ''}
 
   const isFormValid = () => {
     if (!customerDetails.name.trim()) {
-      showError(language === 'ar' ? 'الرجاء إدخال الاسم' : 'Please enter your name');
+      showError(t('enter.name'));
       return false;
     }
     if (!customerDetails.phone.trim() || customerDetails.phone.length !== 10) {
-      showError(language === 'ar' ? 'الرجاء إدخال رقم هاتف صحيح' : 'Please enter a valid phone number');
+      showError(t('enter.valid.phone'));
       return false;
     }
     if (!customerDetails.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customerDetails.email)) {
-      showError(language === 'ar' ? 'الرجاء إدخال بريد إلكتروني صحيح' : 'Please enter a valid email');
+      showError(t('enter.valid.email'));
       return false;
     }
     if (!selectedDate || !selectedTime) {
-      showError(language === 'ar' ? 'الرجاء اختيار التاريخ والوقت' : 'Please select date and time');
+      showError(t('select.date.time'));
       return false;
     }
     return true;
@@ -109,7 +111,7 @@ ${totalDiscount > 0 ? `💰 الخصم: ${formatPrice(totalDiscount)}` : ''}
 
   const showError = (message: string) => {
     toast({
-      title: language === 'ar' ? 'تنبيه' : 'Alert',
+      title: t('booking.alert'),
       description: message,
       variant: "destructive"
     });
@@ -122,7 +124,7 @@ ${totalDiscount > 0 ? `💰 الخصم: ${formatPrice(totalDiscount)}` : ''}
 
   const handleBookingConfirmation = async () => {
     if (!branch?.whatsapp_number) {
-      showError(language === 'ar' ? 'رقم الواتساب غير متوفر' : 'WhatsApp number is missing');
+      showError(t('whatsapp.missing'));
       return;
     }
 
@@ -135,14 +137,10 @@ ${totalDiscount > 0 ? `💰 الخصم: ${formatPrice(totalDiscount)}` : ''}
       window.open(whatsappURL, '_blank');
       setIsConfirmDialogOpen(false);
       toast({
-        description: language === 'ar' ? 
-          'تم فتح واتساب لتأكيد حجزك' : 
-          'WhatsApp opened to confirm your booking',
+        description: t('whatsapp.opened'),
       });
     } catch (error) {
-      showError(language === 'ar' ? 
-        'حدث خطأ أثناء فتح واتساب' : 
-        'Error opening WhatsApp');
+      showError(t('error.whatsapp'));
     } finally {
       setIsLoading(false);
     }
@@ -155,19 +153,18 @@ ${totalDiscount > 0 ? `💰 الخصم: ${formatPrice(totalDiscount)}` : ''}
         className="w-full h-14 text-lg font-medium bg-[#C4A36F] hover:bg-[#B39260] text-white transition-all duration-300 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
         disabled={isLoading}
       >
-        {isLoading ? 
-          (language === 'ar' ? 'جاري المعالجة...' : 'Processing...') : 
-          'تأكيد تفاصيل الحجز'}
+        {isLoading ? t('processing') : t('confirm.details')}
       </Button>
 
       <Dialog open={isConfirmDialogOpen} onOpenChange={setIsConfirmDialogOpen}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {language === 'ar' ? 'تأكيد الحجز' : 'Confirm Booking'}
+              {t('confirm.booking')}
             </DialogTitle>
             <DialogDescription>
-              حجزك هذا <span className="font-bold text-red-500">غير مؤكد</span>
+              <span>{t('booking.unconfirmed')} </span>
+              <span className="font-bold text-red-500">{t('booking.unconfirmed.status')}</span>
             </DialogDescription>
           </DialogHeader>
           <div className="flex justify-center space-x-2 rtl:space-x-reverse">
