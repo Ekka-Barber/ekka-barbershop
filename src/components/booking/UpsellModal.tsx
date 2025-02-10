@@ -1,13 +1,16 @@
+
 import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Slash } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { SelectedService } from '@/types/service';
 
 interface UpsellService {
   id: string;
-  name: string;
+  name_en: string;
+  name_ar: string;
   price: number;
   duration: number;
   discountPercentage: number;
@@ -108,7 +111,7 @@ export const UpsellModal = ({
                       <div className="flex flex-col gap-1.5">
                         <div>
                           <h3 className={`font-medium ${useGridLayout ? 'text-sm' : 'text-base'} line-clamp-2`}>
-                            {upsell.name}
+                            {language === 'ar' ? upsell.name_ar : upsell.name_en}
                           </h3>
                           <p className="text-xs text-muted-foreground">
                             {upsell.duration} {language === 'ar' ? 'دقيقة' : 'min'}

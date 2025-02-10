@@ -3,6 +3,15 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from "@/integrations/supabase/client";
 import { SelectedService } from '@/types/service';
 
+export interface UpsellService {
+  id: string;
+  name_en: string;
+  name_ar: string;
+  price: number;
+  duration: number;
+  discountPercentage: number;
+}
+
 export const useBookingUpsells = (selectedServices: SelectedService[], language: 'en' | 'ar') => {
   return useQuery({
     queryKey: ['upsells', selectedServices.map(s => s.id)],
@@ -44,19 +53,7 @@ export const useBookingUpsells = (selectedServices: SelectedService[], language:
         }
       });
 
-      // Convert to array and format as SelectedService type
-      return Array.from(upsellMap.values()).map(upsell => ({
-        id: upsell.id,
-        name_en: upsell.name_en,
-        name_ar: upsell.name_ar,
-        price: upsell.price,
-        duration: upsell.duration,
-        // Mark as upsell item for removal functionality
-        isUpsellItem: true,
-        // Calculate discounted price based on percentage
-        originalPrice: upsell.price,
-        price: upsell.price * (1 - upsell.discountPercentage / 100)
-      }));
+      return Array.from(upsellMap.values());
     },
     enabled: selectedServices.length > 0
   });
