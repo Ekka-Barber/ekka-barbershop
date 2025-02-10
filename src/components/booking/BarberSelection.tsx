@@ -72,9 +72,9 @@ export const BarberSelection = ({
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
         {Array(4).fill(0).map((_, i) => (
-          <Skeleton key={i} className="h-[180px] w-full rounded-lg" />
+          <Skeleton key={i} className="h-[200px] w-full rounded-lg" />
         ))}
       </div>
     );
@@ -85,7 +85,7 @@ export const BarberSelection = ({
   );
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
       {filteredEmployees?.map((employee) => {
         const availabilityStatus = getAvailabilityStatus(employee);
         
@@ -95,12 +95,12 @@ export const BarberSelection = ({
             variant={selectedBarber === employee.id ? "default" : "outline"}
             onClick={() => onBarberSelect(employee.id)}
             className={cn(
-              "relative flex flex-col items-center justify-start p-4 min-h-[180px] rounded-lg transition-all duration-300",
-              "hover:bg-accent space-y-3",
+              "relative flex flex-col items-center justify-start h-auto min-h-[200px] p-4 rounded-lg overflow-hidden",
+              "hover:bg-accent space-y-2",
               selectedBarber === employee.id && "bg-[#e7bd71] hover:bg-[#d4ad65] border-[#d4ad65]"
             )}
           >
-            <Avatar className="h-20 w-20">
+            <Avatar className="h-16 w-16 mb-2">
               <AvatarImage 
                 src={employee.photo_url || undefined} 
                 alt={employee.name}
@@ -110,11 +110,11 @@ export const BarberSelection = ({
             </Avatar>
             
             <div className="flex flex-col items-center justify-center gap-2 w-full">
-              <span className="font-medium text-base text-gray-700 text-center line-clamp-1">
+              <span className="font-medium text-base text-gray-700 text-center line-clamp-1 px-2">
                 {language === 'ar' ? employee.name_ar : employee.name}
               </span>
               
-              <CustomBadge variant={availabilityStatus.variant}>
+              <CustomBadge variant={availabilityStatus.variant} className="max-w-[90%]">
                 {t(availabilityStatus.text)}
               </CustomBadge>
               
@@ -124,8 +124,8 @@ export const BarberSelection = ({
                     countryCode={employee.nationality}
                     svg
                     style={{
-                      width: '1.5em',
-                      height: '1.5em',
+                      width: '1.2em',
+                      height: '1.2em',
                     }}
                     title={employee.nationality}
                   />
