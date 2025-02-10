@@ -1,4 +1,3 @@
-
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
@@ -151,23 +150,23 @@ ${totalDiscount > 0 ? `💰 الخصم: ${formatPrice(totalDiscount)}` : ''}
 
       <Dialog open={isConfirmDialogOpen} onOpenChange={setIsConfirmDialogOpen}>
         <DialogContent>
-          <DialogHeader>
-            <DialogTitle>
+          <DialogHeader className="text-center">
+            <DialogTitle className="text-center">
               {t('confirm.booking')}
             </DialogTitle>
-            <DialogDescription className="space-y-2">
+            <DialogDescription className="space-y-2 text-center">
               {language === 'ar' ? (
-                <p>
+                <p className="text-center">
                   حجزك هذا <span className="font-bold text-[#ea384c]">غير مؤكد</span>، تأكيد الحجز سيتم عن طريق الواتساب
                 </p>
               ) : (
-                <p>
+                <p className="text-center">
                   This booking is <span className="font-bold text-[#ea384c]">unconfirmed</span>, booking confirmation will be through WhatsApp
                 </p>
               )}
             </DialogDescription>
           </DialogHeader>
-          <div className="flex justify-center space-x-2 rtl:space-x-reverse">
+          <div className="flex justify-center items-center space-x-2 rtl:space-x-reverse">
             <Button
               onClick={handleBookingConfirmation}
               disabled={isLoading}
@@ -180,4 +179,3 @@ ${totalDiscount > 0 ? `💰 الخصم: ${formatPrice(totalDiscount)}` : ''}
     </div>
   );
 };
-
