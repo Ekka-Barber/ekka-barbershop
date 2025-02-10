@@ -1,3 +1,4 @@
+
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
@@ -173,7 +174,7 @@ ${totalDiscount > 0 ? `💰 الخصم: ${formatPrice(totalDiscount)}` : ''}
               حجزك هذا <span className="font-bold text-red-500">غير مؤكد</span>، تأكيد الحجز سيتم عن طريق الواتساب
             </DialogDescription>
           </DialogHeader>
-          <div className="flex justify-end space-x-2 rtl:space-x-reverse">
+          <div className="flex justify-center space-x-2 rtl:space-x-reverse">
             <Button
               variant="outline"
               onClick={() => setIsConfirmDialogOpen(false)}
