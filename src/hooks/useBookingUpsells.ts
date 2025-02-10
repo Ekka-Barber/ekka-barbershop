@@ -35,7 +35,8 @@ export const useBookingUpsells = (selectedServices: SelectedService[], language:
         if (!existingUpsell || upsell.discount_percentage < existingUpsell.discountPercentage) {
           upsellMap.set(upsell.upsell.id, {
             id: upsell.upsell.id,
-            name: language === 'ar' ? upsell.upsell.name_ar : upsell.upsell.name_en,
+            name_en: upsell.upsell.name_en,
+            name_ar: upsell.upsell.name_ar,
             price: upsell.upsell.price,
             duration: upsell.upsell.duration,
             discountPercentage: upsell.discount_percentage
@@ -43,7 +44,19 @@ export const useBookingUpsells = (selectedServices: SelectedService[], language:
         }
       });
 
-      return Array.from(upsellMap.values());
+      // Convert to array and format as SelectedService type
+      return Array.from(upsellMap.values()).map(upsell => ({
+        id: upsell.id,
+        name_en: upsell.name_en,
+        name_ar: upsell.name_ar,
+        price: upsell.price,
+        duration: upsell.duration,
+        // Mark as upsell item for removal functionality
+        isUpsellItem: true,
+        // Calculate discounted price based on percentage
+        originalPrice: upsell.price,
+        price: upsell.price * (1 - upsell.discountPercentage / 100)
+      }));
     },
     enabled: selectedServices.length > 0
   });
