@@ -14,6 +14,7 @@ interface UpsellService {
   price: number;
   duration: number;
   discountPercentage: number;
+  discountedPrice: number;
 }
 
 interface UpsellModalProps {
@@ -41,10 +42,6 @@ export const UpsellModal = ({
         return [...prev, upsell];
       }
     });
-  };
-
-  const calculateDiscountedPrice = (price: number, discountPercentage: number) => {
-    return price - (price * (discountPercentage / 100));
   };
 
   const formatPrice = (price: number) => {
@@ -96,7 +93,6 @@ export const UpsellModal = ({
               >
                 {availableUpsells.map((upsell) => {
                   const isSelected = selectedUpsells.some(s => s.id === upsell.id);
-                  const discountedPrice = calculateDiscountedPrice(upsell.price, upsell.discountPercentage);
 
                   return (
                     <div
@@ -123,7 +119,7 @@ export const UpsellModal = ({
                               <Slash className="w-3.5 h-3.5 text-destructive absolute -translate-y-[2px]" />
                               <span className="text-sm text-muted-foreground">{formatPrice(upsell.price)}</span>
                             </span>
-                            <span className="text-sm font-medium">{formatPrice(discountedPrice)}</span>
+                            <span className="text-sm font-medium">{formatPrice(upsell.discountedPrice)}</span>
                           </div>
                           <p className="text-xs text-destructive font-medium">
                             -{upsell.discountPercentage}%

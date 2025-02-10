@@ -10,6 +10,7 @@ export interface UpsellService {
   price: number;
   duration: number;
   discountPercentage: number;
+  discountedPrice: number;  // Add this field for pre-calculated price
 }
 
 export const useBookingUpsells = (selectedServices: SelectedService[], language: 'en' | 'ar') => {
@@ -42,13 +43,16 @@ export const useBookingUpsells = (selectedServices: SelectedService[], language:
         const existingUpsell = upsellMap.get(upsell.upsell.id);
         
         if (!existingUpsell || upsell.discount_percentage < existingUpsell.discountPercentage) {
+          const discountedPrice = upsell.upsell.price - (upsell.upsell.price * (upsell.discount_percentage / 100));
+          
           upsellMap.set(upsell.upsell.id, {
             id: upsell.upsell.id,
             name_en: upsell.upsell.name_en,
             name_ar: upsell.upsell.name_ar,
             price: upsell.upsell.price,
             duration: upsell.upsell.duration,
-            discountPercentage: upsell.discount_percentage
+            discountPercentage: upsell.discount_percentage,
+            discountedPrice: discountedPrice
           });
         }
       });
