@@ -27,11 +27,9 @@ export const CustomerForm = ({
     // Only allow numbers
     const numbersOnly = value.replace(/[^0-9]/g, '');
     
-    // Validate phone number length
-    if (numbersOnly.length < 8) {
-      setPhoneError(language === 'ar' ? 'رقم الهاتف يجب أن يكون 8 أرقام على الأقل' : 'Phone number must be at least 8 digits');
-    } else if (numbersOnly.length > 15) {
-      setPhoneError(language === 'ar' ? 'رقم الهاتف يجب أن لا يتجاوز 15 رقم' : 'Phone number must not exceed 15 digits');
+    // Validate phone number length - must be exactly 10 digits
+    if (numbersOnly.length !== 10) {
+      setPhoneError(language === 'ar' ? 'رقم الهاتف يجب أن يكون 10 أرقام' : 'Phone number must be 10 digits');
     } else {
       setPhoneError("");
     }
@@ -64,6 +62,7 @@ export const CustomerForm = ({
             value={customerDetails.phone}
             onChange={(e) => handlePhoneChange(e.target.value)}
             required
+            maxLength={10}
             className={phoneError ? "border-destructive" : ""}
           />
           {phoneError && (
