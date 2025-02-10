@@ -1,7 +1,13 @@
+
 import { BookingContainer } from "@/components/booking/BookingContainer";
+import { LanguageProvider } from "@/contexts/LanguageContext";
 
 const Bookings = () => {
-  return <BookingContainer />;
+  return (
+    <LanguageProvider>
+      <BookingContainer />
+    </LanguageProvider>
+  );
 };
 
 export default Bookings;

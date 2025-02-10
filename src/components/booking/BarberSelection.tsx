@@ -1,3 +1,4 @@
+
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -5,7 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { CustomBadge } from "@/components/ui/custom-badge";
 import ReactCountryFlag from "react-country-flag";
 import { format } from "date-fns";
-import { cn } from "@/utils";
+import { cn } from "@/lib/utils";
 
 interface Employee {
   id: string;
