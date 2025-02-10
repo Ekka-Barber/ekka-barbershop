@@ -2,6 +2,10 @@
 import { transformWorkingHours } from "@/utils/workingHoursUtils";
 import type { ReactNode } from "react";
 
+type WorkingHoursType = {
+  [key: string]: string[];
+} | null;
+
 export const useTimeFormatting = () => {
   const formatTimeRange = (timeRange: string, isArabic: boolean): string => {
     const [start, end] = timeRange.split('-');
@@ -33,7 +37,7 @@ export const useTimeFormatting = () => {
     return `${formatTime(start)} - ${formatTime(end)}`;
   };
 
-  const getCurrentDayHours = (workingHours: any, isArabic: boolean): ReactNode => {
+  const getCurrentDayHours = (workingHours: WorkingHoursType, isArabic: boolean): ReactNode => {
     if (!workingHours) return null;
 
     const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
