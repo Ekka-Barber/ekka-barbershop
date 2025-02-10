@@ -5,11 +5,17 @@ export const useTimeSlots = () => {
   const generateTimeSlots = (workingHoursRanges: string[] = [], selectedDate?: Date) => {
     const slots: string[] = [];
     
+    if (!selectedDate) return slots;
+
     workingHoursRanges.forEach(range => {
       const [start, end] = range.split('-');
-      const startTime = parse(start, 'HH:mm', new Date());
-      let endTime = parse(end, 'HH:mm', new Date());
       
+      // Use selectedDate as the base date for parsing times
+      const baseDate = new Date(selectedDate);
+      const startTime = parse(start, 'HH:mm', baseDate);
+      let endTime = parse(end, 'HH:mm', baseDate);
+      
+      // Handle cases where end time is on the next day
       if (end === "00:00" || end === "01:00") {
         endTime = new Date(endTime.getTime() + 24 * 60 * 60 * 1000);
       }
@@ -21,6 +27,7 @@ export const useTimeSlots = () => {
       }
     });
 
+    // Only apply the minimum booking time filter for today's slots
     if (selectedDate && isToday(selectedDate)) {
       const now = new Date();
       const minimumBookingTime = addHours(now, 1);
@@ -28,7 +35,7 @@ export const useTimeSlots = () => {
       return slots
         .filter(slot => {
           const [hours, minutes] = slot.split(':').map(Number);
-          const slotTime = new Date();
+          const slotTime = new Date(selectedDate);
           slotTime.setHours(hours, minutes, 0, 0);
           return !isBefore(slotTime, minimumBookingTime);
         })
