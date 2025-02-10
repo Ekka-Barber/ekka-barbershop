@@ -1,11 +1,12 @@
 
 import { transformWorkingHours } from "@/utils/workingHoursUtils";
+import type { ReactNode } from "react";
 
 export const useTimeFormatting = () => {
-  const formatTimeRange = (timeRange: string, isArabic: boolean) => {
+  const formatTimeRange = (timeRange: string, isArabic: boolean): string => {
     const [start, end] = timeRange.split('-');
     
-    const formatTime = (time: string) => {
+    const formatTime = (time: string): string => {
       const [hours, minutes] = time.trim().split(':');
       const hour = parseInt(hours);
       const ampm = hour >= 12 ? 'PM' : 'AM';
@@ -13,13 +14,13 @@ export const useTimeFormatting = () => {
       return minutes === '00' ? `${formattedHour} ${ampm}` : `${formattedHour}:${minutes} ${ampm}`;
     };
 
-    const formatArabicTime = (time: string) => {
+    const formatArabicTime = (time: string): string => {
       const [hours, minutes] = time.trim().split(':');
       const hour = parseInt(hours);
       const period = hour >= 12 ? 'م' : 'ص';
       const formattedHour = hour % 12 || 12;
-      const convertToArabic = (str: string) => {
-        return str.replace(/[0-9]/g, d => String.fromCharCode(1632 + parseInt(d)));
+      const convertToArabic = (str: string): string => {
+        return str.replace(/[0-9]/g, (d) => String.fromCharCode(1632 + parseInt(d)));
       };
       return minutes === '00' 
         ? `${convertToArabic(`${formattedHour}`)} ${period}`
@@ -32,7 +33,7 @@ export const useTimeFormatting = () => {
     return `${formatTime(start)} - ${formatTime(end)}`;
   };
 
-  const getCurrentDayHours = (workingHours: any, isArabic: boolean) => {
+  const getCurrentDayHours = (workingHours: any, isArabic: boolean): ReactNode => {
     if (!workingHours) return null;
 
     const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
