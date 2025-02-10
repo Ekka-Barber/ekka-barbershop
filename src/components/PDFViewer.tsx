@@ -1,8 +1,10 @@
+
 import { useState, useEffect } from 'react';
 import { Document, Page, pdfjs } from 'react-pdf';
 import 'react-pdf/dist/esm/Page/AnnotationLayer.css';
 import 'react-pdf/dist/esm/Page/TextLayer.css';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
 
@@ -15,6 +17,7 @@ const PDFViewer = ({ pdfUrl }: PDFViewerProps) => {
   const [pageNumber, setPageNumber] = useState(1);
   const [pageWidth, setPageWidth] = useState(800);
   const isMobile = useIsMobile();
+  const { language } = useLanguage();
 
   useEffect(() => {
     const updatePageWidth = () => {
@@ -56,17 +59,20 @@ const PDFViewer = ({ pdfUrl }: PDFViewerProps) => {
             disabled={pageNumber <= 1}
             className="w-full sm:w-auto px-6 py-3 bg-[#C4A36F] hover:bg-[#B39260] text-white rounded-lg font-medium transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
           >
-            Previous
+            {language === 'ar' ? 'السابق' : 'Previous'}
           </button>
           <p className="text-center text-[#222222] font-medium">
-            Page {pageNumber} of {numPages}
+            {language === 'ar' 
+              ? `الصفحة ${pageNumber} من ${numPages}`
+              : `Page ${pageNumber} of ${numPages}`
+            }
           </p>
           <button
             onClick={() => setPageNumber(page => Math.min(numPages || page, page + 1))}
             disabled={pageNumber >= (numPages || 1)}
             className="w-full sm:w-auto px-6 py-3 bg-[#C4A36F] hover:bg-[#B39260] text-white rounded-lg font-medium transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
           >
-            Next
+            {language === 'ar' ? 'التالي' : 'Next'}
           </button>
         </div>
       )}
