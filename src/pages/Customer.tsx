@@ -82,9 +82,19 @@ const Customer = () => {
     const timeRanges = hours[currentDay].map(range => formatTimeRange(range, isArabic));
     
     if (isArabic) {
-      return `ساعات العمل اليوم: ${timeRanges.join(' , ')}`;
+      return (
+        <>
+          <div>ساعات العمل اليوم</div>
+          <div>{timeRanges.join(' , ')}</div>
+        </>
+      );
     }
-    return `Today's hours: ${timeRanges.join(', ')}`;
+    return (
+      <>
+        <div>Today's hours</div>
+        <div>{timeRanges.join(', ')}</div>
+      </>
+    );
   };
 
   return (
@@ -184,9 +194,9 @@ const Customer = () => {
                 <span className="text-sm text-gray-500 group-hover:text-[#C4A36F]/70 transition-colors text-center px-4">
                   {language === 'ar' ? branch.address_ar : branch.address}
                 </span>
-                <span className="text-xs text-gray-400 group-hover:text-[#C4A36F]/60 transition-colors text-center px-4">
+                <div className="text-xs text-gray-400 group-hover:text-[#C4A36F]/60 transition-colors text-center px-4 flex flex-col gap-0.5">
                   {getCurrentDayHours(branch.working_hours, language === 'ar')}
-                </span>
+                </div>
               </Button>
             ))}
           </div>
@@ -214,9 +224,9 @@ const Customer = () => {
                 <span className="text-sm text-gray-500 group-hover:text-[#C4A36F]/70 transition-colors text-center px-4">
                   {language === 'ar' ? branch.address_ar : branch.address}
                 </span>
-                <span className="text-xs text-gray-400 group-hover:text-[#C4A36F]/60 transition-colors text-center px-4">
+                <div className="text-xs text-gray-400 group-hover:text-[#C4A36F]/60 transition-colors text-center px-4 flex flex-col gap-0.5">
                   {getCurrentDayHours(branch.working_hours, language === 'ar')}
-                </span>
+                </div>
                 <MapPin className="h-6 w-6 text-[#C4A36F] mt-2" />
               </Button>
             ))}
