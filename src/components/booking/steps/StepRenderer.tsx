@@ -65,17 +65,6 @@ export const StepRenderer = ({
     );
   }
 
-  if (currentStep === 'barber') {
-    return (
-      <BarberSelection
-        employees={employees}
-        isLoading={employeesLoading}
-        selectedBarber={selectedBarber}
-        onBarberSelect={setSelectedBarber}
-      />
-    );
-  }
-
   if (currentStep === 'datetime') {
     return (
       <DateTimeSelection
@@ -83,7 +72,20 @@ export const StepRenderer = ({
         selectedTime={selectedTime}
         onDateSelect={setSelectedDate}
         onTimeSelect={setSelectedTime}
-        employeeWorkingHours={employeeWorkingHours}
+        employeeWorkingHours={null}
+      />
+    );
+  }
+
+  if (currentStep === 'barber') {
+    return (
+      <BarberSelection
+        employees={employees}
+        isLoading={employeesLoading}
+        selectedBarber={selectedBarber}
+        onBarberSelect={setSelectedBarber}
+        selectedDate={selectedDate}
+        selectedTime={selectedTime}
       />
     );
   }
@@ -136,4 +138,3 @@ export const StepRenderer = ({
 
   return null;
 };
-

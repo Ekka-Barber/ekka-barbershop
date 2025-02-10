@@ -9,7 +9,7 @@ import { useBookingUpsells } from "@/hooks/useBookingUpsells";
 import { transformWorkingHours } from "@/utils/workingHoursUtils";
 import { StepRenderer } from "./steps/StepRenderer";
 
-const STEPS: BookingStep[] = ['services', 'barber', 'datetime', 'details'];
+const STEPS: BookingStep[] = ['services', 'datetime', 'barber', 'details'];
 
 interface BookingStepsProps {
   branch: any;
@@ -42,7 +42,7 @@ export const BookingSteps = ({ branch }: BookingStepsProps) => {
   const { data: availableUpsells } = useBookingUpsells(selectedServices, language);
 
   const handleStepChange = (step: string) => {
-    if (currentStep === 'services' && step === 'barber' && availableUpsells?.length) {
+    if (currentStep === 'services' && step === 'datetime' && availableUpsells?.length) {
       setShowUpsellModal(true);
     } else {
       setCurrentStep(step as BookingStep);
@@ -51,8 +51,8 @@ export const BookingSteps = ({ branch }: BookingStepsProps) => {
 
   const currentStepIndex = STEPS.indexOf(currentStep);
   const isNextDisabled = currentStep === 'services' ? selectedServices.length === 0 : 
-                        currentStep === 'barber' ? !selectedBarber :
                         currentStep === 'datetime' ? !selectedDate || !selectedTime :
+                        currentStep === 'barber' ? !selectedBarber :
                         currentStep === 'details' ? !customerDetails.name || !customerDetails.phone :
                         false;
 
@@ -110,7 +110,7 @@ export const BookingSteps = ({ branch }: BookingStepsProps) => {
         isOpen={showUpsellModal}
         onClose={() => {
           setShowUpsellModal(false);
-          setCurrentStep('barber');
+          setCurrentStep('datetime');
         }}
         onConfirm={(selectedUpsells) => {
           selectedUpsells.forEach(upsell => {
@@ -124,7 +124,7 @@ export const BookingSteps = ({ branch }: BookingStepsProps) => {
               discount_value: upsell.discountPercentage
             });
           });
-          setCurrentStep('barber');
+          setCurrentStep('datetime');
         }}
         availableUpsells={availableUpsells || []}
       />

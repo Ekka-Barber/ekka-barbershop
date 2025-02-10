@@ -1,10 +1,11 @@
+
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { CustomBadge } from "@/components/ui/custom-badge";
 import ReactCountryFlag from "react-country-flag";
-import { format } from "date-fns";
+import { format, parse } from "date-fns";
 import { cn } from "@/lib/utils";
 
 interface Employee {
@@ -23,18 +24,18 @@ interface BarberSelectionProps {
   isLoading: boolean;
   selectedBarber: string | undefined;
   onBarberSelect: (barberId: string) => void;
+  selectedDate?: Date;
+  selectedTime?: string;
 }
 
-const isBarberAvailableNow = (employee: Employee) => {
-  if (!employee.working_hours) return false;
+const isBarberAvailableForDateTime = (employee: Employee, date: Date | undefined, time: string | undefined) => {
+  if (!employee.working_hours || !date || !time) return false;
   
-  const now = new Date();
-  const dayOfWeek = format(now, 'EEEE').toLowerCase();
-  const currentTime = format(now, 'HH:mm');
-  const today = format(now, 'yyyy-MM-dd');
+  const dayOfWeek = format(date, 'EEEE').toLowerCase();
+  const formattedDate = format(date, 'yyyy-MM-dd');
   
   // Check if it's an off day
-  if (employee.off_days?.includes(today)) {
+  if (employee.off_days?.includes(formattedDate)) {
     return false;
   }
 
@@ -43,37 +44,17 @@ const isBarberAvailableNow = (employee: Employee) => {
 
   return todayHours.some(hours => {
     const [start, end] = hours.split('-');
-    return currentTime >= start && currentTime <= end;
+    return time >= start && time <= end;
   });
-};
-
-const getAvailabilityStatus = (employee: Employee) => {
-  const now = new Date();
-  const today = format(now, 'yyyy-MM-dd');
-  
-  // Check if it's an off day first
-  if (employee.off_days?.includes(today)) {
-    return { text: "barber.off.today", variant: "destructive" as const };
-  }
-  
-  if (isBarberAvailableNow(employee)) {
-    return { text: "barber.available.now", variant: "success" as const };
-  }
-  
-  const dayOfWeek = format(now, 'EEEE').toLowerCase();
-  
-  if (employee.working_hours?.[dayOfWeek]?.length) {
-    return { text: "barber.available.today", variant: "secondary" as const };
-  }
-  
-  return { text: "barber.not.available", variant: "destructive" as const };
 };
 
 export const BarberSelection = ({
   employees,
   isLoading,
   selectedBarber,
-  onBarberSelect
+  onBarberSelect,
+  selectedDate,
+  selectedTime
 }: BarberSelectionProps) => {
   const { language, t } = useLanguage();
 
@@ -88,60 +69,61 @@ export const BarberSelection = ({
   }
 
   const filteredEmployees = employees?.filter(
-    employee => (employee.role === 'barber' || employee.role === 'manager')
+    employee => (employee.role === 'barber' || employee.role === 'manager') &&
+    (!selectedDate || !selectedTime || isBarberAvailableForDateTime(employee, selectedDate, selectedTime))
   );
+
+  if (filteredEmployees?.length === 0) {
+    return (
+      <div className="text-center p-8">
+        <p className="text-gray-500">{t('no.barbers.available')}</p>
+      </div>
+    );
+  }
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
-      {filteredEmployees?.map((employee) => {
-        const availabilityStatus = getAvailabilityStatus(employee);
-        
-        return (
-          <Button
-            key={employee.id}
-            variant={selectedBarber === employee.id ? "default" : "outline"}
-            onClick={() => onBarberSelect(employee.id)}
-            className={cn(
-              "relative flex flex-col items-center justify-start h-auto min-h-[200px] p-4 rounded-lg overflow-hidden",
-              "space-y-2 border transition-all duration-200",
-              selectedBarber === employee.id ? "bg-[#e7bd71]/10 border-[#e7bd71]" : "hover:border-gray-300"
-            )}
-          >
-            <Avatar className="h-16 w-16 mb-2">
-              <AvatarImage 
-                src={employee.photo_url || undefined} 
-                alt={employee.name}
-                className="object-cover"
-              />
-              <AvatarFallback>{employee.name.charAt(0)}</AvatarFallback>
-            </Avatar>
+      {filteredEmployees?.map((employee) => (
+        <Button
+          key={employee.id}
+          variant={selectedBarber === employee.id ? "default" : "outline"}
+          onClick={() => onBarberSelect(employee.id)}
+          className={cn(
+            "relative flex flex-col items-center justify-start h-auto min-h-[200px] p-4 rounded-lg overflow-hidden",
+            "space-y-2 border transition-all duration-200",
+            selectedBarber === employee.id ? "bg-[#e7bd71]/10 border-[#e7bd71]" : ""
+          )}
+        >
+          <Avatar className="h-16 w-16 mb-2">
+            <AvatarImage 
+              src={employee.photo_url || undefined} 
+              alt={employee.name}
+              className="object-cover"
+            />
+            <AvatarFallback>{employee.name.charAt(0)}</AvatarFallback>
+          </Avatar>
+          
+          <div className="flex flex-col items-center justify-center gap-2 w-full">
+            <span className="font-medium text-base text-gray-700 text-center line-clamp-1 px-2">
+              {language === 'ar' ? employee.name_ar : employee.name}
+            </span>
             
-            <div className="flex flex-col items-center justify-center gap-2 w-full">
-              <span className="font-medium text-base text-gray-700 text-center line-clamp-1 px-2">
-                {language === 'ar' ? employee.name_ar : employee.name}
-              </span>
-              
-              <CustomBadge variant={availabilityStatus.variant} className="max-w-[90%]">
-                {t(availabilityStatus.text)}
-              </CustomBadge>
-              
-              {employee.nationality && (
-                <div className="flex items-center justify-center mt-1">
-                  <ReactCountryFlag
-                    countryCode={employee.nationality}
-                    svg
-                    style={{
-                      width: '1.2em',
-                      height: '1.2em',
-                    }}
-                    title={employee.nationality}
-                  />
-                </div>
-              )}
-            </div>
-          </Button>
-        );
-      })}
+            {employee.nationality && (
+              <div className="flex items-center justify-center mt-1">
+                <ReactCountryFlag
+                  countryCode={employee.nationality}
+                  svg
+                  style={{
+                    width: '1.2em',
+                    height: '1.2em',
+                  }}
+                  title={employee.nationality}
+                />
+              </div>
+            )}
+          </div>
+        </Button>
+      ))}
     </div>
   );
 };
