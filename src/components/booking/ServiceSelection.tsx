@@ -118,7 +118,7 @@ export const ServiceSelection = ({
         totalDuration={totalDuration}
         totalPrice={totalPrice}
         language={language}
-        onNextStep={() => onStepChange?.('barber')}
+        onNextStep={() => onStepChange?.('datetime')}
       />
     </div>
   );
