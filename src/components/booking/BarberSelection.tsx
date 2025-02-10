@@ -104,8 +104,8 @@ export const BarberSelection = ({
             onClick={() => onBarberSelect(employee.id)}
             className={cn(
               "relative flex flex-col items-center justify-start h-auto min-h-[200px] p-4 rounded-lg overflow-hidden",
-              "hover:bg-accent/80 space-y-2 border transition-all duration-200",
-              selectedBarber === employee.id && "bg-primary hover:bg-primary/90 border-primary/50 shadow-sm"
+              "hover:border-gray-300 space-y-2 border transition-all duration-200",
+              selectedBarber === employee.id ? "bg-[#e7bd71]/10 border-[#e7bd71]" : ""
             )}
           >
             <Avatar className="h-16 w-16 mb-2">
@@ -146,3 +146,4 @@ export const BarberSelection = ({
     </div>
   );
 };
+
