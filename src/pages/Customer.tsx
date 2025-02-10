@@ -3,12 +3,12 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from "@/contexts/LanguageContext";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { MapPin } from "lucide-react";
-import { transformWorkingHours } from "@/utils/workingHoursUtils";
+import { BranchDialog } from "@/components/customer/BranchDialog";
+import { LocationDialog } from "@/components/customer/LocationDialog";
 
 const Customer = () => {
   const navigate = useNavigate();
@@ -37,64 +37,6 @@ const Customer = () => {
     if (url) {
       window.open(url, '_blank');
     }
-  };
-
-  const formatTimeRange = (timeRange: string, isArabic: boolean) => {
-    const [start, end] = timeRange.split('-');
-    
-    const formatTime = (time: string) => {
-      const [hours, minutes] = time.trim().split(':');
-      const hour = parseInt(hours);
-      const ampm = hour >= 12 ? 'PM' : 'AM';
-      const formattedHour = hour % 12 || 12;
-      return minutes === '00' ? `${formattedHour} ${ampm}` : `${formattedHour}:${minutes} ${ampm}`;
-    };
-
-    const formatArabicTime = (time: string) => {
-      const [hours, minutes] = time.trim().split(':');
-      const hour = parseInt(hours);
-      const period = hour >= 12 ? 'م' : 'ص';
-      const formattedHour = hour % 12 || 12;
-      const convertToArabic = (str: string) => {
-        return str.replace(/[0-9]/g, d => String.fromCharCode(1632 + parseInt(d)));
-      };
-      return minutes === '00' 
-        ? `${convertToArabic(`${formattedHour}`)} ${period}`
-        : `${convertToArabic(`${formattedHour}:${minutes}`)} ${period}`;
-    };
-
-    if (isArabic) {
-      return `${formatArabicTime(start)} - ${formatArabicTime(end)}`;
-    }
-    return `${formatTime(start)} - ${formatTime(end)}`;
-  };
-
-  const getCurrentDayHours = (workingHours: any, isArabic: boolean) => {
-    if (!workingHours) return null;
-
-    const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
-    const dayIndex = new Date().getDay();
-    const currentDay = days[dayIndex];
-    
-    const hours = transformWorkingHours(workingHours);
-    if (!hours || !hours[currentDay] || !hours[currentDay].length) return null;
-
-    const timeRanges = hours[currentDay].map(range => formatTimeRange(range, isArabic));
-    
-    if (isArabic) {
-      return (
-        <>
-          <div>ساعات العمل اليوم</div>
-          <div>{timeRanges.join(' , ')}</div>
-        </>
-      );
-    }
-    return (
-      <>
-        <div>Today's hours</div>
-        <div>{timeRanges.join(', ')}</div>
-      </>
-    );
   };
 
   return (
@@ -173,66 +115,19 @@ const Customer = () => {
         </div>
       </div>
 
-      <Dialog open={branchDialogOpen} onOpenChange={setBranchDialogOpen}>
-        <DialogContent className="sm:max-w-2xl bg-white border-0 shadow-2xl p-6">
-          <DialogHeader>
-            <DialogTitle className="text-center text-2xl font-bold text-[#222222] mb-6">
-              {t('select.branch')}
-            </DialogTitle>
-          </DialogHeader>
-          <div className="grid grid-cols-2 gap-4">
-            {branches?.map((branch) => (
-              <Button
-                key={branch.id}
-                variant="outline"
-                className="h-[160px] flex flex-col items-center justify-center space-y-3 bg-white hover:bg-[#C4A36F]/5 border-2 border-gray-200 hover:border-[#C4A36F] transition-all duration-300 rounded-lg group"
-                onClick={() => handleBranchSelect(branch.id)}
-              >
-                <span className="font-semibold text-xl text-[#222222] group-hover:text-[#C4A36F] transition-colors text-center">
-                  {language === 'ar' ? branch.name_ar : branch.name}
-                </span>
-                <span className="text-sm text-gray-500 group-hover:text-[#C4A36F]/70 transition-colors text-center px-4">
-                  {language === 'ar' ? branch.address_ar : branch.address}
-                </span>
-                <div className="text-xs text-gray-400 group-hover:text-[#C4A36F]/60 transition-colors text-center px-4 flex flex-col gap-0.5">
-                  {getCurrentDayHours(branch.working_hours, language === 'ar')}
-                </div>
-              </Button>
-            ))}
-          </div>
-        </DialogContent>
-      </Dialog>
+      <BranchDialog
+        open={branchDialogOpen}
+        onOpenChange={setBranchDialogOpen}
+        branches={branches}
+        onBranchSelect={handleBranchSelect}
+      />
 
-      <Dialog open={locationDialogOpen} onOpenChange={setLocationDialogOpen}>
-        <DialogContent className="sm:max-w-2xl bg-white border-0 shadow-2xl p-6">
-          <DialogHeader>
-            <DialogTitle className="text-center text-2xl font-bold text-[#222222] mb-6">
-              {language === 'ar' ? 'فروعنا' : 'Our Branches'}
-            </DialogTitle>
-          </DialogHeader>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {branches?.map((branch) => (
-              <Button
-                key={branch.id}
-                variant="outline"
-                className="h-[160px] flex flex-col items-center justify-center space-y-3 bg-white hover:bg-[#C4A36F]/5 border-2 border-gray-200 hover:border-[#C4A36F] transition-all duration-300 rounded-lg group"
-                onClick={() => handleLocationClick(branch.google_maps_url)}
-              >
-                <span className="font-semibold text-xl text-[#222222] group-hover:text-[#C4A36F] transition-colors text-center">
-                  {language === 'ar' ? branch.name_ar : branch.name}
-                </span>
-                <span className="text-sm text-gray-500 group-hover:text-[#C4A36F]/70 transition-colors text-center px-4">
-                  {language === 'ar' ? branch.address_ar : branch.address}
-                </span>
-                <div className="text-xs text-gray-400 group-hover:text-[#C4A36F]/60 transition-colors text-center px-4 flex flex-col gap-0.5">
-                  {getCurrentDayHours(branch.working_hours, language === 'ar')}
-                </div>
-                <MapPin className="h-6 w-6 text-[#C4A36F] mt-2" />
-              </Button>
-            ))}
-          </div>
-        </DialogContent>
-      </Dialog>
+      <LocationDialog
+        open={locationDialogOpen}
+        onOpenChange={setLocationDialogOpen}
+        branches={branches}
+        onLocationClick={handleLocationClick}
+      />
     </div>
   );
 };
