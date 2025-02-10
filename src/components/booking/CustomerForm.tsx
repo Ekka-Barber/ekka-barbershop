@@ -42,7 +42,7 @@ export const CustomerForm = ({
       <div className="space-y-4">
         <div>
           <Label htmlFor="name">
-            {t('name')} {language === 'ar' && '( لغرض تنبيهات الحجز )'} <span className="text-destructive">*</span>
+            {t('name')} <span className="text-destructive">*</span>
           </Label>
           <Input
             id="name"
@@ -54,7 +54,7 @@ export const CustomerForm = ({
         
         <div>
           <Label htmlFor="phone">
-            {t('phone')} {language === 'ar' && '( لغرض تنبيهات الحجز )'} <span className="text-destructive">*</span>
+            {t('phone')} <span className="text-destructive">*</span>
           </Label>
           <Input
             id="phone"
