@@ -22,4 +22,3 @@ export const formatTimeRange = (timeRange: string, isArabic: boolean): string =>
   const [start, end] = timeRange.split('-');
   return `${formatTime(start, isArabic)} - ${formatTime(end, isArabic)}`;
 };
-
