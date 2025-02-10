@@ -135,8 +135,8 @@ export const BarberSelection = ({
                 variant={isSelected ? "default" : "outline"}
                 onClick={() => {
                   onBarberSelect(employee.id);
-                  onTimeSelect(''); // Reset time when changing barber
-                  setShowAllSlots(false); // Reset show all slots when changing barber
+                  onTimeSelect('');
+                  setShowAllSlots(false);
                 }}
                 className={cn(
                   "relative flex flex-col items-center justify-start h-auto min-h-[200px] p-4 rounded-lg overflow-hidden w-full",
@@ -194,8 +194,8 @@ export const BarberSelection = ({
                   </h3>
                   <div className="w-screen -mx-4 md:-mx-8">
                     <div className="bg-gradient-to-b from-white to-gray-50 shadow-sm border-b border-gray-100">
-                      <div className="overflow-x-auto hide-scrollbar px-4 py-3">
-                        <div className="flex space-x-2 min-w-full">
+                      <div className="overflow-x-auto hide-scrollbar px-6 py-4">
+                        <div className="flex space-x-3 rtl:space-x-reverse min-w-full">
                           {displayedTimeSlots.map((time) => (
                             <Button
                               key={time}
