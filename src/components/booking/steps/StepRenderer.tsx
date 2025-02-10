@@ -1,4 +1,3 @@
-
 import { BookingStep } from "@/components/booking/BookingProgress";
 import { ServiceSelection } from "@/components/booking/ServiceSelection";
 import { DateTimeSelection } from "@/components/booking/DateTimeSelection";
@@ -46,7 +45,6 @@ export const StepRenderer = ({
   selectedTime,
   setSelectedDate,
   setSelectedTime,
-  employeeWorkingHours,
   customerDetails,
   handleCustomerDetailsChange,
   totalPrice,
@@ -69,10 +67,7 @@ export const StepRenderer = ({
     return (
       <DateTimeSelection
         selectedDate={selectedDate}
-        selectedTime={selectedTime}
         onDateSelect={setSelectedDate}
-        onTimeSelect={setSelectedTime}
-        employeeWorkingHours={null}
       />
     );
   }
@@ -86,6 +81,7 @@ export const StepRenderer = ({
         onBarberSelect={setSelectedBarber}
         selectedDate={selectedDate}
         selectedTime={selectedTime}
+        onTimeSelect={setSelectedTime}
       />
     );
   }
@@ -108,7 +104,7 @@ export const StepRenderer = ({
             if (service) {
               handleServiceToggle({
                 id: service.id,
-                category_id: '', // Required by Service type
+                category_id: '',
                 name_en: service.name,
                 name_ar: service.name,
                 description_en: null,

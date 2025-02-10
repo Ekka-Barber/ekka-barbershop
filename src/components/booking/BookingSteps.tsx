@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { BookingProgress, BookingStep } from "@/components/booking/BookingProgress";
 import { BookingNavigation } from "@/components/booking/BookingNavigation";
@@ -76,8 +75,8 @@ export const BookingSteps = ({ branch }: BookingStepsProps) => {
 
   const currentStepIndex = STEPS.indexOf(currentStep);
   const isNextDisabled = currentStep === 'services' ? selectedServices.length === 0 : 
-                        currentStep === 'datetime' ? !selectedDate || !selectedTime :
-                        currentStep === 'barber' ? !selectedBarber :
+                        currentStep === 'datetime' ? !selectedDate :
+                        currentStep === 'barber' ? !selectedBarber || !selectedTime :
                         currentStep === 'details' ? !customerDetails.name || !customerDetails.phone :
                         false;
 
