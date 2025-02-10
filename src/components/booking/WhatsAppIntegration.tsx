@@ -155,9 +155,16 @@ ${totalDiscount > 0 ? `💰 الخصم: ${formatPrice(totalDiscount)}` : ''}
             <DialogTitle>
               {t('confirm.booking')}
             </DialogTitle>
-            <DialogDescription>
-              <span>{t('booking.unconfirmed')} </span>
-              <span className="font-bold text-red-500">{t('booking.unconfirmed.status')}</span>
+            <DialogDescription className="space-y-2">
+              {language === 'ar' ? (
+                <p>
+                  حجزك هذا <span className="font-bold text-[#ea384c]">غير مؤكد</span>، تأكيد الحجز سيتم عن طريق الواتساب
+                </p>
+              ) : (
+                <p>
+                  This booking is <span className="font-bold text-[#ea384c]">unconfirmed</span>, booking confirmation will be through WhatsApp
+                </p>
+              )}
             </DialogDescription>
           </DialogHeader>
           <div className="flex justify-center space-x-2 rtl:space-x-reverse">
@@ -173,3 +180,4 @@ ${totalDiscount > 0 ? `💰 الخصم: ${formatPrice(totalDiscount)}` : ''}
     </div>
   );
 };
+
