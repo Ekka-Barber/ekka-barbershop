@@ -83,7 +83,7 @@ export const CustomerForm = ({
         
         <div>
           <Label htmlFor="email">
-            {t('email')} {language === 'ar' && '( لغرض تنبيهات الحجز )'} <span className="text-destructive">*</span>
+            {t('email')} {language === 'ar' ? '( لغرض تنبيهات الحجز )' : '(for appointment notifications)'} <span className="text-destructive">*</span>
           </Label>
           <Input
             id="email"
