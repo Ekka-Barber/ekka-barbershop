@@ -1,7 +1,8 @@
 
-import { Fragment, type ReactNode } from "react";
+import { type ReactNode } from "react";
 import { formatTimeRange } from "@/utils/timeFormatting";
 import { transformWorkingHours } from "@/utils/workingHoursUtils";
+import { WorkingHoursDisplay } from "@/components/working-hours/WorkingHoursDisplay";
 
 type WorkingHoursType = {
   [key: string]: string[];
@@ -25,12 +26,7 @@ export const useTimeFormatting = () => {
 
     const timeRanges = hours[currentDay].map(range => formatTimeRange(range, isArabic));
     
-    return (
-      <Fragment>
-        <div>{isArabic ? 'ساعات العمل اليوم' : "Today's hours"}</div>
-        <div>{timeRanges.join(isArabic ? ' , ' : ', ')}</div>
-      </Fragment>
-    );
+    return <WorkingHoursDisplay isArabic={isArabic} timeRanges={timeRanges} />;
   };
 
   return {
