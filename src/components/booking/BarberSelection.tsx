@@ -1,4 +1,3 @@
-
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -6,6 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { CustomBadge } from "@/components/ui/custom-badge";
 import ReactCountryFlag from "react-country-flag";
 import { format } from "date-fns";
+import { cn } from "@/utils";
 
 interface Employee {
   id: string;
@@ -48,17 +48,17 @@ const isBarberAvailableNow = (employee: Employee) => {
 
 const getAvailabilityStatus = (employee: Employee) => {
   if (isBarberAvailableNow(employee)) {
-    return { text: "Available Now", variant: "success" as const };
+    return { text: "barber.available.now", variant: "success" as const };
   }
   
   const now = new Date();
   const dayOfWeek = format(now, 'EEEE').toLowerCase();
   
   if (employee.working_hours?.[dayOfWeek]) {
-    return { text: "Available Today", variant: "secondary" as const };
+    return { text: "barber.available.today", variant: "secondary" as const };
   }
   
-  return { text: "Not Available", variant: "destructive" as const };
+  return { text: "barber.not.available", variant: "destructive" as const };
 };
 
 export const BarberSelection = ({
@@ -67,13 +67,13 @@ export const BarberSelection = ({
   selectedBarber,
   onBarberSelect
 }: BarberSelectionProps) => {
-  const { language } = useLanguage();
+  const { language, t } = useLanguage();
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {Array(4).fill(0).map((_, i) => (
-          <Skeleton key={i} className="h-[200px] w-full rounded-lg" />
+          <Skeleton key={i} className="h-[180px] w-full rounded-lg" />
         ))}
       </div>
     );
@@ -84,7 +84,7 @@ export const BarberSelection = ({
   );
 
   return (
-    <div className="grid grid-cols-2 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
       {filteredEmployees?.map((employee) => {
         const availabilityStatus = getAvailabilityStatus(employee);
         
@@ -93,13 +93,13 @@ export const BarberSelection = ({
             key={employee.id}
             variant={selectedBarber === employee.id ? "default" : "outline"}
             onClick={() => onBarberSelect(employee.id)}
-            className={`flex flex-col items-center justify-center p-6 h-[200px] space-y-4 rounded-lg transition-all duration-300 ${
-              selectedBarber === employee.id 
-                ? "bg-[#e7bd71] hover:bg-[#d4ad65] border-[#d4ad65]" 
-                : "hover:bg-accent"
-            }`}
+            className={cn(
+              "relative flex flex-col items-center justify-start p-4 min-h-[180px] rounded-lg transition-all duration-300",
+              "hover:bg-accent space-y-3",
+              selectedBarber === employee.id && "bg-[#e7bd71] hover:bg-[#d4ad65] border-[#d4ad65]"
+            )}
           >
-            <Avatar className="h-24 w-24">
+            <Avatar className="h-20 w-20">
               <AvatarImage 
                 src={employee.photo_url || undefined} 
                 alt={employee.name}
@@ -107,21 +107,24 @@ export const BarberSelection = ({
               />
               <AvatarFallback>{employee.name.charAt(0)}</AvatarFallback>
             </Avatar>
-            <div className="flex flex-col items-center justify-center gap-2">
-              <span className="font-medium text-lg text-gray-700">
+            
+            <div className="flex flex-col items-center justify-center gap-2 w-full">
+              <span className="font-medium text-base text-gray-700 text-center line-clamp-1">
                 {language === 'ar' ? employee.name_ar : employee.name}
               </span>
+              
               <CustomBadge variant={availabilityStatus.variant}>
-                {availabilityStatus.text}
+                {t(availabilityStatus.text)}
               </CustomBadge>
+              
               {employee.nationality && (
-                <div className="flex items-center justify-center">
+                <div className="flex items-center justify-center mt-1">
                   <ReactCountryFlag
                     countryCode={employee.nationality}
                     svg
                     style={{
-                      width: '2em',
-                      height: '2em',
+                      width: '1.5em',
+                      height: '1.5em',
                     }}
                     title={employee.nationality}
                   />

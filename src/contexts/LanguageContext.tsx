@@ -46,6 +46,9 @@ const translations = {
     'loading.offers': 'Loading offers...',
     'no.offers': 'No offers available',
     'error.loading.offers': 'Error loading offers',
+    'barber.available.now': 'Available Now',
+    'barber.available.today': 'Available Today',
+    'barber.not.available': 'Not Available',
   },
   ar: {
     'select.branch': 'اختر فرعاً',
@@ -84,6 +87,9 @@ const translations = {
     'loading.offers': 'جاري تحميل العروض...',
     'no.offers': 'لا توجد عروض متاحة',
     'error.loading.offers': 'خطأ في تحميل العروض',
+    'barber.available.now': 'متاح الآن',
+    'barber.available.today': 'متاح اليوم',
+    'barber.not.available': 'غير متاح',
   }
 };
 
