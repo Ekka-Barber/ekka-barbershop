@@ -22,6 +22,7 @@ export const CustomerForm = ({
 }: CustomerFormProps) => {
   const { t, language } = useLanguage();
   const [phoneError, setPhoneError] = useState<string>("");
+  const [emailError, setEmailError] = useState<string>("");
 
   const handlePhoneChange = (value: string) => {
     // Only allow numbers
@@ -35,6 +36,16 @@ export const CustomerForm = ({
     }
     
     onCustomerDetailsChange('phone', numbersOnly);
+  };
+
+  const handleEmailChange = (value: string) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(value)) {
+      setEmailError(language === 'ar' ? 'يرجى إدخال بريد إلكتروني صحيح' : 'Please enter a valid email address');
+    } else {
+      setEmailError("");
+    }
+    onCustomerDetailsChange('email', value);
   };
 
   return (
@@ -78,9 +89,13 @@ export const CustomerForm = ({
             id="email"
             type="email"
             value={customerDetails.email}
-            onChange={(e) => onCustomerDetailsChange('email', e.target.value)}
+            onChange={(e) => handleEmailChange(e.target.value)}
             required
+            className={emailError ? "border-destructive" : ""}
           />
+          {emailError && (
+            <p className="text-sm text-destructive mt-1">{emailError}</p>
+          )}
         </div>
         
         <div>
