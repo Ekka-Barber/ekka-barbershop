@@ -47,7 +47,7 @@ const Customer = () => {
       const hour = parseInt(hours);
       const ampm = hour >= 12 ? 'PM' : 'AM';
       const formattedHour = hour % 12 || 12;
-      return `${formattedHour}:${minutes} ${ampm}`;
+      return minutes === '00' ? `${formattedHour} ${ampm}` : `${formattedHour}:${minutes} ${ampm}`;
     };
 
     const formatArabicTime = (time: string) => {
@@ -58,7 +58,9 @@ const Customer = () => {
       const convertToArabic = (str: string) => {
         return str.replace(/[0-9]/g, d => String.fromCharCode(1632 + parseInt(d)));
       };
-      return `${convertToArabic(`${formattedHour}:${minutes}`)} ${period}`;
+      return minutes === '00' 
+        ? `${convertToArabic(`${formattedHour}`)} ${period}`
+        : `${convertToArabic(`${formattedHour}:${minutes}`)} ${period}`;
     };
 
     if (isArabic) {
@@ -226,4 +228,3 @@ const Customer = () => {
 };
 
 export default Customer;
-
