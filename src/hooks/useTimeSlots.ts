@@ -57,6 +57,8 @@ export const useTimeSlots = () => {
   };
 
   const getAvailableTimeSlots = async (employee: any, selectedDate: Date | undefined) => {
+    console.log('Getting available time slots for:', { employee, selectedDate });
+    
     if (!selectedDate || !employee?.id) {
       console.log('Missing required parameters:', { selectedDate, employeeId: employee?.id });
       return [];
@@ -68,27 +70,10 @@ export const useTimeSlots = () => {
     }
 
     try {
-      const { data: employeeData, error: employeeError } = await supabase
-        .from('employees')
-        .select('working_hours')
-        .eq('id', employee.id)
-        .maybeSingle();
-
-      if (employeeError) {
-        console.error('Error fetching employee data:', employeeError);
-        toast.error('Error loading employee schedule');
-        return [];
-      }
-
-      if (!employeeData) {
-        console.error('Employee not found');
-        toast.error('Employee not found');
-        return [];
-      }
-
-      if (employeeData.working_hours) {
-        console.log('Using working_hours from employee data');
-        const slots = generateTimeSlotsFromWorkingHours(employeeData.working_hours, selectedDate);
+      // Use working_hours directly from employee object if available
+      if (employee.working_hours) {
+        console.log('Using working_hours from employee object');
+        const slots = generateTimeSlotsFromWorkingHours(employee.working_hours, selectedDate);
         return slots.sort((a, b) => {
           const timeA = parse(a.time, 'HH:mm', new Date());
           const timeB = parse(b.time, 'HH:mm', new Date());
@@ -105,6 +90,8 @@ export const useTimeSlots = () => {
   };
 
   const isEmployeeAvailable = async (employee: any, selectedDate: Date | undefined): Promise<boolean> => {
+    console.log('Checking employee availability:', { employee, selectedDate });
+    
     if (!selectedDate || !employee?.id) return false;
     
     try {
