@@ -350,6 +350,50 @@ export type Database = {
         }
         Relationships: []
       }
+      employee_schedules: {
+        Row: {
+          created_at: string | null
+          crosses_midnight: boolean | null
+          day_of_week: number | null
+          employee_id: string | null
+          end_time: number | null
+          id: string
+          is_available: boolean | null
+          start_time: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          crosses_midnight?: boolean | null
+          day_of_week?: number | null
+          employee_id?: string | null
+          end_time?: number | null
+          id?: string
+          is_available?: boolean | null
+          start_time?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          crosses_midnight?: boolean | null
+          day_of_week?: number | null
+          employee_id?: string | null
+          end_time?: number | null
+          id?: string
+          is_available?: boolean | null
+          start_time?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_schedules_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       employees: {
         Row: {
           branch_id: string | null
@@ -1107,6 +1151,12 @@ export type Database = {
           value: string
         }
         Returns: undefined
+      }
+      time_to_minutes: {
+        Args: {
+          time_str: string
+        }
+        Returns: number
       }
     }
     Enums: {
