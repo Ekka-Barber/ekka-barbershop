@@ -2,6 +2,11 @@
 import { format, parse, isToday, isBefore, addHours, startOfDay } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 
+export interface TimeSlot {
+  time: string;
+  isAvailable: boolean;
+}
+
 export const useTimeSlots = () => {
   const convertMinutesToTime = (minutes: number): string => {
     const hours = Math.floor(minutes / 60);
@@ -10,7 +15,7 @@ export const useTimeSlots = () => {
   };
 
   const generateTimeSlots = async (employeeId: string, selectedDate?: Date) => {
-    const slots: string[] = [];
+    const slots: TimeSlot[] = [];
     
     if (!selectedDate || !employeeId) return slots;
 
@@ -20,12 +25,13 @@ export const useTimeSlots = () => {
       .from('employee_schedules')
       .select('*')
       .eq('employee_id', employeeId)
-      .eq('day_of_week', dayOfWeek)
-      .eq('is_available', true);
+      .eq('day_of_week', dayOfWeek);
 
     if (error || !schedules.length) return slots;
 
     schedules.forEach(schedule => {
+      if (!schedule.is_available) return;
+      
       let currentMinutes = schedule.start_time;
       const endMinutes = schedule.end_time;
 
@@ -35,27 +41,23 @@ export const useTimeSlots = () => {
         endMinutes;
 
       while (currentMinutes < totalMinutes) {
-        slots.push(convertMinutesToTime(currentMinutes % (24 * 60)));
+        const timeString = convertMinutesToTime(currentMinutes % (24 * 60));
+        const [hours, minutes] = timeString.split(':').map(Number);
+        const slotTime = new Date(selectedDate);
+        slotTime.setHours(hours, minutes, 0, 0);
+        
+        // Only add future slots for today
+        if (!isToday(selectedDate) || !isBefore(slotTime, addHours(new Date(), 1))) {
+          slots.push({
+            time: timeString,
+            isAvailable: true
+          });
+        }
         currentMinutes += 30; // 30-minute intervals
       }
     });
 
-    // Only apply the minimum booking time filter for today's slots
-    if (selectedDate && isToday(selectedDate)) {
-      const now = new Date();
-      const minimumBookingTime = addHours(now, 1);
-
-      return slots
-        .filter(slot => {
-          const [hours, minutes] = slot.split(':').map(Number);
-          const slotTime = new Date(selectedDate);
-          slotTime.setHours(hours, minutes, 0, 0);
-          return !isBefore(slotTime, minimumBookingTime);
-        })
-        .sort();
-    }
-
-    return slots.sort();
+    return slots.sort((a, b) => a.time.localeCompare(b.time));
   };
 
   const getAvailableTimeSlots = async (employee: any, selectedDate: Date | undefined) => {

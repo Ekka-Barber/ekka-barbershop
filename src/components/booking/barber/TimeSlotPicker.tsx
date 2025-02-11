@@ -2,9 +2,10 @@
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Skeleton } from "@/components/ui/skeleton";
+import { TimeSlot } from "@/hooks/useTimeSlots";
 
 interface TimeSlotPickerProps {
-  timeSlots: string[];
+  timeSlots: TimeSlot[];
   selectedTime: string | undefined;
   onTimeSelect: (time: string) => void;
   showAllSlots: boolean;
@@ -63,14 +64,19 @@ export const TimeSlotPicker = ({
         <div className="bg-gradient-to-b from-white to-gray-50 shadow-sm border-b border-gray-100">
           <div className="overflow-x-auto hide-scrollbar px-6 py-4">
             <div className="flex space-x-3 rtl:space-x-reverse min-w-full">
-              {displayedTimeSlots.map((time) => (
+              {displayedTimeSlots.map((slot) => (
                 <Button
-                  key={time}
-                  variant={selectedTime === time ? "default" : "outline"}
-                  onClick={() => onTimeSelect(time)}
-                  className="flex-shrink-0"
+                  key={slot.time}
+                  variant={selectedTime === slot.time ? "default" : "outline"}
+                  onClick={() => slot.isAvailable && onTimeSelect(slot.time)}
+                  disabled={!slot.isAvailable}
+                  className={`flex-shrink-0 ${
+                    slot.isAvailable 
+                      ? 'bg-[#F2FCE2] hover:bg-[#E2ECd2]' 
+                      : 'bg-[#FFDEE2] cursor-not-allowed'
+                  } ${selectedTime === slot.time ? '!bg-primary text-primary-foreground' : ''}`}
                 >
-                  {time}
+                  {slot.time}
                 </Button>
               ))}
             </div>

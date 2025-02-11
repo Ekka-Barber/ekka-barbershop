@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { BarberCard } from "./barber/BarberCard";
 import { TimeSlotPicker } from "./barber/TimeSlotPicker";
-import { useTimeSlots } from "@/hooks/useTimeSlots";
+import { useTimeSlots, TimeSlot } from "@/hooks/useTimeSlots";
 
 interface Employee {
   id: string;
@@ -39,7 +39,7 @@ export const BarberSelection = ({
   const { language } = useLanguage();
   const [showAllSlots, setShowAllSlots] = useState(false);
   const { getAvailableTimeSlots, isEmployeeAvailable } = useTimeSlots();
-  const [timeSlots, setTimeSlots] = useState<string[]>([]);
+  const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([]);
   const [loadingTimeSlots, setLoadingTimeSlots] = useState(false);
 
   useEffect(() => {
@@ -96,7 +96,7 @@ export const BarberSelection = ({
                 name_ar={employee.name_ar}
                 photo_url={employee.photo_url}
                 nationality={employee.nationality}
-                isAvailable={true} // This will be updated when isEmployeeAvailable is called
+                isAvailable={true}
                 isSelected={isSelected}
                 onSelect={() => {
                   onBarberSelect(employee.id);
