@@ -25,6 +25,37 @@ export const useTimeSlots = () => {
     return employee.off_days.includes(dateStr);
   };
 
+  const generateTimeSlotsFromWorkingHours = (workingHours: any, selectedDate: Date) => {
+    const slots: TimeSlot[] = [];
+    const dayName = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'][selectedDate.getDay()];
+    const daySchedules = workingHours[dayName] || [];
+    
+    for (const timeRange of daySchedules) {
+      const [start, end] = timeRange.split('-');
+      const [startHours, startMinutes] = start.split(':').map(Number);
+      const [endHours, endMinutes] = end.split(':').map(Number);
+      
+      let currentMinutes = startHours * 60 + startMinutes;
+      const endTotalMinutes = endHours * 60 + endMinutes;
+      
+      while (currentMinutes < endTotalMinutes) {
+        const timeString = convertMinutesToTime(currentMinutes);
+        const slotTime = new Date(selectedDate);
+        const [hours, mins] = timeString.split(':').map(Number);
+        slotTime.setHours(hours, mins, 0, 0);
+
+        if (!isToday(selectedDate) || !isBefore(slotTime, addHours(new Date(), 1))) {
+          slots.push({
+            time: timeString,
+            isAvailable: true
+          });
+        }
+        currentMinutes += 30;
+      }
+    }
+    return slots;
+  };
+
   const generateTimeSlots = async (employeeId: string, selectedDate?: Date) => {
     const slots: TimeSlot[] = [];
     
@@ -34,19 +65,22 @@ export const useTimeSlots = () => {
     }
 
     try {
-      const databaseDayOfWeek = convertToDatabaseDay(selectedDate.getDay());
-      console.log('Database day of week:', databaseDayOfWeek);
-
-      // Get employee data first
+      // Get employee data
       const { data: employeeData, error: employeeError } = await supabase
         .from('employees')
         .select('off_days, working_hours')
         .eq('id', employeeId)
-        .single();
+        .maybeSingle();
 
       if (employeeError) {
         console.error('Error fetching employee data:', employeeError);
         toast.error('Error loading employee schedule');
+        return slots;
+      }
+
+      if (!employeeData) {
+        console.error('Employee not found');
+        toast.error('Employee not found');
         return slots;
       }
 
@@ -56,113 +90,11 @@ export const useTimeSlots = () => {
         return slots;
       }
 
-      try {
-        // Try to get schedules from employee_schedules
-        const { data: schedules, error: schedulesError } = await supabase
-          .from('employee_schedules')
-          .select('*')
-          .eq('employee_id', employeeId)
-          .eq('day_of_week', databaseDayOfWeek)
-          .eq('is_available', true);
-
-        if (schedulesError) {
-          throw schedulesError;
-        }
-
-        if (schedules && schedules.length > 0) {
-          console.log('Using employee_schedules data:', schedules);
-          
-          // Process each schedule block
-          for (const schedule of schedules) {
-            let currentMinutes = schedule.start_time;
-            const endMinutes = schedule.crosses_midnight ? 
-              schedule.end_time + (24 * 60) : schedule.end_time;
-
-            while (currentMinutes < endMinutes) {
-              const normalizedMinutes = currentMinutes % (24 * 60);
-              const timeString = convertMinutesToTime(normalizedMinutes);
-              const slotTime = new Date(selectedDate);
-              const [hours, mins] = timeString.split(':').map(Number);
-              slotTime.setHours(hours, mins, 0, 0);
-
-              if (!isToday(selectedDate) || !isBefore(slotTime, addHours(new Date(), 1))) {
-                const existingSlot = slots.find(slot => slot.time === timeString);
-                if (!existingSlot) {
-                  slots.push({
-                    time: timeString,
-                    isAvailable: true
-                  });
-                }
-              }
-
-              currentMinutes += 30;
-            }
-          }
-        } else {
-          console.log('No schedules found, falling back to working_hours');
-          // Fallback to working_hours from employees table
-          if (employeeData?.working_hours) {
-            const dayName = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'][selectedDate.getDay()];
-            const daySchedules = employeeData.working_hours[dayName] || [];
-            
-            for (const timeRange of daySchedules) {
-              const [start, end] = timeRange.split('-');
-              const [startHours, startMinutes] = start.split(':').map(Number);
-              const [endHours, endMinutes] = end.split(':').map(Number);
-              
-              let currentMinutes = startHours * 60 + startMinutes;
-              const endTotalMinutes = endHours * 60 + endMinutes;
-              
-              while (currentMinutes < endTotalMinutes) {
-                const timeString = convertMinutesToTime(currentMinutes);
-                const slotTime = new Date(selectedDate);
-                const [hours, mins] = timeString.split(':').map(Number);
-                slotTime.setHours(hours, mins, 0, 0);
-
-                if (!isToday(selectedDate) || !isBefore(slotTime, addHours(new Date(), 1))) {
-                  slots.push({
-                    time: timeString,
-                    isAvailable: true
-                  });
-                }
-                currentMinutes += 30;
-              }
-            }
-          }
-        }
-      } catch (error) {
-        console.error('Error fetching schedules:', error);
-        toast.error('Error loading schedule data');
-        
-        // Fallback to working_hours as a last resort
-        if (employeeData?.working_hours) {
-          const dayName = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'][selectedDate.getDay()];
-          const daySchedules = employeeData.working_hours[dayName] || [];
-          
-          for (const timeRange of daySchedules) {
-            const [start, end] = timeRange.split('-');
-            const [startHours, startMinutes] = start.split(':').map(Number);
-            const [endHours, endMinutes] = end.split(':').map(Number);
-            
-            let currentMinutes = startHours * 60 + startMinutes;
-            const endTotalMinutes = endHours * 60 + endMinutes;
-            
-            while (currentMinutes < endTotalMinutes) {
-              const timeString = convertMinutesToTime(currentMinutes);
-              const slotTime = new Date(selectedDate);
-              const [hours, mins] = timeString.split(':').map(Number);
-              slotTime.setHours(hours, mins, 0, 0);
-
-              if (!isToday(selectedDate) || !isBefore(slotTime, addHours(new Date(), 1))) {
-                slots.push({
-                  time: timeString,
-                  isAvailable: true
-                });
-              }
-              currentMinutes += 30;
-            }
-          }
-        }
+      // Generate time slots from working_hours
+      if (employeeData.working_hours) {
+        console.log('Generating slots from working_hours');
+        const generatedSlots = generateTimeSlotsFromWorkingHours(employeeData.working_hours, selectedDate);
+        slots.push(...generatedSlots);
       }
 
       // Sort slots by time
@@ -209,39 +141,11 @@ export const useTimeSlots = () => {
         return false;
       }
 
-      const databaseDayOfWeek = convertToDatabaseDay(selectedDate.getDay());
-      console.log('Checking availability for day:', databaseDayOfWeek);
-      
-      try {
-        // Try to get schedules from employee_schedules first
-        const { data: schedules, error: schedulesError } = await supabase
-          .from('employee_schedules')
-          .select('*')
-          .eq('employee_id', employee.id)
-          .eq('day_of_week', databaseDayOfWeek)
-          .eq('is_available', true);
-
-        if (schedulesError) {
-          throw schedulesError;
-        }
-
-        if (schedules) {
-          const hasAvailableSchedule = schedules.length > 0;
-          console.log('Has available schedule from employee_schedules:', hasAvailableSchedule);
-          return hasAvailableSchedule;
-        }
-      } catch (error) {
-        console.error('Error checking employee_schedules:', error);
-        // Fall through to working_hours check
-      }
-
-      // Fallback to working_hours
-      console.log('Falling back to working_hours');
       const { data: employeeData, error: employeeError } = await supabase
         .from('employees')
         .select('working_hours')
         .eq('id', employee.id)
-        .single();
+        .maybeSingle();
 
       if (employeeError) {
         console.error('Error checking employee working hours:', employeeError);
