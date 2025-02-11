@@ -15,10 +15,6 @@ export const useTimeSlots = () => {
     return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
   };
 
-  const convertToDatabaseDay = (jsDay: number): number => {
-    return jsDay + 1; // Convert 0-6 to 1-7 where 1 is Sunday
-  };
-
   const isOffDay = (employee: any, date: Date): boolean => {
     if (!employee?.off_days) return false;
     const dateStr = format(date, 'yyyy-MM-dd');
@@ -29,6 +25,8 @@ export const useTimeSlots = () => {
     const slots: TimeSlot[] = [];
     const dayName = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'][selectedDate.getDay()];
     const daySchedules = workingHours[dayName] || [];
+    
+    console.log('Generating slots for day:', dayName, 'schedules:', daySchedules);
     
     for (const timeRange of daySchedules) {
       const [start, end] = timeRange.split('-');
@@ -53,61 +51,9 @@ export const useTimeSlots = () => {
         currentMinutes += 30;
       }
     }
-    return slots;
-  };
-
-  const generateTimeSlots = async (employeeId: string, selectedDate?: Date) => {
-    const slots: TimeSlot[] = [];
     
-    if (!selectedDate || !employeeId) {
-      console.log('Missing required parameters:', { selectedDate, employeeId });
-      return slots;
-    }
-
-    try {
-      // Get employee data
-      const { data: employeeData, error: employeeError } = await supabase
-        .from('employees')
-        .select('off_days, working_hours')
-        .eq('id', employeeId)
-        .maybeSingle();
-
-      if (employeeError) {
-        console.error('Error fetching employee data:', employeeError);
-        toast.error('Error loading employee schedule');
-        return slots;
-      }
-
-      if (!employeeData) {
-        console.error('Employee not found');
-        toast.error('Employee not found');
-        return slots;
-      }
-
-      // Check for off days first
-      if (isOffDay(employeeData, selectedDate)) {
-        console.log('Date is marked as off day');
-        return slots;
-      }
-
-      // Generate time slots from working_hours
-      if (employeeData.working_hours) {
-        console.log('Generating slots from working_hours');
-        const generatedSlots = generateTimeSlotsFromWorkingHours(employeeData.working_hours, selectedDate);
-        slots.push(...generatedSlots);
-      }
-
-      // Sort slots by time
-      return slots.sort((a, b) => {
-        const timeA = parse(a.time, 'HH:mm', new Date());
-        const timeB = parse(b.time, 'HH:mm', new Date());
-        return timeA.getTime() - timeB.getTime();
-      });
-    } catch (error) {
-      console.error('Error generating time slots:', error);
-      toast.error('Error loading schedule data');
-      return slots;
-    }
+    console.log('Generated slots:', slots);
+    return slots;
   };
 
   const getAvailableTimeSlots = async (employee: any, selectedDate: Date | undefined) => {
@@ -122,12 +68,38 @@ export const useTimeSlots = () => {
     }
 
     try {
-      const slots = await generateTimeSlots(employee.id, selectedDate);
-      console.log('Generated time slots:', slots);
-      return slots;
+      const { data: employeeData, error: employeeError } = await supabase
+        .from('employees')
+        .select('working_hours')
+        .eq('id', employee.id)
+        .maybeSingle();
+
+      if (employeeError) {
+        console.error('Error fetching employee data:', employeeError);
+        toast.error('Error loading employee schedule');
+        return [];
+      }
+
+      if (!employeeData) {
+        console.error('Employee not found');
+        toast.error('Employee not found');
+        return [];
+      }
+
+      if (employeeData.working_hours) {
+        console.log('Using working_hours from employee data');
+        const slots = generateTimeSlotsFromWorkingHours(employeeData.working_hours, selectedDate);
+        return slots.sort((a, b) => {
+          const timeA = parse(a.time, 'HH:mm', new Date());
+          const timeB = parse(b.time, 'HH:mm', new Date());
+          return timeA.getTime() - timeB.getTime();
+        });
+      }
+
+      return [];
     } catch (error) {
-      console.error('Error getting available time slots:', error);
-      toast.error('Error loading available time slots');
+      console.error('Error generating time slots:', error);
+      toast.error('Error loading schedule data');
       return [];
     }
   };
@@ -141,21 +113,9 @@ export const useTimeSlots = () => {
         return false;
       }
 
-      const { data: employeeData, error: employeeError } = await supabase
-        .from('employees')
-        .select('working_hours')
-        .eq('id', employee.id)
-        .maybeSingle();
-
-      if (employeeError) {
-        console.error('Error checking employee working hours:', employeeError);
-        toast.error('Error checking employee availability');
-        return false;
-      }
-
-      if (employeeData?.working_hours) {
+      if (employee.working_hours) {
         const dayName = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'][selectedDate.getDay()];
-        const daySchedules = employeeData.working_hours[dayName] || [];
+        const daySchedules = employee.working_hours[dayName] || [];
         const hasSchedules = daySchedules.length > 0;
         console.log('Has available schedule from working_hours:', hasSchedules);
         return hasSchedules;
