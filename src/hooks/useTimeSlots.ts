@@ -20,13 +20,17 @@ export const useTimeSlots = () => {
     if (!selectedDate || !employeeId) return slots;
 
     const dayOfWeek = selectedDate.getDay(); // 0-6, where 0 is Sunday
+    console.log('Checking day of week:', dayOfWeek);
 
     // Get all schedules for this employee and day
     const { data: schedules, error } = await supabase
       .from('employee_schedules')
       .select('*')
       .eq('employee_id', employeeId)
-      .eq('day_of_week', dayOfWeek);
+      .eq('day_of_week', dayOfWeek)
+      .eq('is_available', true);
+
+    console.log('Found schedules:', schedules);
 
     // If no schedules found or error, all slots should be unavailable
     if (error || !schedules || schedules.length === 0) {
@@ -34,7 +38,7 @@ export const useTimeSlots = () => {
     }
 
     // Find the base working hours schedule (the one that defines the working day)
-    const workingHoursSchedule = schedules.find(s => s.is_available && s.crosses_midnight);
+    const workingHoursSchedule = schedules[0];
     if (!workingHoursSchedule) return slots; // No working hours defined
 
     // Create a map of all minutes in the working hours to track availability
@@ -51,22 +55,6 @@ export const useTimeSlots = () => {
       availabilityMap[normalizedMinutes] = true;
       currentMinutes += 1;
     }
-
-    // Then mark unavailable blocks
-    schedules.forEach(schedule => {
-      if (!schedule.is_available) {
-        let blockStart = schedule.start_time;
-        const blockEnd = schedule.crosses_midnight ? 
-          schedule.end_time + (24 * 60) : 
-          schedule.end_time;
-
-        while (blockStart < blockEnd) {
-          const normalizedMinutes = blockStart % (24 * 60);
-          availabilityMap[normalizedMinutes] = false;
-          blockStart += 1;
-        }
-      }
-    });
 
     // Generate 30-minute slots but only within working hours
     const workingStart = workingHoursSchedule.start_time;
@@ -112,11 +100,13 @@ export const useTimeSlots = () => {
   const isEmployeeAvailable = async (employee: any, selectedDate: Date | undefined): Promise<boolean> => {
     if (!selectedDate || !employee?.id) return false;
     
+    // Check if it's an off day
     if (employee.off_days?.includes(format(selectedDate, 'yyyy-MM-dd'))) {
       return false;
     }
 
     const dayOfWeek = selectedDate.getDay();
+    console.log('Checking availability for day:', dayOfWeek);
     
     const { data: schedules, error } = await supabase
       .from('employee_schedules')
@@ -125,9 +115,15 @@ export const useTimeSlots = () => {
       .eq('day_of_week', dayOfWeek)
       .eq('is_available', true);
 
-    if (error) return false;
+    console.log('Available schedules found:', schedules);
+
+    if (error) {
+      console.error('Error checking availability:', error);
+      return false;
+    }
     
-    return schedules.length > 0;
+    // Employee is available if they have at least one available schedule for this day
+    return schedules && schedules.length > 0;
   };
 
   return {
