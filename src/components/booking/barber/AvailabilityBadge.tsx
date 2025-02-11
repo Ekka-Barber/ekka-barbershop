@@ -12,9 +12,10 @@ export const AvailabilityBadge = ({ isAvailable }: AvailabilityBadgeProps) => {
   return (
     <CustomBadge variant={isAvailable ? "success" : "destructive"}>
       {isAvailable 
-        ? (language === 'ar' ? 'متاح' : 'Available')
-        : (language === 'ar' ? 'غير متاح' : 'Unavailable')
+        ? (language === 'ar' ? 'متاح اليوم' : 'Available Today')
+        : (language === 'ar' ? 'غير متاح' : 'Off Today')
       }
     </CustomBadge>
   );
 };
+

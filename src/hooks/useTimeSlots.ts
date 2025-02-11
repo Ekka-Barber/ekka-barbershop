@@ -1,119 +1,74 @@
 
 import { format, parse, isToday, isBefore, addHours } from "date-fns";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
-
-export interface TimeSlot {
-  time: string;
-  isAvailable: boolean;
-}
 
 export const useTimeSlots = () => {
-  const convertMinutesToTime = (minutes: number): string => {
-    const hours = Math.floor(minutes / 60);
-    const mins = minutes % 60;
-    return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
-  };
-
-  const isOffDay = (employee: any, date: Date): boolean => {
-    if (!employee?.off_days) return false;
-    const dateStr = format(date, 'yyyy-MM-dd');
-    return employee.off_days.includes(dateStr);
-  };
-
-  const generateTimeSlotsFromWorkingHours = (workingHours: any, selectedDate: Date) => {
-    const slots: TimeSlot[] = [];
-    const dayName = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'][selectedDate.getDay()];
-    const daySchedules = workingHours[dayName] || [];
+  const generateTimeSlots = (workingHoursRanges: string[] = [], selectedDate?: Date) => {
+    const slots: string[] = [];
     
-    console.log('Generating slots for day:', dayName, 'schedules:', daySchedules);
-    
-    for (const timeRange of daySchedules) {
-      const [start, end] = timeRange.split('-');
-      const [startHours, startMinutes] = start.split(':').map(Number);
-      const [endHours, endMinutes] = end.split(':').map(Number);
+    if (!selectedDate) return slots;
+
+    workingHoursRanges.forEach(range => {
+      const [start, end] = range.split('-');
       
-      let currentMinutes = startHours * 60 + startMinutes;
-      const endTotalMinutes = endHours * 60 + endMinutes;
+      // Use selectedDate as the base date for parsing times
+      const baseDate = new Date(selectedDate);
+      const startTime = parse(start, 'HH:mm', baseDate);
+      let endTime = parse(end, 'HH:mm', baseDate);
       
-      while (currentMinutes < endTotalMinutes) {
-        const timeString = convertMinutesToTime(currentMinutes);
-        const slotTime = new Date(selectedDate);
-        const [hours, mins] = timeString.split(':').map(Number);
-        slotTime.setHours(hours, mins, 0, 0);
-
-        if (!isToday(selectedDate) || !isBefore(slotTime, addHours(new Date(), 1))) {
-          slots.push({
-            time: timeString,
-            isAvailable: true
-          });
-        }
-        currentMinutes += 30;
-      }
-    }
-    
-    console.log('Generated slots:', slots);
-    return slots;
-  };
-
-  const getAvailableTimeSlots = async (employee: any, selectedDate: Date | undefined) => {
-    console.log('Getting available time slots for:', { employee, selectedDate });
-    
-    if (!selectedDate || !employee?.id) {
-      console.log('Missing required parameters:', { selectedDate, employeeId: employee?.id });
-      return [];
-    }
-    
-    if (isOffDay(employee, selectedDate)) {
-      console.log('Date is in off_days:', format(selectedDate, 'yyyy-MM-dd'));
-      return [];
-    }
-
-    try {
-      // Use working_hours directly from employee object if available
-      if (employee.working_hours) {
-        console.log('Using working_hours from employee object');
-        const slots = generateTimeSlotsFromWorkingHours(employee.working_hours, selectedDate);
-        return slots.sort((a, b) => {
-          const timeA = parse(a.time, 'HH:mm', new Date());
-          const timeB = parse(b.time, 'HH:mm', new Date());
-          return timeA.getTime() - timeB.getTime();
-        });
-      }
-
-      return [];
-    } catch (error) {
-      console.error('Error generating time slots:', error);
-      toast.error('Error loading schedule data');
-      return [];
-    }
-  };
-
-  const isEmployeeAvailable = async (employee: any, selectedDate: Date | undefined): Promise<boolean> => {
-    console.log('Checking employee availability:', { employee, selectedDate });
-    
-    if (!selectedDate || !employee?.id) return false;
-    
-    try {
-      if (isOffDay(employee, selectedDate)) {
-        console.log('Date is marked as off day');
-        return false;
-      }
-
-      if (employee.working_hours) {
-        const dayName = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'][selectedDate.getDay()];
-        const daySchedules = employee.working_hours[dayName] || [];
-        const hasSchedules = daySchedules.length > 0;
-        console.log('Has available schedule from working_hours:', hasSchedules);
-        return hasSchedules;
+      // Handle cases where end time is on the next day
+      if (end === "00:00" || end === "01:00") {
+        endTime = new Date(endTime.getTime() + 24 * 60 * 60 * 1000);
       }
       
-      return false;
-    } catch (error) {
-      console.error('Error checking availability:', error);
-      toast.error('Error checking employee availability');
+      let currentSlot = startTime;
+      while (currentSlot < endTime) {
+        slots.push(format(currentSlot, 'HH:mm'));
+        currentSlot = new Date(currentSlot.getTime() + 30 * 60000);
+      }
+    });
+
+    // Only apply the minimum booking time filter for today's slots
+    if (selectedDate && isToday(selectedDate)) {
+      const now = new Date();
+      const minimumBookingTime = addHours(now, 1);
+
+      return slots
+        .filter(slot => {
+          const [hours, minutes] = slot.split(':').map(Number);
+          const slotTime = new Date(selectedDate);
+          slotTime.setHours(hours, minutes, 0, 0);
+          return !isBefore(slotTime, minimumBookingTime);
+        })
+        .sort();
+    }
+
+    return slots.sort();
+  };
+
+  const getAvailableTimeSlots = (employee: any, selectedDate: Date | undefined) => {
+    if (!selectedDate || !employee.working_hours) return [];
+    
+    const dayName = format(selectedDate, 'EEEE').toLowerCase();
+    const workingHours = employee.working_hours[dayName] || [];
+    
+    if (employee.off_days?.includes(format(selectedDate, 'yyyy-MM-dd'))) {
+      return [];
+    }
+    
+    return generateTimeSlots(workingHours, selectedDate);
+  };
+
+  const isEmployeeAvailable = (employee: any, selectedDate: Date | undefined): boolean => {
+    if (!selectedDate || !employee.working_hours) return false;
+    
+    const dayName = format(selectedDate, 'EEEE').toLowerCase();
+    const workingHours = employee.working_hours[dayName] || [];
+    
+    if (employee.off_days?.includes(format(selectedDate, 'yyyy-MM-dd'))) {
       return false;
     }
+    
+    return workingHours.length > 0;
   };
 
   return {
@@ -121,3 +76,4 @@ export const useTimeSlots = () => {
     isEmployeeAvailable
   };
 };
+
