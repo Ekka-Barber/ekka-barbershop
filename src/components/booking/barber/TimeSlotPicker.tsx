@@ -72,8 +72,8 @@ export const TimeSlotPicker = ({
                   disabled={!slot.isAvailable}
                   className={`flex-shrink-0 ${
                     slot.isAvailable 
-                      ? 'bg-[#F2FCE2] hover:bg-[#E2ECd2]' 
-                      : 'bg-[#FFDEE2] cursor-not-allowed'
+                      ? 'bg-[#F2FCE2] hover:bg-[#E2ECd2] text-gray-900' 
+                      : 'bg-[#FFDEE2] text-gray-500 cursor-not-allowed'
                   } ${selectedTime === slot.time ? '!bg-primary text-primary-foreground' : ''}`}
                 >
                   {slot.time}

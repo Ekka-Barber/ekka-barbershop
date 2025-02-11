@@ -21,41 +21,59 @@ export const useTimeSlots = () => {
 
     const dayOfWeek = selectedDate.getDay(); // 0-6, where 0 is Sunday
 
+    // Get all schedules for this employee and day
     const { data: schedules, error } = await supabase
       .from('employee_schedules')
       .select('*')
       .eq('employee_id', employeeId)
       .eq('day_of_week', dayOfWeek);
 
-    if (error || !schedules.length) return slots;
+    // If no schedules found or error, all slots should be unavailable
+    if (error || !schedules || schedules.length === 0) {
+      // Generate all time slots as unavailable
+      for (let minutes = 0; minutes < 24 * 60; minutes += 30) {
+        slots.push({
+          time: convertMinutesToTime(minutes),
+          isAvailable: false
+        });
+      }
+      return slots;
+    }
+
+    // Create a map of all minutes in the day to track availability
+    const availabilityMap = new Array(24 * 60).fill(false);
 
     schedules.forEach(schedule => {
-      if (!schedule.is_available) return;
-      
-      let currentMinutes = schedule.start_time;
-      const endMinutes = schedule.end_time;
+      if (schedule.is_available) {
+        let currentMinutes = schedule.start_time;
+        const endMinutes = schedule.crosses_midnight ? schedule.end_time + (24 * 60) : schedule.end_time;
 
-      // Handle cases where end time is on the next day
-      const totalMinutes = schedule.crosses_midnight ? 
-        endMinutes + (24 * 60) : 
-        endMinutes;
-
-      while (currentMinutes < totalMinutes) {
-        const timeString = convertMinutesToTime(currentMinutes % (24 * 60));
-        const [hours, minutes] = timeString.split(':').map(Number);
-        const slotTime = new Date(selectedDate);
-        slotTime.setHours(hours, minutes, 0, 0);
-        
-        // Only add future slots for today
-        if (!isToday(selectedDate) || !isBefore(slotTime, addHours(new Date(), 1))) {
-          slots.push({
-            time: timeString,
-            isAvailable: true
-          });
+        while (currentMinutes < endMinutes) {
+          const normalizedMinutes = currentMinutes % (24 * 60);
+          availabilityMap[normalizedMinutes] = true;
+          currentMinutes += 1;
         }
-        currentMinutes += 30; // 30-minute intervals
       }
     });
+
+    // Generate 30-minute slots based on the availability map
+    for (let minutes = 0; minutes < 24 * 60; minutes += 30) {
+      const timeString = convertMinutesToTime(minutes);
+      const [hours, mins] = timeString.split(':').map(Number);
+      const slotTime = new Date(selectedDate);
+      slotTime.setHours(hours, mins, 0, 0);
+
+      // Check if all minutes in this 30-minute slot are available
+      const isSlotAvailable = Array.from({ length: 30 }, (_, i) => availabilityMap[minutes + i]).every(Boolean);
+      
+      // Only add future slots for today
+      if (!isToday(selectedDate) || !isBefore(slotTime, addHours(new Date(), 1))) {
+        slots.push({
+          time: timeString,
+          isAvailable: isSlotAvailable
+        });
+      }
+    }
 
     return slots.sort((a, b) => a.time.localeCompare(b.time));
   };
