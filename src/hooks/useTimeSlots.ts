@@ -34,67 +34,59 @@ export const useTimeSlots = () => {
 
     // If no schedules found or error, all slots should be unavailable
     if (error || !schedules || schedules.length === 0) {
-      return slots; // Return empty array since no working hours
+      console.log('No schedules found or error:', error);
+      return slots;
     }
 
-    // Find the base working hours schedule (the one that defines the working day)
-    const workingHoursSchedule = schedules[0];
-    if (!workingHoursSchedule) return slots; // No working hours defined
+    // Process each schedule block
+    for (const schedule of schedules) {
+      let currentMinutes = schedule.start_time;
+      let endMinutes = schedule.crosses_midnight ? 
+        schedule.end_time + (24 * 60) : schedule.end_time;
 
-    // Create a map of all minutes in the working hours to track availability
-    const availabilityMap = new Array(24 * 60).fill(false);
+      // Create 30-minute slots within this schedule block
+      while (currentMinutes < endMinutes) {
+        const normalizedMinutes = currentMinutes % (24 * 60);
+        const timeString = convertMinutesToTime(normalizedMinutes);
+        const slotTime = new Date(selectedDate);
+        const [hours, mins] = timeString.split(':').map(Number);
+        slotTime.setHours(hours, mins, 0, 0);
 
-    // First, mark the entire working period as available
-    let currentMinutes = workingHoursSchedule.start_time;
-    const endMinutes = workingHoursSchedule.crosses_midnight ? 
-      workingHoursSchedule.end_time + (24 * 60) : 
-      workingHoursSchedule.end_time;
+        // Only add future slots for today
+        if (!isToday(selectedDate) || !isBefore(slotTime, addHours(new Date(), 1))) {
+          // Check if this slot already exists
+          const existingSlot = slots.find(slot => slot.time === timeString);
+          if (!existingSlot) {
+            slots.push({
+              time: timeString,
+              isAvailable: true
+            });
+          }
+        }
 
-    while (currentMinutes < endMinutes) {
-      const normalizedMinutes = currentMinutes % (24 * 60);
-      availabilityMap[normalizedMinutes] = true;
-      currentMinutes += 1;
-    }
-
-    // Generate 30-minute slots but only within working hours
-    const workingStart = workingHoursSchedule.start_time;
-    const workingEnd = workingHoursSchedule.crosses_midnight ? 
-      workingHoursSchedule.end_time + (24 * 60) : 
-      workingHoursSchedule.end_time;
-
-    for (let minutes = workingStart; minutes < workingEnd; minutes += 30) {
-      const normalizedMinutes = minutes % (24 * 60);
-      const timeString = convertMinutesToTime(normalizedMinutes);
-      const slotTime = new Date(selectedDate);
-      const [hours, mins] = timeString.split(':').map(Number);
-      slotTime.setHours(hours, mins, 0, 0);
-
-      // Check if all minutes in this 30-minute slot are available
-      const isSlotAvailable = Array.from(
-        { length: 30 }, 
-        (_, i) => availabilityMap[(normalizedMinutes + i) % (24 * 60)]
-      ).every(Boolean);
-      
-      // Only add future slots for today
-      if (!isToday(selectedDate) || !isBefore(slotTime, addHours(new Date(), 1))) {
-        slots.push({
-          time: timeString,
-          isAvailable: isSlotAvailable
-        });
+        currentMinutes += 30;
       }
     }
 
-    return slots.sort((a, b) => a.time.localeCompare(b.time));
+    // Sort slots by time
+    return slots.sort((a, b) => {
+      const timeA = parse(a.time, 'HH:mm', new Date());
+      const timeB = parse(b.time, 'HH:mm', new Date());
+      return timeA.getTime() - timeB.getTime();
+    });
   };
 
   const getAvailableTimeSlots = async (employee: any, selectedDate: Date | undefined) => {
     if (!selectedDate || !employee?.id) return [];
     
     if (employee.off_days?.includes(format(selectedDate, 'yyyy-MM-dd'))) {
+      console.log('Date is in off_days:', format(selectedDate, 'yyyy-MM-dd'));
       return [];
     }
     
-    return generateTimeSlots(employee.id, selectedDate);
+    const slots = await generateTimeSlots(employee.id, selectedDate);
+    console.log('Generated time slots:', slots);
+    return slots;
   };
 
   const isEmployeeAvailable = async (employee: any, selectedDate: Date | undefined): Promise<boolean> => {
@@ -102,6 +94,7 @@ export const useTimeSlots = () => {
     
     // Check if it's an off day
     if (employee.off_days?.includes(format(selectedDate, 'yyyy-MM-dd'))) {
+      console.log('Date is marked as off day');
       return false;
     }
 
@@ -115,15 +108,18 @@ export const useTimeSlots = () => {
       .eq('day_of_week', dayOfWeek)
       .eq('is_available', true);
 
-    console.log('Available schedules found:', schedules);
-
     if (error) {
       console.error('Error checking availability:', error);
       return false;
     }
+
+    console.log('Available schedules found:', schedules);
     
     // Employee is available if they have at least one available schedule for this day
-    return schedules && schedules.length > 0;
+    const hasAvailableSchedule = schedules && schedules.length > 0;
+    console.log('Has available schedule:', hasAvailableSchedule);
+    
+    return hasAvailableSchedule;
   };
 
   return {
