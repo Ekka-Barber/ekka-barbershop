@@ -19,7 +19,8 @@ export const useTimeSlots = () => {
     
     if (!selectedDate || !employeeId) return slots;
 
-    const dayOfWeek = selectedDate.getDay(); // 0-6, where 0 is Sunday
+    // Convert day of week from 0-6 to 1-7 where 1 is Sunday
+    const dayOfWeek = selectedDate.getDay() + 1;
     console.log('Checking day of week:', dayOfWeek);
 
     // First check if it's an off day
@@ -114,7 +115,8 @@ export const useTimeSlots = () => {
       return false;
     }
 
-    const dayOfWeek = selectedDate.getDay();
+    // Convert day of week from 0-6 to 1-7 where 1 is Sunday
+    const dayOfWeek = selectedDate.getDay() + 1;
     console.log('Checking availability for day:', dayOfWeek);
     
     // Then check if there are any schedules for this day
