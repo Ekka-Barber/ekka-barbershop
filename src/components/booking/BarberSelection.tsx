@@ -41,6 +41,22 @@ export const BarberSelection = ({
   const { getAvailableTimeSlots, isEmployeeAvailable } = useTimeSlots();
   const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([]);
   const [loadingTimeSlots, setLoadingTimeSlots] = useState(false);
+  const [employeeAvailability, setEmployeeAvailability] = useState<Record<string, boolean>>({});
+
+  // Fetch availability for all employees
+  useEffect(() => {
+    const fetchAvailability = async () => {
+      if (!employees || !selectedDate) return;
+      
+      const availability: Record<string, boolean> = {};
+      for (const employee of employees) {
+        availability[employee.id] = await isEmployeeAvailable(employee, selectedDate);
+      }
+      setEmployeeAvailability(availability);
+    };
+
+    fetchAvailability();
+  }, [employees, selectedDate, isEmployeeAvailable]);
 
   useEffect(() => {
     const fetchTimeSlots = async () => {
@@ -58,7 +74,7 @@ export const BarberSelection = ({
     };
 
     fetchTimeSlots();
-  }, [selectedBarber, selectedDate, employees]);
+  }, [selectedBarber, selectedDate, employees, getAvailableTimeSlots]);
 
   if (isLoading) {
     return (
@@ -77,7 +93,9 @@ export const BarberSelection = ({
   if (filteredEmployees?.length === 0) {
     return (
       <div className="text-center p-8">
-        <p className="text-gray-500">{language === 'ar' ? 'لا يوجد حلاقين متاحين' : 'No barbers available'}</p>
+        <p className="text-gray-500">
+          {language === 'ar' ? 'لا يوجد حلاقين متاحين' : 'No barbers available'}
+        </p>
       </div>
     );
   }
@@ -87,6 +105,7 @@ export const BarberSelection = ({
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {filteredEmployees?.map((employee) => {
           const isSelected = selectedBarber === employee.id;
+          const isAvailable = employeeAvailability[employee.id] ?? false;
           
           return (
             <div key={employee.id} className="space-y-4">
@@ -96,7 +115,7 @@ export const BarberSelection = ({
                 name_ar={employee.name_ar}
                 photo_url={employee.photo_url}
                 nationality={employee.nationality}
-                isAvailable={true}
+                isAvailable={isAvailable}
                 isSelected={isSelected}
                 onSelect={() => {
                   onBarberSelect(employee.id);
