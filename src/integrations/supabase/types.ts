@@ -1152,6 +1152,12 @@ export type Database = {
         }
         Returns: undefined
       }
+      time_to_minutes: {
+        Args: {
+          time_str: string
+        }
+        Returns: number
+      }
     }
     Enums: {
       basic_payment_method: "cash" | "bank_transfer"
