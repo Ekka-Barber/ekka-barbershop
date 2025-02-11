@@ -1,5 +1,5 @@
 
-import { format, parse, isToday, isBefore, addHours, startOfDay } from "date-fns";
+import { format, parse, isToday, isBefore, addHours } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 
 export interface TimeSlot {
@@ -14,17 +14,30 @@ export const useTimeSlots = () => {
     return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
   };
 
+  // Helper function to convert JavaScript's 0-6 to our database's 1-7 day format
+  const convertToDatabaseDay = (jsDay: number): number => {
+    return jsDay + 1; // Convert 0-6 to 1-7 where 1 is Sunday
+  };
+
+  const isOffDay = (employee: any, date: Date): boolean => {
+    if (!employee?.off_days) return false;
+    const dateStr = format(date, 'yyyy-MM-dd');
+    return employee.off_days.includes(dateStr);
+  };
+
   const generateTimeSlots = async (employeeId: string, selectedDate?: Date) => {
     const slots: TimeSlot[] = [];
     
-    if (!selectedDate || !employeeId) return slots;
+    if (!selectedDate || !employeeId) {
+      console.log('Missing required parameters:', { selectedDate, employeeId });
+      return slots;
+    }
 
     try {
-      // Convert day of week from 0-6 to 1-7 where 1 is Sunday
-      const dayOfWeek = selectedDate.getDay() + 1;
-      console.log('Checking day of week:', dayOfWeek);
+      const databaseDayOfWeek = convertToDatabaseDay(selectedDate.getDay());
+      console.log('Database day of week:', databaseDayOfWeek);
 
-      // First check if it's an off day
+      // Get employee data first
       const { data: employeeData, error: employeeError } = await supabase
         .from('employees')
         .select('off_days, working_hours')
@@ -36,27 +49,52 @@ export const useTimeSlots = () => {
         return slots;
       }
 
-      if (employeeData?.off_days) {
-        const dateStr = format(selectedDate, 'yyyy-MM-dd');
-        if (employeeData.off_days.includes(dateStr)) {
-          console.log('Date is marked as off day:', dateStr);
-          return slots;
-        }
+      // Check for off days first
+      if (isOffDay(employeeData, selectedDate)) {
+        console.log('Date is marked as off day');
+        return slots;
       }
 
-      // Get all schedules for this employee and day
+      // Try to get schedules from employee_schedules
       const { data: schedules, error: schedulesError } = await supabase
         .from('employee_schedules')
         .select('*')
         .eq('employee_id', employeeId)
-        .eq('day_of_week', dayOfWeek)
+        .eq('day_of_week', databaseDayOfWeek)
         .eq('is_available', true);
 
-      console.log('Found schedules:', schedules);
+      if (!schedulesError && schedules && schedules.length > 0) {
+        console.log('Using employee_schedules data:', schedules);
+        
+        // Process each schedule block
+        for (const schedule of schedules) {
+          let currentMinutes = schedule.start_time;
+          const endMinutes = schedule.crosses_midnight ? 
+            schedule.end_time + (24 * 60) : schedule.end_time;
 
-      if (schedulesError) {
-        console.error('Error fetching schedules:', schedulesError);
-        // Fallback to working_hours from employees table if employee_schedules fetch fails
+          while (currentMinutes < endMinutes) {
+            const normalizedMinutes = currentMinutes % (24 * 60);
+            const timeString = convertMinutesToTime(normalizedMinutes);
+            const slotTime = new Date(selectedDate);
+            const [hours, mins] = timeString.split(':').map(Number);
+            slotTime.setHours(hours, mins, 0, 0);
+
+            if (!isToday(selectedDate) || !isBefore(slotTime, addHours(new Date(), 1))) {
+              const existingSlot = slots.find(slot => slot.time === timeString);
+              if (!existingSlot) {
+                slots.push({
+                  time: timeString,
+                  isAvailable: true
+                });
+              }
+            }
+
+            currentMinutes += 30;
+          }
+        }
+      } else {
+        console.log('Falling back to working_hours:', schedulesError);
+        // Fallback to working_hours from employees table
         if (employeeData?.working_hours) {
           const dayName = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'][selectedDate.getDay()];
           const daySchedules = employeeData.working_hours[dayName] || [];
@@ -67,12 +105,13 @@ export const useTimeSlots = () => {
             const [endHours, endMinutes] = end.split(':').map(Number);
             
             let currentMinutes = startHours * 60 + startMinutes;
-            const endMinutes = endHours * 60 + endMinutes;
+            const endTotalMinutes = endHours * 60 + endMinutes;
             
-            while (currentMinutes < endMinutes) {
+            while (currentMinutes < endTotalMinutes) {
               const timeString = convertMinutesToTime(currentMinutes);
               const slotTime = new Date(selectedDate);
-              slotTime.setHours(startHours, startMinutes, 0, 0);
+              const [hours, mins] = timeString.split(':').map(Number);
+              slotTime.setHours(hours, mins, 0, 0);
 
               if (!isToday(selectedDate) || !isBefore(slotTime, addHours(new Date(), 1))) {
                 slots.push({
@@ -83,49 +122,6 @@ export const useTimeSlots = () => {
               currentMinutes += 30;
             }
           }
-          
-          return slots.sort((a, b) => {
-            const timeA = parse(a.time, 'HH:mm', new Date());
-            const timeB = parse(b.time, 'HH:mm', new Date());
-            return timeA.getTime() - timeB.getTime();
-          });
-        }
-        return slots;
-      }
-
-      // If no schedules found, return empty array
-      if (!schedules || schedules.length === 0) {
-        console.log('No schedules found');
-        return slots;
-      }
-
-      // Process each schedule block
-      for (const schedule of schedules) {
-        let currentMinutes = schedule.start_time;
-        let endMinutes = schedule.crosses_midnight ? 
-          schedule.end_time + (24 * 60) : schedule.end_time;
-
-        // Create 30-minute slots within this schedule block
-        while (currentMinutes < endMinutes) {
-          const normalizedMinutes = currentMinutes % (24 * 60);
-          const timeString = convertMinutesToTime(normalizedMinutes);
-          const slotTime = new Date(selectedDate);
-          const [hours, mins] = timeString.split(':').map(Number);
-          slotTime.setHours(hours, mins, 0, 0);
-
-          // Only add future slots for today
-          if (!isToday(selectedDate) || !isBefore(slotTime, addHours(new Date(), 1))) {
-            // Check if this slot already exists
-            const existingSlot = slots.find(slot => slot.time === timeString);
-            if (!existingSlot) {
-              slots.push({
-                time: timeString,
-                isAvailable: true
-              });
-            }
-          }
-
-          currentMinutes += 30;
         }
       }
 
@@ -142,10 +138,12 @@ export const useTimeSlots = () => {
   };
 
   const getAvailableTimeSlots = async (employee: any, selectedDate: Date | undefined) => {
-    if (!selectedDate || !employee?.id) return [];
+    if (!selectedDate || !employee?.id) {
+      console.log('Missing required parameters:', { selectedDate, employeeId: employee?.id });
+      return [];
+    }
     
-    // First check if it's an off day
-    if (employee.off_days?.includes(format(selectedDate, 'yyyy-MM-dd'))) {
+    if (isOffDay(employee, selectedDate)) {
       console.log('Date is in off_days:', format(selectedDate, 'yyyy-MM-dd'));
       return [];
     }
@@ -159,53 +157,50 @@ export const useTimeSlots = () => {
     if (!selectedDate || !employee?.id) return false;
     
     try {
-      // First check if it's an off day
-      if (employee.off_days?.includes(format(selectedDate, 'yyyy-MM-dd'))) {
+      if (isOffDay(employee, selectedDate)) {
         console.log('Date is marked as off day');
         return false;
       }
 
-      // Convert day of week from 0-6 to 1-7 where 1 is Sunday
-      const dayOfWeek = selectedDate.getDay() + 1;
-      console.log('Checking availability for day:', dayOfWeek);
+      const databaseDayOfWeek = convertToDatabaseDay(selectedDate.getDay());
+      console.log('Checking availability for day:', databaseDayOfWeek);
       
       // Try to get schedules from employee_schedules first
       const { data: schedules, error: schedulesError } = await supabase
         .from('employee_schedules')
         .select('*')
         .eq('employee_id', employee.id)
-        .eq('day_of_week', dayOfWeek)
+        .eq('day_of_week', databaseDayOfWeek)
         .eq('is_available', true);
 
-      if (schedulesError) {
-        console.error('Error checking schedules:', schedulesError);
-        // Fallback to working_hours if employee_schedules fails
-        const { data: employeeData, error: employeeError } = await supabase
-          .from('employees')
-          .select('working_hours')
-          .eq('id', employee.id)
-          .single();
+      if (!schedulesError && schedules) {
+        const hasAvailableSchedule = schedules.length > 0;
+        console.log('Has available schedule from employee_schedules:', hasAvailableSchedule);
+        return hasAvailableSchedule;
+      }
 
-        if (employeeError) {
-          console.error('Error checking employee working hours:', employeeError);
-          return false;
-        }
+      // Fallback to working_hours if employee_schedules fails
+      console.log('Falling back to working_hours');
+      const { data: employeeData, error: employeeError } = await supabase
+        .from('employees')
+        .select('working_hours')
+        .eq('id', employee.id)
+        .single();
 
-        if (employeeData?.working_hours) {
-          const dayName = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'][selectedDate.getDay()];
-          const daySchedules = employeeData.working_hours[dayName] || [];
-          return daySchedules.length > 0;
-        }
+      if (employeeError) {
+        console.error('Error checking employee working hours:', employeeError);
         return false;
       }
 
-      console.log('Available schedules found:', schedules);
+      if (employeeData?.working_hours) {
+        const dayName = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'][selectedDate.getDay()];
+        const daySchedules = employeeData.working_hours[dayName] || [];
+        const hasSchedules = daySchedules.length > 0;
+        console.log('Has available schedule from working_hours:', hasSchedules);
+        return hasSchedules;
+      }
       
-      // Employee is available if they have at least one available schedule for this day
-      const hasAvailableSchedule = schedules && schedules.length > 0;
-      console.log('Has available schedule:', hasAvailableSchedule);
-      
-      return hasAvailableSchedule;
+      return false;
     } catch (error) {
       console.error('Error checking availability:', error);
       return false;
