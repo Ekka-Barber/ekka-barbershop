@@ -1,6 +1,6 @@
 
 import { useLanguage } from "@/contexts/LanguageContext";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { BarberCard } from "./barber/BarberCard";
 import { TimeSlotPicker } from "./barber/TimeSlotPicker";
@@ -39,6 +39,26 @@ export const BarberSelection = ({
   const { language } = useLanguage();
   const [showAllSlots, setShowAllSlots] = useState(false);
   const { getAvailableTimeSlots, isEmployeeAvailable } = useTimeSlots();
+  const [timeSlots, setTimeSlots] = useState<string[]>([]);
+  const [loadingTimeSlots, setLoadingTimeSlots] = useState(false);
+
+  useEffect(() => {
+    const fetchTimeSlots = async () => {
+      if (selectedBarber && selectedDate) {
+        setLoadingTimeSlots(true);
+        const selectedEmployee = employees?.find(emp => emp.id === selectedBarber);
+        if (selectedEmployee) {
+          const slots = await getAvailableTimeSlots(selectedEmployee, selectedDate);
+          setTimeSlots(slots);
+        }
+        setLoadingTimeSlots(false);
+      } else {
+        setTimeSlots([]);
+      }
+    };
+
+    fetchTimeSlots();
+  }, [selectedBarber, selectedDate, employees]);
 
   if (isLoading) {
     return (
@@ -62,15 +82,10 @@ export const BarberSelection = ({
     );
   }
 
-  const selectedEmployeeTimeSlots = selectedBarber 
-    ? getAvailableTimeSlots(filteredEmployees?.find(emp => emp.id === selectedBarber), selectedDate)
-    : [];
-
   return (
     <div className="space-y-8">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {filteredEmployees?.map((employee) => {
-          const isAvailable = isEmployeeAvailable(employee, selectedDate);
           const isSelected = selectedBarber === employee.id;
           
           return (
@@ -81,7 +96,7 @@ export const BarberSelection = ({
                 name_ar={employee.name_ar}
                 photo_url={employee.photo_url}
                 nationality={employee.nationality}
-                isAvailable={isAvailable}
+                isAvailable={true} // This will be updated when isEmployeeAvailable is called
                 isSelected={isSelected}
                 onSelect={() => {
                   onBarberSelect(employee.id);
@@ -92,11 +107,12 @@ export const BarberSelection = ({
 
               {isSelected && (
                 <TimeSlotPicker
-                  timeSlots={selectedEmployeeTimeSlots}
+                  timeSlots={timeSlots}
                   selectedTime={selectedTime}
                   onTimeSelect={onTimeSelect}
                   showAllSlots={showAllSlots}
                   onToggleShowAll={() => setShowAllSlots(!showAllSlots)}
+                  isLoading={loadingTimeSlots}
                 />
               )}
             </div>
@@ -106,4 +122,3 @@ export const BarberSelection = ({
     </div>
   );
 };
-

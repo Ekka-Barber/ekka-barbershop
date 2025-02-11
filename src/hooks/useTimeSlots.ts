@@ -1,29 +1,42 @@
 
-import { format, parse, isToday, isBefore, addHours } from "date-fns";
+import { format, parse, isToday, isBefore, addHours, startOfDay } from "date-fns";
+import { supabase } from "@/integrations/supabase/client";
 
 export const useTimeSlots = () => {
-  const generateTimeSlots = (workingHoursRanges: string[] = [], selectedDate?: Date) => {
+  const convertMinutesToTime = (minutes: number): string => {
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
+  };
+
+  const generateTimeSlots = async (employeeId: string, selectedDate?: Date) => {
     const slots: string[] = [];
     
-    if (!selectedDate) return slots;
+    if (!selectedDate || !employeeId) return slots;
 
-    workingHoursRanges.forEach(range => {
-      const [start, end] = range.split('-');
-      
-      // Use selectedDate as the base date for parsing times
-      const baseDate = new Date(selectedDate);
-      const startTime = parse(start, 'HH:mm', baseDate);
-      let endTime = parse(end, 'HH:mm', baseDate);
-      
+    const dayOfWeek = selectedDate.getDay(); // 0-6, where 0 is Sunday
+
+    const { data: schedules, error } = await supabase
+      .from('employee_schedules')
+      .select('*')
+      .eq('employee_id', employeeId)
+      .eq('day_of_week', dayOfWeek)
+      .eq('is_available', true);
+
+    if (error || !schedules.length) return slots;
+
+    schedules.forEach(schedule => {
+      let currentMinutes = schedule.start_time;
+      const endMinutes = schedule.end_time;
+
       // Handle cases where end time is on the next day
-      if (end === "00:00" || end === "01:00") {
-        endTime = new Date(endTime.getTime() + 24 * 60 * 60 * 1000);
-      }
-      
-      let currentSlot = startTime;
-      while (currentSlot < endTime) {
-        slots.push(format(currentSlot, 'HH:mm'));
-        currentSlot = new Date(currentSlot.getTime() + 30 * 60000);
+      const totalMinutes = schedule.crosses_midnight ? 
+        endMinutes + (24 * 60) : 
+        endMinutes;
+
+      while (currentMinutes < totalMinutes) {
+        slots.push(convertMinutesToTime(currentMinutes % (24 * 60)));
+        currentMinutes += 30; // 30-minute intervals
       }
     });
 
@@ -45,30 +58,35 @@ export const useTimeSlots = () => {
     return slots.sort();
   };
 
-  const getAvailableTimeSlots = (employee: any, selectedDate: Date | undefined) => {
-    if (!selectedDate || !employee.working_hours) return [];
-    
-    const dayName = format(selectedDate, 'EEEE').toLowerCase();
-    const workingHours = employee.working_hours[dayName] || [];
+  const getAvailableTimeSlots = async (employee: any, selectedDate: Date | undefined) => {
+    if (!selectedDate || !employee?.id) return [];
     
     if (employee.off_days?.includes(format(selectedDate, 'yyyy-MM-dd'))) {
       return [];
     }
     
-    return generateTimeSlots(workingHours, selectedDate);
+    return generateTimeSlots(employee.id, selectedDate);
   };
 
-  const isEmployeeAvailable = (employee: any, selectedDate: Date | undefined): boolean => {
-    if (!selectedDate || !employee.working_hours) return false;
-    
-    const dayName = format(selectedDate, 'EEEE').toLowerCase();
-    const workingHours = employee.working_hours[dayName] || [];
+  const isEmployeeAvailable = async (employee: any, selectedDate: Date | undefined): Promise<boolean> => {
+    if (!selectedDate || !employee?.id) return false;
     
     if (employee.off_days?.includes(format(selectedDate, 'yyyy-MM-dd'))) {
       return false;
     }
+
+    const dayOfWeek = selectedDate.getDay();
     
-    return workingHours.length > 0;
+    const { data: schedules, error } = await supabase
+      .from('employee_schedules')
+      .select('*')
+      .eq('employee_id', employee.id)
+      .eq('day_of_week', dayOfWeek)
+      .eq('is_available', true);
+
+    if (error) return false;
+    
+    return schedules.length > 0;
   };
 
   return {
@@ -76,4 +94,3 @@ export const useTimeSlots = () => {
     isEmployeeAvailable
   };
 };
-
