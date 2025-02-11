@@ -22,6 +22,21 @@ export const useTimeSlots = () => {
     const dayOfWeek = selectedDate.getDay(); // 0-6, where 0 is Sunday
     console.log('Checking day of week:', dayOfWeek);
 
+    // First check if it's an off day
+    const { data: employeeData } = await supabase
+      .from('employees')
+      .select('off_days')
+      .eq('id', employeeId)
+      .single();
+
+    if (employeeData?.off_days) {
+      const dateStr = format(selectedDate, 'yyyy-MM-dd');
+      if (employeeData.off_days.includes(dateStr)) {
+        console.log('Date is marked as off day:', dateStr);
+        return slots;
+      }
+    }
+
     // Get all schedules for this employee and day
     const { data: schedules, error } = await supabase
       .from('employee_schedules')
@@ -79,11 +94,12 @@ export const useTimeSlots = () => {
   const getAvailableTimeSlots = async (employee: any, selectedDate: Date | undefined) => {
     if (!selectedDate || !employee?.id) return [];
     
+    // First check if it's an off day
     if (employee.off_days?.includes(format(selectedDate, 'yyyy-MM-dd'))) {
       console.log('Date is in off_days:', format(selectedDate, 'yyyy-MM-dd'));
       return [];
     }
-    
+
     const slots = await generateTimeSlots(employee.id, selectedDate);
     console.log('Generated time slots:', slots);
     return slots;
@@ -92,7 +108,7 @@ export const useTimeSlots = () => {
   const isEmployeeAvailable = async (employee: any, selectedDate: Date | undefined): Promise<boolean> => {
     if (!selectedDate || !employee?.id) return false;
     
-    // Check if it's an off day
+    // First check if it's an off day
     if (employee.off_days?.includes(format(selectedDate, 'yyyy-MM-dd'))) {
       console.log('Date is marked as off day');
       return false;
@@ -101,6 +117,7 @@ export const useTimeSlots = () => {
     const dayOfWeek = selectedDate.getDay();
     console.log('Checking availability for day:', dayOfWeek);
     
+    // Then check if there are any schedules for this day
     const { data: schedules, error } = await supabase
       .from('employee_schedules')
       .select('*')
@@ -116,6 +133,7 @@ export const useTimeSlots = () => {
     console.log('Available schedules found:', schedules);
     
     // Employee is available if they have at least one available schedule for this day
+    // and it's not marked as an off day
     const hasAvailableSchedule = schedules && schedules.length > 0;
     console.log('Has available schedule:', hasAvailableSchedule);
     
