@@ -20,14 +20,41 @@ export const useTimeSlots = () => {
 
   const isSlotAvailable = (slotMinutes: number, unavailableSlots: UnavailableSlot[]) => {
     const slotEndMinutes = slotMinutes + 30; // 30-minute slots
+
+    console.log('Checking availability for slot:', {
+      slotStart: slotMinutes,
+      slotEnd: slotEndMinutes,
+      unavailableSlots: unavailableSlots.map(slot => ({
+        start: slot.start_time,
+        end: slot.end_time,
+      }))
+    });
     
     // Check if the slot overlaps with any unavailable period
-    return !unavailableSlots.some(slot => {
-      // If either the start or end of our slot falls within an unavailable period
-      return (slotMinutes >= slot.start_time && slotMinutes < slot.end_time) ||
-             (slotEndMinutes > slot.start_time && slotEndMinutes <= slot.end_time) ||
-             (slotMinutes <= slot.start_time && slotEndMinutes >= slot.end_time);
-    });
+    for (const slot of unavailableSlots) {
+      // Convert slot times to minutes if they're not already
+      const slotStart = typeof slot.start_time === 'number' ? slot.start_time : convertTimeToMinutes(slot.start_time as unknown as string);
+      const slotEnd = typeof slot.end_time === 'number' ? slot.end_time : convertTimeToMinutes(slot.end_time as unknown as string);
+
+      // Check for any overlap
+      const hasOverlap = (
+        (slotMinutes >= slotStart && slotMinutes < slotEnd) || // Slot start overlaps
+        (slotEndMinutes > slotStart && slotEndMinutes <= slotEnd) || // Slot end overlaps
+        (slotMinutes <= slotStart && slotEndMinutes >= slotEnd) // Slot completely contains unavailable period
+      );
+
+      if (hasOverlap) {
+        console.log('Found overlap:', {
+          slotStart: slotMinutes,
+          slotEnd: slotEndMinutes,
+          unavailableStart: slotStart,
+          unavailableEnd: slotEnd
+        });
+        return false;
+      }
+    }
+    
+    return true;
   };
 
   const generateTimeSlots = async (
@@ -47,6 +74,8 @@ export const useTimeSlots = () => {
 
     // Get all unavailable slots for the day in one query
     const formattedDate = format(selectedDate, 'yyyy-MM-dd');
+    console.log('Fetching unavailable slots for date:', formattedDate);
+    
     const { data: unavailableSlots, error } = await supabase
       .from('employee_schedules')
       .select('start_time, end_time')
@@ -77,9 +106,18 @@ export const useTimeSlots = () => {
       while (currentSlot < endTime) {
         const timeString = format(currentSlot, 'HH:mm');
         const slotMinutes = convertTimeToMinutes(timeString);
+        
+        // Add detailed logging for slot generation
+        console.log('Processing slot:', {
+          timeString,
+          slotMinutes,
+          currentSlot: currentSlot.toISOString(),
+          endTime: endTime.toISOString()
+        });
+        
         const available = isSlotAvailable(slotMinutes, unavailableSlots || []);
         
-        console.log('Checking slot:', {
+        console.log('Slot availability result:', {
           time: timeString,
           minutes: slotMinutes,
           available
