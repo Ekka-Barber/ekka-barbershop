@@ -22,19 +22,22 @@ export const useTimeSlots = () => {
     const endMinutes = startMinutes + 30; // 30-minute slots
     const formattedDate = format(date, 'yyyy-MM-dd');
 
-    const { data, error } = await supabase.rpc('is_time_slot_available', {
-      p_employee_id: employeeId,
-      p_date: formattedDate,
-      p_start_time: startMinutes,
-      p_end_time: endMinutes
-    });
+    // Check employee_schedules table for any unavailable slots
+    const { data: schedules, error } = await supabase
+      .from('employee_schedules')
+      .select('*')
+      .eq('employee_id', employeeId)
+      .eq('date', formattedDate)
+      .overlaps('start_time', [startMinutes, endMinutes]);
 
     if (error) {
-      console.error('Error checking time slot availability:', error);
+      console.error('Error checking employee schedules:', error);
       return true; // Default to available if there's an error
     }
 
-    return data;
+    // If we find any schedule marked as unavailable that overlaps with this time slot
+    const isUnavailable = schedules.some(schedule => !schedule.is_available);
+    return !isUnavailable;
   };
 
   const generateTimeSlots = async (
@@ -53,6 +56,7 @@ export const useTimeSlots = () => {
       const startTime = parse(start, 'HH:mm', baseDate);
       let endTime = parse(end, 'HH:mm', baseDate);
       
+      // Handle cases where end time is after midnight
       if (end === "00:00" || end === "01:00") {
         endTime = new Date(endTime.getTime() + 24 * 60 * 60 * 1000);
       }
