@@ -39,6 +39,25 @@ export const BarberSelection = ({
   const { language } = useLanguage();
   const [showAllSlots, setShowAllSlots] = useState(false);
   const { getAvailableTimeSlots, isEmployeeAvailable } = useTimeSlots();
+  const [employeeTimeSlots, setEmployeeTimeSlots] = useState<{ time: string; isAvailable: boolean; }[]>([]);
+
+  // Update time slots when employee or date changes
+  const updateTimeSlots = async () => {
+    if (selectedBarber && selectedDate) {
+      const selectedEmployee = employees?.find(emp => emp.id === selectedBarber);
+      if (selectedEmployee) {
+        const slots = await getAvailableTimeSlots(selectedEmployee, selectedDate);
+        setEmployeeTimeSlots(slots);
+      }
+    } else {
+      setEmployeeTimeSlots([]);
+    }
+  };
+
+  // Effect to update time slots
+  useEffect(() => {
+    updateTimeSlots();
+  }, [selectedBarber, selectedDate]);
 
   if (isLoading) {
     return (
@@ -61,10 +80,6 @@ export const BarberSelection = ({
       </div>
     );
   }
-
-  const selectedEmployeeTimeSlots = selectedBarber 
-    ? getAvailableTimeSlots(filteredEmployees?.find(emp => emp.id === selectedBarber), selectedDate)
-    : [];
 
   return (
     <div className="space-y-8">
@@ -92,7 +107,7 @@ export const BarberSelection = ({
 
               {isSelected && (
                 <TimeSlotPicker
-                  timeSlots={selectedEmployeeTimeSlots}
+                  timeSlots={employeeTimeSlots}
                   selectedTime={selectedTime}
                   onTimeSelect={onTimeSelect}
                   showAllSlots={showAllSlots}
@@ -106,4 +121,3 @@ export const BarberSelection = ({
     </div>
   );
 };
-
