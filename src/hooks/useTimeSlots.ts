@@ -7,37 +7,24 @@ interface TimeSlot {
   isAvailable: boolean;
 }
 
+interface UnavailableSlot {
+  start_time: number;
+  end_time: number;
+}
+
 export const useTimeSlots = () => {
   const convertTimeToMinutes = (timeStr: string) => {
     const [hours, minutes] = timeStr.split(':').map(Number);
     return hours * 60 + minutes;
   };
 
-  const checkTimeSlotAvailability = async (
-    employeeId: string,
-    date: Date,
-    startTime: string
-  ): Promise<boolean> => {
-    const startMinutes = convertTimeToMinutes(startTime);
-    const endMinutes = startMinutes + 30; // 30-minute slots
-    const formattedDate = format(date, 'yyyy-MM-dd');
-
-    // Check employee_schedules table for any unavailable slots
-    const { data: schedules, error } = await supabase
-      .from('employee_schedules')
-      .select('*')
-      .eq('employee_id', employeeId)
-      .eq('date', formattedDate)
-      .eq('is_available', false)
-      .or(`start_time.lte.${endMinutes},end_time.gte.${startMinutes}`);
-
-    if (error) {
-      console.error('Error checking employee schedules:', error);
-      return true; // Default to available if there's an error
-    }
-
-    // If we find any unavailable schedules that overlap with this time slot
-    return schedules.length === 0;
+  const isSlotAvailable = (slotTime: string, unavailableSlots: UnavailableSlot[]) => {
+    const slotMinutes = convertTimeToMinutes(slotTime);
+    const slotEndMinutes = slotMinutes + 30; // 30-minute slots
+    
+    return !unavailableSlots.some(slot => 
+      (slotMinutes <= slot.end_time && slotEndMinutes > slot.start_time)
+    );
   };
 
   const generateTimeSlots = async (
@@ -48,6 +35,20 @@ export const useTimeSlots = () => {
     const slots: TimeSlot[] = [];
     
     if (!selectedDate || !employeeId) return slots;
+
+    // Get all unavailable slots for the day in one query
+    const formattedDate = format(selectedDate, 'yyyy-MM-dd');
+    const { data: unavailableSlots, error } = await supabase
+      .from('employee_schedules')
+      .select('start_time, end_time')
+      .eq('employee_id', employeeId)
+      .eq('date', formattedDate)
+      .eq('is_available', false);
+
+    if (error) {
+      console.error('Error fetching unavailable slots:', error);
+      return slots;
+    }
 
     for (const range of workingHoursRanges) {
       const [start, end] = range.split('-');
@@ -64,15 +65,11 @@ export const useTimeSlots = () => {
       let currentSlot = startTime;
       while (currentSlot < endTime) {
         const timeString = format(currentSlot, 'HH:mm');
-        const isAvailable = await checkTimeSlotAvailability(
-          employeeId,
-          selectedDate,
-          timeString
-        );
+        const available = isSlotAvailable(timeString, unavailableSlots || []);
         
         slots.push({
           time: timeString,
-          isAvailable
+          isAvailable: available
         });
         
         currentSlot = new Date(currentSlot.getTime() + 30 * 60000);

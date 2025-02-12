@@ -2,6 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { cn } from "@/lib/utils";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface TimeSlot {
   time: string;
@@ -28,10 +29,21 @@ export const TimeSlotPicker = ({
 
   if (timeSlots.length === 0) {
     return (
-      <div className="text-center text-gray-500">
-        {language === 'ar' 
-          ? 'لا توجد مواعيد متاحة في هذا اليوم' 
-          : 'No available time slots for this day'}
+      <div className="space-y-4">
+        <h3 className="text-lg font-medium text-center">
+          {language === 'ar' ? 'جاري تحميل المواعيد...' : 'Loading time slots...'}
+        </h3>
+        <div className="w-screen -mx-4 md:-mx-8">
+          <div className="bg-gradient-to-b from-white to-gray-50 shadow-sm border-b border-gray-100">
+            <div className="overflow-x-auto hide-scrollbar px-6 py-4">
+              <div className="flex space-x-3 rtl:space-x-reverse min-w-full">
+                {[1, 2, 3, 4, 5, 6].map((i) => (
+                  <Skeleton key={i} className="h-10 w-20" />
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
