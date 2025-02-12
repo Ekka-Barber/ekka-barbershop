@@ -1,5 +1,5 @@
 
-import { format, parse, isToday, isBefore, addHours } from "date-fns";
+import { format, parse, isToday, isBefore, addHours, addMinutes } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 
 interface TimeSlot {
@@ -135,7 +135,7 @@ export const useTimeSlots = () => {
     // Only apply the minimum booking time filter for today's slots
     if (isToday(selectedDate)) {
       const now = new Date();
-      const minimumBookingTime = addHours(now, 1);
+      const minimumBookingTime = addMinutes(now, 30); // Changed from 1 hour to 30 minutes
 
       return slots
         .filter(slot => {
