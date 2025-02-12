@@ -18,13 +18,16 @@ export const useTimeSlots = () => {
     return hours * 60 + minutes;
   };
 
-  const isSlotAvailable = (slotTime: string, unavailableSlots: UnavailableSlot[]) => {
-    const slotMinutes = convertTimeToMinutes(slotTime);
+  const isSlotAvailable = (slotMinutes: number, unavailableSlots: UnavailableSlot[]) => {
     const slotEndMinutes = slotMinutes + 30; // 30-minute slots
     
-    return !unavailableSlots.some(slot => 
-      (slotMinutes <= slot.end_time && slotEndMinutes > slot.start_time)
-    );
+    // Check if the slot overlaps with any unavailable period
+    return !unavailableSlots.some(slot => {
+      // If either the start or end of our slot falls within an unavailable period
+      return (slotMinutes >= slot.start_time && slotMinutes < slot.end_time) ||
+             (slotEndMinutes > slot.start_time && slotEndMinutes <= slot.end_time) ||
+             (slotMinutes <= slot.start_time && slotEndMinutes >= slot.end_time);
+    });
   };
 
   const generateTimeSlots = async (
@@ -35,6 +38,12 @@ export const useTimeSlots = () => {
     const slots: TimeSlot[] = [];
     
     if (!selectedDate || !employeeId) return slots;
+
+    console.log('Generating time slots for:', {
+      date: selectedDate,
+      employeeId,
+      ranges: workingHoursRanges
+    });
 
     // Get all unavailable slots for the day in one query
     const formattedDate = format(selectedDate, 'yyyy-MM-dd');
@@ -50,6 +59,8 @@ export const useTimeSlots = () => {
       return slots;
     }
 
+    console.log('Fetched unavailable slots:', unavailableSlots);
+
     for (const range of workingHoursRanges) {
       const [start, end] = range.split('-');
       
@@ -59,25 +70,32 @@ export const useTimeSlots = () => {
       
       // Handle cases where end time is after midnight
       if (end === "00:00" || end === "01:00") {
-        endTime = new Date(endTime.getTime() + 24 * 60 * 60 * 1000);
+        endTime = addHours(endTime, 24);
       }
       
       let currentSlot = startTime;
       while (currentSlot < endTime) {
         const timeString = format(currentSlot, 'HH:mm');
-        const available = isSlotAvailable(timeString, unavailableSlots || []);
+        const slotMinutes = convertTimeToMinutes(timeString);
+        const available = isSlotAvailable(slotMinutes, unavailableSlots || []);
         
+        console.log('Checking slot:', {
+          time: timeString,
+          minutes: slotMinutes,
+          available
+        });
+
         slots.push({
           time: timeString,
           isAvailable: available
         });
         
-        currentSlot = new Date(currentSlot.getTime() + 30 * 60000);
+        currentSlot = addHours(currentSlot, 0.5); // Add 30 minutes
       }
     }
 
     // Only apply the minimum booking time filter for today's slots
-    if (selectedDate && isToday(selectedDate)) {
+    if (isToday(selectedDate)) {
       const now = new Date();
       const minimumBookingTime = addHours(now, 1);
 
