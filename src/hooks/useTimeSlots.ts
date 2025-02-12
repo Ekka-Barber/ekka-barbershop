@@ -28,16 +28,16 @@ export const useTimeSlots = () => {
       .select('*')
       .eq('employee_id', employeeId)
       .eq('date', formattedDate)
-      .overlaps('start_time', [startMinutes, endMinutes]);
+      .eq('is_available', false)
+      .or(`start_time.lte.${endMinutes},end_time.gte.${startMinutes}`);
 
     if (error) {
       console.error('Error checking employee schedules:', error);
       return true; // Default to available if there's an error
     }
 
-    // If we find any schedule marked as unavailable that overlaps with this time slot
-    const isUnavailable = schedules.some(schedule => !schedule.is_available);
-    return !isUnavailable;
+    // If we find any unavailable schedules that overlap with this time slot
+    return schedules.length === 0;
   };
 
   const generateTimeSlots = async (
