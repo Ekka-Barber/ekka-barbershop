@@ -352,44 +352,82 @@ export type Database = {
       }
       employee_schedules: {
         Row: {
+          branch_id: string | null
           created_at: string | null
           crosses_midnight: boolean | null
-          day_of_week: number | null
-          employee_id: string | null
-          end_time: number | null
+          date: string
+          day_of_week: number
+          employee_id: string
+          end_time: number
           id: string
           is_available: boolean | null
-          start_time: number | null
+          is_recurring: boolean | null
+          last_modified_by: string | null
+          notes: string | null
+          reason: string | null
+          schedule_label: string | null
+          schedule_type: string
+          start_time: number
           updated_at: string | null
         }
         Insert: {
+          branch_id?: string | null
           created_at?: string | null
           crosses_midnight?: boolean | null
-          day_of_week?: number | null
-          employee_id?: string | null
-          end_time?: number | null
+          date: string
+          day_of_week: number
+          employee_id: string
+          end_time: number
           id?: string
           is_available?: boolean | null
-          start_time?: number | null
+          is_recurring?: boolean | null
+          last_modified_by?: string | null
+          notes?: string | null
+          reason?: string | null
+          schedule_label?: string | null
+          schedule_type?: string
+          start_time: number
           updated_at?: string | null
         }
         Update: {
+          branch_id?: string | null
           created_at?: string | null
           crosses_midnight?: boolean | null
-          day_of_week?: number | null
-          employee_id?: string | null
-          end_time?: number | null
+          date?: string
+          day_of_week?: number
+          employee_id?: string
+          end_time?: number
           id?: string
           is_available?: boolean | null
-          start_time?: number | null
+          is_recurring?: boolean | null
+          last_modified_by?: string | null
+          notes?: string | null
+          reason?: string | null
+          schedule_label?: string | null
+          schedule_type?: string
+          start_time?: number
           updated_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "employee_schedules_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "employee_schedules_employee_id_fkey"
             columns: ["employee_id"]
             isOneToOne: false
             referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_schedules_last_modified_by_fkey"
+            columns: ["last_modified_by"]
+            isOneToOne: false
+            referencedRelation: "branch_managers"
             referencedColumns: ["id"]
           },
         ]
@@ -1139,6 +1177,15 @@ export type Database = {
           x: number
         }
         Returns: number
+      }
+      is_time_slot_available: {
+        Args: {
+          p_employee_id: string
+          p_date: string
+          p_start_time: number
+          p_end_time: number
+        }
+        Returns: boolean
       }
       set_branch_manager_code: {
         Args: {
