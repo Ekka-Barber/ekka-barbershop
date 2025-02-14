@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from "@/integrations/supabase/client";
-import { BookingStep } from '@/components/booking/BookingProgress';
+import { BookingStep } from '@/types/booking';
 import { Service, validateService, SelectedService } from '@/types/service';
 import { useLanguage } from "@/contexts/LanguageContext";
 
@@ -30,6 +30,22 @@ export const useBooking = ({ branchId }: UseBookingProps = {}) => {
   });
 
   const { language } = useLanguage();
+
+  const { data: selectedBranch, isLoading: branchLoading } = useQuery({
+    queryKey: ['branch', branchId],
+    queryFn: async () => {
+      if (!branchId) return null;
+      const { data, error } = await supabase
+        .from('branches')
+        .select('*')
+        .eq('id', branchId)
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!branchId
+  });
 
   const { data: categories, isLoading: categoriesLoading } = useQuery({
     queryKey: ['service_categories'],
@@ -214,6 +230,8 @@ export const useBooking = ({ branchId }: UseBookingProps = {}) => {
     handleUpsellServiceAdd,
     totalPrice,
     clearBooking,
-    confirmBooking
+    confirmBooking,
+    selectedBranch,
+    branchLoading
   };
 };
