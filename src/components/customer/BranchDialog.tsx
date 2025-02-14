@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useTimeFormatting } from "@/hooks/useTimeFormatting";
+import { Clock } from "lucide-react";
 
 interface Branch {
   id: string;
@@ -42,19 +43,24 @@ export const BranchDialog = ({
             <Button
               key={branch.id}
               variant="outline"
-              className="h-[80px] flex flex-row items-center gap-4 px-4 bg-white hover:bg-[#C4A36F]/5 border-2 border-gray-200 hover:border-[#C4A36F] transition-all duration-300 rounded-lg group"
+              className="h-[90px] flex flex-row items-center gap-3 px-4 bg-white hover:bg-[#C4A36F]/5 border-2 border-gray-200 hover:border-[#C4A36F] transition-all duration-300 rounded-lg group relative overflow-hidden"
               onClick={() => onBranchSelect(branch.id)}
             >
-              <div className={`flex-1 flex flex-col items-${language === 'ar' ? 'end' : 'start'} gap-1`}>
-                <span className="font-semibold text-base text-[#222222] group-hover:text-[#C4A36F] transition-colors">
+              <div className={`flex-1 flex flex-col items-${language === 'ar' ? 'end' : 'start'} gap-2 min-w-0`}>
+                <span className="font-bold text-lg text-[#222222] group-hover:text-[#C4A36F] transition-colors line-clamp-1">
                   {language === 'ar' ? branch.name_ar : branch.name}
                 </span>
-                <span className="text-sm text-gray-500 group-hover:text-[#C4A36F]/70 transition-colors">
+                <span className="text-sm text-gray-600 group-hover:text-[#C4A36F]/70 transition-colors line-clamp-1">
                   {language === 'ar' ? branch.address_ar : branch.address}
                 </span>
               </div>
-              <div className="text-xs text-gray-400 group-hover:text-[#C4A36F]/60 transition-colors">
-                {getCurrentDayHours(branch.working_hours, language === 'ar')}
+              <div className={`border-s border-gray-200 ps-3 ${language === 'ar' ? 'border-s-0 border-e ps-0 pe-3' : ''}`}>
+                <div className="flex items-center gap-1.5 text-sm font-medium text-[#C4A36F] whitespace-nowrap">
+                  <Clock className="w-4 h-4" />
+                  <span className="group-hover:text-[#C4A36F] transition-colors">
+                    {getCurrentDayHours(branch.working_hours, language === 'ar')}
+                  </span>
+                </div>
               </div>
             </Button>
           ))}
