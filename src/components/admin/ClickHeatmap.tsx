@@ -159,8 +159,10 @@ export const ClickHeatmap = () => {
 
         if (distance <= CLUSTER_RADIUS) {
           cluster.points.push(normalizedClick.originalData);
-          cluster.centerX = cluster.points.reduce((sum, p) => sum + normalizedClick.x, 0) / cluster.points.length;
-          cluster.centerY = cluster.points.reduce((sum, p) => sum + normalizedClick.y, 0) / cluster.points.length;
+          // Update cluster center as average of all points
+          const totalPoints = cluster.points.length;
+          cluster.centerX = (cluster.centerX * (totalPoints - 1) + normalizedClick.x) / totalPoints;
+          cluster.centerY = (cluster.centerY * (totalPoints - 1) + normalizedClick.y) / totalPoints;
           addedToCluster = true;
           break;
         }
@@ -348,6 +350,7 @@ export const ClickHeatmap = () => {
           ref={iframeRef}
           src="/customer"
           className="absolute inset-0 w-full h-full border-none"
+          sandbox="allow-same-origin allow-scripts allow-forms"
         />
         <canvas
           ref={canvasRef}
