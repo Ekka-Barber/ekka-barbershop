@@ -5,6 +5,7 @@ import 'react-pdf/dist/esm/Page/AnnotationLayer.css';
 import 'react-pdf/dist/esm/Page/TextLayer.css';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
 
@@ -53,26 +54,30 @@ const PDFViewer = ({ pdfUrl }: PDFViewerProps) => {
         />
       </Document>
       {showNavigation && (
-        <div className="flex flex-col sm:flex-row justify-center items-center gap-4 mt-6">
+        <div className="flex items-center justify-center gap-6 mt-6">
           <button
             onClick={() => setPageNumber(page => Math.max(1, page - 1))}
             disabled={pageNumber <= 1}
-            className="w-full sm:w-auto px-6 py-3 bg-[#C4A36F] hover:bg-[#B39260] text-white rounded-lg font-medium transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+            className="p-3 rounded-full bg-[#C4A36F] hover:bg-[#B39260] text-white transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg transform hover:-translate-y-0.5 flex items-center justify-center"
+            aria-label="Previous page"
           >
-            {language === 'ar' ? 'السابق' : 'Previous'}
+            <ChevronLeft className="w-6 h-6" />
           </button>
-          <p className="text-center text-[#222222] font-medium">
+          
+          <p className="text-center text-[#222222] font-medium min-w-[100px]">
             {language === 'ar' 
-              ? `الصفحة ${pageNumber} من ${numPages}`
-              : `Page ${pageNumber} of ${numPages}`
+              ? `${pageNumber} / ${numPages}`
+              : `${pageNumber} / ${numPages}`
             }
           </p>
+          
           <button
             onClick={() => setPageNumber(page => Math.min(numPages || page, page + 1))}
             disabled={pageNumber >= (numPages || 1)}
-            className="w-full sm:w-auto px-6 py-3 bg-[#C4A36F] hover:bg-[#B39260] text-white rounded-lg font-medium transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+            className="p-3 rounded-full bg-[#C4A36F] hover:bg-[#B39260] text-white transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg transform hover:-translate-y-0.5 flex items-center justify-center"
+            aria-label="Next page"
           >
-            {language === 'ar' ? 'التالي' : 'Next'}
+            <ChevronRight className="w-6 h-6" />
           </button>
         </div>
       )}
