@@ -37,7 +37,7 @@ export const BranchDialog = ({
             {t('select.branch')}
           </DialogTitle>
         </DialogHeader>
-        <div className="flex flex-col gap-3">
+        <div className="grid grid-cols-2 gap-3">
           {branches?.map((branch) => (
             <Button
               key={branch.id}
