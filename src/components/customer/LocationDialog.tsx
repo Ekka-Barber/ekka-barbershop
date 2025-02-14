@@ -46,7 +46,7 @@ export const LocationDialog = ({
               </>
             ) : (
               <>
-                Select a branch location
+                Choose a branch for quick directions
                 <Car className="w-4 h-4 text-[#C4A36F]" />
               </>
             )}
