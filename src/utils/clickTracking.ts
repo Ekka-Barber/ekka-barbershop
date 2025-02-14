@@ -17,22 +17,22 @@ export const trackClick = async (event: MouseEvent) => {
     const doc = target.ownerDocument;
     
     // Get scroll position
-    const scrollX = doc.defaultView?.scrollX || doc.documentElement.scrollLeft || 0;
-    const scrollY = doc.defaultView?.scrollY || doc.documentElement.scrollTop || 0;
+    const scrollX = Math.round(doc.defaultView?.scrollX || doc.documentElement.scrollLeft || 0);
+    const scrollY = Math.round(doc.defaultView?.scrollY || doc.documentElement.scrollTop || 0);
     
     // Get total content size (ensure non-zero values)
-    const contentWidth = Math.max(
+    const contentWidth = Math.round(Math.max(
       doc.documentElement.scrollWidth,
       doc.documentElement.clientWidth,
       doc.documentElement.offsetWidth,
       100 // Minimum width to prevent division by zero
-    );
-    const contentHeight = Math.max(
+    ));
+    const contentHeight = Math.round(Math.max(
       doc.documentElement.scrollHeight,
       doc.documentElement.clientHeight,
       doc.documentElement.offsetHeight,
       100 // Minimum height to prevent division by zero
-    );
+    ));
 
     // Get click coordinates relative to the document
     const rect = target.getBoundingClientRect();
@@ -62,8 +62,8 @@ export const trackClick = async (event: MouseEvent) => {
       page_url: pageUrl,
       element_id: target.id || null,
       element_class: target.className || null,
-      screen_width: window.innerWidth,
-      screen_height: window.innerHeight,
+      screen_width: Math.round(window.innerWidth),
+      screen_height: Math.round(window.innerHeight),
       device_type: getDeviceType()
     }]);
 
