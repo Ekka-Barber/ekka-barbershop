@@ -1,4 +1,3 @@
-
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
@@ -30,9 +29,8 @@ interface WhatsAppIntegrationProps {
   customerDetails: CustomerDetails;
   language: string;
   branch?: { 
-    whatsapp_number?: string | null; 
-    name?: string;
-    name_ar?: string;
+    whatsapp_number?: string | null;
+    id?: string;
   };
 }
 
@@ -105,9 +103,7 @@ ${totalDiscount > 0 ? `💰 الخصم: ${formatPrice(totalDiscount)}` : ''}
           duration_minutes: selectedServices.reduce((sum, service) => sum + service.duration, 0),
           services: selectedServices,
           total_price: totalPrice,
-          branch_name: branch?.name || null,
-          branch_name_ar: branch?.name_ar || null,
-          barber_name: selectedBarberName || null,
+          branch_id: branch?.id || null,
           source: 'website',
           browser_info: {
             userAgent: navigator.userAgent,
