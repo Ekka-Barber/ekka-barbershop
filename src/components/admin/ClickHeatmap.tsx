@@ -17,6 +17,12 @@ interface ClickData {
   created_at: string;
 }
 
+interface NormalizedClick {
+  x: number;
+  y: number;
+  originalData: ClickData;
+}
+
 interface Cluster {
   centerX: number;
   centerY: number;
@@ -32,6 +38,9 @@ const COLORS = {
   max: [139, 92, 246]      // Vivid Purple
 };
 
+const MAX_SCREEN_WIDTH = 1920;  // Reference width for normalization
+const MAX_SCREEN_HEIGHT = 1080; // Reference height for normalization
+
 export const ClickHeatmap = () => {
   const [selectedPage, setSelectedPage] = useState<string>('/customer');
   const [selectedDevice, setSelectedDevice] = useState<DeviceType>('all');
@@ -46,6 +55,19 @@ export const ClickHeatmap = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
+
+  // Normalized click data with proper scaling
+  const normalizedClicks = useMemo(() => {
+    if (!containerRef.current) return [];
+
+    const { width: containerWidth, height: containerHeight } = containerRef.current.getBoundingClientRect();
+
+    return clickData.map(click => ({
+      x: (click.x_coordinate / MAX_SCREEN_WIDTH) * containerWidth,
+      y: (click.y_coordinate / MAX_SCREEN_HEIGHT) * containerHeight,
+      originalData: click
+    }));
+  }, [clickData]);
 
   // Fetch pages
   useEffect(() => {
@@ -70,23 +92,30 @@ export const ClickHeatmap = () => {
     fetchPages();
   }, []);
 
-  // Cluster data processing
+  // Cluster data processing with normalized coordinates
   const clusters = useMemo(() => {
     const CLUSTER_RADIUS = 30 / zoomLevel;
     const clusters: Cluster[] = [];
 
-    clickData.forEach((point) => {
+    normalizedClicks.forEach((normalizedClick) => {
       let addedToCluster = false;
       
       for (const cluster of clusters) {
-        const dx = cluster.centerX - point.x_coordinate;
-        const dy = cluster.centerY - point.y_coordinate;
+        const dx = cluster.centerX - normalizedClick.x;
+        const dy = cluster.centerY - normalizedClick.y;
         const distance = Math.sqrt(dx * dx + dy * dy);
 
         if (distance <= CLUSTER_RADIUS) {
-          cluster.points.push(point);
-          cluster.centerX = cluster.points.reduce((sum, p) => sum + p.x_coordinate, 0) / cluster.points.length;
-          cluster.centerY = cluster.points.reduce((sum, p) => sum + p.y_coordinate, 0) / cluster.points.length;
+          cluster.points.push(normalizedClick.originalData);
+          // Recalculate center based on all points
+          cluster.centerX = cluster.points.reduce((sum, p) => {
+            const normalized = (p.x_coordinate / MAX_SCREEN_WIDTH) * (containerRef.current?.clientWidth || 1);
+            return sum + normalized;
+          }, 0) / cluster.points.length;
+          cluster.centerY = cluster.points.reduce((sum, p) => {
+            const normalized = (p.y_coordinate / MAX_SCREEN_HEIGHT) * (containerRef.current?.clientHeight || 1);
+            return sum + normalized;
+          }, 0) / cluster.points.length;
           addedToCluster = true;
           break;
         }
@@ -94,26 +123,28 @@ export const ClickHeatmap = () => {
 
       if (!addedToCluster) {
         clusters.push({
-          centerX: point.x_coordinate,
-          centerY: point.y_coordinate,
-          points: [point]
+          centerX: normalizedClick.x,
+          centerY: normalizedClick.y,
+          points: [normalizedClick.originalData]
         });
       }
     });
 
     return clusters;
-  }, [clickData, zoomLevel]);
+  }, [normalizedClicks, zoomLevel]);
 
   // Draw heatmap
   useEffect(() => {
+    let isActive = true;
+    
     const drawHeatmap = async () => {
-      if (!containerRef.current || !canvasRef.current) return;
+      if (!containerRef.current || !canvasRef.current || !isActive) return;
 
       setIsLoading(true);
       try {
         let query = supabase
           .from('click_tracking')
-          .select('x_coordinate, y_coordinate, device_type, created_at, page_url')  // Added page_url to select
+          .select('x_coordinate, y_coordinate, device_type, created_at, page_url')
           .eq('page_url', selectedPage);
         
         if (selectedDevice !== 'all') {
@@ -123,6 +154,7 @@ export const ClickHeatmap = () => {
         const { data, error } = await query;
         
         if (error) throw error;
+        if (!isActive) return;
 
         setClickData(data || []);
         
@@ -164,14 +196,22 @@ export const ClickHeatmap = () => {
 
       } catch (error) {
         console.error('Error creating heatmap:', error);
-        toast.error('Error creating heatmap');
+        if (isActive) {
+          toast.error('Error creating heatmap');
+        }
       } finally {
-        setIsLoading(false);
+        if (isActive) {
+          setIsLoading(false);
+        }
       }
     };
 
     drawHeatmap();
-  }, [selectedPage, selectedDevice, opacity, zoomLevel, clusters]);
+
+    return () => {
+      isActive = false;
+    };
+  }, [selectedPage, selectedDevice, opacity, zoomLevel]); // Removed clusters dependency
 
   // Canvas sizing
   useEffect(() => {
