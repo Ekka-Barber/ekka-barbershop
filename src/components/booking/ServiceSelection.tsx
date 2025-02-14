@@ -22,7 +22,7 @@ interface ServiceSelectionProps {
 export const ServiceSelection = ({
   categories,
   isLoading,
-  selectedServices,
+  selectedServices = [], // Provide default empty array
   onServiceToggle,
   onStepChange
 }: ServiceSelectionProps) => {
@@ -75,8 +75,8 @@ export const ServiceSelection = ({
     cat => cat.id === activeCategory
   )?.services.sort((a, b) => a.display_order - b.display_order);
 
-  const totalDuration = selectedServices.reduce((total, service) => total + service.duration, 0);
-  const totalPrice = selectedServices.reduce((total, service) => total + service.price, 0);
+  const totalDuration = selectedServices?.reduce((total, service) => total + service.duration, 0) || 0;
+  const totalPrice = selectedServices?.reduce((total, service) => total + service.price, 0) || 0;
 
   if (isLoading) {
     return <ServicesSkeleton />;

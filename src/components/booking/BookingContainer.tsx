@@ -19,18 +19,51 @@ function StepRenderer({ step, onNext, onPrevious, onConfirm }: {
   onPrevious: () => void;
   onConfirm: () => void;
 }) {
-  const { language } = useLanguage();
-  const { selectedServices, selectedDate, selectedTime, selectedBarber } = useBooking();
+  const { 
+    selectedServices, 
+    selectedDate, 
+    selectedTime, 
+    selectedBarber,
+    categories,
+    categoriesLoading,
+    handleServiceToggle 
+  } = useBooking();
 
   switch (step) {
     case 'services':
-      return <ServiceSelection onStepChange={onNext} />;
+      return (
+        <ServiceSelection 
+          categories={categories}
+          isLoading={categoriesLoading}
+          selectedServices={selectedServices}
+          onServiceToggle={handleServiceToggle}
+          onStepChange={onNext}
+        />
+      );
     case 'datetime':
-      return <DateTimeSelection selectedDate={selectedDate} onDateSelect={onNext} onBack={onPrevious} />;
+      return (
+        <DateTimeSelection 
+          selectedDate={selectedDate} 
+          selectedTime={selectedTime}
+          onTimeSelect={onNext}
+          onPrevious={onPrevious}
+        />
+      );
     case 'barber':
-      return <BarberSelection onStepChange={onNext} onBack={onPrevious} />;
+      return (
+        <BarberSelection 
+          selectedBarber={selectedBarber}
+          onNext={onNext}
+          onPrevious={onPrevious}
+        />
+      );
     case 'details':
-      return <CustomerForm onSubmit={onConfirm} onBack={onPrevious} />;
+      return (
+        <CustomerForm 
+          onStepChange={onConfirm}
+          onPrevious={onPrevious}
+        />
+      );
     default:
       return <div className="text-center">{language === 'ar' ? 'خطأ' : 'Error'}</div>;
   }
