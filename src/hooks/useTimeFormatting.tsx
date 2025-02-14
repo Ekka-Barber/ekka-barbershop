@@ -33,8 +33,55 @@ export const useTimeFormatting = () => {
     return <WorkingHoursDisplay isArabic={isArabic} timeRanges={timeRanges} />;
   };
 
+  const getAllDaysHours = (workingHours: WorkingHoursType, isArabic: boolean): FormattedHours[] => {
+    if (!workingHours) return [];
+
+    const days = {
+      sunday: { en: 'Sun', ar: 'الأحد' },
+      monday: { en: 'Mon', ar: 'الإثنين' },
+      tuesday: { en: 'Tue', ar: 'الثلاثاء' },
+      wednesday: { en: 'Wed', ar: 'الأربعاء' },
+      thursday: { en: 'Thu', ar: 'الخميس' },
+      friday: { en: 'Fri', ar: 'الجمعة' },
+      saturday: { en: 'Sat', ar: 'السبت' }
+    };
+
+    const daysOrder = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+    
+    // Group days with same hours
+    const hoursGroups: { [hours: string]: string[] } = {};
+    
+    daysOrder.forEach(day => {
+      if (!workingHours[day]) return;
+      
+      const timeRanges = workingHours[day].map(range => formatTimeRange(range, isArabic)).join(', ');
+      if (!hoursGroups[timeRanges]) {
+        hoursGroups[timeRanges] = [];
+      }
+      hoursGroups[timeRanges].push(day);
+    });
+
+    // Format groups into readable strings
+    return Object.entries(hoursGroups).map(([hours, groupDays]) => {
+      let label: string;
+      if (groupDays.length === 1) {
+        label = days[groupDays[0]][isArabic ? 'ar' : 'en'];
+      } else {
+        const first = days[groupDays[0]][isArabic ? 'ar' : 'en'];
+        const last = days[groupDays[groupDays.length - 1]][isArabic ? 'ar' : 'en'];
+        label = `${first} - ${last}`;
+      }
+      
+      return {
+        label,
+        hours
+      };
+    });
+  };
+
   return {
     formatTimeRange,
-    getCurrentDayHours
+    getCurrentDayHours,
+    getAllDaysHours
   };
 };
