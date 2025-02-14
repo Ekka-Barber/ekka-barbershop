@@ -1,14 +1,15 @@
 
-import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Card } from "@/components/ui/card";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { toast } from "sonner";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { format } from "date-fns";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Loader2 } from "lucide-react";
 
 interface ServiceTracking {
   service_name: string;
-  action: string;
+  action: 'added' | 'removed';
   timestamp: string;
 }
 
@@ -18,70 +19,56 @@ interface BookingBehavior {
 }
 
 interface ServiceStats {
-  service_name: string;
-  added_count: number;
-  removed_count: number;
+  name: string;
+  added: number;
+  removed: number;
+  net: number;
+}
+
+interface StepStats {
+  name: string;
+  count: number;
 }
 
 const CustomerTrackingDashboard = () => {
-  const [serviceTracking, setServiceTracking] = useState<ServiceTracking[]>([]);
-  const [bookingBehavior, setBookingBehavior] = useState<BookingBehavior[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetchTrackingData();
-  }, []);
-
-  const fetchTrackingData = async () => {
-    try {
-      console.log('Fetching tracking data...');
-      
-      // Fetch service tracking data
-      const { data: serviceData, error: serviceError } = await supabase
+  // Fetch service tracking data
+  const { data: serviceTracking, isLoading: serviceLoading, error: serviceError } = useQuery<ServiceTracking[]>({
+    queryKey: ['service-tracking'],
+    queryFn: async () => {
+      const { data, error } = await supabase
         .from('service_tracking')
         .select('service_name, action, timestamp')
         .order('timestamp', { ascending: false });
+      
+      if (error) throw error;
+      return data;
+    }
+  });
 
-      if (serviceError) {
-        console.error('Service tracking error:', serviceError);
-        toast.error('Error fetching service tracking data');
-        throw serviceError;
-      }
-
-      console.log('Service tracking data:', serviceData);
-
-      // Fetch booking behavior data
-      const { data: bookingData, error: bookingError } = await supabase
+  // Fetch booking behavior data
+  const { data: bookingBehavior, isLoading: bookingLoading, error: bookingError } = useQuery<BookingBehavior[]>({
+    queryKey: ['booking-behavior'],
+    queryFn: async () => {
+      const { data, error } = await supabase
         .from('booking_behavior')
         .select('step, timestamp')
         .order('timestamp', { ascending: false });
-
-      if (bookingError) {
-        console.error('Booking behavior error:', bookingError);
-        toast.error('Error fetching booking behavior data');
-        throw bookingError;
-      }
-
-      console.log('Booking behavior data:', bookingData);
-
-      setServiceTracking(serviceData || []);
-      setBookingBehavior(bookingData || []);
-    } catch (error) {
-      console.error('Error fetching tracking data:', error);
-      toast.error('Error fetching tracking data');
-    } finally {
-      setLoading(false);
+      
+      if (error) throw error;
+      return data;
     }
-  };
+  });
 
+  // Process service tracking data
   const processServiceStats = (): ServiceStats[] => {
+    if (!serviceTracking) return [];
+    
     const stats = new Map<string, { added: number; removed: number }>();
-
+    
     serviceTracking.forEach((track) => {
       if (!stats.has(track.service_name)) {
         stats.set(track.service_name, { added: 0, removed: 0 });
       }
-
       const current = stats.get(track.service_name)!;
       if (track.action === 'added') {
         current.added++;
@@ -90,116 +77,135 @@ const CustomerTrackingDashboard = () => {
       }
     });
 
-    return Array.from(stats.entries()).map(([service_name, counts]) => ({
-      service_name,
-      added_count: counts.added,
-      removed_count: counts.removed
+    return Array.from(stats.entries()).map(([name, counts]) => ({
+      name,
+      added: counts.added,
+      removed: counts.removed,
+      net: counts.added - counts.removed
     }));
   };
 
-  const processBookingSteps = () => {
+  // Process booking behavior data
+  const processBookingSteps = (): StepStats[] => {
+    if (!bookingBehavior) return [];
+    
     const stepCounts = new Map<string, number>();
     bookingBehavior.forEach((behavior) => {
       stepCounts.set(behavior.step, (stepCounts.get(behavior.step) || 0) + 1);
     });
 
-    return Array.from(stepCounts.entries()).map(([step, count]) => ({
-      step,
+    return Array.from(stepCounts.entries()).map(([name, count]) => ({
+      name,
       count
     }));
   };
 
-  if (loading) {
-    return <div className="text-center p-4">Loading tracking data...</div>;
+  if (serviceLoading || bookingLoading) {
+    return (
+      <div className="flex items-center justify-center p-8">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
+
+  if (serviceError || bookingError) {
+    return (
+      <Alert variant="destructive" className="mb-4">
+        <AlertDescription>
+          Error loading tracking data. Please try again later.
+        </AlertDescription>
+      </Alert>
+    );
   }
 
   const serviceStats = processServiceStats();
   const bookingStats = processBookingSteps();
 
   return (
-    <div className="space-y-6">
-      <Tabs defaultValue="services" className="w-full">
-        <TabsList className="w-full grid grid-cols-2">
-          <TabsTrigger value="services">Service Tracking</TabsTrigger>
-          <TabsTrigger value="booking">Booking Behavior</TabsTrigger>
-        </TabsList>
+    <div className="space-y-8">
+      <Card>
+        <CardHeader>
+          <CardTitle>Service Selection Tracking</CardTitle>
+          <CardDescription>Shows how many times services were added or removed from bookings</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="h-[400px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart
+                data={serviceStats}
+                margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis 
+                  dataKey="name"
+                  angle={-45}
+                  textAnchor="end"
+                  height={80}
+                  interval={0}
+                />
+                <YAxis />
+                <Tooltip />
+                <Bar dataKey="added" fill="#4ade80" name="Added" />
+                <Bar dataKey="removed" fill="#f87171" name="Removed" />
+                <Bar dataKey="net" fill="#60a5fa" name="Net" />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </CardContent>
+      </Card>
 
-        <TabsContent value="services" className="space-y-6">
-          <Card className="p-4">
-            <h3 className="text-lg font-semibold mb-4">Service Selection Statistics</h3>
-            <div className="h-[400px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={serviceStats}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="service_name" />
-                  <YAxis />
-                  <Tooltip />
-                  <Bar dataKey="added_count" name="Added" fill="#4CAF50" />
-                  <Bar dataKey="removed_count" name="Removed" fill="#f44336" />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </Card>
+      <Card>
+        <CardHeader>
+          <CardTitle>Booking Step Completion</CardTitle>
+          <CardDescription>Shows how many users reached each step of the booking process</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="h-[400px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart
+                data={bookingStats}
+                margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis 
+                  dataKey="name"
+                  angle={-45}
+                  textAnchor="end"
+                  height={80}
+                  interval={0}
+                />
+                <YAxis />
+                <Tooltip />
+                <Bar dataKey="count" fill="#60a5fa" name="Count" />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </CardContent>
+      </Card>
 
-          <Card className="p-4">
-            <h3 className="text-lg font-semibold mb-4">Recent Service Interactions</h3>
-            <div className="space-y-2">
-              {serviceTracking.slice(0, 10).map((track, index) => (
-                <div
-                  key={index}
-                  className="p-2 border rounded flex justify-between items-center"
-                >
-                  <span className="font-medium">{track.service_name}</span>
-                  <div className="flex items-center gap-2">
-                    <span className={`px-2 py-1 rounded text-sm ${
-                      track.action === 'added' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                    }`}>
-                      {track.action}
-                    </span>
-                    <span className="text-sm text-gray-500">
-                      {new Date(track.timestamp).toLocaleString()}
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="booking" className="space-y-6">
-          <Card className="p-4">
-            <h3 className="text-lg font-semibold mb-4">Booking Step Completion</h3>
-            <div className="h-[400px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={bookingStats}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="step" />
-                  <YAxis />
-                  <Tooltip />
-                  <Bar dataKey="count" name="Completions" fill="#2196F3" />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </Card>
-
-          <Card className="p-4">
-            <h3 className="text-lg font-semibold mb-4">Recent Step Completions</h3>
-            <div className="space-y-2">
-              {bookingBehavior.slice(0, 10).map((behavior, index) => (
-                <div
-                  key={index}
-                  className="p-2 border rounded flex justify-between items-center"
-                >
-                  <span className="font-medium">{behavior.step}</span>
-                  <span className="text-sm text-gray-500">
-                    {new Date(behavior.timestamp).toLocaleString()}
+      <Card>
+        <CardHeader>
+          <CardTitle>Recent Activity</CardTitle>
+          <CardDescription>Latest service selection and booking step activities</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {serviceTracking?.slice(0, 10).map((track, index) => (
+              <div key={index} className="flex justify-between items-center border-b pb-2">
+                <div>
+                  <span className={track.action === 'added' ? 'text-green-600' : 'text-red-600'}>
+                    {track.action === 'added' ? 'Added' : 'Removed'}
                   </span>
+                  {' '}{track.service_name}
                 </div>
-              ))}
-            </div>
-          </Card>
-        </TabsContent>
-      </Tabs>
+                <div className="text-sm text-gray-500">
+                  {format(new Date(track.timestamp), 'MMM d, yyyy HH:mm')}
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };
