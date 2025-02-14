@@ -113,7 +113,7 @@ export const ClickHeatmap = () => {
       try {
         let query = supabase
           .from('click_tracking')
-          .select('x_coordinate, y_coordinate, device_type, created_at')
+          .select('x_coordinate, y_coordinate, device_type, created_at, page_url')  // Added page_url to select
           .eq('page_url', selectedPage);
         
         if (selectedDevice !== 'all') {
