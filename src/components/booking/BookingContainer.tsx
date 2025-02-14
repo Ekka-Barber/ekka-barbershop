@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -47,7 +48,7 @@ function StepRenderer({ step, onNext, onPrevious, onConfirm }: {
       return (
         <DateTimeSelection 
           selectedDate={selectedDate}
-          onStepChange={onNext}
+          onDateSelect={onNext}
         />
       );
     case 'barber':
@@ -55,7 +56,7 @@ function StepRenderer({ step, onNext, onPrevious, onConfirm }: {
         <BarberSelection 
           selectedBarber={selectedBarber}
           onNextStep={onNext}
-          onBack={onPrevious}
+          onPrevious={onPrevious}
         />
       );
     case 'details':
@@ -63,8 +64,8 @@ function StepRenderer({ step, onNext, onPrevious, onConfirm }: {
         <CustomerForm 
           customerDetails={customerDetails}
           onCustomerDetailsChange={handleCustomerDetailsChange}
-          onBack={onPrevious}
-          onSubmit={onConfirm}
+          onStepChange={onConfirm}
+          onPrevious={onPrevious}
         />
       );
     default:
