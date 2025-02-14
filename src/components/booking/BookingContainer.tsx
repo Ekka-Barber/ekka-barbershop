@@ -24,13 +24,13 @@ function StepRenderer({ step, onNext, onPrevious, onConfirm }: {
 
   switch (step) {
     case 'services':
-      return <ServiceSelection onStepComplete={onNext} />;
+      return <ServiceSelection onStepChange={onNext} />;
     case 'datetime':
-      return <DateTimeSelection selectedDate={selectedDate} onStepComplete={onNext} onBack={onPrevious} />;
+      return <DateTimeSelection selectedDate={selectedDate} onDateSelect={onNext} onBack={onPrevious} />;
     case 'barber':
-      return <BarberSelection onNext={onNext} onPrevious={onPrevious} />;
+      return <BarberSelection onStepChange={onNext} onBack={onPrevious} />;
     case 'details':
-      return <CustomerForm onConfirm={onConfirm} onPrevious={onPrevious} />;
+      return <CustomerForm onSubmit={onConfirm} onBack={onPrevious} />;
     default:
       return <div className="text-center">{language === 'ar' ? 'خطأ' : 'Error'}</div>;
   }
