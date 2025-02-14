@@ -35,7 +35,7 @@ export const LocationDialog = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-xl bg-white border-0 shadow-2xl p-4">
         <DialogHeader>
-          <DialogTitle className="text-center text-2xl font-bold text-[#222222] mb-6">
+          <DialogTitle className="text-center text-xl font-bold text-[#222222] mb-4">
             {language === 'ar' ? 'فروعنا' : 'Our Branches'}
           </DialogTitle>
         </DialogHeader>
@@ -44,26 +44,26 @@ export const LocationDialog = ({
             <Button
               key={branch.id}
               variant="outline"
-              className="w-full flex items-center justify-between p-4 bg-white hover:bg-gray-50/80 border border-gray-100 rounded-xl group"
+              className="w-full h-[90px] flex flex-row items-center justify-between gap-3 px-4 bg-white hover:bg-[#C4A36F]/5 border-2 border-gray-200 hover:border-[#C4A36F] transition-all duration-300 rounded-lg group"
               onClick={() => onLocationClick(branch.google_maps_url)}
             >
-              <div className="flex items-center gap-2 text-[#C4A36F]">
-                <Clock className="w-4 h-4" />
-                <div className="flex flex-col gap-1 items-start">
+              <div className={`flex flex-col items-${language === 'ar' ? 'end' : 'start'} flex-shrink min-w-0 max-w-[70%]`}>
+                <span className="w-full font-bold text-base text-[#222222] group-hover:text-[#C4A36F] transition-colors truncate">
+                  {language === 'ar' ? branch.name_ar : branch.name}
+                </span>
+                <span className="w-full text-sm text-gray-600 group-hover:text-[#C4A36F]/70 transition-colors truncate mt-1">
+                  {language === 'ar' ? branch.address_ar : branch.address}
+                </span>
+              </div>
+              <div className={`flex-shrink-0 ${language === 'ar' ? 'border-s' : 'border-e'} border-gray-200 ${language === 'ar' ? 'ps-3' : 'pe-3'}`}>
+                <div className="flex items-center gap-1.5 text-sm font-medium text-[#C4A36F]">
+                  <Clock className="w-4 h-4" />
                   {getAllDaysHours(branch.working_hours, language === 'ar').map((dayHours, index) => (
-                    <span key={index} className="text-sm font-medium">
+                    <span key={index} className="group-hover:text-[#C4A36F] transition-colors whitespace-nowrap">
                       {dayHours.hours}
                     </span>
                   ))}
                 </div>
-              </div>
-              <div className="text-end">
-                <h3 className="text-2xl font-bold text-[#222222] mb-1">
-                  {language === 'ar' ? branch.name_ar : branch.name}
-                </h3>
-                <p className="text-sm text-gray-500">
-                  {language === 'ar' ? branch.address_ar : branch.address}
-                </p>
               </div>
             </Button>
           ))}
