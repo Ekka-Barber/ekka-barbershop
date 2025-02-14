@@ -1,3 +1,4 @@
+
 {
   "name": "Ekka Barbershop",
   "short_name": "Ekka",
@@ -6,16 +7,24 @@
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#ffffff",
+  "orientation": "portrait",
+  "display_override": ["standalone", "fullscreen"],
+  "categories": ["business", "lifestyle"],
+  "launch_handler": {
+    "client_mode": ["navigate-existing", "auto"]
+  },
   "icons": [
     {
       "src": "/lovable-uploads/8289fb1d-c6e6-4528-980c-6b52313ca898.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     },
     {
       "src": "/lovable-uploads/8289fb1d-c6e6-4528-980c-6b52313ca898.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ]
 }

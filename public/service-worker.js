@@ -1,6 +1,46 @@
 
-import { initializeCache, cleanupOldCaches, handleFetch } from './sw/cacheManager.js';
-import { log, logError } from './sw/logger.js';
+// Define constants
+const SW_VERSION = '1.0.0';
+const CACHE_NAME = 'ekka-v1';
+
+// Cache initialization
+async function initializeCache() {
+  const cache = await caches.open(CACHE_NAME);
+  return cache.addAll([
+    '/',
+    '/index.html',
+    '/manifest.json'
+  ]);
+}
+
+// Cache cleanup
+async function cleanupOldCaches() {
+  const cacheNames = await caches.keys();
+  return Promise.all(
+    cacheNames
+      .filter(cacheName => cacheName !== CACHE_NAME)
+      .map(cacheName => caches.delete(cacheName))
+  );
+}
+
+// Fetch handler
+async function handleFetch(event) {
+  return fetch(event.request)
+    .catch(() => {
+      return caches.match(event.request);
+    });
+}
+
+// Logging utilities
+function log(message, data = {}) {
+  const timestamp = new Date().toISOString();
+  console.log(`[ServiceWorker ${SW_VERSION}] ${timestamp} - ${message}`, data);
+}
+
+function logError(message, error) {
+  const timestamp = new Date().toISOString();
+  console.error(`[ServiceWorker ${SW_VERSION}] ${timestamp} - ${message}`, error);
+}
 
 // Install event
 self.addEventListener('install', (event) => {
