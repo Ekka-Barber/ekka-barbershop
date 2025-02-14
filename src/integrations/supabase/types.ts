@@ -1394,6 +1394,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      manage_expired_offers: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       set_branch_manager_code: {
         Args: {
           code: string

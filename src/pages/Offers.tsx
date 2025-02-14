@@ -44,17 +44,30 @@ const Offers = () => {
           .from('marketing_files')
           .getPublicUrl(file.file_path);
         
-        const isExpired = file.end_date ? new Date(file.end_date).getTime() < new Date().getTime() : false;
+        const now = new Date().getTime();
+        const endDate = file.end_date ? new Date(file.end_date).getTime() : null;
+        const isExpired = endDate ? endDate < now : false;
+        const isWithinThreeDays = endDate ? 
+          (now - endDate) < (3 * 24 * 60 * 60 * 1000) : false;
         
         return { 
           ...file, 
           url: fileUrl.publicUrl,
           branchName: language === 'ar' ? file.branch_name_ar : file.branch_name,
-          isExpired
+          isExpired,
+          isWithinThreeDays
         };
       }));
       
-      return filesWithUrls;
+      // Sort offers: active non-expired first, then recently expired (within 3 days)
+      return filesWithUrls.sort((a, b) => {
+        // If one is expired and the other isn't, non-expired comes first
+        if (a.isExpired !== b.isExpired) {
+          return a.isExpired ? 1 : -1;
+        }
+        // Both are either expired or not, sort by display_order
+        return (a.display_order || 0) - (b.display_order || 0);
+      });
     },
     retry: 1,
     staleTime: 1000 * 60 * 5, // 5 minutes
@@ -156,7 +169,7 @@ const Offers = () => {
                       </div>
                     )}
                   </div>
-                  {file.end_date && (
+                  {file.end_date && !file.isExpired && (
                     <CountdownTimer endDate={file.end_date} />
                   )}
                 </div>
