@@ -46,22 +46,45 @@ export const BranchDialog = ({
               className="w-full h-[90px] flex flex-row items-center justify-between gap-3 px-4 bg-white hover:bg-[#C4A36F]/5 border-2 border-gray-200 hover:border-[#C4A36F] transition-all duration-300 rounded-lg group"
               onClick={() => onBranchSelect(branch.id)}
             >
-              <div className={`flex flex-col items-${language === 'ar' ? 'end' : 'start'} flex-shrink min-w-0 max-w-[70%]`}>
-                <span className="w-full font-bold text-base text-[#222222] group-hover:text-[#C4A36F] transition-colors truncate">
-                  {language === 'ar' ? branch.name_ar : branch.name}
-                </span>
-                <span className="w-full text-sm text-gray-600 group-hover:text-[#C4A36F]/70 transition-colors truncate mt-1">
-                  {language === 'ar' ? branch.address_ar : branch.address}
-                </span>
-              </div>
-              <div className={`flex-shrink-0 ${language === 'ar' ? 'border-e pe-3' : 'border-s ps-3'} border-gray-200`}>
-                <div className="flex items-center gap-1.5 text-sm font-medium text-[#C4A36F]">
-                  <Clock className="w-4 h-4" />
-                  <span className="group-hover:text-[#C4A36F] transition-colors whitespace-nowrap">
-                    {getCurrentDayHours(branch.working_hours, language === 'ar')}
-                  </span>
-                </div>
-              </div>
+              {language === 'ar' ? (
+                <>
+                  <div className="flex-shrink-0 border-s ps-3 border-gray-200">
+                    <div className="flex items-center gap-1.5 text-sm font-medium text-[#C4A36F]">
+                      <Clock className="w-4 h-4" />
+                      <span className="group-hover:text-[#C4A36F] transition-colors whitespace-nowrap">
+                        {getCurrentDayHours(branch.working_hours, true)}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex flex-col items-end flex-shrink min-w-0 max-w-[70%]">
+                    <span className="w-full font-bold text-base text-[#222222] group-hover:text-[#C4A36F] transition-colors truncate">
+                      {branch.name_ar}
+                    </span>
+                    <span className="w-full text-sm text-gray-600 group-hover:text-[#C4A36F]/70 transition-colors truncate mt-1">
+                      {branch.address_ar}
+                    </span>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="flex flex-col items-start flex-shrink min-w-0 max-w-[70%]">
+                    <span className="w-full font-bold text-base text-[#222222] group-hover:text-[#C4A36F] transition-colors truncate">
+                      {branch.name}
+                    </span>
+                    <span className="w-full text-sm text-gray-600 group-hover:text-[#C4A36F]/70 transition-colors truncate mt-1">
+                      {branch.address}
+                    </span>
+                  </div>
+                  <div className="flex-shrink-0 border-s ps-3 border-gray-200">
+                    <div className="flex items-center gap-1.5 text-sm font-medium text-[#C4A36F]">
+                      <Clock className="w-4 h-4" />
+                      <span className="group-hover:text-[#C4A36F] transition-colors whitespace-nowrap">
+                        {getCurrentDayHours(branch.working_hours, false)}
+                      </span>
+                    </div>
+                  </div>
+                </>
+              )}
             </Button>
           ))}
         </div>
