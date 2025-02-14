@@ -8,6 +8,10 @@ import { HEATMAP_COLORS, interpolateColors, normalizeCoordinates } from '@/utils
 import { HeatmapControls } from './heatmap/HeatmapControls';
 import { ClusterTooltip } from './heatmap/ClusterTooltip';
 
+const APP_URL = process.env.NODE_ENV === 'production' 
+  ? 'https://ekka-barbershop.lovable.app'
+  : window.location.origin;
+
 export const ClickHeatmap = () => {
   const [selectedDevice, setSelectedDevice] = useState<DeviceType>('all');
   const [isLoading, setIsLoading] = useState(true);
@@ -17,6 +21,7 @@ export const ClickHeatmap = () => {
   const [hoveredCluster, setHoveredCluster] = useState<Cluster | null>(null);
   const [clickData, setClickData] = useState<ClickData[]>([]);
   const [currentPath, setCurrentPath] = useState('/customer');
+  const [iframeHeight, setIframeHeight] = useState('100%');
   
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -32,10 +37,25 @@ export const ClickHeatmap = () => {
       const iframeWindow = iframe.contentWindow;
       if (!iframeWindow) return;
 
+      // Set iframe height to match content
+      const updateIframeHeight = () => {
+        const doc = iframeWindow.document;
+        const height = Math.max(
+          doc.documentElement.clientHeight,
+          doc.documentElement.scrollHeight,
+          doc.documentElement.offsetHeight
+        );
+        setIframeHeight(`${height}px`);
+      };
+
       // Update current path when navigation occurs
       const handleNavigation = () => {
-        setCurrentPath(iframeWindow.location.pathname);
-        updateHeatmap(iframeWindow.location.pathname);
+        const newPath = iframeWindow.location.pathname;
+        if (newPath !== currentPath) {
+          setCurrentPath(newPath);
+          updateHeatmap(newPath);
+        }
+        updateIframeHeight();
       };
 
       // Listen for location changes in the iframe
@@ -44,16 +64,25 @@ export const ClickHeatmap = () => {
       // Monitor click events in iframe for path changes
       iframeWindow.document.addEventListener('click', (e) => {
         if ((e.target as HTMLElement).tagName === 'A') {
-          setTimeout(handleNavigation, 100); // Small delay to let navigation complete
+          setTimeout(handleNavigation, 100);
         }
       });
 
-      handleNavigation(); // Initial load
+      // Listen for scroll events to update canvas position
+      iframeWindow.addEventListener('scroll', () => {
+        if (canvasRef.current) {
+          const scrollY = iframeWindow.scrollY;
+          canvasRef.current.style.transform = `translateY(${-scrollY}px)`;
+        }
+      });
+
+      handleNavigation();
+      updateIframeHeight();
     };
 
     iframe.addEventListener('load', handleLoad);
     return () => iframe.removeEventListener('load', handleLoad);
-  }, []);
+  }, [currentPath]);
 
   // Update heatmap data for current path
   const updateHeatmap = async (path: string) => {
@@ -239,11 +268,12 @@ export const ClickHeatmap = () => {
 
       <div 
         ref={containerRef} 
-        className="w-full h-[600px] relative bg-white border rounded-lg overflow-hidden"
+        className="w-full relative bg-white border rounded-lg overflow-hidden"
+        style={{ height: iframeHeight }}
       >
         <iframe
           ref={iframeRef}
-          src="/customer"
+          src={`${APP_URL}${currentPath}`}
           className="absolute inset-0 w-full h-full border-none"
           sandbox="allow-same-origin allow-scripts allow-forms"
         />
@@ -254,7 +284,9 @@ export const ClickHeatmap = () => {
           className="absolute inset-0 pointer-events-none"
           style={{ 
             cursor: hoveredCluster ? 'pointer' : 'default',
-            backgroundColor: 'transparent'
+            backgroundColor: 'transparent',
+            width: '100%',
+            height: '100%'
           }}
         />
         {hoveredCluster && (
