@@ -20,6 +20,7 @@ function StepRenderer({ step, onNext, onPrevious, onConfirm }: {
   onPrevious: () => void;
   onConfirm: () => void;
 }) {
+  const { language } = useLanguage();
   const { 
     selectedServices, 
     selectedDate,
@@ -46,22 +47,29 @@ function StepRenderer({ step, onNext, onPrevious, onConfirm }: {
         <DateTimeSelection 
           selectedDate={selectedDate}
           onDateSelect={onNext}
-          onBack={onPrevious}
+          onPrevious={onPrevious}
         />
       );
     case 'barber':
       return (
         <BarberSelection 
           selectedBarber={selectedBarber}
-          onNext={onNext}
+          onStepChange={onNext}
           onPrevious={onPrevious}
         />
       );
     case 'details':
       return (
         <CustomerForm 
+          customerDetails={{
+            name: '',
+            phone: '',
+            email: '',
+            notes: ''
+          }}
+          onCustomerDetailsChange={() => {}}
+          onNextStep={onConfirm}
           onPrevious={onPrevious}
-          onStepChange={onConfirm}
         />
       );
     default:
