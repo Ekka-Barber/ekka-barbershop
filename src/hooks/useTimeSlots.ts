@@ -1,5 +1,4 @@
-
-import { format, parse, isToday, isBefore, addHours, addMinutes, isAfter, addDays } from "date-fns";
+import { format, parse, isToday, isBefore, addMinutes, isAfter, addDays, set } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 
 interface TimeSlot {
@@ -88,66 +87,92 @@ export const useTimeSlots = () => {
       return slots;
     }
 
-    console.log('Fetched unavailable slots:', unavailableSlots);
-
     for (const range of workingHoursRanges) {
       const [start, end] = range.split('-');
       
-      const baseDate = new Date(selectedDate);
+      const baseDate = selectedDate;
       const startTime = parse(start, 'HH:mm', baseDate);
       let endTime = parse(end, 'HH:mm', baseDate);
       
-      // Handle cases where end time is before start time (crossing midnight)
+      // Properly handle times after midnight
       if (isAfter(startTime, endTime)) {
+        // Add a day to the end time
         endTime = addDays(endTime, 1);
       }
+
+      console.log('Processing time range:', {
+        start: format(startTime, 'HH:mm'),
+        end: format(endTime, 'HH:mm'),
+        crossesMidnight: isAfter(startTime, endTime)
+      });
       
       let currentSlot = startTime;
-      while (isBefore(currentSlot, endTime)) {
+      // Use strict comparison to ensure we get all slots including the last one
+      while (isBefore(currentSlot, endTime) || format(currentSlot, 'HH:mm') === format(endTime, 'HH:mm')) {
         const timeString = format(currentSlot, 'HH:mm');
         const slotMinutes = convertTimeToMinutes(timeString);
         
-        // Add detailed logging for slot generation
         console.log('Processing slot:', {
           timeString,
           slotMinutes,
-          currentSlot: currentSlot.toISOString(),
-          endTime: endTime.toISOString()
+          currentTime: format(currentSlot, 'HH:mm'),
+          endTime: format(endTime, 'HH:mm')
         });
         
         const available = isSlotAvailable(slotMinutes, unavailableSlots || []);
         
-        console.log('Slot availability result:', {
-          time: timeString,
-          minutes: slotMinutes,
-          available
-        });
-
         slots.push({
           time: timeString,
           isAvailable: available
         });
         
-        currentSlot = addMinutes(currentSlot, 30); // Add 30 minutes
+        // Break the loop if we've reached the end time
+        if (format(currentSlot, 'HH:mm') === format(endTime, 'HH:mm')) break;
+        
+        currentSlot = addMinutes(currentSlot, 30);
       }
     }
 
     // Only apply the minimum booking time filter for today's slots
     if (isToday(selectedDate)) {
       const now = new Date();
-      const minimumBookingTime = addMinutes(now, 30); // 30 minutes from now
+      const minimumBookingTime = addMinutes(now, 30);
 
       return slots
         .filter(slot => {
           const [hours, minutes] = slot.time.split(':').map(Number);
           const slotTime = new Date(selectedDate);
           slotTime.setHours(hours, minutes, 0, 0);
+          
+          // Handle slots after midnight
+          if (hours < 12 && hours >= 0) {
+            slotTime.setDate(slotTime.getDate() + 1);
+          }
+          
           return !isBefore(slotTime, minimumBookingTime);
         })
-        .sort((a, b) => a.time.localeCompare(b.time));
+        .sort((a, b) => {
+          const [aHours] = a.time.split(':').map(Number);
+          const [bHours] = b.time.split(':').map(Number);
+          
+          // Custom sorting to handle after-midnight times
+          const aValue = aHours < 12 ? aHours + 24 : aHours;
+          const bValue = bHours < 12 ? bHours + 24 : bHours;
+          
+          return aValue - bValue;
+        });
     }
 
-    return slots.sort((a, b) => a.time.localeCompare(b.time));
+    return slots.sort((a, b) => {
+      const [aHours] = a.time.split(':').map(Number);
+      const [bHours] = b.time.split(':').map(Number);
+      
+      // Custom sorting to handle after-midnight times
+      const aValue = aHours < 12 ? aHours + 24 : aHours;
+      const bValue = bHours < 12 ? bHours + 24 : bHours;
+      
+      return aValue - bValue;
+    });
   };
 
   const getAvailableTimeSlots = async (employee: any, selectedDate: Date | undefined) => {

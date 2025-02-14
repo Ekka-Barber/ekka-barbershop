@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
+import { SeparatorVertical } from "lucide-react";
 
 interface TimeSlot {
   time: string;
@@ -27,6 +28,11 @@ export const TimeSlotPicker = ({
   const { language } = useLanguage();
   const displayedTimeSlots = showAllSlots ? timeSlots : timeSlots.slice(0, 6);
 
+  const isAfterMidnight = (time: string) => {
+    const [hours] = time.split(':').map(Number);
+    return hours < 12 && hours >= 0; // 00:00 to 11:59
+  };
+
   if (timeSlots.length === 0) {
     return (
       <div className="space-y-4">
@@ -48,6 +54,13 @@ export const TimeSlotPicker = ({
     );
   }
 
+  let lastWasBeforeMidnight = false;
+  const needsSeparator = displayedTimeSlots.some((slot, index) => {
+    if (index === 0) return false;
+    const prevSlot = displayedTimeSlots[index - 1];
+    return !isAfterMidnight(prevSlot.time) && isAfterMidnight(slot.time);
+  });
+
   return (
     <div className="space-y-4">
       <h3 className="text-lg font-medium text-center">
@@ -57,20 +70,39 @@ export const TimeSlotPicker = ({
         <div className="bg-gradient-to-b from-white to-gray-50 shadow-sm border-b border-gray-100">
           <div className="overflow-x-auto hide-scrollbar px-6 py-4">
             <div className="flex space-x-3 rtl:space-x-reverse min-w-full">
-              {displayedTimeSlots.map((slot) => (
-                <Button
-                  key={slot.time}
-                  variant={selectedTime === slot.time ? "default" : "outline"}
-                  onClick={() => slot.isAvailable && onTimeSelect(slot.time)}
-                  disabled={!slot.isAvailable}
-                  className={cn(
-                    "flex-shrink-0",
-                    !slot.isAvailable && "bg-red-50 hover:bg-red-50 cursor-not-allowed text-gray-400 border-red-100"
-                  )}
-                >
-                  {slot.time}
-                </Button>
-              ))}
+              {displayedTimeSlots.map((slot, index) => {
+                const isNextDaySlot = isAfterMidnight(slot.time);
+                const showSeparator = needsSeparator && !lastWasBeforeMidnight && isNextDaySlot;
+                lastWasBeforeMidnight = !isNextDaySlot;
+
+                return (
+                  <>
+                    {showSeparator && (
+                      <div className="flex items-center px-2" key={`separator-${index}`}>
+                        <SeparatorVertical className="h-8 w-8 text-red-500" />
+                      </div>
+                    )}
+                    <div key={slot.time} className="relative">
+                      <Button
+                        variant={selectedTime === slot.time ? "default" : "outline"}
+                        onClick={() => slot.isAvailable && onTimeSelect(slot.time)}
+                        disabled={!slot.isAvailable}
+                        className={cn(
+                          "flex-shrink-0",
+                          !slot.isAvailable && "bg-red-50 hover:bg-red-50 cursor-not-allowed text-gray-400 border-red-100"
+                        )}
+                      >
+                        {slot.time}
+                      </Button>
+                      {isNextDaySlot && (
+                        <div className="absolute -top-2 -right-1 text-xs bg-red-500 text-white px-1 rounded">
+                          {language === 'ar' ? 'غداً' : 'Next Day'}
+                        </div>
+                      )}
+                    </div>
+                  </>
+                );
+              })}
             </div>
           </div>
         </div>
