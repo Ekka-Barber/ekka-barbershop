@@ -55,7 +55,7 @@ function StepRenderer({ step, onNext, onPrevious, onConfirm }: {
       return (
         <BarberSelection 
           selectedBarber={selectedBarber}
-          onNextStep={onNext}
+          onStepChange={onNext}
           onPrevious={onPrevious}
         />
       );
@@ -64,7 +64,7 @@ function StepRenderer({ step, onNext, onPrevious, onConfirm }: {
         <CustomerForm 
           customerDetails={customerDetails}
           onCustomerDetailsChange={handleCustomerDetailsChange}
-          onStepChange={onConfirm}
+          onSubmit={onConfirm}
           onPrevious={onPrevious}
         />
       );
