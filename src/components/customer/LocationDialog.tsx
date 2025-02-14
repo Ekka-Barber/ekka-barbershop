@@ -52,7 +52,7 @@ export const LocationDialog = ({
             <Button
               key={branch.id}
               variant="outline"
-              className="w-full flex flex-row items-start justify-between px-4 py-3 bg-white hover:bg-[#C4A36F]/5 border-2 border-gray-200 hover:border-[#C4A36F] transition-all duration-300 rounded-lg group"
+              className="w-full flex flex-row items-start justify-between px-4 py-4 min-h-[120px] bg-white hover:bg-[#C4A36F]/5 border-2 border-gray-200 hover:border-[#C4A36F] transition-all duration-300 rounded-lg group"
               onClick={() => onLocationClick(branch.google_maps_url)}
             >
               <div className={`flex flex-col items-${language === 'ar' ? 'end' : 'start'} w-[40%]`}>
