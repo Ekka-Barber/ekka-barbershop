@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
-import { SeparatorVertical } from "lucide-react";
+import { Divide } from "lucide-react";
 
 interface TimeSlot {
   time: string;
@@ -68,15 +68,16 @@ export const TimeSlotPicker = ({
           <div className="overflow-x-auto hide-scrollbar px-6 py-4">
             <div className="flex space-x-3 rtl:space-x-reverse min-w-full">
               {displayedTimeSlots.map((slot, index) => {
-                const isNextDaySlot = isAfterMidnight(slot.time);
                 const showSeparator = index > 0 && needsSeparator(slot.time, displayedTimeSlots[index - 1].time);
 
                 return (
                   <>
                     {showSeparator && (
-                      <div className="w-px h-10 bg-red-500 mx-2" key={`separator-${index}`} />
+                      <div className="flex items-center mx-2" key={`separator-${index}`}>
+                        <Divide className="h-6 w-6 text-red-500" />
+                      </div>
                     )}
-                    <div key={slot.time} className="relative">
+                    <div key={slot.time}>
                       <Button
                         variant={selectedTime === slot.time ? "default" : "outline"}
                         onClick={() => slot.isAvailable && onTimeSelect(slot.time)}
@@ -88,11 +89,6 @@ export const TimeSlotPicker = ({
                       >
                         {slot.time}
                       </Button>
-                      {isNextDaySlot && (
-                        <div className="absolute -top-2 -right-1 text-xs bg-red-500 text-white px-1 rounded">
-                          {language === 'ar' ? 'غداً' : 'Next Day'}
-                        </div>
-                      )}
                     </div>
                   </>
                 );
