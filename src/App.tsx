@@ -7,7 +7,6 @@ import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-route
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { useEffect } from "react";
 import { trackClick } from "@/utils/clickTracking";
-import Index from "./pages/Index";
 import Customer from "./pages/Customer";
 import Menu from "./pages/Menu";
 import Offers from "./pages/Offers";
@@ -59,7 +58,6 @@ const App = () => {
               
               {/* Protected routes */}
               <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
-              <Route path="/index" element={<ProtectedRoute><Index /></ProtectedRoute>} />
               
               {/* Catch all other routes and redirect to customer page */}
               <Route path="*" element={<Navigate to="/customer" replace />} />
