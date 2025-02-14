@@ -74,5 +74,19 @@ ${totalDiscount > 0 ? `💰 الخصم: ${formatPrice(totalDiscount)}` : ''}
 💵 *المبلغ الإجمالي: ${formatPrice(totalPrice)}*
   `.trim();
 
-  return encodeURIComponent(message);
+  // First encode the whole message
+  let encodedMessage = encodeURIComponent(message);
+  
+  // Replace any problematic emoji encodings
+  // This ensures emojis are properly encoded for WhatsApp
+  encodedMessage = encodedMessage.replace(/%E2%9C%A8/g, '✨')
+    .replace(/%F0%9F%91%A4/g, '👤')
+    .replace(/%E2%9C%82/g, '✂️')
+    .replace(/%E2%8F%B0/g, '⏰')
+    .replace(/%F0%9F%93%85/g, '📅')
+    .replace(/%F0%9F%92%88/g, '💈')
+    .replace(/%F0%9F%92%B0/g, '💰')
+    .replace(/%F0%9F%92%B5/g, '💵');
+
+  return encodedMessage;
 };
