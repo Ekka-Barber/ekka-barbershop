@@ -68,7 +68,7 @@ ${serviceSummary}
 
 ⏰ المدة الإجمالية: ${selectedServices.reduce((sum, service) => sum + service.duration, 0)} دقيقة
 ${selectedDate && selectedTime ? `📅 التاريخ والوقت: ${format(selectedDate, 'dd/MM/yyyy')} - ${selectedTime}` : ''}
-${selectedBarberName ? `💈 الحلاق: ${selectedBarnerName}` : ''}
+${selectedBarberName ? `💈 الحلاق: ${selectedBarberName}` : ''}
 ${totalDiscount > 0 ? `💰 الخصم: ${formatPrice(totalDiscount)}` : ''}
 
 💵 *المبلغ الإجمالي: ${formatPrice(totalPrice)}*
