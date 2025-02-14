@@ -29,7 +29,11 @@ interface WhatsAppIntegrationProps {
   selectedBarberName?: string;
   customerDetails: CustomerDetails;
   language: string;
-  branch?: { whatsapp_number?: string | null; id?: string };
+  branch?: { 
+    whatsapp_number?: string | null; 
+    name?: string;
+    name_ar?: string;
+  };
 }
 
 export const WhatsAppIntegration = ({
@@ -101,7 +105,9 @@ ${totalDiscount > 0 ? `💰 الخصم: ${formatPrice(totalDiscount)}` : ''}
           duration_minutes: selectedServices.reduce((sum, service) => sum + service.duration, 0),
           services: selectedServices,
           total_price: totalPrice,
-          branch_id: branch?.id,
+          branch_name: branch?.name || null,
+          branch_name_ar: branch?.name_ar || null,
+          barber_name: selectedBarberName || null,
           source: 'website',
           browser_info: {
             userAgent: navigator.userAgent,
