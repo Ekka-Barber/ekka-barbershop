@@ -16,7 +16,7 @@ import Bookings from "./pages/Bookings";
 const queryClient = new QueryClient();
 
 // List of public routes that customers can access
-const PUBLIC_ROUTES = ['/customer', '/menu', '/offers', '/preview', '/bookings'];
+const PUBLIC_ROUTES = ['/customer', '/menu', '/offers', '/bookings'];
 
 // Protected route component
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -53,7 +53,6 @@ const App = () => {
               <Route path="/customer" element={<Customer />} />
               <Route path="/menu" element={<Menu />} />
               <Route path="/offers" element={<Offers />} />
-              <Route path="/preview" element={<Customer />} />
               <Route path="/bookings" element={<Bookings />} />
               
               {/* Protected routes */}
