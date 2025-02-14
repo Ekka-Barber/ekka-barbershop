@@ -31,27 +31,29 @@ export const BranchDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-2xl bg-white border-0 shadow-2xl p-6">
+      <DialogContent className="sm:max-w-xl bg-white border-0 shadow-2xl p-4">
         <DialogHeader>
-          <DialogTitle className="text-center text-2xl font-bold text-[#222222] mb-6">
+          <DialogTitle className="text-center text-xl font-bold text-[#222222] mb-4">
             {t('select.branch')}
           </DialogTitle>
         </DialogHeader>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="flex flex-col gap-3">
           {branches?.map((branch) => (
             <Button
               key={branch.id}
               variant="outline"
-              className="h-[160px] flex flex-col items-center justify-center space-y-3 bg-white hover:bg-[#C4A36F]/5 border-2 border-gray-200 hover:border-[#C4A36F] transition-all duration-300 rounded-lg group"
+              className="h-[80px] flex flex-row items-center gap-4 px-4 bg-white hover:bg-[#C4A36F]/5 border-2 border-gray-200 hover:border-[#C4A36F] transition-all duration-300 rounded-lg group"
               onClick={() => onBranchSelect(branch.id)}
             >
-              <span className="font-semibold text-xl text-[#222222] group-hover:text-[#C4A36F] transition-colors text-center">
-                {language === 'ar' ? branch.name_ar : branch.name}
-              </span>
-              <span className="text-sm text-gray-500 group-hover:text-[#C4A36F]/70 transition-colors text-center px-4">
-                {language === 'ar' ? branch.address_ar : branch.address}
-              </span>
-              <div className="text-xs text-gray-400 group-hover:text-[#C4A36F]/60 transition-colors text-center px-4 flex flex-col gap-0.5">
+              <div className={`flex-1 flex flex-col items-${language === 'ar' ? 'end' : 'start'} gap-1`}>
+                <span className="font-semibold text-base text-[#222222] group-hover:text-[#C4A36F] transition-colors">
+                  {language === 'ar' ? branch.name_ar : branch.name}
+                </span>
+                <span className="text-sm text-gray-500 group-hover:text-[#C4A36F]/70 transition-colors">
+                  {language === 'ar' ? branch.address_ar : branch.address}
+                </span>
+              </div>
+              <div className="text-xs text-gray-400 group-hover:text-[#C4A36F]/60 transition-colors">
                 {getCurrentDayHours(branch.working_hours, language === 'ar')}
               </div>
             </Button>
