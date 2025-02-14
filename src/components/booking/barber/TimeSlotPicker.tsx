@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Divide } from "lucide-react";
+import { Clock12 } from "lucide-react";
 
 interface TimeSlot {
   time: string;
@@ -74,7 +74,7 @@ export const TimeSlotPicker = ({
                   <>
                     {showSeparator && (
                       <div className="flex items-center mx-2" key={`separator-${index}`}>
-                        <Divide className="h-6 w-6 text-red-500" />
+                        <Clock12 className="h-6 w-6 text-red-500" />
                       </div>
                     )}
                     <div key={slot.time}>
