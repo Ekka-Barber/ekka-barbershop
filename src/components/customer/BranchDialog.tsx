@@ -38,26 +38,26 @@ export const BranchDialog = ({
             {t('select.branch')}
           </DialogTitle>
         </DialogHeader>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {branches?.map((branch) => (
             <Button
               key={branch.id}
               variant="outline"
-              className="h-[90px] flex flex-row items-center gap-3 px-4 bg-white hover:bg-[#C4A36F]/5 border-2 border-gray-200 hover:border-[#C4A36F] transition-all duration-300 rounded-lg group relative overflow-hidden"
+              className="w-full h-[90px] flex flex-row items-center justify-between gap-3 px-4 bg-white hover:bg-[#C4A36F]/5 border-2 border-gray-200 hover:border-[#C4A36F] transition-all duration-300 rounded-lg group"
               onClick={() => onBranchSelect(branch.id)}
             >
-              <div className={`flex-1 flex flex-col items-${language === 'ar' ? 'end' : 'start'} gap-2 min-w-0`}>
-                <span className="font-bold text-lg text-[#222222] group-hover:text-[#C4A36F] transition-colors line-clamp-1">
+              <div className={`flex flex-col items-${language === 'ar' ? 'end' : 'start'} flex-shrink min-w-0 max-w-[70%]`}>
+                <span className="w-full font-bold text-base text-[#222222] group-hover:text-[#C4A36F] transition-colors truncate">
                   {language === 'ar' ? branch.name_ar : branch.name}
                 </span>
-                <span className="text-sm text-gray-600 group-hover:text-[#C4A36F]/70 transition-colors line-clamp-1">
+                <span className="w-full text-sm text-gray-600 group-hover:text-[#C4A36F]/70 transition-colors truncate mt-1">
                   {language === 'ar' ? branch.address_ar : branch.address}
                 </span>
               </div>
-              <div className={`border-s border-gray-200 ps-3 ${language === 'ar' ? 'border-s-0 border-e ps-0 pe-3' : ''}`}>
-                <div className="flex items-center gap-1.5 text-sm font-medium text-[#C4A36F] whitespace-nowrap">
+              <div className={`flex-shrink-0 ${language === 'ar' ? 'border-s' : 'border-e'} border-gray-200 ${language === 'ar' ? 'ps-3' : 'pe-3'}`}>
+                <div className="flex items-center gap-1.5 text-sm font-medium text-[#C4A36F]">
                   <Clock className="w-4 h-4" />
-                  <span className="group-hover:text-[#C4A36F] transition-colors">
+                  <span className="group-hover:text-[#C4A36F] transition-colors whitespace-nowrap">
                     {getCurrentDayHours(branch.working_hours, language === 'ar')}
                   </span>
                 </div>
