@@ -146,7 +146,7 @@ const Offers = () => {
                       <div className={`relative ${file.isExpired ? 'filter grayscale blur-[2px]' : ''}`}>
                         <img 
                           src={file.url} 
-                          alt={file.isExpired ? `Expired Offer - ${file.name || 'Special Offer'}` : "Special Offer"}
+                          alt={file.isExpired ? `Expired Offer - ${file.file_name || 'Special Offer'}` : "Special Offer"}
                           className="w-full max-w-full h-auto rounded-lg transition-all duration-300"
                           onError={(e) => {
                             console.error('Image failed to load:', file.url);
