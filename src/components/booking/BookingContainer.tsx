@@ -10,6 +10,7 @@ import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { Branch } from "@/types/booking";
 import { ErrorBoundary } from "@/components/common/ErrorBoundary";
 import { Loader2 } from "lucide-react";
+import { Card } from "@/components/ui/card";
 
 export const BookingContainer = () => {
   const navigate = useNavigate();
@@ -44,9 +45,9 @@ export const BookingContainer = () => {
             <LanguageSwitcher />
           </div>
         </div>
-        <div className="app-container">
-          <div className="content-area flex items-center justify-center">
-            <div className="text-center px-4">
+        <div className="flex-grow max-w-4xl mx-auto p-4 sm:p-6 lg:p-8 w-full">
+          <div className="content-area flex flex-col items-center justify-center">
+            <div className="text-center w-full max-w-2xl mx-auto">
               <h1 className="text-2xl font-bold text-gray-800 mb-4">
                 {t('select.branch')}
               </h1>
@@ -72,9 +73,9 @@ export const BookingContainer = () => {
             <LanguageSwitcher />
           </div>
         </div>
-        <div className="app-container">
-          <div className="content-area flex items-center justify-center">
-            <div className="text-center px-4 space-y-4">
+        <div className="flex-grow max-w-4xl mx-auto p-4 sm:p-6 lg:p-8 w-full">
+          <div className="content-area flex flex-col items-center justify-center">
+            <div className="text-center w-full max-w-2xl mx-auto space-y-4">
               <h1 className="text-2xl font-bold text-red-600">
                 {language === 'ar' ? 'عذراً! حدث خطأ ما' : 'Error Loading Branch'}
               </h1>
@@ -106,8 +107,8 @@ export const BookingContainer = () => {
             <LanguageSwitcher />
           </div>
         </div>
-        <div className="app-container">
-          <div className="content-area flex items-center justify-center">
+        <div className="flex-grow max-w-4xl mx-auto p-4 sm:p-6 lg:p-8 w-full">
+          <div className="content-area flex flex-col items-center justify-center">
             <Loader2 className="h-8 w-8 animate-spin text-[#C4A36F]" />
           </div>
         </div>
@@ -125,14 +126,21 @@ export const BookingContainer = () => {
           </div>
         </div>
         
-        <div className="app-container">
-          <div className="content-area">
-            <BookingHeader
-              branchName={language === 'ar' ? branch?.name_ar : branch?.name}
-              branchAddress={language === 'ar' ? branch?.address_ar : branch?.address}
-              isLoading={branchLoading}
-            />
-            <BookingSteps branch={branch} />
+        <div className="flex-grow max-w-4xl mx-auto p-4 sm:p-6 lg:p-8 w-full">
+          <div className="content-area flex flex-col items-center justify-center">
+            <div className="text-center w-full max-w-2xl mx-auto">
+              <BookingHeader
+                branchName={language === 'ar' ? branch?.name_ar : branch?.name}
+                branchAddress={language === 'ar' ? branch?.address_ar : branch?.address}
+                isLoading={branchLoading}
+              />
+            </div>
+            
+            <Card className="overflow-hidden bg-white shadow-xl rounded-xl border-[#C4A36F]/20 w-full mt-8">
+              <div className="p-6">
+                <BookingSteps branch={branch} />
+              </div>
+            </Card>
           </div>
         </div>
         

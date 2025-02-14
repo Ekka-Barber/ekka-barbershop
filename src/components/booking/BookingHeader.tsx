@@ -12,12 +12,12 @@ export const BookingHeader = ({ branchName, branchAddress, isLoading }: BookingH
   const { t, language } = useLanguage();
   
   return (
-    <div className="text-center">
-      <Link to="/customer">
+    <div className="text-center mb-8">
+      <Link to="/customer" className="transition-opacity hover:opacity-80 block">
         <img 
           src="/lovable-uploads/8289fb1d-c6e6-4528-980c-6b52313ca898.png"
           alt="Ekka Barbershop Logo" 
-          className="h-32 mx-auto mb-6 cursor-pointer hover:opacity-90 transition-opacity"
+          className="h-24 mb-6 object-contain mx-auto"
         />
       </Link>
       <h1 className="text-3xl font-bold text-[#222222] mb-2">
