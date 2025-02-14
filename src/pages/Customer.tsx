@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -42,7 +43,7 @@ const Customer = () => {
     <div className="flex flex-col min-h-screen">
       <div className="flex-grow">
         <div dir={language === 'ar' ? 'rtl' : 'ltr'} className="bg-gradient-to-b from-gray-50 to-gray-100 flex flex-col">
-          <div className="sticky top-0 z-50 bg-gradient-to-b from-gray-50 to-transparent h-11">
+          <div className="sticky">
             <div className="max-w-md mx-auto h-full relative">
               <div className="absolute right-0 top-0 h-full" style={{ direction: 'ltr' }}>
                 <LanguageSwitcher />
@@ -68,7 +69,7 @@ const Customer = () => {
               <div className="h-1 w-24 bg-[#C4A36F] mx-auto mt-4"></div>
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-4 bottom-nav">
               <Button 
                 className="w-full h-14 text-lg font-medium bg-[#C4A36F] hover:bg-[#B39260] text-white transition-all duration-300 shadow-lg hover:shadow-xl"
                 onClick={() => navigate('/menu')}
@@ -138,3 +139,4 @@ const Customer = () => {
 };
 
 export default Customer;
+

@@ -1,17 +1,37 @@
 
+/* Root level custom properties for safe areas */
+:root {
+  --sat: env(safe-area-inset-top, 0px);
+  --sar: env(safe-area-inset-right, 0px);
+  --sab: env(safe-area-inset-bottom, 0px);
+  --sal: env(safe-area-inset-left, 0px);
+  
+  /* Additional spacing variables */
+  --header-height: 2.75rem; /* 44px - standard iOS header height */
+  --content-spacing: 1rem;
+}
+
 #root {
   max-width: 1280px;
   margin: 0 auto;
-  padding: 1rem 1rem 1rem; /* Reduced bottom padding */
+  padding: calc(var(--sat) + var(--content-spacing)) var(--content-spacing) calc(var(--sab) + var(--content-spacing));
   text-align: center;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
 }
 
+/* PWA specific adjustments */
+@media all and (display-mode: standalone) {
+  #root {
+    padding-top: calc(var(--sat) + var(--header-height));
+  }
+}
+
+/* Desktop adjustments */
 @media (min-width: 640px) {
   #root {
-    padding: 2rem 2rem 1rem; /* Consistent padding on desktop */
+    padding: calc(var(--sat) + 2rem) 2rem calc(var(--sab) + 1rem);
   }
 }
 
@@ -51,9 +71,43 @@
   color: #888;
 }
 
+/* Safe area handling for the page footer */
 .page-footer {
   height: env(safe-area-inset-bottom, 0px);
   width: 100%;
   min-height: 1rem; /* Minimum height when safe-area is not available */
+}
+
+/* Enhanced touch targets for mobile */
+@media (max-width: 640px) {
+  button, 
+  [role="button"],
+  .clickable {
+    min-height: 44px; /* iOS standard */
+    min-width: 44px;
+    padding: 0.75rem 1rem;
+  }
+}
+
+/* Language switcher positioning */
+.sticky {
+  position: sticky;
+  top: calc(var(--sat));
+  z-index: 50;
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+  background: linear-gradient(to bottom, rgba(249, 250, 251, 1) 0%, rgba(249, 250, 251, 0) 100%);
+}
+
+/* Improved spacing for action buttons */
+.space-y-4 > * {
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+}
+
+/* Bottom navigation improvements */
+.bottom-nav {
+  margin-bottom: calc(var(--sab));
+  padding-bottom: 0.5rem;
 }
 
