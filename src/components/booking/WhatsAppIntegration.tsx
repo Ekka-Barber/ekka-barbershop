@@ -11,6 +11,7 @@ import {
 import { useState } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { SelectedService } from "@/types/service";
+import { supabase } from "@/integrations/supabase/client";
 
 interface CustomerDetails {
   name: string;
@@ -27,7 +28,7 @@ interface WhatsAppIntegrationProps {
   selectedBarberName?: string;
   customerDetails: CustomerDetails;
   language: string;
-  branch?: { whatsapp_number?: string | null };
+  branch?: { whatsapp_number?: string | null; id?: string };
 }
 
 export const WhatsAppIntegration = ({
@@ -81,6 +82,44 @@ ${totalDiscount > 0 ? `💰 الخصم: ${formatPrice(totalDiscount)}` : ''}
     return encodeURIComponent(message);
   };
 
+  const saveBookingData = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('bookings')
+        .insert([
+          {
+            customer_name: customerDetails.name,
+            customer_phone: customerDetails.phone,
+            customer_email: customerDetails.email,
+            customer_notes: customerDetails.notes,
+            appointment_date: selectedDate,
+            appointment_time: selectedTime,
+            duration_minutes: selectedServices.reduce((sum, service) => sum + service.duration, 0),
+            services: selectedServices,
+            total_price: totalPrice,
+            branch_id: branch?.id,
+            source: 'website',
+            browser_info: {
+              userAgent: navigator.userAgent,
+              language: navigator.language,
+            },
+            device_type: /Mobile|iP(hone|od|ad)|Android|BlackBerry|IEMobile/.test(navigator.userAgent) 
+              ? 'mobile' 
+              : 'desktop'
+          }
+        ])
+        .select();
+
+      if (error) throw error;
+      
+      console.log('Booking saved:', data);
+      return true;
+    } catch (error) {
+      console.error('Error saving booking:', error);
+      return false;
+    }
+  };
+
   const isFormValid = () => {
     if (!customerDetails.name.trim()) {
       showError(t('enter.name'));
@@ -122,6 +161,12 @@ ${totalDiscount > 0 ? `💰 الخصم: ${formatPrice(totalDiscount)}` : ''}
 
     try {
       setIsLoading(true);
+      
+      const bookingSaved = await saveBookingData();
+      if (!bookingSaved) {
+        throw new Error('Failed to save booking data');
+      }
+
       const whatsappNumber = branch.whatsapp_number.startsWith('+') ? 
         branch.whatsapp_number.slice(1) : 
         branch.whatsapp_number;
@@ -132,7 +177,9 @@ ${totalDiscount > 0 ? `💰 الخصم: ${formatPrice(totalDiscount)}` : ''}
         description: t('whatsapp.opened'),
       });
     } catch (error) {
-      showError(t('error.whatsapp'));
+      showError(language === 'ar' 
+        ? 'حدث خطأ أثناء حفظ الحجز. يرجى المحاولة مرة أخرى.'
+        : 'Error saving booking. Please try again.');
     } finally {
       setIsLoading(false);
     }

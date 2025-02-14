@@ -57,6 +57,93 @@ export type Database = {
         }
         Relationships: []
       }
+      bookings: {
+        Row: {
+          appointment_date: string
+          appointment_time: string
+          barber_id: string | null
+          branch_id: string | null
+          browser_info: Json | null
+          cancellation_reason: string | null
+          confirmation_sent: boolean | null
+          created_at: string | null
+          customer_email: string
+          customer_name: string
+          customer_notes: string | null
+          customer_phone: string
+          device_type: Database["public"]["Enums"]["device_type"] | null
+          duration_minutes: number
+          id: string
+          reminder_sent: boolean | null
+          services: Json
+          source: string | null
+          status: string | null
+          total_price: number
+          updated_at: string | null
+        }
+        Insert: {
+          appointment_date: string
+          appointment_time: string
+          barber_id?: string | null
+          branch_id?: string | null
+          browser_info?: Json | null
+          cancellation_reason?: string | null
+          confirmation_sent?: boolean | null
+          created_at?: string | null
+          customer_email: string
+          customer_name: string
+          customer_notes?: string | null
+          customer_phone: string
+          device_type?: Database["public"]["Enums"]["device_type"] | null
+          duration_minutes: number
+          id?: string
+          reminder_sent?: boolean | null
+          services: Json
+          source?: string | null
+          status?: string | null
+          total_price: number
+          updated_at?: string | null
+        }
+        Update: {
+          appointment_date?: string
+          appointment_time?: string
+          barber_id?: string | null
+          branch_id?: string | null
+          browser_info?: Json | null
+          cancellation_reason?: string | null
+          confirmation_sent?: boolean | null
+          created_at?: string | null
+          customer_email?: string
+          customer_name?: string
+          customer_notes?: string | null
+          customer_phone?: string
+          device_type?: Database["public"]["Enums"]["device_type"] | null
+          duration_minutes?: number
+          id?: string
+          reminder_sent?: boolean | null
+          services?: Json
+          source?: string | null
+          status?: string | null
+          total_price?: number
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bookings_barber_id_fkey"
+            columns: ["barber_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       branch_managers: {
         Row: {
           access_code: string
