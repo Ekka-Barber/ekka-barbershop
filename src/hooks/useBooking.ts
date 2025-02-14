@@ -1,9 +1,8 @@
-
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from "@/integrations/supabase/client";
 import { BookingStep } from '@/components/booking/BookingProgress';
-import { validateService, Service, ValidService } from '@/types/service';
+import { Service, validateService, SelectedService } from '@/types/service';
 import { useLanguage } from "@/contexts/LanguageContext";
 
 export interface CustomerDetails {
@@ -11,16 +10,6 @@ export interface CustomerDetails {
   phone: string;
   email: string;
   notes: string;
-}
-
-export interface SelectedService {
-  id: string;
-  name_en: string;
-  name_ar: string;
-  price: number;
-  duration: number;
-  originalPrice?: number;
-  isUpsellItem?: boolean;
 }
 
 export const useBooking = (branch: any) => {
@@ -103,20 +92,17 @@ export const useBooking = (branch: any) => {
     enabled: !!selectedBarber
   });
 
-  const handleServiceToggle = (service: any, isUpsell: boolean = false) => {
+  const handleServiceToggle = (service: Service) => {
     const isSelected = selectedServices.some(s => s.id === service.id);
     if (isSelected) {
       setSelectedServices(prev => prev.filter(s => s.id !== service.id));
     } else {
       const discountedPrice = calculateDiscountedPrice(service);
       setSelectedServices(prev => [...prev, {
-        id: service.id,
-        name_en: service.name_en,
-        name_ar: service.name_ar,
+        ...service,
         price: roundPrice(discountedPrice),
-        duration: service.duration,
         originalPrice: discountedPrice !== service.price ? roundPrice(service.price) : undefined,
-        isUpsellItem: isUpsell
+        isUpsellItem: false
       }]);
     }
   };
