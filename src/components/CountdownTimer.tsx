@@ -43,7 +43,7 @@ const CountdownTimer = ({ endDate }: CountdownTimerProps) => {
 
   if (isExpired) {
     return (
-      <div className="mt-4 text-red-600 font-semibold text-lg">
+      <div className="mt-4 text-red-600 font-semibold text-lg text-center">
         {language === 'ar' ? 'العرض انتهى' : 'Offer Ended'}
       </div>
     );
