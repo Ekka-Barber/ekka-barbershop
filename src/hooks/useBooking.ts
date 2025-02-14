@@ -46,6 +46,7 @@ export const useBooking = (branch: any) => {
             description_ar,
             price,
             duration,
+            category_id,
             display_order,
             discount_type,
             discount_value
@@ -53,11 +54,21 @@ export const useBooking = (branch: any) => {
         `)
         .order('display_order', { ascending: true });
       
-      if (categoriesError) throw categoriesError;
+      if (categoriesError) {
+        console.error('Error fetching categories:', categoriesError);
+        throw categoriesError;
+      }
       
       return categories?.map(category => ({
         ...category,
-        services: category.services.map(validateService)
+        services: category.services
+          .map(service => ({
+            ...service,
+            category_id: category.id // Ensure category_id is set
+          }))
+          .map(validateService)
+          .filter(Boolean) // Remove null values from invalid services
+          .sort((a, b) => (a?.display_order || 0) - (b?.display_order || 0))
       }));
     },
   });
