@@ -1,3 +1,4 @@
+
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
@@ -84,30 +85,32 @@ ${totalDiscount > 0 ? `💰 الخصم: ${formatPrice(totalDiscount)}` : ''}
 
   const saveBookingData = async () => {
     try {
+      if (!selectedDate || !selectedTime) {
+        throw new Error('Date and time are required');
+      }
+
       const { data, error } = await supabase
         .from('bookings')
-        .insert([
-          {
-            customer_name: customerDetails.name,
-            customer_phone: customerDetails.phone,
-            customer_email: customerDetails.email,
-            customer_notes: customerDetails.notes,
-            appointment_date: selectedDate,
-            appointment_time: selectedTime,
-            duration_minutes: selectedServices.reduce((sum, service) => sum + service.duration, 0),
-            services: selectedServices,
-            total_price: totalPrice,
-            branch_id: branch?.id,
-            source: 'website',
-            browser_info: {
-              userAgent: navigator.userAgent,
-              language: navigator.language,
-            },
-            device_type: /Mobile|iP(hone|od|ad)|Android|BlackBerry|IEMobile/.test(navigator.userAgent) 
-              ? 'mobile' 
-              : 'desktop'
-          }
-        ])
+        .insert({
+          customer_name: customerDetails.name,
+          customer_phone: customerDetails.phone,
+          customer_email: customerDetails.email,
+          customer_notes: customerDetails.notes,
+          appointment_date: format(selectedDate, 'yyyy-MM-dd'),
+          appointment_time: selectedTime,
+          duration_minutes: selectedServices.reduce((sum, service) => sum + service.duration, 0),
+          services: selectedServices,
+          total_price: totalPrice,
+          branch_id: branch?.id,
+          source: 'website',
+          browser_info: {
+            userAgent: navigator.userAgent,
+            language: navigator.language,
+          },
+          device_type: /Mobile|iP(hone|od|ad)|Android|BlackBerry|IEMobile/.test(navigator.userAgent) 
+            ? 'mobile' 
+            : 'desktop'
+        })
         .select();
 
       if (error) throw error;
