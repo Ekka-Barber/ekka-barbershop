@@ -44,13 +44,13 @@ const Menu = () => {
       </div>
 
       <div className="app-container">
-        <div className="content-area">
-          <div className="text-center mb-8">
-            <Link to="/customer" className="transition-opacity hover:opacity-80">
+        <div className="content-area flex flex-col items-center justify-center">
+          <div className="text-center w-full max-w-2xl mx-auto">
+            <Link to="/customer" className="transition-opacity hover:opacity-80 block">
               <img 
                 src="/lovable-uploads/8289fb1d-c6e6-4528-980c-6b52313ca898.png"
                 alt="Ekka Barbershop Logo" 
-                className="h-24 mb-6 object-contain"
+                className="h-24 mb-6 object-contain mx-auto"
               />
             </Link>
             <h1 className="text-3xl font-bold text-[#222222] mb-2">{t('our.menu')}</h1>
@@ -63,7 +63,7 @@ const Menu = () => {
             </Button>
           </div>
           
-          <Card className="overflow-hidden bg-white shadow-xl rounded-xl border-[#C4A36F]/20">
+          <Card className="overflow-hidden bg-white shadow-xl rounded-xl border-[#C4A36F]/20 w-full max-w-2xl mt-8">
             <div className="p-6">
               {isLoading ? (
                 <div className="text-center py-8 text-[#222222]">{t('loading.menu')}</div>
