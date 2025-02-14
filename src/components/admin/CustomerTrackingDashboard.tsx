@@ -30,6 +30,12 @@ interface StepStats {
   count: number;
 }
 
+interface RawServiceTracking {
+  service_name: string;
+  action: string;
+  timestamp: string;
+}
+
 const CustomerTrackingDashboard = () => {
   // Fetch service tracking data
   const { data: serviceTracking, isLoading: serviceLoading, error: serviceError } = useQuery<ServiceTracking[]>({
@@ -41,7 +47,14 @@ const CustomerTrackingDashboard = () => {
         .order('timestamp', { ascending: false });
       
       if (error) throw error;
-      return data;
+      
+      // Validate and transform the data to ensure action is 'added' or 'removed'
+      return (data as RawServiceTracking[]).map(item => ({
+        ...item,
+        action: item.action === 'added' || item.action === 'removed' 
+          ? item.action 
+          : 'added' // default fallback
+      })) as ServiceTracking[];
     }
   });
 
@@ -55,7 +68,7 @@ const CustomerTrackingDashboard = () => {
         .order('timestamp', { ascending: false });
       
       if (error) throw error;
-      return data;
+      return data as BookingBehavior[];
     }
   });
 
@@ -190,7 +203,7 @@ const CustomerTrackingDashboard = () => {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {serviceTracking?.slice(0, 10).map((track, index) => (
+            {serviceTracking && serviceTracking.slice(0, 10).map((track, index) => (
               <div key={index} className="flex justify-between items-center border-b pb-2">
                 <div>
                   <span className={track.action === 'added' ? 'text-green-600' : 'text-red-600'}>
