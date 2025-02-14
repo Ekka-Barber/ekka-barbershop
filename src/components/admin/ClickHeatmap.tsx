@@ -1,46 +1,12 @@
-
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { Card } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Slider } from "@/components/ui/slider";
-import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Loader2, ZoomIn, ZoomOut, Eye, EyeOff } from "lucide-react";
-import { format } from 'date-fns';
-
-interface ClickData {
-  x_coordinate: number;
-  y_coordinate: number;
-  scroll_x: number;
-  scroll_y: number;
-  content_width: number;
-  content_height: number;
-  device_type: 'mobile' | 'tablet' | 'desktop';
-  page_url: string;
-  created_at: string;
-}
-
-interface NormalizedClick {
-  x: number;
-  y: number;
-  originalData: ClickData;
-}
-
-interface Cluster {
-  centerX: number;
-  centerY: number;
-  points: ClickData[];
-}
-
-type DeviceType = 'all' | 'mobile' | 'tablet' | 'desktop';
-
-const COLORS = {
-  low: [211, 228, 253],    // Soft Blue
-  medium: [14, 165, 233],  // Ocean Blue
-  high: [217, 70, 239],    // Magenta Pink
-  max: [139, 92, 246]      // Vivid Purple
-};
+import { Loader2 } from "lucide-react";
+import { ClickData, Cluster, DeviceType } from '@/types/heatmap';
+import { HEATMAP_COLORS, interpolateColors, normalizeCoordinates } from '@/utils/heatmapUtils';
+import { HeatmapControls } from './heatmap/HeatmapControls';
+import { ClusterTooltip } from './heatmap/ClusterTooltip';
 
 export const ClickHeatmap = () => {
   const [selectedDevice, setSelectedDevice] = useState<DeviceType>('all');
@@ -121,27 +87,10 @@ export const ClickHeatmap = () => {
     const iframe = iframeRef.current;
     const { width: containerWidth, height: containerHeight } = iframe.getBoundingClientRect();
 
-    return clickData.map(click => {
-      // Ensure we have valid dimensions to prevent NaN
-      const safeContentWidth = Math.max(click.content_width, containerWidth, 100);
-      const safeContentHeight = Math.max(click.content_height, containerHeight, 100);
-
-      // Calculate normalized coordinates with boundary checks
-      const normalizedX = Math.min(
-        containerWidth,
-        Math.max(0, ((click.x_coordinate - click.scroll_x) / safeContentWidth) * containerWidth)
-      );
-      const normalizedY = Math.min(
-        containerHeight,
-        Math.max(0, ((click.y_coordinate - click.scroll_y) / safeContentHeight) * containerHeight)
-      );
-
-      return {
-        x: isFinite(normalizedX) ? normalizedX : 0,
-        y: isFinite(normalizedY) ? normalizedY : 0,
-        originalData: click
-      };
-    });
+    return clickData.map(click => ({
+      ...normalizeCoordinates(click, containerWidth, containerHeight),
+      originalData: click
+    }));
   }, [clickData]);
 
   // Cluster data processing
@@ -213,7 +162,7 @@ export const ClickHeatmap = () => {
           radius
         );
 
-        const color = interpolateColors(intensity);
+        const color = interpolateColors(intensity, HEATMAP_COLORS);
         
         gradient.addColorStop(0, `rgba(${color.join(',')}, ${opacity})`);
         gradient.addColorStop(1, `rgba(${color.join(',')}, 0)`);
@@ -275,72 +224,18 @@ export const ClickHeatmap = () => {
     }
   };
 
-  // Color interpolation helpers
-  const interpolateColors = (intensity: number): number[] => {
-    if (intensity <= 0.33) {
-      return interpolate(COLORS.low, COLORS.medium, intensity * 3);
-    } else if (intensity <= 0.66) {
-      return interpolate(COLORS.medium, COLORS.high, (intensity - 0.33) * 3);
-    } else {
-      return interpolate(COLORS.high, COLORS.max, (intensity - 0.66) * 3);
-    }
-  };
-
-  const interpolate = (color1: number[], color2: number[], factor: number): number[] => {
-    return color1.map((c, i) => Math.round(c + (color2[i] - c) * factor));
-  };
-
   return (
     <Card className="p-6">
-      <div className={`mb-6 space-y-4 ${showUI ? 'opacity-100' : 'opacity-0'} transition-opacity`}>
-        <div className="flex gap-4">
-          <Select value={selectedDevice} onValueChange={(value) => setSelectedDevice(value as DeviceType)}>
-            <SelectTrigger className="w-[200px]">
-              <SelectValue placeholder="Select device" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Devices</SelectItem>
-              <SelectItem value="mobile">Mobile</SelectItem>
-              <SelectItem value="tablet">Tablet</SelectItem>
-              <SelectItem value="desktop">Desktop</SelectItem>
-            </SelectContent>
-          </Select>
-
-          <div className="flex-1">
-            <label className="text-sm font-medium mb-2 block">Opacity</label>
-            <Slider
-              value={[opacity * 100]}
-              onValueChange={(value) => setOpacity(value[0] / 100)}
-              min={0}
-              max={100}
-              step={1}
-            />
-          </div>
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => setZoomLevel(prev => Math.max(0.5, prev - 0.1))}
-            >
-              <ZoomOut className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => setZoomLevel(prev => Math.min(2, prev + 0.1))}
-            >
-              <ZoomIn className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => setShowUI(prev => !prev)}
-            >
-              {showUI ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-            </Button>
-          </div>
-        </div>
-      </div>
+      <HeatmapControls
+        selectedDevice={selectedDevice}
+        setSelectedDevice={setSelectedDevice}
+        opacity={opacity}
+        setOpacity={setOpacity}
+        zoomLevel={zoomLevel}
+        setZoomLevel={setZoomLevel}
+        showUI={showUI}
+        setShowUI={setShowUI}
+      />
 
       <div 
         ref={containerRef} 
@@ -363,34 +258,13 @@ export const ClickHeatmap = () => {
           }}
         />
         {hoveredCluster && (
-          <div
-            ref={tooltipRef}
-            className="fixed z-50 bg-white/90 backdrop-blur-sm border rounded-lg shadow-lg p-3 pointer-events-none"
+          <ClusterTooltip
+            cluster={hoveredCluster}
             style={{
-              minWidth: '200px',
-              transform: 'translate(-50%, -100%)'
+              left: tooltipRef.current?.style.left,
+              top: tooltipRef.current?.style.top
             }}
-          >
-            <div className="text-sm font-medium">{hoveredCluster.points.length} clicks in this area</div>
-            <div className="text-xs text-gray-500 mt-1">
-              Device breakdown:
-              <ul className="mt-1">
-                {Object.entries(
-                  hoveredCluster.points.reduce((acc, point) => {
-                    acc[point.device_type] = (acc[point.device_type] || 0) + 1;
-                    return acc;
-                  }, {} as Record<string, number>)
-                ).map(([device, count]) => (
-                  <li key={device}>
-                    {device}: {count} clicks
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <div className="text-xs text-gray-500 mt-1">
-              Latest click: {format(new Date(hoveredCluster.points[hoveredCluster.points.length - 1].created_at), 'PP p')}
-            </div>
-          </div>
+          />
         )}
         {isLoading && (
           <div className="absolute inset-0 flex items-center justify-center bg-white/80">
