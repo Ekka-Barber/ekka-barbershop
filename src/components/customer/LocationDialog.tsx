@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useTimeFormatting } from "@/hooks/useTimeFormatting";
-import { MapPin } from "lucide-react";
+import { Clock, MapPin } from "lucide-react";
 
 interface Branch {
   id: string;
@@ -33,30 +33,37 @@ export const LocationDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-2xl bg-white border-0 shadow-2xl p-6">
+      <DialogContent className="sm:max-w-xl bg-white border-0 shadow-2xl p-4">
         <DialogHeader>
-          <DialogTitle className="text-center text-2xl font-bold text-[#222222] mb-6">
+          <DialogTitle className="text-center text-xl font-bold text-[#222222] mb-4">
             {language === 'ar' ? 'فروعنا' : 'Our Branches'}
           </DialogTitle>
         </DialogHeader>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-3">
           {branches?.map((branch) => (
             <Button
               key={branch.id}
               variant="outline"
-              className="h-[160px] flex flex-col items-center justify-center space-y-3 bg-white hover:bg-[#C4A36F]/5 border-2 border-gray-200 hover:border-[#C4A36F] transition-all duration-300 rounded-lg group"
+              className="w-full h-[90px] flex flex-row items-center justify-between gap-3 px-4 bg-white hover:bg-[#C4A36F]/5 border-2 border-gray-200 hover:border-[#C4A36F] transition-all duration-300 rounded-lg group"
               onClick={() => onLocationClick(branch.google_maps_url)}
             >
-              <span className="font-semibold text-xl text-[#222222] group-hover:text-[#C4A36F] transition-colors text-center">
-                {language === 'ar' ? branch.name_ar : branch.name}
-              </span>
-              <span className="text-sm text-gray-500 group-hover:text-[#C4A36F]/70 transition-colors text-center px-4">
-                {language === 'ar' ? branch.address_ar : branch.address}
-              </span>
-              <div className="text-xs text-gray-400 group-hover:text-[#C4A36F]/60 transition-colors text-center px-4 flex flex-col gap-0.5">
-                {getCurrentDayHours(branch.working_hours, language === 'ar')}
+              <div className={`flex flex-col items-${language === 'ar' ? 'end' : 'start'} flex-shrink min-w-0 max-w-[70%]`}>
+                <span className="w-full font-bold text-base text-[#222222] group-hover:text-[#C4A36F] transition-colors truncate">
+                  {language === 'ar' ? branch.name_ar : branch.name}
+                </span>
+                <span className="w-full text-sm text-gray-600 group-hover:text-[#C4A36F]/70 transition-colors truncate mt-1">
+                  {language === 'ar' ? branch.address_ar : branch.address}
+                </span>
               </div>
-              <MapPin className="h-6 w-6 text-[#C4A36F] mt-2" />
+              <div className={`flex-shrink-0 ${language === 'ar' ? 'border-s' : 'border-e'} border-gray-200 ${language === 'ar' ? 'ps-3' : 'pe-3'} flex items-center gap-3`}>
+                <div className="flex items-center gap-1.5 text-sm font-medium text-[#C4A36F]">
+                  <Clock className="w-4 h-4" />
+                  <span className="group-hover:text-[#C4A36F] transition-colors whitespace-nowrap">
+                    {getCurrentDayHours(branch.working_hours, language === 'ar')}
+                  </span>
+                </div>
+                <MapPin className="w-4 h-4 text-[#C4A36F]" />
+              </div>
             </Button>
           ))}
         </div>
