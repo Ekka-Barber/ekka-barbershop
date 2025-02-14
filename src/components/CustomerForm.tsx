@@ -1,6 +1,8 @@
+
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useState } from "react";
 
 interface CustomerDetails {
   name: string;
@@ -19,11 +21,31 @@ export const CustomerForm = ({
   onCustomerDetailsChange
 }: CustomerFormProps) => {
   const { t, language } = useLanguage();
+  const [phoneError, setPhoneError] = useState<string>("");
+  const [emailError, setEmailError] = useState<string>("");
 
   const handlePhoneChange = (value: string) => {
     // Only allow numbers
     const numbersOnly = value.replace(/[^0-9]/g, '');
+    
+    // Validate phone number length - must be exactly 10 digits
+    if (numbersOnly.length !== 10) {
+      setPhoneError(language === 'ar' ? 'رقم الهاتف يجب أن يكون 10 أرقام' : 'Phone number must be 10 digits');
+    } else {
+      setPhoneError("");
+    }
+    
     onCustomerDetailsChange('phone', numbersOnly);
+  };
+
+  const handleEmailChange = (value: string) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(value)) {
+      setEmailError(language === 'ar' ? 'يرجى إدخال بريد إلكتروني صحيح' : 'Please enter a valid email address');
+    } else {
+      setEmailError("");
+    }
+    onCustomerDetailsChange('email', value);
   };
 
   return (
@@ -51,19 +73,29 @@ export const CustomerForm = ({
             value={customerDetails.phone}
             onChange={(e) => handlePhoneChange(e.target.value)}
             required
+            maxLength={10}
+            className={phoneError ? "border-destructive" : ""}
           />
+          {phoneError && (
+            <p className="text-sm text-destructive mt-1">{phoneError}</p>
+          )}
         </div>
         
         <div>
           <Label htmlFor="email">
-            {t('email')} ({language === 'ar' ? 'اختياري' : 'optional'})
+            {t('email')} {language === 'ar' ? '( لغرض تنبيهات الحجز )' : '(for appointment notifications)'} <span className="text-destructive">*</span>
           </Label>
           <Input
             id="email"
             type="email"
             value={customerDetails.email}
-            onChange={(e) => onCustomerDetailsChange('email', e.target.value)}
+            onChange={(e) => handleEmailChange(e.target.value)}
+            required
+            className={emailError ? "border-destructive" : ""}
           />
+          {emailError && (
+            <p className="text-sm text-destructive mt-1">{emailError}</p>
+          )}
         </div>
         
         <div>

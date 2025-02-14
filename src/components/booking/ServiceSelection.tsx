@@ -8,6 +8,8 @@ import { ServiceCard } from "./service-selection/ServiceCard";
 import { ServicesSummary } from "./service-selection/ServicesSummary";
 import { cacheServices, getCachedServices, cacheActiveCategory, getCachedActiveCategory } from "@/utils/serviceCache";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useToast } from "@/hooks/use-toast";
+import { AlertTriangle } from "lucide-react";
 
 interface ServiceSelectionProps {
   categories: any[] | undefined;
@@ -25,6 +27,7 @@ export const ServiceSelection = ({
   onStepChange
 }: ServiceSelectionProps) => {
   const { language } = useLanguage();
+  const { toast } = useToast();
   const [activeCategory, setActiveCategory] = useState<string | null>(
     getCachedActiveCategory() || categories?.[0]?.id || null
   );
@@ -48,6 +51,25 @@ export const ServiceSelection = ({
     setIsSheetOpen(true);
   };
 
+  const handleServiceToggleError = () => {
+    toast({
+      variant: "destructive",
+      title: language === 'ar' ? 'خطأ' : 'Error',
+      description: language === 'ar' 
+        ? 'حدث خطأ أثناء إضافة/إزالة الخدمة. يرجى المحاولة مرة أخرى.'
+        : 'There was an error adding/removing the service. Please try again.',
+    });
+  };
+
+  const handleServiceToggleWrapper = (service: any) => {
+    try {
+      onServiceToggle(service);
+    } catch (error) {
+      handleServiceToggleError();
+      console.error('Service toggle error:', error);
+    }
+  };
+
   const sortedCategories = categories?.slice().sort((a, b) => a.display_order - b.display_order);
   const activeCategoryServices = sortedCategories?.find(
     cat => cat.id === activeCategory
@@ -58,6 +80,22 @@ export const ServiceSelection = ({
 
   if (isLoading) {
     return <ServicesSkeleton />;
+  }
+
+  if (!categories || categories.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center p-8 text-center space-y-4">
+        <AlertTriangle className="w-12 h-12 text-yellow-500" />
+        <h3 className="text-lg font-semibold">
+          {language === 'ar' ? 'لا توجد خدمات متاحة' : 'No Services Available'}
+        </h3>
+        <p className="text-gray-500">
+          {language === 'ar' 
+            ? 'نعتذر، لا توجد خدمات متاحة حالياً. يرجى المحاولة مرة أخرى لاحقاً.'
+            : 'Sorry, there are no services available at the moment. Please try again later.'}
+        </p>
+      </div>
+    );
   }
 
   return (
@@ -77,7 +115,7 @@ export const ServiceSelection = ({
             language={language}
             isSelected={selectedServices.some(s => s.id === service.id)}
             onServiceClick={handleServiceClick}
-            onServiceToggle={onServiceToggle}
+            onServiceToggle={handleServiceToggleWrapper}
           />
         ))}
       </div>
@@ -99,7 +137,7 @@ export const ServiceSelection = ({
                 <Button
                   className="w-full mt-4"
                   onClick={() => {
-                    onServiceToggle(selectedService);
+                    handleServiceToggleWrapper(selectedService);
                     setIsSheetOpen(false);
                   }}
                 >
