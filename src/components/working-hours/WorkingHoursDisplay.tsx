@@ -9,7 +9,7 @@ interface WorkingHoursDisplayProps {
 export const WorkingHoursDisplay = ({ isArabic, timeRanges }: WorkingHoursDisplayProps): ReactNode => {
   return (
     <Fragment>
-      <div>{isArabic ? 'ساعات العمل اليوم' : "Today's hours"}</div>
+      <div className="text-[#333333] font-medium">{isArabic ? 'ساعات العمل اليوم' : "Today's working Hrs"}</div>
       <div>{timeRanges.join(isArabic ? ' , ' : ', ')}</div>
     </Fragment>
   );
