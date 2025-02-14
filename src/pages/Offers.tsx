@@ -1,3 +1,4 @@
+
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from "@/integrations/supabase/client";
 import PDFViewer from '@/components/PDFViewer';
@@ -43,10 +44,13 @@ const Offers = () => {
           .from('marketing_files')
           .getPublicUrl(file.file_path);
         
+        const isExpired = file.end_date ? new Date(file.end_date).getTime() < new Date().getTime() : false;
+        
         return { 
           ...file, 
           url: fileUrl.publicUrl,
-          branchName: language === 'ar' ? file.branch_name_ar : file.branch_name
+          branchName: language === 'ar' ? file.branch_name_ar : file.branch_name,
+          isExpired
         };
       }));
       
@@ -69,6 +73,15 @@ const Offers = () => {
       return `On ${branchName} only`;
     }
   };
+
+  const renderExpiredSticker = () => (
+    <div className="absolute inset-0 flex items-center justify-center z-10">
+      <div className="bg-red-600 text-white px-6 py-3 rounded-lg transform rotate-[-15deg] shadow-xl text-center">
+        <div className="text-2xl font-bold mb-1">ENDED</div>
+        <div className="text-xl font-bold">انتهى</div>
+      </div>
+    </div>
+  );
 
   return (
     <div dir={language === 'ar' ? 'rtl' : 'ltr'} className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 flex flex-col">
@@ -125,19 +138,24 @@ const Offers = () => {
                       </Badge>
                     </div>
                   )}
-                  {file.file_type.includes('pdf') ? (
-                    <PDFViewer pdfUrl={file.url} />
-                  ) : (
-                    <img 
-                      src={file.url} 
-                      alt="Special Offer"
-                      className="w-full max-w-full h-auto rounded-lg"
-                      onError={(e) => {
-                        console.error('Image failed to load:', file.url);
-                        e.currentTarget.src = '/placeholder.svg';
-                      }}
-                    />
-                  )}
+                  <div className="relative">
+                    {file.isExpired && renderExpiredSticker()}
+                    {file.file_type.includes('pdf') ? (
+                      <PDFViewer pdfUrl={file.url} />
+                    ) : (
+                      <div className={`relative ${file.isExpired ? 'filter grayscale blur-[2px]' : ''}`}>
+                        <img 
+                          src={file.url} 
+                          alt={file.isExpired ? `Expired Offer - ${file.name || 'Special Offer'}` : "Special Offer"}
+                          className="w-full max-w-full h-auto rounded-lg transition-all duration-300"
+                          onError={(e) => {
+                            console.error('Image failed to load:', file.url);
+                            e.currentTarget.src = '/placeholder.svg';
+                          }}
+                        />
+                      </div>
+                    )}
+                  </div>
                   {file.end_date && (
                     <CountdownTimer endDate={file.end_date} />
                   )}

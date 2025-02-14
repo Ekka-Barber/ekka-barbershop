@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from 'react';
 import { useLanguage } from "@/contexts/LanguageContext";
 
@@ -12,6 +13,7 @@ const CountdownTimer = ({ endDate }: CountdownTimerProps) => {
     minutes: number;
     seconds: number;
   } | null>(null);
+  const [isExpired, setIsExpired] = useState(false);
   
   const { language } = useLanguage();
 
@@ -21,6 +23,7 @@ const CountdownTimer = ({ endDate }: CountdownTimerProps) => {
       
       if (difference <= 0) {
         setTimeLeft(null);
+        setIsExpired(true);
         return;
       }
 
@@ -37,6 +40,14 @@ const CountdownTimer = ({ endDate }: CountdownTimerProps) => {
 
     return () => clearInterval(timer);
   }, [endDate]);
+
+  if (isExpired) {
+    return (
+      <div className="mt-4 text-red-600 font-semibold text-lg">
+        {language === 'ar' ? 'العرض انتهى' : 'Offer Ended'}
+      </div>
+    );
+  }
 
   if (!timeLeft) return null;
 
