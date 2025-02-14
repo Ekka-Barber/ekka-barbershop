@@ -1,6 +1,6 @@
 
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useTimeFormatting } from "@/hooks/useTimeFormatting";
 import { Clock } from "lucide-react";
@@ -35,9 +35,12 @@ export const LocationDialog = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-xl bg-white border-0 shadow-2xl p-4">
         <DialogHeader>
-          <DialogTitle className="text-center text-xl font-bold text-[#222222] mb-4">
+          <DialogTitle className="text-center text-xl font-bold text-[#222222] mb-2">
             {language === 'ar' ? 'فروعنا' : 'Our Branches'}
           </DialogTitle>
+          <DialogDescription className="text-center text-sm text-gray-600 mb-4">
+            {language === 'ar' ? 'اختر موقع الفرع' : 'Select a branch location'}
+          </DialogDescription>
         </DialogHeader>
         <div className="grid grid-cols-1 gap-3">
           {branches?.map((branch) => (
