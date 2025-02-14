@@ -7,18 +7,27 @@
   --sal: env(safe-area-inset-left, 0px);
   
   /* Additional spacing variables */
-  --header-height: 2.75rem; /* 44px - standard iOS header height */
+  --header-height: 2.75rem;
   --content-spacing: 1rem;
 }
 
 #root {
   max-width: 1280px;
   margin: 0 auto;
-  padding: calc(var(--sat) + var(--content-spacing)) var(--content-spacing) calc(var(--sab) + var(--content-spacing));
   text-align: center;
-  min-height: 100vh;
+  min-height: 100dvh; /* Use dynamic viewport height */
   display: flex;
   flex-direction: column;
+  background: linear-gradient(180deg, #F9FAFB 0%, #F3F4F6 100%);
+  position: relative;
+}
+
+/* Safe area handling */
+#root {
+  padding: calc(var(--sat) + var(--content-spacing))
+          calc(var(--sar) + var(--content-spacing))
+          calc(var(--sab) + var(--content-spacing))
+          calc(var(--sal) + var(--content-spacing));
 }
 
 /* PWA specific adjustments */
@@ -31,51 +40,17 @@
 /* Desktop adjustments */
 @media (min-width: 640px) {
   #root {
-    padding: calc(var(--sat) + 2rem) 2rem calc(var(--sab) + 1rem);
+    padding: calc(var(--sat) + 2rem) 2rem calc(var(--sab) + 2rem);
   }
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
-}
-
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
-}
-
-.card {
-  padding: 2em;
-}
-
-.read-the-docs {
-  color: #888;
-}
+/* ... keep existing code (logo animations and card styles) */
 
 /* Safe area handling for the page footer */
 .page-footer {
   height: env(safe-area-inset-bottom, 0px);
   width: 100%;
-  min-height: 1rem; /* Minimum height when safe-area is not available */
+  min-height: 1rem;
 }
 
 /* Enhanced touch targets for mobile */
@@ -83,26 +58,33 @@
   button, 
   [role="button"],
   .clickable {
-    min-height: 44px; /* iOS standard */
+    min-height: 44px;
     min-width: 44px;
     padding: 0.75rem 1rem;
   }
 }
 
 /* Language switcher positioning */
-.sticky {
+.sticky-header {
   position: sticky;
-  top: calc(var(--sat));
+  top: 0;
   z-index: 50;
-  padding-top: 0.5rem;
-  padding-bottom: 0.5rem;
-  background: linear-gradient(to bottom, rgba(249, 250, 251, 1) 0%, rgba(249, 250, 251, 0) 100%);
+  padding-top: calc(var(--sat));
+  margin-bottom: 1rem;
+  background: linear-gradient(to bottom, #F9FAFB 0%, rgba(249, 250, 251, 0) 100%);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 
-/* Improved spacing for action buttons */
-.space-y-4 > * {
-  margin-top: 1rem;
-  margin-bottom: 1rem;
+/* Content container */
+.main-content {
+  flex: 1;
+  width: 100%;
+  max-width: 28rem; /* md breakpoint */
+  margin: 0 auto;
+  padding: 0 1rem;
+  display: flex;
+  flex-direction: column;
 }
 
 /* Bottom navigation improvements */
@@ -110,4 +92,3 @@
   margin-bottom: calc(var(--sab));
   padding-bottom: 0.5rem;
 }
-
