@@ -44,7 +44,7 @@ const CustomerTrackingDashboard = () => {
       const { data, error } = await supabase
         .from('service_tracking')
         .select('service_name, action, timestamp')
-        .order('timestamp', { ascending: false });
+        .order('created_at', { ascending: false });
       
       if (error) throw error;
       
@@ -65,7 +65,7 @@ const CustomerTrackingDashboard = () => {
       const { data, error } = await supabase
         .from('booking_behavior')
         .select('step, timestamp')
-        .order('timestamp', { ascending: false });
+        .order('created_at', { ascending: false });
       
       if (error) throw error;
       return data as BookingBehavior[];
@@ -110,7 +110,7 @@ const CustomerTrackingDashboard = () => {
     return Array.from(stepCounts.entries()).map(([name, count]) => ({
       name,
       count
-    }));
+    })).sort((a, b) => b.count - a.count); // Sort by count descending
   };
 
   if (serviceLoading || bookingLoading) {
@@ -142,22 +142,29 @@ const CustomerTrackingDashboard = () => {
           <CardDescription>Shows how many times services were added or removed from bookings</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="h-[400px]">
+          <div className="h-[400px] rtl">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart
                 data={serviceStats}
-                margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
+                margin={{ top: 20, right: 30, left: 20, bottom: 120 }}
+                layout="vertical"
               >
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis 
+                <XAxis type="number" />
+                <YAxis 
                   dataKey="name"
-                  angle={-45}
-                  textAnchor="end"
-                  height={80}
-                  interval={0}
+                  type="category"
+                  width={150}
+                  tick={{ 
+                    fontSize: 12,
+                    width: 140,
+                    textAnchor: 'end'
+                  }}
                 />
-                <YAxis />
-                <Tooltip />
+                <Tooltip 
+                  formatter={(value: number) => [`${value}`, '']}
+                  labelStyle={{ textAlign: 'right' }}
+                />
                 <Bar dataKey="added" fill="#4ade80" name="Added" />
                 <Bar dataKey="removed" fill="#f87171" name="Removed" />
                 <Bar dataKey="net" fill="#60a5fa" name="Net" />
@@ -178,18 +185,18 @@ const CustomerTrackingDashboard = () => {
               <BarChart
                 data={bookingStats}
                 margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
+                layout="vertical"
               >
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis 
+                <XAxis type="number" />
+                <YAxis 
                   dataKey="name"
-                  angle={-45}
-                  textAnchor="end"
-                  height={80}
-                  interval={0}
+                  type="category"
+                  width={100}
+                  tick={{ fontSize: 12 }}
                 />
-                <YAxis />
-                <Tooltip />
-                <Bar dataKey="count" fill="#60a5fa" name="Count" />
+                <Tooltip formatter={(value: number) => [`${value} users`, '']} />
+                <Bar dataKey="count" fill="#60a5fa" name="Users" />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -204,7 +211,7 @@ const CustomerTrackingDashboard = () => {
         <CardContent>
           <div className="space-y-4">
             {serviceTracking && serviceTracking.slice(0, 10).map((track, index) => (
-              <div key={index} className="flex justify-between items-center border-b pb-2">
+              <div key={index} className="flex justify-between items-center border-b pb-2 rtl">
                 <div>
                   <span className={track.action === 'added' ? 'text-green-600' : 'text-red-600'}>
                     {track.action === 'added' ? 'Added' : 'Removed'}
