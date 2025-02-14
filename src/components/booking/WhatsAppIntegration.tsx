@@ -7,6 +7,7 @@ import { BookingFormData } from "./types/booking";
 import { BookingConfirmDialog } from "./components/BookingConfirmDialog";
 import { generateWhatsAppMessage, saveBookingData } from "./services/bookingService";
 import { formatWhatsAppNumber, isValidWhatsAppNumber } from "@/utils/phoneUtils";
+import { openExternalLink } from "@/utils/deepLinking";
 
 export const WhatsAppIntegration = (props: BookingFormData) => {
   const { toast } = useToast();
@@ -32,7 +33,6 @@ export const WhatsAppIntegration = (props: BookingFormData) => {
       return false;
     }
 
-    // Validate branch WhatsApp number
     if (!props.branch?.whatsapp_number || !isValidWhatsAppNumber(props.branch.whatsapp_number)) {
       console.error('Invalid WhatsApp number:', props.branch?.whatsapp_number);
       showError(t('whatsapp.missing'));
@@ -72,7 +72,8 @@ export const WhatsAppIntegration = (props: BookingFormData) => {
       }
 
       const whatsappURL = `https://wa.me/${formattedNumber}?text=${generateWhatsAppMessage(props)}`;
-      window.open(whatsappURL, '_blank');
+      openExternalLink(whatsappURL);
+      
       setIsConfirmDialogOpen(false);
       toast({
         description: t('whatsapp.opened'),
