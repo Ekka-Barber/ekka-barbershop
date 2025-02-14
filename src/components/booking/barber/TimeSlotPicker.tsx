@@ -39,10 +39,10 @@ export const TimeSlotPicker = ({
         <h3 className="text-lg font-medium text-center">
           {language === 'ar' ? 'جاري تحميل المواعيد...' : 'Loading time slots...'}
         </h3>
-        <div className="w-screen -mx-4 md:-mx-8">
-          <div className="bg-gradient-to-b from-white to-gray-50 shadow-sm border-b border-gray-100">
-            <div className="overflow-x-auto hide-scrollbar px-6 py-4">
-              <div className="flex space-x-3 rtl:space-x-reverse min-w-full">
+        <div className="w-full">
+          <div className="bg-gradient-to-b from-white to-gray-50 shadow-sm border border-gray-100 rounded-lg">
+            <div className="overflow-x-auto scrollbar-hide px-4 py-4">
+              <div className="flex space-x-3 rtl:space-x-reverse">
                 {[1, 2, 3, 4, 5, 6].map((i) => (
                   <Skeleton key={i} className="h-10 w-20" />
                 ))}
@@ -63,10 +63,10 @@ export const TimeSlotPicker = ({
       <h3 className="text-lg font-medium text-center">
         {language === 'ar' ? 'اختر الوقت المناسب' : 'Select Available Time'}
       </h3>
-      <div className="w-screen -mx-4 md:-mx-8">
-        <div className="bg-gradient-to-b from-white to-gray-50 shadow-sm border-b border-gray-100">
-          <div className="overflow-x-auto hide-scrollbar px-6 py-4">
-            <div className="flex space-x-3 rtl:space-x-reverse min-w-full">
+      <div className="w-full">
+        <div className="bg-gradient-to-b from-white to-gray-50 shadow-sm border border-gray-100 rounded-lg">
+          <div className="overflow-x-auto scrollbar-hide px-4 py-4">
+            <div className="flex space-x-3 rtl:space-x-reverse">
               {displayedTimeSlots.map((slot, index) => {
                 const showSeparator = index > 0 && needsSeparator(slot.time, displayedTimeSlots[index - 1].time);
 
