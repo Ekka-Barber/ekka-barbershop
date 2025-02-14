@@ -6,6 +6,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { BookingFormData } from "./types/booking";
 import { BookingConfirmDialog } from "./components/BookingConfirmDialog";
 import { generateWhatsAppMessage, saveBookingData } from "./services/bookingService";
+import { formatWhatsAppNumber, isValidWhatsAppNumber } from "@/utils/phoneUtils";
 
 export const WhatsAppIntegration = (props: BookingFormData) => {
   const { toast } = useToast();
@@ -30,6 +31,14 @@ export const WhatsAppIntegration = (props: BookingFormData) => {
       showError(t('select.date.time'));
       return false;
     }
+
+    // Validate branch WhatsApp number
+    if (!props.branch?.whatsapp_number || !isValidWhatsAppNumber(props.branch.whatsapp_number)) {
+      console.error('Invalid WhatsApp number:', props.branch?.whatsapp_number);
+      showError(t('whatsapp.missing'));
+      return false;
+    }
+
     return true;
   };
 
@@ -57,16 +66,19 @@ export const WhatsAppIntegration = (props: BookingFormData) => {
       
       await saveBookingData(props);
 
-      const whatsappNumber = props.branch.whatsapp_number.startsWith('+') ? 
-        props.branch.whatsapp_number.slice(1) : 
-        props.branch.whatsapp_number;
-      const whatsappURL = `https://wa.me/${whatsappNumber}?text=${generateWhatsAppMessage(props)}`;
+      const formattedNumber = formatWhatsAppNumber(props.branch.whatsapp_number);
+      if (!formattedNumber) {
+        throw new Error('Invalid WhatsApp number format');
+      }
+
+      const whatsappURL = `https://wa.me/${formattedNumber}?text=${generateWhatsAppMessage(props)}`;
       window.open(whatsappURL, '_blank');
       setIsConfirmDialogOpen(false);
       toast({
         description: t('whatsapp.opened'),
       });
     } catch (error) {
+      console.error('Booking error:', error);
       showError(props.language === 'ar' 
         ? 'حدث خطأ أثناء حفظ الحجز. يرجى المحاولة مرة أخرى.'
         : 'Error saving booking. Please try again.');
