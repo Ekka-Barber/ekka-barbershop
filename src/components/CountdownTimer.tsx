@@ -41,15 +41,7 @@ const CountdownTimer = ({ endDate }: CountdownTimerProps) => {
     return () => clearInterval(timer);
   }, [endDate]);
 
-  if (isExpired) {
-    return (
-      <div className="mt-4 text-red-600 font-semibold text-lg text-center">
-        {language === 'ar' ? 'العرض انتهى' : 'Offer Ended'}
-      </div>
-    );
-  }
-
-  if (!timeLeft) return null;
+  if (isExpired || !timeLeft) return null;
 
   const formatNumber = (num: number): string => num.toString().padStart(2, '0');
 
