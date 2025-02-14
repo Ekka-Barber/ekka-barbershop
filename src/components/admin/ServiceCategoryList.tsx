@@ -1,12 +1,10 @@
+
 import { useState, useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { DragDropContext, Droppable } from '@hello-pangea/dnd';
 import { supabase } from "@/integrations/supabase/client";
-import { ServiceDialog } from './ServiceDialog';
-import { CategoryDialog } from './CategoryDialog';
-import { CategoryItem } from './CategoryItem';
 import { useServiceCategories } from '@/hooks/useServiceCategories';
-import { Separator } from "@/components/ui/separator";
+import { CategoryList } from './category-management/CategoryList';
+import { CategoryActions } from './category-management/CategoryActions';
 
 const ServiceCategoryList = () => {
   const [expandedCategories, setExpandedCategories] = useState<string[]>([]);
@@ -111,36 +109,15 @@ const ServiceCategoryList = () => {
     <div className="space-y-4">
       <h2 className="text-lg font-semibold">Service Categories</h2>
 
-      <DragDropContext onDragEnd={handleDragEnd}>
-        <Droppable droppableId="categories" type="category">
-          {(provided) => (
-            <div
-              {...provided.droppableProps}
-              ref={provided.innerRef}
-              className="space-y-2"
-            >
-              {categories?.map((category, index) => (
-                <CategoryItem
-                  key={category.id}
-                  category={category}
-                  index={index}
-                  isExpanded={expandedCategories.includes(category.id)}
-                  onToggle={() => toggleCategory(category.id)}
-                  onDelete={() => deleteCategory(category.id)}
-                />
-              ))}
-              {provided.placeholder}
-            </div>
-          )}
-        </Droppable>
-      </DragDropContext>
+      <CategoryList
+        categories={categories}
+        expandedCategories={expandedCategories}
+        onToggleCategory={toggleCategory}
+        onDeleteCategory={deleteCategory}
+        onDragEnd={handleDragEnd}
+      />
 
-      <Separator className="my-4" />
-      
-      <div className="flex flex-col items-center gap-4">
-        <CategoryDialog categories={categories} />
-        <ServiceDialog categories={categories} />
-      </div>
+      <CategoryActions categories={categories} />
     </div>
   );
 };
