@@ -54,7 +54,7 @@ export const BranchDialog = ({
                   {language === 'ar' ? branch.address_ar : branch.address}
                 </span>
               </div>
-              <div className={`flex-shrink-0 ${language === 'ar' ? 'border-s' : 'border-e'} border-gray-200 ${language === 'ar' ? 'ps-3' : 'pe-3'}`}>
+              <div className={`flex-shrink-0 ${language === 'ar' ? 'border-e pe-3' : 'border-s ps-3'} border-gray-200`}>
                 <div className="flex items-center gap-1.5 text-sm font-medium text-[#C4A36F]">
                   <Clock className="w-4 h-4" />
                   <span className="group-hover:text-[#C4A36F] transition-colors whitespace-nowrap">
