@@ -38,72 +38,105 @@ export const BookingContainer = () => {
 
   if (!branchId) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 flex flex-col items-center justify-center p-4">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-800 mb-4">
-            {t('select.branch')}
-          </h1>
-          <Button 
-            className="w-full h-14 text-lg font-medium bg-[#C4A36F] hover:bg-[#B39260] text-white transition-all duration-300 shadow-lg hover:shadow-xl"
-            onClick={() => navigate('/customer')}
-          >
-            {t('go.back')}
-          </Button>
+      <div className="min-h-screen flex flex-col">
+        <div className="app-header">
+          <div className="language-switcher-container">
+            <LanguageSwitcher />
+          </div>
         </div>
+        <div className="app-container">
+          <div className="content-area flex items-center justify-center">
+            <div className="text-center px-4">
+              <h1 className="text-2xl font-bold text-gray-800 mb-4">
+                {t('select.branch')}
+              </h1>
+              <Button 
+                className="touch-target bg-[#C4A36F] hover:bg-[#B39260] text-white shadow-md hover:shadow-lg"
+                onClick={() => navigate('/customer')}
+              >
+                {t('go.back')}
+              </Button>
+            </div>
+          </div>
+        </div>
+        <footer className="page-footer" />
       </div>
     );
   }
 
   if (branchError) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 flex flex-col items-center justify-center p-4">
-        <div className="text-center space-y-4">
-          <h1 className="text-2xl font-bold text-red-600">
-            {language === 'ar' ? 'عذراً! حدث خطأ ما' : 'Error Loading Branch'}
-          </h1>
-          <p className="text-gray-600">
-            {language === 'ar' 
-              ? 'لم نتمكن من تحميل معلومات الفرع. يرجى المحاولة مرة أخرى.'
-              : 'We could not load the branch information. Please try again.'}
-          </p>
-          <Button 
-            onClick={() => navigate('/customer')}
-            variant="outline"
-          >
-            {t('go.back')}
-          </Button>
+      <div className="min-h-screen flex flex-col">
+        <div className="app-header">
+          <div className="language-switcher-container">
+            <LanguageSwitcher />
+          </div>
         </div>
+        <div className="app-container">
+          <div className="content-area flex items-center justify-center">
+            <div className="text-center px-4 space-y-4">
+              <h1 className="text-2xl font-bold text-red-600">
+                {language === 'ar' ? 'عذراً! حدث خطأ ما' : 'Error Loading Branch'}
+              </h1>
+              <p className="text-gray-600">
+                {language === 'ar' 
+                  ? 'لم نتمكن من تحميل معلومات الفرع. يرجى المحاولة مرة أخرى.'
+                  : 'We could not load the branch information. Please try again.'}
+              </p>
+              <Button 
+                onClick={() => navigate('/customer')}
+                variant="outline"
+                className="touch-target"
+              >
+                {t('go.back')}
+              </Button>
+            </div>
+          </div>
+        </div>
+        <footer className="page-footer" />
       </div>
     );
   }
 
   if (branchLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 flex flex-col items-center justify-center p-4">
-        <Loader2 className="h-8 w-8 animate-spin text-[#C4A36F]" />
+      <div className="min-h-screen flex flex-col">
+        <div className="app-header">
+          <div className="language-switcher-container">
+            <LanguageSwitcher />
+          </div>
+        </div>
+        <div className="app-container">
+          <div className="content-area flex items-center justify-center">
+            <Loader2 className="h-8 w-8 animate-spin text-[#C4A36F]" />
+          </div>
+        </div>
+        <footer className="page-footer" />
       </div>
     );
   }
 
   return (
     <ErrorBoundary>
-      <div dir={language === 'ar' ? 'rtl' : 'ltr'} className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 flex flex-col">
-        <div className="bg-gradient-to-b from-gray-50 to-transparent h-11">
-          <div className="max-w-md mx-auto h-full relative">
-            <div className="absolute right-0 top-0 h-full" style={{ direction: 'ltr' }}>
-              <LanguageSwitcher />
-            </div>
+      <div dir={language === 'ar' ? 'rtl' : 'ltr'} className="min-h-screen flex flex-col">
+        <div className="app-header">
+          <div className="language-switcher-container">
+            <LanguageSwitcher />
           </div>
         </div>
-
-        <div className="flex-grow max-w-md mx-auto w-full pt-8 px-4 sm:px-6 lg:px-8">
-          <BookingHeader
-            branchName={language === 'ar' ? branch?.name_ar : branch?.name}
-            branchAddress={language === 'ar' ? branch?.address_ar : branch?.address}
-            isLoading={branchLoading}
-          />
-          <BookingSteps branch={branch} />
+        
+        <div className="app-container">
+          <div className="content-area">
+            <BookingHeader
+              branchName={language === 'ar' ? branch?.name_ar : branch?.name}
+              branchAddress={language === 'ar' ? branch?.address_ar : branch?.address}
+              isLoading={branchLoading}
+            />
+            <BookingSteps branch={branch} />
+          </div>
         </div>
+        
+        <footer className="page-footer" />
       </div>
     </ErrorBoundary>
   );
