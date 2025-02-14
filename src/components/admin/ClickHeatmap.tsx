@@ -51,16 +51,29 @@ export const ClickHeatmap = () => {
   const [showUI, setShowUI] = useState(true);
   const [hoveredCluster, setHoveredCluster] = useState<Cluster | null>(null);
   const [clickData, setClickData] = useState<ClickData[]>([]);
+  const [iframeLoaded, setIframeLoaded] = useState(false);
   
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+
+  // Handle iframe load
+  const handleIframeLoad = () => {
+    setIframeLoaded(true);
+    if (containerRef.current && iframeRef.current) {
+      const iframe = iframeRef.current;
+      iframe.style.height = '100%';
+      iframe.style.width = '100%';
+    }
+  };
 
   // Normalized click data with proper scaling
   const normalizedClicks = useMemo(() => {
-    if (!containerRef.current) return [];
+    if (!containerRef.current || !iframeRef.current) return [];
 
-    const { width: containerWidth, height: containerHeight } = containerRef.current.getBoundingClientRect();
+    const iframe = iframeRef.current;
+    const { width: containerWidth, height: containerHeight } = iframe.getBoundingClientRect();
 
     return clickData.map(click => ({
       x: (click.x_coordinate / MAX_SCREEN_WIDTH) * containerWidth,
@@ -107,13 +120,12 @@ export const ClickHeatmap = () => {
 
         if (distance <= CLUSTER_RADIUS) {
           cluster.points.push(normalizedClick.originalData);
-          // Recalculate center based on all points
           cluster.centerX = cluster.points.reduce((sum, p) => {
-            const normalized = (p.x_coordinate / MAX_SCREEN_WIDTH) * (containerRef.current?.clientWidth || 1);
+            const normalized = (p.x_coordinate / MAX_SCREEN_WIDTH) * (iframeRef.current?.clientWidth || 1);
             return sum + normalized;
           }, 0) / cluster.points.length;
           cluster.centerY = cluster.points.reduce((sum, p) => {
-            const normalized = (p.y_coordinate / MAX_SCREEN_HEIGHT) * (containerRef.current?.clientHeight || 1);
+            const normalized = (p.y_coordinate / MAX_SCREEN_HEIGHT) * (iframeRef.current?.clientHeight || 1);
             return sum + normalized;
           }, 0) / cluster.points.length;
           addedToCluster = true;
@@ -138,7 +150,7 @@ export const ClickHeatmap = () => {
     let isActive = true;
     
     const drawHeatmap = async () => {
-      if (!containerRef.current || !canvasRef.current || !isActive) return;
+      if (!containerRef.current || !canvasRef.current || !isActive || !iframeLoaded) return;
 
       setIsLoading(true);
       try {
@@ -211,13 +223,13 @@ export const ClickHeatmap = () => {
     return () => {
       isActive = false;
     };
-  }, [selectedPage, selectedDevice, opacity, zoomLevel]); // Removed clusters dependency
+  }, [selectedPage, selectedDevice, opacity, zoomLevel, iframeLoaded]);
 
   // Canvas sizing
   useEffect(() => {
     const handleResize = () => {
-      if (containerRef.current && canvasRef.current) {
-        const { width, height } = containerRef.current.getBoundingClientRect();
+      if (containerRef.current && canvasRef.current && iframeRef.current) {
+        const { width, height } = iframeRef.current.getBoundingClientRect();
         canvasRef.current.width = width;
         canvasRef.current.height = height;
       }
@@ -226,7 +238,7 @@ export const ClickHeatmap = () => {
     handleResize();
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
-  }, []);
+  }, [iframeLoaded]);
 
   // Mouse interaction handlers
   const handleMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
@@ -349,12 +361,21 @@ export const ClickHeatmap = () => {
         ref={containerRef} 
         className="w-full h-[600px] relative bg-white border rounded-lg overflow-hidden"
       >
+        <iframe
+          ref={iframeRef}
+          src={selectedPage}
+          className="absolute inset-0 w-full h-full border-none"
+          onLoad={handleIframeLoad}
+        />
         <canvas
           ref={canvasRef}
           onMouseMove={handleMouseMove}
           onMouseLeave={() => setHoveredCluster(null)}
-          className="absolute inset-0"
-          style={{ cursor: hoveredCluster ? 'pointer' : 'default' }}
+          className="absolute inset-0 pointer-events-none"
+          style={{ 
+            cursor: hoveredCluster ? 'pointer' : 'default',
+            backgroundColor: 'transparent'
+          }}
         />
         {hoveredCluster && (
           <div
