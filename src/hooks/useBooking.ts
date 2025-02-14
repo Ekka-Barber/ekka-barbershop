@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from "@/integrations/supabase/client";
@@ -13,7 +12,11 @@ export interface CustomerDetails {
   notes: string;
 }
 
-export const useBooking = (branch: any) => {
+interface UseBookingProps {
+  branchId?: string | null;
+}
+
+export const useBooking = ({ branchId }: UseBookingProps = {}) => {
   const [currentStep, setCurrentStep] = useState<BookingStep>('services');
   const [selectedServices, setSelectedServices] = useState<SelectedService[]>([]);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
@@ -74,18 +77,18 @@ export const useBooking = (branch: any) => {
   });
 
   const { data: employees, isLoading: employeesLoading } = useQuery({
-    queryKey: ['employees', branch?.id],
+    queryKey: ['employees', branchId],
     queryFn: async () => {
-      if (!branch?.id) return [];
+      if (!branchId) return [];
       const { data, error } = await supabase
         .from('employees')
         .select('*')
-        .eq('branch_id', branch.id);
+        .eq('branch_id', branchId);
       
       if (error) throw error;
       return data;
     },
-    enabled: !!branch?.id,
+    enabled: !!branchId,
   });
 
   const { data: selectedEmployee } = useQuery({
@@ -166,6 +169,30 @@ export const useBooking = (branch: any) => {
 
   const totalPrice = selectedServices.reduce((sum, service) => sum + service.price, 0);
 
+  const clearBooking = () => {
+    setSelectedServices([]);
+    setSelectedDate(undefined);
+    setSelectedTime(undefined);
+    setSelectedBarber(undefined);
+    setCustomerDetails({
+      name: '',
+      phone: '',
+      email: '',
+      notes: ''
+    });
+  };
+
+  const confirmBooking = async () => {
+    // Implementation of booking confirmation
+    try {
+      // Add your booking confirmation logic here
+      return true;
+    } catch (error) {
+      console.error('Error confirming booking:', error);
+      return false;
+    }
+  };
+
   return {
     currentStep,
     setCurrentStep,
@@ -185,6 +212,8 @@ export const useBooking = (branch: any) => {
     selectedEmployee,
     handleServiceToggle,
     handleUpsellServiceAdd,
-    totalPrice
+    totalPrice,
+    clearBooking,
+    confirmBooking
   };
 };

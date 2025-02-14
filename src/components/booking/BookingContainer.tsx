@@ -1,36 +1,35 @@
+
 import { useState } from "react";
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useLanguage } from "@/contexts/LanguageContext";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { BookingProgress } from "@/components/booking/BookingProgress";
-import { ServicesStep } from "@/components/booking/steps/ServicesStep";
-import { DateTimeStep } from "@/components/booking/steps/DateTimeStep";
-import { BarberStep } from "@/components/booking/steps/BarberStep";
-import { DetailsStep } from "@/components/booking/steps/DetailsStep";
-import { BookingConfirmDialog } from "@/components/booking/BookingConfirmDialog";
-import { useBooking } from "@/hooks/useBooking";
+import { ServiceSelection } from "@/components/booking/ServiceSelection";
+import { DateTimeSelection } from "@/components/booking/DateTimeSelection";
+import { BarberSelection } from "@/components/booking/BarberSelection";
+import { CustomerForm } from "@/components/booking/CustomerForm";
+import { BookingConfirmDialog } from "@/components/ui/dialog";
 import { UpsellModal } from "@/components/booking/UpsellModal";
-
-const steps = ['services', 'datetime', 'barber', 'details'];
+import { useBooking } from "@/hooks/useBooking";
+import type { BookingStep } from "@/types/booking";
 
 function StepRenderer({ step, onNext, onPrevious, onConfirm }: {
-  step: string;
+  step: BookingStep;
   onNext: () => void;
   onPrevious: () => void;
   onConfirm: () => void;
 }) {
   const { language } = useLanguage();
-  const { bookingData } = useBooking();
 
   switch (step) {
     case 'services':
-      return <ServicesStep onNext={onNext} />;
+      return <ServiceSelection onNext={onNext} />;
     case 'datetime':
-      return <DateTimeStep onNext={onNext} onPrevious={onPrevious} />;
+      return <DateTimeSelection onNext={onNext} onPrevious={onPrevious} />;
     case 'barber':
-      return <BarberStep onNext={onNext} onPrevious={onPrevious} />;
+      return <BarberSelection onNext={onNext} onPrevious={onPrevious} />;
     case 'details':
-      return <DetailsStep onPrevious={onPrevious} onConfirm={onConfirm} />;
+      return <CustomerForm onPrevious={onPrevious} onConfirm={onConfirm} />;
     default:
       return <div className="text-center">{language === 'ar' ? 'خطأ' : 'Error'}</div>;
   }
@@ -43,10 +42,12 @@ export function BookingContainer() {
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [showUpsellModal, setShowUpsellModal] = useState(false);
-  const { clearBooking, confirmBooking } = useBooking();
 
-  const currentStep = steps[currentStepIndex];
   const branchId = searchParams.get('branch');
+  const { clearBooking, confirmBooking } = useBooking({ branchId });
+
+  const steps: BookingStep[] = ['services', 'datetime', 'barber', 'details'];
+  const currentStep = steps[currentStepIndex];
 
   if (!branchId) {
     return (
@@ -107,16 +108,18 @@ export function BookingContainer() {
       </div>
 
       <BookingConfirmDialog
-        open={showConfirmDialog}
+        isOpen={showConfirmDialog}
         onOpenChange={setShowConfirmDialog}
         onConfirm={handleBookingConfirm}
+        isLoading={false}
+        language={language}
       />
       
       <UpsellModal 
-        open={showUpsellModal} 
-        onOpenChange={setShowUpsellModal}
+        isOpen={showUpsellModal}
         onClose={() => setShowUpsellModal(false)}
         onConfirm={handleUpsellConfirm}
+        availableUpsells={[]}
       />
     </>
   );
