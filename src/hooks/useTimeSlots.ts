@@ -1,5 +1,5 @@
 
-import { format, parse, isToday, isBefore, addHours, addMinutes } from "date-fns";
+import { format, parse, isToday, isBefore, addHours, addMinutes, isAfter, addDays } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 
 interface TimeSlot {
@@ -97,13 +97,13 @@ export const useTimeSlots = () => {
       const startTime = parse(start, 'HH:mm', baseDate);
       let endTime = parse(end, 'HH:mm', baseDate);
       
-      // Handle cases where end time is after midnight
-      if (end === "00:00" || end === "01:00") {
-        endTime = addHours(endTime, 24);
+      // Handle cases where end time is before start time (crossing midnight)
+      if (isAfter(startTime, endTime)) {
+        endTime = addDays(endTime, 1);
       }
       
       let currentSlot = startTime;
-      while (currentSlot < endTime) {
+      while (isBefore(currentSlot, endTime)) {
         const timeString = format(currentSlot, 'HH:mm');
         const slotMinutes = convertTimeToMinutes(timeString);
         
@@ -128,14 +128,14 @@ export const useTimeSlots = () => {
           isAvailable: available
         });
         
-        currentSlot = addHours(currentSlot, 0.5); // Add 30 minutes
+        currentSlot = addMinutes(currentSlot, 30); // Add 30 minutes
       }
     }
 
     // Only apply the minimum booking time filter for today's slots
     if (isToday(selectedDate)) {
       const now = new Date();
-      const minimumBookingTime = addMinutes(now, 30); // Changed from 1 hour to 30 minutes
+      const minimumBookingTime = addMinutes(now, 30); // 30 minutes from now
 
       return slots
         .filter(slot => {
