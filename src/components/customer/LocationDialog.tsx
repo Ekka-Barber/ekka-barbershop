@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useTimeFormatting } from "@/hooks/useTimeFormatting";
-import { Clock, MapPin } from "lucide-react";
+import { Clock } from "lucide-react";
 
 interface Branch {
   id: string;
@@ -35,47 +35,35 @@ export const LocationDialog = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-xl bg-white border-0 shadow-2xl p-4">
         <DialogHeader>
-          <DialogTitle className="text-center text-xl font-bold text-[#222222] mb-2">
+          <DialogTitle className="text-center text-2xl font-bold text-[#222222] mb-6">
             {language === 'ar' ? 'فروعنا' : 'Our Branches'}
           </DialogTitle>
-          <div className="flex items-center justify-center gap-2 text-gray-500 mb-4">
-            <MapPin className="w-4 h-4" />
-            <span>
-              {language === 'ar' 
-                ? 'للوصول لأحد فروعنا اختر الفرع'
-                : 'Select a branch to get directions'}
-            </span>
-          </div>
         </DialogHeader>
-        <div className="grid grid-cols-1 gap-4">
+        <div className="grid grid-cols-1 gap-3">
           {branches?.map((branch) => (
             <Button
               key={branch.id}
               variant="outline"
-              className="w-full flex flex-row items-start justify-between p-5 bg-white hover:bg-[#C4A36F]/5 border border-gray-100 hover:border-[#C4A36F] transition-all duration-300 rounded-xl shadow-sm hover:shadow-md group"
+              className="w-full flex items-center justify-between p-4 bg-white hover:bg-gray-50/80 border border-gray-100 rounded-xl group"
               onClick={() => onLocationClick(branch.google_maps_url)}
             >
-              <div className={`flex flex-col items-${language === 'ar' ? 'end' : 'start'} w-[45%]`}>
-                <h3 className="w-full text-lg font-bold text-[#222222] group-hover:text-[#C4A36F] transition-colors">
-                  {language === 'ar' ? branch.name_ar : branch.name}
-                </h3>
-                <p className="w-full text-sm text-gray-500 group-hover:text-[#C4A36F]/70 transition-colors mt-1.5">
-                  {language === 'ar' ? branch.address_ar : branch.address}
-                </p>
-              </div>
-              <div className="w-[55%] flex flex-col items-end">
-                <div className="flex items-center gap-2 mb-3 text-[#C4A36F]">
-                  <span className="text-sm font-medium">Working Hours</span>
-                  <Clock className="w-4 h-4" />
-                </div>
-                <div className="flex flex-col gap-2 items-end">
+              <div className="flex items-center gap-2 text-[#C4A36F]">
+                <Clock className="w-4 h-4" />
+                <div className="flex flex-col gap-1 items-start">
                   {getAllDaysHours(branch.working_hours, language === 'ar').map((dayHours, index) => (
-                    <div key={index} className="flex items-center justify-end gap-3 text-sm">
-                      <span className="font-medium text-[#222222]">{dayHours.label}:</span>
-                      <span className="text-[#C4A36F] font-medium">{dayHours.hours}</span>
-                    </div>
+                    <span key={index} className="text-sm font-medium">
+                      {dayHours.hours}
+                    </span>
                   ))}
                 </div>
+              </div>
+              <div className="text-end">
+                <h3 className="text-2xl font-bold text-[#222222] mb-1">
+                  {language === 'ar' ? branch.name_ar : branch.name}
+                </h3>
+                <p className="text-sm text-gray-500">
+                  {language === 'ar' ? branch.address_ar : branch.address}
+                </p>
               </div>
             </Button>
           ))}
@@ -84,4 +72,3 @@ export const LocationDialog = ({
     </Dialog>
   );
 };
-
