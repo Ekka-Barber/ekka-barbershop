@@ -81,10 +81,10 @@ const Customer = () => {
               </div>
             </Button>
 
-            <Button className="w-full h-14 text-lg font-medium bg-white hover:bg-gray-50 text-gray-800 transition-all duration-300 shadow-lg hover:shadow-xl border border-gray-200 touch-target" onClick={() => window.open('https://enroll.boonus.app/64b7c34953090f001de0fb6c/wallet/64b7efed53090f001de815b4', '_blank')}>
-              <div className={`w-full flex items-center ${language === 'ar' ? 'flex-row-reverse' : 'flex-row'} justify-between gap-12 px-6`}>
-                <span className="px-0 py-0 my-0 font-semibold mx-px">{language === 'ar' ? 'انضم لبرنامج الولاء' : 'Join loyalty program'}</span>
-                <img src="/lovable-uploads/ba9a65f1-bf31-4b9c-ab41-7c7228a2f1b7.png" alt="Rescale Logo" className="h-8 w-auto" />
+            <Button className="w-full h-14 text-lg font-medium bg-white hover:bg-gray-50 text-gray-800 transition-all duration-300 shadow-lg hover:shadow-xl border border-gray-200 touch-target overflow-hidden" onClick={() => window.open('https://enroll.boonus.app/64b7c34953090f001de0fb6c/wallet/64b7efed53090f001de815b4', '_blank')}>
+              <div className={`w-full flex items-center ${language === 'ar' ? 'flex-row-reverse' : 'flex-row'} justify-between gap-4 px-4`}>
+                <span className="font-semibold truncate">{language === 'ar' ? 'انضم لبرنامج الولاء' : 'Join loyalty program'}</span>
+                <img src="/lovable-uploads/ba9a65f1-bf31-4b9c-ab41-7c7228a2f1b7.png" alt="Rescale Logo" className="h-8 w-auto flex-shrink-0" />
               </div>
             </Button>
           </div>
