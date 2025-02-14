@@ -57,7 +57,7 @@ export const LocationDialog = ({
             <Button
               key={branch.id}
               variant="outline"
-              className="w-full h-[90px] flex flex-row items-center justify-between gap-3 px-4 bg-white hover:bg-[#C4A36F]/5 border-2 border-gray-200 hover:border-[#C4A36F] transition-all duration-300 rounded-lg group"
+              className="w-full h-[100px] flex flex-row items-center justify-between gap-3 px-4 bg-white hover:bg-[#C4A36F]/5 border-2 border-gray-200 hover:border-[#C4A36F] transition-all duration-300 rounded-lg group"
               onClick={() => onLocationClick(branch.google_maps_url)}
             >
               <div className={`flex flex-col items-${language === 'ar' ? 'end' : 'start'} flex-shrink min-w-0 max-w-[70%]`}>
@@ -69,13 +69,30 @@ export const LocationDialog = ({
                 </span>
               </div>
               <div className={`flex-shrink-0 ${language === 'ar' ? 'border-s' : 'border-e'} border-gray-200 ${language === 'ar' ? 'ps-3' : 'pe-3'}`}>
-                <div className="flex items-center gap-1.5 text-sm font-medium text-[#C4A36F]">
-                  <Clock className="w-4 h-4" />
-                  {getAllDaysHours(branch.working_hours, language === 'ar').map((dayHours, index) => (
-                    <span key={index} className="group-hover:text-[#C4A36F] transition-colors whitespace-nowrap">
-                      {dayHours.hours}
+                <div className="flex flex-col gap-1 text-xs">
+                  <div className="flex items-center gap-1">
+                    <Clock className="w-3.5 h-3.5 text-[#C4A36F]" />
+                    <span className="text-[#333333] font-medium">
+                      {language === 'ar' ? 'السبت - الخميس' : 'Sat - Thu'}
                     </span>
-                  ))}
+                  </div>
+                  {getAllDaysHours(branch.working_hours, language === 'ar')
+                    .filter(dayHours => dayHours.label.includes(language === 'ar' ? 'السبت' : 'Sat'))
+                    .map((dayHours, index) => (
+                      <span key={index} className="text-[#C4A36F] font-medium leading-tight">
+                        {dayHours.hours}
+                      </span>
+                    ))}
+                  <span className="text-[#333333] font-medium">
+                    {language === 'ar' ? 'الجمعة' : 'Friday'}
+                  </span>
+                  {getAllDaysHours(branch.working_hours, language === 'ar')
+                    .filter(dayHours => dayHours.label.includes(language === 'ar' ? 'الجمعة' : 'Fri'))
+                    .map((dayHours, index) => (
+                      <span key={index} className="text-[#C4A36F] font-medium leading-tight">
+                        {dayHours.hours}
+                      </span>
+                    ))}
                 </div>
               </div>
             </Button>
