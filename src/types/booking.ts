@@ -1,8 +1,6 @@
 
 import { SelectedService } from "./service";
 
-export type BookingStep = 'services' | 'datetime' | 'barber' | 'details';
-
 export interface BookingDetails {
   selectedServices: SelectedService[];
   selectedDate?: Date;

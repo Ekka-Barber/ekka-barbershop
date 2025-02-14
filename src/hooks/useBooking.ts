@@ -1,7 +1,8 @@
+
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from "@/integrations/supabase/client";
-import { BookingStep } from '@/types/booking';
+import { BookingStep } from '@/components/booking/BookingProgress';
 import { Service, validateService, SelectedService } from '@/types/service';
 import { useLanguage } from "@/contexts/LanguageContext";
 
@@ -12,11 +13,7 @@ export interface CustomerDetails {
   notes: string;
 }
 
-interface UseBookingProps {
-  branchId?: string | null;
-}
-
-export const useBooking = ({ branchId }: UseBookingProps = {}) => {
+export const useBooking = (branch: any) => {
   const [currentStep, setCurrentStep] = useState<BookingStep>('services');
   const [selectedServices, setSelectedServices] = useState<SelectedService[]>([]);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
@@ -30,22 +27,6 @@ export const useBooking = ({ branchId }: UseBookingProps = {}) => {
   });
 
   const { language } = useLanguage();
-
-  const { data: selectedBranch, isLoading: branchLoading } = useQuery({
-    queryKey: ['branch', branchId],
-    queryFn: async () => {
-      if (!branchId) return null;
-      const { data, error } = await supabase
-        .from('branches')
-        .select('*')
-        .eq('id', branchId)
-        .single();
-      
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!branchId
-  });
 
   const { data: categories, isLoading: categoriesLoading } = useQuery({
     queryKey: ['service_categories'],
@@ -93,18 +74,18 @@ export const useBooking = ({ branchId }: UseBookingProps = {}) => {
   });
 
   const { data: employees, isLoading: employeesLoading } = useQuery({
-    queryKey: ['employees', branchId],
+    queryKey: ['employees', branch?.id],
     queryFn: async () => {
-      if (!branchId) return [];
+      if (!branch?.id) return [];
       const { data, error } = await supabase
         .from('employees')
         .select('*')
-        .eq('branch_id', branchId);
+        .eq('branch_id', branch.id);
       
       if (error) throw error;
       return data;
     },
-    enabled: !!branchId,
+    enabled: !!branch?.id,
   });
 
   const { data: selectedEmployee } = useQuery({
@@ -185,30 +166,6 @@ export const useBooking = ({ branchId }: UseBookingProps = {}) => {
 
   const totalPrice = selectedServices.reduce((sum, service) => sum + service.price, 0);
 
-  const clearBooking = () => {
-    setSelectedServices([]);
-    setSelectedDate(undefined);
-    setSelectedTime(undefined);
-    setSelectedBarber(undefined);
-    setCustomerDetails({
-      name: '',
-      phone: '',
-      email: '',
-      notes: ''
-    });
-  };
-
-  const confirmBooking = async () => {
-    // Implementation of booking confirmation
-    try {
-      // Add your booking confirmation logic here
-      return true;
-    } catch (error) {
-      console.error('Error confirming booking:', error);
-      return false;
-    }
-  };
-
   return {
     currentStep,
     setCurrentStep,
@@ -228,10 +185,6 @@ export const useBooking = ({ branchId }: UseBookingProps = {}) => {
     selectedEmployee,
     handleServiceToggle,
     handleUpsellServiceAdd,
-    totalPrice,
-    clearBooking,
-    confirmBooking,
-    selectedBranch,
-    branchLoading
+    totalPrice
   };
 };

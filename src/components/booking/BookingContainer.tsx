@@ -1,181 +1,143 @@
 
-import { useState } from "react";
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { LanguageSwitcher } from "@/components/LanguageSwitcher";
-import { BookingProgress } from "@/components/booking/BookingProgress";
-import { ServiceSelection } from "@/components/booking/ServiceSelection";
-import { DateTimeSelection } from "@/components/booking/DateTimeSelection";
-import { BarberSelection } from "@/components/booking/BarberSelection";
-import { CustomerForm } from "@/components/booking/CustomerForm";
-import { BookingConfirmDialog } from "@/components/booking/components/BookingConfirmDialog";
-import { UpsellModal } from "@/components/booking/UpsellModal";
 import { BookingHeader } from "@/components/booking/BookingHeader";
-import { useBooking } from "@/hooks/useBooking";
-import type { BookingStep } from "@/types/booking";
+import { BookingSteps } from "@/components/booking/BookingSteps";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { Branch } from "@/types/booking";
+import { ErrorBoundary } from "@/components/common/ErrorBoundary";
+import { Loader2 } from "lucide-react";
 
-function StepRenderer({ step, onNext, onPrevious, onConfirm }: {
-  step: BookingStep;
-  onNext: () => void;
-  onPrevious: () => void;
-  onConfirm: () => void;
-}) {
-  const { language } = useLanguage();
-  const { 
-    selectedServices, 
-    selectedDate,
-    selectedTime,
-    selectedBarber,
-    categories,
-    categoriesLoading,
-    handleServiceToggle,
-    customerDetails,
-    handleCustomerDetailsChange 
-  } = useBooking();
-
-  switch (step) {
-    case 'services':
-      return (
-        <ServiceSelection 
-          categories={categories}
-          isLoading={categoriesLoading}
-          selectedServices={selectedServices || []}
-          onServiceToggle={handleServiceToggle}
-          onStepChange={onNext}
-        />
-      );
-    case 'datetime':
-      return (
-        <DateTimeSelection 
-          selectedDate={selectedDate}
-          onDateSelect={onNext}
-        />
-      );
-    case 'barber':
-      return (
-        <BarberSelection 
-          selectedBarber={selectedBarber}
-          onStepChange={onNext}
-          onPrevious={onPrevious}
-        />
-      );
-    case 'details':
-      return (
-        <CustomerForm 
-          customerDetails={customerDetails}
-          onCustomerDetailsChange={handleCustomerDetailsChange}
-          onSubmit={onConfirm}
-          onPrevious={onPrevious}
-        />
-      );
-    default:
-      return <div className="text-center">{language === 'ar' ? 'خطأ' : 'Error'}</div>;
-  }
-}
-
-export function BookingContainer() {
-  const [searchParams] = useSearchParams();
+export const BookingContainer = () => {
   const navigate = useNavigate();
-  const { language } = useLanguage();
-  const [currentStepIndex, setCurrentStepIndex] = useState(0);
-  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
-  const [showUpsellModal, setShowUpsellModal] = useState(false);
-
+  const { t, language } = useLanguage();
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
   const branchId = searchParams.get('branch');
-  const { clearBooking, confirmBooking, selectedBranch, branchLoading } = useBooking({ branchId });
 
-  const steps: BookingStep[] = ['services', 'datetime', 'barber', 'details'];
-  const currentStep = steps[currentStepIndex];
+  const { data: branch, isLoading: branchLoading, error: branchError } = useQuery({
+    queryKey: ['branch', branchId],
+    queryFn: async () => {
+      if (!branchId) return null;
+      const { data, error } = await supabase
+        .from('branches')
+        .select('*')
+        .eq('id', branchId)
+        .maybeSingle();
+      
+      if (error) throw error;
+      return data as Branch;
+    },
+    enabled: !!branchId,
+    retry: 2,
+    retryDelay: 1000,
+  });
 
   if (!branchId) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        {language === 'ar' ? 'الرجاء اختيار فرع' : 'Please select a branch'}
+      <div className="min-h-screen flex flex-col">
+        <div className="app-header">
+          <div className="language-switcher-container">
+            <LanguageSwitcher />
+          </div>
+        </div>
+        <div className="app-container">
+          <div className="content-area flex items-center justify-center">
+            <div className="text-center px-4">
+              <h1 className="text-2xl font-bold text-gray-800 mb-4">
+                {t('select.branch')}
+              </h1>
+              <Button 
+                className="touch-target bg-[#C4A36F] hover:bg-[#B39260] text-white shadow-md hover:shadow-lg"
+                onClick={() => navigate('/customer')}
+              >
+                {t('go.back')}
+              </Button>
+            </div>
+          </div>
+        </div>
+        <footer className="page-footer" />
       </div>
     );
   }
 
-  const handleNext = () => {
-    if (currentStepIndex < steps.length - 1) {
-      setCurrentStepIndex(currentStepIndex + 1);
-    }
-  };
+  if (branchError) {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <div className="app-header">
+          <div className="language-switcher-container">
+            <LanguageSwitcher />
+          </div>
+        </div>
+        <div className="app-container">
+          <div className="content-area flex items-center justify-center">
+            <div className="text-center px-4 space-y-4">
+              <h1 className="text-2xl font-bold text-red-600">
+                {language === 'ar' ? 'عذراً! حدث خطأ ما' : 'Error Loading Branch'}
+              </h1>
+              <p className="text-gray-600">
+                {language === 'ar' 
+                  ? 'لم نتمكن من تحميل معلومات الفرع. يرجى المحاولة مرة أخرى.'
+                  : 'We could not load the branch information. Please try again.'}
+              </p>
+              <Button 
+                onClick={() => navigate('/customer')}
+                variant="outline"
+                className="touch-target"
+              >
+                {t('go.back')}
+              </Button>
+            </div>
+          </div>
+        </div>
+        <footer className="page-footer" />
+      </div>
+    );
+  }
 
-  const handlePrevious = () => {
-    if (currentStepIndex > 0) {
-      setCurrentStepIndex(currentStepIndex - 1);
-    }
-  };
-
-  const handleConfirm = () => {
-    setShowConfirmDialog(true);
-  };
-
-  const handleBookingConfirm = async () => {
-    setShowConfirmDialog(false);
-    const success = await confirmBooking();
-    if (success) {
-      setShowUpsellModal(true);
-    }
-  };
-
-  const handleUpsellConfirm = () => {
-    setShowUpsellModal(false);
-    clearBooking();
-    navigate('/customer');
-  };
-
-  const handleStepClick = (step: BookingStep) => {
-    const stepIndex = steps.indexOf(step);
-    if (stepIndex <= currentStepIndex) {
-      setCurrentStepIndex(stepIndex);
-    }
-  };
+  if (branchLoading) {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <div className="app-header">
+          <div className="language-switcher-container">
+            <LanguageSwitcher />
+          </div>
+        </div>
+        <div className="app-container">
+          <div className="content-area flex items-center justify-center">
+            <Loader2 className="h-8 w-8 animate-spin text-[#C4A36F]" />
+          </div>
+        </div>
+        <footer className="page-footer" />
+      </div>
+    );
+  }
 
   return (
-    <>
-      <div className="app-header">
-        <div className="language-switcher-container">
-          <LanguageSwitcher />
+    <ErrorBoundary>
+      <div dir={language === 'ar' ? 'rtl' : 'ltr'} className="min-h-screen flex flex-col">
+        <div className="app-header">
+          <div className="language-switcher-container">
+            <LanguageSwitcher />
+          </div>
         </div>
-      </div>
-
-      <div className="flex-grow max-w-4xl mx-auto p-4 sm:p-6 lg:p-8 w-full">
-        <BookingHeader 
-          branchName={selectedBranch?.name}
-          branchAddress={selectedBranch?.address}
-          isLoading={branchLoading}
-        />
-        <BookingProgress 
-          currentStep={currentStep}
-          steps={steps}
-          onStepClick={handleStepClick}
-          currentStepIndex={currentStepIndex}
-        />
-        <div className="space-y-6">
-          <StepRenderer
-            step={currentStep}
-            onNext={handleNext}
-            onPrevious={handlePrevious}
-            onConfirm={handleConfirm}
-          />
+        
+        <div className="app-container">
+          <div className="content-area">
+            <BookingHeader
+              branchName={language === 'ar' ? branch?.name_ar : branch?.name}
+              branchAddress={language === 'ar' ? branch?.address_ar : branch?.address}
+              isLoading={branchLoading}
+            />
+            <BookingSteps branch={branch} />
+          </div>
         </div>
+        
+        <footer className="page-footer" />
       </div>
-
-      <BookingConfirmDialog
-        isOpen={showConfirmDialog}
-        onOpenChange={setShowConfirmDialog}
-        onConfirm={handleBookingConfirm}
-        isLoading={false}
-        language={language}
-      />
-      
-      <UpsellModal 
-        isOpen={showUpsellModal}
-        onClose={() => setShowUpsellModal(false)}
-        onConfirm={handleUpsellConfirm}
-        availableUpsells={[]}
-      />
-    </>
+    </ErrorBoundary>
   );
-}
+};

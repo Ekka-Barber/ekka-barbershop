@@ -20,9 +20,9 @@ interface ServiceSelectionProps {
 }
 
 export const ServiceSelection = ({
-  categories = [],
+  categories,
   isLoading,
-  selectedServices = [],
+  selectedServices,
   onServiceToggle,
   onStepChange
 }: ServiceSelectionProps) => {
@@ -41,7 +41,7 @@ export const ServiceSelection = ({
   }, [activeCategory]);
 
   useEffect(() => {
-    if (selectedServices?.length > 0) {
+    if (selectedServices.length > 0) {
       cacheServices(selectedServices);
     }
   }, [selectedServices]);
@@ -70,20 +70,19 @@ export const ServiceSelection = ({
     }
   };
 
-  const sortedCategories = categories?.slice()?.sort((a, b) => a.display_order - b.display_order) || [];
-  const activeCategoryServices = sortedCategories.find(
+  const sortedCategories = categories?.slice().sort((a, b) => a.display_order - b.display_order);
+  const activeCategoryServices = sortedCategories?.find(
     cat => cat.id === activeCategory
-  )?.services?.sort((a, b) => a.display_order - b.display_order) || [];
+  )?.services.sort((a, b) => a.display_order - b.display_order);
 
-  // Initialize with default values to prevent reduce on undefined
-  const totalDuration = (selectedServices || []).reduce((total, service) => total + (service?.duration || 0), 0);
-  const totalPrice = (selectedServices || []).reduce((total, service) => total + (service?.price || 0), 0);
+  const totalDuration = selectedServices.reduce((total, service) => total + service.duration, 0);
+  const totalPrice = selectedServices.reduce((total, service) => total + service.price, 0);
 
   if (isLoading) {
     return <ServicesSkeleton />;
   }
 
-  if (!categories?.length) {
+  if (!categories || categories.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center p-8 text-center space-y-4">
         <AlertTriangle className="w-12 h-12 text-yellow-500" />
@@ -102,19 +101,19 @@ export const ServiceSelection = ({
   return (
     <div className="space-y-6 pb-8">
       <CategoryTabs
-        categories={sortedCategories}
+        categories={sortedCategories || []}
         activeCategory={activeCategory}
         onCategoryChange={setActiveCategory}
         language={language}
       />
 
       <div className="grid grid-cols-2 gap-4">
-        {activeCategoryServices.map((service: any) => (
+        {activeCategoryServices?.map((service: any) => (
           <ServiceCard
             key={service.id}
             service={service}
             language={language}
-            isSelected={selectedServices?.some(s => s.id === service.id) || false}
+            isSelected={selectedServices.some(s => s.id === service.id)}
             onServiceClick={handleServiceClick}
             onServiceToggle={handleServiceToggleWrapper}
           />
@@ -142,7 +141,7 @@ export const ServiceSelection = ({
                     setIsSheetOpen(false);
                   }}
                 >
-                  {selectedServices?.some(s => s.id === selectedService.id)
+                  {selectedServices.some(s => s.id === selectedService.id)
                     ? language === 'ar' ? 'إزالة الخدمة' : 'Remove Service'
                     : language === 'ar' ? 'إضافة الخدمة' : 'Add Service'}
                 </Button>
@@ -153,7 +152,7 @@ export const ServiceSelection = ({
       </Sheet>
 
       <ServicesSummary
-        selectedServices={selectedServices || []}
+        selectedServices={selectedServices}
         totalDuration={totalDuration}
         totalPrice={totalPrice}
         language={language}
