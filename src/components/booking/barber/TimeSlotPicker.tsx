@@ -54,12 +54,9 @@ export const TimeSlotPicker = ({
     );
   }
 
-  let lastWasBeforeMidnight = false;
-  const needsSeparator = displayedTimeSlots.some((slot, index) => {
-    if (index === 0) return false;
-    const prevSlot = displayedTimeSlots[index - 1];
-    return !isAfterMidnight(prevSlot.time) && isAfterMidnight(slot.time);
-  });
+  const needsSeparator = (currentTime: string, prevTime: string) => {
+    return prevTime === "23:30" && currentTime === "00:00";
+  };
 
   return (
     <div className="space-y-4">
@@ -72,15 +69,12 @@ export const TimeSlotPicker = ({
             <div className="flex space-x-3 rtl:space-x-reverse min-w-full">
               {displayedTimeSlots.map((slot, index) => {
                 const isNextDaySlot = isAfterMidnight(slot.time);
-                const showSeparator = needsSeparator && !lastWasBeforeMidnight && isNextDaySlot;
-                lastWasBeforeMidnight = !isNextDaySlot;
+                const showSeparator = index > 0 && needsSeparator(slot.time, displayedTimeSlots[index - 1].time);
 
                 return (
                   <>
                     {showSeparator && (
-                      <div className="flex items-center px-2" key={`separator-${index}`}>
-                        <SeparatorVertical className="h-8 w-8 text-red-500" />
-                      </div>
+                      <div className="w-px h-10 bg-red-500 mx-2" key={`separator-${index}`} />
                     )}
                     <div key={slot.time} className="relative">
                       <Button
