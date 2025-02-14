@@ -2,14 +2,16 @@
 #root {
   max-width: 1280px;
   margin: 0 auto;
-  padding: 1rem 1rem 4rem;
+  padding: 1rem 1rem 1rem; /* Reduced bottom padding */
   text-align: center;
   min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
 @media (min-width: 640px) {
   #root {
-    padding: 2rem 2rem 3rem;
+    padding: 2rem 2rem 1rem; /* Consistent padding on desktop */
   }
 }
 
@@ -50,13 +52,8 @@
 }
 
 .page-footer {
-  height: 3mm;
+  height: env(safe-area-inset-bottom, 0px);
   width: 100%;
-  margin-top: auto;
+  min-height: 1rem; /* Minimum height when safe-area is not available */
 }
 
-@media (min-width: 640px) {
-  .page-footer {
-    height: 3mm;
-  }
-}
