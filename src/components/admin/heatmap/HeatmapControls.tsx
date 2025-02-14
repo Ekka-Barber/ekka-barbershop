@@ -4,16 +4,17 @@ import { Slider } from "@/components/ui/slider";
 import { Button } from "@/components/ui/button";
 import { ZoomIn, ZoomOut, Eye, EyeOff } from "lucide-react";
 import { DeviceType } from "@/types/heatmap";
+import { Dispatch, SetStateAction } from "react";
 
 interface HeatmapControlsProps {
   selectedDevice: DeviceType;
   setSelectedDevice: (device: DeviceType) => void;
   opacity: number;
-  setOpacity: (opacity: number) => void;
+  setOpacity: Dispatch<SetStateAction<number>>;
   zoomLevel: number;
-  setZoomLevel: (zoom: number) => void;
+  setZoomLevel: Dispatch<SetStateAction<number>>;
   showUI: boolean;
-  setShowUI: (show: boolean) => void;
+  setShowUI: Dispatch<SetStateAction<boolean>>;
 }
 
 export const HeatmapControls = ({
@@ -26,6 +27,18 @@ export const HeatmapControls = ({
   showUI,
   setShowUI
 }: HeatmapControlsProps) => {
+  const handleZoomOut = () => {
+    setZoomLevel(prev => Math.max(0.5, prev - 0.1));
+  };
+
+  const handleZoomIn = () => {
+    setZoomLevel(prev => Math.min(2, prev + 0.1));
+  };
+
+  const toggleUI = () => {
+    setShowUI(prev => !prev);
+  };
+
   return (
     <div className={`mb-6 space-y-4 ${showUI ? 'opacity-100' : 'opacity-0'} transition-opacity`}>
       <div className="flex gap-4">
@@ -55,21 +68,21 @@ export const HeatmapControls = ({
           <Button
             variant="outline"
             size="icon"
-            onClick={() => setZoomLevel(prev => Math.max(0.5, prev - 0.1))}
+            onClick={handleZoomOut}
           >
             <ZoomOut className="h-4 w-4" />
           </Button>
           <Button
             variant="outline"
             size="icon"
-            onClick={() => setZoomLevel(prev => Math.min(2, prev + 0.1))}
+            onClick={handleZoomIn}
           >
             <ZoomIn className="h-4 w-4" />
           </Button>
           <Button
             variant="outline"
             size="icon"
-            onClick={() => setShowUI(prev => !prev)}
+            onClick={toggleUI}
           >
             {showUI ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
           </Button>
