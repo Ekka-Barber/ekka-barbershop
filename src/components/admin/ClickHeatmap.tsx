@@ -12,6 +12,10 @@ import { format } from 'date-fns';
 interface ClickData {
   x_coordinate: number;
   y_coordinate: number;
+  scroll_x: number;
+  scroll_y: number;
+  content_width: number;
+  content_height: number;
   device_type: 'mobile' | 'tablet' | 'desktop';
   page_url: string;
   created_at: string;
@@ -38,74 +42,99 @@ const COLORS = {
   max: [139, 92, 246]      // Vivid Purple
 };
 
-const MAX_SCREEN_WIDTH = 1920;  // Reference width for normalization
-const MAX_SCREEN_HEIGHT = 1080; // Reference height for normalization
-
 export const ClickHeatmap = () => {
-  const [selectedPage, setSelectedPage] = useState<string>('/customer');
   const [selectedDevice, setSelectedDevice] = useState<DeviceType>('all');
-  const [pages, setPages] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [opacity, setOpacity] = useState(0.8);
   const [zoomLevel, setZoomLevel] = useState(1);
   const [showUI, setShowUI] = useState(true);
   const [hoveredCluster, setHoveredCluster] = useState<Cluster | null>(null);
   const [clickData, setClickData] = useState<ClickData[]>([]);
-  const [iframeLoaded, setIframeLoaded] = useState(false);
+  const [currentPath, setCurrentPath] = useState('/customer');
   
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
-  // Handle iframe load
-  const handleIframeLoad = () => {
-    setIframeLoaded(true);
-    if (containerRef.current && iframeRef.current) {
-      const iframe = iframeRef.current;
-      iframe.style.height = '100%';
-      iframe.style.width = '100%';
+  // Handle iframe load and navigation
+  useEffect(() => {
+    const iframe = iframeRef.current;
+    if (!iframe) return;
+
+    const handleLoad = () => {
+      const iframeWindow = iframe.contentWindow;
+      if (!iframeWindow) return;
+
+      // Update current path when navigation occurs
+      const handleNavigation = () => {
+        setCurrentPath(iframeWindow.location.pathname);
+        updateHeatmap(iframeWindow.location.pathname);
+      };
+
+      // Listen for location changes in the iframe
+      iframeWindow.addEventListener('popstate', handleNavigation);
+      
+      // Monitor click events in iframe for path changes
+      iframeWindow.document.addEventListener('click', (e) => {
+        if ((e.target as HTMLElement).tagName === 'A') {
+          setTimeout(handleNavigation, 100); // Small delay to let navigation complete
+        }
+      });
+
+      handleNavigation(); // Initial load
+    };
+
+    iframe.addEventListener('load', handleLoad);
+    return () => iframe.removeEventListener('load', handleLoad);
+  }, []);
+
+  // Update heatmap data for current path
+  const updateHeatmap = async (path: string) => {
+    setIsLoading(true);
+    try {
+      let query = supabase
+        .from('click_tracking')
+        .select('*')
+        .eq('page_url', path);
+      
+      if (selectedDevice !== 'all') {
+        query = query.eq('device_type', selectedDevice);
+      }
+      
+      const { data, error } = await query;
+      if (error) throw error;
+      
+      setClickData(data || []);
+    } catch (error) {
+      console.error('Error fetching click data:', error);
+      toast.error('Error loading heatmap data');
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  // Normalized click data with proper scaling
+  // Normalized click data with proper scaling and scroll position
   const normalizedClicks = useMemo(() => {
     if (!containerRef.current || !iframeRef.current) return [];
 
     const iframe = iframeRef.current;
     const { width: containerWidth, height: containerHeight } = iframe.getBoundingClientRect();
 
-    return clickData.map(click => ({
-      x: (click.x_coordinate / MAX_SCREEN_WIDTH) * containerWidth,
-      y: (click.y_coordinate / MAX_SCREEN_HEIGHT) * containerHeight,
-      originalData: click
-    }));
+    return clickData.map(click => {
+      // Calculate position relative to viewport and scroll
+      const normalizedX = ((click.x_coordinate - click.scroll_x) / click.content_width) * containerWidth;
+      const normalizedY = ((click.y_coordinate - click.scroll_y) / click.content_height) * containerHeight;
+
+      return {
+        x: normalizedX,
+        y: normalizedY,
+        originalData: click
+      };
+    });
   }, [clickData]);
 
-  // Fetch pages
-  useEffect(() => {
-    const fetchPages = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('click_tracking')
-          .select('page_url');
-        
-        if (error) throw error;
-        
-        if (data) {
-          const uniquePages = [...new Set(data.map(item => item.page_url))];
-          setPages(uniquePages);
-        }
-      } catch (error) {
-        console.error('Error fetching pages:', error);
-        toast.error('Error fetching pages');
-      }
-    };
-    
-    fetchPages();
-  }, []);
-
-  // Cluster data processing with normalized coordinates
+  // Cluster data processing
   const clusters = useMemo(() => {
     const CLUSTER_RADIUS = 30 / zoomLevel;
     const clusters: Cluster[] = [];
@@ -120,14 +149,8 @@ export const ClickHeatmap = () => {
 
         if (distance <= CLUSTER_RADIUS) {
           cluster.points.push(normalizedClick.originalData);
-          cluster.centerX = cluster.points.reduce((sum, p) => {
-            const normalized = (p.x_coordinate / MAX_SCREEN_WIDTH) * (iframeRef.current?.clientWidth || 1);
-            return sum + normalized;
-          }, 0) / cluster.points.length;
-          cluster.centerY = cluster.points.reduce((sum, p) => {
-            const normalized = (p.y_coordinate / MAX_SCREEN_HEIGHT) * (iframeRef.current?.clientHeight || 1);
-            return sum + normalized;
-          }, 0) / cluster.points.length;
+          cluster.centerX = cluster.points.reduce((sum, p) => sum + normalizedClick.x, 0) / cluster.points.length;
+          cluster.centerY = cluster.points.reduce((sum, p) => sum + normalizedClick.y, 0) / cluster.points.length;
           addedToCluster = true;
           break;
         }
@@ -147,98 +170,57 @@ export const ClickHeatmap = () => {
 
   // Draw heatmap
   useEffect(() => {
-    let isActive = true;
-    
-    const drawHeatmap = async () => {
-      if (!containerRef.current || !canvasRef.current || !isActive || !iframeLoaded) return;
+    if (!canvasRef.current || !iframeRef.current) return;
 
-      setIsLoading(true);
-      try {
-        let query = supabase
-          .from('click_tracking')
-          .select('x_coordinate, y_coordinate, device_type, created_at, page_url')
-          .eq('page_url', selectedPage);
-        
-        if (selectedDevice !== 'all') {
-          query = query.eq('device_type', selectedDevice);
-        }
-        
-        const { data, error } = await query;
-        
-        if (error) throw error;
-        if (!isActive) return;
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d', { alpha: true });
+    if (!ctx) return;
 
-        setClickData(data || []);
-        
-        const canvas = canvasRef.current;
-        const ctx = canvas.getContext('2d', { alpha: true });
-        if (!ctx) return;
+    // Clear canvas
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        // Clear canvas
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
+    // Apply zoom transformation
+    ctx.save();
+    ctx.scale(zoomLevel, zoomLevel);
 
-        // Apply zoom transformation
-        ctx.save();
-        ctx.scale(zoomLevel, zoomLevel);
+    // Draw clusters
+    clusters.forEach((cluster) => {
+      const intensity = Math.min(1, cluster.points.length / 20);
+      const radius = Math.max(20, 10 + cluster.points.length * 2) / zoomLevel;
+      
+      const gradient = ctx.createRadialGradient(
+        cluster.centerX, cluster.centerY, 0,
+        cluster.centerX, cluster.centerY, radius
+      );
 
-        // Draw clusters
-        clusters.forEach((cluster) => {
-          const intensity = Math.min(1, cluster.points.length / 20);
-          const radius = Math.max(20, 10 + cluster.points.length * 2) / zoomLevel;
-          
-          // Create gradient
-          const gradient = ctx.createRadialGradient(
-            cluster.centerX, cluster.centerY, 0,
-            cluster.centerX, cluster.centerY, radius
-          );
+      const color = interpolateColors(intensity);
+      
+      gradient.addColorStop(0, `rgba(${color.join(',')}, ${opacity})`);
+      gradient.addColorStop(1, `rgba(${color.join(',')}, 0)`);
 
-          // Calculate color based on intensity
-          const color = interpolateColors(intensity);
-          
-          gradient.addColorStop(0, `rgba(${color.join(',')}, ${opacity})`);
-          gradient.addColorStop(1, `rgba(${color.join(',')}, 0)`);
+      ctx.fillStyle = gradient;
+      ctx.beginPath();
+      ctx.arc(cluster.centerX, cluster.centerY, radius, 0, 2 * Math.PI);
+      ctx.fill();
+    });
 
-          ctx.fillStyle = gradient;
-          ctx.beginPath();
-          ctx.arc(cluster.centerX, cluster.centerY, radius, 0, 2 * Math.PI);
-          ctx.fill();
-        });
-
-        ctx.restore();
-
-      } catch (error) {
-        console.error('Error creating heatmap:', error);
-        if (isActive) {
-          toast.error('Error creating heatmap');
-        }
-      } finally {
-        if (isActive) {
-          setIsLoading(false);
-        }
-      }
-    };
-
-    drawHeatmap();
-
-    return () => {
-      isActive = false;
-    };
-  }, [selectedPage, selectedDevice, opacity, zoomLevel, iframeLoaded]);
+    ctx.restore();
+  }, [clusters, opacity, zoomLevel]);
 
   // Canvas sizing
   useEffect(() => {
     const handleResize = () => {
-      if (containerRef.current && canvasRef.current && iframeRef.current) {
-        const { width, height } = iframeRef.current.getBoundingClientRect();
-        canvasRef.current.width = width;
-        canvasRef.current.height = height;
-      }
+      if (!canvasRef.current || !iframeRef.current) return;
+      
+      const { width, height } = iframeRef.current.getBoundingClientRect();
+      canvasRef.current.width = width;
+      canvasRef.current.height = height;
     };
 
     handleResize();
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
-  }, [iframeLoaded]);
+  }, []);
 
   // Mouse interaction handlers
   const handleMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
@@ -248,7 +230,6 @@ export const ClickHeatmap = () => {
     const x = (e.clientX - rect.left) / zoomLevel;
     const y = (e.clientY - rect.top) / zoomLevel;
 
-    // Find nearest cluster
     let nearestCluster: Cluster | null = null;
     let minDistance = Infinity;
 
@@ -271,11 +252,7 @@ export const ClickHeatmap = () => {
     }
   };
 
-  const handleDeviceChange = (value: string) => {
-    setSelectedDevice(value as DeviceType);
-  };
-
-  // Color interpolation helper
+  // Color interpolation helpers
   const interpolateColors = (intensity: number): number[] => {
     if (intensity <= 0.33) {
       return interpolate(COLORS.low, COLORS.medium, intensity * 3);
@@ -294,20 +271,7 @@ export const ClickHeatmap = () => {
     <Card className="p-6">
       <div className={`mb-6 space-y-4 ${showUI ? 'opacity-100' : 'opacity-0'} transition-opacity`}>
         <div className="flex gap-4">
-          <Select value={selectedPage} onValueChange={setSelectedPage}>
-            <SelectTrigger className="w-[200px]">
-              <SelectValue placeholder="Select page" />
-            </SelectTrigger>
-            <SelectContent>
-              {pages.map(page => (
-                <SelectItem key={page} value={page}>
-                  {page}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          <Select value={selectedDevice} onValueChange={handleDeviceChange}>
+          <Select value={selectedDevice} onValueChange={(value) => setSelectedDevice(value as DeviceType)}>
             <SelectTrigger className="w-[200px]">
               <SelectValue placeholder="Select device" />
             </SelectTrigger>
@@ -318,9 +282,7 @@ export const ClickHeatmap = () => {
               <SelectItem value="desktop">Desktop</SelectItem>
             </SelectContent>
           </Select>
-        </div>
 
-        <div className="flex items-center gap-4">
           <div className="flex-1">
             <label className="text-sm font-medium mb-2 block">Opacity</label>
             <Slider
@@ -363,9 +325,8 @@ export const ClickHeatmap = () => {
       >
         <iframe
           ref={iframeRef}
-          src={selectedPage}
+          src="/customer"
           className="absolute inset-0 w-full h-full border-none"
-          onLoad={handleIframeLoad}
         />
         <canvas
           ref={canvasRef}

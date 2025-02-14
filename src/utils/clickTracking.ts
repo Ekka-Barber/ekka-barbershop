@@ -14,13 +14,33 @@ const getDeviceType = (): 'mobile' | 'tablet' | 'desktop' => {
 export const trackClick = async (event: MouseEvent) => {
   try {
     const target = event.target as HTMLElement;
-    const x = Math.round(event.clientX);
-    const y = Math.round(event.clientY);
+    
+    // Get scroll position
+    const scrollX = window.scrollX;
+    const scrollY = window.scrollY;
+    
+    // Get total content size
+    const contentWidth = Math.max(
+      document.documentElement.scrollWidth,
+      document.documentElement.clientWidth
+    );
+    const contentHeight = Math.max(
+      document.documentElement.scrollHeight,
+      document.documentElement.clientHeight
+    );
+
+    // Calculate absolute click position including scroll
+    const x = Math.round(event.clientX + scrollX);
+    const y = Math.round(event.clientY + scrollY);
     const pageUrl = window.location.pathname;
 
     console.log('Tracking click:', {
       x,
       y,
+      scrollX,
+      scrollY,
+      contentWidth,
+      contentHeight,
       pageUrl,
       deviceType: getDeviceType()
     });
@@ -28,6 +48,10 @@ export const trackClick = async (event: MouseEvent) => {
     const { error } = await supabase.from('click_tracking').insert([{
       x_coordinate: x,
       y_coordinate: y,
+      scroll_x: scrollX,
+      scroll_y: scrollY,
+      content_width: contentWidth,
+      content_height: contentHeight,
       page_url: pageUrl,
       element_id: target.id || null,
       element_class: target.className || null,

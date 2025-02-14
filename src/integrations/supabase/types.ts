@@ -187,6 +187,8 @@ export type Database = {
       }
       click_tracking: {
         Row: {
+          content_height: number
+          content_width: number
           created_at: string
           device_type: Database["public"]["Enums"]["device_type"]
           element_class: string | null
@@ -195,10 +197,14 @@ export type Database = {
           page_url: string
           screen_height: number
           screen_width: number
+          scroll_x: number
+          scroll_y: number
           x_coordinate: number
           y_coordinate: number
         }
         Insert: {
+          content_height?: number
+          content_width?: number
           created_at?: string
           device_type: Database["public"]["Enums"]["device_type"]
           element_class?: string | null
@@ -207,10 +213,14 @@ export type Database = {
           page_url: string
           screen_height: number
           screen_width: number
+          scroll_x?: number
+          scroll_y?: number
           x_coordinate: number
           y_coordinate: number
         }
         Update: {
+          content_height?: number
+          content_width?: number
           created_at?: string
           device_type?: Database["public"]["Enums"]["device_type"]
           element_class?: string | null
@@ -219,6 +229,8 @@ export type Database = {
           page_url?: string
           screen_height?: number
           screen_width?: number
+          scroll_x?: number
+          scroll_y?: number
           x_coordinate?: number
           y_coordinate?: number
         }
