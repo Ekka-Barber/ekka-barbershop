@@ -3,8 +3,8 @@ import { useState, useEffect, useRef } from 'react';
 import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
-import h337 from 'heatmap.js';
 import { toast } from "sonner";
+import { Loader2 } from "lucide-react";
 
 interface ClickData {
   x_coordinate: number;
@@ -19,10 +19,10 @@ export const ClickHeatmap = () => {
   const [selectedPage, setSelectedPage] = useState<string>('/customer');
   const [selectedDevice, setSelectedDevice] = useState<DeviceType>('all');
   const [pages, setPages] = useState<string[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const containerRef = useRef<HTMLDivElement>(null);
-  const heatmapInstanceRef = useRef<any>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  // Fetch unique pages
   useEffect(() => {
     const fetchPages = async () => {
       try {
@@ -39,7 +39,6 @@ export const ClickHeatmap = () => {
         if (data) {
           const uniquePages = [...new Set(data.map(item => item.page_url))];
           setPages(uniquePages);
-          console.log('Unique pages:', uniquePages);
         }
       } catch (error) {
         console.error('Error fetching pages:', error);
@@ -50,34 +49,12 @@ export const ClickHeatmap = () => {
     fetchPages();
   }, []);
 
-  // Initialize heatmap
   useEffect(() => {
-    if (containerRef.current && !heatmapInstanceRef.current) {
-      heatmapInstanceRef.current = h337.create({
-        container: containerRef.current,
-        radius: 25,
-        maxOpacity: .6,
-        minOpacity: 0,
-        blur: .75
-      });
-    }
+    const drawHeatmap = async () => {
+      if (!containerRef.current || !canvasRef.current) return;
 
-    return () => {
-      if (heatmapInstanceRef.current) {
-        // Clean up the heatmap instance
-        heatmapInstanceRef.current = null;
-      }
-    };
-  }, []);
-
-  // Update heatmap data
-  useEffect(() => {
-    const fetchClicks = async () => {
-      if (!heatmapInstanceRef.current) return;
-
+      setIsLoading(true);
       try {
-        console.log('Fetching clicks for:', { selectedPage, selectedDevice });
-        
         let query = supabase
           .from('click_tracking')
           .select('x_coordinate, y_coordinate, device_type')
@@ -94,39 +71,70 @@ export const ClickHeatmap = () => {
           toast.error('Error fetching click data');
           return;
         }
-        
-        console.log('Click data:', data);
-        
-        if (data) {
-          // Create a new data object for the heatmap
-          const heatmapData = {
-            max: Math.max(1, data.length),
-            min: 0,
-            data: data.map(click => ({
-              x: click.x_coordinate,
-              y: click.y_coordinate,
-              value: 1
-            }))
-          };
 
-          // Clear existing data
-          heatmapInstanceRef.current.setData({ max: 0, min: 0, data: [] });
+        const canvas = canvasRef.current;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+
+        // Clear the canvas
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Draw the heatmap manually
+        data.forEach((click) => {
+          const radius = 20;
+          const alpha = 0.1;
+
+          // Create a radial gradient for each click
+          const gradient = ctx.createRadialGradient(
+            click.x_coordinate, click.y_coordinate, 0,
+            click.x_coordinate, click.y_coordinate, radius
+          );
+
+          gradient.addColorStop(0, `rgba(255, 0, 0, ${alpha})`);
+          gradient.addColorStop(1, 'rgba(255, 0, 0, 0)');
+
+          ctx.fillStyle = gradient;
+          ctx.beginPath();
+          ctx.arc(click.x_coordinate, click.y_coordinate, radius, 0, 2 * Math.PI);
+          ctx.fill();
+        });
+
+        // Overlay the accumulation
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const pixels = imageData.data;
+
+        // Enhance the visualization by accumulating overlapping points
+        for (let i = 0; i < pixels.length; i += 4) {
+          const r = pixels[i];
+          const alpha = pixels[i + 3];
           
-          // Set new data
-          requestAnimationFrame(() => {
-            if (heatmapInstanceRef.current) {
-              heatmapInstanceRef.current.setData(heatmapData);
-            }
-          });
+          if (alpha > 0) {
+            // Increase opacity where points overlap
+            pixels[i + 3] = Math.min(255, alpha * 2);
+          }
         }
+
+        ctx.putImageData(imageData, 0, 0);
+
       } catch (error) {
-        console.error('Error fetching clicks:', error);
-        toast.error('Error fetching click data');
+        console.error('Error creating heatmap:', error);
+        toast.error('Error creating heatmap');
+      } finally {
+        setIsLoading(false);
       }
     };
-    
-    fetchClicks();
+
+    drawHeatmap();
   }, [selectedPage, selectedDevice]);
+
+  useEffect(() => {
+    if (containerRef.current && canvasRef.current) {
+      // Set canvas size to match container
+      const { width, height } = containerRef.current.getBoundingClientRect();
+      canvasRef.current.width = width;
+      canvasRef.current.height = height;
+    }
+  }, []);
 
   const handleDeviceChange = (value: string) => {
     setSelectedDevice(value as DeviceType);
@@ -163,8 +171,18 @@ export const ClickHeatmap = () => {
 
       <div 
         ref={containerRef} 
-        className="w-full h-[600px] relative bg-white border rounded-lg"
-      />
+        className="w-full h-[600px] relative bg-white border rounded-lg overflow-hidden"
+      >
+        <canvas
+          ref={canvasRef}
+          className="absolute inset-0"
+        />
+        {isLoading && (
+          <div className="absolute inset-0 flex items-center justify-center bg-white/80">
+            <Loader2 className="h-8 w-8 animate-spin" />
+          </div>
+        )}
+      </div>
     </Card>
   );
 };
