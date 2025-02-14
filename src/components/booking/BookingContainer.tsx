@@ -24,13 +24,13 @@ function StepRenderer({ step, onNext, onPrevious, onConfirm }: {
 
   switch (step) {
     case 'services':
-      return <ServiceSelection services={selectedServices} onStepComplete={onNext} />;
+      return <ServiceSelection onStepComplete={onNext} />;
     case 'datetime':
-      return <DateTimeSelection selectedDate={selectedDate} selectedTime={selectedTime} onStepComplete={onNext} onBack={onPrevious} />;
+      return <DateTimeSelection selectedDate={selectedDate} onStepComplete={onNext} onBack={onPrevious} />;
     case 'barber':
-      return <BarberSelection selectedBarber={selectedBarber} onStepComplete={onNext} onBack={onPrevious} />;
+      return <BarberSelection onNext={onNext} onPrevious={onPrevious} />;
     case 'details':
-      return <CustomerForm onStepComplete={onConfirm} onBack={onPrevious} />;
+      return <CustomerForm onConfirm={onConfirm} onPrevious={onPrevious} />;
     default:
       return <div className="text-center">{language === 'ar' ? 'خطأ' : 'Error'}</div>;
   }
@@ -88,6 +88,13 @@ export function BookingContainer() {
     navigate('/customer');
   };
 
+  const handleStepClick = (step: BookingStep) => {
+    const stepIndex = steps.indexOf(step);
+    if (stepIndex <= currentStepIndex) {
+      setCurrentStepIndex(stepIndex);
+    }
+  };
+
   return (
     <>
       <div className="app-header">
@@ -100,7 +107,7 @@ export function BookingContainer() {
         <BookingProgress 
           currentStep={currentStep}
           steps={steps}
-          onStepClick={setCurrentStepIndex}
+          onStepClick={handleStepClick}
           currentStepIndex={currentStepIndex}
         />
         <div className="space-y-6">
