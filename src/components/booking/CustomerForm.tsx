@@ -2,50 +2,58 @@
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useState } from "react";
-
-interface CustomerDetails {
-  name: string;
-  phone: string;
-  email: string;
-  notes: string;
-}
+import { useState, useEffect } from "react";
+import { CustomerDetails } from "@/types/booking";
 
 interface CustomerFormProps {
   customerDetails: CustomerDetails;
   onCustomerDetailsChange: (field: keyof CustomerDetails, value: string) => void;
+  onValidationChange?: (isValid: boolean) => void;
 }
 
 export const CustomerForm = ({
   customerDetails,
-  onCustomerDetailsChange
+  onCustomerDetailsChange,
+  onValidationChange
 }: CustomerFormProps) => {
   const { t, language } = useLanguage();
-  const [phoneError, setPhoneError] = useState<string>("");
-  const [emailError, setEmailError] = useState<string>("");
+  const [errors, setErrors] = useState<Partial<Record<keyof CustomerDetails, string>>>({});
 
-  const handlePhoneChange = (value: string) => {
-    // Only allow numbers
-    const numbersOnly = value.replace(/[^0-9]/g, '');
+  const validateForm = () => {
+    const newErrors: Partial<Record<keyof CustomerDetails, string>> = {};
     
-    // Validate phone number length - must be exactly 10 digits
-    if (numbersOnly.length !== 10) {
-      setPhoneError(language === 'ar' ? 'رقم الهاتف يجب أن يكون 10 أرقام' : 'Phone number must be 10 digits');
-    } else {
-      setPhoneError("");
+    if (!customerDetails.name.trim()) {
+      newErrors.name = language === 'ar' ? 'الاسم مطلوب' : 'Name is required';
     }
     
-    onCustomerDetailsChange('phone', numbersOnly);
+    if (!customerDetails.phone.trim()) {
+      newErrors.phone = language === 'ar' ? 'رقم الهاتف مطلوب' : 'Phone number is required';
+    } else if (!/^\d{10}$/.test(customerDetails.phone)) {
+      newErrors.phone = language === 'ar' 
+        ? 'رقم الهاتف يجب أن يكون 10 أرقام' 
+        : 'Phone number must be 10 digits';
+    }
+    
+    if (!customerDetails.email.trim()) {
+      newErrors.email = language === 'ar' ? 'البريد الإلكتروني مطلوب' : 'Email is required';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customerDetails.email)) {
+      newErrors.email = language === 'ar' 
+        ? 'يرجى إدخال بريد إلكتروني صحيح' 
+        : 'Please enter a valid email address';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
-  const handleEmailChange = (value: string) => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(value)) {
-      setEmailError(language === 'ar' ? 'يرجى إدخال بريد إلكتروني صحيح' : 'Please enter a valid email address');
-    } else {
-      setEmailError("");
-    }
-    onCustomerDetailsChange('email', value);
+  useEffect(() => {
+    const isValid = validateForm();
+    onValidationChange?.(isValid);
+  }, [customerDetails]);
+
+  const handlePhoneChange = (value: string) => {
+    const numbersOnly = value.replace(/[^0-9]/g, '');
+    onCustomerDetailsChange('phone', numbersOnly);
   };
 
   return (
@@ -60,7 +68,11 @@ export const CustomerForm = ({
             value={customerDetails.name}
             onChange={(e) => onCustomerDetailsChange('name', e.target.value)}
             required
+            className={errors.name ? "border-destructive" : ""}
           />
+          {errors.name && (
+            <p className="text-sm text-destructive mt-1">{errors.name}</p>
+          )}
         </div>
         
         <div>
@@ -74,10 +86,10 @@ export const CustomerForm = ({
             onChange={(e) => handlePhoneChange(e.target.value)}
             required
             maxLength={10}
-            className={phoneError ? "border-destructive" : ""}
+            className={errors.phone ? "border-destructive" : ""}
           />
-          {phoneError && (
-            <p className="text-sm text-destructive mt-1">{phoneError}</p>
+          {errors.phone && (
+            <p className="text-sm text-destructive mt-1">{errors.phone}</p>
           )}
         </div>
         
@@ -89,12 +101,12 @@ export const CustomerForm = ({
             id="email"
             type="email"
             value={customerDetails.email}
-            onChange={(e) => handleEmailChange(e.target.value)}
+            onChange={(e) => onCustomerDetailsChange('email', e.target.value)}
             required
-            className={emailError ? "border-destructive" : ""}
+            className={errors.email ? "border-destructive" : ""}
           />
-          {emailError && (
-            <p className="text-sm text-destructive mt-1">{emailError}</p>
+          {errors.email && (
+            <p className="text-sm text-destructive mt-1">{errors.email}</p>
           )}
         </div>
         
