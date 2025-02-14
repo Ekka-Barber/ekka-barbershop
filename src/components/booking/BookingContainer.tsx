@@ -10,6 +10,7 @@ import { BarberSelection } from "@/components/booking/BarberSelection";
 import { CustomerForm } from "@/components/booking/CustomerForm";
 import { BookingConfirmDialog } from "@/components/booking/components/BookingConfirmDialog";
 import { UpsellModal } from "@/components/booking/UpsellModal";
+import { BookingHeader } from "@/components/booking/BookingHeader";
 import { useBooking } from "@/hooks/useBooking";
 import type { BookingStep } from "@/types/booking";
 
@@ -77,7 +78,7 @@ export function BookingContainer() {
   const [showUpsellModal, setShowUpsellModal] = useState(false);
 
   const branchId = searchParams.get('branch');
-  const { clearBooking, confirmBooking } = useBooking({ branchId });
+  const { clearBooking, confirmBooking, selectedBranch, branchLoading } = useBooking({ branchId });
 
   const steps: BookingStep[] = ['services', 'datetime', 'barber', 'details'];
   const currentStep = steps[currentStepIndex];
@@ -136,6 +137,11 @@ export function BookingContainer() {
       </div>
 
       <div className="flex-grow max-w-4xl mx-auto p-4 sm:p-6 lg:p-8 w-full">
+        <BookingHeader 
+          branchName={selectedBranch?.name}
+          branchAddress={selectedBranch?.address}
+          isLoading={branchLoading}
+        />
         <BookingProgress 
           currentStep={currentStep}
           steps={steps}
