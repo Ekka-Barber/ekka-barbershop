@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { MapPin } from "lucide-react";
 import { BranchDialog } from "@/components/customer/BranchDialog";
 import { LocationDialog } from "@/components/customer/LocationDialog";
+
 const Customer = () => {
   const navigate = useNavigate();
   const {
@@ -81,9 +82,9 @@ const Customer = () => {
             </Button>
 
             <Button className="w-full h-14 text-lg font-medium bg-white hover:bg-gray-50 text-gray-800 transition-all duration-300 shadow-lg hover:shadow-xl border border-gray-200 touch-target overflow-hidden" onClick={() => window.open('https://enroll.boonus.app/64b7c34953090f001de0fb6c/wallet/64b7efed53090f001de815b4', '_blank')}>
-              <div className={`w-full flex items-center ${language === 'ar' ? 'flex-row-reverse' : 'flex-row'} justify-between gap-4 px-4`}>
-                <span className="font-semibold truncate text-base">{language === 'ar' ? 'انضم لبرنامج الولاء' : 'Join loyalty program'}</span>
-                <img src="/lovable-uploads/ba9a65f1-bf31-4b9c-ab41-7c7228a2f1b7.png" alt="Rescale Logo" className="h-8 w-auto flex-shrink-0" />
+              <div className={`w-full flex items-center ${language === 'ar' ? 'flex-row-reverse' : 'flex-row'} justify-between gap-2 px-3`}>
+                <span className="font-semibold truncate text-base flex-grow max-w-[75%]">{language === 'ar' ? 'انضم لبرنامج الولاء' : 'Join loyalty program'}</span>
+                <img src="/lovable-uploads/ba9a65f1-bf31-4b9c-ab41-7c7228a2f1b7.png" alt="Rescale Logo" className="h-7 w-auto flex-shrink-0" />
               </div>
             </Button>
           </div>
@@ -97,4 +98,5 @@ const Customer = () => {
       <footer className="page-footer" />
     </div>;
 };
+
 export default Customer;
