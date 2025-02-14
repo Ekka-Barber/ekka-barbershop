@@ -55,23 +55,23 @@ export const generateWhatsAppMessage = (formData: BookingFormData) => {
   const totalDiscount = totalOriginalPrice - totalPrice;
 
   const message = `
-✨ *طلب حجز جديد*
+\u2728 *طلب حجز جديد*
 
-👤 *معلومات العميل:*
+\u{1F464} *معلومات العميل:*
 الاسم: ${customerDetails.name}
 رقم الجوال: ${customerDetails.phone}
 البريد الإلكتروني: ${customerDetails.email}
 ${customerDetails.notes ? `ملاحظات: ${customerDetails.notes}` : ''}
 
-✂️ *تفاصيل الحجز:*
+\u2702\uFE0F *تفاصيل الحجز:*
 ${serviceSummary}
 
-⏰ المدة الإجمالية: ${selectedServices.reduce((sum, service) => sum + service.duration, 0)} دقيقة
-${selectedDate && selectedTime ? `📅 التاريخ والوقت: ${format(selectedDate, 'dd/MM/yyyy')} - ${selectedTime}` : ''}
-${selectedBarberName ? `💈 الحلاق: ${selectedBarberName}` : ''}
-${totalDiscount > 0 ? `💰 الخصم: ${formatPrice(totalDiscount)}` : ''}
+\u23F0 المدة الإجمالية: ${selectedServices.reduce((sum, service) => sum + service.duration, 0)} دقيقة
+${selectedDate && selectedTime ? `\u{1F4C5} التاريخ والوقت: ${format(selectedDate, 'dd/MM/yyyy')} - ${selectedTime}` : ''}
+${selectedBarberName ? `\u{1F488} الحلاق: ${selectedBarberName}` : ''}
+${totalDiscount > 0 ? `\u{1F4B0} الخصم: ${formatPrice(totalDiscount)}` : ''}
 
-💵 *المبلغ الإجمالي: ${formatPrice(totalPrice)}*
+\u{1F4B5} *المبلغ الإجمالي: ${formatPrice(totalPrice)}*
   `.trim();
 
   return encodeURIComponent(message);
