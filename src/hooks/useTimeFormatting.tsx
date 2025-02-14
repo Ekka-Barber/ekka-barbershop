@@ -22,9 +22,13 @@ export const useTimeFormatting = () => {
     const currentDay = days[dayIndex];
     
     const hours = transformWorkingHours(workingHours);
-    if (!hours || !hours[currentDay] || !hours[currentDay].length) return null;
+    if (!hours || !hours[currentDay]) return null;
 
-    const timeRanges = hours[currentDay].map(range => formatTimeRange(range, isArabic));
+    // Check if the current day has any time ranges
+    const currentDayHours = hours[currentDay];
+    if (!Array.isArray(currentDayHours) || currentDayHours.length === 0) return null;
+
+    const timeRanges = currentDayHours.map(range => formatTimeRange(range, isArabic));
     
     return <WorkingHoursDisplay isArabic={isArabic} timeRanges={timeRanges} />;
   };

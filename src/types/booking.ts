@@ -1,4 +1,6 @@
 
+import { SelectedService } from "./service";
+
 export interface BookingDetails {
   selectedServices: SelectedService[];
   selectedDate?: Date;

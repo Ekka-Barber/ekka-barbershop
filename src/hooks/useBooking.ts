@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from "@/integrations/supabase/client";
@@ -115,9 +116,13 @@ export const useBooking = (branch: any) => {
         name_ar: upsell.name_ar,
         price: upsell.discountedPrice,
         duration: upsell.duration,
+        category_id: '', // Required by Service type
+        display_order: 0, // Required by Service type
+        description_en: null,
+        description_ar: null,
         discount_type: 'percentage',
         discount_value: upsell.discountPercentage
-      }, true);
+      });
     });
   };
 
