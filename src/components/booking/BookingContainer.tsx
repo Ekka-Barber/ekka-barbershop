@@ -8,7 +8,7 @@ import { ServiceSelection } from "@/components/booking/ServiceSelection";
 import { DateTimeSelection } from "@/components/booking/DateTimeSelection";
 import { BarberSelection } from "@/components/booking/BarberSelection";
 import { CustomerForm } from "@/components/booking/CustomerForm";
-import { BookingConfirmDialog } from "@/components/ui/dialog";
+import { BookingConfirmDialog } from "@/components/booking/components/BookingConfirmDialog";
 import { UpsellModal } from "@/components/booking/UpsellModal";
 import { useBooking } from "@/hooks/useBooking";
 import type { BookingStep } from "@/types/booking";
@@ -20,16 +20,17 @@ function StepRenderer({ step, onNext, onPrevious, onConfirm }: {
   onConfirm: () => void;
 }) {
   const { language } = useLanguage();
+  const { selectedServices, selectedDate, selectedTime, selectedBarber } = useBooking();
 
   switch (step) {
     case 'services':
-      return <ServiceSelection onNext={onNext} />;
+      return <ServiceSelection services={selectedServices} onStepComplete={onNext} />;
     case 'datetime':
-      return <DateTimeSelection onNext={onNext} onPrevious={onPrevious} />;
+      return <DateTimeSelection selectedDate={selectedDate} selectedTime={selectedTime} onStepComplete={onNext} onBack={onPrevious} />;
     case 'barber':
-      return <BarberSelection onNext={onNext} onPrevious={onPrevious} />;
+      return <BarberSelection selectedBarber={selectedBarber} onStepComplete={onNext} onBack={onPrevious} />;
     case 'details':
-      return <CustomerForm onPrevious={onPrevious} onConfirm={onConfirm} />;
+      return <CustomerForm onStepComplete={onConfirm} onBack={onPrevious} />;
     default:
       return <div className="text-center">{language === 'ar' ? 'خطأ' : 'Error'}</div>;
   }
@@ -96,7 +97,12 @@ export function BookingContainer() {
       </div>
 
       <div className="flex-grow max-w-4xl mx-auto p-4 sm:p-6 lg:p-8 w-full">
-        <BookingProgress currentStep={currentStep} />
+        <BookingProgress 
+          currentStep={currentStep}
+          steps={steps}
+          onStepClick={setCurrentStepIndex}
+          currentStepIndex={currentStepIndex}
+        />
         <div className="space-y-6">
           <StepRenderer
             step={currentStep}
