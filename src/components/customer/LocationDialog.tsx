@@ -35,9 +35,17 @@ export const LocationDialog = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-xl bg-white border-0 shadow-2xl p-4">
         <DialogHeader>
-          <DialogTitle className="text-center text-xl font-bold text-[#222222] mb-4">
+          <DialogTitle className="text-center text-xl font-bold text-[#222222] mb-2">
             {language === 'ar' ? 'فروعنا' : 'Our Branches'}
           </DialogTitle>
+          <div className="flex items-center justify-center gap-2 text-gray-500 mb-4">
+            <MapPin className="w-4 h-4" />
+            <span>
+              {language === 'ar' 
+                ? 'للوصول لأحد فروعنا اختر الفرع'
+                : 'Select a branch to get directions'}
+            </span>
+          </div>
         </DialogHeader>
         <div className="grid grid-cols-1 gap-3">
           {branches?.map((branch) => (
@@ -62,7 +70,6 @@ export const LocationDialog = ({
                     {getCurrentDayHours(branch.working_hours, language === 'ar')}
                   </span>
                 </div>
-                <MapPin className="w-4 h-4 text-[#C4A36F]" />
               </div>
             </Button>
           ))}
