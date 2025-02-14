@@ -47,30 +47,35 @@ export const LocationDialog = ({
             </span>
           </div>
         </DialogHeader>
-        <div className="grid grid-cols-1 gap-3">
+        <div className="grid grid-cols-1 gap-4">
           {branches?.map((branch) => (
             <Button
               key={branch.id}
               variant="outline"
-              className="w-full flex flex-row items-start justify-between px-4 py-4 min-h-[120px] bg-white hover:bg-[#C4A36F]/5 border-2 border-gray-200 hover:border-[#C4A36F] transition-all duration-300 rounded-lg group"
+              className="w-full flex flex-row items-start justify-between p-5 bg-white hover:bg-[#C4A36F]/5 border border-gray-100 hover:border-[#C4A36F] transition-all duration-300 rounded-xl shadow-sm hover:shadow-md group"
               onClick={() => onLocationClick(branch.google_maps_url)}
             >
-              <div className={`flex flex-col items-${language === 'ar' ? 'end' : 'start'} w-[40%]`}>
-                <span className="w-full font-bold text-base text-[#222222] group-hover:text-[#C4A36F] transition-colors truncate">
+              <div className={`flex flex-col items-${language === 'ar' ? 'end' : 'start'} w-[45%]`}>
+                <h3 className="w-full text-lg font-bold text-[#222222] group-hover:text-[#C4A36F] transition-colors">
                   {language === 'ar' ? branch.name_ar : branch.name}
-                </span>
-                <span className="w-full text-sm text-gray-600 group-hover:text-[#C4A36F]/70 transition-colors truncate mt-1">
+                </h3>
+                <p className="w-full text-sm text-gray-500 group-hover:text-[#C4A36F]/70 transition-colors mt-1.5">
                   {language === 'ar' ? branch.address_ar : branch.address}
-                </span>
+                </p>
               </div>
-              <div className="w-[60%] flex flex-col gap-1">
-                <Clock className="w-4 h-4 text-[#C4A36F] mb-1" />
-                {getAllDaysHours(branch.working_hours, language === 'ar').map((dayHours, index) => (
-                  <div key={index} className="flex items-center gap-2 text-xs text-gray-600">
-                    <span className="font-medium min-w-[65px] text-end">{dayHours.label}:</span>
-                    <span className="text-[#C4A36F]">{dayHours.hours}</span>
-                  </div>
-                ))}
+              <div className="w-[55%] flex flex-col items-end">
+                <div className="flex items-center gap-2 mb-3 text-[#C4A36F]">
+                  <span className="text-sm font-medium">Working Hours</span>
+                  <Clock className="w-4 h-4" />
+                </div>
+                <div className="flex flex-col gap-2 items-end">
+                  {getAllDaysHours(branch.working_hours, language === 'ar').map((dayHours, index) => (
+                    <div key={index} className="flex items-center justify-end gap-3 text-sm">
+                      <span className="font-medium text-[#222222]">{dayHours.label}:</span>
+                      <span className="text-[#C4A36F] font-medium">{dayHours.hours}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
             </Button>
           ))}
