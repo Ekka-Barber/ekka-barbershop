@@ -14,25 +14,32 @@ const getDeviceType = (): 'mobile' | 'tablet' | 'desktop' => {
 export const trackClick = async (event: MouseEvent) => {
   try {
     const target = event.target as HTMLElement;
+    const doc = target.ownerDocument;
     
     // Get scroll position
-    const scrollX = window.scrollX;
-    const scrollY = window.scrollY;
+    const scrollX = doc.defaultView?.scrollX || doc.documentElement.scrollLeft || 0;
+    const scrollY = doc.defaultView?.scrollY || doc.documentElement.scrollTop || 0;
     
-    // Get total content size
+    // Get total content size (ensure non-zero values)
     const contentWidth = Math.max(
-      document.documentElement.scrollWidth,
-      document.documentElement.clientWidth
+      doc.documentElement.scrollWidth,
+      doc.documentElement.clientWidth,
+      doc.documentElement.offsetWidth,
+      100 // Minimum width to prevent division by zero
     );
     const contentHeight = Math.max(
-      document.documentElement.scrollHeight,
-      document.documentElement.clientHeight
+      doc.documentElement.scrollHeight,
+      doc.documentElement.clientHeight,
+      doc.documentElement.offsetHeight,
+      100 // Minimum height to prevent division by zero
     );
 
-    // Calculate absolute click position including scroll
+    // Get click coordinates relative to the document
+    const rect = target.getBoundingClientRect();
     const x = Math.round(event.clientX + scrollX);
     const y = Math.round(event.clientY + scrollY);
-    const pageUrl = window.location.pathname;
+    
+    const pageUrl = doc.location.pathname;
 
     console.log('Tracking click:', {
       x,

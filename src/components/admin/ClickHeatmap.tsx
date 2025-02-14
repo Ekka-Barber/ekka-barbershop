@@ -122,13 +122,23 @@ export const ClickHeatmap = () => {
     const { width: containerWidth, height: containerHeight } = iframe.getBoundingClientRect();
 
     return clickData.map(click => {
-      // Calculate position relative to viewport and scroll
-      const normalizedX = ((click.x_coordinate - click.scroll_x) / click.content_width) * containerWidth;
-      const normalizedY = ((click.y_coordinate - click.scroll_y) / click.content_height) * containerHeight;
+      // Ensure we have valid dimensions to prevent NaN
+      const safeContentWidth = Math.max(click.content_width, containerWidth, 100);
+      const safeContentHeight = Math.max(click.content_height, containerHeight, 100);
+
+      // Calculate normalized coordinates with boundary checks
+      const normalizedX = Math.min(
+        containerWidth,
+        Math.max(0, ((click.x_coordinate - click.scroll_x) / safeContentWidth) * containerWidth)
+      );
+      const normalizedY = Math.min(
+        containerHeight,
+        Math.max(0, ((click.y_coordinate - click.scroll_y) / safeContentHeight) * containerHeight)
+      );
 
       return {
-        x: normalizedX,
-        y: normalizedY,
+        x: isFinite(normalizedX) ? normalizedX : 0,
+        y: isFinite(normalizedY) ? normalizedY : 0,
         originalData: click
       };
     });
@@ -185,23 +195,34 @@ export const ClickHeatmap = () => {
 
     // Draw clusters
     clusters.forEach((cluster) => {
+      // Ensure coordinates are finite numbers
+      if (!isFinite(cluster.centerX) || !isFinite(cluster.centerY)) return;
+
       const intensity = Math.min(1, cluster.points.length / 20);
       const radius = Math.max(20, 10 + cluster.points.length * 2) / zoomLevel;
       
-      const gradient = ctx.createRadialGradient(
-        cluster.centerX, cluster.centerY, 0,
-        cluster.centerX, cluster.centerY, radius
-      );
+      try {
+        const gradient = ctx.createRadialGradient(
+          cluster.centerX,
+          cluster.centerY,
+          0,
+          cluster.centerX,
+          cluster.centerY,
+          radius
+        );
 
-      const color = interpolateColors(intensity);
-      
-      gradient.addColorStop(0, `rgba(${color.join(',')}, ${opacity})`);
-      gradient.addColorStop(1, `rgba(${color.join(',')}, 0)`);
+        const color = interpolateColors(intensity);
+        
+        gradient.addColorStop(0, `rgba(${color.join(',')}, ${opacity})`);
+        gradient.addColorStop(1, `rgba(${color.join(',')}, 0)`);
 
-      ctx.fillStyle = gradient;
-      ctx.beginPath();
-      ctx.arc(cluster.centerX, cluster.centerY, radius, 0, 2 * Math.PI);
-      ctx.fill();
+        ctx.fillStyle = gradient;
+        ctx.beginPath();
+        ctx.arc(cluster.centerX, cluster.centerY, radius, 0, 2 * Math.PI);
+        ctx.fill();
+      } catch (error) {
+        console.error('Error drawing cluster:', error);
+      }
     });
 
     ctx.restore();
