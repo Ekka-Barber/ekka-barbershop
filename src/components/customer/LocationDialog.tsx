@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useTimeFormatting } from "@/hooks/useTimeFormatting";
-import { Clock } from "lucide-react";
+import { Clock, Car } from "lucide-react";
 
 interface Branch {
   id: string;
@@ -38,8 +38,18 @@ export const LocationDialog = ({
           <DialogTitle className="text-center text-xl font-bold text-[#222222] mb-2">
             {language === 'ar' ? 'فروعنا' : 'Our Branches'}
           </DialogTitle>
-          <DialogDescription className="text-center text-sm text-gray-600 mb-4">
-            {language === 'ar' ? 'اختر موقع الفرع' : 'Select a branch location'}
+          <DialogDescription className="text-center text-sm text-gray-600 mb-4 flex items-center justify-center gap-2">
+            {language === 'ar' ? (
+              <>
+                اختر الفرع، للوصول السريع
+                <Car className="w-4 h-4 text-[#C4A36F]" />
+              </>
+            ) : (
+              <>
+                Select a branch location
+                <Car className="w-4 h-4 text-[#C4A36F]" />
+              </>
+            )}
           </DialogDescription>
         </DialogHeader>
         <div className="grid grid-cols-1 gap-3">
