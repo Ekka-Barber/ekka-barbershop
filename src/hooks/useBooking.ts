@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from "@/integrations/supabase/client";
@@ -104,16 +103,16 @@ export const useBooking = (branch: any) => {
     enabled: !!selectedBarber
   });
 
-  const handleServiceToggle = (service: Service) => {
+  const handleServiceToggle = (service: Service, skipDiscountCalculation: boolean = false) => {
     const isSelected = selectedServices.some(s => s.id === service.id);
     if (isSelected) {
       setSelectedServices(prev => prev.filter(s => s.id !== service.id));
     } else {
-      const discountedPrice = calculateDiscountedPrice(service);
+      const finalPrice = skipDiscountCalculation ? service.price : calculateDiscountedPrice(service);
       setSelectedServices(prev => [...prev, {
         ...service,
-        price: roundPrice(discountedPrice),
-        originalPrice: discountedPrice !== service.price ? roundPrice(service.price) : undefined,
+        price: roundPrice(finalPrice),
+        originalPrice: skipDiscountCalculation ? undefined : (finalPrice !== service.price ? roundPrice(service.price) : undefined),
         isUpsellItem: false
       }]);
     }
@@ -125,15 +124,15 @@ export const useBooking = (branch: any) => {
         id: upsell.id,
         name_en: upsell.name_en,
         name_ar: upsell.name_ar,
-        price: upsell.discountedPrice,
+        price: upsell.discountedPrice, // Already discounted price
         duration: upsell.duration,
         category_id: '', // Required by Service type
         display_order: 0, // Required by Service type
         description_en: null,
         description_ar: null,
-        discount_type: 'percentage',
-        discount_value: upsell.discountPercentage
-      });
+        discount_type: null, // Remove discount info since price is already discounted
+        discount_value: null
+      }, true); // Skip discount calculation since price is already discounted
     });
   };
 
