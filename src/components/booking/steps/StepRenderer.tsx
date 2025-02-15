@@ -52,6 +52,9 @@ export const StepRenderer = ({
   language,
   branch
 }: StepRendererProps) => {
+  // Calculate total duration from selected services
+  const totalDuration = selectedServices.reduce((total, service) => total + service.duration, 0);
+
   if (currentStep === 'services') {
     return (
       <ServiceSelection
@@ -83,6 +86,7 @@ export const StepRenderer = ({
         selectedDate={selectedDate}
         selectedTime={selectedTime}
         onTimeSelect={setSelectedTime}
+        totalDuration={totalDuration} // Pass the calculated total duration
       />
     );
   }

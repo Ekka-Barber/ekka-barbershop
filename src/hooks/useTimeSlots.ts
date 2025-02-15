@@ -1,4 +1,3 @@
-
 import { format, parse, isToday, isBefore, addMinutes, isAfter, addDays, set } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -19,38 +18,23 @@ export const useTimeSlots = () => {
   };
 
   const isSlotAvailable = (slotMinutes: number, unavailableSlots: UnavailableSlot[], serviceDuration: number) => {
-    const slotEndMinutes = slotMinutes + serviceDuration; // Use service duration instead of fixed 30 minutes
-
-    console.log('Checking availability for slot:', {
-      slotStart: slotMinutes,
-      slotEnd: slotEndMinutes,
-      serviceDuration,
-      unavailableSlots: unavailableSlots.map(slot => ({
-        start: slot.start_time,
-        end: slot.end_time,
-      }))
-    });
+    const slotEndMinutes = slotMinutes + serviceDuration;
     
-    // Check if any part of the service duration overlaps with unavailable slots
-    for (const slot of unavailableSlots) {
-      // Convert slot times to minutes if they're not already
-      const slotStart = typeof slot.start_time === 'number' ? slot.start_time : convertTimeToMinutes(slot.start_time as unknown as string);
-      const slotEnd = typeof slot.end_time === 'number' ? slot.end_time : convertTimeToMinutes(slot.end_time as unknown as string);
+    // Convert and normalize unavailable slots
+    const normalizedUnavailableSlots = unavailableSlots.map(slot => ({
+      start: typeof slot.start_time === 'number' ? slot.start_time : convertTimeToMinutes(slot.start_time as unknown as string),
+      end: typeof slot.end_time === 'number' ? slot.end_time : convertTimeToMinutes(slot.end_time as unknown as string)
+    }));
 
-      // Check for any overlap throughout the entire service duration
+    // Check if the service duration overlaps with any unavailable slot
+    for (const slot of normalizedUnavailableSlots) {
       const hasOverlap = (
-        (slotMinutes >= slotStart && slotMinutes < slotEnd) || // Service start overlaps
-        (slotEndMinutes > slotStart && slotEndMinutes <= slotEnd) || // Service end overlaps
-        (slotMinutes <= slotStart && slotEndMinutes >= slotEnd) // Service completely contains unavailable period
+        (slotMinutes >= slot.start && slotMinutes < slot.end) || // Start overlaps
+        (slotEndMinutes > slot.start && slotEndMinutes <= slot.end) || // End overlaps
+        (slotMinutes <= slot.start && slotEndMinutes >= slot.end) // Completely contains
       );
 
       if (hasOverlap) {
-        console.log('Found overlap:', {
-          serviceStart: slotMinutes,
-          serviceEnd: slotEndMinutes,
-          unavailableStart: slotStart,
-          unavailableEnd: slotEnd
-        });
         return false;
       }
     }
@@ -220,4 +204,3 @@ export const useTimeSlots = () => {
     isEmployeeAvailable
   };
 };
-
