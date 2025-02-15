@@ -25,7 +25,6 @@ interface BarberSelectionProps {
   selectedDate?: Date;
   selectedTime?: string;
   onTimeSelect: (time: string) => void;
-  totalDuration?: number; // Add this prop
 }
 
 export const BarberSelection = ({
@@ -35,8 +34,7 @@ export const BarberSelection = ({
   onBarberSelect,
   selectedDate,
   selectedTime,
-  onTimeSelect,
-  totalDuration = 30 // Default to 30 minutes if not provided
+  onTimeSelect
 }: BarberSelectionProps) => {
   const { language } = useLanguage();
   const [showAllSlots, setShowAllSlots] = useState(false);
@@ -48,7 +46,7 @@ export const BarberSelection = ({
     if (selectedBarber && selectedDate) {
       const selectedEmployee = employees?.find(emp => emp.id === selectedBarber);
       if (selectedEmployee) {
-        const slots = await getAvailableTimeSlots(selectedEmployee, selectedDate, totalDuration);
+        const slots = await getAvailableTimeSlots(selectedEmployee, selectedDate);
         setEmployeeTimeSlots(slots);
       }
     } else {
@@ -59,7 +57,7 @@ export const BarberSelection = ({
   // Effect to update time slots
   useEffect(() => {
     updateTimeSlots();
-  }, [selectedBarber, selectedDate, totalDuration]); // Added totalDuration to dependencies
+  }, [selectedBarber, selectedDate]);
 
   if (isLoading) {
     return (
@@ -123,4 +121,3 @@ export const BarberSelection = ({
     </div>
   );
 };
-

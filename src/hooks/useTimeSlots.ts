@@ -1,5 +1,4 @@
-
-import { format, parse, isToday, isBefore, addMinutes, isAfter, addDays } from "date-fns";
+import { format, parse, isToday, isBefore, addMinutes, isAfter, addDays, set } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 
 interface TimeSlot {
@@ -18,38 +17,37 @@ export const useTimeSlots = () => {
     return hours * 60 + minutes;
   };
 
-  const isSlotAvailable = (slotMinutes: number, unavailableSlots: UnavailableSlot[], serviceDuration: number, endTimeMinutes: number) => {
-    const slotEndMinutes = slotMinutes + serviceDuration;
-    
-    // First check: Does the service fit within working hours?
-    if (slotEndMinutes > endTimeMinutes) {
-      console.log('Service does not fit within working hours:', {
-        serviceStart: `${Math.floor(slotMinutes/60)}:${String(slotMinutes%60).padStart(2, '0')}`,
-        serviceEnd: `${Math.floor(slotEndMinutes/60)}:${String(slotEndMinutes%60).padStart(2, '0')}`,
-        workingHoursEnd: `${Math.floor(endTimeMinutes/60)}:${String(endTimeMinutes%60).padStart(2, '0')}`
-      });
-      return false;
-    }
+  const isSlotAvailable = (slotMinutes: number, unavailableSlots: UnavailableSlot[]) => {
+    const slotEndMinutes = slotMinutes + 30; // 30-minute slots
 
-    // Convert and normalize unavailable slots
-    const normalizedUnavailableSlots = unavailableSlots.map(slot => {
-      const start = typeof slot.start_time === 'number' ? slot.start_time : convertTimeToMinutes(slot.start_time as unknown as string);
-      const end = typeof slot.end_time === 'number' ? slot.end_time : convertTimeToMinutes(slot.end_time as unknown as string);
-      return { start, end };
+    console.log('Checking availability for slot:', {
+      slotStart: slotMinutes,
+      slotEnd: slotEndMinutes,
+      unavailableSlots: unavailableSlots.map(slot => ({
+        start: slot.start_time,
+        end: slot.end_time,
+      }))
     });
+    
+    // Check if the slot overlaps with any unavailable period
+    for (const slot of unavailableSlots) {
+      // Convert slot times to minutes if they're not already
+      const slotStart = typeof slot.start_time === 'number' ? slot.start_time : convertTimeToMinutes(slot.start_time as unknown as string);
+      const slotEnd = typeof slot.end_time === 'number' ? slot.end_time : convertTimeToMinutes(slot.end_time as unknown as string);
 
-    // Check for overlaps with unavailable slots
-    for (const slot of normalizedUnavailableSlots) {
+      // Check for any overlap
       const hasOverlap = (
-        (slotMinutes >= slot.start && slotMinutes < slot.end) ||  // Service starts during unavailable slot
-        (slotEndMinutes > slot.start && slotEndMinutes <= slot.end) ||  // Service ends during unavailable slot
-        (slotMinutes <= slot.start && slotEndMinutes >= slot.end)  // Service spans entire unavailable slot
+        (slotMinutes >= slotStart && slotMinutes < slotEnd) || // Slot start overlaps
+        (slotEndMinutes > slotStart && slotEndMinutes <= slotEnd) || // Slot end overlaps
+        (slotMinutes <= slotStart && slotEndMinutes >= slotEnd) // Slot completely contains unavailable period
       );
 
       if (hasOverlap) {
-        console.log('Found overlap with unavailable slot:', {
-          serviceTime: `${Math.floor(slotMinutes/60)}:${String(slotMinutes%60).padStart(2, '0')} - ${Math.floor(slotEndMinutes/60)}:${String(slotEndMinutes%60).padStart(2, '0')}`,
-          unavailableSlot: `${Math.floor(slot.start/60)}:${String(slot.start%60).padStart(2, '0')} - ${Math.floor(slot.end/60)}:${String(slot.end%60).padStart(2, '0')}`
+        console.log('Found overlap:', {
+          slotStart: slotMinutes,
+          slotEnd: slotEndMinutes,
+          unavailableStart: slotStart,
+          unavailableEnd: slotEnd
         });
         return false;
       }
@@ -61,23 +59,22 @@ export const useTimeSlots = () => {
   const generateTimeSlots = async (
     workingHoursRanges: string[] = [],
     selectedDate?: Date,
-    employeeId?: string,
-    serviceDuration: number = 30
+    employeeId?: string
   ): Promise<TimeSlot[]> => {
     const slots: TimeSlot[] = [];
     
-    // Early return if no date, employee, or working hours
-    if (!selectedDate || !employeeId || workingHoursRanges.length === 0) {
-      console.log('No slots generated - missing required data:', {
-        hasDate: !!selectedDate,
-        hasEmployee: !!employeeId,
-        workingHoursCount: workingHoursRanges.length
-      });
-      return slots;
-    }
+    if (!selectedDate || !employeeId) return slots;
 
-    // Get all unavailable slots for the day
+    console.log('Generating time slots for:', {
+      date: selectedDate,
+      employeeId,
+      ranges: workingHoursRanges
+    });
+
+    // Get all unavailable slots for the day in one query
     const formattedDate = format(selectedDate, 'yyyy-MM-dd');
+    console.log('Fetching unavailable slots for date:', formattedDate);
+    
     const { data: unavailableSlots, error } = await supabase
       .from('employee_schedules')
       .select('start_time, end_time')
@@ -97,32 +94,46 @@ export const useTimeSlots = () => {
       const startTime = parse(start, 'HH:mm', baseDate);
       let endTime = parse(end, 'HH:mm', baseDate);
       
-      // Handle times after midnight
+      // Properly handle times after midnight
       if (isAfter(startTime, endTime)) {
+        // Add a day to the end time
         endTime = addDays(endTime, 1);
       }
 
-      const rangeEndMinutes = convertTimeToMinutes(format(endTime, 'HH:mm'));
+      console.log('Processing time range:', {
+        start: format(startTime, 'HH:mm'),
+        end: format(endTime, 'HH:mm'),
+        crossesMidnight: isAfter(startTime, endTime)
+      });
       
       let currentSlot = startTime;
+      // Use strict comparison to ensure we get all slots including the last one
       while (isBefore(currentSlot, endTime) || format(currentSlot, 'HH:mm') === format(endTime, 'HH:mm')) {
         const timeString = format(currentSlot, 'HH:mm');
         const slotMinutes = convertTimeToMinutes(timeString);
         
-        // Check availability considering service duration and working hours end time
-        const available = isSlotAvailable(slotMinutes, unavailableSlots || [], serviceDuration, rangeEndMinutes);
+        console.log('Processing slot:', {
+          timeString,
+          slotMinutes,
+          currentTime: format(currentSlot, 'HH:mm'),
+          endTime: format(endTime, 'HH:mm')
+        });
+        
+        const available = isSlotAvailable(slotMinutes, unavailableSlots || []);
         
         slots.push({
           time: timeString,
           isAvailable: available
         });
         
+        // Break the loop if we've reached the end time
         if (format(currentSlot, 'HH:mm') === format(endTime, 'HH:mm')) break;
+        
         currentSlot = addMinutes(currentSlot, 30);
       }
     }
 
-    // Apply minimum booking time filter for today's slots
+    // Only apply the minimum booking time filter for today's slots
     if (isToday(selectedDate)) {
       const now = new Date();
       const minimumBookingTime = addMinutes(now, 30);
@@ -133,6 +144,7 @@ export const useTimeSlots = () => {
           const slotTime = new Date(selectedDate);
           slotTime.setHours(hours, minutes, 0, 0);
           
+          // Handle slots after midnight
           if (hours < 12 && hours >= 0) {
             slotTime.setDate(slotTime.getDate() + 1);
           }
@@ -142,8 +154,11 @@ export const useTimeSlots = () => {
         .sort((a, b) => {
           const [aHours] = a.time.split(':').map(Number);
           const [bHours] = b.time.split(':').map(Number);
+          
+          // Custom sorting to handle after-midnight times
           const aValue = aHours < 12 ? aHours + 24 : aHours;
           const bValue = bHours < 12 ? bHours + 24 : bHours;
+          
           return aValue - bValue;
         });
     }
@@ -151,35 +166,26 @@ export const useTimeSlots = () => {
     return slots.sort((a, b) => {
       const [aHours] = a.time.split(':').map(Number);
       const [bHours] = b.time.split(':').map(Number);
+      
+      // Custom sorting to handle after-midnight times
       const aValue = aHours < 12 ? aHours + 24 : aHours;
       const bValue = bHours < 12 ? bHours + 24 : bHours;
+      
       return aValue - bValue;
     });
   };
 
-  const getAvailableTimeSlots = async (
-    employee: any, 
-    selectedDate: Date | undefined,
-    serviceDuration: number = 30
-  ) => {
-    if (!selectedDate || !employee?.working_hours) {
-      console.log('No employee or date provided');
-      return [];
-    }
+  const getAvailableTimeSlots = async (employee: any, selectedDate: Date | undefined) => {
+    if (!selectedDate || !employee?.working_hours) return [];
     
     const dayName = format(selectedDate, 'EEEE').toLowerCase();
     const workingHours = employee.working_hours[dayName] || [];
     
-    if (workingHours.length === 0) {
-      console.log('No working hours for:', {
-        employee: employee.name,
-        day: dayName,
-        date: format(selectedDate, 'yyyy-MM-dd')
-      });
+    if (employee.off_days?.includes(format(selectedDate, 'yyyy-MM-dd'))) {
       return [];
     }
     
-    return generateTimeSlots(workingHours, selectedDate, employee.id, serviceDuration);
+    return generateTimeSlots(workingHours, selectedDate, employee.id);
   };
 
   const isEmployeeAvailable = (employee: any, selectedDate: Date | undefined): boolean => {
@@ -187,6 +193,10 @@ export const useTimeSlots = () => {
     
     const dayName = format(selectedDate, 'EEEE').toLowerCase();
     const workingHours = employee.working_hours[dayName] || [];
+    
+    if (employee.off_days?.includes(format(selectedDate, 'yyyy-MM-dd'))) {
+      return false;
+    }
     
     return workingHours.length > 0;
   };
