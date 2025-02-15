@@ -10,8 +10,18 @@ const getDeviceType = (): 'mobile' | 'tablet' | 'desktop' => {
   return 'desktop';
 };
 
+// Check if we're on production
+const isProduction = (): boolean => {
+  return window.location.hostname === 'ekka-barbershop.lovable.app';
+};
+
 // Track click events
 export const trackClick = async (event: MouseEvent) => {
+  // Only track clicks in production environment
+  if (!isProduction()) {
+    return;
+  }
+
   try {
     const target = event.target as HTMLElement;
     const doc = target.ownerDocument;
@@ -77,3 +87,4 @@ export const trackClick = async (event: MouseEvent) => {
     toast.error('Error tracking click');
   }
 };
+
