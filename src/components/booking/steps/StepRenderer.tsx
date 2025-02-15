@@ -86,7 +86,7 @@ export const StepRenderer = ({
         selectedDate={selectedDate}
         selectedTime={selectedTime}
         onTimeSelect={setSelectedTime}
-        totalDuration={totalDuration} // Pass the calculated total duration
+        totalDuration={totalDuration} // Now properly passing the calculated totalDuration
       />
     );
   }
@@ -139,3 +139,4 @@ export const StepRenderer = ({
 
   return null;
 };
+
