@@ -24,7 +24,9 @@ export const useTimeSlots = () => {
     console.log('Checking availability for slot:', {
       start: `${Math.floor(slotMinutes/60)}:${String(slotMinutes%60).padStart(2, '0')}`,
       end: `${Math.floor(slotEndMinutes/60)}:${String(slotEndMinutes%60).padStart(2, '0')}`,
-      duration: serviceDuration
+      duration: serviceDuration,
+      slotMinutes,
+      slotEndMinutes
     });
 
     // Convert and normalize unavailable slots
@@ -34,7 +36,9 @@ export const useTimeSlots = () => {
       
       console.log('Checking against unavailable slot:', {
         start: `${Math.floor(start/60)}:${String(start%60).padStart(2, '0')}`,
-        end: `${Math.floor(end/60)}:${String(end%60).padStart(2, '0')}`
+        end: `${Math.floor(end/60)}:${String(end%60).padStart(2, '0')}`,
+        startMinutes: start,
+        endMinutes: end
       });
       
       return { start, end };
@@ -43,10 +47,6 @@ export const useTimeSlots = () => {
     // Check if the service duration overlaps with any unavailable slot
     for (const slot of normalizedUnavailableSlots) {
       // Check if there's any overlap between the service time and unavailable slot
-      // A slot overlaps if:
-      // 1. Service starts during an unavailable slot (slotMinutes >= slot.start && slotMinutes < slot.end)
-      // 2. Service ends during an unavailable slot (slotEndMinutes > slot.start && slotEndMinutes <= slot.end)
-      // 3. Service completely contains an unavailable slot (slotMinutes <= slot.start && slotEndMinutes >= slot.end)
       const hasOverlap = (
         (slotMinutes >= slot.start && slotMinutes < slot.end) ||
         (slotEndMinutes > slot.start && slotEndMinutes <= slot.end) ||
@@ -58,7 +58,12 @@ export const useTimeSlots = () => {
           serviceStart: `${Math.floor(slotMinutes/60)}:${String(slotMinutes%60).padStart(2, '0')}`,
           serviceEnd: `${Math.floor(slotEndMinutes/60)}:${String(slotEndMinutes%60).padStart(2, '0')}`,
           unavailableStart: `${Math.floor(slot.start/60)}:${String(slot.start%60).padStart(2, '0')}`,
-          unavailableEnd: `${Math.floor(slot.end/60)}:${String(slot.end%60).padStart(2, '0')}`
+          unavailableEnd: `${Math.floor(slot.end/60)}:${String(slot.end%60).padStart(2, '0')}`,
+          overlapConditions: {
+            condition1: slotMinutes >= slot.start && slotMinutes < slot.end,
+            condition2: slotEndMinutes > slot.start && slotEndMinutes <= slot.end,
+            condition3: slotMinutes <= slot.start && slotEndMinutes >= slot.end
+          }
         });
         return false;
       }

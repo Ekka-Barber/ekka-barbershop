@@ -28,10 +28,15 @@ export const TimeSlotPicker = ({
   const { language } = useLanguage();
   const displayedTimeSlots = showAllSlots ? timeSlots : timeSlots.slice(0, 6);
 
-  const isAfterMidnight = (time: string) => {
-    const [hours] = time.split(':').map(Number);
-    return hours < 12 && hours >= 0; // 00:00 to 11:59
-  };
+  // Debug: Log time slots data
+  console.log('Time Slots Data:', {
+    total: timeSlots.length,
+    available: timeSlots.filter(slot => slot.isAvailable).length,
+    slots: timeSlots.map(slot => ({
+      time: slot.time,
+      isAvailable: slot.isAvailable
+    }))
+  });
 
   if (timeSlots.length === 0) {
     return (
@@ -73,11 +78,11 @@ export const TimeSlotPicker = ({
                 return (
                   <>
                     {showSeparator && (
-                      <div className="flex items-center mx-2" key={`separator-${index}`}>
+                      <div key={`separator-${index}`} className="flex items-center mx-2">
                         <Clock12 className="h-6 w-6 text-red-500" />
                       </div>
                     )}
-                    <div key={slot.time}>
+                    <div key={`slot-${slot.time}`}>
                       <Button
                         variant={selectedTime === slot.time ? "default" : "outline"}
                         onClick={() => slot.isAvailable && onTimeSelect(slot.time)}
