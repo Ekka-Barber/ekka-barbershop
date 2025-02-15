@@ -10,7 +10,8 @@ export interface UpsellService {
   price: number;
   duration: number;
   discountPercentage: number;
-  discountedPrice: number;  // Add this field for pre-calculated price
+  discountedPrice: number;
+  mainServiceId: string; // Add this to track the main service
 }
 
 export const useBookingUpsells = (selectedServices: SelectedService[], language: 'en' | 'ar') => {
@@ -19,10 +20,18 @@ export const useBookingUpsells = (selectedServices: SelectedService[], language:
     queryFn: async () => {
       if (selectedServices.length === 0) return [];
       
+      // Only get upsells for main services (non-upsell items)
+      const mainServiceIds = selectedServices
+        .filter(s => !s.isUpsellItem)
+        .map(s => s.id);
+
+      if (mainServiceIds.length === 0) return [];
+
       const { data, error } = await supabase
         .from('service_upsells')
         .select(`
           upsell_service_id,
+          main_service_id,
           discount_percentage,
           upsell:services!service_upsells_upsell_service_id_fkey (
             id,
@@ -32,7 +41,7 @@ export const useBookingUpsells = (selectedServices: SelectedService[], language:
             duration
           )
         `)
-        .in('main_service_id', selectedServices.map(s => s.id));
+        .in('main_service_id', mainServiceIds);
 
       if (error) throw error;
 
@@ -52,7 +61,8 @@ export const useBookingUpsells = (selectedServices: SelectedService[], language:
             price: upsell.upsell.price,
             duration: upsell.upsell.duration,
             discountPercentage: upsell.discount_percentage,
-            discountedPrice: discountedPrice
+            discountedPrice: discountedPrice,
+            mainServiceId: upsell.main_service_id // Store the main service ID
           });
         }
       });

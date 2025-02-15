@@ -1,4 +1,3 @@
-
 export interface Service {
   id: string;
   name_en: string;
@@ -17,6 +16,8 @@ export interface SelectedService extends Service {
   isUpsellItem?: boolean;
   originalPrice?: number;
   discountPercentage?: number;
+  mainServiceId?: string; // Track which main service this upsell depends on
+  dependentUpsells?: string[]; // Track which upsells depend on this main service
 }
 
 export interface Category {

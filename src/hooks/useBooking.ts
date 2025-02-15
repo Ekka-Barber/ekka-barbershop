@@ -1,10 +1,10 @@
-
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from "@/integrations/supabase/client";
 import { BookingStep } from '@/components/booking/BookingProgress';
 import { Service, validateService, SelectedService } from '@/types/service';
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useToast } from "@/hooks/use-toast";
 
 export interface CustomerDetails {
   name: string;
@@ -27,6 +27,7 @@ export const useBooking = (branch: any) => {
   });
 
   const { language } = useLanguage();
+  const { toast } = useToast();
 
   const { data: categories, isLoading: categoriesLoading } = useQuery({
     queryKey: ['service_categories'],
@@ -106,37 +107,77 @@ export const useBooking = (branch: any) => {
 
   const handleServiceToggle = (service: Service, skipDiscountCalculation: boolean = false) => {
     const isSelected = selectedServices.some(s => s.id === service.id);
+    
     if (isSelected) {
-      setSelectedServices(prev => prev.filter(s => s.id !== service.id));
+      const hasUpsells = selectedServices.some(s => s.mainServiceId === service.id);
+      
+      if (hasUpsells) {
+        toast({
+          title: language === 'ar' ? 'تنبيه' : 'Warning',
+          description: language === 'ar' 
+            ? 'سيؤدي إزالة هذه الخدمة إلى إزالة الخدمات الإضافية المخفضة المرتبطة بها'
+            : 'Removing this service will also remove its discounted add-on services',
+          variant: "destructive"
+        });
+        
+        setSelectedServices(prev => prev.filter(s => 
+          s.id !== service.id && s.mainServiceId !== service.id
+        ));
+      } else {
+        setSelectedServices(prev => prev.filter(s => s.id !== service.id));
+      }
     } else {
       const finalPrice = skipDiscountCalculation ? service.price : calculateDiscountedPrice(service);
       setSelectedServices(prev => [...prev, {
         ...service,
         price: roundPrice(finalPrice),
         originalPrice: skipDiscountCalculation ? undefined : (finalPrice !== service.price ? roundPrice(service.price) : undefined),
-        isUpsellItem: false
+        isUpsellItem: false,
+        dependentUpsells: []
       }]);
     }
   };
 
   const handleUpsellServiceAdd = (upsellServices: any[]) => {
     upsellServices.forEach(upsell => {
-      setSelectedServices(prev => [...prev, {
-        id: upsell.id,
-        name_en: upsell.name_en,
-        name_ar: upsell.name_ar,
-        price: roundPrice(upsell.discountedPrice), // Already discounted price
-        duration: upsell.duration,
-        category_id: '', // Required by Service type
-        display_order: 0, // Required by Service type
-        description_en: null,
-        description_ar: null,
-        discount_type: null,
-        discount_value: null,
-        originalPrice: roundPrice(upsell.price), // Keep original price for display
-        discountPercentage: upsell.discountPercentage, // Add discount percentage
-        isUpsellItem: true
-      }]);
+      const mainService = selectedServices.find(s => !s.isUpsellItem && s.id === upsell.mainServiceId);
+      
+      if (!mainService) {
+        console.error('Main service not found for upsell:', upsell);
+        return;
+      }
+
+      setSelectedServices(prev => {
+        const newUpsell: SelectedService = {
+          id: upsell.id,
+          name_en: upsell.name_en,
+          name_ar: upsell.name_ar,
+          price: roundPrice(upsell.discountedPrice),
+          duration: upsell.duration,
+          category_id: '',
+          display_order: 0,
+          description_en: null,
+          description_ar: null,
+          discount_type: null,
+          discount_value: null,
+          originalPrice: roundPrice(upsell.price),
+          discountPercentage: upsell.discountPercentage,
+          isUpsellItem: true,
+          mainServiceId: mainService.id
+        };
+
+        const updatedServices = prev.map(s => {
+          if (s.id === mainService.id) {
+            return {
+              ...s,
+              dependentUpsells: [...(s.dependentUpsells || []), upsell.id]
+            };
+          }
+          return s;
+        });
+
+        return [...updatedServices, newUpsell];
+      });
     });
   };
 
