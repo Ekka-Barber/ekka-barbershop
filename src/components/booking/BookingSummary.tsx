@@ -1,7 +1,7 @@
 
 import { useLanguage } from "@/contexts/LanguageContext";
 import { format } from "date-fns";
-import { Slash, X } from "lucide-react";
+import { Slash, X, Tag } from "lucide-react";
 import { SelectedService } from "@/types/service";
 
 interface BookingSummaryProps {
@@ -69,10 +69,13 @@ export const BookingSummary = ({
                 </div>
                 <div className="flex items-center gap-2">
                   {service.originalPrice && (
-                    <span className="flex items-center relative">
-                      <Slash className="w-4 h-4 text-destructive absolute -translate-y-[2px]" />
-                      <span className="text-muted-foreground">{formatPrice(service.originalPrice)}</span>
-                    </span>
+                    <div className="flex items-center gap-1">
+                      <span className="flex items-center relative">
+                        <Slash className="w-4 h-4 text-destructive absolute -translate-y-[2px]" />
+                        <span className="text-muted-foreground">{formatPrice(service.originalPrice)}</span>
+                      </span>
+                      <Tag className="w-4 h-4 text-destructive" />
+                    </div>
                   )}
                   <span>{formatPrice(service.price)}</span>
                 </div>
@@ -109,8 +112,11 @@ export const BookingSummary = ({
         )}
 
         {totalDiscount > 0 && (
-          <div className="pt-2 flex justify-between text-destructive">
-            <span>{language === 'ar' ? 'الخصم' : t('discount')}</span>
+          <div className="pt-2 flex justify-between text-destructive items-center">
+            <div className="flex items-center gap-2">
+              <Tag className="w-4 h-4" />
+              <span>{language === 'ar' ? 'الخصم' : t('discount')}</span>
+            </div>
             <span>- {formatPrice(totalDiscount)}</span>
           </div>
         )}
