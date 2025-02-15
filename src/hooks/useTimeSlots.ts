@@ -1,3 +1,4 @@
+
 import { format, parse, isToday, isBefore, addMinutes, isAfter, addDays, set } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -20,21 +21,39 @@ export const useTimeSlots = () => {
   const isSlotAvailable = (slotMinutes: number, unavailableSlots: UnavailableSlot[], serviceDuration: number) => {
     const slotEndMinutes = slotMinutes + serviceDuration;
     
+    console.log('Checking slot availability:', {
+      slotStart: `${Math.floor(slotMinutes/60)}:${slotMinutes%60}`,
+      slotEnd: `${Math.floor(slotEndMinutes/60)}:${slotEndMinutes%60}`,
+      duration: serviceDuration
+    });
+
     // Convert and normalize unavailable slots
-    const normalizedUnavailableSlots = unavailableSlots.map(slot => ({
-      start: typeof slot.start_time === 'number' ? slot.start_time : convertTimeToMinutes(slot.start_time as unknown as string),
-      end: typeof slot.end_time === 'number' ? slot.end_time : convertTimeToMinutes(slot.end_time as unknown as string)
-    }));
+    const normalizedUnavailableSlots = unavailableSlots.map(slot => {
+      const start = typeof slot.start_time === 'number' ? slot.start_time : convertTimeToMinutes(slot.start_time as unknown as string);
+      const end = typeof slot.end_time === 'number' ? slot.end_time : convertTimeToMinutes(slot.end_time as unknown as string);
+      
+      console.log('Unavailable slot:', {
+        start: `${Math.floor(start/60)}:${start%60}`,
+        end: `${Math.floor(end/60)}:${end%60}`
+      });
+      
+      return { start, end };
+    });
 
     // Check if the service duration overlaps with any unavailable slot
     for (const slot of normalizedUnavailableSlots) {
+      // Check if there's any overlap between the service time and unavailable slot
       const hasOverlap = (
-        (slotMinutes >= slot.start && slotMinutes < slot.end) || // Start overlaps
-        (slotEndMinutes > slot.start && slotEndMinutes <= slot.end) || // End overlaps
-        (slotMinutes <= slot.start && slotEndMinutes >= slot.end) // Completely contains
+        (slotMinutes < slot.end && slotEndMinutes > slot.start)
       );
 
       if (hasOverlap) {
+        console.log('Found overlap with unavailable slot:', {
+          serviceStart: `${Math.floor(slotMinutes/60)}:${slotMinutes%60}`,
+          serviceEnd: `${Math.floor(slotEndMinutes/60)}:${slotEndMinutes%60}`,
+          unavailableStart: `${Math.floor(slot.start/60)}:${slot.start%60}`,
+          unavailableEnd: `${Math.floor(slot.end/60)}:${slot.end%60}`
+        });
         return false;
       }
     }
@@ -84,7 +103,6 @@ export const useTimeSlots = () => {
       
       // Properly handle times after midnight
       if (isAfter(startTime, endTime)) {
-        // Add a day to the end time
         endTime = addDays(endTime, 1);
       }
 
@@ -95,17 +113,9 @@ export const useTimeSlots = () => {
       });
       
       let currentSlot = startTime;
-      // Use strict comparison to ensure we get all slots including the last one
       while (isBefore(currentSlot, endTime) || format(currentSlot, 'HH:mm') === format(endTime, 'HH:mm')) {
         const timeString = format(currentSlot, 'HH:mm');
         const slotMinutes = convertTimeToMinutes(timeString);
-        
-        console.log('Processing slot:', {
-          timeString,
-          slotMinutes,
-          currentTime: format(currentSlot, 'HH:mm'),
-          endTime: format(endTime, 'HH:mm')
-        });
         
         // Check availability considering service duration
         const available = isSlotAvailable(slotMinutes, unavailableSlots || [], serviceDuration);
