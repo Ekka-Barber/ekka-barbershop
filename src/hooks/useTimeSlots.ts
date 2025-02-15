@@ -1,5 +1,5 @@
 
-import { format, parse, isToday, isBefore, addMinutes, isAfter, addDays, set } from "date-fns";
+import { format, parse, isToday, isBefore, addMinutes, isAfter, addDays } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 
 interface TimeSlot {
@@ -18,52 +18,38 @@ export const useTimeSlots = () => {
     return hours * 60 + minutes;
   };
 
-  const isSlotAvailable = (slotMinutes: number, unavailableSlots: UnavailableSlot[], serviceDuration: number) => {
+  const isSlotAvailable = (slotMinutes: number, unavailableSlots: UnavailableSlot[], serviceDuration: number, endTimeMinutes: number) => {
     const slotEndMinutes = slotMinutes + serviceDuration;
     
-    console.log('Checking availability for slot:', {
-      start: `${Math.floor(slotMinutes/60)}:${String(slotMinutes%60).padStart(2, '0')}`,
-      end: `${Math.floor(slotEndMinutes/60)}:${String(slotEndMinutes%60).padStart(2, '0')}`,
-      duration: serviceDuration,
-      slotMinutes,
-      slotEndMinutes
-    });
+    // First check: Does the service fit within working hours?
+    if (slotEndMinutes > endTimeMinutes) {
+      console.log('Service does not fit within working hours:', {
+        serviceStart: `${Math.floor(slotMinutes/60)}:${String(slotMinutes%60).padStart(2, '0')}`,
+        serviceEnd: `${Math.floor(slotEndMinutes/60)}:${String(slotEndMinutes%60).padStart(2, '0')}`,
+        workingHoursEnd: `${Math.floor(endTimeMinutes/60)}:${String(endTimeMinutes%60).padStart(2, '0')}`
+      });
+      return false;
+    }
 
     // Convert and normalize unavailable slots
     const normalizedUnavailableSlots = unavailableSlots.map(slot => {
       const start = typeof slot.start_time === 'number' ? slot.start_time : convertTimeToMinutes(slot.start_time as unknown as string);
       const end = typeof slot.end_time === 'number' ? slot.end_time : convertTimeToMinutes(slot.end_time as unknown as string);
-      
-      console.log('Checking against unavailable slot:', {
-        start: `${Math.floor(start/60)}:${String(start%60).padStart(2, '0')}`,
-        end: `${Math.floor(end/60)}:${String(end%60).padStart(2, '0')}`,
-        startMinutes: start,
-        endMinutes: end
-      });
-      
       return { start, end };
     });
 
-    // Check if the service duration overlaps with any unavailable slot
+    // Check for overlaps with unavailable slots
     for (const slot of normalizedUnavailableSlots) {
-      // Check if there's any overlap between the service time and unavailable slot
       const hasOverlap = (
-        (slotMinutes >= slot.start && slotMinutes < slot.end) ||
-        (slotEndMinutes > slot.start && slotEndMinutes <= slot.end) ||
-        (slotMinutes <= slot.start && slotEndMinutes >= slot.end)
+        (slotMinutes >= slot.start && slotMinutes < slot.end) ||  // Service starts during unavailable slot
+        (slotEndMinutes > slot.start && slotEndMinutes <= slot.end) ||  // Service ends during unavailable slot
+        (slotMinutes <= slot.start && slotEndMinutes >= slot.end)  // Service spans entire unavailable slot
       );
 
       if (hasOverlap) {
-        console.log('Found overlap:', {
-          serviceStart: `${Math.floor(slotMinutes/60)}:${String(slotMinutes%60).padStart(2, '0')}`,
-          serviceEnd: `${Math.floor(slotEndMinutes/60)}:${String(slotEndMinutes%60).padStart(2, '0')}`,
-          unavailableStart: `${Math.floor(slot.start/60)}:${String(slot.start%60).padStart(2, '0')}`,
-          unavailableEnd: `${Math.floor(slot.end/60)}:${String(slot.end%60).padStart(2, '0')}`,
-          overlapConditions: {
-            condition1: slotMinutes >= slot.start && slotMinutes < slot.end,
-            condition2: slotEndMinutes > slot.start && slotEndMinutes <= slot.end,
-            condition3: slotMinutes <= slot.start && slotEndMinutes >= slot.end
-          }
+        console.log('Found overlap with unavailable slot:', {
+          serviceTime: `${Math.floor(slotMinutes/60)}:${String(slotMinutes%60).padStart(2, '0')} - ${Math.floor(slotEndMinutes/60)}:${String(slotEndMinutes%60).padStart(2, '0')}`,
+          unavailableSlot: `${Math.floor(slot.start/60)}:${String(slot.start%60).padStart(2, '0')} - ${Math.floor(slot.end/60)}:${String(slot.end%60).padStart(2, '0')}`
         });
         return false;
       }
@@ -80,14 +66,15 @@ export const useTimeSlots = () => {
   ): Promise<TimeSlot[]> => {
     const slots: TimeSlot[] = [];
     
-    if (!selectedDate || !employeeId) return slots;
-
-    console.log('Generating time slots:', {
-      date: selectedDate,
-      employeeId,
-      ranges: workingHoursRanges,
-      serviceDuration
-    });
+    // Early return if no date, employee, or working hours
+    if (!selectedDate || !employeeId || workingHoursRanges.length === 0) {
+      console.log('No slots generated - missing required data:', {
+        hasDate: !!selectedDate,
+        hasEmployee: !!employeeId,
+        workingHoursCount: workingHoursRanges.length
+      });
+      return slots;
+    }
 
     // Get all unavailable slots for the day
     const formattedDate = format(selectedDate, 'yyyy-MM-dd');
@@ -103,8 +90,6 @@ export const useTimeSlots = () => {
       return slots;
     }
 
-    console.log('Fetched unavailable slots:', unavailableSlots);
-
     for (const range of workingHoursRanges) {
       const [start, end] = range.split('-');
       
@@ -117,28 +102,19 @@ export const useTimeSlots = () => {
         endTime = addDays(endTime, 1);
       }
 
-      console.log('Processing time range:', {
-        start: format(startTime, 'HH:mm'),
-        end: format(endTime, 'HH:mm'),
-        crossesMidnight: isAfter(startTime, endTime)
-      });
+      const rangeEndMinutes = convertTimeToMinutes(format(endTime, 'HH:mm'));
       
       let currentSlot = startTime;
       while (isBefore(currentSlot, endTime) || format(currentSlot, 'HH:mm') === format(endTime, 'HH:mm')) {
         const timeString = format(currentSlot, 'HH:mm');
         const slotMinutes = convertTimeToMinutes(timeString);
         
-        // Check availability considering service duration
-        const available = isSlotAvailable(slotMinutes, unavailableSlots || [], serviceDuration);
-        
-        // Check if service fits within working hours
-        const slotEndMinutes = slotMinutes + serviceDuration;
-        const endTimeMinutes = convertTimeToMinutes(format(endTime, 'HH:mm'));
-        const fitsWithinWorkingHours = slotEndMinutes <= endTimeMinutes;
+        // Check availability considering service duration and working hours end time
+        const available = isSlotAvailable(slotMinutes, unavailableSlots || [], serviceDuration, rangeEndMinutes);
         
         slots.push({
           time: timeString,
-          isAvailable: available && fitsWithinWorkingHours
+          isAvailable: available
         });
         
         if (format(currentSlot, 'HH:mm') === format(endTime, 'HH:mm')) break;
@@ -186,12 +162,20 @@ export const useTimeSlots = () => {
     selectedDate: Date | undefined,
     serviceDuration: number = 30
   ) => {
-    if (!selectedDate || !employee?.working_hours) return [];
+    if (!selectedDate || !employee?.working_hours) {
+      console.log('No employee or date provided');
+      return [];
+    }
     
     const dayName = format(selectedDate, 'EEEE').toLowerCase();
     const workingHours = employee.working_hours[dayName] || [];
     
-    if (employee.off_days?.includes(format(selectedDate, 'yyyy-MM-dd'))) {
+    if (workingHours.length === 0) {
+      console.log('No working hours for:', {
+        employee: employee.name,
+        day: dayName,
+        date: format(selectedDate, 'yyyy-MM-dd')
+      });
       return [];
     }
     
@@ -203,10 +187,6 @@ export const useTimeSlots = () => {
     
     const dayName = format(selectedDate, 'EEEE').toLowerCase();
     const workingHours = employee.working_hours[dayName] || [];
-    
-    if (employee.off_days?.includes(format(selectedDate, 'yyyy-MM-dd'))) {
-      return false;
-    }
     
     return workingHours.length > 0;
   };
