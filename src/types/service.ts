@@ -16,6 +16,7 @@ export interface Service {
 export interface SelectedService extends Service {
   isUpsellItem?: boolean;
   originalPrice?: number;
+  discountPercentage?: number;
 }
 
 export interface Category {

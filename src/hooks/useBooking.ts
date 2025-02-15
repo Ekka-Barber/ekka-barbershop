@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from "@/integrations/supabase/client";
@@ -120,19 +121,22 @@ export const useBooking = (branch: any) => {
 
   const handleUpsellServiceAdd = (upsellServices: any[]) => {
     upsellServices.forEach(upsell => {
-      handleServiceToggle({
+      setSelectedServices(prev => [...prev, {
         id: upsell.id,
         name_en: upsell.name_en,
         name_ar: upsell.name_ar,
-        price: upsell.discountedPrice, // Already discounted price
+        price: roundPrice(upsell.discountedPrice), // Already discounted price
         duration: upsell.duration,
         category_id: '', // Required by Service type
         display_order: 0, // Required by Service type
         description_en: null,
         description_ar: null,
-        discount_type: null, // Remove discount info since price is already discounted
-        discount_value: null
-      }, true); // Skip discount calculation since price is already discounted
+        discount_type: null,
+        discount_value: null,
+        originalPrice: roundPrice(upsell.price), // Keep original price for display
+        discountPercentage: upsell.discountPercentage, // Add discount percentage
+        isUpsellItem: true
+      }]);
     });
   };
 
