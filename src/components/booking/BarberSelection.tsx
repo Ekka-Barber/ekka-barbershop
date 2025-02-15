@@ -45,9 +45,11 @@ export const BarberSelection = ({
   const updateTimeSlots = async () => {
     if (selectedBarber && selectedDate) {
       const selectedEmployee = employees?.find(emp => emp.id === selectedBarber);
-      if (selectedEmployee) {
+      if (selectedEmployee && isEmployeeAvailable(selectedEmployee, selectedDate)) {
         const slots = await getAvailableTimeSlots(selectedEmployee, selectedDate);
         setEmployeeTimeSlots(slots);
+      } else {
+        setEmployeeTimeSlots([]);
       }
     } else {
       setEmployeeTimeSlots([]);
@@ -99,13 +101,15 @@ export const BarberSelection = ({
                 isAvailable={isAvailable}
                 isSelected={isSelected}
                 onSelect={() => {
-                  onBarberSelect(employee.id);
-                  onTimeSelect('');
-                  setShowAllSlots(false);
+                  if (isAvailable) {
+                    onBarberSelect(employee.id);
+                    onTimeSelect('');
+                    setShowAllSlots(false);
+                  }
                 }}
               />
 
-              {isSelected && (
+              {isSelected && isAvailable && (
                 <TimeSlotPicker
                   timeSlots={employeeTimeSlots}
                   selectedTime={selectedTime}

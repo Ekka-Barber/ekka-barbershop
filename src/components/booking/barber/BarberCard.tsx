@@ -33,12 +33,14 @@ export const BarberCard = ({
     <Button
       variant={isSelected ? "default" : "outline"}
       onClick={onSelect}
+      disabled={!isAvailable}
       className={cn(
         "relative flex flex-col items-center justify-start h-auto min-h-[200px] p-4 rounded-lg overflow-hidden w-full",
         "space-y-2 border transition-all duration-200",
         isSelected 
           ? "bg-[#e7bd71]/10 border-[#e7bd71]" 
-          : "hover:bg-accent"
+          : "hover:bg-accent",
+        !isAvailable && "opacity-50 cursor-not-allowed hover:bg-background"
       )}
     >
       <div className="absolute top-2 right-2">
