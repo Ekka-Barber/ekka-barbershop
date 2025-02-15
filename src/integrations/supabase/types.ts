@@ -731,73 +731,6 @@ export type Database = {
           },
         ]
       }
-      expense_templates: {
-        Row: {
-          amount: number
-          branch_id: string | null
-          category_id: string
-          created_at: string | null
-          description: string | null
-          id: string
-          is_quick_action: boolean | null
-          is_taxable: boolean | null
-          name: string
-          payment_method: Database["public"]["Enums"]["payment_method_type"]
-          subcategory_id: string
-          updated_at: string | null
-        }
-        Insert: {
-          amount?: number
-          branch_id?: string | null
-          category_id: string
-          created_at?: string | null
-          description?: string | null
-          id?: string
-          is_quick_action?: boolean | null
-          is_taxable?: boolean | null
-          name: string
-          payment_method: Database["public"]["Enums"]["payment_method_type"]
-          subcategory_id: string
-          updated_at?: string | null
-        }
-        Update: {
-          amount?: number
-          branch_id?: string | null
-          category_id?: string
-          created_at?: string | null
-          description?: string | null
-          id?: string
-          is_quick_action?: boolean | null
-          is_taxable?: boolean | null
-          name?: string
-          payment_method?: Database["public"]["Enums"]["payment_method_type"]
-          subcategory_id?: string
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "expense_templates_branch_id_fkey"
-            columns: ["branch_id"]
-            isOneToOne: false
-            referencedRelation: "branches"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "expense_templates_category_id_fkey"
-            columns: ["category_id"]
-            isOneToOne: false
-            referencedRelation: "expense_categories"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "expense_templates_subcategory_id_fkey"
-            columns: ["subcategory_id"]
-            isOneToOne: false
-            referencedRelation: "expense_subcategories"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       marketing_files: {
         Row: {
           branch_name: string | null
@@ -1256,7 +1189,7 @@ export type Database = {
       }
       transactions: {
         Row: {
-          amount: number
+          base_amount: number
           branch_id: string | null
           branch_name: string | null
           category: string
@@ -1280,11 +1213,13 @@ export type Database = {
           subcategory_id: string | null
           tags: string[] | null
           template_id: string | null
+          total_amount: number
           type: Database["public"]["Enums"]["transaction_type"]
           updated_at: string
+          vat_amount: number
         }
         Insert: {
-          amount: number
+          base_amount: number
           branch_id?: string | null
           branch_name?: string | null
           category: string
@@ -1308,11 +1243,13 @@ export type Database = {
           subcategory_id?: string | null
           tags?: string[] | null
           template_id?: string | null
+          total_amount?: number
           type: Database["public"]["Enums"]["transaction_type"]
           updated_at?: string
+          vat_amount?: number
         }
         Update: {
-          amount?: number
+          base_amount?: number
           branch_id?: string | null
           branch_name?: string | null
           category?: string
@@ -1336,8 +1273,10 @@ export type Database = {
           subcategory_id?: string | null
           tags?: string[] | null
           template_id?: string | null
+          total_amount?: number
           type?: Database["public"]["Enums"]["transaction_type"]
           updated_at?: string
+          vat_amount?: number
         }
         Relationships: [
           {
@@ -1373,13 +1312,6 @@ export type Database = {
             columns: ["subcategory_id"]
             isOneToOne: false
             referencedRelation: "expense_subcategories"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "transactions_template_id_fkey"
-            columns: ["template_id"]
-            isOneToOne: false
-            referencedRelation: "expense_templates"
             referencedColumns: ["id"]
           },
         ]
