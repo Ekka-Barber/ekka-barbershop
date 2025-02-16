@@ -1,3 +1,4 @@
+
 import { GripVertical, Pencil } from 'lucide-react';
 import { Draggable } from '@hello-pangea/dnd';
 import { Button } from "@/components/ui/button";
@@ -40,6 +41,7 @@ export const ServiceItem = ({ service, index }: ServiceItemProps) => {
                 name_en: '', 
                 name_ar: '', 
                 display_order: 0,
+                created_at: new Date().toISOString(), // Add the created_at field
                 services: []
               }]}
               editService={service}
