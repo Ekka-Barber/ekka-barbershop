@@ -323,6 +323,128 @@ export type Database = {
         }
         Relationships: []
       }
+      daily_sales: {
+        Row: {
+          base_amount: number
+          branch_id: string
+          created_at: string | null
+          date: string
+          id: string
+          last_modified_by: string | null
+          modification_reason: string | null
+          recorded_by_manager_id: string | null
+          status: string | null
+          total_amount: number
+          updated_at: string | null
+          vat_amount: number
+        }
+        Insert: {
+          base_amount: number
+          branch_id: string
+          created_at?: string | null
+          date: string
+          id?: string
+          last_modified_by?: string | null
+          modification_reason?: string | null
+          recorded_by_manager_id?: string | null
+          status?: string | null
+          total_amount: number
+          updated_at?: string | null
+          vat_amount: number
+        }
+        Update: {
+          base_amount?: number
+          branch_id?: string
+          created_at?: string | null
+          date?: string
+          id?: string
+          last_modified_by?: string | null
+          modification_reason?: string | null
+          recorded_by_manager_id?: string | null
+          status?: string | null
+          total_amount?: number
+          updated_at?: string | null
+          vat_amount?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "daily_sales_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "daily_sales_recorded_by_manager_id_fkey"
+            columns: ["recorded_by_manager_id"]
+            isOneToOne: false
+            referencedRelation: "branch_managers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      deposit_withdrawals: {
+        Row: {
+          amount: number
+          branch_id: string | null
+          created_at: string | null
+          deposit_id: string
+          description: string | null
+          id: string
+          transaction_id: string
+          withdrawal_date: string | null
+        }
+        Insert: {
+          amount: number
+          branch_id?: string | null
+          created_at?: string | null
+          deposit_id: string
+          description?: string | null
+          id?: string
+          transaction_id: string
+          withdrawal_date?: string | null
+        }
+        Update: {
+          amount?: number
+          branch_id?: string | null
+          created_at?: string | null
+          deposit_id?: string
+          description?: string | null
+          id?: string
+          transaction_id?: string
+          withdrawal_date?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deposit_withdrawals_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deposit_withdrawals_deposit_id_fkey"
+            columns: ["deposit_id"]
+            isOneToOne: false
+            referencedRelation: "cash_deposits"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deposit_withdrawals_transaction_id_fkey"
+            columns: ["transaction_id"]
+            isOneToOne: false
+            referencedRelation: "transactions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_branch_id"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       employee_bonuses: {
         Row: {
           amount: number
@@ -645,6 +767,60 @@ export type Database = {
           },
         ]
       }
+      expense_adjustments: {
+        Row: {
+          adjusted_at: string | null
+          adjusted_by: string | null
+          adjustment_type: Database["public"]["Enums"]["adjustment_type"]
+          created_at: string | null
+          id: string
+          new_values: Json
+          original_transaction_id: string | null
+          previous_values: Json
+          reason: string
+          transaction_id: string
+        }
+        Insert: {
+          adjusted_at?: string | null
+          adjusted_by?: string | null
+          adjustment_type: Database["public"]["Enums"]["adjustment_type"]
+          created_at?: string | null
+          id?: string
+          new_values: Json
+          original_transaction_id?: string | null
+          previous_values: Json
+          reason: string
+          transaction_id: string
+        }
+        Update: {
+          adjusted_at?: string | null
+          adjusted_by?: string | null
+          adjustment_type?: Database["public"]["Enums"]["adjustment_type"]
+          created_at?: string | null
+          id?: string
+          new_values?: Json
+          original_transaction_id?: string | null
+          previous_values?: Json
+          reason?: string
+          transaction_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "expense_adjustments_original_transaction_id_fkey"
+            columns: ["original_transaction_id"]
+            isOneToOne: false
+            referencedRelation: "transactions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expense_adjustments_transaction_id_fkey"
+            columns: ["transaction_id"]
+            isOneToOne: false
+            referencedRelation: "transactions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       expense_categories: {
         Row: {
           created_at: string
@@ -888,6 +1064,62 @@ export type Database = {
           },
         ]
       }
+      processing_fees: {
+        Row: {
+          base_amount: number
+          created_at: string | null
+          error_message: string | null
+          fee_percentage: number
+          id: string
+          payment_method:
+            | Database["public"]["Enums"]["sales_payment_method"]
+            | null
+          sales_transaction_id: string
+          status: string | null
+          total_amount: number
+          updated_at: string | null
+          vat_amount: number
+        }
+        Insert: {
+          base_amount: number
+          created_at?: string | null
+          error_message?: string | null
+          fee_percentage: number
+          id?: string
+          payment_method?:
+            | Database["public"]["Enums"]["sales_payment_method"]
+            | null
+          sales_transaction_id: string
+          status?: string | null
+          total_amount: number
+          updated_at?: string | null
+          vat_amount: number
+        }
+        Update: {
+          base_amount?: number
+          created_at?: string | null
+          error_message?: string | null
+          fee_percentage?: number
+          id?: string
+          payment_method?:
+            | Database["public"]["Enums"]["sales_payment_method"]
+            | null
+          sales_transaction_id?: string
+          status?: string | null
+          total_amount?: number
+          updated_at?: string | null
+          vat_amount?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "processing_fees_sales_transaction_id_fkey"
+            columns: ["sales_transaction_id"]
+            isOneToOne: false
+            referencedRelation: "sales_transactions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       push_subscriptions: {
         Row: {
           auth: string
@@ -958,6 +1190,8 @@ export type Database = {
           last_generated_date: string | null
           payment_method: Database["public"]["Enums"]["basic_payment_method"]
           start_date: string
+          status: string | null
+          subcategory_id: string | null
           updated_at: string
         }
         Insert: {
@@ -972,6 +1206,8 @@ export type Database = {
           last_generated_date?: string | null
           payment_method: Database["public"]["Enums"]["basic_payment_method"]
           start_date: string
+          status?: string | null
+          subcategory_id?: string | null
           updated_at?: string
         }
         Update: {
@@ -986,6 +1222,8 @@ export type Database = {
           last_generated_date?: string | null
           payment_method?: Database["public"]["Enums"]["basic_payment_method"]
           start_date?: string
+          status?: string | null
+          subcategory_id?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -1001,6 +1239,13 @@ export type Database = {
             columns: ["category_id"]
             isOneToOne: false
             referencedRelation: "expense_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "recurring_expenses_subcategory_id_fkey"
+            columns: ["subcategory_id"]
+            isOneToOne: false
+            referencedRelation: "expense_subcategories"
             referencedColumns: ["id"]
           },
         ]
@@ -1031,6 +1276,101 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      sales_adjustments: {
+        Row: {
+          adjusted_at: string | null
+          adjusted_by: string | null
+          adjustment_type: Database["public"]["Enums"]["transaction_adjustment_type"]
+          created_at: string | null
+          id: string
+          new_values: Json
+          original_transaction_id: string | null
+          previous_values: Json
+          reason: string
+          transaction_id: string
+        }
+        Insert: {
+          adjusted_at?: string | null
+          adjusted_by?: string | null
+          adjustment_type: Database["public"]["Enums"]["transaction_adjustment_type"]
+          created_at?: string | null
+          id?: string
+          new_values: Json
+          original_transaction_id?: string | null
+          previous_values: Json
+          reason: string
+          transaction_id: string
+        }
+        Update: {
+          adjusted_at?: string | null
+          adjusted_by?: string | null
+          adjustment_type?: Database["public"]["Enums"]["transaction_adjustment_type"]
+          created_at?: string | null
+          id?: string
+          new_values?: Json
+          original_transaction_id?: string | null
+          previous_values?: Json
+          reason?: string
+          transaction_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sales_adjustments_original_transaction_id_fkey"
+            columns: ["original_transaction_id"]
+            isOneToOne: false
+            referencedRelation: "transactions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sales_adjustments_transaction_id_fkey"
+            columns: ["transaction_id"]
+            isOneToOne: false
+            referencedRelation: "transactions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sales_transactions: {
+        Row: {
+          amount: number
+          base_amount: number
+          created_at: string | null
+          daily_sales_id: string
+          id: string
+          payment_method: Database["public"]["Enums"]["sales_payment_method"]
+          updated_at: string | null
+          vat_amount: number
+        }
+        Insert: {
+          amount: number
+          base_amount: number
+          created_at?: string | null
+          daily_sales_id: string
+          id?: string
+          payment_method: Database["public"]["Enums"]["sales_payment_method"]
+          updated_at?: string | null
+          vat_amount: number
+        }
+        Update: {
+          amount?: number
+          base_amount?: number
+          created_at?: string | null
+          daily_sales_id?: string
+          id?: string
+          payment_method?: Database["public"]["Enums"]["sales_payment_method"]
+          updated_at?: string | null
+          vat_amount?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sales_transactions_daily_sales_id_fkey"
+            columns: ["daily_sales_id"]
+            isOneToOne: false
+            referencedRelation: "daily_sales"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       service_categories: {
         Row: {
@@ -1189,6 +1529,9 @@ export type Database = {
       }
       transactions: {
         Row: {
+          adjustment_type:
+            | Database["public"]["Enums"]["transaction_adjustment_type"]
+            | null
           base_amount: number
           branch_id: string | null
           branch_name: string | null
@@ -1202,9 +1545,11 @@ export type Database = {
           last_recalculated_at: string | null
           manager_name: string | null
           needs_recalculation: boolean | null
+          original_transaction_id: string | null
           payment_method:
             | Database["public"]["Enums"]["sales_payment_method"]
             | null
+          processing_fee_details: Json | null
           receipt_url: string | null
           recorded_at_branch_id: string | null
           recorded_by_manager_id: string | null
@@ -1217,8 +1562,12 @@ export type Database = {
           type: Database["public"]["Enums"]["transaction_type"]
           updated_at: string
           vat_amount: number
+          vat_included: boolean | null
         }
         Insert: {
+          adjustment_type?:
+            | Database["public"]["Enums"]["transaction_adjustment_type"]
+            | null
           base_amount: number
           branch_id?: string | null
           branch_name?: string | null
@@ -1232,9 +1581,11 @@ export type Database = {
           last_recalculated_at?: string | null
           manager_name?: string | null
           needs_recalculation?: boolean | null
+          original_transaction_id?: string | null
           payment_method?:
             | Database["public"]["Enums"]["sales_payment_method"]
             | null
+          processing_fee_details?: Json | null
           receipt_url?: string | null
           recorded_at_branch_id?: string | null
           recorded_by_manager_id?: string | null
@@ -1247,8 +1598,12 @@ export type Database = {
           type: Database["public"]["Enums"]["transaction_type"]
           updated_at?: string
           vat_amount?: number
+          vat_included?: boolean | null
         }
         Update: {
+          adjustment_type?:
+            | Database["public"]["Enums"]["transaction_adjustment_type"]
+            | null
           base_amount?: number
           branch_id?: string | null
           branch_name?: string | null
@@ -1262,9 +1617,11 @@ export type Database = {
           last_recalculated_at?: string | null
           manager_name?: string | null
           needs_recalculation?: boolean | null
+          original_transaction_id?: string | null
           payment_method?:
             | Database["public"]["Enums"]["sales_payment_method"]
             | null
+          processing_fee_details?: Json | null
           receipt_url?: string | null
           recorded_at_branch_id?: string | null
           recorded_by_manager_id?: string | null
@@ -1277,6 +1634,7 @@ export type Database = {
           type?: Database["public"]["Enums"]["transaction_type"]
           updated_at?: string
           vat_amount?: number
+          vat_included?: boolean | null
         }
         Relationships: [
           {
@@ -1291,6 +1649,13 @@ export type Database = {
             columns: ["category_id"]
             isOneToOne: false
             referencedRelation: "expense_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transactions_original_transaction_id_fkey"
+            columns: ["original_transaction_id"]
+            isOneToOne: false
+            referencedRelation: "transactions"
             referencedColumns: ["id"]
           },
           {
@@ -1327,8 +1692,11 @@ export type Database = {
             | Database["public"]["Enums"]["sales_payment_method"]
             | null
           period: string
+          reference_transaction_id: string | null
           source: string
+          status: string | null
           transaction_id: string | null
+          transaction_type: string | null
           vat_amount: number
           vat_type: string
         }
@@ -1342,8 +1710,11 @@ export type Database = {
             | Database["public"]["Enums"]["sales_payment_method"]
             | null
           period: string
+          reference_transaction_id?: string | null
           source: string
+          status?: string | null
           transaction_id?: string | null
+          transaction_type?: string | null
           vat_amount: number
           vat_type: string
         }
@@ -1357,12 +1728,22 @@ export type Database = {
             | Database["public"]["Enums"]["sales_payment_method"]
             | null
           period?: string
+          reference_transaction_id?: string | null
           source?: string
+          status?: string | null
           transaction_id?: string | null
+          transaction_type?: string | null
           vat_amount?: number
           vat_type?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "vat_entries_reference_transaction_id_fkey"
+            columns: ["reference_transaction_id"]
+            isOneToOne: false
+            referencedRelation: "transactions"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "vat_entries_transaction_id_fkey"
             columns: ["transaction_id"]
@@ -1429,6 +1810,12 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
+      round_amount: {
+        Args: {
+          amount: number
+        }
+        Returns: number
+      }
       set_branch_manager_code: {
         Args: {
           code: string
@@ -1449,6 +1836,7 @@ export type Database = {
       }
     }
     Enums: {
+      adjustment_type: "correction" | "refund"
       basic_payment_method: "cash" | "bank_transfer"
       device_type: "mobile" | "tablet" | "desktop"
       employee_role:
@@ -1476,7 +1864,14 @@ export type Database = {
         | "bank_transfer"
         | "deposit"
       subscription_status: "active" | "inactive"
-      transaction_status: "pending" | "completed" | "cancelled"
+      transaction_adjustment_type: "correction" | "refund"
+      transaction_status:
+        | "pending"
+        | "completed"
+        | "cancelled"
+        | "adjusted"
+        | "refunded"
+        | "void"
       transaction_type: "income" | "expense"
       user_role: "owner" | "employee" | "shop_manager" | "accountant"
     }
