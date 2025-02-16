@@ -10,6 +10,19 @@ const STATIC_ASSETS = [
   '/manifest.json'
 ];
 
+// Cache bypass patterns
+const BYPASS_CACHE_PATTERNS = [
+  /\/rest\/v1\/rpc\//,  // Supabase RPC endpoints
+  /supabase\.co\/rest\//, // All Supabase REST endpoints
+  /\/auth\//, // Auth endpoints
+  /\/storage\//, // Storage endpoints
+];
+
+// Check if a request should bypass cache
+function shouldBypassCache(request) {
+  return BYPASS_CACHE_PATTERNS.some(pattern => pattern.test(request.url));
+}
+
 // Cache initialization
 async function initializeCache() {
   try {
@@ -33,13 +46,30 @@ async function cleanupOldCaches() {
 // Check if a request is a navigation request
 function isNavigationRequest(request) {
   return request.mode === 'navigate' || 
-         (request.method === 'GET' && request.headers.get('accept').includes('text/html'));
+         (request.method === 'GET' && request.headers.get('accept')?.includes('text/html'));
 }
 
 // Fetch handler with improved response handling
 async function handleFetch(event) {
   try {
     const request = event.request;
+
+    // For API calls that should bypass cache
+    if (shouldBypassCache(request)) {
+      try {
+        const response = await fetch(request);
+        if (response.ok) return response;
+        throw new Error('API call failed');
+      } catch (error) {
+        return new Response(
+          JSON.stringify({ error: 'API call failed' }), 
+          { 
+            status: 500, 
+            headers: { 'Content-Type': 'application/json' }
+          }
+        );
+      }
+    }
 
     // For navigation requests, respond with index.html from cache or network
     if (isNavigationRequest(request)) {
@@ -57,23 +87,31 @@ async function handleFetch(event) {
       });
     }
 
-    // For non-navigation requests, try network first
+    // For regular static assets, try cache first
+    const cachedResponse = await caches.match(request);
+    if (cachedResponse) return cachedResponse;
+
+    // If not in cache, try network
     try {
       const response = await fetch(request);
       if (response.ok) {
-        // Clone the response before putting it in the cache
-        const responseToCache = response.clone();
-        const cache = await caches.open(CACHE_NAME);
-        await cache.put(request, responseToCache);
+        // Only cache successful GET requests for static assets
+        if (request.method === 'GET' && !shouldBypassCache(request)) {
+          const responseToCache = response.clone();
+          const cache = await caches.open(CACHE_NAME);
+          await cache.put(request, responseToCache);
+        }
         return response;
       }
     } catch (error) {
-      // If network request fails, try cache
-      const cachedResponse = await caches.match(request);
-      if (cachedResponse) return cachedResponse;
+      // Network request failed
+      return new Response('Resource not available', {
+        status: 404,
+        headers: { 'Content-Type': 'text/plain' }
+      });
     }
 
-    // If both network and cache fail, return a basic response
+    // If both cache and network fail, return error response
     return new Response('Resource not available', {
       status: 404,
       headers: { 'Content-Type': 'text/plain' }
