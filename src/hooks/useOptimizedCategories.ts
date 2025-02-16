@@ -1,4 +1,3 @@
-
 import { useCallback, useMemo, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from "@/integrations/supabase/client";
@@ -7,11 +6,14 @@ import debounce from 'lodash/debounce';
 
 const CATEGORIES_PER_PAGE = 10;
 
+export type SortType = 'name' | 'newest' | 'oldest' | 'services';
+export type FilterType = 'all' | 'empty';
+
 export const useOptimizedCategories = () => {
   const [page, setPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
-  const [sortBy, setSortBy] = useState<'name' | 'newest' | 'oldest' | 'services'>('name');
-  const [filterBy, setFilterBy] = useState<'all' | 'empty'>('all');
+  const [sortBy, setSortBy] = useState<SortType>('name');
+  const [filterBy, setFilterBy] = useState<FilterType>('all');
   const queryClient = useQueryClient();
 
   // Optimized query with pagination and field selection
@@ -45,7 +47,7 @@ export const useOptimizedCategories = () => {
       return categories as Category[];
     },
     staleTime: 1000 * 60, // Consider data fresh for 1 minute
-    cacheTime: 1000 * 60 * 5, // Keep in cache for 5 minutes
+    gcTime: 1000 * 60 * 5, // Keep in cache for 5 minutes
   });
 
   // Memoized filtering
@@ -103,6 +105,14 @@ export const useOptimizedCategories = () => {
     []
   );
 
+  const handleSortChange = useCallback((value: string) => {
+    setSortBy(value as SortType);
+  }, []);
+
+  const handleFilterChange = useCallback((value: string) => {
+    setFilterBy(value as FilterType);
+  }, []);
+
   // Optimized real-time subscription setup
   const setupRealtimeSubscription = useCallback(() => {
     const channel = supabase
@@ -149,8 +159,8 @@ export const useOptimizedCategories = () => {
     page,
     setPage,
     setSearchQuery: debouncedSetSearch,
-    setSortBy,
-    setFilterBy,
+    setSortBy: handleSortChange,
+    setFilterBy: handleFilterChange,
     setupRealtimeSubscription
   };
 };
