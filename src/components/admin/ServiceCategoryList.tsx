@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { useOptimizedCategories } from '@/hooks/useOptimizedCategories';
@@ -7,7 +8,7 @@ import { ServiceManagementHeader } from './service-management/ServiceManagementH
 import { ServiceCategorySkeleton } from './service-management/ServiceCategorySkeleton';
 import { EmptyServiceState } from './service-management/EmptyServiceState';
 import { useToast } from "@/components/ui/use-toast";
-import { DragEndEvent } from '@hello-pangea/dnd';
+import type { DragDropContextProps } from '@hello-pangea/dnd';
 
 const ServiceCategoryList = () => {
   const [expandedCategories, setExpandedCategories] = useState<string[]>([]);
@@ -66,7 +67,7 @@ const ServiceCategoryList = () => {
     }
   };
 
-  const handleDragEnd = useCallback(async (result: DragEndEvent) => {
+  const handleDragEnd = useCallback<NonNullable<DragDropContextProps['onDragEnd']>>(async (result) => {
     if (!result.destination || !categories) return;
 
     const { source, destination } = result;
