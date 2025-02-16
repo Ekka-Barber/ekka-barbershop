@@ -1,3 +1,4 @@
+
 export interface Service {
   id: string;
   name_en: string;
@@ -25,6 +26,7 @@ export interface Category {
   name_en: string;
   name_ar: string;
   display_order: number;
+  created_at: string;  // Added this field
   services?: Service[];
 }
 
