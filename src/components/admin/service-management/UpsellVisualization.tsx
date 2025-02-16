@@ -8,47 +8,50 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
 const fetchServicesWithUpsells = async () => {
-  // First, fetch all services
-  const { data: services, error: servicesError } = await supabase
-    .from('services')
+  // First, fetch all services that have upsells
+  const { data: servicesWithUpsells, error: upsellsError } = await supabase
+    .from('service_upsells')
     .select(`
-      *,
-      category:service_categories (
+      main_service_id,
+      upsell_service_id,
+      discount_percentage,
+      main_service:services!service_upsells_main_service_id_fkey (
+        id,
+        name_en,
+        name_ar,
+        category_id,
+        category:service_categories (
+          id,
+          name_en
+        )
+      ),
+      upsell_service:services!service_upsells_upsell_service_id_fkey (
         id,
         name_en,
         name_ar
       )
-    `)
-    .order('category_id')
-    .order('display_order');
-
-  if (servicesError) throw servicesError;
-
-  // Then fetch all upsell relationships
-  const { data: upsells, error: upsellsError } = await supabase
-    .from('service_upsells')
-    .select('*');
+    `);
 
   if (upsellsError) throw upsellsError;
 
-  // Organize services by category and include their upsells
-  const serviceMap = new Map(services.map(s => [s.id, { ...s, upsells: [] }]));
-  
-  upsells.forEach(upsell => {
-    const mainService = serviceMap.get(upsell.main_service_id);
-    const upsellService = serviceMap.get(upsell.upsell_service_id);
-    
-    if (mainService && upsellService) {
-      if (!mainService.upsells) mainService.upsells = [];
-      mainService.upsells.push({
-        ...upsellService,
-        discount_percentage: upsell.discount_percentage
-      });
+  // Group by main service
+  const servicesMap = servicesWithUpsells.reduce((acc, upsell) => {
+    const mainServiceId = upsell.main_service.id;
+    if (!acc[mainServiceId]) {
+      acc[mainServiceId] = {
+        ...upsell.main_service,
+        upsells: []
+      };
     }
-  });
+    acc[mainServiceId].upsells.push({
+      ...upsell.upsell_service,
+      discount_percentage: upsell.discount_percentage
+    });
+    return acc;
+  }, {});
 
-  // Group services by category
-  const groupedServices = Array.from(serviceMap.values()).reduce((acc, service) => {
+  // Group by category
+  const groupedServices = Object.values(servicesMap).reduce((acc, service: any) => {
     const categoryId = service.category_id;
     if (!acc[categoryId]) {
       acc[categoryId] = {
