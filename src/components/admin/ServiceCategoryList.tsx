@@ -5,9 +5,17 @@ import { supabase } from "@/integrations/supabase/client";
 import { useServiceCategories } from '@/hooks/useServiceCategories';
 import { CategoryList } from './category-management/CategoryList';
 import { CategoryActions } from './category-management/CategoryActions';
+import { ServiceManagementHeader } from './service-management/ServiceManagementHeader';
+import { ServiceCategorySkeleton } from './service-management/ServiceCategorySkeleton';
+import { EmptyServiceState } from './service-management/EmptyServiceState';
+import { useToast } from "@/components/ui/use-toast";
 
 const ServiceCategoryList = () => {
   const [expandedCategories, setExpandedCategories] = useState<string[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sortBy, setSortBy] = useState('name');
+  const [filterBy, setFilterBy] = useState('all');
+  const { toast } = useToast();
   const queryClient = useQueryClient();
   const { categories, isLoading, deleteCategory, updateOrder } = useServiceCategories();
 
@@ -59,6 +67,10 @@ const ServiceCategoryList = () => {
       }));
 
       updateOrder({ type: 'category', updates });
+      toast({
+        title: "Order Updated",
+        description: "Category order has been updated successfully.",
+      });
     } else {
       const sourceCategory = categories.find(c => c.id === source.droppableId);
       const destCategory = categories.find(c => c.id === destination.droppableId);
@@ -77,6 +89,10 @@ const ServiceCategoryList = () => {
         }));
 
         updateOrder({ type: 'service', updates });
+        toast({
+          title: "Order Updated",
+          description: "Service order has been updated successfully.",
+        });
       } else {
         const destServices = Array.from(destCategory.services || []);
         destServices.splice(destination.index, 0, {
@@ -91,6 +107,10 @@ const ServiceCategoryList = () => {
         }));
 
         updateOrder({ type: 'service', updates });
+        toast({
+          title: "Service Moved",
+          description: "Service has been moved to a different category.",
+        });
       }
     }
   };
@@ -103,17 +123,93 @@ const ServiceCategoryList = () => {
     );
   };
 
-  if (isLoading) return <div>Loading...</div>;
+  const handleDeleteCategory = async (categoryId: string) => {
+    try {
+      await deleteCategory(categoryId);
+      toast({
+        title: "Category Deleted",
+        description: "Category has been deleted successfully.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete category. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const filteredCategories = categories?.filter(category => {
+    if (searchQuery) {
+      const searchLower = searchQuery.toLowerCase();
+      const matchCategory = 
+        category.name_en.toLowerCase().includes(searchLower) ||
+        category.name_ar.toLowerCase().includes(searchLower);
+      const matchServices = category.services?.some(service =>
+        service.name_en.toLowerCase().includes(searchLower) ||
+        service.name_ar.toLowerCase().includes(searchLower)
+      );
+      return matchCategory || matchServices;
+    }
+    
+    if (filterBy === 'empty') {
+      return !category.services?.length;
+    }
+    
+    return true;
+  });
+
+  const sortedCategories = filteredCategories?.sort((a, b) => {
+    switch (sortBy) {
+      case 'newest':
+        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      case 'oldest':
+        return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+      case 'services':
+        return (b.services?.length || 0) - (a.services?.length || 0);
+      default:
+        return a.name_en.localeCompare(b.name_en);
+    }
+  });
+
+  const totalServices = categories?.reduce((acc, category) => 
+    acc + (category.services?.length || 0), 0
+  ) || 0;
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <ServiceManagementHeader
+          totalCategories={0}
+          totalServices={0}
+          onSearch={setSearchQuery}
+          onSort={setSortBy}
+          onFilter={setFilterBy}
+        />
+        <ServiceCategorySkeleton />
+      </div>
+    );
+  }
+
+  if (!categories?.length) {
+    return <EmptyServiceState />;
+  }
 
   return (
-    <div className="space-y-4">
-      <h2 className="text-lg font-semibold">Service Categories</h2>
+    <div className="space-y-6">
+      <ServiceManagementHeader
+        totalCategories={categories.length}
+        totalServices={totalServices}
+        onSearch={setSearchQuery}
+        onSort={setSortBy}
+        onFilter={setFilterBy}
+      />
 
       <CategoryList
-        categories={categories}
+        categories={sortedCategories}
         expandedCategories={expandedCategories}
         onToggleCategory={toggleCategory}
-        onDeleteCategory={deleteCategory}
+        onDeleteCategory={handleDeleteCategory}
         onDragEnd={handleDragEnd}
       />
 
