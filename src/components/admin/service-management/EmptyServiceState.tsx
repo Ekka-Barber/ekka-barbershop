@@ -1,8 +1,8 @@
 
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { CategoryDialog } from "../CategoryDialog";
 import { ServiceDialog } from "../ServiceDialog";
+import { CategoryActions } from "../category-management/CategoryActions";
 
 export const EmptyServiceState = () => {
   return (
@@ -13,15 +13,8 @@ export const EmptyServiceState = () => {
           Get started by creating a category and adding services to organize your business offerings.
         </p>
       </div>
-      <div className="flex justify-center gap-4">
-        <CategoryDialog
-          categories={[]}
-          trigger={
-            <Button variant="outline" className="gap-2">
-              <Plus className="w-4 h-4" /> Add Category
-            </Button>
-          }
-        />
+      <div className="flex flex-col gap-4 items-center">
+        <CategoryActions categories={[]} />
         <ServiceDialog
           categories={[]}
           trigger={

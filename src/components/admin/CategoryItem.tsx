@@ -1,9 +1,11 @@
+
 import { GripVertical, Trash, ChevronDown, ChevronRight, Pencil } from 'lucide-react';
+import { useState } from 'react';
 import { Draggable, Droppable } from '@hello-pangea/dnd';
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Category } from '@/types/service';
 import { ServiceItem } from './ServiceItem';
-import { CategoryDialog } from './CategoryDialog';
 
 type CategoryItemProps = {
   category: Category;
@@ -20,6 +22,24 @@ export const CategoryItem = ({
   onToggle, 
   onDelete 
 }: CategoryItemProps) => {
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedCategory, setEditedCategory] = useState(category);
+
+  const handleEdit = () => {
+    setIsEditing(true);
+    setEditedCategory(category);
+  };
+
+  const handleCancel = () => {
+    setIsEditing(false);
+    setEditedCategory(category);
+  };
+
+  const handleSave = () => {
+    // TODO: Implement save functionality
+    setIsEditing(false);
+  };
+
   return (
     <Draggable 
       key={category.id} 
@@ -40,42 +60,75 @@ export const CategoryItem = ({
               >
                 <GripVertical className="w-5 h-5" />
               </div>
-              <button
-                onClick={onToggle}
-                className="flex items-center gap-2"
-              >
-                {isExpanded ? (
-                  <ChevronDown className="w-4 h-4" />
-                ) : (
-                  <ChevronRight className="w-4 h-4" />
-                )}
-                <div>
-                  <p className="font-medium">{category.name_en}</p>
-                  <p className="text-sm text-gray-500">{category.name_ar}</p>
+              {isEditing ? (
+                <div className="flex flex-col gap-2">
+                  <Input
+                    value={editedCategory.name_en}
+                    onChange={(e) => setEditedCategory(prev => ({ ...prev, name_en: e.target.value }))}
+                    placeholder="English name"
+                    className="w-[200px]"
+                  />
+                  <Input
+                    value={editedCategory.name_ar}
+                    onChange={(e) => setEditedCategory(prev => ({ ...prev, name_ar: e.target.value }))}
+                    placeholder="Arabic name"
+                    className="w-[200px]"
+                    dir="rtl"
+                  />
                 </div>
-              </button>
+              ) : (
+                <button
+                  onClick={onToggle}
+                  className="flex items-center gap-2"
+                >
+                  {isExpanded ? (
+                    <ChevronDown className="w-4 h-4" />
+                  ) : (
+                    <ChevronRight className="w-4 h-4" />
+                  )}
+                  <div>
+                    <p className="font-medium">{category.name_en}</p>
+                    <p className="text-sm text-gray-500">{category.name_ar}</p>
+                  </div>
+                </button>
+              )}
             </div>
             <div className="flex items-center gap-2">
-              <CategoryDialog
-                categories={[category]}
-                editCategory={category}
-                trigger={
+              {isEditing ? (
+                <>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleCancel}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    size="sm"
+                    onClick={handleSave}
+                  >
+                    Save
+                  </Button>
+                </>
+              ) : (
+                <>
                   <Button
                     variant="ghost"
                     size="sm"
+                    onClick={handleEdit}
                     className="text-blue-500 hover:text-blue-600"
                   >
                     <Pencil className="w-4 h-4" />
                   </Button>
-                }
-              />
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={onDelete}
-              >
-                <Trash className="w-4 h-4 text-red-500" />
-              </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={onDelete}
+                  >
+                    <Trash className="w-4 h-4 text-red-500" />
+                  </Button>
+                </>
+              )}
             </div>
           </div>
 
