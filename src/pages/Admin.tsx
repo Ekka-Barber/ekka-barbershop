@@ -5,6 +5,7 @@ import { FileManagement } from '@/components/admin/FileManagement';
 import QRCodeManager from "@/components/admin/QRCodeManager";
 import CustomerTrackingDashboard from "@/components/admin/CustomerTrackingDashboard";
 import { ClickHeatmap } from "@/components/admin/ClickHeatmap";
+import { UpsellVisualization } from "@/components/admin/service-management/UpsellVisualization";
 
 const Admin = () => {
   return (
@@ -46,6 +47,7 @@ const Admin = () => {
           
           <TabsContent value="services" className="space-y-8 mt-6">
             <ServiceCategoryList />
+            <UpsellVisualization />
           </TabsContent>
           
           <TabsContent value="files">
