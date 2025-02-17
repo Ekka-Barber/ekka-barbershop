@@ -1,5 +1,5 @@
 
-import React from "react";
+import * as React from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -13,9 +13,13 @@ import Menu from "./pages/Menu";
 import Offers from "./pages/Offers";
 import Bookings from "./pages/Bookings";
 
-const Admin = lazy(() => import("./pages/Admin"));
+// Create QueryClient instance outside of component
 const queryClient = new QueryClient();
 
+// Lazy load Admin component
+const Admin = lazy(() => import("./pages/Admin"));
+
+// Separate ProtectedRoute component
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const location = useLocation();
   const searchParams = new URLSearchParams(location.search);
@@ -28,10 +32,19 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
   return <>{children}</>;
 };
 
-function AppRoutes() {
+// Separate Routes component with click tracking
+const AppRoutes: React.FC = () => {
   React.useEffect(() => {
-    window.addEventListener('click', trackClick);
-    return () => window.removeEventListener('click', trackClick);
+    const handleClick = (e: MouseEvent) => {
+      try {
+        trackClick(e);
+      } catch (error) {
+        console.error('Error tracking click:', error);
+      }
+    };
+
+    window.addEventListener('click', handleClick);
+    return () => window.removeEventListener('click', handleClick);
   }, []);
 
   return (
@@ -54,21 +67,24 @@ function AppRoutes() {
       <Route path="*" element={<Navigate to="/customer" replace />} />
     </Routes>
   );
-}
+};
 
+// Main App component with providers
 const App: React.FC = () => {
   return (
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <LanguageProvider>
-          <BrowserRouter>
-            <Toaster />
-            <Sonner />
-            <AppRoutes />
-          </BrowserRouter>
-        </LanguageProvider>
-      </TooltipProvider>
-    </QueryClientProvider>
+    <React.StrictMode>
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <LanguageProvider>
+            <BrowserRouter>
+              <Toaster />
+              <Sonner />
+              <AppRoutes />
+            </BrowserRouter>
+          </LanguageProvider>
+        </TooltipProvider>
+      </QueryClientProvider>
+    </React.StrictMode>
   );
 };
 
