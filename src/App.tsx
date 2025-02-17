@@ -5,8 +5,9 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { LanguageProvider } from "@/contexts/LanguageContext";
-import { useEffect, lazy, Suspense } from "react";
+import { lazy, Suspense } from "react";
 import { trackClick } from "@/utils/clickTracking";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import Customer from "./pages/Customer";
 import Menu from "./pages/Menu";
 import Offers from "./pages/Offers";
@@ -28,7 +29,7 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
 };
 
 function AppRoutes() {
-  useEffect(() => {
+  React.useEffect(() => {
     window.addEventListener('click', trackClick);
     return () => window.removeEventListener('click', trackClick);
   }, []);
@@ -58,13 +59,15 @@ function AppRoutes() {
 const App: React.FC = () => {
   return (
     <QueryClientProvider client={queryClient}>
-      <LanguageProvider>
-        <BrowserRouter>
-          <Toaster />
-          <Sonner />
-          <AppRoutes />
-        </BrowserRouter>
-      </LanguageProvider>
+      <TooltipProvider>
+        <LanguageProvider>
+          <BrowserRouter>
+            <Toaster />
+            <Sonner />
+            <AppRoutes />
+          </BrowserRouter>
+        </LanguageProvider>
+      </TooltipProvider>
     </QueryClientProvider>
   );
 };

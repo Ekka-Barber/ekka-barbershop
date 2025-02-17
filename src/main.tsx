@@ -9,10 +9,10 @@ const container = document.getElementById('root')
 if (!container) throw new Error('Root element not found')
 
 const root = createRoot(container)
+
+// Wrap the entire app with React.StrictMode
 root.render(
   <React.StrictMode>
-    <TooltipProvider>
-      <App />
-    </TooltipProvider>
+    <App />
   </React.StrictMode>
 )
