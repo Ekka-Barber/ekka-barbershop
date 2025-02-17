@@ -8,7 +8,7 @@ import { ServiceManagementHeader } from './service-management/ServiceManagementH
 import { ServiceCategorySkeleton } from './service-management/ServiceCategorySkeleton';
 import { EmptyServiceState } from './service-management/EmptyServiceState';
 import { useToast } from "@/components/ui/use-toast";
-import type { DragDropContextProps } from '@hello-pangea/dnd';
+import { OnDragEndResponder } from '@hello-pangea/dnd';
 
 const ServiceCategoryList = () => {
   const [expandedCategories, setExpandedCategories] = useState<string[]>([]);
@@ -67,7 +67,7 @@ const ServiceCategoryList = () => {
     }
   };
 
-  const handleDragEnd = useCallback<NonNullable<DragDropContextProps['onDragEnd']>>(async (result) => {
+  const handleDragEnd: OnDragEndResponder = useCallback(async (result) => {
     if (!result.destination || !categories) return;
 
     const { source, destination } = result;
