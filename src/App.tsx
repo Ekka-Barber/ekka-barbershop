@@ -13,15 +13,9 @@ import Menu from "./pages/Menu";
 import Offers from "./pages/Offers";
 import Bookings from "./pages/Bookings";
 
-// Lazy load Admin component
 const Admin = lazy(() => import("./pages/Admin"));
-
 const queryClient = new QueryClient();
 
-// List of public routes that customers can access
-const PUBLIC_ROUTES = ['/customer', '/menu', '/offers', '/bookings'];
-
-// Protected route component
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const location = useLocation();
   const searchParams = new URLSearchParams(location.search);
@@ -34,7 +28,7 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
   return <>{children}</>;
 };
 
-function AppContent() {
+function AppRoutes() {
   useEffect(() => {
     window.addEventListener('click', trackClick);
     return () => window.removeEventListener('click', trackClick);
@@ -42,16 +36,11 @@ function AppContent() {
 
   return (
     <Routes>
-      {/* Redirect root to customer page */}
       <Route path="/" element={<Navigate to="/customer" replace />} />
-      
-      {/* Public routes */}
       <Route path="/customer" element={<Customer />} />
       <Route path="/menu" element={<Menu />} />
       <Route path="/offers" element={<Offers />} />
       <Route path="/bookings" element={<Bookings />} />
-      
-      {/* Protected routes */}
       <Route 
         path="/admin" 
         element={
@@ -62,8 +51,6 @@ function AppContent() {
           </ProtectedRoute>
         } 
       />
-      
-      {/* Catch all other routes and redirect to customer page */}
       <Route path="*" element={<Navigate to="/customer" replace />} />
     </Routes>
   );
@@ -71,17 +58,19 @@ function AppContent() {
 
 const App: React.FC = () => {
   return (
-    <QueryClientProvider client={queryClient}>
-      <LanguageProvider>
+    <React.StrictMode>
+      <QueryClientProvider client={queryClient}>
         <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <AppContent />
-          </BrowserRouter>
+          <LanguageProvider>
+            <BrowserRouter>
+              <Toaster />
+              <Sonner />
+              <AppRoutes />
+            </BrowserRouter>
+          </LanguageProvider>
         </TooltipProvider>
-      </LanguageProvider>
-    </QueryClientProvider>
+      </QueryClientProvider>
+    </React.StrictMode>
   );
 };
 
