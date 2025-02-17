@@ -5,7 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { LanguageProvider } from "@/contexts/LanguageContext";
-import { useEffect, lazy, Suspense } from "react";
+import React, { useEffect, lazy, Suspense } from "react"; // Added React import
 import { trackClick } from "@/utils/clickTracking";
 import Customer from "./pages/Customer";
 import Menu from "./pages/Menu";
@@ -33,7 +33,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
-const App = () => {
+const App: React.FC = () => {  // Added type annotation
   useEffect(() => {
     // Add click tracking
     window.addEventListener('click', trackClick);
