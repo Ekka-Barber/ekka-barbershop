@@ -10,6 +10,7 @@ import { cacheServices, getCachedServices, cacheActiveCategory, getCachedActiveC
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useToast } from "@/hooks/use-toast";
 import { AlertTriangle } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 interface ServiceSelectionProps {
   categories: any[] | undefined;
@@ -46,6 +47,29 @@ export const ServiceSelection = ({
     }
   }, [selectedServices]);
 
+  const trackServiceAction = async (service: any, action: 'added' | 'removed') => {
+    try {
+      await supabase.from('service_tracking').insert({
+        service_name: language === 'ar' ? service.name_ar : service.name_en,
+        action: action,
+        timestamp: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error('Error tracking service action:', error);
+    }
+  };
+
+  const trackBookingStep = async (step: string) => {
+    try {
+      await supabase.from('booking_behavior').insert({
+        step: step,
+        timestamp: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error('Error tracking booking step:', error);
+    }
+  };
+
   const handleServiceClick = (service: any) => {
     setSelectedService(service);
     setIsSheetOpen(true);
@@ -61,13 +85,20 @@ export const ServiceSelection = ({
     });
   };
 
-  const handleServiceToggleWrapper = (service: any) => {
+  const handleServiceToggleWrapper = async (service: any) => {
     try {
+      const isSelected = selectedServices.some(s => s.id === service.id);
+      await trackServiceAction(service, isSelected ? 'removed' : 'added');
       onServiceToggle(service);
     } catch (error) {
       handleServiceToggleError();
       console.error('Service toggle error:', error);
     }
+  };
+
+  const handleStepChange = async (step: string) => {
+    await trackBookingStep(step);
+    onStepChange?.(step);
   };
 
   const sortedCategories = categories?.slice().sort((a, b) => a.display_order - b.display_order);
@@ -156,7 +187,7 @@ export const ServiceSelection = ({
         totalDuration={totalDuration}
         totalPrice={totalPrice}
         language={language}
-        onNextStep={() => onStepChange?.('datetime')}
+        onNextStep={() => handleStepChange('datetime')}
       />
     </div>
   );
