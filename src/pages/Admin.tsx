@@ -3,7 +3,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ServiceCategoryList from '@/components/admin/ServiceCategoryList';
 import { FileManagement } from '@/components/admin/FileManagement';
 import QRCodeManager from "@/components/admin/QRCodeManager";
-import CustomerTrackingDashboard from "@/components/admin/CustomerTrackingDashboard";
+import CustomerTrackingDashboard from "@/components/admin/tracking/CustomerTrackingDashboard";
 import { UpsellVisualization } from "@/components/admin/service-management/UpsellVisualization";
 
 const Admin = () => {
