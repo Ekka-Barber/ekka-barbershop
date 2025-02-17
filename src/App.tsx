@@ -2,7 +2,6 @@
 import React from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { LanguageProvider } from "@/contexts/LanguageContext";
@@ -58,19 +57,15 @@ function AppRoutes() {
 
 const App: React.FC = () => {
   return (
-    <React.StrictMode>
-      <QueryClientProvider client={queryClient}>
-        <TooltipProvider>
-          <LanguageProvider>
-            <BrowserRouter>
-              <Toaster />
-              <Sonner />
-              <AppRoutes />
-            </BrowserRouter>
-          </LanguageProvider>
-        </TooltipProvider>
-      </QueryClientProvider>
-    </React.StrictMode>
+    <QueryClientProvider client={queryClient}>
+      <LanguageProvider>
+        <BrowserRouter>
+          <Toaster />
+          <Sonner />
+          <AppRoutes />
+        </BrowserRouter>
+      </LanguageProvider>
+    </QueryClientProvider>
   );
 };
 
