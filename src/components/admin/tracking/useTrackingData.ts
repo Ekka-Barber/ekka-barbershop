@@ -2,7 +2,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { DateRange } from "./DateRangeSelector";
-import { UnifiedEvent, TimePattern } from "./types";
+import { UnifiedEvent } from "./types";
 
 export interface TrackingPaginationParams {
   page: number;
@@ -15,95 +15,118 @@ export const useTrackingData = (dateRange: DateRange, pagination?: TrackingPagin
   const previousPeriodStart = new Date(dateRange.from.getTime() - periodDuration);
   const previousPeriodEnd = new Date(dateRange.from.getTime() - 1); // -1 to avoid overlap
 
-  const { data: interactionEvents, isLoading: interactionsLoading } = useQuery({
+  const { data: interactionEvents, error: interactionsError, isLoading: interactionsLoading } = useQuery({
     queryKey: ['interaction-events', dateRange, pagination?.page],
     queryFn: async () => {
-      let query = supabase
-        .from('unified_events')
-        .select('*', { count: 'exact' })
-        .eq('event_type', 'interaction')
-        .gte('timestamp', dateRange.from.toISOString())
-        .lte('timestamp', dateRange.to.toISOString());
+      try {
+        let query = supabase
+          .from('unified_events')
+          .select('*', { count: 'exact' })
+          .eq('event_type', 'interaction')
+          .gte('timestamp', dateRange.from.toISOString())
+          .lte('timestamp', dateRange.to.toISOString());
 
-      if (pagination) {
-        const start = pagination.page * pagination.pageSize;
-        const end = start + pagination.pageSize - 1;
-        query = query.range(start, end);
+        if (pagination) {
+          const start = pagination.page * pagination.pageSize;
+          const end = start + pagination.pageSize - 1;
+          query = query.range(start, end);
+        }
+
+        const { data, error, count } = await query.order('timestamp', { ascending: false });
+        
+        if (error) throw error;
+        return { data: data as UnifiedEvent[], totalCount: count || 0 };
+      } catch (error) {
+        console.error('Error fetching interaction events:', error);
+        throw error;
       }
-
-      const { data, error, count } = await query.order('timestamp', { ascending: false });
-      
-      if (error) throw error;
-      return { data: data as UnifiedEvent[], totalCount: count || 0 };
     },
-    staleTime: 1000 * 60 * 5, // 5 minutes before refetch
+    retry: 1,
   });
 
-  const { data: previousPeriodData } = useQuery({
+  const { data: previousPeriodData, error: previousPeriodError } = useQuery({
     queryKey: ['interaction-events-previous', dateRange],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('unified_events')
-        .select('*')
-        .eq('event_type', 'interaction')
-        .gte('timestamp', previousPeriodStart.toISOString())
-        .lte('timestamp', previousPeriodEnd.toISOString())
-        .order('timestamp', { ascending: false });
-      
-      if (error) throw error;
-      return data as UnifiedEvent[];
+      try {
+        const { data, error } = await supabase
+          .from('unified_events')
+          .select('*')
+          .eq('event_type', 'interaction')
+          .gte('timestamp', previousPeriodStart.toISOString())
+          .lte('timestamp', previousPeriodEnd.toISOString())
+          .order('timestamp', { ascending: false });
+        
+        if (error) throw error;
+        return data as UnifiedEvent[];
+      } catch (error) {
+        console.error('Error fetching previous period data:', error);
+        throw error;
+      }
     },
-    staleTime: 1000 * 60 * 5,
+    retry: 1,
   });
 
-  const { data: sessionData, isLoading: sessionsLoading } = useQuery({
+  const { data: sessionData, error: sessionsError, isLoading: sessionsLoading } = useQuery({
     queryKey: ['unified-events-pageviews', dateRange, pagination?.page],
     queryFn: async () => {
-      let query = supabase
-        .from('unified_events')
-        .select('*', { count: 'exact' })
-        .eq('event_type', 'page_view')
-        .gte('timestamp', dateRange.from.toISOString())
-        .lte('timestamp', dateRange.to.toISOString());
+      try {
+        let query = supabase
+          .from('unified_events')
+          .select('*', { count: 'exact' })
+          .eq('event_type', 'page_view')
+          .gte('timestamp', dateRange.from.toISOString())
+          .lte('timestamp', dateRange.to.toISOString());
 
-      if (pagination) {
-        const start = pagination.page * pagination.pageSize;
-        const end = start + pagination.pageSize - 1;
-        query = query.range(start, end);
+        if (pagination) {
+          const start = pagination.page * pagination.pageSize;
+          const end = start + pagination.pageSize - 1;
+          query = query.range(start, end);
+        }
+
+        const { data, error, count } = await query.order('timestamp', { ascending: false });
+        
+        if (error) throw error;
+        return { data: data as UnifiedEvent[], totalCount: count || 0 };
+      } catch (error) {
+        console.error('Error fetching session data:', error);
+        throw error;
       }
-
-      const { data, error, count } = await query.order('timestamp', { ascending: false });
-      
-      if (error) throw error;
-      return { data: data as UnifiedEvent[], totalCount: count || 0 };
     },
-    staleTime: 1000 * 60 * 5,
+    retry: 1,
   });
 
-  const { data: bookingData, isLoading: bookingsLoading } = useQuery({
+  const { data: bookingData, error: bookingsError, isLoading: bookingsLoading } = useQuery({
     queryKey: ['unified-events-bookings', dateRange, pagination?.page],
     queryFn: async () => {
-      let query = supabase
-        .from('unified_events')
-        .select('*', { count: 'exact' })
-        .eq('event_type', 'business')
-        .eq('event_name', 'booking_completed')
-        .gte('timestamp', dateRange.from.toISOString())
-        .lte('timestamp', dateRange.to.toISOString());
+      try {
+        let query = supabase
+          .from('unified_events')
+          .select('*', { count: 'exact' })
+          .eq('event_type', 'business')
+          .eq('event_name', 'booking_completed')
+          .gte('timestamp', dateRange.from.toISOString())
+          .lte('timestamp', dateRange.to.toISOString());
 
-      if (pagination) {
-        const start = pagination.page * pagination.pageSize;
-        const end = start + pagination.pageSize - 1;
-        query = query.range(start, end);
+        if (pagination) {
+          const start = pagination.page * pagination.pageSize;
+          const end = start + pagination.pageSize - 1;
+          query = query.range(start, end);
+        }
+
+        const { data, error, count } = await query.order('timestamp', { ascending: false });
+        
+        if (error) throw error;
+        return { data: data as UnifiedEvent[], totalCount: count || 0 };
+      } catch (error) {
+        console.error('Error fetching booking data:', error);
+        throw error;
       }
-
-      const { data, error, count } = await query.order('timestamp', { ascending: false });
-      
-      if (error) throw error;
-      return { data: data as UnifiedEvent[], totalCount: count || 0 };
     },
-    staleTime: 1000 * 60 * 5,
+    retry: 1,
   });
+
+  const error = interactionsError || previousPeriodError || sessionsError || bookingsError;
+  const isLoading = interactionsLoading || sessionsLoading || bookingsLoading;
 
   const calculateCoreMetrics = () => {
     if (!sessionData?.data || !bookingData?.data || !interactionEvents?.data) {
@@ -125,11 +148,13 @@ export const useTrackingData = (dateRange: DateRange, pagination?: TrackingPagin
       'entry_time' in s.event_data
     );
 
-    const avgDuration = sessionsWithDuration.reduce((acc, session) => {
-      const entryTime = new Date(session.event_data.entry_time as string).getTime();
-      const exitTime = new Date(session.event_data.exit_time as string).getTime();
-      return acc + (exitTime - entryTime);
-    }, 0) / (sessionsWithDuration.length * 1000 || 1); // Avoid division by zero
+    const avgDuration = sessionsWithDuration.length > 0 
+      ? sessionsWithDuration.reduce((acc, session) => {
+          const entryTime = new Date(session.event_data.entry_time as string).getTime();
+          const exitTime = new Date(session.event_data.exit_time as string).getTime();
+          return acc + (exitTime - entryTime);
+        }, 0) / (sessionsWithDuration.length * 1000)
+      : 0;
 
     return {
       activeUsers: uniqueSessions,
@@ -141,7 +166,8 @@ export const useTrackingData = (dateRange: DateRange, pagination?: TrackingPagin
 
   return {
     coreMetrics: calculateCoreMetrics(),
-    isLoading: interactionsLoading || sessionsLoading || bookingsLoading,
+    isLoading,
+    error,
     sessionData: sessionData?.data || [],
     bookingData: bookingData?.data || [],
     interactionEvents: interactionEvents?.data || [],
