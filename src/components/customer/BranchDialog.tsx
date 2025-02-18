@@ -6,6 +6,7 @@ import { useTimeFormatting } from "@/hooks/useTimeFormatting";
 import { useTracking } from "@/hooks/useTracking";
 import { Clock } from "lucide-react";
 import { useEffect, useRef } from "react";
+import { trackBranchSelection } from "@/services/tracking/branchTracking";
 
 interface Branch {
   id: string;
@@ -31,35 +32,35 @@ export const BranchDialog = ({
 }: BranchDialogProps) => {
   const { language, t } = useLanguage();
   const { getCurrentDayHours } = useTimeFormatting();
-  const { trackInteraction } = useTracking();
   const dialogOpenTime = useRef<Date | null>(null);
 
-  // Track dialog open
   useEffect(() => {
     if (open) {
-      dialogOpenTime.current = new Date();
-      trackInteraction('dialog_open', {
-        dialog_type: 'branch_selection',
-        page_url: window.location.pathname
+      const now = new Date();
+      dialogOpenTime.current = now;
+      trackBranchSelection({
+        interaction_type: 'dialog_open',
+        source_page: window.location.pathname,
+        dialog_open_time: now.toISOString()
       });
     } else if (dialogOpenTime.current) {
-      const duration = new Date().getTime() - dialogOpenTime.current.getTime();
-      trackInteraction('dialog_close', {
-        dialog_type: 'branch_selection',
-        duration_ms: duration,
-        page_url: window.location.pathname
+      const closeTime = new Date();
+      trackBranchSelection({
+        interaction_type: 'dialog_close',
+        source_page: window.location.pathname,
+        dialog_open_time: dialogOpenTime.current.toISOString(),
+        dialog_close_time: closeTime.toISOString()
       });
       dialogOpenTime.current = null;
     }
-  }, [open, trackInteraction]);
+  }, [open]);
 
   const handleBranchSelect = (branch: Branch) => {
-    trackInteraction('branch_select', {
+    trackBranchSelection({
+      interaction_type: 'branch_select',
       branch_id: branch.id,
-      branch_name: language === 'ar' ? branch.name_ar : branch.name,
-      branch_address: language === 'ar' ? branch.address_ar : branch.address,
-      page_url: window.location.pathname,
-      language: language
+      selected_branch_name: language === 'ar' ? branch.name_ar : branch.name,
+      source_page: window.location.pathname
     });
     onBranchSelect(branch.id);
   };
