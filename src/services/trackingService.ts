@@ -36,22 +36,69 @@ export const trackInteraction = async (
 ): Promise<void> => {
   if (!shouldTrack()) return;
 
-  const interactionData = {
-    ...createTrackingEvent(type),
-    interaction_details: details as Json,
-    session_id: getSessionId(),
-    device_type: mapPlatformToDeviceType(getPlatformType()),
-    page_url: window.location.pathname,
-    interaction_type: type,
-    timestamp: new Date().toISOString()
-  };
-
   try {
-    const { error } = await supabase.from('interaction_events').insert(interactionData);
+    const { error } = await supabase.from('interaction_events').insert({
+      interaction_type: type,
+      interaction_details: details as Json,
+      session_id: getSessionId(),
+      device_type: mapPlatformToDeviceType(getPlatformType()),
+      page_url: window.location.pathname,
+      element_class: details.element_class,
+      element_id: details.element_id,
+      timestamp: new Date().toISOString(),
+      created_at: new Date().toISOString()
+    });
 
     if (error) throw error;
   } catch (error) {
     console.error('Error tracking interaction:', error);
+  }
+};
+
+export const trackDateTimeInteraction = async (event: DateTimeEvent): Promise<void> => {
+  if (!shouldTrack()) return;
+
+  try {
+    const { error } = await supabase.from('datetime_tracking').insert({
+      interaction_type: event.interaction_type,
+      calendar_view_type: event.calendar_view_type,
+      days_in_advance: event.days_in_advance,
+      device_type: mapPlatformToDeviceType(getPlatformType()),
+      selected_date: event.selected_date,
+      selected_time: event.selected_time,
+      view_duration_seconds: event.view_duration_seconds,
+      calendar_navigation_path: event.calendar_navigation_path,
+      preferred_time_slots: event.preferred_time_slots,
+      browser_info: event.interaction_details,
+      created_at: new Date().toISOString()
+    });
+
+    if (error) throw error;
+  } catch (error) {
+    console.error('Error tracking datetime interaction:', error);
+  }
+};
+
+export const trackMarketingFunnel = async (event: MarketingFunnelEvent): Promise<void> => {
+  if (!shouldTrack()) return;
+
+  try {
+    const { error } = await supabase.from('marketing_funnel_events').insert({
+      funnel_stage: event.funnel_stage,
+      interaction_type: 'marketing_funnel',
+      time_in_stage: event.time_in_stage,
+      conversion_successful: event.conversion_successful,
+      drop_off_point: event.drop_off_point,
+      entry_point: event.entry_point,
+      previous_stage: event.previous_stage,
+      interaction_path: event.interaction_path,
+      device_type: mapPlatformToDeviceType(getPlatformType()),
+      created_at: new Date().toISOString()
+    });
+
+    if (error) throw error;
+  } catch (error) {
+    console.error('Error tracking marketing funnel:', error);
   }
 };
 
@@ -89,23 +136,6 @@ export const trackServiceInteraction = async (event: ServiceDiscoveryEvent): Pro
   }
 };
 
-export const trackDateTimeInteraction = async (event: DateTimeEvent): Promise<void> => {
-  if (!shouldTrack()) return;
-
-  try {
-    const { error } = await supabase.from('datetime_tracking').insert({
-      ...event,
-      ...createTrackingEvent(event.interaction_type),
-      session_id: getSessionId(),
-      device_type: mapPlatformToDeviceType(getPlatformType())
-    });
-
-    if (error) throw error;
-  } catch (error) {
-    console.error('Error tracking datetime interaction:', error);
-  }
-};
-
 export const trackOfferInteraction = async (event: OfferInteractionEvent): Promise<void> => {
   if (!shouldTrack()) return;
 
@@ -120,23 +150,6 @@ export const trackOfferInteraction = async (event: OfferInteractionEvent): Promi
     if (error) throw error;
   } catch (error) {
     console.error('Error tracking offer interaction:', error);
-  }
-};
-
-export const trackMarketingFunnel = async (event: MarketingFunnelEvent): Promise<void> => {
-  if (!shouldTrack()) return;
-
-  try {
-    const { error } = await supabase.from('marketing_funnel_events').insert({
-      ...event,
-      ...createTrackingEvent('marketing_funnel'),
-      session_id: getSessionId(),
-      device_type: mapPlatformToDeviceType(getPlatformType())
-    });
-
-    if (error) throw error;
-  } catch (error) {
-    console.error('Error tracking marketing funnel:', error);
   }
 };
 

@@ -1,7 +1,15 @@
 
 import { BaseInteractionType } from './base';
 
+export type DateTimeInteractionType = 
+  | 'calendar_open'
+  | 'calendar_close'
+  | 'date_select'
+  | 'time_select'
+  | 'time_slot_view';
+
 export interface DateTimeEvent extends BaseInteractionType {
+  interaction_type: DateTimeInteractionType;
   selected_date?: string;
   selected_time?: string;
   calendar_view_type?: 'month' | 'week' | 'quick_select';
@@ -15,4 +23,5 @@ export interface DateTimeEvent extends BaseInteractionType {
     afternoon: number;
     evening: number;
   };
+  browser_info?: Record<string, any>;
 }
