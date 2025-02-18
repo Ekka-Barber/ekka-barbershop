@@ -2,7 +2,6 @@
 import { Timer } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Service } from '@/types/service';
-import { BookingStep } from '@/components/booking/BookingProgress';
 
 interface ServicesSummaryProps {
   selectedServices: Service[];

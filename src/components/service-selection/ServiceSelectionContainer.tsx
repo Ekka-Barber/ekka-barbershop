@@ -43,6 +43,12 @@ export const ServiceSelectionContainer = ({
     handleLoadMore
   } = useCategoryManagement(categories);
 
+  const handleNextStep = () => {
+    if (selectedServices.length > 0) {
+      onStepChange('datetime');
+    }
+  };
+
   if (isLoading) {
     return <ServicesSkeleton />;
   }
@@ -62,6 +68,9 @@ export const ServiceSelectionContainer = ({
       </div>
     );
   }
+
+  const totalDuration = selectedServices.reduce((total, service) => total + service.duration, 0);
+  const totalPrice = selectedServices.reduce((total, service) => total + service.price, 0);
 
   return (
     <div className="space-y-6 pb-8">
@@ -93,10 +102,10 @@ export const ServiceSelectionContainer = ({
 
       <ServicesSummary
         selectedServices={selectedServices}
-        totalDuration={selectedServices.reduce((total, service) => total + service.duration, 0)}
-        totalPrice={selectedServices.reduce((total, service) => total + service.price, 0)}
+        totalDuration={totalDuration}
+        totalPrice={totalPrice}
         language={language}
-        onNextStep={() => onStepChange('datetime')}
+        onNextStep={handleNextStep}
       />
     </div>
   );

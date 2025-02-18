@@ -1,3 +1,4 @@
+
 import { useNavigate } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
@@ -33,8 +34,17 @@ export const BookingNavigation = ({
   const handleNext = () => {
     if (onNextClick) {
       onNextClick();
-    } else {
+    } else if (currentStepIndex < steps.length - 1) {
       setCurrentStep(steps[currentStepIndex + 1]);
+    }
+  };
+
+  const handleBack = () => {
+    if (currentStepIndex > 0) {
+      setCurrentStep(steps[currentStepIndex - 1]);
+    } else if (currentStep === 'services') {
+      // Only navigate to customer page if we're explicitly in services step
+      navigate('/customer');
     }
   };
 
@@ -43,13 +53,7 @@ export const BookingNavigation = ({
       <div className="flex justify-between gap-4">
         <Button
           variant="outline"
-          onClick={() => {
-            if (currentStepIndex > 0) {
-              setCurrentStep(steps[currentStepIndex - 1]);
-            } else {
-              navigate('/customer');
-            }
-          }}
+          onClick={handleBack}
           className="flex-1"
         >
           {currentStepIndex === 0 ? t('back.home') : t('previous')}
