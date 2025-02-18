@@ -62,10 +62,39 @@ export const processServiceHeatmapData = (interactionEvents: any[]): ServiceAnal
   }));
 };
 
-export const processCustomerJourney = (interactionEvents: any[]): { nodes: JourneyNode[]; links: JourneyLink[] } => {
+interface ProcessedJourneyData {
+  nodes: JourneyNode[];
+  links: JourneyLink[];
+  dropOffPoints: DropOffPoint[];
+  serviceBundles: ServiceBundle[];
+}
+
+interface DropOffPoint {
+  page: string;
+  exitRate: number;
+  averageTimeBeforeExit: number;
+  previousPages: string[];
+}
+
+interface ServiceBundle {
+  name: string;
+  frequency: number;
+  averageValue: number;
+  conversionRate: number;
+  services: string[];
+  performanceMetrics: {
+    timeToBook: number;
+    customerSatisfaction: number;
+    repeatBookingRate: number;
+  };
+}
+
+export const processCustomerJourney = (interactionEvents: any[]): ProcessedJourneyData => {
   const nodeMap = new Map<string, number>();
   const nodes: JourneyNode[] = [];
   const links: JourneyLink[] = [];
+  const dropOffPoints: DropOffPoint[] = [];
+  const serviceBundles: ServiceBundle[] = [];
 
   interactionEvents.forEach(event => {
     if (event.page_url) {
@@ -107,7 +136,96 @@ export const processCustomerJourney = (interactionEvents: any[]): { nodes: Journ
     }
   }
 
-  return { nodes, links };
+  const pageExits = new Map<string, { count: number; totalTime: number; paths: string[][] }>();
+  
+  interactionEvents.forEach((event, index) => {
+    if (index < interactionEvents.length - 1) {
+      const timeDiff = new Date(interactionEvents[index + 1].timestamp).getTime() - 
+                      new Date(event.timestamp).getTime();
+      
+      if (timeDiff > 30 * 60 * 1000) { // 30 minutes threshold
+        const page = event.page_url;
+        const path = interactionEvents.slice(0, index + 1).map(e => e.page_url);
+        
+        if (!pageExits.has(page)) {
+          pageExits.set(page, { count: 0, totalTime: 0, paths: [] });
+        }
+        
+        const exitData = pageExits.get(page)!;
+        exitData.count++;
+        exitData.totalTime += timeDiff;
+        exitData.paths.push(path);
+      }
+    }
+  });
+
+  pageExits.forEach((data, page) => {
+    dropOffPoints.push({
+      page,
+      exitRate: (data.count / interactionEvents.length) * 100,
+      averageTimeBeforeExit: data.totalTime / data.count,
+      previousPages: data.paths[0] || []
+    });
+  });
+
+  const serviceSelections = interactionEvents.filter(
+    event => event.interaction_type === 'service_select'
+  );
+
+  const bundleMap = new Map<string, {
+    count: number;
+    totalValue: number;
+    conversionCount: number;
+    timeToBook: number[];
+    repeatBookings: number;
+  }>();
+
+  serviceSelections.forEach(event => {
+    if (event.interaction_details?.services) {
+      const services = event.interaction_details.services;
+      const bundleKey = services.sort().join('+');
+      
+      if (!bundleMap.has(bundleKey)) {
+        bundleMap.set(bundleKey, {
+          count: 0,
+          totalValue: 0,
+          conversionCount: 0,
+          timeToBook: [],
+          repeatBookings: 0
+        });
+      }
+      
+      const bundle = bundleMap.get(bundleKey)!;
+      bundle.count++;
+      bundle.totalValue += event.interaction_details.totalValue || 0;
+      
+      if (event.interaction_details.converted) {
+        bundle.conversionCount++;
+        bundle.timeToBook.push(event.interaction_details.timeToBook || 0);
+      }
+      
+      if (event.interaction_details.isRepeatBooking) {
+        bundle.repeatBookings++;
+      }
+    }
+  });
+
+  bundleMap.forEach((data, name) => {
+    serviceBundles.push({
+      name,
+      frequency: data.count,
+      averageValue: data.totalValue / data.count,
+      conversionRate: (data.conversionCount / data.count) * 100,
+      services: name.split('+'),
+      performanceMetrics: {
+        timeToBook: data.timeToBook.reduce((a, b) => a + b, 0) / data.timeToBook.length,
+        customerSatisfaction: 0,
+        repeatBookingRate: (data.repeatBookings / data.count) * 100
+      }
+    });
+  });
+
+  return { nodes, links, dropOffPoints, serviceBundles };
 };
 
 interface CategoryPerformance {

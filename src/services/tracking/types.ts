@@ -1,21 +1,24 @@
-
 export type MarketingFunnelStage = 'landing' | 'service_browse' | 'datetime_select' | 'barber_select' | 'booking_complete';
 
 export type DeviceType = 'mobile' | 'tablet' | 'desktop';
 
 export type InteractionType = 
+  | 'barber_select'
   | 'page_view'
   | 'dialog_open'
   | 'dialog_close'
   | 'service_select'
-  | 'barber_select'
-  | 'datetime_select'
   | 'branch_select'
   | 'menu_view'
   | 'offer_view'
-  | 'location_view'
   | 'button_click'
-  | 'form_interaction';
+  | 'form_interaction'
+  | 'pdf_view'
+  | 'language_switch'
+  | 'category_select'
+  | 'calendar_interaction'
+  | 'profile_interaction'
+  | 'location_interaction';
 
 export interface BaseInteractionType {
   session_id?: string;
@@ -206,4 +209,24 @@ export interface DropOffPoint {
   exitRate: number;
   averageTimeBeforeExit: number;
   previousPages: string[];
+}
+
+export interface ProcessedJourneyData {
+  nodes: JourneyNode[];
+  links: JourneyLink[];
+  dropOffPoints: DropOffPoint[];
+  serviceBundles: ServiceBundle[];
+}
+
+export interface ServiceBundle {
+  name: string;
+  frequency: number;
+  averageValue: number;
+  conversionRate: number;
+  services: string[];
+  performanceMetrics: {
+    timeToBook: number;
+    customerSatisfaction: number;
+    repeatBookingRate: number;
+  };
 }
