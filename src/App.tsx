@@ -30,45 +30,52 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
-// App wrapper with tracking
-const AppWithTracking = () => {
-  useTracking(); // Initialize tracking
+const AppContent = () => {
+  const { initializeTracking, cleanupTracking } = useTracking();
+
+  useEffect(() => {
+    initializeTracking();
+    return () => cleanupTracking();
+  }, []);
+
   return (
-    <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
-      <TooltipProvider delayDuration={0}>
-        <Routes>
-          {/* Redirect root to customer page */}
-          <Route path="/" element={<Navigate to="/customer" replace />} />
-          
-          {/* Public routes */}
-          <Route path="/customer" element={<Customer />} />
-          <Route path="/menu" element={<Menu />} />
-          <Route path="/offers" element={<Offers />} />
-          <Route path="/bookings" element={<Bookings />} />
-          
-          {/* Protected routes */}
-          <Route 
-            path="/admin" 
-            element={
-              <ProtectedRoute>
-                <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
-                  <Admin />
-                </Suspense>
-              </ProtectedRoute>
-            } 
-          />
-          
-          {/* Catch all other routes and redirect to customer page */}
-          <Route path="*" element={<Navigate to="/customer" replace />} />
-        </Routes>
-        <Toaster />
-      </TooltipProvider>
-    </ThemeProvider>
+    <Routes>
+      {/* Redirect root to customer page */}
+      <Route path="/" element={<Navigate to="/customer" replace />} />
+      
+      {/* Public routes */}
+      <Route path="/customer" element={<Customer />} />
+      <Route path="/menu" element={<Menu />} />
+      <Route path="/offers" element={<Offers />} />
+      <Route path="/bookings" element={<Bookings />} />
+      
+      {/* Protected routes */}
+      <Route 
+        path="/admin" 
+        element={
+          <ProtectedRoute>
+            <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
+              <Admin />
+            </Suspense>
+          </ProtectedRoute>
+        } 
+      />
+      
+      {/* Catch all other routes and redirect to customer page */}
+      <Route path="*" element={<Navigate to="/customer" replace />} />
+    </Routes>
   );
 };
 
 const App = () => {
-  return <AppWithTracking />;
+  return (
+    <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
+      <TooltipProvider delayDuration={0}>
+        <AppContent />
+        <Toaster />
+      </TooltipProvider>
+    </ThemeProvider>
+  );
 };
 
 export default App;

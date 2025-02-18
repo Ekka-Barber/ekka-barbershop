@@ -2,7 +2,6 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { ThemeProvider } from "next-themes"
 import { BrowserRouter } from 'react-router-dom'
 import App from './App'
 import './index.css'
@@ -27,21 +26,19 @@ if (!rootElement) {
   document.body.appendChild(root)
 }
 
-// Initialize root with error handling
-const root = ReactDOM.createRoot(rootElement ?? document.getElementById('root')!)
+// Initialize root
+const root = ReactDOM.createRoot(rootElement!)
 
-// Wrap the entire app with Router first
+// Wrap the entire app with all required providers
 root.render(
   <React.StrictMode>
     <BrowserRouter>
-      <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
-        <QueryClientProvider client={queryClient}>
-          <LanguageProvider>
-            <App />
-            <Toaster />
-          </LanguageProvider>
-        </QueryClientProvider>
-      </ThemeProvider>
+      <QueryClientProvider client={queryClient}>
+        <LanguageProvider>
+          <App />
+          <Toaster />
+        </LanguageProvider>
+      </QueryClientProvider>
     </BrowserRouter>
   </React.StrictMode>
 )
