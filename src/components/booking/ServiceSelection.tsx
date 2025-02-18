@@ -41,13 +41,16 @@ export const ServiceSelection = ({
   useEffect(() => {
     if (activeCategory) {
       cacheActiveCategory(activeCategory);
+      const deviceType = getPlatformType() === 'desktop' ? 'desktop' : 'mobile';
       trackServiceInteraction({
         category_id: activeCategory,
         interaction_type: 'category_view',
         discovery_path: [...discoveryPath, activeCategory],
         price_viewed: false,
         description_viewed: false,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
+        session_id: 'temp',
+        device_type: deviceType
       });
       setDiscoveryPath(prev => [...prev, activeCategory]);
     }
@@ -63,6 +66,7 @@ export const ServiceSelection = ({
     setSelectedService(service);
     setIsSheetOpen(true);
     setViewStartTime(new Date());
+    const deviceType = getPlatformType() === 'desktop' ? 'desktop' : 'mobile';
     
     await trackServiceInteraction({
       category_id: activeCategory || '',
@@ -72,13 +76,15 @@ export const ServiceSelection = ({
       selected_service_name: language === 'ar' ? service.name_ar : service.name_en,
       price_viewed: true,
       description_viewed: false,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
+      session_id: 'temp',
+      device_type: deviceType
     });
   };
 
   const handleServiceToggleWrapper = async (service: any) => {
     try {
-      const isSelected = selectedServices.some(s => s.id === service.id);
+      const deviceType = getPlatformType() === 'desktop' ? 'desktop' : 'mobile';
       const viewDuration = viewStartTime ? new Date().getTime() - viewStartTime.getTime() : 0;
       
       await trackServiceInteraction({
@@ -89,7 +95,9 @@ export const ServiceSelection = ({
         selected_service_name: language === 'ar' ? service.name_ar : service.name_en,
         price_viewed: true,
         description_viewed: true,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
+        session_id: 'temp',
+        device_type: deviceType
       });
 
       onServiceToggle(service);

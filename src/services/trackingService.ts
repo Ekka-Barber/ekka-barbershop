@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { v4 as uuidv4 } from 'uuid';
 import { getPlatformType } from "@/services/platformDetection";
@@ -21,6 +22,17 @@ interface ServiceDiscoveryEvent {
   session_id: string;
   device_type: DeviceType;
   timestamp: string;
+}
+
+interface DateTimeInteractionEvent {
+  session_id: string;
+  interaction_type: 'calendar_open' | 'calendar_close' | 'date_select' | 'time_select' | 'time_slot_view';
+  selected_date?: Date;
+  selected_time?: string;
+  calendar_view_type: 'month' | 'week' | 'quick_select';
+  time_slot_position?: string;
+  device_type: DeviceType;
+  browser_info?: any;
 }
 
 interface SessionData {
@@ -152,24 +164,7 @@ export const trackInteraction = async (
   });
 };
 
-// Enhanced click tracking
-export const enhancedTrackClick = async (event: MouseEvent): Promise<void> => {
-  if (!shouldTrack()) return;
-
-  const target = event.target as HTMLElement;
-  const interactionDetails = {
-    elementType: target.tagName.toLowerCase(),
-    elementId: target.id || null,
-    elementClass: target.className || null,
-    x: event.clientX,
-    y: event.clientY,
-    timestamp: new Date().toISOString(),
-  };
-
-  await trackInteraction('button_click', interactionDetails);
-};
-
-// Enhanced service selection tracking
+// Service interaction tracking
 export const trackServiceInteraction = async (event: ServiceDiscoveryEvent): Promise<void> => {
   if (!shouldTrack()) return;
 
@@ -177,7 +172,7 @@ export const trackServiceInteraction = async (event: ServiceDiscoveryEvent): Pro
   if (!session) return;
 
   await tryTracking(async () => {
-    const { error } = await supabase.from('service_interactions').insert({
+    const { error } = await supabase.from('service_discovery').insert({
       ...event,
       session_id: session,
       device_type: mapPlatformToDeviceType(getPlatformType()),
@@ -191,17 +186,6 @@ export const trackServiceInteraction = async (event: ServiceDiscoveryEvent): Pro
 };
 
 // DateTime interaction tracking
-interface DateTimeInteractionEvent {
-  session_id: string;
-  interaction_type: 'calendar_open' | 'calendar_close' | 'date_select' | 'time_select' | 'time_slot_view';
-  selected_date?: Date;
-  selected_time?: string;
-  calendar_view_type: 'month' | 'week' | 'quick_select';
-  time_slot_position?: string;
-  device_type: DeviceType;
-  browser_info?: any;
-}
-
 export const trackDateTimeInteraction = async (event: DateTimeInteractionEvent): Promise<void> => {
   if (!shouldTrack()) return;
 

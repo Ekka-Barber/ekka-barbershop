@@ -430,6 +430,51 @@ export type Database = {
           },
         ]
       }
+      datetime_tracking: {
+        Row: {
+          browser_info: Json | null
+          calendar_view_type:
+            | Database["public"]["Enums"]["calendar_view_type"]
+            | null
+          created_at: string | null
+          device_type: Database["public"]["Enums"]["device_type"] | null
+          id: string
+          interaction_type: Database["public"]["Enums"]["datetime_interaction_type"]
+          selected_date: string | null
+          selected_time: string | null
+          session_id: string | null
+          time_slot_position: string | null
+        }
+        Insert: {
+          browser_info?: Json | null
+          calendar_view_type?:
+            | Database["public"]["Enums"]["calendar_view_type"]
+            | null
+          created_at?: string | null
+          device_type?: Database["public"]["Enums"]["device_type"] | null
+          id?: string
+          interaction_type: Database["public"]["Enums"]["datetime_interaction_type"]
+          selected_date?: string | null
+          selected_time?: string | null
+          session_id?: string | null
+          time_slot_position?: string | null
+        }
+        Update: {
+          browser_info?: Json | null
+          calendar_view_type?:
+            | Database["public"]["Enums"]["calendar_view_type"]
+            | null
+          created_at?: string | null
+          device_type?: Database["public"]["Enums"]["device_type"] | null
+          id?: string
+          interaction_type?: Database["public"]["Enums"]["datetime_interaction_type"]
+          selected_date?: string | null
+          selected_time?: string | null
+          session_id?: string | null
+          time_slot_position?: string | null
+        }
+        Relationships: []
+      }
       deposit_withdrawals: {
         Row: {
           amount: number
@@ -2096,6 +2141,13 @@ export type Database = {
     Enums: {
       adjustment_type: "correction" | "refund"
       basic_payment_method: "cash" | "bank_transfer"
+      calendar_view_type: "month" | "week" | "quick_select"
+      datetime_interaction_type:
+        | "calendar_open"
+        | "calendar_close"
+        | "date_select"
+        | "time_select"
+        | "time_slot_view"
       device_type: "mobile" | "tablet" | "desktop"
       employee_role:
         | "manager"
