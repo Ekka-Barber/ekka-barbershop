@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { 
   UnifiedEvent, 
@@ -20,12 +21,13 @@ class UnifiedTrackingService {
     if (!shouldTrack()) return;
 
     try {
+      const now = new Date();
       const baseEvent = {
         session_id: event.session_id || getSessionId(),
         device_type: event.device_type || mapPlatformToDeviceType(getPlatformType()),
         page_url: event.page_url || window.location.pathname,
-        timestamp: event.timestamp || formatTimestamp(new Date()),
-        created_at: formatTimestamp(new Date()),
+        timestamp: formatTimestamp(now),
+        created_at: formatTimestamp(now),
         interaction_type: event.interaction_type as string,
         event_name: event.event_name,
         event_type: event.event_type as "page_view" | "interaction" | "business" | "analytics",
@@ -37,7 +39,10 @@ class UnifiedTrackingService {
         .from('unified_events')
         .insert(baseEvent);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error details:', error);
+        throw error;
+      }
     } catch (error) {
       console.error('Error tracking unified event:', error);
     }
