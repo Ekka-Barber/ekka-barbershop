@@ -2,13 +2,13 @@
 export type DeviceType = 'mobile' | 'tablet' | 'desktop';
 
 export type InteractionType = 
+  | 'page_view'
   | 'calendar_open'
   | 'calendar_close'
   | 'date_select'
   | 'time_select'
   | 'time_slot_view'
   | 'barber_select'
-  | 'page_view'
   | 'dialog_open'
   | 'dialog_close'
   | 'service_select'
@@ -38,7 +38,8 @@ export type InteractionType =
   | 'service_selection_complete'
   | 'session_end'
   | 'offer_view_start'
-  | 'offer_view_end';
+  | 'offer_view_end'
+  | 'marketing_funnel';
 
 export interface BaseInteractionType {
   interaction_type: InteractionType;
@@ -47,9 +48,4 @@ export interface BaseInteractionType {
   timestamp?: string;
   interaction_details?: Record<string, any>;
   source_page?: string;
-}
-
-export interface DatabaseInteractionType extends BaseInteractionType {
-  id: string;
-  created_at: string;
 }

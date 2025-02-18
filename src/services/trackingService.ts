@@ -1,45 +1,17 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { getPlatformType } from "@/services/platformDetection";
+import { getSessionId, shouldTrack } from './tracking/sessionManager';
+import { mapPlatformToDeviceType, createTrackingEvent } from './tracking/utils';
 import type { 
   BarberSelectionEvent, 
   ServiceDiscoveryEvent,
   DateTimeEvent,
   OfferInteractionEvent,
   MarketingFunnelEvent,
-  BranchSelectionEvent
+  BranchSelectionEvent,
+  InteractionType
 } from './tracking/types';
-
-// Session management
-let currentSession: string | null = null;
-let lastActivity: number = Date.now();
-const SESSION_TIMEOUT = 30 * 60 * 1000; // 30 minutes
-
-const getSessionId = (): string => {
-  if (!currentSession) {
-    currentSession = Date.now().toString(36) + Math.random().toString(36).substring(2);
-  }
-  lastActivity = Date.now();
-  return currentSession;
-};
-
-const shouldTrack = (): boolean => {
-  if (Date.now() - lastActivity > SESSION_TIMEOUT) {
-    currentSession = null;
-  }
-  return !window.location.hostname.includes('preview--');
-};
-
-// Utility functions
-const mapPlatformToDeviceType = (platform: string): 'mobile' | 'tablet' | 'desktop' => {
-  switch (platform) {
-    case 'ios':
-    case 'android':
-      return 'mobile';
-    default:
-      return 'desktop';
-  }
-};
 
 // Core tracking functions
 export const trackPageView = async (path: string): Promise<void> => {
@@ -47,10 +19,10 @@ export const trackPageView = async (path: string): Promise<void> => {
   
   try {
     const { error } = await supabase.from('page_views').insert({
+      ...createTrackingEvent('page_view'),
       page_url: path,
       session_id: getSessionId(),
-      device_type: mapPlatformToDeviceType(getPlatformType()),
-      created_at: new Date().toISOString()
+      device_type: mapPlatformToDeviceType(getPlatformType())
     });
 
     if (error) throw error;
@@ -60,19 +32,18 @@ export const trackPageView = async (path: string): Promise<void> => {
 };
 
 export const trackInteraction = async (
-  type: string,
+  type: InteractionType,
   details: Record<string, any> = {}
 ): Promise<void> => {
   if (!shouldTrack()) return;
 
   try {
     const { error } = await supabase.from('interaction_events').insert({
-      interaction_type: type,
+      ...createTrackingEvent(type),
       interaction_details: details,
       session_id: getSessionId(),
       device_type: mapPlatformToDeviceType(getPlatformType()),
-      page_url: window.location.pathname,
-      created_at: new Date().toISOString()
+      page_url: window.location.pathname
     });
 
     if (error) throw error;
@@ -87,9 +58,9 @@ export const trackBarberInteraction = async (event: BarberSelectionEvent): Promi
   try {
     const { error } = await supabase.from('barber_selection_events').insert({
       ...event,
+      ...createTrackingEvent('barber_select'),
       session_id: getSessionId(),
-      device_type: mapPlatformToDeviceType(getPlatformType()),
-      created_at: new Date().toISOString()
+      device_type: mapPlatformToDeviceType(getPlatformType())
     });
 
     if (error) throw error;
@@ -104,9 +75,9 @@ export const trackServiceInteraction = async (event: ServiceDiscoveryEvent): Pro
   try {
     const { error } = await supabase.from('service_discovery_events').insert({
       ...event,
+      ...createTrackingEvent('service_select'),
       session_id: getSessionId(),
-      device_type: mapPlatformToDeviceType(getPlatformType()),
-      created_at: new Date().toISOString()
+      device_type: mapPlatformToDeviceType(getPlatformType())
     });
 
     if (error) throw error;
@@ -121,9 +92,9 @@ export const trackDateTimeInteraction = async (event: DateTimeEvent): Promise<vo
   try {
     const { error } = await supabase.from('datetime_tracking').insert({
       ...event,
+      ...createTrackingEvent(event.interaction_type),
       session_id: getSessionId(),
-      device_type: mapPlatformToDeviceType(getPlatformType()),
-      created_at: new Date().toISOString()
+      device_type: mapPlatformToDeviceType(getPlatformType())
     });
 
     if (error) throw error;
@@ -138,9 +109,9 @@ export const trackOfferInteraction = async (event: OfferInteractionEvent): Promi
   try {
     const { error } = await supabase.from('offer_interactions').insert({
       ...event,
+      ...createTrackingEvent(event.interaction_type),
       session_id: getSessionId(),
-      device_type: mapPlatformToDeviceType(getPlatformType()),
-      created_at: new Date().toISOString()
+      device_type: mapPlatformToDeviceType(getPlatformType())
     });
 
     if (error) throw error;
@@ -155,9 +126,9 @@ export const trackMarketingFunnel = async (event: MarketingFunnelEvent): Promise
   try {
     const { error } = await supabase.from('marketing_funnel_events').insert({
       ...event,
+      ...createTrackingEvent('marketing_funnel'),
       session_id: getSessionId(),
-      device_type: mapPlatformToDeviceType(getPlatformType()),
-      created_at: new Date().toISOString()
+      device_type: mapPlatformToDeviceType(getPlatformType())
     });
 
     if (error) throw error;
@@ -172,9 +143,9 @@ export const trackBranchSelection = async (event: BranchSelectionEvent): Promise
   try {
     const { error } = await supabase.from('branch_selection_events').insert({
       ...event,
+      ...createTrackingEvent('branch_select'),
       session_id: getSessionId(),
-      device_type: mapPlatformToDeviceType(getPlatformType()),
-      created_at: new Date().toISOString()
+      device_type: mapPlatformToDeviceType(getPlatformType())
     });
 
     if (error) throw error;
@@ -189,6 +160,7 @@ export const initializeTracking = async (): Promise<void> => {
   try {
     await trackPageView(window.location.pathname);
     await trackMarketingFunnel({
+      interaction_type: 'marketing_funnel',
       funnel_stage: 'landing',
       time_in_stage: 0,
       conversion_successful: false,
@@ -206,5 +178,5 @@ export const initializeTracking = async (): Promise<void> => {
 
 export const cleanupTracking = (): void => {
   if (!shouldTrack()) return;
-  currentSession = null;
+  cleanupSession();
 };
