@@ -34,18 +34,18 @@ export const DateTimeSelection = ({
     trackDateTimeInteraction({
       interaction_type: 'calendar_open',
       calendar_view_type: 'quick_select',
-      device_type: 'desktop', // This will be mapped correctly by the tracking service
-      session_id: 'temp', // This will be replaced by the tracking service
+      device_type: 'desktop',
+      session_id: 'temp',
     });
   }, []);
 
   const handleDateSelect = (date: Date | undefined) => {
     trackDateTimeInteraction({
       interaction_type: 'date_select',
-      selected_date: date,
+      selected_date: date?.toISOString(),
       calendar_view_type: showFullCalendar ? 'month' : 'quick_select',
-      device_type: 'desktop', // This will be mapped correctly by the tracking service
-      session_id: 'temp', // This will be replaced by the tracking service
+      device_type: 'desktop',
+      session_id: 'temp',
     });
     onDateSelect(date);
   };
@@ -54,8 +54,8 @@ export const DateTimeSelection = ({
     trackDateTimeInteraction({
       interaction_type: show ? 'calendar_open' : 'calendar_close',
       calendar_view_type: show ? 'month' : 'quick_select',
-      device_type: 'desktop', // This will be mapped correctly by the tracking service
-      session_id: 'temp', // This will be replaced by the tracking service
+      device_type: 'desktop',
+      session_id: 'temp',
     });
     setShowFullCalendar(show);
   };
