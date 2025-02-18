@@ -20,10 +20,20 @@ export const useBookingNavigation = (
 
   const preserveBranchInUrl = (path: string) => {
     const branchId = getBranchParam();
-    return branchId ? `${path}?branch=${branchId}` : path;
+    if (!branchId) {
+      console.error('No branch ID found in URL');
+      navigate('/customer');
+      return null;
+    }
+    return `${path}?branch=${branchId}`;
   };
 
   const canProceedToNext = () => {
+    if (!branch) {
+      console.error('No branch selected');
+      return false;
+    }
+
     switch (currentStep) {
       case 'services':
         return selectedServices.length > 0;
@@ -42,9 +52,8 @@ export const useBookingNavigation = (
     if (currentStepIndex > 0) {
       return steps[currentStepIndex - 1];
     } else {
-      // When on first step, go back to customer page with branch param
       const path = preserveBranchInUrl('/customer');
-      navigate(path);
+      if (path) navigate(path);
       return null;
     }
   };
@@ -54,8 +63,19 @@ export const useBookingNavigation = (
       return null;
     }
     
+    if (!branch) {
+      console.error('No branch selected during next step');
+      navigate('/customer');
+      return null;
+    }
+
     if (currentStepIndex < steps.length - 1) {
-      return steps[currentStepIndex + 1];
+      const nextStep = steps[currentStepIndex + 1];
+      const path = preserveBranchInUrl('/bookings');
+      if (path) {
+        navigate(path);
+        return nextStep;
+      }
     }
     return null;
   };

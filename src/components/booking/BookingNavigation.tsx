@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
 import { BookingStep } from "@/components/booking/BookingProgress";
+import { toast } from "sonner";
 
 interface BookingNavigationProps {
   currentStepIndex: number;
@@ -32,7 +33,19 @@ export const BookingNavigation = ({
   const location = useLocation();
   const { t, language } = useLanguage();
 
+  const getBranchId = () => {
+    const searchParams = new URLSearchParams(location.search);
+    return searchParams.get('branch');
+  };
+
   const handleNext = () => {
+    const branchId = getBranchId();
+    if (!branchId || !branch) {
+      toast.error(language === 'ar' ? 'يرجى تحديد الفرع أولاً' : 'Please select a branch first');
+      navigate('/customer');
+      return;
+    }
+
     if (onNextClick) {
       onNextClick();
     } else if (currentStepIndex < steps.length - 1) {
@@ -44,9 +57,7 @@ export const BookingNavigation = ({
     if (currentStepIndex > 0) {
       setCurrentStep(steps[currentStepIndex - 1]);
     } else {
-      // When going back to customer page, preserve the state and branch
-      const searchParams = new URLSearchParams(location.search);
-      const branchId = searchParams.get('branch');
+      const branchId = getBranchId();
       navigate(`/customer${branchId ? `?branch=${branchId}` : ''}`);
     }
   };
