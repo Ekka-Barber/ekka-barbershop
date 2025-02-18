@@ -1,5 +1,5 @@
 
-type PlatformType = 'ios' | 'android' | 'desktop' | 'unsupported';
+export type PlatformType = 'ios' | 'android' | 'desktop' | 'unsupported';
 type InstallationStatus = 'not-installed' | 'installed' | 'installing' | 'unsupported';
 
 export const getPlatformType = (): PlatformType => {
