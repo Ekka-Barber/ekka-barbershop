@@ -1,5 +1,5 @@
 
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
 import { BookingStep } from "@/components/booking/BookingProgress";
@@ -29,6 +29,7 @@ export const BookingNavigation = ({
   onNextClick
 }: BookingNavigationProps) => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { t, language } = useLanguage();
 
   const handleNext = () => {
@@ -42,9 +43,11 @@ export const BookingNavigation = ({
   const handleBack = () => {
     if (currentStepIndex > 0) {
       setCurrentStep(steps[currentStepIndex - 1]);
-    } else if (currentStep === 'services') {
-      // Only navigate to customer page if we're explicitly in services step
-      navigate('/customer');
+    } else {
+      // When going back to customer page, preserve the state and branch
+      const searchParams = new URLSearchParams(location.search);
+      const branchId = searchParams.get('branch');
+      navigate(`/customer${branchId ? `?branch=${branchId}` : ''}`);
     }
   };
 
