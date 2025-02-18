@@ -1,4 +1,4 @@
-import { BookingData, JourneyNode, JourneyLink, ServiceAnalytics } from "./types";
+import { ProcessedJourneyData, DropOffPoint, ServiceBundle, PathOptimization } from "./types";
 import { supabase } from "@/integrations/supabase/client";
 
 export const processTimePatterns = (bookingData: BookingData[]) => {
@@ -62,38 +62,20 @@ export const processServiceHeatmapData = (interactionEvents: any[]): ServiceAnal
   }));
 };
 
-interface ProcessedJourneyData {
-  nodes: JourneyNode[];
-  links: JourneyLink[];
-  dropOffPoints: DropOffPoint[];
-  serviceBundles: ServiceBundle[];
-}
-
-interface DropOffPoint {
-  page: string;
-  exitRate: number;
-  averageTimeBeforeExit: number;
-  previousPages: string[];
-}
-
-interface ServiceBundle {
-  name: string;
-  frequency: number;
-  averageValue: number;
-  conversionRate: number;
-  services: string[];
-  performanceMetrics: {
-    timeToBook: number;
-    customerSatisfaction: number;
-    repeatBookingRate: number;
-  };
-}
-
 export const processCustomerJourney = (interactionEvents: any[]): ProcessedJourneyData => {
   const { nodes, links, dropOffPoints, serviceBundles } = processBaseJourneyData(interactionEvents);
   const pathOptimizations = generatePathOptimizations(interactionEvents, dropOffPoints, serviceBundles);
   
-  return { nodes, links, dropOffPoints, serviceBundles, pathOptimizations };
+  return {
+    nodes,
+    links,
+    dropOffPoints: dropOffPoints.map(point => ({
+      ...point,
+      rate: point.exitRate
+    })),
+    serviceBundles,
+    pathOptimizations
+  };
 };
 
 const processBaseJourneyData = (interactionEvents: any[]) => {

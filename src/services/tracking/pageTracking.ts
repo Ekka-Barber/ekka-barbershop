@@ -4,7 +4,7 @@ import { getPlatformType } from "@/services/platformDetection";
 import { getSessionId, shouldTrack } from './sessionManager';
 import { mapPlatformToDeviceType, getBrowserInfo, tryTracking } from './utils';
 
-type InteractionEventType = 
+export type PageInteractionType = 
   | 'page_view'
   | 'dialog_open'
   | 'dialog_close'
@@ -16,10 +16,10 @@ type InteractionEventType =
   | 'branch_select'
   | 'barber_select'
   | 'pdf_view'
-  | 'language_switch'
-  | 'location_view';
+  | 'language_switch';
 
-export type PageInteractionType = InteractionEventType;
+// Temporary solution to handle location_view
+type ExtendedInteractionType = PageInteractionType | 'location_view';
 
 export const trackPageView = async (pageUrl: string): Promise<void> => {
   if (!shouldTrack()) return;
@@ -43,7 +43,7 @@ export const trackPageView = async (pageUrl: string): Promise<void> => {
 };
 
 export const trackInteraction = async (
-  type: InteractionEventType,
+  type: ExtendedInteractionType,
   details: Record<string, any> = {}
 ): Promise<void> => {
   if (!shouldTrack()) return;
@@ -51,10 +51,13 @@ export const trackInteraction = async (
   const session = getSessionId();
   if (!session) return;
 
+  // Map location_view to page_view for database compatibility
+  const dbInteractionType = type === 'location_view' ? 'page_view' : type;
+
   await tryTracking(async () => {
     const { error } = await supabase.from('interaction_events').insert({
-      interaction_type: type,
-      interaction_details: details,
+      interaction_type: dbInteractionType,
+      interaction_details: { ...details, original_type: type },
       session_id: session,
       device_type: mapPlatformToDeviceType(getPlatformType()),
       page_url: window.location.pathname,
