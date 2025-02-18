@@ -16,10 +16,23 @@ interface Employee {
 }
 
 const transformEmployeeToBarberDetails = (employee: Employee): BarberDetails => {
-  let workingHours: Record<string, string[]> = {};
+  let workingHours: Record<string, string[]> = {
+    monday: [],
+    tuesday: [],
+    wednesday: [],
+    thursday: [],
+    friday: [],
+    saturday: [],
+    sunday: []
+  };
   
   if (typeof employee.working_hours === 'object' && employee.working_hours !== null) {
-    workingHours = employee.working_hours as Record<string, string[]>;
+    const hours = employee.working_hours as Record<string, unknown>;
+    Object.keys(hours).forEach(day => {
+      if (Array.isArray(hours[day])) {
+        workingHours[day] = hours[day] as string[];
+      }
+    });
   }
 
   return {

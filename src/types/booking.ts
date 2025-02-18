@@ -49,6 +49,6 @@ export interface BarberDetails {
   role: string;
   photo_url: string | null;
   nationality: string | null;
-  working_hours?: Record<string, string[]>;
-  off_days?: string[];
+  working_hours: Record<string, string[]>;
+  off_days: string[];
 }
