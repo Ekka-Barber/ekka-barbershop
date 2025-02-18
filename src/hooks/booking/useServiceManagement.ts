@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from '@tanstack/react-query';
 import { Service, validateService } from '@/types/service';
@@ -95,21 +94,26 @@ export const useServiceManagement = () => {
           variant: "destructive"
         });
         
-        setSelectedServices(prev => prev.filter(s => 
-          s.id !== service.id && s.mainServiceId !== service.id
-        ));
+        setSelectedServices(
+          selectedServices.filter(s => s.id !== service.id && s.mainServiceId !== service.id)
+        );
       } else {
-        setSelectedServices(prev => prev.filter(s => s.id !== service.id));
+        setSelectedServices(
+          selectedServices.filter(s => s.id !== service.id)
+        );
       }
     } else {
       const finalPrice = skipDiscountCalculation ? service.price : calculateDiscountedPrice(service);
-      setSelectedServices(prev => [...prev, {
-        ...service,
-        price: roundPrice(finalPrice),
-        originalPrice: skipDiscountCalculation ? undefined : (finalPrice !== service.price ? roundPrice(service.price) : undefined),
-        isUpsellItem: false,
-        dependentUpsells: []
-      }]);
+      setSelectedServices([
+        ...selectedServices,
+        {
+          ...service,
+          price: roundPrice(finalPrice),
+          originalPrice: skipDiscountCalculation ? undefined : (finalPrice !== service.price ? roundPrice(service.price) : undefined),
+          isUpsellItem: false,
+          dependentUpsells: []
+        }
+      ]);
     }
   };
 

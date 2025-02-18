@@ -1,5 +1,6 @@
 import { BookingData, JourneyNode, JourneyLink, ServiceAnalytics } from "./types";
 import { supabase } from "@/integrations/supabase/client";
+import { Database } from "@/types/supabase";
 
 export const processTimePatterns = (bookingData: BookingData[]) => {
   const timePatterns = bookingData.reduce((acc, booking) => {
@@ -170,20 +171,13 @@ export const analyzeCategoryPerformance = async (
   startDate: Date,
   endDate: Date
 ): Promise<CategoryPerformance[]> => {
-  const { data: events } = await supabase
+  const { data: events, error } = await supabase
     .from('service_discovery_events')
-    .select(`
-      category_id,
-      service_id,
-      interaction_type,
-      selected_service_name,
-      timestamp,
-      view_duration_seconds
-    `)
-    .gte('timestamp', startDate.toISOString())
-    .lte('timestamp', endDate.toISOString());
+    .select('*')
+    .gte('created_at', startDate.toISOString())
+    .lte('created_at', endDate.toISOString());
 
-  if (!events) return [];
+  if (error || !events) return [];
 
   const categoryMap = new Map<string, CategoryPerformance>();
 
@@ -193,7 +187,7 @@ export const analyzeCategoryPerformance = async (
     if (!categoryMap.has(event.category_id)) {
       categoryMap.set(event.category_id, {
         categoryId: event.category_id,
-        categoryName: '', // Will be populated later
+        categoryName: '',
         viewCount: 0,
         conversionRate: 0,
         averageTimeSpent: 0,
@@ -375,14 +369,15 @@ export const analyzeBarberSelectionPatterns = async (
       pattern.preferredTimeSlots = [...new Set([...pattern.preferredTimeSlots, ...event.preferred_time_slots])];
     }
 
-    if (event.selection_criteria) {
-      if (event.selection_criteria.availability_based) {
+    if (event.selection_criteria && typeof event.selection_criteria === 'object') {
+      const criteria = event.selection_criteria as Record<string, boolean>;
+      if (criteria.availability_based) {
         pattern.selectionCriteria.availabilityBased++;
       }
-      if (event.selection_criteria.nationality_based) {
+      if (criteria.nationality_based) {
         pattern.selectionCriteria.nationalityBased++;
       }
-      if (event.selection_criteria.time_slot_based) {
+      if (criteria.time_slot_based) {
         pattern.selectionCriteria.timeSlotBased++;
       }
     }

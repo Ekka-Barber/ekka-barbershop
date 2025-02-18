@@ -2,7 +2,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from "@/integrations/supabase/client";
 
-export const useEmployeeManagement = (branch: any) => {
+export const useEmployeeManagement = (branch: any, selectedEmployeeId?: string) => {
   const { data: employees, isLoading: employeesLoading } = useQuery({
     queryKey: ['employees', branch?.id],
     queryFn: async () => {
@@ -18,20 +18,20 @@ export const useEmployeeManagement = (branch: any) => {
     enabled: !!branch?.id,
   });
 
-  const { data: selectedEmployee, selectedBarber } = useQuery({
-    queryKey: ['employee', selectedBarber],
+  const { data: selectedEmployee } = useQuery({
+    queryKey: ['employee', selectedEmployeeId],
     queryFn: async () => {
-      if (!selectedBarber) return null;
+      if (!selectedEmployeeId) return null;
       const { data, error } = await supabase
         .from('employees')
         .select('*')
-        .eq('id', selectedBarber)
+        .eq('id', selectedEmployeeId)
         .maybeSingle();
       
       if (error) throw error;
       return data;
     },
-    enabled: !!selectedBarber
+    enabled: !!selectedEmployeeId
   });
 
   return {
