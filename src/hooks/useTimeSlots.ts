@@ -1,3 +1,4 @@
+
 import { format, parse, isToday, isBefore, addMinutes, isAfter, addDays, set } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -94,23 +95,30 @@ export const useTimeSlots = () => {
       const startTime = parse(start, 'HH:mm', baseDate);
       let endTime = parse(end, 'HH:mm', baseDate);
       
-      // Properly handle times after midnight
-      if (isAfter(startTime, endTime)) {
-        // Add a day to the end time
+      // Handle shifts that cross midnight
+      const crossesMidnight = isAfter(startTime, endTime);
+      if (crossesMidnight) {
         endTime = addDays(endTime, 1);
       }
 
       console.log('Processing time range:', {
         start: format(startTime, 'HH:mm'),
         end: format(endTime, 'HH:mm'),
-        crossesMidnight: isAfter(startTime, endTime)
+        crossesMidnight
       });
       
       let currentSlot = startTime;
-      // Use strict comparison to ensure we get all slots including the last one
-      while (isBefore(currentSlot, endTime) || format(currentSlot, 'HH:mm') === format(endTime, 'HH:mm')) {
+      
+      // Modified while condition to exclude 00:00 slot when it's the end time
+      while (isBefore(currentSlot, endTime)) {
         const timeString = format(currentSlot, 'HH:mm');
         const slotMinutes = convertTimeToMinutes(timeString);
+        
+        // Skip adding the 00:00 slot unless we're handling a shift that crosses midnight
+        if (timeString === '00:00' && !crossesMidnight) {
+          currentSlot = addMinutes(currentSlot, 30);
+          continue;
+        }
         
         console.log('Processing slot:', {
           timeString,
@@ -125,9 +133,6 @@ export const useTimeSlots = () => {
           time: timeString,
           isAvailable: available
         });
-        
-        // Break the loop if we've reached the end time
-        if (format(currentSlot, 'HH:mm') === format(endTime, 'HH:mm')) break;
         
         currentSlot = addMinutes(currentSlot, 30);
       }
