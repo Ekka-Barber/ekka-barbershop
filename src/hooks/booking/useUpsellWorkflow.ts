@@ -12,17 +12,20 @@ export const useUpsellWorkflow = () => {
     selectedServices: any[],
     totalPrice: number
   ) => {
-    if (nextStep === 'datetime' && availableUpsells?.length) {
+    // Only show upsell modal if going to datetime step and have upsells
+    if (nextStep === 'datetime' && availableUpsells?.length > 0) {
       setShowUpsellModal(true);
-      setPendingStep('datetime');
-      return true;
+      setPendingStep(nextStep);
+      return false; // Don't prevent normal step change
     }
     return false;
   }, []);
 
   const handleUpsellModalClose = useCallback(() => {
     setShowUpsellModal(false);
-    return pendingStep;
+    const step = pendingStep;
+    setPendingStep(null);
+    return step;
   }, [pendingStep]);
 
   return {

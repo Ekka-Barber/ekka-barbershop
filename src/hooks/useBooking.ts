@@ -6,6 +6,7 @@ import { useBookingState } from './booking/useBookingState';
 import { useServiceManagement } from './booking/useServiceManagement';
 import { useEmployeeManagement } from './booking/useEmployeeManagement';
 import { useUpsellManagement } from './booking/useUpsellManagement';
+import { useBookingNavigation } from './booking/useBookingNavigation';
 
 export const useBooking = (branch: Branch) => {
   const {
@@ -38,6 +39,12 @@ export const useBooking = (branch: Branch) => {
 
   const { handleUpsellServiceAdd: baseHandleUpsellServiceAdd } = useUpsellManagement();
 
+  const {
+    handleBack,
+    handleNext,
+    canProceedToNext
+  } = useBookingNavigation(currentStep, selectedServices, customerDetails, branch);
+
   const handleServiceToggle = (service: Service, skipDiscountCalculation: boolean = false) => {
     baseHandleServiceToggle(service, selectedServices, setSelectedServices, skipDiscountCalculation);
   };
@@ -54,21 +61,6 @@ export const useBooking = (branch: Branch) => {
   };
 
   const totalPrice = selectedServices.reduce((sum, service) => sum + service.price, 0);
-
-  const canProceedToNext = () => {
-    switch (currentStep) {
-      case 'services':
-        return selectedServices.length > 0;
-      case 'datetime':
-        return !!selectedDate && !!selectedTime;
-      case 'barber':
-        return !!selectedBarber;
-      case 'details':
-        return !!customerDetails.name && !!customerDetails.phone;
-      default:
-        return false;
-    }
-  };
 
   const handleStepChange = (nextStep: BookingStep) => {
     if (canProceedToNext()) {
@@ -98,6 +90,8 @@ export const useBooking = (branch: Branch) => {
     handleUpsellServiceAdd,
     totalPrice,
     canProceedToNext,
-    handleStepChange
+    handleStepChange,
+    handleBack,
+    handleNext
   };
 };
