@@ -290,6 +290,60 @@ const analyzeHourlyPattern = (bookings: any[]) => {
 
   if (!maxHour) return null;
 
+  const hourString = `${parseInt(maxHour[0])}:00`;
+  
   return {
     period: 'Daily',
+    pattern: `Peak bookings around ${hourString}`,
+    strength: calculatePatternStrength(Object.values(hourlyBookings)),
+    significance: 0.85
+  };
+};
+
+const calculatePatternStrength = (values: number[]): number => {
+  if (values.length === 0) return 0;
+  
+  const max = Math.max(...values);
+  const min = Math.min(...values);
+  const avg = values.reduce((a, b) => a + b, 0) / values.length;
+  
+  // Calculate strength based on variance from average
+  const strength = ((max - min) / (avg || 1)) * 100;
+  
+  return Math.min(Math.round(strength), 100);
+};
+
+const analyzeTrends = (bookings: any[]) => {
+  if (bookings.length === 0) return [];
+
+  // Sort bookings by date
+  const sortedBookings = [...bookings].sort((a, b) => 
+    new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+  );
+
+  // Group by week
+  const weeklyData = sortedBookings.reduce((acc, booking) => {
+    const date = new Date(booking.timestamp);
+    const weekStart = new Date(date.setDate(date.getDate() - date.getDay()));
+    const weekKey = weekStart.toISOString().split('T')[0];
     
+    if (!acc[weekKey]) {
+      acc[weekKey] = {
+        count: 0,
+        revenue: 0
+      };
+    }
+    
+    acc[weekKey].count++;
+    acc[weekKey].revenue += booking.event_data?.total_amount || 0;
+    
+    return acc;
+  }, {} as Record<string, { count: number; revenue: number }>);
+
+  return Object.entries(weeklyData).map(([week, data]) => ({
+    week,
+    bookings: data.count,
+    revenue: data.revenue,
+    averageValue: data.revenue / data.count
+  }));
+};
