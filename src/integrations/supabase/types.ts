@@ -71,7 +71,6 @@ export type Database = {
           customer_name: string
           customer_notes: string | null
           customer_phone: string
-          device_type: Database["public"]["Enums"]["device_type"] | null
           duration_minutes: number
           id: string
           reminder_sent: boolean | null
@@ -94,7 +93,6 @@ export type Database = {
           customer_name: string
           customer_notes?: string | null
           customer_phone: string
-          device_type?: Database["public"]["Enums"]["device_type"] | null
           duration_minutes: number
           id?: string
           reminder_sent?: boolean | null
@@ -117,7 +115,6 @@ export type Database = {
           customer_name?: string
           customer_notes?: string | null
           customer_phone?: string
-          device_type?: Database["public"]["Enums"]["device_type"] | null
           duration_minutes?: number
           id?: string
           reminder_sent?: boolean | null
@@ -271,57 +268,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      click_tracking: {
-        Row: {
-          content_height: number
-          content_width: number
-          created_at: string
-          device_type: Database["public"]["Enums"]["device_type"]
-          element_class: string | null
-          element_id: string | null
-          id: string
-          page_url: string
-          screen_height: number
-          screen_width: number
-          scroll_x: number
-          scroll_y: number
-          x_coordinate: number
-          y_coordinate: number
-        }
-        Insert: {
-          content_height?: number
-          content_width?: number
-          created_at?: string
-          device_type: Database["public"]["Enums"]["device_type"]
-          element_class?: string | null
-          element_id?: string | null
-          id?: string
-          page_url: string
-          screen_height: number
-          screen_width: number
-          scroll_x?: number
-          scroll_y?: number
-          x_coordinate: number
-          y_coordinate: number
-        }
-        Update: {
-          content_height?: number
-          content_width?: number
-          created_at?: string
-          device_type?: Database["public"]["Enums"]["device_type"]
-          element_class?: string | null
-          element_id?: string | null
-          id?: string
-          page_url?: string
-          screen_height?: number
-          screen_width?: number
-          scroll_x?: number
-          scroll_y?: number
-          x_coordinate?: number
-          y_coordinate?: number
-        }
-        Relationships: []
       }
       daily_sales: {
         Row: {
@@ -907,6 +853,39 @@ export type Database = {
           },
         ]
       }
+      loyalty_program: {
+        Row: {
+          created_at: string
+          description_template: string | null
+          happy_hour: Json
+          id: string
+          is_active: boolean
+          points_required: Json
+          tiers: Json
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description_template?: string | null
+          happy_hour?: Json
+          id?: string
+          is_active?: boolean
+          points_required?: Json
+          tiers?: Json
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description_template?: string | null
+          happy_hour?: Json
+          id?: string
+          is_active?: boolean
+          points_required?: Json
+          tiers?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
       marketing_files: {
         Row: {
           branch_name: string | null
@@ -957,75 +936,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "branches"
             referencedColumns: ["name"]
-          },
-        ]
-      }
-      notification_events: {
-        Row: {
-          body: string
-          created_at: string
-          data: Json | null
-          id: string
-          title: string
-          url: string | null
-        }
-        Insert: {
-          body: string
-          created_at?: string
-          data?: Json | null
-          id?: string
-          title: string
-          url?: string | null
-        }
-        Update: {
-          body?: string
-          created_at?: string
-          data?: Json | null
-          id?: string
-          title?: string
-          url?: string | null
-        }
-        Relationships: []
-      }
-      notification_tracking: {
-        Row: {
-          created_at: string
-          event_type: string
-          id: string
-          metadata: Json | null
-          notification_id: string | null
-          subscription_id: string | null
-        }
-        Insert: {
-          created_at?: string
-          event_type: string
-          id?: string
-          metadata?: Json | null
-          notification_id?: string | null
-          subscription_id?: string | null
-        }
-        Update: {
-          created_at?: string
-          event_type?: string
-          id?: string
-          metadata?: Json | null
-          notification_id?: string | null
-          subscription_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "notification_tracking_notification_id_fkey"
-            columns: ["notification_id"]
-            isOneToOne: false
-            referencedRelation: "notification_events"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "notification_tracking_subscription_id_fkey"
-            columns: ["subscription_id"]
-            isOneToOne: false
-            referencedRelation: "push_subscriptions"
-            referencedColumns: ["id"]
           },
         ]
       }
@@ -1396,33 +1306,6 @@ export type Database = {
           name_ar?: string
           name_en?: string
           updated_at?: string
-        }
-        Relationships: []
-      }
-      service_tracking: {
-        Row: {
-          action: string
-          created_at: string
-          id: string
-          service_name: string
-          timestamp: string
-          user_id: string | null
-        }
-        Insert: {
-          action: string
-          created_at?: string
-          id?: string
-          service_name: string
-          timestamp?: string
-          user_id?: string | null
-        }
-        Update: {
-          action?: string
-          created_at?: string
-          id?: string
-          service_name?: string
-          timestamp?: string
-          user_id?: string | null
         }
         Relationships: []
       }
@@ -1838,7 +1721,7 @@ export type Database = {
     Enums: {
       adjustment_type: "correction" | "refund"
       basic_payment_method: "cash" | "bank_transfer"
-      device_type: "mobile" | "tablet" | "desktop"
+      calendar_view_type: "month" | "week" | "quick_select"
       employee_role:
         | "manager"
         | "barber"
