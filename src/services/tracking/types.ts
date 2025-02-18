@@ -1,4 +1,3 @@
-
 export type DeviceType = 'mobile' | 'tablet' | 'desktop';
 
 export type ServiceInteractionType = 
@@ -28,6 +27,13 @@ export type BaseInteractionType =
   | 'dialog_close' 
   | 'service_select'
   | 'branch_select';
+
+export type BranchInteractionType = 
+  | 'dialog_open'
+  | 'dialog_close'
+  | 'branch_select'
+  | 'location_view'
+  | 'maps_redirect';
 
 export interface ServiceDiscoveryEvent {
   category_id?: string;
@@ -78,6 +84,17 @@ export interface BarberSelectionEvent {
   session_id: string;
   device_type: DeviceType;
   timestamp: string;
+}
+
+export interface BranchSelectionEvent {
+  branch_id?: string;
+  selected_branch_name?: string;
+  interaction_type: BranchInteractionType;
+  source_page: string;
+  dialog_open_time?: string;
+  dialog_close_time?: string;
+  device_type?: DeviceType;
+  session_id?: string;
 }
 
 export interface SessionData {

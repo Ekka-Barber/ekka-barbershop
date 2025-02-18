@@ -4,6 +4,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useTimeFormatting } from "@/hooks/useTimeFormatting";
 import { Clock, Car } from "lucide-react";
+import { useTracking } from "@/hooks/useTracking";
+import { useEffect, useRef } from "react";
 
 interface Branch {
   id: string;
@@ -30,6 +32,38 @@ export const LocationDialog = ({
 }: LocationDialogProps) => {
   const { language } = useLanguage();
   const { getAllDaysHours } = useTimeFormatting();
+  const { trackInteraction } = useTracking();
+  const dialogOpenTime = useRef<Date | null>(null);
+
+  useEffect(() => {
+    if (open) {
+      dialogOpenTime.current = new Date();
+      trackInteraction('dialog_open', {
+        dialog_type: 'location_selection',
+        page_url: window.location.pathname
+      });
+    } else if (dialogOpenTime.current) {
+      const duration = new Date().getTime() - dialogOpenTime.current.getTime();
+      trackInteraction('dialog_close', {
+        dialog_type: 'location_selection',
+        duration_ms: duration,
+        page_url: window.location.pathname
+      });
+      dialogOpenTime.current = null;
+    }
+  }, [open, trackInteraction]);
+
+  const handleLocationClick = (branch: Branch) => {
+    trackInteraction('location_view', {
+      branch_id: branch.id,
+      branch_name: language === 'ar' ? branch.name_ar : branch.name,
+      branch_address: language === 'ar' ? branch.address_ar : branch.address,
+      has_maps_url: !!branch.google_maps_url,
+      page_url: window.location.pathname,
+      language: language
+    });
+    onLocationClick(branch.google_maps_url);
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -58,7 +92,7 @@ export const LocationDialog = ({
               key={branch.id}
               variant="outline"
               className="w-full h-[100px] flex flex-row items-center justify-between gap-3 px-4 bg-white hover:bg-[#C4A36F]/5 border-2 border-gray-200 hover:border-[#C4A36F] transition-all duration-300 rounded-lg group"
-              onClick={() => onLocationClick(branch.google_maps_url)}
+              onClick={() => handleLocationClick(branch)}
             >
               <div className={`flex flex-col items-${language === 'ar' ? 'end' : 'start'} flex-shrink min-w-0 max-w-[70%]`}>
                 <span className="w-full font-bold text-base text-[#222222] group-hover:text-[#C4A36F] transition-colors truncate">
