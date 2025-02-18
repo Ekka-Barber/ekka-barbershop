@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { v4 as uuidv4 } from 'uuid';
 import { getPlatformType } from "@/services/platformDetection";
@@ -113,7 +114,6 @@ const tryTracking = async (operation: () => Promise<any>, maxRetries = 3): Promi
   }
 };
 
-// Page view tracking
 export const trackPageView = async (pageUrl: string): Promise<void> => {
   if (!shouldTrack()) return;
 
@@ -137,7 +137,6 @@ export const trackPageView = async (pageUrl: string): Promise<void> => {
   });
 };
 
-// Interaction tracking
 export const trackInteraction = async (
   type: BaseInteractionType,
   details: Record<string, any>
@@ -165,7 +164,6 @@ export const trackInteraction = async (
   });
 };
 
-// Service interaction tracking
 export const trackServiceInteraction = async (event: ServiceDiscoveryEvent): Promise<void> => {
   if (!shouldTrack()) return;
 
@@ -186,7 +184,6 @@ export const trackServiceInteraction = async (event: ServiceDiscoveryEvent): Pro
   });
 };
 
-// DateTime interaction tracking
 export const trackDateTimeInteraction = async (event: DateTimeInteractionEvent): Promise<void> => {
   if (!shouldTrack()) return;
 
@@ -211,17 +208,12 @@ export const trackDateTimeInteraction = async (event: DateTimeInteractionEvent):
   });
 };
 
-// Initialize tracking
 export const initializeTracking = (): void => {
   if (!shouldTrack()) return;
   getSessionId();
   trackPageView(window.location.pathname);
 };
 
-// Cleanup tracking
 export const cleanupTracking = (): void => {
   if (!shouldTrack()) return;
 };
-
-// Export other functions
-export { trackPageView, trackInteraction, trackServiceInteraction };
