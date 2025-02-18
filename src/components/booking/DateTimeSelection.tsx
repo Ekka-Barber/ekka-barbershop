@@ -22,7 +22,7 @@ const DateTimeSelection = () => {
   const { branch } = useBranchManagement();
   const { selectedBarber, selectedDate, setSelectedDate, selectedTime, setSelectedTime } = useBooking(branch);
 
-  // Query for current day's time slots
+  // Query for current day's time slots with correct TypeScript configuration
   const { data: timeSlots = [], isLoading, error } = useQuery({
     queryKey: ['timeSlots', selectedBarber?.id, selectedDate?.toISOString()],
     queryFn: async () => {
@@ -32,7 +32,7 @@ const DateTimeSelection = () => {
     enabled: !!selectedBarber && !!selectedDate,
     staleTime: STALE_TIME,
     gcTime: CACHE_TIME,
-    retry: 2,
+    retry: 2
   });
 
   // Prefetch multiple future days
@@ -55,9 +55,10 @@ const DateTimeSelection = () => {
     }
   }, [selectedBarber, selectedDate, queryClient]);
 
-  // Error handling
+  // Error handling in separate useEffect
   React.useEffect(() => {
     if (error) {
+      console.error('Error fetching time slots:', error);
       toast({
         title: t('Error'),
         description: t('Failed to load available time slots. Please try again.'),
