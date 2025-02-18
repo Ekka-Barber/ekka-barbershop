@@ -190,6 +190,39 @@ export const trackServiceInteraction = async (event: ServiceDiscoveryEvent): Pro
   });
 };
 
+// DateTime interaction tracking
+interface DateTimeInteractionEvent {
+  session_id: string;
+  interaction_type: 'calendar_open' | 'calendar_close' | 'date_select' | 'time_select' | 'time_slot_view';
+  selected_date?: Date;
+  selected_time?: string;
+  calendar_view_type: 'month' | 'week' | 'quick_select';
+  time_slot_position?: string;
+  device_type: DeviceType;
+  browser_info?: any;
+}
+
+export const trackDateTimeInteraction = async (event: DateTimeInteractionEvent): Promise<void> => {
+  if (!shouldTrack()) return;
+
+  const session = getSessionId();
+  if (!session) return;
+
+  await tryTracking(async () => {
+    const { error } = await supabase.from('datetime_tracking').insert({
+      ...event,
+      session_id: session,
+      device_type: mapPlatformToDeviceType(getPlatformType()),
+      browser_info: getBrowserInfo(),
+      created_at: new Date().toISOString()
+    });
+
+    if (error) {
+      console.error('Error tracking datetime interaction:', error);
+    }
+  });
+};
+
 // Initialize tracking
 export const initializeTracking = (): void => {
   if (!shouldTrack()) return;

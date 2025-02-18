@@ -6,7 +6,8 @@ import {
   cleanupTracking, 
   trackPageView, 
   trackInteraction,
-  trackServiceInteraction 
+  trackServiceInteraction,
+  trackDateTimeInteraction
 } from '@/services/trackingService';
 
 export const useTracking = () => {
@@ -33,6 +34,7 @@ export const useTracking = () => {
 
   return {
     trackInteraction,
-    trackServiceInteraction
+    trackServiceInteraction,
+    trackDateTimeInteraction
   };
 };
