@@ -7,6 +7,7 @@ export interface WorkingHours {
   friday: string[];
   saturday: string[];
   sunday: string[];
+  [key: string]: string[]; // Add index signature to make it compatible with useTimeFormatting
 }
 
 export interface Branch {

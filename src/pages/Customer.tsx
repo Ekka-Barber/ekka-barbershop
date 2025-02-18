@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -8,38 +9,41 @@ import { supabase } from "@/integrations/supabase/client";
 import { MapPin } from "lucide-react";
 import { BranchDialog } from "@/components/customer/BranchDialog";
 import { LocationDialog } from "@/components/customer/LocationDialog";
+import { Branch } from "@/types/branch";
 
 const Customer = () => {
   const navigate = useNavigate();
-  const {
-    t,
-    language
-  } = useLanguage();
+  const { t, language } = useLanguage();
   const [branchDialogOpen, setBranchDialogOpen] = useState(false);
   const [locationDialogOpen, setLocationDialogOpen] = useState(false);
-  const {
-    data: branches
-  } = useQuery({
+
+  const { data: branches } = useQuery({
     queryKey: ['branches'],
     queryFn: async () => {
-      const {
-        data,
-        error
-      } = await supabase.from('branches').select('*');
+      const { data, error } = await supabase.from('branches').select('*');
       if (error) throw error;
-      return data;
+      
+      // Transform the data to ensure working_hours is properly typed
+      return data.map(branch => ({
+        ...branch,
+        working_hours: branch.working_hours as Branch['working_hours']
+      })) as Branch[];
     }
   });
+
   const handleBranchSelect = (branchId: string) => {
     setBranchDialogOpen(false);
     navigate(`/bookings?branch=${branchId}`);
   };
+
   const handleLocationClick = (url: string | null) => {
     if (url) {
       window.open(url, '_blank');
     }
   };
-  return <div dir={language === 'ar' ? 'rtl' : 'ltr'} className="min-h-screen flex flex-col">
+
+  return (
+    <div dir={language === 'ar' ? 'rtl' : 'ltr'} className="min-h-screen flex flex-col">
       <div className="app-header">
         <div className="language-switcher-container">
           <LanguageSwitcher />
@@ -96,7 +100,8 @@ const Customer = () => {
       <LocationDialog open={locationDialogOpen} onOpenChange={setLocationDialogOpen} branches={branches} onLocationClick={handleLocationClick} />
 
       <footer className="page-footer" />
-    </div>;
+    </div>
+  );
 };
 
 export default Customer;
