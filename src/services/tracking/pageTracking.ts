@@ -52,7 +52,7 @@ export const trackInteraction = async (
   await tryTracking(async () => {
     const { error } = await supabase.from('interaction_events').insert({
       interaction_type: type,
-      interaction_details: { ...details, abTestVariant: details.abTestVariant },
+      interaction_details: details,
       session_id: session,
       device_type: mapPlatformToDeviceType(getPlatformType()),
       page_url: window.location.pathname,

@@ -128,44 +128,4 @@ export interface DropOffPoint {
   previousPages: string[];
 }
 
-export interface ABTestVariant {
-  id: string;
-  name: string;
-  description: string;
-  isControl: boolean;
-}
-
-export interface ABTestResult {
-  variantId: string;
-  totalUsers: number;
-  conversions: number;
-  conversionRate: number;
-  averageTimeToConversion: number;
-  bounceRate: number;
-  deviceDistribution: {
-    mobile: number;
-    tablet: number;
-    desktop: number;
-  };
-  confidenceInterval: {
-    lower: number;
-    upper: number;
-  };
-  statisticalSignificance: number;
-}
-
-export interface ABTest {
-  id: string;
-  name: string;
-  description: string;
-  startDate: string;
-  endDate?: string;
-  status: 'draft' | 'running' | 'completed' | 'archived';
-  variants: ABTestVariant[];
-  results?: ABTestResult[];
-  targetMetric: 'conversion' | 'timeToBook' | 'revenue';
-  minimumSampleSize: number;
-  currentSampleSize: number;
-}
-
 export const COLORS = ['#4ade80', '#f87171', '#60a5fa', '#facc15'];
