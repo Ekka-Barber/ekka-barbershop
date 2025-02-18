@@ -10,6 +10,7 @@ import Menu from "./pages/Menu";
 import Offers from "./pages/Offers";
 import Bookings from "./pages/Bookings";
 import { LanguageProvider } from "@/contexts/LanguageContext";
+import { BookingProvider } from "@/contexts/BookingContext";
 
 // Lazy load Admin component
 const Admin = lazy(() => import("./pages/Admin"));
@@ -65,10 +66,12 @@ const App = () => {
     <React.StrictMode>
       <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
         <LanguageProvider>
-          <TooltipProvider delayDuration={0}>
-            <AppContent />
-            <Toaster />
-          </TooltipProvider>
+          <BookingProvider>
+            <TooltipProvider delayDuration={0}>
+              <AppContent />
+              <Toaster />
+            </TooltipProvider>
+          </BookingProvider>
         </LanguageProvider>
       </ThemeProvider>
     </React.StrictMode>

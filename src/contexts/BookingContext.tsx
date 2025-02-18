@@ -72,6 +72,14 @@ function bookingReducer(state: BookingState, action: BookingAction): BookingStat
 export function BookingProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(bookingReducer, initialState);
 
+  // Add debug logs for provider mounting
+  React.useEffect(() => {
+    console.log('BookingProvider mounted with initial state:', state);
+    return () => {
+      console.log('BookingProvider unmounting');
+    };
+  }, []);
+
   return (
     <BookingContext.Provider value={{ state, dispatch }}>
       {children}
