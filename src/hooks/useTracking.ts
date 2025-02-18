@@ -1,43 +1,29 @@
 
-import { useEffect, useCallback, useRef } from 'react';
-import { useLocation } from 'react-router-dom';
-import { 
-  trackPageView, 
-  trackInteraction,
-  trackServiceInteraction,
-  trackDateTimeInteraction,
-  trackBarberInteraction,
-  trackOfferInteraction,
-  trackMarketingFunnel
-} from '@/services/trackingService';
+import { useCallback } from 'react';
+import { unifiedTracking } from '@/services/tracking/unifiedTracking';
+import type { FunnelStage } from '@/services/tracking/types/unified';
 
 export const useTracking = () => {
-  const location = useLocation();
-  const isInitialized = useRef(false);
-
-  const safeTrackPageView = useCallback(async (path: string) => {
-    if (!isInitialized.current) return;
-    
-    try {
-      await trackPageView(path);
-    } catch (error) {
-      console.error('Error in page view tracking:', error);
-    }
+  const trackPageView = useCallback((url: string, additionalData = {}) => {
+    unifiedTracking.trackPageView(url, additionalData);
   }, []);
 
-  useEffect(() => {
-    if (isInitialized.current) {
-      safeTrackPageView(location.pathname);
-    }
-  }, [location, safeTrackPageView]);
+  const trackInteraction = useCallback((type: string, details = {}) => {
+    unifiedTracking.trackInteraction(type, details);
+  }, []);
+
+  const trackBusinessEvent = useCallback((name: string, data = {}) => {
+    unifiedTracking.trackBusinessEvent(name, data);
+  }, []);
+
+  const trackFunnelStage = useCallback((stage: FunnelStage) => {
+    unifiedTracking.trackFunnelStage(stage);
+  }, []);
 
   return {
+    trackPageView,
     trackInteraction,
-    trackServiceInteraction,
-    trackDateTimeInteraction,
-    trackBarberInteraction,
-    trackOfferInteraction,
-    trackMarketingFunnel,
-    trackPageView: safeTrackPageView
+    trackBusinessEvent,
+    trackFunnelStage
   };
 };

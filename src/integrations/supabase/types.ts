@@ -1062,6 +1062,44 @@ export type Database = {
           },
         ]
       }
+      funnel_stages: {
+        Row: {
+          conversion_successful: boolean | null
+          entry_time: string | null
+          exit_time: string | null
+          id: string
+          session_id: string | null
+          stage_data: Json | null
+          stage_name: string
+        }
+        Insert: {
+          conversion_successful?: boolean | null
+          entry_time?: string | null
+          exit_time?: string | null
+          id?: string
+          session_id?: string | null
+          stage_data?: Json | null
+          stage_name: string
+        }
+        Update: {
+          conversion_successful?: boolean | null
+          entry_time?: string | null
+          exit_time?: string | null
+          id?: string
+          session_id?: string | null
+          stage_data?: Json | null
+          stage_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "funnel_stages_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "tracking_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       interaction_events: {
         Row: {
           created_at: string | null
@@ -1971,6 +2009,39 @@ export type Database = {
           },
         ]
       }
+      tracking_sessions: {
+        Row: {
+          created_at: string | null
+          device_type: Database["public"]["Enums"]["device_type"] | null
+          end_time: string | null
+          id: string
+          last_activity: string | null
+          session_data: Json | null
+          start_time: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          device_type?: Database["public"]["Enums"]["device_type"] | null
+          end_time?: string | null
+          id: string
+          last_activity?: string | null
+          session_data?: Json | null
+          start_time?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          device_type?: Database["public"]["Enums"]["device_type"] | null
+          end_time?: string | null
+          id?: string
+          last_activity?: string | null
+          session_data?: Json | null
+          start_time?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       transactions: {
         Row: {
           adjustment_type:
@@ -2125,6 +2196,42 @@ export type Database = {
           },
         ]
       }
+      unified_events: {
+        Row: {
+          created_at: string | null
+          device_type: Database["public"]["Enums"]["device_type"] | null
+          event_data: Json | null
+          event_name: string
+          event_type: Database["public"]["Enums"]["unified_event_type"]
+          id: string
+          page_url: string | null
+          session_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          device_type?: Database["public"]["Enums"]["device_type"] | null
+          event_data?: Json | null
+          event_name: string
+          event_type: Database["public"]["Enums"]["unified_event_type"]
+          id?: string
+          page_url?: string | null
+          session_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          device_type?: Database["public"]["Enums"]["device_type"] | null
+          event_data?: Json | null
+          event_name?: string
+          event_type?: Database["public"]["Enums"]["unified_event_type"]
+          id?: string
+          page_url?: string | null
+          session_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       vat_entries: {
         Row: {
           base_amount: number
@@ -2199,7 +2306,30 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      business_events: {
+        Row: {
+          created_at: string | null
+          event_data: Json | null
+          event_name: string | null
+          id: string | null
+          session_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          event_data?: Json | null
+          event_name?: string | null
+          id?: string | null
+          session_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          event_data?: Json | null
+          event_name?: string | null
+          id?: string | null
+          session_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       cleanup_invalid_subscriptions: {
@@ -2251,6 +2381,10 @@ export type Database = {
         Returns: boolean
       }
       manage_expired_offers: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      migrate_existing_tracking_data: {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
@@ -2337,6 +2471,7 @@ export type Database = {
         | "refunded"
         | "void"
       transaction_type: "income" | "expense"
+      unified_event_type: "page_view" | "interaction" | "business" | "analytics"
       user_role: "owner" | "employee" | "shop_manager" | "accountant"
     }
     CompositeTypes: {
