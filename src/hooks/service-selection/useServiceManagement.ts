@@ -1,5 +1,5 @@
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { Service, ServiceViewState } from '@/types/service';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useToast } from '@/hooks/use-toast';
@@ -10,12 +10,21 @@ export const useServiceManagement = (
 ) => {
   const { language } = useLanguage();
   const { toast } = useToast();
-  const [serviceState, setServiceState] = useState<ServiceViewState>({
+  
+  // Memoize the initial state to prevent unnecessary recreations
+  const initialState = useMemo<ServiceViewState>(() => ({
     selected: null,
     isOpen: false,
     viewTime: Date.now(),
     viewTimes: {}
-  });
+  }), []);
+
+  const [serviceState, setServiceState] = useState<ServiceViewState>(initialState);
+
+  // Memoize the service selection state
+  const selectionMap = useMemo(() => {
+    return new Set(selectedServices.map(s => s.id));
+  }, [selectedServices]);
 
   const handleServiceClick = useCallback((service: Service) => {
     const timestamp = Date.now();
@@ -30,6 +39,8 @@ export const useServiceManagement = (
   const handleServiceToggleWrapper = useCallback(async (service: Service) => {
     try {
       onServiceToggle(service);
+      
+      // Batch state updates
       setServiceState(prev => ({
         ...prev,
         isOpen: false,
@@ -49,10 +60,12 @@ export const useServiceManagement = (
     }
   }, [language, onServiceToggle, toast]);
 
-  return {
+  // Memoize the return value to prevent unnecessary re-renders
+  return useMemo(() => ({
     serviceState,
     setServiceState,
     handleServiceClick,
-    handleServiceToggleWrapper
-  };
+    handleServiceToggleWrapper,
+    isServiceSelected: (id: string) => selectionMap.has(id)
+  }), [serviceState, handleServiceClick, handleServiceToggleWrapper, selectionMap]);
 };

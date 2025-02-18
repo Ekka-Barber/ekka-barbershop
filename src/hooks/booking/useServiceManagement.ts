@@ -1,9 +1,11 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from '@tanstack/react-query';
 import { Service, Category, validateService } from '@/types/service';
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useToast } from "@/hooks/use-toast";
 import { SelectedService } from '@/types/service';
+import { useMemo } from 'react';
 
 export const useServiceManagement = () => {
   const { language } = useLanguage();
@@ -43,9 +45,12 @@ export const useServiceManagement = () => {
       
       return categories as Category[];
     },
+    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+    cacheTime: 10 * 60 * 1000, // Keep in cache for 10 minutes
   });
 
-  const calculateDiscountedPrice = (service: Service) => {
+  // Memoize price calculations
+  const calculateDiscountedPrice = useMemo(() => (service: Service) => {
     if (!service.discount_type || !service.discount_value) return service.price;
     
     if (service.discount_type === 'percentage') {
@@ -53,9 +58,9 @@ export const useServiceManagement = () => {
     } else {
       return service.price - service.discount_value;
     }
-  };
+  }, []);
 
-  const roundPrice = (price: number) => {
+  const roundPrice = useMemo(() => (price: number) => {
     const decimal = price % 1;
     if (decimal >= 0.5) {
       return Math.ceil(price);
@@ -63,9 +68,9 @@ export const useServiceManagement = () => {
       return Math.floor(price);
     }
     return price;
-  };
+  }, []);
 
-  const handleServiceToggle = (
+  const handleServiceToggle = useCallback((
     service: Service,
     selectedServices: SelectedService[],
     setSelectedServices: (services: SelectedService[]) => void,
@@ -85,6 +90,7 @@ export const useServiceManagement = () => {
           variant: "destructive"
         });
         
+        // Batch update for better performance
         setSelectedServices(
           selectedServices.filter(s => s.id !== service.id && s.mainServiceId !== service.id)
         );
@@ -106,7 +112,7 @@ export const useServiceManagement = () => {
         }
       ]);
     }
-  };
+  }, [language, toast, calculateDiscountedPrice, roundPrice]);
 
   return {
     categories,
