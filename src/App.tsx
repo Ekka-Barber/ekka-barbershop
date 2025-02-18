@@ -4,6 +4,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { useEffect, lazy, Suspense } from "react";
 import { useTracking } from "@/hooks/useTracking";
+import { ThemeProvider } from "next-themes";
+import { Toaster } from "@/components/ui/sonner";
 import Customer from "./pages/Customer";
 import Menu from "./pages/Menu";
 import Offers from "./pages/Offers";
@@ -32,33 +34,36 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 const AppWithTracking = () => {
   useTracking(); // Initialize tracking
   return (
-    <TooltipProvider delayDuration={0}>
-      <Routes>
-        {/* Redirect root to customer page */}
-        <Route path="/" element={<Navigate to="/customer" replace />} />
-        
-        {/* Public routes */}
-        <Route path="/customer" element={<Customer />} />
-        <Route path="/menu" element={<Menu />} />
-        <Route path="/offers" element={<Offers />} />
-        <Route path="/bookings" element={<Bookings />} />
-        
-        {/* Protected routes */}
-        <Route 
-          path="/admin" 
-          element={
-            <ProtectedRoute>
-              <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
-                <Admin />
-              </Suspense>
-            </ProtectedRoute>
-          } 
-        />
-        
-        {/* Catch all other routes and redirect to customer page */}
-        <Route path="*" element={<Navigate to="/customer" replace />} />
-      </Routes>
-    </TooltipProvider>
+    <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
+      <TooltipProvider delayDuration={0}>
+        <Routes>
+          {/* Redirect root to customer page */}
+          <Route path="/" element={<Navigate to="/customer" replace />} />
+          
+          {/* Public routes */}
+          <Route path="/customer" element={<Customer />} />
+          <Route path="/menu" element={<Menu />} />
+          <Route path="/offers" element={<Offers />} />
+          <Route path="/bookings" element={<Bookings />} />
+          
+          {/* Protected routes */}
+          <Route 
+            path="/admin" 
+            element={
+              <ProtectedRoute>
+                <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
+                  <Admin />
+                </Suspense>
+              </ProtectedRoute>
+            } 
+          />
+          
+          {/* Catch all other routes and redirect to customer page */}
+          <Route path="*" element={<Navigate to="/customer" replace />} />
+        </Routes>
+        <Toaster />
+      </TooltipProvider>
+    </ThemeProvider>
   );
 };
 
