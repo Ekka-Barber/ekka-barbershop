@@ -1,3 +1,4 @@
+
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2 } from "lucide-react";
 import { useState } from "react";
@@ -30,6 +31,7 @@ const CustomerTrackingDashboard = () => {
     to: new Date()
   });
   const [currentPage, setCurrentPage] = useState(0);
+  const [activeTab, setActiveTab] = useState("overview");
 
   const { 
     coreMetrics,
@@ -39,7 +41,10 @@ const CustomerTrackingDashboard = () => {
     interactionEvents,
     previousPeriodData,
     totalCounts
-  } = useTrackingData(dateRange, { page: currentPage, pageSize: ITEMS_PER_PAGE });
+  } = useTrackingData(
+    dateRange, 
+    activeTab === "overview" ? { page: currentPage, pageSize: ITEMS_PER_PAGE } : undefined
+  );
 
   if (isLoading) {
     return (
@@ -72,7 +77,7 @@ const CustomerTrackingDashboard = () => {
 
   return (
     <div className="space-y-8">
-      <Tabs defaultValue="overview" className="w-full">
+      <Tabs defaultValue="overview" className="w-full" onValueChange={setActiveTab}>
         <TabsList className="grid w-full grid-cols-1 md:grid-cols-4">
           <TabsTrigger value="overview">Overview & Patterns</TabsTrigger>
           <TabsTrigger value="realtime">Monitoring</TabsTrigger>
@@ -120,7 +125,7 @@ const CustomerTrackingDashboard = () => {
             <ServiceHeatmapCard serviceData={heatmapData} />
           </div>
 
-          {totalPages > 1 && (
+          {totalPages > 1 && activeTab === "overview" && (
             <div className="flex justify-center mt-4">
               <Pagination
                 totalPages={totalPages}

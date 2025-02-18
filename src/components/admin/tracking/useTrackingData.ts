@@ -1,3 +1,4 @@
+
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { DateRange } from "./DateRangeSelector";
@@ -17,10 +18,11 @@ export const useTrackingData = (dateRange: DateRange, pagination?: TrackingPagin
     queryKey: ['interaction-events', dateRange, pagination?.page],
     queryFn: async () => {
       let query = supabase
-        .from('interaction_events')
+        .from('unified_events')
         .select('*', { count: 'exact' })
-        .gte('created_at', dateRange.from.toISOString())
-        .lte('created_at', dateRange.to.toISOString());
+        .eq('event_type', 'interaction')
+        .gte('timestamp', dateRange.from.toISOString())
+        .lte('timestamp', dateRange.to.toISOString());
 
       if (pagination) {
         const start = pagination.page * pagination.pageSize;
@@ -28,12 +30,11 @@ export const useTrackingData = (dateRange: DateRange, pagination?: TrackingPagin
         query = query.range(start, end);
       }
 
-      const { data, error, count } = await query;
+      const { data, error, count } = await query.order('timestamp', { ascending: false });
       
       if (error) throw error;
       return { data, totalCount: count || 0 };
     },
-    gcTime: 1000 * 60 * 30, // 30 minutes cache
     staleTime: 1000 * 60 * 5, // 5 minutes before refetch
   });
 
@@ -41,26 +42,28 @@ export const useTrackingData = (dateRange: DateRange, pagination?: TrackingPagin
     queryKey: ['interaction-events-previous', dateRange],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('interaction_events')
+        .from('unified_events')
         .select('*')
-        .gte('created_at', previousPeriodStart.toISOString())
-        .lte('created_at', previousPeriodEnd.toISOString());
+        .eq('event_type', 'interaction')
+        .gte('timestamp', previousPeriodStart.toISOString())
+        .lte('timestamp', previousPeriodEnd.toISOString())
+        .order('timestamp', { ascending: false });
       
       if (error) throw error;
       return data;
     },
-    gcTime: 1000 * 60 * 30,
     staleTime: 1000 * 60 * 5,
   });
 
   const { data: sessionData, isLoading: sessionsLoading } = useQuery({
-    queryKey: ['page-views', dateRange, pagination?.page],
+    queryKey: ['unified-events-pageviews', dateRange, pagination?.page],
     queryFn: async () => {
       let query = supabase
-        .from('page_views')
+        .from('unified_events')
         .select('*', { count: 'exact' })
-        .gte('created_at', dateRange.from.toISOString())
-        .lte('created_at', dateRange.to.toISOString());
+        .eq('event_type', 'page_view')
+        .gte('timestamp', dateRange.from.toISOString())
+        .lte('timestamp', dateRange.to.toISOString());
 
       if (pagination) {
         const start = pagination.page * pagination.pageSize;
@@ -68,23 +71,24 @@ export const useTrackingData = (dateRange: DateRange, pagination?: TrackingPagin
         query = query.range(start, end);
       }
 
-      const { data, error, count } = await query;
+      const { data, error, count } = await query.order('timestamp', { ascending: false });
       
       if (error) throw error;
       return { data, totalCount: count || 0 };
     },
-    gcTime: 1000 * 60 * 30,
     staleTime: 1000 * 60 * 5,
   });
 
   const { data: bookingData, isLoading: bookingsLoading } = useQuery({
-    queryKey: ['bookings', dateRange, pagination?.page],
+    queryKey: ['unified-events-bookings', dateRange, pagination?.page],
     queryFn: async () => {
       let query = supabase
-        .from('bookings')
+        .from('unified_events')
         .select('*', { count: 'exact' })
-        .gte('created_at', dateRange.from.toISOString())
-        .lte('created_at', dateRange.to.toISOString());
+        .eq('event_type', 'business')
+        .eq('event_name', 'booking_completed')
+        .gte('timestamp', dateRange.from.toISOString())
+        .lte('timestamp', dateRange.to.toISOString());
 
       if (pagination) {
         const start = pagination.page * pagination.pageSize;
@@ -92,12 +96,11 @@ export const useTrackingData = (dateRange: DateRange, pagination?: TrackingPagin
         query = query.range(start, end);
       }
 
-      const { data, error, count } = await query;
+      const { data, error, count } = await query.order('timestamp', { ascending: false });
       
       if (error) throw error;
       return { data, totalCount: count || 0 };
     },
-    gcTime: 1000 * 60 * 30,
     staleTime: 1000 * 60 * 5,
   });
 
@@ -114,15 +117,16 @@ export const useTrackingData = (dateRange: DateRange, pagination?: TrackingPagin
     const uniqueSessions = new Set(sessionData.data.map(s => s.session_id)).size;
     const completedBookings = bookingData.data.length;
     
-    const sessionsWithDuration = sessionData.data.filter(s => s.exit_time);
+    const sessionsWithDuration = sessionData.data.filter(s => s.event_data?.exit_time);
     const avgDuration = sessionsWithDuration.reduce((acc, session) => {
-      const duration = new Date(session.exit_time).getTime() - new Date(session.entry_time).getTime();
-      return acc + duration;
-    }, 0) / (sessionsWithDuration.length * 1000);
+      const entryTime = new Date(session.event_data.entry_time).getTime();
+      const exitTime = new Date(session.event_data.exit_time).getTime();
+      return acc + (exitTime - entryTime);
+    }, 0) / (sessionsWithDuration.length * 1000 || 1); // Avoid division by zero
 
     return {
       activeUsers: uniqueSessions,
-      conversionRate: (completedBookings / uniqueSessions) * 100,
+      conversionRate: uniqueSessions ? (completedBookings / uniqueSessions) * 100 : 0,
       avgSessionDuration: avgDuration,
       totalInteractions: interactionEvents.data.length
     };
