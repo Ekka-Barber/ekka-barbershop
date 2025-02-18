@@ -3,7 +3,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
 import { format, addDays, isBefore, startOfDay, differenceInDays } from "date-fns";
 import { cn } from "@/lib/utils";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { ar } from 'date-fns/locale';
 import { useTracking } from "@/hooks/useTracking";
 
@@ -22,6 +22,12 @@ export const DateTimeSelection = ({
   const [viewStartTime, setViewStartTime] = useState<Date>(new Date());
   const [navigationPath, setNavigationPath] = useState<string[]>([]);
   const { trackEnhancedDateTimeInteraction } = useTracking();
+
+  const threeDays = useMemo(() => [
+    new Date(),
+    addDays(new Date(), 1),
+    addDays(new Date(), 2)
+  ], []);
 
   useEffect(() => {
     const startTime = new Date();

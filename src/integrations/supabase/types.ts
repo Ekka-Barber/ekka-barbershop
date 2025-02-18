@@ -33,6 +33,54 @@ export type Database = {
         }
         Relationships: []
       }
+      barber_selection_events: {
+        Row: {
+          availability_status: boolean
+          barber_id: string
+          comparison_count: number | null
+          created_at: string | null
+          device_type: Database["public"]["Enums"]["device_type"] | null
+          id: string
+          interaction_type: string
+          preferred_time_slots: string[] | null
+          selection_criteria: Json | null
+          session_id: string | null
+          time_to_selection_seconds: number | null
+          timestamp: string | null
+          view_duration_seconds: number
+        }
+        Insert: {
+          availability_status: boolean
+          barber_id: string
+          comparison_count?: number | null
+          created_at?: string | null
+          device_type?: Database["public"]["Enums"]["device_type"] | null
+          id?: string
+          interaction_type: string
+          preferred_time_slots?: string[] | null
+          selection_criteria?: Json | null
+          session_id?: string | null
+          time_to_selection_seconds?: number | null
+          timestamp?: string | null
+          view_duration_seconds: number
+        }
+        Update: {
+          availability_status?: boolean
+          barber_id?: string
+          comparison_count?: number | null
+          created_at?: string | null
+          device_type?: Database["public"]["Enums"]["device_type"] | null
+          id?: string
+          interaction_type?: string
+          preferred_time_slots?: string[] | null
+          selection_criteria?: Json | null
+          session_id?: string | null
+          time_to_selection_seconds?: number | null
+          timestamp?: string | null
+          view_duration_seconds?: number
+        }
+        Relationships: []
+      }
       booking_behavior: {
         Row: {
           created_at: string
@@ -433,45 +481,60 @@ export type Database = {
       datetime_tracking: {
         Row: {
           browser_info: Json | null
+          calendar_navigation_path: string[] | null
           calendar_view_type:
             | Database["public"]["Enums"]["calendar_view_type"]
             | null
           created_at: string | null
+          days_in_advance: number | null
           device_type: Database["public"]["Enums"]["device_type"] | null
           id: string
           interaction_type: Database["public"]["Enums"]["datetime_interaction_type"]
+          preferred_time_slots: Json | null
+          quick_select_usage: boolean | null
           selected_date: string | null
           selected_time: string | null
           session_id: string | null
           time_slot_position: string | null
+          view_duration_seconds: number | null
         }
         Insert: {
           browser_info?: Json | null
+          calendar_navigation_path?: string[] | null
           calendar_view_type?:
             | Database["public"]["Enums"]["calendar_view_type"]
             | null
           created_at?: string | null
+          days_in_advance?: number | null
           device_type?: Database["public"]["Enums"]["device_type"] | null
           id?: string
           interaction_type: Database["public"]["Enums"]["datetime_interaction_type"]
+          preferred_time_slots?: Json | null
+          quick_select_usage?: boolean | null
           selected_date?: string | null
           selected_time?: string | null
           session_id?: string | null
           time_slot_position?: string | null
+          view_duration_seconds?: number | null
         }
         Update: {
           browser_info?: Json | null
+          calendar_navigation_path?: string[] | null
           calendar_view_type?:
             | Database["public"]["Enums"]["calendar_view_type"]
             | null
           created_at?: string | null
+          days_in_advance?: number | null
           device_type?: Database["public"]["Enums"]["device_type"] | null
           id?: string
           interaction_type?: Database["public"]["Enums"]["datetime_interaction_type"]
+          preferred_time_slots?: Json | null
+          quick_select_usage?: boolean | null
           selected_date?: string | null
           selected_time?: string | null
           session_id?: string | null
           time_slot_position?: string | null
+          view_duration_seconds?: number | null
         }
         Relationships: []
       }

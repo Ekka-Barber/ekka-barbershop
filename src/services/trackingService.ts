@@ -27,7 +27,14 @@ interface ServiceDiscoveryEvent {
   timestamp: string;
 }
 
-interface EnhancedDateTimeEvent extends DateTimeInteractionEvent {
+interface EnhancedDateTimeEvent {
+  interaction_type: DateTimeInteractionType;
+  calendar_view_type: 'month' | 'week' | 'quick_select';
+  session_id: string;
+  device_type: DeviceType;
+  selected_date?: string;
+  selected_time?: string;
+  time_slot_position?: string;
   view_duration_seconds?: number;
   calendar_navigation_path?: string[];
   days_in_advance?: number;
@@ -55,6 +62,11 @@ interface BarberSelectionEvent {
   session_id: string;
   device_type: DeviceType;
   timestamp: string;
+}
+
+interface SessionData {
+  id: string;
+  timestamp: number;
 }
 
 // Production check
