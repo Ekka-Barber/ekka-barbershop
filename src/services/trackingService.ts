@@ -36,15 +36,18 @@ export const trackInteraction = async (
 ): Promise<void> => {
   if (!shouldTrack()) return;
 
+  const interactionData = {
+    ...createTrackingEvent(type),
+    interaction_details: details as Json,
+    session_id: getSessionId(),
+    device_type: mapPlatformToDeviceType(getPlatformType()),
+    page_url: window.location.pathname,
+    interaction_type: type,
+    timestamp: new Date().toISOString()
+  };
+
   try {
-    const { error } = await supabase.from('interaction_events').insert({
-      ...createTrackingEvent(type),
-      interaction_details: details as Json,
-      session_id: getSessionId(),
-      device_type: mapPlatformToDeviceType(getPlatformType()),
-      page_url: window.location.pathname,
-      interaction_type: type
-    });
+    const { error } = await supabase.from('interaction_events').insert(interactionData);
 
     if (error) throw error;
   } catch (error) {
@@ -94,8 +97,7 @@ export const trackDateTimeInteraction = async (event: DateTimeEvent): Promise<vo
       ...event,
       ...createTrackingEvent(event.interaction_type),
       session_id: getSessionId(),
-      device_type: mapPlatformToDeviceType(getPlatformType()),
-      interaction_type: event.interaction_type as "calendar_open" | "calendar_close" | "date_select" | "time_select" | "time_slot_view"
+      device_type: mapPlatformToDeviceType(getPlatformType())
     });
 
     if (error) throw error;
