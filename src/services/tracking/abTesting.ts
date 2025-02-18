@@ -120,7 +120,20 @@ export const calculateTestResults = async (testId: string): Promise<ABTestResult
 
     const previousResults = [...results];
     const control = previousResults.length > 0 ? previousResults[0] : null;
-    const currentVariant = {
+
+    // Create temporary variant result for significance calculation
+    const tempVariantResult = {
+      variantId: variant.id,
+      totalUsers,
+      conversions: conversionCount,
+      conversionRate
+    };
+
+    // Calculate statistical significance
+    const significance = control ? calculateSignificance(control, tempVariantResult) : 0;
+
+    // Create the final variant result
+    const currentVariant: ABTestResult = {
       variantId: variant.id,
       totalUsers,
       conversions: conversionCount,
@@ -129,14 +142,14 @@ export const calculateTestResults = async (testId: string): Promise<ABTestResult
         const time = new Date(conv.converted_at).getTime() - new Date(conv.assigned_at).getTime();
         return acc + time;
       }, 0) / conversionCount,
-      bounceRate: sessions.filter(s => !s.page_views || s.page_views === 1).length / totalUsers * 100,
+      bounceRate: (sessions.filter(s => !s.page_views || s.page_views === 1).length / totalUsers) * 100,
       deviceDistribution: {
-        mobile: sessions.filter(s => s.device_type === 'mobile').length / totalUsers * 100,
-        tablet: sessions.filter(s => s.device_type === 'tablet').length / totalUsers * 100,
-        desktop: sessions.filter(s => s.device_type === 'desktop').length / totalUsers * 100
+        mobile: (sessions.filter(s => s.device_type === 'mobile').length / totalUsers) * 100,
+        tablet: (sessions.filter(s => s.device_type === 'tablet').length / totalUsers) * 100,
+        desktop: (sessions.filter(s => s.device_type === 'desktop').length / totalUsers) * 100
       },
       confidenceInterval,
-      statisticalSignificance: control ? calculateSignificance(control, currentVariant) : 0
+      statisticalSignificance: significance
     };
 
     results.push(currentVariant);
@@ -145,7 +158,7 @@ export const calculateTestResults = async (testId: string): Promise<ABTestResult
   return results;
 };
 
-function calculateSignificance(control: ABTestResult, variant: ABTestResult): number {
+function calculateSignificance(control: Pick<ABTestResult, 'conversionRate' | 'totalUsers'>, variant: Pick<ABTestResult, 'conversionRate' | 'totalUsers'>): number {
   if (!control || !variant) return 0;
 
   const p1 = control.conversionRate / 100;
