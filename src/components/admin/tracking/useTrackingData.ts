@@ -51,14 +51,19 @@ export const useTrackingData = (dateRange: DateRange, pagination?: TrackingPagin
         const range = getRangeParams(count, pagination);
         
         // Then get data with safe range
-        const { data, error } = await supabase
+        const query = supabase
           .from('unified_events')
           .select('*')
           .eq('event_type', 'interaction')
           .gte('timestamp', dateRange.from.toISOString())
           .lte('timestamp', dateRange.to.toISOString())
-          .order('timestamp', { ascending: false })
-          ...(range ? `.range(${range.start}, ${range.end})` : '');
+          .order('timestamp', { ascending: false });
+
+        if (range) {
+          query.range(range.start, range.end);
+        }
+        
+        const { data, error } = await query;
         
         if (error) throw error;
         return { data: data as UnifiedEvent[], totalCount: count || 0 };
@@ -109,14 +114,19 @@ export const useTrackingData = (dateRange: DateRange, pagination?: TrackingPagin
         const range = getRangeParams(count, pagination);
         
         // Then get data with safe range
-        const { data, error } = await supabase
+        const query = supabase
           .from('unified_events')
           .select('*')
           .eq('event_type', 'page_view')
           .gte('timestamp', dateRange.from.toISOString())
           .lte('timestamp', dateRange.to.toISOString())
-          .order('timestamp', { ascending: false })
-          ...(range ? `.range(${range.start}, ${range.end})` : '');
+          .order('timestamp', { ascending: false });
+
+        if (range) {
+          query.range(range.start, range.end);
+        }
+        
+        const { data, error } = await query;
         
         if (error) throw error;
         return { data: data as UnifiedEvent[], totalCount: count || 0 };
@@ -146,15 +156,20 @@ export const useTrackingData = (dateRange: DateRange, pagination?: TrackingPagin
         const range = getRangeParams(count, pagination);
         
         // Then get data with safe range
-        const { data, error } = await supabase
+        const query = supabase
           .from('unified_events')
           .select('*')
           .eq('event_type', 'business')
           .eq('event_name', 'booking_completed')
           .gte('timestamp', dateRange.from.toISOString())
           .lte('timestamp', dateRange.to.toISOString())
-          .order('timestamp', { ascending: false })
-          ...(range ? `.range(${range.start}, ${range.end})` : '');
+          .order('timestamp', { ascending: false });
+
+        if (range) {
+          query.range(range.start, range.end);
+        }
+        
+        const { data, error } = await query;
         
         if (error) throw error;
         return { data: data as UnifiedEvent[], totalCount: count || 0 };
@@ -166,7 +181,7 @@ export const useTrackingData = (dateRange: DateRange, pagination?: TrackingPagin
     retry: 1,
   });
 
-  const error = interactionsError || sessionsError || bookingsError;
+  const error = interactionsError || sessionsError || bookingsError || previousPeriodError;
   const isLoading = interactionsLoading || sessionsLoading || bookingsLoading;
 
   const calculateCoreMetrics = () => {
