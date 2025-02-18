@@ -7,7 +7,6 @@ import { useUpsellManagement } from './booking/useUpsellManagement';
 import { useBookingNavigation } from './booking/useBookingNavigation';
 import { useCallback } from 'react';
 import { BookingStep } from '@/components/booking/BookingProgress';
-import { v4 as uuidv4 } from 'uuid';
 
 export const useBooking = (branch: Branch) => {
   const { state, dispatch } = useBookingContext();
@@ -39,44 +38,20 @@ export const useBooking = (branch: Branch) => {
   );
 
   const handleServiceToggle = useCallback((service: any, skipDiscountCalculation: boolean = false) => {
-    const transactionId = uuidv4();
-    dispatch({ 
-      type: 'ACQUIRE_LOCK', 
-      payload: { componentId: 'service-toggle', transactionId } 
-    });
-    try {
-      baseHandleServiceToggle(
-        service,
-        state.selectedServices,
-        (services) => dispatch({ type: 'SET_SERVICES', payload: services }),
-        skipDiscountCalculation
-      );
-    } finally {
-      dispatch({ 
-        type: 'RELEASE_LOCK', 
-        payload: { transactionId } 
-      });
-    }
+    baseHandleServiceToggle(
+      service,
+      state.selectedServices,
+      (services) => dispatch({ type: 'SET_SERVICES', payload: services }),
+      skipDiscountCalculation
+    );
   }, [baseHandleServiceToggle, state.selectedServices, dispatch]);
 
   const handleUpsellServiceAdd = useCallback((upsellServices: any[]) => {
-    const transactionId = uuidv4();
-    dispatch({ 
-      type: 'ACQUIRE_LOCK', 
-      payload: { componentId: 'upsell-add', transactionId } 
-    });
-    try {
-      baseHandleUpsellServiceAdd(
-        upsellServices,
-        state.selectedServices,
-        (services) => dispatch({ type: 'SET_SERVICES', payload: services })
-      );
-    } finally {
-      dispatch({ 
-        type: 'RELEASE_LOCK', 
-        payload: { transactionId } 
-      });
-    }
+    baseHandleUpsellServiceAdd(
+      upsellServices,
+      state.selectedServices,
+      (services) => dispatch({ type: 'SET_SERVICES', payload: services })
+    );
   }, [baseHandleUpsellServiceAdd, state.selectedServices, dispatch]);
 
   const handleCustomerDetailsChange = useCallback((field: keyof typeof state.customerDetails, value: string) => {
@@ -87,32 +62,9 @@ export const useBooking = (branch: Branch) => {
   }, [state.customerDetails, dispatch]);
 
   const handleStepChange = useCallback((nextStep: BookingStep) => {
-    const transactionId = uuidv4();
-    if (state.activeLock) {
-      console.log('Step change blocked - active lock exists');
-      return;
-    }
-
-    dispatch({ 
-      type: 'ACQUIRE_LOCK',
-      payload: { componentId: 'step-change', transactionId }
-    });
-    
-    try {
-      if (canProceedToNext()) {
-        console.log('Step change:', { from: state.currentStep, to: nextStep });
-        dispatch({ 
-          type: 'SET_STEP', 
-          payload: { step: nextStep, transactionId } 
-        });
-      }
-    } finally {
-      dispatch({ 
-        type: 'RELEASE_LOCK',
-        payload: { transactionId }
-      });
-    }
-  }, [state.activeLock, state.currentStep, dispatch, canProceedToNext]);
+    console.log('Step change:', { from: state.currentStep, to: nextStep });
+    dispatch({ type: 'SET_STEP', payload: nextStep });
+  }, [state.currentStep, dispatch]);
 
   const totalPrice = state.selectedServices.reduce((sum, service) => sum + service.price, 0);
 

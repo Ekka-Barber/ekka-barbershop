@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { BookingStep } from "@/components/booking/BookingProgress";
 import { toast } from "sonner";
 import { useBookingContext } from "@/contexts/BookingContext";
-import { v4 as uuidv4 } from 'uuid';
 
 interface BookingNavigationProps {
   currentStepIndex: number;
@@ -42,53 +41,29 @@ export const BookingNavigation = ({
   };
 
   const handleNext = () => {
-    const transactionId = uuidv4();
-    dispatch({ 
-      type: 'ACQUIRE_LOCK',
-      payload: { componentId: 'navigation-next', transactionId }
-    });
-    try {
-      const branchId = getBranchId();
-      if (!branchId || !branch) {
-        toast.error(language === 'ar' ? 'يرجى تحديد الفرع أولاً' : 'Please select a branch first');
-        navigate('/customer');
-        return;
-      }
+    const branchId = getBranchId();
+    if (!branchId || !branch) {
+      toast.error(language === 'ar' ? 'يرجى تحديد الفرع أولاً' : 'Please select a branch first');
+      navigate('/customer');
+      return;
+    }
 
-      if (onNextClick) {
-        onNextClick();
-      } else if (currentStepIndex < steps.length - 1) {
-        setCurrentStep(steps[currentStepIndex + 1]);
-      }
-    } finally {
-      dispatch({ 
-        type: 'RELEASE_LOCK',
-        payload: { transactionId }
-      });
+    if (onNextClick) {
+      onNextClick();
+    } else if (currentStepIndex < steps.length - 1) {
+      setCurrentStep(steps[currentStepIndex + 1]);
     }
   };
 
   const handleBack = () => {
-    const transactionId = uuidv4();
-    dispatch({ 
-      type: 'ACQUIRE_LOCK',
-      payload: { componentId: 'navigation-back', transactionId }
-    });
-    try {
-      if (currentStepIndex > 0) {
-        setCurrentStep(steps[currentStepIndex - 1]);
-      } else {
-        const branchId = getBranchId();
-        if (!branchId) {
-          console.warn('No branch ID found during back navigation');
-        }
-        navigate(`/customer${branchId ? `?branch=${branchId}` : ''}`);
+    if (currentStepIndex > 0) {
+      setCurrentStep(steps[currentStepIndex - 1]);
+    } else {
+      const branchId = getBranchId();
+      if (!branchId) {
+        console.warn('No branch ID found during back navigation');
       }
-    } finally {
-      dispatch({ 
-        type: 'RELEASE_LOCK',
-        payload: { transactionId }
-      });
+      navigate(`/customer${branchId ? `?branch=${branchId}` : ''}`);
     }
   };
 
