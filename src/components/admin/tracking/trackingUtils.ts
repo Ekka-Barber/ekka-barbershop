@@ -343,13 +343,12 @@ const arrayEquals = (a: any[], b: any[]): boolean => {
 };
 
 export const processServiceHeatmapData = (events: UnifiedEvent[]) => {
-  // Implement service heatmap processing
   const serviceInteractions = events.filter(e => 
     e.event_type === 'interaction' && 
     e.event_name === 'service_interaction'
   );
 
-  return serviceInteractions.reduce((acc, event) => {
+  const heatmapData = serviceInteractions.reduce((acc, event) => {
     const serviceName = event.event_data?.service_name as string;
     if (!serviceName) return acc;
 
@@ -358,7 +357,10 @@ export const processServiceHeatmapData = (events: UnifiedEvent[]) => {
         name: serviceName,
         views: 0,
         clicks: 0,
-        conversions: 0
+        conversions: 0,
+        conversionRate: 0,
+        averageViewDuration: 0,
+        viewCount: 0
       };
     }
 
@@ -367,6 +369,15 @@ export const processServiceHeatmapData = (events: UnifiedEvent[]) => {
     if (interaction === 'click') acc[serviceName].clicks++;
     if (interaction === 'select') acc[serviceName].conversions++;
 
+    // Update conversion rate and view count
+    acc[serviceName].viewCount = acc[serviceName].views;
+    acc[serviceName].conversionRate = acc[serviceName].views > 0 
+      ? (acc[serviceName].conversions / acc[serviceName].views) * 100 
+      : 0;
+
     return acc;
-  }, {} as Record<string, { name: string; views: number; clicks: number; conversions: number }>);
+  }, {} as Record<string, any>);
+
+  // Convert to array format
+  return Object.values(heatmapData);
 };

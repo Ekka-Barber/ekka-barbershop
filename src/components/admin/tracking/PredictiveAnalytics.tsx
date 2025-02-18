@@ -1,11 +1,18 @@
-
 import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Line, LineChart, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from "@/integrations/supabase/client";
-import type { PredictiveAnalyticsProps, BusyPeriod } from './types';
+import type { PredictiveAnalyticsProps, BusyPeriod, RevenueForecast, SeasonalPattern, TrendAnalysis, UnifiedEvent } from './types';
 import { Loader2 } from "lucide-react";
+
+interface BookingEvent extends UnifiedEvent {
+  event_data: {
+    total_amount?: number;
+    step?: string;
+    path?: string[];
+  };
+}
 
 export const PredictiveAnalytics = ({ data }: PredictiveAnalyticsProps) => {
   const [predictiveData, setPredictiveData] = useState(data);
@@ -13,20 +20,22 @@ export const PredictiveAnalytics = ({ data }: PredictiveAnalyticsProps) => {
   const { data: bookingPatterns, isLoading } = useQuery({
     queryKey: ['booking-patterns'],
     queryFn: async () => {
-      const { data: bookings } = await supabase
+      const { data: bookings, count } = await supabase
         .from('unified_events')
-        .select('*')
+        .select('*', { count: 'exact' })
         .eq('event_type', 'business')
         .eq('event_name', 'booking_completed')
         .order('timestamp', { ascending: true });
 
-      if (!bookings) return null;
+      if (!bookings || !count) return null;
+
+      const typedBookings = bookings as BookingEvent[];
 
       // Process booking data to predict patterns
-      const busyPeriods = analyzeBusyPeriods(bookings);
-      const revenueForecasts = generateRevenueForecasts(bookings);
-      const seasonalPatterns = analyzeSeasonalPatterns(bookings);
-      const trends = analyzeTrends(bookings);
+      const busyPeriods = analyzeBusyPeriods(typedBookings);
+      const revenueForecasts = generateRevenueForecasts(typedBookings);
+      const seasonalPatterns = analyzeSeasonalPatterns(typedBookings);
+      const trends = analyzeTrends(typedBookings);
 
       return {
         busyPeriods,
@@ -152,7 +161,7 @@ export const PredictiveAnalytics = ({ data }: PredictiveAnalyticsProps) => {
   );
 };
 
-const analyzeBusyPeriods = (bookings: any[]): BusyPeriod[] => {
+const analyzeBusyPeriods = (bookings: BookingEvent[]): BusyPeriod[] => {
   // Group bookings by hour and day of week
   const hourlyPatterns = bookings.reduce((acc, booking) => {
     const date = new Date(booking.timestamp);
@@ -191,7 +200,7 @@ const analyzeBusyPeriods = (bookings: any[]): BusyPeriod[] => {
     .sort((a, b) => b.predictedBookings - a.predictedBookings);
 };
 
-const generateRevenueForecasts = (bookings: any[]) => {
+const generateRevenueForecasts = (bookings: BookingEvent[]): RevenueForecast[] => {
   // Group bookings by date
   const dailyRevenue = bookings.reduce((acc, booking) => {
     const date = new Date(booking.timestamp).toISOString().split('T')[0];
@@ -210,7 +219,7 @@ const generateRevenueForecasts = (bookings: any[]) => {
       .split('T')[0];
     
     const avgRevenue = Object.values(dailyRevenue).reduce((a, b) => a + b, 0) / 
-      Object.keys(dailyRevenue).length;
+      Object.keys(dailyRevenue).length || 0;
     
     const variance = Math.max(avgRevenue * 0.2, 100); // 20% variance or minimum 100
     
@@ -224,18 +233,18 @@ const generateRevenueForecasts = (bookings: any[]) => {
   });
 };
 
-const analyzeSeasonalPatterns = (bookings: any[]) => {
+const analyzeSeasonalPatterns = (bookings: BookingEvent[]): SeasonalPattern[] => {
   // Analyze patterns by month, day of week, and time of day
   const patterns = [
     analyzeMonthlyPattern(bookings),
     analyzeDailyPattern(bookings),
     analyzeHourlyPattern(bookings)
-  ].filter(Boolean);
+  ].filter(Boolean) as SeasonalPattern[];
 
   return patterns;
 };
 
-const analyzeMonthlyPattern = (bookings: any[]) => {
+const analyzeMonthlyPattern = (bookings: BookingEvent[]): SeasonalPattern | null => {
   const monthlyBookings = bookings.reduce((acc, booking) => {
     const month = new Date(booking.timestamp).getMonth();
     if (!acc[month]) acc[month] = 0;
@@ -256,7 +265,7 @@ const analyzeMonthlyPattern = (bookings: any[]) => {
   };
 };
 
-const analyzeDailyPattern = (bookings: any[]) => {
+const analyzeDailyPattern = (bookings: BookingEvent[]): SeasonalPattern | null => {
   const dailyBookings = bookings.reduce((acc, booking) => {
     const day = new Date(booking.timestamp).getDay();
     if (!acc[day]) acc[day] = 0;
@@ -277,7 +286,7 @@ const analyzeDailyPattern = (bookings: any[]) => {
   };
 };
 
-const analyzeHourlyPattern = (bookings: any[]) => {
+const analyzeHourlyPattern = (bookings: BookingEvent[]): SeasonalPattern | null => {
   const hourlyBookings = bookings.reduce((acc, booking) => {
     const hour = new Date(booking.timestamp).getHours();
     if (!acc[hour]) acc[hour] = 0;
@@ -313,7 +322,7 @@ const calculatePatternStrength = (values: number[]): number => {
   return Math.min(Math.round(strength), 100);
 };
 
-const analyzeTrends = (bookings: any[]) => {
+const analyzeTrends = (bookings: BookingEvent[]): TrendAnalysis[] => {
   if (bookings.length === 0) return [];
 
   // Sort bookings by date
@@ -340,10 +349,24 @@ const analyzeTrends = (bookings: any[]) => {
     return acc;
   }, {} as Record<string, { count: number; revenue: number }>);
 
-  return Object.entries(weeklyData).map(([week, data]) => ({
-    week,
-    bookings: data.count,
-    revenue: data.revenue,
-    averageValue: data.revenue / data.count
-  }));
+  const entries = Object.entries(weeklyData);
+  if (entries.length < 2) return [];
+
+  const firstWeek = entries[0][1];
+  const lastWeek = entries[entries.length - 1][1];
+
+  return [
+    {
+      metric: 'Weekly Bookings',
+      trend: lastWeek.count > firstWeek.count ? 'increasing' : 'decreasing',
+      changeRate: ((lastWeek.count - firstWeek.count) / firstWeek.count) * 100,
+      confidence: 85
+    },
+    {
+      metric: 'Weekly Revenue',
+      trend: lastWeek.revenue > firstWeek.revenue ? 'increasing' : 'decreasing',
+      changeRate: ((lastWeek.revenue - firstWeek.revenue) / firstWeek.revenue) * 100,
+      confidence: 80
+    }
+  ];
 };
