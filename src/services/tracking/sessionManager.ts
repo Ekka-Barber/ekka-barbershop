@@ -8,10 +8,6 @@ const isProductionDomain = (hostname: string): boolean => {
   return hostname === 'ekka-barbershop.lovable.app';
 };
 
-const isPreviewDomain = (hostname: string): boolean => {
-  return hostname.includes('preview--') && hostname.endsWith('.lovable.app');
-};
-
 const isLocalDevelopment = (hostname: string): boolean => {
   return hostname === 'localhost' || hostname === '127.0.0.1';
 };
@@ -25,14 +21,14 @@ const shouldTrack = (): boolean => {
     return false;
   }
 
-  // Always track on production and preview domains
-  if (isProductionDomain(hostname) || isPreviewDomain(hostname)) {
-    console.log(`Tracking enabled for ${hostname}`);
+  // Only track on production domain
+  if (isProductionDomain(hostname)) {
+    console.log(`Tracking enabled for production domain`);
     return true;
   }
 
-  // Disable tracking for all other domains
-  console.log('Tracking disabled for unknown domain:', hostname);
+  // Disable tracking for all other domains (including preview)
+  console.log('Tracking disabled for non-production domain:', hostname);
   return false;
 };
 

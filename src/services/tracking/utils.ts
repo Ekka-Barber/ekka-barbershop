@@ -14,13 +14,10 @@ export const mapPlatformToDeviceType = (platform: PlatformType): DeviceType => {
 };
 
 export const getBrowserInfo = (): Record<string, any> => {
-  const isPreview = window.location.hostname.includes('preview--');
   return {
     userAgent: window.navigator.userAgent,
     language: window.navigator.language,
     platform: window.navigator.platform,
-    isPreviewEnvironment: isPreview,
-    environment: isPreview ? 'preview' : 'production',
     viewport: {
       width: window.innerWidth,
       height: window.innerHeight
