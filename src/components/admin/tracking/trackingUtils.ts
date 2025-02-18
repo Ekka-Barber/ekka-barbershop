@@ -1,3 +1,4 @@
+
 import { 
   ProcessedJourneyData, 
   DropOffPoint, 
@@ -5,28 +6,9 @@ import {
   TimePattern, 
   JourneyNode, 
   JourneyLink,
-  UnifiedEvent 
+  UnifiedEvent,
+  PathOptimization
 } from "./types";
-
-import { supabase } from "@/integrations/supabase/client";
-
-interface BookingData {
-  appointment_time: string;
-  device_type: 'mobile' | 'tablet' | 'desktop';
-}
-
-interface ServiceAnalytics {
-  serviceName: string;
-  viewCount: number;
-  conversionRate: number;
-  averageViewDuration: number;
-}
-
-interface ServiceData {
-  viewCount: number;
-  totalDuration: number;
-  bookings: number;
-}
 
 export const processTimePatterns = (bookingEvents: UnifiedEvent[]): TimePattern[] => {
   const timePatterns = bookingEvents.reduce((acc, event) => {
@@ -54,570 +36,337 @@ export const processTimePatterns = (bookingEvents: UnifiedEvent[]): TimePattern[
   return Object.values(timePatterns).sort((a, b) => a.hour - b.hour);
 };
 
-export const processServiceHeatmapData = (interactionEvents: any[]): ServiceAnalytics[] => {
-  const serviceData = interactionEvents.reduce((acc, event) => {
-    if (event.interaction_type === 'service_select' && 
-        typeof event.interaction_details === 'object' && 
-        event.interaction_details !== null &&
-        'serviceName' in event.interaction_details) {
-      const serviceName = event.interaction_details.serviceName as string;
-      if (!acc[serviceName]) {
-        acc[serviceName] = {
-          viewCount: 0,
-          totalDuration: 0,
-          bookings: 0
-        };
-      }
-      const data = acc[serviceName] as ServiceData;
-      data.viewCount++;
-      if (typeof event.interaction_details === 'object' && 
-          'duration' in event.interaction_details) {
-        data.totalDuration += Number(event.interaction_details.duration) || 0;
-      }
-      if (typeof event.interaction_details === 'object' && 
-          'booked' in event.interaction_details) {
-        data.bookings += event.interaction_details.booked ? 1 : 0;
+export const processCustomerJourney = (events: UnifiedEvent[]): ProcessedJourneyData => {
+  // Define booking flow steps
+  const steps = ['service_selection', 'datetime_selection', 'barber_selection', 'details_confirmation'];
+  
+  // Create nodes for each step
+  const nodes: JourneyNode[] = steps.map((step, index) => ({
+    id: step,
+    name: step.replace('_', ' ').toUpperCase(),
+    index
+  }));
+
+  // Initialize links
+  const linkMap = new Map<string, number>();
+  
+  // Process events to build links
+  events.forEach((event, index) => {
+    if (index === 0) return;
+    const prevEvent = events[index - 1];
+    
+    if (prevEvent.event_data?.step && event.event_data?.step) {
+      const source = steps.indexOf(prevEvent.event_data.step as string);
+      const target = steps.indexOf(event.event_data.step as string);
+      
+      if (source >= 0 && target >= 0) {
+        const linkKey = `${source}-${target}`;
+        linkMap.set(linkKey, (linkMap.get(linkKey) || 0) + 1);
       }
     }
-    return acc;
-  }, {} as Record<string, ServiceData>);
+  });
 
-  return Object.entries(serviceData).map(([name, data]: [string, ServiceData]) => ({
-    serviceName: name,
-    viewCount: data.viewCount,
-    conversionRate: (data.bookings / data.viewCount) * 100,
-    averageViewDuration: data.totalDuration / data.viewCount
-  }));
-};
+  // Convert link map to array
+  const links: JourneyLink[] = Array.from(linkMap.entries()).map(([key, value]) => {
+    const [source, target] = key.split('-').map(Number);
+    return { source, target, value };
+  });
 
-export const processCustomerJourney = (interactionEvents: any[]): ProcessedJourneyData => {
-  const { nodes, links, dropOffPoints, serviceBundles } = processBaseJourneyData(interactionEvents);
-  const pathOptimizations = generatePathOptimizations(interactionEvents, dropOffPoints, serviceBundles);
-  
+  // Calculate drop-off points
+  const dropOffPoints: DropOffPoint[] = steps.map(step => {
+    const stepEvents = events.filter(e => e.event_data?.step === step);
+    const nextStepEvents = events.filter(e => {
+      const currentIndex = steps.indexOf(step);
+      const nextStep = steps[currentIndex + 1];
+      return e.event_data?.step === nextStep;
+    });
+
+    return {
+      page: step,
+      rate: stepEvents.length ? (stepEvents.length - nextStepEvents.length) / stepEvents.length : 0,
+      exitRate: stepEvents.length ? (stepEvents.length - nextStepEvents.length) / stepEvents.length : 0,
+      averageTimeBeforeExit: calculateAverageTimeBeforeExit(stepEvents),
+      previousPages: getPreviousPages(events, step)
+    };
+  });
+
+  // Generate service bundles based on common combinations
+  const serviceBundles: ServiceBundle[] = analyzeServiceBundles(events);
+
+  // Generate path optimizations
+  const pathOptimizations: PathOptimization[] = generatePathOptimizations(events, dropOffPoints);
+
   return {
     nodes,
     links,
-    dropOffPoints: dropOffPoints.map(point => ({
-      ...point,
-      rate: point.exitRate // Ensure rate is set to match exitRate
-    })),
+    dropOffPoints,
     serviceBundles,
     pathOptimizations
   };
 };
 
-const processBaseJourneyData = (interactionEvents: any[]) => {
-  const nodeMap = new Map<string, number>();
-  const nodes: JourneyNode[] = [];
-  const links: JourneyLink[] = [];
-  const dropOffPoints: DropOffPoint[] = [];
-  const serviceBundles: ServiceBundle[] = [];
+const calculateAverageTimeBeforeExit = (events: UnifiedEvent[]): number => {
+  const durationsMs = events.map(event => {
+    const entryTime = event.event_data?.entry_time ? new Date(event.event_data.entry_time).getTime() : 0;
+    const exitTime = event.event_data?.exit_time ? new Date(event.event_data.exit_time).getTime() : 0;
+    return exitTime - entryTime;
+  }).filter(duration => duration > 0);
 
-  interactionEvents.forEach(event => {
-    if (event.page_url) {
-      if (!nodeMap.has(event.page_url)) {
-        const index = nodes.length;
-        nodeMap.set(event.page_url, index);
-        nodes.push({ 
-          id: event.page_url, 
-          name: event.page_url.split('/').pop() || event.page_url,
-          index 
-        });
-      }
-    }
-  });
+  return durationsMs.length ? durationsMs.reduce((a, b) => a + b, 0) / durationsMs.length / 1000 : 0;
+};
 
-  for (let i = 0; i < interactionEvents.length - 1; i++) {
-    const sourceEvent = interactionEvents[i];
-    const targetEvent = interactionEvents[i + 1];
-
-    if (sourceEvent.page_url && targetEvent.page_url) {
-      const sourceIndex = nodeMap.get(sourceEvent.page_url);
-      const targetIndex = nodeMap.get(targetEvent.page_url);
-
-      if (typeof sourceIndex === 'number' && typeof targetIndex === 'number') {
-        const existingLink = links.find(link => 
-          link.source === sourceIndex && link.target === targetIndex
-        );
-
-        if (existingLink) {
-          existingLink.value += 1;
-        } else {
-          links.push({ 
-            source: sourceIndex,
-            target: targetIndex,
-            value: 1 
-          });
-        }
-      }
-    }
-  }
-
-  const pageExits = new Map<string, { count: number; totalTime: number; paths: string[][] }>();
+const getPreviousPages = (events: UnifiedEvent[], currentStep: string): string[] => {
+  const stepIndex = events.findIndex(e => e.event_data?.step === currentStep);
+  if (stepIndex <= 0) return [];
   
-  interactionEvents.forEach((event, index) => {
-    if (index < interactionEvents.length - 1) {
-      const timeDiff = new Date(interactionEvents[index + 1].timestamp).getTime() - 
-                      new Date(event.timestamp).getTime();
-      
-      if (timeDiff > 30 * 60 * 1000) { // 30 minutes threshold
-        const page = event.page_url;
-        const path = interactionEvents.slice(0, index + 1).map(e => e.page_url);
-        
-        if (!pageExits.has(page)) {
-          pageExits.set(page, { count: 0, totalTime: 0, paths: [] });
-        }
-        
-        const exitData = pageExits.get(page)!;
-        exitData.count++;
-        exitData.totalTime += timeDiff;
-        exitData.paths.push(path);
-      }
-    }
-  });
-
-  pageExits.forEach((data, page) => {
-    const exitRate = (data.count / interactionEvents.length) * 100;
-    dropOffPoints.push({
-      page,
-      rate: data.count,
-      exitRate,
-      averageTimeBeforeExit: data.totalTime / data.count,
-      previousPages: data.paths[0] || []
-    });
-  });
-
-  const serviceSelections = interactionEvents.filter(
-    event => event.interaction_type === 'service_select'
-  );
-
-  const bundleMap = new Map<string, {
-    count: number;
-    totalValue: number;
-    conversionCount: number;
-    timeToBook: number[];
-    repeatBookings: number;
-  }>();
-
-  serviceSelections.forEach(event => {
-    if (event.interaction_details?.services) {
-      const services = event.interaction_details.services;
-      const bundleKey = services.sort().join('+');
-      
-      if (!bundleMap.has(bundleKey)) {
-        bundleMap.set(bundleKey, {
-          count: 0,
-          totalValue: 0,
-          conversionCount: 0,
-          timeToBook: [],
-          repeatBookings: 0
-        });
-      }
-      
-      const bundle = bundleMap.get(bundleKey)!;
-      bundle.count++;
-      bundle.totalValue += event.interaction_details.totalValue || 0;
-      
-      if (event.interaction_details.converted) {
-        bundle.conversionCount++;
-        bundle.timeToBook.push(event.interaction_details.timeToBook || 0);
-      }
-      
-      if (event.interaction_details.isRepeatBooking) {
-        bundle.repeatBookings++;
-      }
-    }
-  });
-
-  bundleMap.forEach((data, name) => {
-    serviceBundles.push({
-      name,
-      frequency: data.count,
-      averageValue: data.totalValue / data.count,
-      conversionRate: (data.conversionCount / data.count) * 100,
-      services: name.split('+'),
-      performanceMetrics: {
-        timeToBook: data.timeToBook.reduce((a, b) => a + b, 0) / data.timeToBook.length,
-        customerSatisfaction: 0,
-        repeatBookingRate: (data.repeatBookings / data.count) * 100
-      }
-    });
-  });
-
-  return { nodes, links, dropOffPoints, serviceBundles };
+  return Array.from(new Set(
+    events
+      .slice(0, stepIndex)
+      .map(e => e.event_data?.step as string)
+      .filter(Boolean)
+  ));
 };
 
-interface CategoryPerformance {
-  categoryId: string;
-  categoryName: string;
-  viewCount: number;
-  conversionRate: number;
-  averageTimeSpent: number;
-  childServices: Array<{
-    serviceId: string;
-    serviceName: string;
-    viewCount: number;
-    bookCount: number;
-    conversionRate: number;
-  }>;
-}
+const analyzeServiceBundles = (events: UnifiedEvent[]): ServiceBundle[] => {
+  const serviceCombinations = events
+    .filter(e => e.event_data?.selected_services)
+    .map(e => e.event_data.selected_services as string[]);
 
-export const analyzeCategoryPerformance = async (
-  startDate: Date,
-  endDate: Date
-): Promise<CategoryPerformance[]> => {
-  const { data: events, error } = await supabase
-    .from('service_discovery_events')
-    .select('*')
-    .gte('created_at', startDate.toISOString())
-    .lte('created_at', endDate.toISOString());
-
-  if (error || !events) return [];
-
-  const categoryMap = new Map<string, CategoryPerformance>();
-
-  events.forEach(event => {
-    if (!event.category_id) return;
-
-    if (!categoryMap.has(event.category_id)) {
-      categoryMap.set(event.category_id, {
-        categoryId: event.category_id,
-        categoryName: '',
-        viewCount: 0,
-        conversionRate: 0,
-        averageTimeSpent: 0,
-        childServices: []
-      });
-    }
-
-    const category = categoryMap.get(event.category_id)!;
-
-    if (event.interaction_type === 'category_view') {
-      category.viewCount++;
-      const viewEndEvent = events.find(e => 
-        e.category_id === event.category_id && 
-        e.interaction_type === 'category_view_end' &&
-        new Date(e.created_at).getTime() > new Date(event.created_at).getTime()
-      );
-      
-      if (viewEndEvent) {
-        const duration = (new Date(viewEndEvent.created_at).getTime() - new Date(event.created_at).getTime()) / 1000;
-        category.averageTimeSpent = 
-          (category.averageTimeSpent * (category.viewCount - 1) + duration) / 
-          category.viewCount;
-      }
-    }
-
-    if (event.service_id && event.selected_service_name) {
-      const serviceIndex = category.childServices.findIndex(s => s.serviceId === event.service_id);
-      if (serviceIndex === -1) {
-        category.childServices.push({
-          serviceId: event.service_id,
-          serviceName: event.selected_service_name,
-          viewCount: 1,
-          bookCount: event.interaction_type === 'service_selection' ? 1 : 0,
-          conversionRate: 0
-        });
-      } else {
-        const service = category.childServices[serviceIndex];
-        service.viewCount++;
-        if (event.interaction_type === 'service_selection') {
-          service.bookCount++;
-        }
-        service.conversionRate = (service.bookCount / service.viewCount) * 100;
-      }
-    }
-  });
-
-  categoryMap.forEach(category => {
-    const totalBookings = category.childServices.reduce((sum, service) => sum + service.bookCount, 0);
-    category.conversionRate = (totalBookings / category.viewCount) * 100;
-  });
-
-  return Array.from(categoryMap.values());
-};
-
-interface TimeSlotPreference {
-  hour: number;
-  totalSelections: number;
-  successRate: number;
-  averageDecisionTime: number;
-  deviceDistribution: {
-    mobile: number;
-    tablet: number;
-    desktop: number;
-  };
-}
-
-export const analyzeTimeSlotPreferences = async (
-  startDate: Date,
-  endDate: Date
-): Promise<TimeSlotPreference[]> => {
-  const { data: events } = await supabase
-    .from('datetime_tracking')
-    .select('*')
-    .gte('created_at', startDate.toISOString())
-    .lte('created_at', endDate.toISOString());
-
-  if (!events) return [];
-
-  const timeSlotMap = new Map<number, TimeSlotPreference>();
-
-  events.forEach(event => {
-    if (!event.selected_time) return;
-
-    const hour = parseInt(event.selected_time.split(':')[0]);
+  const bundles = new Map<string, ServiceBundle>();
+  
+  serviceCombinations.forEach(combo => {
+    if (!Array.isArray(combo)) return;
+    const key = combo.sort().join(',');
     
-    if (!timeSlotMap.has(hour)) {
-      timeSlotMap.set(hour, {
-        hour,
-        totalSelections: 0,
-        successRate: 0,
-        averageDecisionTime: 0,
-        deviceDistribution: {
-          mobile: 0,
-          tablet: 0,
-          desktop: 0
+    if (!bundles.has(key)) {
+      bundles.set(key, {
+        name: `Bundle ${bundles.size + 1}`,
+        frequency: 1,
+        averageValue: calculateAverageValue(events, combo),
+        conversionRate: calculateConversionRate(events, combo),
+        services: combo,
+        performanceMetrics: {
+          timeToBook: calculateTimeToBook(events, combo),
+          customerSatisfaction: 0,
+          repeatBookingRate: calculateRepeatBookingRate(events, combo)
         }
       });
-    }
-
-    const slot = timeSlotMap.get(hour)!;
-    slot.totalSelections++;
-
-    if (event.view_duration_seconds) {
-      slot.averageDecisionTime = 
-        (slot.averageDecisionTime * (slot.totalSelections - 1) + event.view_duration_seconds) / 
-        slot.totalSelections;
-    }
-
-    if (event.device_type) {
-      slot.deviceDistribution[event.device_type]++;
+    } else {
+      const bundle = bundles.get(key)!;
+      bundle.frequency++;
     }
   });
 
-  return Array.from(timeSlotMap.values())
-    .sort((a, b) => a.hour - b.hour)
-    .map(slot => ({
-      ...slot,
-      deviceDistribution: {
-        mobile: (slot.deviceDistribution.mobile / slot.totalSelections) * 100,
-        tablet: (slot.deviceDistribution.tablet / slot.totalSelections) * 100,
-        desktop: (slot.deviceDistribution.desktop / slot.totalSelections) * 100
-      }
-    }));
+  return Array.from(bundles.values());
 };
 
-interface BarberSelectionPattern {
-  barberId: string;
-  totalViews: number;
-  totalSelections: number;
-  conversionRate: number;
-  averageDecisionTime: number;
-  preferredTimeSlots: string[];
-  selectionCriteria: {
-    availabilityBased: number;
-    nationalityBased: number;
-    timeSlotBased: number;
-  };
-}
-
-export const analyzeBarberSelectionPatterns = async (
-  startDate: Date,
-  endDate: Date
-): Promise<BarberSelectionPattern[]> => {
-  const { data: events } = await supabase
-    .from('barber_selection_events')
-    .select('*')
-    .gte('created_at', startDate.toISOString())
-    .lte('created_at', endDate.toISOString());
-
-  if (!events) return [];
-
-  const barberMap = new Map<string, BarberSelectionPattern>();
-
-  events.forEach(event => {
-    if (!barberMap.has(event.barber_id)) {
-      barberMap.set(event.barber_id, {
-        barberId: event.barber_id,
-        totalViews: 0,
-        totalSelections: 0,
-        conversionRate: 0,
-        averageDecisionTime: 0,
-        preferredTimeSlots: [],
-        selectionCriteria: {
-          availabilityBased: 0,
-          nationalityBased: 0,
-          timeSlotBased: 0
-        }
-      });
-    }
-
-    const pattern = barberMap.get(event.barber_id)!;
-
-    if (event.interaction_type === 'profile_view') {
-      pattern.totalViews++;
-    } else if (event.interaction_type === 'selection') {
-      pattern.totalSelections++;
-    }
-
-    if (event.view_duration_seconds) {
-      pattern.averageDecisionTime = 
-        (pattern.averageDecisionTime * (pattern.totalViews - 1) + event.view_duration_seconds) / 
-        pattern.totalViews;
-    }
-
-    if (event.preferred_time_slots) {
-      pattern.preferredTimeSlots = [...new Set([...pattern.preferredTimeSlots, ...event.preferred_time_slots])];
-    }
-
-    if (event.selection_criteria && typeof event.selection_criteria === 'object') {
-      const criteria = event.selection_criteria as Record<string, boolean>;
-      if (criteria.availability_based) {
-        pattern.selectionCriteria.availabilityBased++;
-      }
-      if (criteria.nationality_based) {
-        pattern.selectionCriteria.nationalityBased++;
-      }
-      if (criteria.time_slot_based) {
-        pattern.selectionCriteria.timeSlotBased++;
-      }
-    }
-  });
-
-  return Array.from(barberMap.values()).map(pattern => ({
-    ...pattern,
-    conversionRate: (pattern.totalSelections / pattern.totalViews) * 100,
-    selectionCriteria: {
-      availabilityBased: (pattern.selectionCriteria.availabilityBased / pattern.totalSelections) * 100,
-      nationalityBased: (pattern.selectionCriteria.nationalityBased / pattern.totalSelections) * 100,
-      timeSlotBased: (pattern.selectionCriteria.timeSlotBased / pattern.totalSelections) * 100
-    }
-  }));
-};
-
-interface PathOptimization {
-  currentPath: string[];
-  suggestedPath: string[];
-  potentialImpact: {
-    conversionRate: number;
-    timeToBook: number;
-    dropOffReduction: number;
-  };
-  reasoning: string;
-  priority: 'high' | 'medium';
-}
-
-const generatePathOptimizations = (
-  interactionEvents: any[],
-  dropOffPoints: DropOffPoint[],
-  serviceBundles: ServiceBundle[]
-): PathOptimization[] => {
-  const optimizations: PathOptimization[] = [];
-
-  dropOffPoints
-    .filter(point => point.exitRate > 30)
-    .forEach(point => {
-      const currentPath = point.previousPages;
-      const suggestedPath = [...currentPath];
-      
-      const successfulPaths = interactionEvents
-        .filter(event => event.interaction_type === 'service_selection_complete')
-        .map(event => event.interaction_details?.path || []);
-      
-      const betterPath = successfulPaths.find(path => 
-        path.includes(point.page) && 
-        calculatePathEfficiency(path) > calculatePathEfficiency(currentPath)
-      );
-
-      if (betterPath) {
-        optimizations.push({
-          currentPath,
-          suggestedPath: betterPath,
-          potentialImpact: {
-            conversionRate: estimateConversionImprovement(currentPath, betterPath, interactionEvents),
-            timeToBook: estimateTimeToBookImprovement(currentPath, betterPath, interactionEvents),
-            dropOffReduction: point.exitRate * 0.4
-          },
-          reasoning: `High drop-off rate of ${point.exitRate.toFixed(1)}% detected. Suggested path shows ${calculatePathEfficiency(betterPath).toFixed(1)}% better conversion rate.`,
-          priority: point.exitRate > 50 ? 'high' : 'medium'
-        });
-      }
-    });
-
-  serviceBundles
-    .filter(bundle => bundle.conversionRate < 30)
-    .forEach(bundle => {
-      const successfulBundles = serviceBundles
-        .filter(b => b.conversionRate > 50)
-        .sort((a, b) => b.frequency - a.frequency);
-
-      if (successfulBundles.length > 0) {
-        const recommendedBundle = successfulBundles[0];
-        optimizations.push({
-          currentPath: bundle.services,
-          suggestedPath: recommendedBundle.services,
-          potentialImpact: {
-            conversionRate: recommendedBundle.conversionRate - bundle.conversionRate,
-            timeToBook: recommendedBundle.performanceMetrics.timeToBook - bundle.performanceMetrics.timeToBook,
-            dropOffReduction: 15
-          },
-          reasoning: `Low-performing service bundle detected. Recommended bundle shows ${recommendedBundle.conversionRate.toFixed(1)}% conversion rate vs current ${bundle.conversionRate.toFixed(1)}%.`,
-          priority: bundle.frequency > 10 ? 'high' : 'medium'
-        });
-      }
-    });
-
-  return optimizations;
-};
-
-const calculatePathEfficiency = (path: string[]): number => {
-  return path.length > 0 ? 100 / path.length : 0;
-};
-
-const estimateConversionImprovement = (
-  currentPath: string[],
-  suggestedPath: string[],
-  events: any[]
-): number => {
-  const currentConversion = calculatePathConversion(currentPath, events);
-  const suggestedConversion = calculatePathConversion(suggestedPath, events);
-  return suggestedConversion - currentConversion;
-};
-
-const calculatePathConversion = (path: string[], events: any[]): number => {
-  const pathEvents = events.filter(event => 
-    path.includes(event.page_url || '')
+const calculateAverageValue = (events: UnifiedEvent[], services: string[]): number => {
+  const relevantEvents = events.filter(e => 
+    e.event_data?.selected_services && 
+    arrayEquals(e.event_data.selected_services as string[], services)
   );
   
-  const completions = pathEvents.filter(event => 
-    event.interaction_type === 'service_selection_complete'
+  const totalValue = relevantEvents.reduce((sum, event) => 
+    sum + (event.event_data?.total_value as number || 0), 0);
+    
+  return relevantEvents.length ? totalValue / relevantEvents.length : 0;
+};
+
+const calculateConversionRate = (events: UnifiedEvent[], services: string[]): number => {
+  const selections = events.filter(e => 
+    e.event_data?.selected_services && 
+    arrayEquals(e.event_data.selected_services as string[], services)
+  ).length;
+  
+  const completions = events.filter(e => 
+    e.event_type === 'business' && 
+    e.event_name === 'booking_completed' &&
+    e.event_data?.selected_services &&
+    arrayEquals(e.event_data.selected_services as string[], services)
   ).length;
 
-  return pathEvents.length > 0 ? (completions / pathEvents.length) * 100 : 0;
+  return selections ? (completions / selections) * 100 : 0;
 };
 
-const estimateTimeToBookImprovement = (
-  currentPath: string[],
-  suggestedPath: string[],
-  events: any[]
-): number => {
-  const currentTime = calculateAverageTimeToBook(currentPath, events);
-  const suggestedTime = calculateAverageTimeToBook(suggestedPath, events);
-  return currentTime - suggestedTime;
+const calculateTimeToBook = (events: UnifiedEvent[], services: string[]): number => {
+  const relevantEvents = events.filter(e => 
+    e.event_data?.selected_services && 
+    arrayEquals(e.event_data.selected_services as string[], services)
+  );
+
+  const durations = relevantEvents.map(event => {
+    const startTime = new Date(event.event_data?.first_interaction as string || event.timestamp).getTime();
+    const endTime = new Date(event.timestamp).getTime();
+    return endTime - startTime;
+  });
+
+  return durations.length ? durations.reduce((a, b) => a + b, 0) / durations.length / 1000 : 0;
 };
 
-const calculateAverageTimeToBook = (path: string[], events: any[]): number => {
-  const pathCompletions = events.filter(event => 
-    event.interaction_type === 'service_selection_complete' &&
-    event.interaction_details?.path?.join(',') === path.join(',')
+const calculateRepeatBookingRate = (events: UnifiedEvent[], services: string[]): number => {
+  const uniqueUsers = new Set(events
+    .filter(e => e.user_id && e.event_data?.selected_services && 
+      arrayEquals(e.event_data.selected_services as string[], services))
+    .map(e => e.user_id)
   );
 
-  const times = pathCompletions.map(event => 
-    event.interaction_details?.timeToBook || 0
+  const repeatUsers = new Set(events
+    .filter(e => e.user_id && e.event_type === 'business' && 
+      e.event_name === 'booking_completed' &&
+      e.event_data?.selected_services &&
+      arrayEquals(e.event_data.selected_services as string[], services))
+    .map(e => e.user_id)
   );
 
-  return times.length > 0 
-    ? times.reduce((a, b) => a + b, 0) / times.length 
-    : 0;
+  return uniqueUsers.size ? (repeatUsers.size / uniqueUsers.size) * 100 : 0;
+};
+
+const generatePathOptimizations = (events: UnifiedEvent[], dropOffPoints: DropOffPoint[]): PathOptimization[] => {
+  return dropOffPoints
+    .filter(point => point.exitRate > 0.3) // Focus on high drop-off points
+    .map(point => {
+      const currentPath = point.previousPages.concat(point.page);
+      const suggestedPath = generateOptimizedPath(currentPath, events);
+      
+      return {
+        currentPath,
+        suggestedPath,
+        potentialImpact: calculatePotentialImpact(events, currentPath, suggestedPath),
+        reasoning: generateOptimizationReasoning(point, events),
+        priority: determinePriority(point.exitRate)
+      };
+    });
+};
+
+const generateOptimizedPath = (currentPath: string[], events: UnifiedEvent[]): string[] => {
+  // Implement path optimization logic based on successful conversions
+  const successfulPaths = events
+    .filter(e => e.event_type === 'business' && e.event_name === 'booking_completed')
+    .map(e => e.event_data?.path as string[])
+    .filter(Boolean);
+
+  if (successfulPaths.length === 0) return currentPath;
+
+  // Find the most successful path that includes all required steps
+  const requiredSteps = new Set(currentPath);
+  const validPaths = successfulPaths.filter(path => 
+    Array.from(requiredSteps).every(step => path.includes(step))
+  );
+
+  if (validPaths.length === 0) return currentPath;
+
+  // Return the shortest successful path
+  return validPaths.reduce((shortest, current) => 
+    current.length < shortest.length ? current : shortest
+  );
+};
+
+const calculatePotentialImpact = (
+  events: UnifiedEvent[], 
+  currentPath: string[], 
+  suggestedPath: string[]
+): { conversionRate: number; timeToBook: number; dropOffReduction: number } => {
+  const currentMetrics = calculatePathMetrics(events, currentPath);
+  const suggestedMetrics = calculatePathMetrics(events, suggestedPath);
+
+  return {
+    conversionRate: suggestedMetrics.conversionRate - currentMetrics.conversionRate,
+    timeToBook: currentMetrics.timeToBook - suggestedMetrics.timeToBook,
+    dropOffReduction: currentMetrics.dropOffRate - suggestedMetrics.dropOffRate
+  };
+};
+
+const calculatePathMetrics = (events: UnifiedEvent[], path: string[]) => {
+  const pathEvents = events.filter(e => e.event_data?.path && 
+    arrayEquals(e.event_data.path as string[], path));
+
+  const conversions = pathEvents.filter(e => 
+    e.event_type === 'business' && e.event_name === 'booking_completed'
+  ).length;
+
+  return {
+    conversionRate: pathEvents.length ? (conversions / pathEvents.length) * 100 : 0,
+    timeToBook: calculateAverageTimeToBook(pathEvents),
+    dropOffRate: calculateDropOffRate(pathEvents)
+  };
+};
+
+const generateOptimizationReasoning = (dropOffPoint: DropOffPoint, events: UnifiedEvent[]): string => {
+  const highExitRate = dropOffPoint.exitRate > 0.5;
+  const longTimeBeforeExit = dropOffPoint.averageTimeBeforeExit > 180; // 3 minutes
+  
+  if (highExitRate && longTimeBeforeExit) {
+    return `High drop-off rate (${Math.round(dropOffPoint.exitRate * 100)}%) with users spending significant time (${Math.round(dropOffPoint.averageTimeBeforeExit)}s) before leaving. Consider simplifying this step.`;
+  } else if (highExitRate) {
+    return `High drop-off rate (${Math.round(dropOffPoint.exitRate * 100)}%) with quick exits. Consider improving initial engagement.`;
+  } else if (longTimeBeforeExit) {
+    return `Users spend ${Math.round(dropOffPoint.averageTimeBeforeExit)}s before leaving. Consider streamlining the process.`;
+  }
+  
+  return `Moderate drop-off point with potential for optimization.`;
+};
+
+const determinePriority = (exitRate: number): 'high' | 'medium' | 'low' => {
+  if (exitRate > 0.5) return 'high';
+  if (exitRate > 0.3) return 'medium';
+  return 'low';
+};
+
+const calculateAverageTimeToBook = (events: UnifiedEvent[]): number => {
+  const bookingTimes = events
+    .filter(e => e.event_type === 'business' && e.event_name === 'booking_completed')
+    .map(e => {
+      const startTime = new Date(e.event_data?.first_interaction as string || e.timestamp).getTime();
+      const endTime = new Date(e.timestamp).getTime();
+      return endTime - startTime;
+    });
+
+  return bookingTimes.length ? 
+    bookingTimes.reduce((a, b) => a + b, 0) / bookingTimes.length / 1000 : 
+    0;
+};
+
+const calculateDropOffRate = (events: UnifiedEvent[]): number => {
+  const totalStarts = events.length;
+  const completions = events.filter(e => 
+    e.event_type === 'business' && e.event_name === 'booking_completed'
+  ).length;
+
+  return totalStarts ? (totalStarts - completions) / totalStarts : 0;
+};
+
+const arrayEquals = (a: any[], b: any[]): boolean => {
+  return Array.isArray(a) && 
+         Array.isArray(b) && 
+         a.length === b.length && 
+         a.every((val, index) => val === b[index]);
+};
+
+export const processServiceHeatmapData = (events: UnifiedEvent[]) => {
+  // Implement service heatmap processing
+  const serviceInteractions = events.filter(e => 
+    e.event_type === 'interaction' && 
+    e.event_name === 'service_interaction'
+  );
+
+  return serviceInteractions.reduce((acc, event) => {
+    const serviceName = event.event_data?.service_name as string;
+    if (!serviceName) return acc;
+
+    if (!acc[serviceName]) {
+      acc[serviceName] = {
+        name: serviceName,
+        views: 0,
+        clicks: 0,
+        conversions: 0
+      };
+    }
+
+    const interaction = event.event_data?.interaction_type as string;
+    if (interaction === 'view') acc[serviceName].views++;
+    if (interaction === 'click') acc[serviceName].clicks++;
+    if (interaction === 'select') acc[serviceName].conversions++;
+
+    return acc;
+  }, {} as Record<string, { name: string; views: number; clicks: number; conversions: number }>);
 };

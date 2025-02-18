@@ -2,143 +2,105 @@
 import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
-import { Users, BookMarked, Clock, Route } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
-
-interface AggregatedMetrics {
-  activeUsers: number;
-  conversionRate: number;
-  totalInteractions: number;
-  uniquePaths: number;
-}
+import { UnifiedEvent } from "./types";
+import { Badge } from "@/components/ui/badge";
+import { Loader2 } from "lucide-react";
 
 export const LightweightMonitoring = () => {
-  const { data: metrics, isLoading } = useQuery({
-    queryKey: ['aggregated-metrics'],
-    queryFn: async () => {
+  const [realtimeEvents, setRealtimeEvents] = useState<UnifiedEvent[]>([]);
+  const [activeSessions, setActiveSessions] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    // Fetch initial active sessions
+    const fetchActiveSessions = async () => {
       const thirtyMinutesAgo = new Date(Date.now() - 30 * 60 * 1000).toISOString();
-      
-      // Get active users (unique sessions in last 30 minutes)
-      const { data: sessions, error: sessionsError } = await supabase
-        .from('page_views')
-        .select('session_id')
-        .gte('created_at', thirtyMinutesAgo)
-        .limit(1000);
+      const { count } = await supabase
+        .from('tracking_sessions')
+        .select('*', { count: 'exact', head: true })
+        .eq('is_active', true)
+        .gte('last_activity', thirtyMinutesAgo);
 
-      if (sessionsError) throw sessionsError;
+      setActiveSessions(count || 0);
+      setIsLoading(false);
+    };
 
-      // Get unique paths
-      const { data: paths, error: pathsError } = await supabase
-        .from('page_views')
-        .select('page_url')
-        .gte('created_at', thirtyMinutesAgo)
-        .limit(1000);
+    fetchActiveSessions();
 
-      if (pathsError) throw pathsError;
+    // Subscribe to realtime events
+    const channel = supabase
+      .channel('public:unified_events')
+      .on('postgres_changes', 
+        { event: 'INSERT', schema: 'public', table: 'unified_events' },
+        (payload) => {
+          const newEvent = payload.new as UnifiedEvent;
+          setRealtimeEvents(prev => [newEvent, ...prev].slice(0, 10));
+        }
+      )
+      .subscribe();
 
-      // Get total interactions
-      const { data: interactions, error: interactionsError } = await supabase
-        .from('interaction_events')
-        .select('id')
-        .gte('created_at', thirtyMinutesAgo)
-        .limit(1000);
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
 
-      if (interactionsError) throw interactionsError;
-
-      // Calculate metrics
-      const uniqueSessions = new Set(sessions?.map(s => s.session_id)).size;
-      const uniquePaths = new Set(paths?.map(p => p.page_url)).size;
-      const totalInteractions = interactions?.length || 0;
-      
-      // Calculate conversion rate (assuming conversion is reaching the final booking step)
-      const { data: conversions, error: conversionsError } = await supabase
-        .from('interaction_events')
-        .select('session_id')
-        .eq('interaction_type', 'service_select')
-        .gte('created_at', thirtyMinutesAgo)
-        .limit(1000);
-
-      if (conversionsError) throw conversionsError;
-
-      const conversionRate = uniqueSessions ? 
-        ((conversions?.length || 0) / uniqueSessions) * 100 : 0;
-
-      return {
-        activeUsers: uniqueSessions,
-        conversionRate,
-        totalInteractions,
-        uniquePaths
-      };
-    },
-    refetchInterval: 5 * 60 * 1000, // Refetch every 5 minutes
-    staleTime: 4 * 60 * 1000, // Consider data stale after 4 minutes
-  });
+  const getEventBadgeColor = (eventType: string) => {
+    switch (eventType) {
+      case 'page_view': return 'bg-blue-500';
+      case 'interaction': return 'bg-green-500';
+      case 'business': return 'bg-yellow-500';
+      default: return 'bg-gray-500';
+    }
+  };
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 animate-pulse">
-        {[...Array(4)].map((_, i) => (
-          <Card key={i} className="h-32">
-            <CardContent className="p-6">
-              <div className="h-full bg-muted rounded" />
-            </CardContent>
-          </Card>
-        ))}
+      <div className="flex items-center justify-center p-8">
+        <Loader2 className="h-8 w-8 animate-spin" />
       </div>
     );
   }
 
   return (
     <div className="space-y-4">
-      <h2 className="text-2xl font-bold">Monitoring Dashboard</h2>
-      
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid gap-4 md:grid-cols-3">
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Users</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
+          <CardHeader>
+            <CardTitle>Active Sessions</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{metrics?.activeUsers || 0}</div>
-            <p className="text-xs text-muted-foreground">Last 30 minutes</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Conversion Rate</CardTitle>
-            <BookMarked className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {(metrics?.conversionRate || 0).toFixed(1)}%
-            </div>
-            <p className="text-xs text-muted-foreground">Of active sessions</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Recent Interactions</CardTitle>
-            <Clock className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{metrics?.totalInteractions || 0}</div>
-            <p className="text-xs text-muted-foreground">Last 30 minutes</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Paths</CardTitle>
-            <Route className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{metrics?.uniquePaths || 0}</div>
-            <p className="text-xs text-muted-foreground">Unique URLs visited</p>
+            <p className="text-2xl font-bold">{activeSessions}</p>
           </CardContent>
         </Card>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Real-time Events</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {realtimeEvents.map((event, index) => (
+              <div key={event.id || index} className="flex items-center justify-between p-2 bg-secondary/20 rounded-lg">
+                <div>
+                  <Badge className={getEventBadgeColor(event.event_type)}>
+                    {event.event_type}
+                  </Badge>
+                  <span className="ml-2 text-sm">{event.event_name}</span>
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  {new Date(event.timestamp).toLocaleTimeString()}
+                </div>
+              </div>
+            ))}
+            {realtimeEvents.length === 0 && (
+              <p className="text-muted-foreground text-center py-4">
+                No events yet. Events will appear here in real-time.
+              </p>
+            )}
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };
