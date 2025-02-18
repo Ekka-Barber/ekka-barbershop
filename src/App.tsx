@@ -6,7 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { useEffect, lazy, Suspense } from "react";
-import { trackClick } from "@/utils/clickTracking";
+import { useTracking } from "@/hooks/useTracking";
 import Customer from "./pages/Customer";
 import Menu from "./pages/Menu";
 import Offers from "./pages/Offers";
@@ -33,13 +33,39 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
-const App = () => {
-  useEffect(() => {
-    // Add click tracking
-    window.addEventListener('click', trackClick);
-    return () => window.removeEventListener('click', trackClick);
-  }, []);
+// App wrapper with tracking
+const AppWithTracking = () => {
+  useTracking(); // Initialize tracking
+  return (
+    <Routes>
+      {/* Redirect root to customer page */}
+      <Route path="/" element={<Navigate to="/customer" replace />} />
+      
+      {/* Public routes */}
+      <Route path="/customer" element={<Customer />} />
+      <Route path="/menu" element={<Menu />} />
+      <Route path="/offers" element={<Offers />} />
+      <Route path="/bookings" element={<Bookings />} />
+      
+      {/* Protected routes */}
+      <Route 
+        path="/admin" 
+        element={
+          <ProtectedRoute>
+            <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
+              <Admin />
+            </Suspense>
+          </ProtectedRoute>
+        } 
+      />
+      
+      {/* Catch all other routes and redirect to customer page */}
+      <Route path="*" element={<Navigate to="/customer" replace />} />
+    </Routes>
+  );
+};
 
+const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <LanguageProvider>
@@ -47,31 +73,7 @@ const App = () => {
           <Toaster />
           <Sonner />
           <BrowserRouter>
-            <Routes>
-              {/* Redirect root to customer page */}
-              <Route path="/" element={<Navigate to="/customer" replace />} />
-              
-              {/* Public routes */}
-              <Route path="/customer" element={<Customer />} />
-              <Route path="/menu" element={<Menu />} />
-              <Route path="/offers" element={<Offers />} />
-              <Route path="/bookings" element={<Bookings />} />
-              
-              {/* Protected routes */}
-              <Route 
-                path="/admin" 
-                element={
-                  <ProtectedRoute>
-                    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
-                      <Admin />
-                    </Suspense>
-                  </ProtectedRoute>
-                } 
-              />
-              
-              {/* Catch all other routes and redirect to customer page */}
-              <Route path="*" element={<Navigate to="/customer" replace />} />
-            </Routes>
+            <AppWithTracking />
           </BrowserRouter>
         </TooltipProvider>
       </LanguageProvider>
