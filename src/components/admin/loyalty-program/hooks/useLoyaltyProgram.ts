@@ -1,5 +1,4 @@
 
-import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { LoyaltyProgram, defaultProgram } from "../types";
@@ -36,7 +35,6 @@ export function useLoyaltyProgram() {
     } catch (error) {
       console.error("Error fetching loyalty program:", error);
       toast({
-        title: "Error",
         description: "Failed to load loyalty program settings",
         variant: "destructive",
       });
@@ -64,13 +62,11 @@ export function useLoyaltyProgram() {
       if (error) throw error;
 
       toast({
-        title: "Success",
         description: "Loyalty program settings saved successfully",
       });
     } catch (error) {
       console.error("Error saving loyalty program:", error);
       toast({
-        title: "Error",
         description: "Failed to save loyalty program settings",
         variant: "destructive",
       });

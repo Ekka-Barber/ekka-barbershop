@@ -6,7 +6,7 @@ import { CategoryActions } from './category-management/CategoryActions';
 import { ServiceManagementHeader } from './service-management/ServiceManagementHeader';
 import { ServiceCategorySkeleton } from './service-management/ServiceCategorySkeleton';
 import { EmptyServiceState } from './service-management/EmptyServiceState';
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { OnDragEndResponder } from '@hello-pangea/dnd';
 
 const ServiceCategoryList = () => {
