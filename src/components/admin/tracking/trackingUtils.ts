@@ -1,5 +1,5 @@
-
 import { BookingData, JourneyNode, JourneyLink, ServiceAnalytics } from "./types";
+import { supabase } from "@/integrations/supabase/client";
 
 export const processTimePatterns = (bookingData: BookingData[]) => {
   const timePatterns = bookingData.reduce((acc, booking) => {
@@ -67,7 +67,6 @@ export const processCustomerJourney = (interactionEvents: any[]): { nodes: Journ
   const nodes: JourneyNode[] = [];
   const links: JourneyLink[] = [];
 
-  // First pass: create nodes with numeric indices
   interactionEvents.forEach(event => {
     if (event.page_url) {
       if (!nodeMap.has(event.page_url)) {
@@ -82,7 +81,6 @@ export const processCustomerJourney = (interactionEvents: any[]): { nodes: Journ
     }
   });
 
-  // Second pass: create links using numeric indices
   for (let i = 0; i < interactionEvents.length - 1; i++) {
     const sourceEvent = interactionEvents[i];
     const targetEvent = interactionEvents[i + 1];
@@ -113,13 +111,11 @@ export const processCustomerJourney = (interactionEvents: any[]): { nodes: Journ
 };
 
 export const processUserBehavior = (pageViews: any[], interactionEvents: any[]) => {
-  // Combine page views and interactions to create a complete journey
   const sessions = new Map<string, {
     views: any[],
     interactions: any[]
   }>();
 
-  // Group by session
   pageViews.forEach(view => {
     if (view.session_id) {
       if (!sessions.has(view.session_id)) {
@@ -138,7 +134,6 @@ export const processUserBehavior = (pageViews: any[], interactionEvents: any[]) 
     }
   });
 
-  // Process session data
   return Array.from(sessions.entries()).map(([sessionId, data]) => {
     const { views, interactions } = data;
     const duration = views.length > 0 ? 
@@ -154,4 +149,252 @@ export const processUserBehavior = (pageViews: any[], interactionEvents: any[]) 
       startTime: views[0]?.entry_time || interactions[0]?.timestamp
     };
   });
+};
+
+interface CategoryPerformance {
+  categoryId: string;
+  categoryName: string;
+  viewCount: number;
+  conversionRate: number;
+  averageTimeSpent: number;
+  childServices: Array<{
+    serviceId: string;
+    serviceName: string;
+    viewCount: number;
+    bookCount: number;
+    conversionRate: number;
+  }>;
+}
+
+export const analyzeCategoryPerformance = async (
+  startDate: Date,
+  endDate: Date
+): Promise<CategoryPerformance[]> => {
+  const { data: events } = await supabase
+    .from('service_discovery_events')
+    .select(`
+      category_id,
+      service_id,
+      interaction_type,
+      selected_service_name,
+      timestamp,
+      view_duration_seconds
+    `)
+    .gte('timestamp', startDate.toISOString())
+    .lte('timestamp', endDate.toISOString());
+
+  if (!events) return [];
+
+  const categoryMap = new Map<string, CategoryPerformance>();
+
+  events.forEach(event => {
+    if (!event.category_id) return;
+
+    if (!categoryMap.has(event.category_id)) {
+      categoryMap.set(event.category_id, {
+        categoryId: event.category_id,
+        categoryName: '', // Will be populated later
+        viewCount: 0,
+        conversionRate: 0,
+        averageTimeSpent: 0,
+        childServices: []
+      });
+    }
+
+    const category = categoryMap.get(event.category_id)!;
+
+    if (event.interaction_type === 'category_view') {
+      category.viewCount++;
+      if (event.view_duration_seconds) {
+        category.averageTimeSpent = 
+          (category.averageTimeSpent * (category.viewCount - 1) + event.view_duration_seconds) / 
+          category.viewCount;
+      }
+    }
+
+    if (event.service_id && event.selected_service_name) {
+      const serviceIndex = category.childServices.findIndex(s => s.serviceId === event.service_id);
+      if (serviceIndex === -1) {
+        category.childServices.push({
+          serviceId: event.service_id,
+          serviceName: event.selected_service_name,
+          viewCount: 1,
+          bookCount: event.interaction_type === 'service_selection' ? 1 : 0,
+          conversionRate: 0
+        });
+      } else {
+        const service = category.childServices[serviceIndex];
+        service.viewCount++;
+        if (event.interaction_type === 'service_selection') {
+          service.bookCount++;
+        }
+        service.conversionRate = (service.bookCount / service.viewCount) * 100;
+      }
+    }
+  });
+
+  categoryMap.forEach(category => {
+    const totalBookings = category.childServices.reduce((sum, service) => sum + service.bookCount, 0);
+    category.conversionRate = (totalBookings / category.viewCount) * 100;
+  });
+
+  return Array.from(categoryMap.values());
+};
+
+interface TimeSlotPreference {
+  hour: number;
+  totalSelections: number;
+  successRate: number;
+  averageDecisionTime: number;
+  deviceDistribution: {
+    mobile: number;
+    tablet: number;
+    desktop: number;
+  };
+}
+
+export const analyzeTimeSlotPreferences = async (
+  startDate: Date,
+  endDate: Date
+): Promise<TimeSlotPreference[]> => {
+  const { data: events } = await supabase
+    .from('datetime_tracking')
+    .select('*')
+    .gte('created_at', startDate.toISOString())
+    .lte('created_at', endDate.toISOString());
+
+  if (!events) return [];
+
+  const timeSlotMap = new Map<number, TimeSlotPreference>();
+
+  events.forEach(event => {
+    if (!event.selected_time) return;
+
+    const hour = parseInt(event.selected_time.split(':')[0]);
+    
+    if (!timeSlotMap.has(hour)) {
+      timeSlotMap.set(hour, {
+        hour,
+        totalSelections: 0,
+        successRate: 0,
+        averageDecisionTime: 0,
+        deviceDistribution: {
+          mobile: 0,
+          tablet: 0,
+          desktop: 0
+        }
+      });
+    }
+
+    const slot = timeSlotMap.get(hour)!;
+    slot.totalSelections++;
+
+    if (event.view_duration_seconds) {
+      slot.averageDecisionTime = 
+        (slot.averageDecisionTime * (slot.totalSelections - 1) + event.view_duration_seconds) / 
+        slot.totalSelections;
+    }
+
+    if (event.device_type) {
+      slot.deviceDistribution[event.device_type]++;
+    }
+  });
+
+  return Array.from(timeSlotMap.values())
+    .sort((a, b) => a.hour - b.hour)
+    .map(slot => ({
+      ...slot,
+      deviceDistribution: {
+        mobile: (slot.deviceDistribution.mobile / slot.totalSelections) * 100,
+        tablet: (slot.deviceDistribution.tablet / slot.totalSelections) * 100,
+        desktop: (slot.deviceDistribution.desktop / slot.totalSelections) * 100
+      }
+    }));
+};
+
+interface BarberSelectionPattern {
+  barberId: string;
+  totalViews: number;
+  totalSelections: number;
+  conversionRate: number;
+  averageDecisionTime: number;
+  preferredTimeSlots: string[];
+  selectionCriteria: {
+    availabilityBased: number;
+    nationalityBased: number;
+    timeSlotBased: number;
+  };
+}
+
+export const analyzeBarberSelectionPatterns = async (
+  startDate: Date,
+  endDate: Date
+): Promise<BarberSelectionPattern[]> => {
+  const { data: events } = await supabase
+    .from('barber_selection_events')
+    .select('*')
+    .gte('created_at', startDate.toISOString())
+    .lte('created_at', endDate.toISOString());
+
+  if (!events) return [];
+
+  const barberMap = new Map<string, BarberSelectionPattern>();
+
+  events.forEach(event => {
+    if (!barberMap.has(event.barber_id)) {
+      barberMap.set(event.barber_id, {
+        barberId: event.barber_id,
+        totalViews: 0,
+        totalSelections: 0,
+        conversionRate: 0,
+        averageDecisionTime: 0,
+        preferredTimeSlots: [],
+        selectionCriteria: {
+          availabilityBased: 0,
+          nationalityBased: 0,
+          timeSlotBased: 0
+        }
+      });
+    }
+
+    const pattern = barberMap.get(event.barber_id)!;
+
+    if (event.interaction_type === 'profile_view') {
+      pattern.totalViews++;
+    } else if (event.interaction_type === 'selection') {
+      pattern.totalSelections++;
+    }
+
+    if (event.view_duration_seconds) {
+      pattern.averageDecisionTime = 
+        (pattern.averageDecisionTime * (pattern.totalViews - 1) + event.view_duration_seconds) / 
+        pattern.totalViews;
+    }
+
+    if (event.preferred_time_slots) {
+      pattern.preferredTimeSlots = [...new Set([...pattern.preferredTimeSlots, ...event.preferred_time_slots])];
+    }
+
+    if (event.selection_criteria) {
+      if (event.selection_criteria.availability_based) {
+        pattern.selectionCriteria.availabilityBased++;
+      }
+      if (event.selection_criteria.nationality_based) {
+        pattern.selectionCriteria.nationalityBased++;
+      }
+      if (event.selection_criteria.time_slot_based) {
+        pattern.selectionCriteria.timeSlotBased++;
+      }
+    }
+  });
+
+  return Array.from(barberMap.values()).map(pattern => ({
+    ...pattern,
+    conversionRate: (pattern.totalSelections / pattern.totalViews) * 100,
+    selectionCriteria: {
+      availabilityBased: (pattern.selectionCriteria.availabilityBased / pattern.totalSelections) * 100,
+      nationalityBased: (pattern.selectionCriteria.nationalityBased / pattern.totalSelections) * 100,
+      timeSlotBased: (pattern.selectionCriteria.timeSlotBased / pattern.totalSelections) * 100
+    }
+  }));
 };
