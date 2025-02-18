@@ -12,7 +12,7 @@ export interface BookingBehavior {
 
 export interface BookingData {
   id: string;
-  device_type: 'mobile' | 'desktop';
+  device_type: 'mobile' | 'tablet' | 'desktop';  // Updated to include 'tablet'
   browser_info: {
     userAgent: string;
     language: string;
