@@ -26,14 +26,6 @@ export interface QRCode {
   updated_at: string;
 }
 
-export interface CustomerTrackingData {
-  id: string;
-  customer_id: string;
-  event_type: string;
-  event_data: Record<string, any>;
-  created_at: string;
-}
-
 export interface NotificationMessage {
   id: string;
   title: string;
