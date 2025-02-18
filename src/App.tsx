@@ -1,4 +1,5 @@
 
+import React from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -67,17 +68,19 @@ const AppWithTracking = () => {
 
 const App = () => {
   return (
-    <BrowserRouter>
-      <QueryClientProvider client={queryClient}>
-        <LanguageProvider>
-          <TooltipProvider>
-            <Toaster />
-            <Sonner />
-            <AppWithTracking />
-          </TooltipProvider>
-        </LanguageProvider>
-      </QueryClientProvider>
-    </BrowserRouter>
+    <React.StrictMode>
+      <TooltipProvider>
+        <BrowserRouter>
+          <QueryClientProvider client={queryClient}>
+            <LanguageProvider>
+              <Toaster />
+              <Sonner />
+              <AppWithTracking />
+            </LanguageProvider>
+          </QueryClientProvider>
+        </BrowserRouter>
+      </TooltipProvider>
+    </React.StrictMode>
   );
 };
 
