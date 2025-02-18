@@ -1,29 +1,14 @@
 
-import { CustomerDetails, Branch, Employee } from '@/types/booking';
-import { Service, SelectedService } from '@/types/service';
-import { BookingStep } from '@/components/booking/BookingProgress';
-import { useBookingState } from './booking/useBookingState';
+import { useBookingContext } from '@/contexts/BookingContext';
+import { Branch } from '@/types/booking';
 import { useServiceManagement } from './booking/useServiceManagement';
 import { useEmployeeManagement } from './booking/useEmployeeManagement';
 import { useUpsellManagement } from './booking/useUpsellManagement';
 import { useBookingNavigation } from './booking/useBookingNavigation';
 
 export const useBooking = (branch: Branch) => {
-  const {
-    currentStep,
-    setCurrentStep,
-    selectedServices,
-    setSelectedServices,
-    selectedDate,
-    setSelectedDate,
-    selectedTime,
-    setSelectedTime,
-    selectedBarber,
-    setSelectedBarber,
-    customerDetails,
-    setCustomerDetails
-  } = useBookingState();
-
+  const { state, dispatch } = useBookingContext();
+  
   const {
     categories,
     categoriesLoading,
@@ -43,43 +28,52 @@ export const useBooking = (branch: Branch) => {
     handleBack,
     handleNext,
     canProceedToNext
-  } = useBookingNavigation(currentStep, selectedServices, customerDetails, branch);
+  } = useBookingNavigation(
+    state.currentStep,
+    state.selectedServices,
+    state.customerDetails,
+    branch
+  );
 
-  const handleServiceToggle = (service: Service, skipDiscountCalculation: boolean = false) => {
-    baseHandleServiceToggle(service, selectedServices, setSelectedServices, skipDiscountCalculation);
+  const handleServiceToggle = (service: any, skipDiscountCalculation: boolean = false) => {
+    baseHandleServiceToggle(
+      service,
+      state.selectedServices,
+      (services) => dispatch({ type: 'SET_SERVICES', payload: services }),
+      skipDiscountCalculation
+    );
   };
 
   const handleUpsellServiceAdd = (upsellServices: any[]) => {
-    baseHandleUpsellServiceAdd(upsellServices, selectedServices, setSelectedServices);
+    baseHandleUpsellServiceAdd(
+      upsellServices,
+      state.selectedServices,
+      (services) => dispatch({ type: 'SET_SERVICES', payload: services })
+    );
   };
 
-  const handleCustomerDetailsChange = (field: keyof CustomerDetails, value: string) => {
-    setCustomerDetails(prev => ({
-      ...prev,
-      [field]: value
-    }));
+  const handleCustomerDetailsChange = (field: keyof typeof state.customerDetails, value: string) => {
+    dispatch({
+      type: 'SET_CUSTOMER_DETAILS',
+      payload: { ...state.customerDetails, [field]: value }
+    });
   };
 
-  const totalPrice = selectedServices.reduce((sum, service) => sum + service.price, 0);
+  const totalPrice = state.selectedServices.reduce((sum, service) => sum + service.price, 0);
 
-  const handleStepChange = (nextStep: BookingStep) => {
+  const handleStepChange = (nextStep: any) => {
     if (canProceedToNext()) {
-      setCurrentStep(nextStep);
+      console.log('Step change:', { from: state.currentStep, to: nextStep });
+      dispatch({ type: 'SET_STEP', payload: nextStep });
     }
   };
 
   return {
-    currentStep,
-    setCurrentStep,
-    selectedServices,
-    selectedDate,
-    setSelectedDate,
-    selectedTime,
-    setSelectedTime,
-    selectedBarber,
-    setSelectedBarber,
-    customerDetails,
-    handleCustomerDetailsChange,
+    ...state,
+    setCurrentStep: (step: any) => dispatch({ type: 'SET_STEP', payload: step }),
+    setSelectedDate: (date: Date | undefined) => dispatch({ type: 'SET_DATE', payload: date }),
+    setSelectedTime: (time: string) => dispatch({ type: 'SET_TIME', payload: time }),
+    setSelectedBarber: (barber: any) => dispatch({ type: 'SET_BARBER', payload: barber }),
     categories,
     categoriesLoading,
     employees,
@@ -88,6 +82,7 @@ export const useBooking = (branch: Branch) => {
     employeeWorkingHours,
     handleServiceToggle,
     handleUpsellServiceAdd,
+    handleCustomerDetailsChange,
     totalPrice,
     canProceedToNext,
     handleStepChange,

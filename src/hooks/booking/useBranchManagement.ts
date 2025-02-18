@@ -3,9 +3,12 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Branch } from "@/types/booking";
 import { useLocation } from "react-router-dom";
+import { useBookingContext } from "@/contexts/BookingContext";
+import { useEffect } from "react";
 
 export const useBranchManagement = () => {
   const location = useLocation();
+  const { dispatch } = useBookingContext();
   const searchParams = new URLSearchParams(location.search);
   const branchId = searchParams.get('branch');
 
@@ -26,6 +29,13 @@ export const useBranchManagement = () => {
     retry: 2,
     retryDelay: 1000,
   });
+
+  useEffect(() => {
+    if (branch) {
+      console.log('Setting branch in context:', branch);
+      dispatch({ type: 'SET_BRANCH', payload: branch });
+    }
+  }, [branch, dispatch]);
 
   return {
     branch,
