@@ -5,7 +5,7 @@ import { Service, Category, validateService } from '@/types/service';
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useToast } from "@/hooks/use-toast";
 import { SelectedService } from '@/types/service';
-import { useMemo } from 'react';
+import { useMemo, useCallback } from 'react';
 
 export const useServiceManagement = () => {
   const { language } = useLanguage();
@@ -46,7 +46,7 @@ export const useServiceManagement = () => {
       return categories as Category[];
     },
     staleTime: 5 * 60 * 1000, // Cache for 5 minutes
-    cacheTime: 10 * 60 * 1000, // Keep in cache for 10 minutes
+    gcTime: 10 * 60 * 1000    // Changed from cacheTime to gcTime
   });
 
   // Memoize price calculations
