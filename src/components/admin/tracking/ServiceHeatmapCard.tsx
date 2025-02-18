@@ -1,14 +1,10 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ResponsiveContainer, Tooltip, ScatterChart, Scatter, XAxis, YAxis, ZAxis, CartesianGrid } from 'recharts';
+import { ServiceAnalytics } from "./types";
 
 interface ServiceHeatmapProps {
-  serviceData: Array<{
-    serviceName: string;
-    viewCount: number;
-    conversionRate: number;
-    averageViewDuration: number;
-  }>;
+  serviceData: ServiceAnalytics[];
 }
 
 export const ServiceHeatmapCard = ({ serviceData }: ServiceHeatmapProps) => {

@@ -1,16 +1,7 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ResponsiveContainer, Sankey, Tooltip } from 'recharts';
-
-interface JourneyNode {
-  name: string;
-}
-
-interface JourneyLink {
-  source: number;
-  target: number;
-  value: number;
-}
+import { JourneyNode, JourneyLink } from "./types";
 
 interface CustomerJourneyProps {
   nodes: JourneyNode[];
@@ -29,7 +20,7 @@ export const CustomerJourneyCard = ({ nodes, links }: CustomerJourneyProps) => {
           <ResponsiveContainer width="100%" height="100%">
             <Sankey
               data={{
-                nodes: nodes.map(node => ({ name: node.name })),
+                nodes: nodes,
                 links: links
               }}
               node={{
