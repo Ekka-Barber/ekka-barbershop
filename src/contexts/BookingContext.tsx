@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useReducer, ReactNode, useEffect } from 'react';
 import { BookingStep } from '@/components/booking/BookingProgress';
 import { CustomerDetails, Branch, Employee } from '@/types/booking';
@@ -143,15 +142,17 @@ function bookingReducer(state: BookingState, action: BookingAction): BookingStat
         return state;
       }
       
+      const completedTransaction: StepTransaction = {
+        ...transaction,
+        status: 'completed' as const,
+        to: action.payload.step
+      };
+      
       newState = {
         ...state,
         currentStep: action.payload.step,
         pendingTransactions: state.pendingTransactions.filter(t => t.id !== action.payload.transactionId),
-        transactionHistory: [...state.transactionHistory, {
-          ...transaction,
-          status: 'completed',
-          to: action.payload.step
-        }]
+        transactionHistory: [...state.transactionHistory, completedTransaction]
       };
       break;
     }
@@ -182,7 +183,9 @@ function bookingReducer(state: BookingState, action: BookingAction): BookingStat
 
     case 'COMPLETE_TRANSACTION': {
       const updatedTransactions = state.pendingTransactions.map(t =>
-        t.id === action.payload.transactionId ? { ...t, status: 'completed' } : t
+        t.id === action.payload.transactionId 
+          ? { ...t, status: 'completed' as const } 
+          : t
       );
       newState = {
         ...state,
@@ -195,10 +198,14 @@ function bookingReducer(state: BookingState, action: BookingAction): BookingStat
     case 'FAIL_TRANSACTION': {
       const failedTransaction = state.pendingTransactions.find(t => t.id === action.payload.transactionId);
       if (failedTransaction) {
+        const updatedTransaction: StepTransaction = {
+          ...failedTransaction,
+          status: 'failed' as const
+        };
         newState = {
           ...state,
           pendingTransactions: state.pendingTransactions.filter(t => t.id !== action.payload.transactionId),
-          transactionHistory: [...state.transactionHistory, { ...failedTransaction, status: 'failed' }]
+          transactionHistory: [...state.transactionHistory, updatedTransaction]
         };
         toast.error(`Transaction failed: ${action.payload.error}`);
       }
