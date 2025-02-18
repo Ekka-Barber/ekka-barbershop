@@ -1,11 +1,13 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { ServicesSkeleton } from "./ServicesSkeleton";
 import { CategoryTabs } from "./service-selection/CategoryTabs";
 import { ServiceCard } from "./service-selection/ServiceCard";
 import { ServicesSummary } from "./service-selection/ServicesSummary";
+import { LazyLoadComponent } from "@/components/common/LazyLoadComponent";
+import { ServiceCardSkeleton } from "./service-selection/ServiceCardSkeleton";
 import { cacheServices, getCachedServices, cacheActiveCategory, getCachedActiveCategory } from "@/utils/serviceCache";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useToast } from "@/hooks/use-toast";
@@ -13,12 +15,21 @@ import { AlertTriangle } from "lucide-react";
 import { useTracking } from "@/hooks/useTracking";
 import { getPlatformType } from "@/services/platformDetection";
 
+const SERVICES_PER_PAGE = 8;
+
 interface ServiceSelectionProps {
   categories: any[] | undefined;
   isLoading: boolean;
   selectedServices: any[];
   onServiceToggle: (service: any) => void;
   onStepChange?: (step: string) => void;
+}
+
+interface ServiceState {
+  selected: any | null;
+  isOpen: boolean;
+  viewTime: number;
+  viewTimes: Record<string, number>;
 }
 
 export const ServiceSelection = ({
@@ -34,11 +45,29 @@ export const ServiceSelection = ({
   const [activeCategory, setActiveCategory] = useState<string | null>(
     getCachedActiveCategory() || categories?.[0]?.id || null
   );
-  const [selectedService, setSelectedService] = useState<any | null>(null);
-  const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [serviceState, setServiceState] = useState<ServiceState>({
+    selected: null,
+    isOpen: false,
+    viewTime: Date.now(),
+    viewTimes: {}
+  });
   const [discoveryPath, setDiscoveryPath] = useState<string[]>([]);
-  const [viewStartTime, setViewStartTime] = useState<Date | null>(null);
-  const [serviceViewTimes, setServiceViewTimes] = useState<Record<string, number>>({});
+
+  // Memoized sorted categories
+  const sortedCategories = useMemo(() => 
+    categories?.slice().sort((a, b) => a.display_order - b.display_order),
+    [categories]
+  );
+
+  // Memoized active category services with pagination
+  const activeCategoryServices = useMemo(() => {
+    const categoryServices = sortedCategories?.find(
+      cat => cat.id === activeCategory
+    )?.services.sort((a, b) => a.display_order - b.display_order);
+
+    return categoryServices?.slice(0, currentPage * SERVICES_PER_PAGE);
+  }, [activeCategory, currentPage, sortedCategories]);
 
   // Track category view duration
   useEffect(() => {
@@ -84,11 +113,14 @@ export const ServiceSelection = ({
     }
   }, [selectedServices]);
 
-  const handleServiceClick = async (service: any) => {
-    setSelectedService(service);
-    setIsSheetOpen(true);
-    setViewStartTime(new Date());
-    setServiceViewTimes(prev => ({ ...prev, [service.id]: Date.now() }));
+  const handleServiceClick = useCallback(async (service: any) => {
+    const timestamp = Date.now();
+    setServiceState(prev => ({
+      selected: service,
+      isOpen: true,
+      viewTime: timestamp,
+      viewTimes: { ...prev.viewTimes, [service.id]: timestamp }
+    }));
     
     await trackServiceInteraction({
       category_id: activeCategory || '',
@@ -99,11 +131,11 @@ export const ServiceSelection = ({
       price_viewed: true,
       description_viewed: false
     });
-  };
+  }, [activeCategory, discoveryPath, language]);
 
-  const handleServiceToggleWrapper = async (service: any) => {
+  const handleServiceToggleWrapper = useCallback(async (service: any) => {
     try {
-      const startTime = serviceViewTimes[service.id];
+      const startTime = serviceState.viewTimes[service.id];
       const viewDuration = startTime ? Date.now() - startTime : 0;
       
       await trackServiceInteraction({
@@ -118,17 +150,19 @@ export const ServiceSelection = ({
       });
 
       onServiceToggle(service);
-      setIsSheetOpen(false);
-      setViewStartTime(null);
-      
-      // Remove service from view times after tracking
-      const { [service.id]: _, ...remainingTimes } = serviceViewTimes;
-      setServiceViewTimes(remainingTimes);
+      setServiceState(prev => ({
+        ...prev,
+        isOpen: false,
+        selected: null,
+        viewTimes: Object.fromEntries(
+          Object.entries(prev.viewTimes).filter(([id]) => id !== service.id)
+        )
+      }));
     } catch (error) {
       handleServiceToggleError();
       console.error('Service toggle error:', error);
     }
-  };
+  }, [activeCategory, discoveryPath, language, onServiceToggle, serviceState.viewTimes]);
 
   const handleServiceToggleError = () => {
     toast({
@@ -140,7 +174,11 @@ export const ServiceSelection = ({
     });
   };
 
-  const handleStepChange = (step: string) => {
+  const handleLoadMore = useCallback(() => {
+    setCurrentPage(prev => prev + 1);
+  }, []);
+
+  const handleStepChange = useCallback((step: string) => {
     trackServiceInteraction({
       interaction_type: 'service_selection_complete',
       discovery_path: discoveryPath,
@@ -149,15 +187,7 @@ export const ServiceSelection = ({
       description_viewed: true
     });
     onStepChange?.(step);
-  };
-
-  const sortedCategories = categories?.slice().sort((a, b) => a.display_order - b.display_order);
-  const activeCategoryServices = sortedCategories?.find(
-    cat => cat.id === activeCategory
-  )?.services.sort((a, b) => a.display_order - b.display_order);
-
-  const totalDuration = selectedServices.reduce((total, service) => total + service.duration, 0);
-  const totalPrice = selectedServices.reduce((total, service) => total + service.price, 0);
+  }, [discoveryPath, language, onStepChange, selectedServices]);
 
   if (isLoading) {
     return <ServicesSkeleton />;
@@ -179,6 +209,9 @@ export const ServiceSelection = ({
     );
   }
 
+  const hasMoreServices = activeCategoryServices && 
+    activeCategoryServices.length < (sortedCategories?.find(cat => cat.id === activeCategory)?.services.length || 0);
+
   return (
     <div className="space-y-6 pb-8">
       <CategoryTabs
@@ -190,39 +223,56 @@ export const ServiceSelection = ({
 
       <div className="grid grid-cols-2 gap-4">
         {activeCategoryServices?.map((service: any) => (
-          <ServiceCard
+          <LazyLoadComponent
             key={service.id}
-            service={service}
-            language={language}
-            isSelected={selectedServices.some(s => s.id === service.id)}
-            onServiceClick={handleServiceClick}
-            onServiceToggle={handleServiceToggleWrapper}
-          />
+            threshold={100}
+            placeholder={<ServiceCardSkeleton />}
+          >
+            <ServiceCard
+              service={service}
+              language={language}
+              isSelected={selectedServices.some(s => s.id === service.id)}
+              onServiceClick={handleServiceClick}
+              onServiceToggle={handleServiceToggleWrapper}
+            />
+          </LazyLoadComponent>
         ))}
       </div>
 
-      <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
+      {hasMoreServices && (
+        <div className="flex justify-center mt-4">
+          <Button
+            variant="outline"
+            onClick={handleLoadMore}
+            className="w-full max-w-md"
+          >
+            {language === 'ar' ? 'تحميل المزيد' : 'Load More'}
+          </Button>
+        </div>
+      )}
+
+      <Sheet 
+        open={serviceState.isOpen} 
+        onOpenChange={(open) => setServiceState(prev => ({ ...prev, isOpen: open }))}
+      >
         <SheetContent side="bottom" className="h-fit">
-          {selectedService && (
+          {serviceState.selected && (
             <>
               <SheetHeader>
                 <SheetTitle>
-                  {language === 'ar' ? selectedService.name_ar : selectedService.name_en}
+                  {language === 'ar' ? serviceState.selected.name_ar : serviceState.selected.name_en}
                 </SheetTitle>
               </SheetHeader>
               <div className="mt-6 space-y-4">
                 <p className="text-gray-600">
-                  {language === 'ar' ? selectedService.description_ar : selectedService.description_en}
+                  {language === 'ar' ? serviceState.selected.description_ar : serviceState.selected.description_en}
                 </p>
                 
                 <Button
                   className="w-full mt-4"
-                  onClick={() => {
-                    handleServiceToggleWrapper(selectedService);
-                    setIsSheetOpen(false);
-                  }}
+                  onClick={() => handleServiceToggleWrapper(serviceState.selected)}
                 >
-                  {selectedServices.some(s => s.id === selectedService.id)
+                  {selectedServices.some(s => s.id === serviceState.selected.id)
                     ? language === 'ar' ? 'إزالة الخدمة' : 'Remove Service'
                     : language === 'ar' ? 'إضافة الخدمة' : 'Add Service'}
                 </Button>
@@ -234,8 +284,8 @@ export const ServiceSelection = ({
 
       <ServicesSummary
         selectedServices={selectedServices}
-        totalDuration={totalDuration}
-        totalPrice={totalPrice}
+        totalDuration={selectedServices.reduce((total, service) => total + service.duration, 0)}
+        totalPrice={selectedServices.reduce((total, service) => total + service.price, 0)}
         language={language}
         onNextStep={() => handleStepChange('datetime')}
       />

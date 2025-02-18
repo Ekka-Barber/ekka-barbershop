@@ -2,6 +2,7 @@
 import { Timer, Slash, Plus, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { memo } from 'react';
 
 interface Service {
   id: string;
@@ -21,7 +22,7 @@ interface ServiceCardProps {
   onServiceToggle: (service: Service) => void;
 }
 
-export const ServiceCard = ({ 
+export const ServiceCard = memo(({ 
   service, 
   language, 
   isSelected,
@@ -55,7 +56,7 @@ export const ServiceCard = ({
 
   return (
     <div
-      className={`rounded-lg border p-4 space-y-2 transition-all cursor-pointer relative ${
+      className={`rounded-lg border p-4 space-y-2 transition-all cursor-pointer ${
         isSelected
           ? 'bg-[#e7bd71]/10 border-[#e7bd71]'
           : 'hover:border-gray-300'
@@ -121,4 +122,6 @@ export const ServiceCard = ({
       </div>
     </div>
   );
-};
+});
+
+ServiceCard.displayName = 'ServiceCard';
