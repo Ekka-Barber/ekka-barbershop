@@ -19,10 +19,18 @@ const queryClient = new QueryClient({
   },
 })
 
-// Initialize root outside of render
-const root = ReactDOM.createRoot(document.getElementById('root')!)
+// Create root element if it doesn't exist
+const rootElement = document.getElementById('root')
+if (!rootElement) {
+  const root = document.createElement('div')
+  root.id = 'root'
+  document.body.appendChild(root)
+}
 
-// Render with error boundary
+// Initialize root with error handling
+const root = ReactDOM.createRoot(rootElement ?? document.getElementById('root')!)
+
+// Wrap the entire app with Router first
 root.render(
   <React.StrictMode>
     <BrowserRouter>
@@ -35,5 +43,5 @@ root.render(
         </QueryClientProvider>
       </ThemeProvider>
     </BrowserRouter>
-  </React.StrictMode>,
+  </React.StrictMode>
 )

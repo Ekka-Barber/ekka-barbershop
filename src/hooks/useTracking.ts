@@ -1,5 +1,4 @@
-
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 import { 
   initializeTracking, 
@@ -15,16 +14,22 @@ import {
 
 export const useTracking = () => {
   const location = useLocation();
+  const isInitialized = useRef(false);
 
   const safeInitialize = useCallback(async () => {
+    if (isInitialized.current) return;
+    
     try {
       await initializeTracking();
+      isInitialized.current = true;
     } catch (error) {
       console.error('Error in tracking initialization:', error);
     }
   }, []);
 
   const safeTrackPageView = useCallback(async (path: string) => {
+    if (!isInitialized.current) return;
+    
     try {
       await trackPageView(path);
     } catch (error) {
@@ -39,6 +44,7 @@ export const useTracking = () => {
       return () => {
         try {
           cleanupTracking();
+          isInitialized.current = false;
         } catch (error) {
           console.error('Error in tracking cleanup:', error);
         }
@@ -47,13 +53,12 @@ export const useTracking = () => {
   }, [safeInitialize]);
 
   useEffect(() => {
-    // Only track page views if we're not in a preview environment
-    if (!window.location.hostname.includes('preview--')) {
+    // Only track page views if initialized and not in preview
+    if (isInitialized.current && !window.location.hostname.includes('preview--')) {
       safeTrackPageView(location.pathname);
     }
   }, [location, safeTrackPageView]);
 
-  // Wrap all tracking functions in try-catch for resilience
   const safeTrackInteraction = useCallback(async (...args: Parameters<typeof trackInteraction>) => {
     try {
       await trackInteraction(...args);
