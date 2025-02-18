@@ -10,6 +10,10 @@ import { useBranchManagement } from '@/hooks/booking/useBranchManagement';
 import { addDays, format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 
+const PREFETCH_DAYS = 3; // Number of future days to prefetch
+const STALE_TIME = 5 * 60 * 1000; // 5 minutes
+const CACHE_TIME = 10 * 60 * 1000; // 10 minutes
+
 const DateTimeSelection = () => {
   const navigate = useNavigate();
   const { t } = useLanguage();
@@ -26,32 +30,41 @@ const DateTimeSelection = () => {
       return useTimeSlots().getAvailableTimeSlots(selectedBarber, selectedDate);
     },
     enabled: !!selectedBarber && !!selectedDate,
-    staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
-    gcTime: 10 * 60 * 1000,   // Keep in cache for 10 minutes
+    staleTime: STALE_TIME,
+    gcTime: CACHE_TIME,
     retry: 2,
-    onError: (error) => {
-      console.error('Error fetching time slots:', error);
+  });
+
+  // Prefetch multiple future days
+  React.useEffect(() => {
+    if (selectedBarber && selectedDate) {
+      // Prefetch next PREFETCH_DAYS days
+      for (let i = 1; i <= PREFETCH_DAYS; i++) {
+        const futureDate = addDays(selectedDate, i);
+        const queryKey = ['timeSlots', selectedBarber.id, futureDate.toISOString()];
+        
+        // Only prefetch if not already in cache
+        if (!queryClient.getQueryData(queryKey)) {
+          queryClient.prefetchQuery({
+            queryKey,
+            queryFn: async () => useTimeSlots().getAvailableTimeSlots(selectedBarber, futureDate),
+            staleTime: STALE_TIME
+          });
+        }
+      }
+    }
+  }, [selectedBarber, selectedDate, queryClient]);
+
+  // Error handling
+  React.useEffect(() => {
+    if (error) {
       toast({
         title: t('Error'),
         description: t('Failed to load available time slots. Please try again.'),
         variant: "destructive"
       });
     }
-  });
-
-  // Prefetch next day's slots
-  React.useEffect(() => {
-    if (selectedBarber && selectedDate) {
-      const nextDay = addDays(selectedDate, 1);
-      const queryKey = ['timeSlots', selectedBarber.id, nextDay.toISOString()];
-      
-      queryClient.prefetchQuery({
-        queryKey,
-        queryFn: async () => useTimeSlots().getAvailableTimeSlots(selectedBarber, nextDay),
-        staleTime: 5 * 60 * 1000
-      });
-    }
-  }, [selectedBarber, selectedDate, queryClient]);
+  }, [error, toast, t]);
 
   // Clear selected time when date changes
   React.useEffect(() => {
