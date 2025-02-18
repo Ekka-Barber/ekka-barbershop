@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { 
   UnifiedEvent, 
@@ -118,11 +117,12 @@ class UnifiedTrackingService {
     if (!shouldTrack()) return;
 
     try {
+      const now = new Date();
       const { error } = await supabase.from('marketing_funnel_events').insert({
         ...event,
-        interaction_type: 'marketing_funnel',
         session_id: event.session_id || getSessionId(),
-        created_at: formatTimestamp(new Date()),
+        entry_time: event.entry_time || formatTimestamp(now),
+        created_at: formatTimestamp(now),
         device_type: mapPlatformToDeviceType(getPlatformType()),
         source_page: event.source_page || window.location.pathname
       });

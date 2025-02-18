@@ -1,4 +1,3 @@
-
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useState, useEffect } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -72,6 +71,7 @@ export const BarberSelection = ({
     
     trackBarberInteraction({
       barber_id: barberId,
+      event_name: 'barber_profile_view',
       interaction_type: 'profile_view',
       view_duration_seconds: 0,
       availability_status: false,
@@ -90,6 +90,7 @@ export const BarberSelection = ({
 
     trackBarberInteraction({
       barber_id: barberId,
+      event_name: 'barber_selection',
       interaction_type: 'selection',
       view_duration_seconds: viewDuration,
       availability_status: true,
