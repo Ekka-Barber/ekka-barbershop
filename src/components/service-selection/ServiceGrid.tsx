@@ -4,6 +4,7 @@ import { ServiceCard } from './ServiceCard';
 import { Button } from '@/components/ui/button';
 import { LazyLoadComponent } from '@/components/common/LazyLoadComponent';
 import { ServiceCardSkeleton } from '../booking/service-selection/ServiceCardSkeleton';
+import { Grid } from '@/components/common/Layout/Grid';
 
 interface ServiceGridProps {
   services: Service[];
@@ -26,7 +27,7 @@ export const ServiceGrid = ({
 }: ServiceGridProps) => {
   return (
     <>
-      <div className="grid grid-cols-2 gap-4">
+      <Grid cols={2} gap={4}>
         {services.map((service) => (
           <LazyLoadComponent
             key={service.id}
@@ -42,7 +43,7 @@ export const ServiceGrid = ({
             />
           </LazyLoadComponent>
         ))}
-      </div>
+      </Grid>
 
       {hasMore && (
         <div className="flex justify-center mt-4">
