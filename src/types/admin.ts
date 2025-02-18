@@ -25,20 +25,3 @@ export interface QRCode {
   created_at: string;
   updated_at: string;
 }
-
-export interface NotificationMessage {
-  id: string;
-  title: string;
-  body: string;
-  image_url?: string;
-  created_at: string;
-  status: 'sent' | 'failed' | 'pending';
-  recipients_count: number;
-}
-
-export interface AnalyticsData {
-  total_subscribers: number;
-  active_subscribers: number;
-  messages_sent: number;
-  click_rate: number;
-}
