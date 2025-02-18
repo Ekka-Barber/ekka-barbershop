@@ -8,7 +8,7 @@ import { CoreMetricsGrid } from "./CoreMetricsGrid";
 import { TimePatternCard } from "./TimePatternCard";
 import { ServiceHeatmapCard } from "./ServiceHeatmapCard";
 import { CustomerJourneyCard } from "./CustomerJourneyCard";
-import { RealTimeMonitoring } from "./RealTimeMonitoring";
+import { LightweightMonitoring } from "./LightweightMonitoring";
 import { BranchAnalytics } from "./BranchAnalytics";
 import { PeriodComparison } from "./PeriodComparison";
 import { processTimePatterns, processServiceHeatmapData, processCustomerJourney } from "./trackingUtils";
@@ -71,70 +71,12 @@ const CustomerTrackingDashboard = () => {
     totalCounts.interactions
   ) / ITEMS_PER_PAGE);
 
-  const predictiveData = {
-    busyPeriods: [
-      {
-        startTime: '10:00',
-        endTime: '12:00',
-        predictedBookings: 15,
-        confidence: 85,
-        dayOfWeek: 1
-      }
-    ],
-    revenueForecasts: [
-      {
-        date: '2024-03-01',
-        predictedRevenue: 5000,
-        lowerBound: 4500,
-        upperBound: 5500,
-        confidence: 90
-      }
-    ],
-    seasonalPatterns: [],
-    trends: []
-  };
-
-  const geographicData: GeographicInsightsType = {
-    branchLocations: [
-      {
-        id: '1',
-        name: 'Main Branch',
-        coordinates: [45.0, 25.0] as [number, number],
-        performance: {
-          bookings: 150,
-          revenue: 15000,
-          satisfaction: 4.5
-        }
-      }
-    ],
-    customerDensity: [
-      {
-        coordinates: [45.0, 25.0] as [number, number],
-        weight: 0.8
-      }
-    ],
-    performanceMetrics: [{
-      branchId: '1',
-      metrics: {
-        bookingsPerCapita: 0.5,
-        marketShare: 0.3,
-        competitorProximity: 0.8
-      }
-    }],
-    catchmentAreas: [{
-      branchId: '1',
-      polygon: [[45.0, 25.0], [45.1, 25.1], [45.0, 25.1], [45.0, 25.0]] as [number, number][],
-      population: 50000,
-      potentialMarket: 10000
-    }]
-  };
-
   return (
     <div className="space-y-8">
       <Tabs defaultValue="overview" className="w-full">
         <TabsList className="grid w-full grid-cols-1 md:grid-cols-4">
           <TabsTrigger value="overview">Overview & Patterns</TabsTrigger>
-          <TabsTrigger value="realtime">Real-Time Monitoring</TabsTrigger>
+          <TabsTrigger value="realtime">Monitoring</TabsTrigger>
           <TabsTrigger value="predictive">Predictive Analytics</TabsTrigger>
           <TabsTrigger value="geographic">Geographic Insights</TabsTrigger>
         </TabsList>
@@ -175,13 +117,6 @@ const CustomerTrackingDashboard = () => {
           <CustomerJourneyCard nodes={journeyData.nodes} links={journeyData.links} />
           
           <div className="grid gap-4 md:grid-cols-2">
-            <DropOffAnalysisCard dropOffPoints={journeyData.dropOffPoints} />
-            <PathOptimizationCard optimizations={journeyData.pathOptimizations} />
-          </div>
-          
-          <ServiceBundleCard bundles={journeyData.serviceBundles} />
-          
-          <div className="grid gap-4 md:grid-cols-2">
             <TimePatternCard timePatterns={timePatterns} />
             <ServiceHeatmapCard serviceData={heatmapData} />
           </div>
@@ -198,7 +133,7 @@ const CustomerTrackingDashboard = () => {
         </TabsContent>
 
         <TabsContent value="realtime">
-          <RealTimeMonitoring />
+          <LightweightMonitoring />
         </TabsContent>
 
         <TabsContent value="predictive">
