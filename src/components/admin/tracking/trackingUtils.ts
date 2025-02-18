@@ -72,7 +72,7 @@ export const processServiceHeatmapData = (interactionEvents: any[]): ServiceAnal
     return acc;
   }, {} as Record<string, ServiceData>);
 
-  return Object.entries(serviceData).map(([name, data]) => ({
+  return Object.entries(serviceData).map(([name, data]: [string, ServiceData]) => ({
     serviceName: name,
     viewCount: data.viewCount,
     conversionRate: (data.bookings / data.viewCount) * 100,
