@@ -1,45 +1,111 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Document, Page, pdfjs } from 'react-pdf';
 import 'react-pdf/dist/esm/Page/AnnotationLayer.css';
 import 'react-pdf/dist/esm/Page/TextLayer.css';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { trackMenuInteraction } from '@/services/tracking/menuTracking';
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
 
 interface PDFViewerProps {
   pdfUrl: string;
+  menuFileId?: string;
 }
 
-const PDFViewer = ({ pdfUrl }: PDFViewerProps) => {
+const PDFViewer = ({ pdfUrl, menuFileId }: PDFViewerProps) => {
   const [numPages, setNumPages] = useState<number | null>(null);
   const [pageNumber, setPageNumber] = useState(1);
   const [pageWidth, setPageWidth] = useState(800);
+  const [scale, setScale] = useState(1);
   const isMobile = useIsMobile();
   const { language } = useLanguage();
+  const startTime = useRef<Date>(new Date());
+  const pageChanges = useRef(0);
+  const zoomActions = useRef(0);
 
   useEffect(() => {
     const updatePageWidth = () => {
       const width = window.innerWidth;
-      setPageWidth(Math.min(width - 32, 800)); // 32px for padding
+      setPageWidth(Math.min(width - 32, 800));
     };
 
     updatePageWidth();
     window.addEventListener('resize', updatePageWidth);
-    return () => window.removeEventListener('resize', updatePageWidth);
-  }, []);
+
+    // Track menu open
+    trackMenuInteraction({
+      menu_file_id: menuFileId,
+      interaction_type: 'menu_open'
+    });
+
+    return () => {
+      window.removeEventListener('resize', updatePageWidth);
+      // Track menu close with duration
+      const duration = Math.floor((new Date().getTime() - startTime.current.getTime()) / 1000);
+      trackMenuInteraction({
+        menu_file_id: menuFileId,
+        interaction_type: 'menu_close',
+        view_duration_seconds: duration,
+        page_changes: pageChanges.current,
+        zoom_actions: zoomActions.current
+      });
+    };
+  }, [menuFileId]);
 
   function onDocumentLoadSuccess({ numPages }: { numPages: number }) {
     setNumPages(numPages);
   }
+
+  const handlePageChange = (newPage: number) => {
+    setPageNumber(newPage);
+    pageChanges.current += 1;
+    trackMenuInteraction({
+      menu_file_id: menuFileId,
+      interaction_type: 'page_change'
+    });
+  };
+
+  const handleZoom = (zoomIn: boolean) => {
+    setScale(prevScale => {
+      const newScale = zoomIn ? prevScale + 0.2 : prevScale - 0.2;
+      if (newScale >= 0.5 && newScale <= 2) {
+        zoomActions.current += 1;
+        trackMenuInteraction({
+          menu_file_id: menuFileId,
+          interaction_type: 'zoom'
+        });
+        return newScale;
+      }
+      return prevScale;
+    });
+  };
 
   // Only show navigation if there's more than one page
   const showNavigation = numPages !== null && numPages > 1;
 
   return (
     <div className="pdf-viewer w-full mx-auto">
+      <div className="flex justify-center gap-4 mb-4">
+        <button
+          onClick={() => handleZoom(false)}
+          disabled={scale <= 0.5}
+          className="p-2 rounded-full bg-[#C4A36F] hover:bg-[#B39260] text-white transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          -
+        </button>
+        <span className="p-2">{Math.round(scale * 100)}%</span>
+        <button
+          onClick={() => handleZoom(true)}
+          disabled={scale >= 2}
+          className="p-2 rounded-full bg-[#C4A36F] hover:bg-[#B39260] text-white transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          +
+        </button>
+      </div>
+      
       <Document
         file={pdfUrl}
         onLoadSuccess={onDocumentLoadSuccess}
@@ -48,15 +114,17 @@ const PDFViewer = ({ pdfUrl }: PDFViewerProps) => {
         <Page 
           pageNumber={pageNumber} 
           width={pageWidth}
+          scale={scale}
           renderTextLayer={false}
           renderAnnotationLayer={false}
           className="max-w-full shadow-lg rounded-lg"
         />
       </Document>
+      
       {showNavigation && (
         <div className="flex items-center justify-center gap-6 mt-6">
           <button
-            onClick={() => setPageNumber(page => Math.max(1, page - 1))}
+            onClick={() => handlePageChange(Math.max(1, pageNumber - 1))}
             disabled={pageNumber <= 1}
             className="p-3 rounded-full bg-[#C4A36F] hover:bg-[#B39260] text-white transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg transform hover:-translate-y-0.5 flex items-center justify-center"
             aria-label="Previous page"
@@ -72,7 +140,7 @@ const PDFViewer = ({ pdfUrl }: PDFViewerProps) => {
           </p>
           
           <button
-            onClick={() => setPageNumber(page => Math.min(numPages || page, page + 1))}
+            onClick={() => handlePageChange(Math.min(numPages || pageNumber, pageNumber + 1))}
             disabled={pageNumber >= (numPages || 1)}
             className="p-3 rounded-full bg-[#C4A36F] hover:bg-[#B39260] text-white transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg transform hover:-translate-y-0.5 flex items-center justify-center"
             aria-label="Next page"

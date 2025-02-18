@@ -148,3 +148,13 @@ export interface MarketingFunnelEvent {
   };
   metadata?: Record<string, any>;
 }
+
+export interface MenuInteractionEvent {
+  menu_file_id?: string;
+  interaction_type: 'page_view' | 'zoom' | 'page_change' | 'menu_open' | 'menu_close';
+  view_duration_seconds?: number;
+  page_changes?: number;
+  zoom_actions?: number;
+  session_id?: string;
+  device_type?: DeviceType;
+}

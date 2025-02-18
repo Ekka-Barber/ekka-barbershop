@@ -69,7 +69,10 @@ const Menu = () => {
                 <div className="text-center py-8 text-[#222222]">{t('loading.menu')}</div>
               ) : menuFile ? (
                 menuFile.file_type.includes('pdf') ? (
-                  <PDFViewer pdfUrl={menuFile.url} />
+                  <PDFViewer 
+                    pdfUrl={menuFile.url} 
+                    menuFileId={menuFile.id}
+                  />
                 ) : (
                   <img 
                     src={menuFile.url} 
