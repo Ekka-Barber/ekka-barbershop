@@ -5,9 +5,12 @@ import { useServiceManagement } from './booking/useServiceManagement';
 import { useEmployeeManagement } from './booking/useEmployeeManagement';
 import { useUpsellManagement } from './booking/useUpsellManagement';
 import { useBookingNavigation } from './booking/useBookingNavigation';
+import { useState, useCallback } from 'react';
+import { BookingStep } from '@/components/booking/BookingProgress';
 
 export const useBooking = (branch: Branch) => {
   const { state, dispatch } = useBookingContext();
+  const [isStepChangeLocked, setIsStepChangeLocked] = useState(false);
   
   const {
     categories,
@@ -59,18 +62,29 @@ export const useBooking = (branch: Branch) => {
     });
   };
 
-  const totalPrice = state.selectedServices.reduce((sum, service) => sum + service.price, 0);
-
-  const handleStepChange = (nextStep: any) => {
-    if (canProceedToNext()) {
-      console.log('Step change:', { from: state.currentStep, to: nextStep });
-      dispatch({ type: 'SET_STEP', payload: nextStep });
+  const handleStepChange = useCallback((nextStep: BookingStep) => {
+    if (isStepChangeLocked) {
+      console.log('Step change locked, skipping...', { nextStep });
+      return;
     }
-  };
+
+    setIsStepChangeLocked(true);
+    
+    try {
+      if (canProceedToNext()) {
+        console.log('Step change:', { from: state.currentStep, to: nextStep });
+        dispatch({ type: 'SET_STEP', payload: nextStep });
+      }
+    } finally {
+      setIsStepChangeLocked(false);
+    }
+  }, [isStepChangeLocked, state.currentStep, dispatch, canProceedToNext]);
+
+  const totalPrice = state.selectedServices.reduce((sum, service) => sum + service.price, 0);
 
   return {
     ...state,
-    setCurrentStep: (step: any) => dispatch({ type: 'SET_STEP', payload: step }),
+    setCurrentStep: (step: BookingStep) => dispatch({ type: 'SET_STEP', payload: step }),
     setSelectedDate: (date: Date | undefined) => dispatch({ type: 'SET_DATE', payload: date }),
     setSelectedTime: (time: string) => dispatch({ type: 'SET_TIME', payload: time }),
     setSelectedBarber: (barber: any) => dispatch({ type: 'SET_BARBER', payload: barber }),
@@ -87,6 +101,7 @@ export const useBooking = (branch: Branch) => {
     canProceedToNext,
     handleStepChange,
     handleBack,
-    handleNext
+    handleNext,
+    isStepChangeLocked
   };
 };

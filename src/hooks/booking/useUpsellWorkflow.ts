@@ -1,5 +1,5 @@
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { BookingStep } from '@/components/booking/BookingProgress';
 
 export const useUpsellWorkflow = () => {
@@ -19,10 +19,11 @@ export const useUpsellWorkflow = () => {
       pendingStep
     });
 
+    // Only block step change and show modal if we have upsells and going to datetime
     if (nextStep === 'datetime' && availableUpsells?.length > 0) {
       setShowUpsellModal(true);
       setPendingStep(nextStep);
-      return true; // Prevent immediate step change
+      return true; // Block step change
     }
     return false; // Allow step change
   }, [pendingStep]);
@@ -33,6 +34,14 @@ export const useUpsellWorkflow = () => {
     setPendingStep(null);
     return step;
   }, [pendingStep]);
+
+  // Cleanup effect
+  useEffect(() => {
+    return () => {
+      setPendingStep(null);
+      setShowUpsellModal(false);
+    };
+  }, []);
 
   return {
     showUpsellModal,

@@ -40,7 +40,8 @@ export const BookingStepsContainer = ({ branch }: BookingStepsContainerProps) =>
     currentStep,
     setCurrentStep,
     canProceedToNext,
-    handleStepChange
+    handleStepChange,
+    isStepChangeLocked
   } = useBooking(branch);
 
   const { data: availableUpsells } = useBookingUpsells(selectedServices, language);
@@ -53,6 +54,11 @@ export const BookingStepsContainer = ({ branch }: BookingStepsContainerProps) =>
   } = useUpsellWorkflow();
 
   const handleMainStepChange = (step: BookingStep) => {
+    if (isStepChangeLocked) {
+      console.log('Step change locked, skipping...', { step });
+      return;
+    }
+
     console.log('Step change requested:', { from: currentStep, to: step });
     
     const shouldPreventStepChange = handleUpsellStepChange(
