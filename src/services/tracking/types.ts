@@ -73,14 +73,12 @@ export interface BarberSelectionEvent {
   timestamp: string;
 }
 
-export type MarketingFunnelStage = 
-  | 'landing'
-  | 'offer_view'
-  | 'service_browse'
-  | 'service_select'
-  | 'datetime_select'
-  | 'barber_select'
-  | 'booking_complete';
+export interface SessionData {
+  id: string;
+  timestamp: number;
+}
+
+export type BaseInteractionType = 'page_view' | 'dialog_open' | 'dialog_close' | 'service_select';
 
 export interface OfferInteractionEvent {
   offer_id: string;
@@ -102,6 +100,15 @@ export interface OfferInteractionEvent {
     conversion_type?: string;
   };
 }
+
+export type MarketingFunnelStage = 
+  | 'landing'
+  | 'offer_view'
+  | 'service_browse'
+  | 'service_select'
+  | 'datetime_select'
+  | 'barber_select'
+  | 'booking_complete';
 
 export interface MarketingFunnelEvent {
   session_id: string;
