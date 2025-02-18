@@ -49,7 +49,7 @@ const Customer = () => {
       <div className="app-container">
         <div className="content-area">
           <div className="text-center mb-8">
-            <img src="/lovable-uploads/8289fb1d-c6e6-4528-980c-6b52313ca898.png" alt="Ekka Barbershop Logo" className="h-32 mx-auto mb-6" />
+            <img src="lovable-uploads/8289fb1d-c6e6-4528-980c-6b52313ca898.png" alt="Ekka Barbershop Logo" className="h-32 mx-auto mb-6" />
             <div className="space-y-2">
               <h2 className="text-xl font-medium text-[#222222]">
                 {t('welcome.line1')}
@@ -84,7 +84,7 @@ const Customer = () => {
             <Button className="w-full h-14 text-lg font-medium bg-white hover:bg-gray-50 text-gray-800 transition-all duration-300 shadow-lg hover:shadow-xl border border-gray-200 touch-target overflow-hidden" onClick={() => window.open('https://enroll.boonus.app/64b7c34953090f001de0fb6c/wallet/64b7efed53090f001de815b4', '_blank')}>
               <div className={`w-full flex items-center ${language === 'ar' ? 'flex-row-reverse' : 'flex-row'} justify-between gap-2 px-3`}>
                 <span className="font-semibold truncate text-base flex-grow max-w-[75%]">{language === 'ar' ? 'انضم لبرنامج الولاء' : 'Join loyalty program'}</span>
-                <img src="/lovable-uploads/ba9a65f1-bf31-4b9c-ab41-7c7228a2f1b7.png" alt="Rescale Logo" className="h-7 w-auto flex-shrink-0" />
+                <img src="lovable-uploads/ba9a65f1-bf31-4b9c-ab41-7c7228a2f1b7.png" alt="Rescale Logo" className="h-7 w-auto flex-shrink-0" />
               </div>
             </Button>
           </div>
