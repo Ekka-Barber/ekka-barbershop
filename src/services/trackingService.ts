@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { v4 as uuidv4 } from 'uuid';
 import { getPlatformType } from "@/services/platformDetection";
@@ -11,7 +10,9 @@ type BaseInteractionType = 'page_view' | 'button_click' | 'dialog_open' | 'dialo
                           'branch_select' | 'service_select' | 'barber_select' | 'language_switch';
 
 type ServiceInteractionType = 'category_view' | 'service_view' | 'service_compare';
-type DateTimeInteractionType = 'calendar_open' | 'calendar_close' | 'date_select' | 'time_select' | 'time_slot_view';
+type DateTimeInteractionType = 'calendar_open' | 'calendar_close' | 'date_select' | 'time_select' | 'time_slot_view' |
+                              'calendar_navigation' | 'view_duration';
+type BarberInteractionType = 'profile_view' | 'availability_check' | 'selection' | 'comparison';
 
 interface ServiceDiscoveryEvent {
   category_id: string;
@@ -26,20 +27,34 @@ interface ServiceDiscoveryEvent {
   timestamp: string;
 }
 
-interface DateTimeInteractionEvent {
-  session_id: string;
-  interaction_type: DateTimeInteractionType;
-  selected_date?: string;
-  selected_time?: string;
-  calendar_view_type: 'month' | 'week' | 'quick_select';
-  time_slot_position?: string;
-  device_type: DeviceType;
-  browser_info?: any;
+interface EnhancedDateTimeEvent extends DateTimeInteractionEvent {
+  view_duration_seconds?: number;
+  calendar_navigation_path?: string[];
+  days_in_advance?: number;
+  preferred_time_slots?: {
+    morning: number;
+    afternoon: number;
+    evening: number;
+  };
+  quick_select_usage?: boolean;
 }
 
-interface SessionData {
-  id: string;
-  timestamp: number;
+interface BarberSelectionEvent {
+  barber_id: string;
+  interaction_type: BarberInteractionType;
+  view_duration_seconds: number;
+  availability_status: boolean;
+  time_to_selection_seconds?: number;
+  comparison_count?: number;
+  preferred_time_slots?: string[];
+  selection_criteria?: {
+    availability_based: boolean;
+    nationality_based: boolean;
+    time_slot_based: boolean;
+  };
+  session_id: string;
+  device_type: DeviceType;
+  timestamp: string;
 }
 
 // Production check
@@ -184,7 +199,7 @@ const trackServiceInteraction = async (event: ServiceDiscoveryEvent): Promise<vo
   });
 };
 
-const trackDateTimeInteraction = async (event: DateTimeInteractionEvent): Promise<void> => {
+const trackEnhancedDateTimeInteraction = async (event: EnhancedDateTimeEvent): Promise<void> => {
   if (!shouldTrack()) return;
 
   const session = getSessionId();
@@ -208,6 +223,26 @@ const trackDateTimeInteraction = async (event: DateTimeInteractionEvent): Promis
   });
 };
 
+const trackBarberInteraction = async (event: BarberSelectionEvent): Promise<void> => {
+  if (!shouldTrack()) return;
+
+  const session = getSessionId();
+  if (!session) return;
+
+  await tryTracking(async () => {
+    const { error } = await supabase.from('barber_selection_events').insert({
+      ...event,
+      session_id: session,
+      device_type: mapPlatformToDeviceType(getPlatformType()),
+      timestamp: new Date().toISOString()
+    });
+
+    if (error) {
+      console.error('Error tracking barber interaction:', error);
+    }
+  });
+};
+
 const initializeTracking = (): void => {
   if (!shouldTrack()) return;
   getSessionId();
@@ -223,7 +258,8 @@ export {
   trackPageView,
   trackInteraction,
   trackServiceInteraction,
-  trackDateTimeInteraction,
+  trackEnhancedDateTimeInteraction,
+  trackBarberInteraction,
   initializeTracking,
   cleanupTracking
 };

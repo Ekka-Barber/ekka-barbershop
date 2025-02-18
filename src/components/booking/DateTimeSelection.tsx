@@ -1,8 +1,7 @@
-
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
-import { format, addDays, isBefore, startOfDay } from "date-fns";
+import { format, addDays, isBefore, startOfDay, differenceInDays } from "date-fns";
 import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
 import { ar } from 'date-fns/locale';
@@ -19,45 +18,72 @@ export const DateTimeSelection = ({
 }: DateTimeSelectionProps) => {
   const { t, language } = useLanguage();
   const [showFullCalendar, setShowFullCalendar] = useState(false);
-  const { trackDateTimeInteraction } = useTracking();
-
-  // Get current date and next two days
-  const today = startOfDay(new Date());
-  const threeDays = [
-    today,
-    addDays(today, 1),
-    addDays(today, 2)
-  ];
+  const [calendarViewDuration, setCalendarViewDuration] = useState<number>(0);
+  const [viewStartTime, setViewStartTime] = useState<Date>(new Date());
+  const [navigationPath, setNavigationPath] = useState<string[]>([]);
+  const { trackEnhancedDateTimeInteraction } = useTracking();
 
   useEffect(() => {
+    const startTime = new Date();
+    setViewStartTime(startTime);
+    
     // Track initial calendar view
-    trackDateTimeInteraction({
+    trackEnhancedDateTimeInteraction({
       interaction_type: 'calendar_open',
       calendar_view_type: 'quick_select',
       device_type: 'desktop',
       session_id: 'temp',
+      quick_select_usage: true,
+      view_duration_seconds: 0,
+      calendar_navigation_path: []
     });
+
+    return () => {
+      const duration = Math.floor((new Date().getTime() - startTime.getTime()) / 1000);
+      trackEnhancedDateTimeInteraction({
+        interaction_type: 'view_duration',
+        calendar_view_type: showFullCalendar ? 'month' : 'quick_select',
+        device_type: 'desktop',
+        session_id: 'temp',
+        view_duration_seconds: duration,
+        calendar_navigation_path: navigationPath
+      });
+    };
   }, []);
 
   const handleDateSelect = (date: Date | undefined) => {
-    trackDateTimeInteraction({
+    const daysInAdvance = date ? differenceInDays(date, new Date()) : 0;
+    
+    trackEnhancedDateTimeInteraction({
       interaction_type: 'date_select',
       selected_date: date?.toISOString(),
       calendar_view_type: showFullCalendar ? 'month' : 'quick_select',
       device_type: 'desktop',
       session_id: 'temp',
+      days_in_advance: daysInAdvance,
+      quick_select_usage: !showFullCalendar,
+      calendar_navigation_path: navigationPath
     });
+    
     onDateSelect(date);
   };
 
   const handleCalendarToggle = (show: boolean) => {
-    trackDateTimeInteraction({
+    const duration = Math.floor((new Date().getTime() - viewStartTime.getTime()) / 1000);
+    
+    trackEnhancedDateTimeInteraction({
       interaction_type: show ? 'calendar_open' : 'calendar_close',
       calendar_view_type: show ? 'month' : 'quick_select',
       device_type: 'desktop',
       session_id: 'temp',
+      view_duration_seconds: duration,
+      quick_select_usage: !show,
+      calendar_navigation_path: navigationPath
     });
+    
     setShowFullCalendar(show);
+    setViewStartTime(new Date());
+    setNavigationPath([...navigationPath, show ? 'full_calendar' : 'quick_select']);
   };
 
   const formatDate = (date: Date) => {

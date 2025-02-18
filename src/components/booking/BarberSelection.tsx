@@ -5,6 +5,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { BarberCard } from "./barber/BarberCard";
 import { TimeSlotPicker } from "./barber/TimeSlotPicker";
 import { useTimeSlots } from "@/hooks/useTimeSlots";
+import { useTracking } from "@/hooks/useTracking";
 
 interface Employee {
   id: string;
@@ -40,6 +41,9 @@ export const BarberSelection = ({
   const [showAllSlots, setShowAllSlots] = useState(false);
   const { getAvailableTimeSlots, isEmployeeAvailable } = useTimeSlots();
   const [employeeTimeSlots, setEmployeeTimeSlots] = useState<{ time: string; isAvailable: boolean; }[]>([]);
+  const [barberViewStart, setBarberViewStart] = useState<Record<string, Date>>({});
+  const [comparisonCount, setComparisonCount] = useState(0);
+  const { trackBarberInteraction } = useTracking();
 
   // Update time slots when employee or date changes
   const updateTimeSlots = async () => {
@@ -56,10 +60,56 @@ export const BarberSelection = ({
     }
   };
 
-  // Effect to update time slots
   useEffect(() => {
     updateTimeSlots();
   }, [selectedBarber, selectedDate]);
+
+  const handleBarberProfileView = (barberId: string) => {
+    setBarberViewStart(prev => ({
+      ...prev,
+      [barberId]: new Date()
+    }));
+    
+    trackBarberInteraction({
+      barber_id: barberId,
+      interaction_type: 'profile_view',
+      view_duration_seconds: 0,
+      availability_status: false,
+      session_id: 'temp',
+      device_type: 'desktop',
+      timestamp: new Date().toISOString()
+    });
+  };
+
+  const handleBarberSelect = (barberId: string, employee: Employee) => {
+    if (!isEmployeeAvailable(employee, selectedDate)) return;
+
+    const viewDuration = barberViewStart[barberId] 
+      ? Math.floor((new Date().getTime() - barberViewStart[barberId].getTime()) / 1000)
+      : 0;
+
+    trackBarberInteraction({
+      barber_id: barberId,
+      interaction_type: 'selection',
+      view_duration_seconds: viewDuration,
+      availability_status: true,
+      time_to_selection_seconds: viewDuration,
+      comparison_count: comparisonCount,
+      selection_criteria: {
+        availability_based: true,
+        nationality_based: !!employee.nationality,
+        time_slot_based: !!selectedTime
+      },
+      session_id: 'temp',
+      device_type: 'desktop',
+      timestamp: new Date().toISOString()
+    });
+
+    onBarberSelect(barberId);
+    onTimeSelect('');
+    setShowAllSlots(false);
+    setComparisonCount(prev => prev + 1);
+  };
 
   if (isLoading) {
     return (
@@ -78,7 +128,9 @@ export const BarberSelection = ({
   if (filteredEmployees?.length === 0) {
     return (
       <div className="text-center p-8">
-        <p className="text-gray-500">{language === 'ar' ? 'لا يوجد حلاقين متاحين' : 'No barbers available'}</p>
+        <p className="text-gray-500">
+          {language === 'ar' ? 'لا يوجد حلاقين متاحين' : 'No barbers available'}
+        </p>
       </div>
     );
   }
@@ -101,10 +153,9 @@ export const BarberSelection = ({
                 isAvailable={isAvailable}
                 isSelected={isSelected}
                 onSelect={() => {
+                  handleBarberProfileView(employee.id);
                   if (isAvailable) {
-                    onBarberSelect(employee.id);
-                    onTimeSelect('');
-                    setShowAllSlots(false);
+                    handleBarberSelect(employee.id, employee);
                   }
                 }}
               />
