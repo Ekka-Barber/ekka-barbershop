@@ -114,7 +114,7 @@ const tryTracking = async (operation: () => Promise<any>, maxRetries = 3): Promi
   }
 };
 
-export const trackPageView = async (pageUrl: string): Promise<void> => {
+const trackPageView = async (pageUrl: string): Promise<void> => {
   if (!shouldTrack()) return;
 
   const session = getSessionId();
@@ -137,7 +137,7 @@ export const trackPageView = async (pageUrl: string): Promise<void> => {
   });
 };
 
-export const trackInteraction = async (
+const trackInteraction = async (
   type: BaseInteractionType,
   details: Record<string, any>
 ): Promise<void> => {
@@ -164,7 +164,7 @@ export const trackInteraction = async (
   });
 };
 
-export const trackServiceInteraction = async (event: ServiceDiscoveryEvent): Promise<void> => {
+const trackServiceInteraction = async (event: ServiceDiscoveryEvent): Promise<void> => {
   if (!shouldTrack()) return;
 
   const session = getSessionId();
@@ -184,7 +184,7 @@ export const trackServiceInteraction = async (event: ServiceDiscoveryEvent): Pro
   });
 };
 
-export const trackDateTimeInteraction = async (event: DateTimeInteractionEvent): Promise<void> => {
+const trackDateTimeInteraction = async (event: DateTimeInteractionEvent): Promise<void> => {
   if (!shouldTrack()) return;
 
   const session = getSessionId();
@@ -208,12 +208,22 @@ export const trackDateTimeInteraction = async (event: DateTimeInteractionEvent):
   });
 };
 
-export const initializeTracking = (): void => {
+const initializeTracking = (): void => {
   if (!shouldTrack()) return;
   getSessionId();
   trackPageView(window.location.pathname);
 };
 
-export const cleanupTracking = (): void => {
+const cleanupTracking = (): void => {
   if (!shouldTrack()) return;
+};
+
+// Export all tracking functions in a single export statement
+export {
+  trackPageView,
+  trackInteraction,
+  trackServiceInteraction,
+  trackDateTimeInteraction,
+  initializeTracking,
+  cleanupTracking
 };
