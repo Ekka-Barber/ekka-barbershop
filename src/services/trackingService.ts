@@ -13,6 +13,11 @@ type ServiceInteractionType = 'category_view' | 'service_view' | 'service_compar
 type DateTimeInteractionType = 'calendar_open' | 'calendar_close' | 'date_select' | 'time_select' | 'time_slot_view';
 type BarberInteractionType = 'profile_view' | 'availability_check' | 'selection' | 'comparison';
 
+interface SessionData {
+  id: string;
+  timestamp: number;
+}
+
 interface ServiceDiscoveryEvent {
   category_id: string;
   service_id?: string;
