@@ -1,4 +1,3 @@
-
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { DateRange } from "./DateRangeSelector";
@@ -34,8 +33,8 @@ export const useTrackingData = (dateRange: DateRange, pagination?: TrackingPagin
       if (error) throw error;
       return { data, totalCount: count || 0 };
     },
-    staleTime: 1000 * 60 * 5, // Consider data fresh for 5 minutes
-    cacheTime: 1000 * 60 * 30, // Keep in cache for 30 minutes
+    gcTime: 1000 * 60 * 30, // 30 minutes cache
+    staleTime: 1000 * 60 * 5, // 5 minutes before refetch
   });
 
   const { data: previousPeriodData } = useQuery({
@@ -50,8 +49,8 @@ export const useTrackingData = (dateRange: DateRange, pagination?: TrackingPagin
       if (error) throw error;
       return data;
     },
+    gcTime: 1000 * 60 * 30,
     staleTime: 1000 * 60 * 5,
-    cacheTime: 1000 * 60 * 30,
   });
 
   const { data: sessionData, isLoading: sessionsLoading } = useQuery({
@@ -74,8 +73,8 @@ export const useTrackingData = (dateRange: DateRange, pagination?: TrackingPagin
       if (error) throw error;
       return { data, totalCount: count || 0 };
     },
+    gcTime: 1000 * 60 * 30,
     staleTime: 1000 * 60 * 5,
-    cacheTime: 1000 * 60 * 30,
   });
 
   const { data: bookingData, isLoading: bookingsLoading } = useQuery({
@@ -98,8 +97,8 @@ export const useTrackingData = (dateRange: DateRange, pagination?: TrackingPagin
       if (error) throw error;
       return { data, totalCount: count || 0 };
     },
+    gcTime: 1000 * 60 * 30,
     staleTime: 1000 * 60 * 5,
-    cacheTime: 1000 * 60 * 30,
   });
 
   const calculateCoreMetrics = () => {

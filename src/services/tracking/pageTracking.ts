@@ -17,7 +17,8 @@ export type PageInteractionType =
   | 'branch_select'
   | 'barber_select'
   | 'pdf_view'
-  | 'language_switch';
+  | 'language_switch'
+  | 'location_view';
 
 export const trackPageView = async (pageUrl: string): Promise<void> => {
   if (!shouldTrack()) return;

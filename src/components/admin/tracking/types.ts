@@ -68,13 +68,14 @@ export interface BookingData {
 }
 
 export interface PathAnalysis {
+  path: string[];
+  frequency: number;
+  successRate: number;
+  averageDuration: number;
   commonPaths: string[][];
   dropOffPoints: string[];
   conversionRate: number;
   averageTimeToComplete: number;
-  successRate: number;
-  frequency: number;
-  averageDuration: number;
 }
 
 export interface UserBehaviorMetrics {
@@ -98,6 +99,8 @@ export interface UserBehaviorMetrics {
   dropOffPoints: {
     page: string;
     rate: number;
+    averageTimeBeforeExit: number;
+    exitRate: number;
   }[];
 }
 
@@ -126,6 +129,7 @@ export interface DropOffPoint {
   exitRate: number;
   averageTimeBeforeExit: number;
   previousPages: string[];
+  rate: number;
 }
 
 export const COLORS = ['#4ade80', '#f87171', '#60a5fa', '#facc15'];
