@@ -33,54 +33,6 @@ export type Database = {
         }
         Relationships: []
       }
-      barber_selection_events: {
-        Row: {
-          availability_status: boolean
-          barber_id: string
-          comparison_count: number | null
-          created_at: string | null
-          device_type: Database["public"]["Enums"]["device_type"] | null
-          id: string
-          interaction_type: string
-          preferred_time_slots: string[] | null
-          selection_criteria: Json | null
-          session_id: string | null
-          time_to_selection_seconds: number | null
-          timestamp: string | null
-          view_duration_seconds: number
-        }
-        Insert: {
-          availability_status: boolean
-          barber_id: string
-          comparison_count?: number | null
-          created_at?: string | null
-          device_type?: Database["public"]["Enums"]["device_type"] | null
-          id?: string
-          interaction_type: string
-          preferred_time_slots?: string[] | null
-          selection_criteria?: Json | null
-          session_id?: string | null
-          time_to_selection_seconds?: number | null
-          timestamp?: string | null
-          view_duration_seconds: number
-        }
-        Update: {
-          availability_status?: boolean
-          barber_id?: string
-          comparison_count?: number | null
-          created_at?: string | null
-          device_type?: Database["public"]["Enums"]["device_type"] | null
-          id?: string
-          interaction_type?: string
-          preferred_time_slots?: string[] | null
-          selection_criteria?: Json | null
-          session_id?: string | null
-          time_to_selection_seconds?: number | null
-          timestamp?: string | null
-          view_duration_seconds?: number
-        }
-        Relationships: []
-      }
       booking_behavior: {
         Row: {
           created_at: string
@@ -119,7 +71,6 @@ export type Database = {
           customer_name: string
           customer_notes: string | null
           customer_phone: string
-          device_type: Database["public"]["Enums"]["device_type"] | null
           duration_minutes: number
           id: string
           reminder_sent: boolean | null
@@ -142,7 +93,6 @@ export type Database = {
           customer_name: string
           customer_notes?: string | null
           customer_phone: string
-          device_type?: Database["public"]["Enums"]["device_type"] | null
           duration_minutes: number
           id?: string
           reminder_sent?: boolean | null
@@ -165,7 +115,6 @@ export type Database = {
           customer_name?: string
           customer_notes?: string | null
           customer_phone?: string
-          device_type?: Database["public"]["Enums"]["device_type"] | null
           duration_minutes?: number
           id?: string
           reminder_sent?: boolean | null
@@ -220,53 +169,6 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "branch_managers_branch_id_fkey"
-            columns: ["branch_id"]
-            isOneToOne: false
-            referencedRelation: "branches"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      branch_selection_events: {
-        Row: {
-          branch_id: string | null
-          created_at: string | null
-          device_type: Database["public"]["Enums"]["device_type"] | null
-          dialog_close_time: string | null
-          dialog_open_time: string | null
-          id: string
-          interaction_type: string
-          selected_branch_name: string | null
-          session_id: string | null
-          source_page: string
-        }
-        Insert: {
-          branch_id?: string | null
-          created_at?: string | null
-          device_type?: Database["public"]["Enums"]["device_type"] | null
-          dialog_close_time?: string | null
-          dialog_open_time?: string | null
-          id?: string
-          interaction_type: string
-          selected_branch_name?: string | null
-          session_id?: string | null
-          source_page: string
-        }
-        Update: {
-          branch_id?: string | null
-          created_at?: string | null
-          device_type?: Database["public"]["Enums"]["device_type"] | null
-          dialog_close_time?: string | null
-          dialog_open_time?: string | null
-          id?: string
-          interaction_type?: string
-          selected_branch_name?: string | null
-          session_id?: string | null
-          source_page?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "branch_selection_events_branch_id_fkey"
             columns: ["branch_id"]
             isOneToOne: false
             referencedRelation: "branches"
@@ -367,57 +269,6 @@ export type Database = {
           },
         ]
       }
-      click_tracking: {
-        Row: {
-          content_height: number
-          content_width: number
-          created_at: string
-          device_type: Database["public"]["Enums"]["device_type"]
-          element_class: string | null
-          element_id: string | null
-          id: string
-          page_url: string
-          screen_height: number
-          screen_width: number
-          scroll_x: number
-          scroll_y: number
-          x_coordinate: number
-          y_coordinate: number
-        }
-        Insert: {
-          content_height?: number
-          content_width?: number
-          created_at?: string
-          device_type: Database["public"]["Enums"]["device_type"]
-          element_class?: string | null
-          element_id?: string | null
-          id?: string
-          page_url: string
-          screen_height: number
-          screen_width: number
-          scroll_x?: number
-          scroll_y?: number
-          x_coordinate: number
-          y_coordinate: number
-        }
-        Update: {
-          content_height?: number
-          content_width?: number
-          created_at?: string
-          device_type?: Database["public"]["Enums"]["device_type"]
-          element_class?: string | null
-          element_id?: string | null
-          id?: string
-          page_url?: string
-          screen_height?: number
-          screen_width?: number
-          scroll_x?: number
-          scroll_y?: number
-          x_coordinate?: number
-          y_coordinate?: number
-        }
-        Relationships: []
-      }
       daily_sales: {
         Row: {
           base_amount: number
@@ -477,66 +328,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      datetime_tracking: {
-        Row: {
-          browser_info: Json | null
-          calendar_navigation_path: string[] | null
-          calendar_view_type:
-            | Database["public"]["Enums"]["calendar_view_type"]
-            | null
-          created_at: string | null
-          days_in_advance: number | null
-          device_type: Database["public"]["Enums"]["device_type"] | null
-          id: string
-          interaction_type: Database["public"]["Enums"]["datetime_interaction_type"]
-          preferred_time_slots: Json | null
-          quick_select_usage: boolean | null
-          selected_date: string | null
-          selected_time: string | null
-          session_id: string | null
-          time_slot_position: string | null
-          view_duration_seconds: number | null
-        }
-        Insert: {
-          browser_info?: Json | null
-          calendar_navigation_path?: string[] | null
-          calendar_view_type?:
-            | Database["public"]["Enums"]["calendar_view_type"]
-            | null
-          created_at?: string | null
-          days_in_advance?: number | null
-          device_type?: Database["public"]["Enums"]["device_type"] | null
-          id?: string
-          interaction_type: Database["public"]["Enums"]["datetime_interaction_type"]
-          preferred_time_slots?: Json | null
-          quick_select_usage?: boolean | null
-          selected_date?: string | null
-          selected_time?: string | null
-          session_id?: string | null
-          time_slot_position?: string | null
-          view_duration_seconds?: number | null
-        }
-        Update: {
-          browser_info?: Json | null
-          calendar_navigation_path?: string[] | null
-          calendar_view_type?:
-            | Database["public"]["Enums"]["calendar_view_type"]
-            | null
-          created_at?: string | null
-          days_in_advance?: number | null
-          device_type?: Database["public"]["Enums"]["device_type"] | null
-          id?: string
-          interaction_type?: Database["public"]["Enums"]["datetime_interaction_type"]
-          preferred_time_slots?: Json | null
-          quick_select_usage?: boolean | null
-          selected_date?: string | null
-          selected_time?: string | null
-          session_id?: string | null
-          time_slot_position?: string | null
-          view_duration_seconds?: number | null
-        }
-        Relationships: []
       }
       deposit_withdrawals: {
         Row: {
@@ -1062,83 +853,6 @@ export type Database = {
           },
         ]
       }
-      funnel_stages: {
-        Row: {
-          conversion_successful: boolean | null
-          entry_time: string | null
-          exit_time: string | null
-          id: string
-          session_id: string | null
-          stage_data: Json | null
-          stage_name: string
-        }
-        Insert: {
-          conversion_successful?: boolean | null
-          entry_time?: string | null
-          exit_time?: string | null
-          id?: string
-          session_id?: string | null
-          stage_data?: Json | null
-          stage_name: string
-        }
-        Update: {
-          conversion_successful?: boolean | null
-          entry_time?: string | null
-          exit_time?: string | null
-          id?: string
-          session_id?: string | null
-          stage_data?: Json | null
-          stage_name?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "funnel_stages_session_id_fkey"
-            columns: ["session_id"]
-            isOneToOne: false
-            referencedRelation: "tracking_sessions"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      interaction_events: {
-        Row: {
-          created_at: string | null
-          device_type: Database["public"]["Enums"]["device_type"] | null
-          element_class: string | null
-          element_id: string | null
-          id: string
-          interaction_details: Json | null
-          interaction_type: Database["public"]["Enums"]["interaction_type"]
-          page_url: string
-          session_id: string | null
-          timestamp: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          device_type?: Database["public"]["Enums"]["device_type"] | null
-          element_class?: string | null
-          element_id?: string | null
-          id?: string
-          interaction_details?: Json | null
-          interaction_type: Database["public"]["Enums"]["interaction_type"]
-          page_url: string
-          session_id?: string | null
-          timestamp?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          device_type?: Database["public"]["Enums"]["device_type"] | null
-          element_class?: string | null
-          element_id?: string | null
-          id?: string
-          interaction_details?: Json | null
-          interaction_type?: Database["public"]["Enums"]["interaction_type"]
-          page_url?: string
-          session_id?: string | null
-          timestamp?: string | null
-        }
-        Relationships: []
-      }
       loyalty_program: {
         Row: {
           created_at: string
@@ -1224,238 +938,6 @@ export type Database = {
             referencedColumns: ["name"]
           },
         ]
-      }
-      marketing_funnel_events: {
-        Row: {
-          conversion_successful: boolean | null
-          created_at: string
-          device_type: string | null
-          drop_off_point: boolean | null
-          entry_point: string | null
-          funnel_stage: string
-          id: string
-          interaction_path: Json
-          interaction_type: string
-          previous_stage: string | null
-          session_id: string | null
-          source_page: string | null
-          time_in_stage: number | null
-        }
-        Insert: {
-          conversion_successful?: boolean | null
-          created_at?: string
-          device_type?: string | null
-          drop_off_point?: boolean | null
-          entry_point?: string | null
-          funnel_stage: string
-          id?: string
-          interaction_path?: Json
-          interaction_type: string
-          previous_stage?: string | null
-          session_id?: string | null
-          source_page?: string | null
-          time_in_stage?: number | null
-        }
-        Update: {
-          conversion_successful?: boolean | null
-          created_at?: string
-          device_type?: string | null
-          drop_off_point?: boolean | null
-          entry_point?: string | null
-          funnel_stage?: string
-          id?: string
-          interaction_path?: Json
-          interaction_type?: string
-          previous_stage?: string | null
-          session_id?: string | null
-          source_page?: string | null
-          time_in_stage?: number | null
-        }
-        Relationships: []
-      }
-      menu_interactions: {
-        Row: {
-          created_at: string | null
-          device_type: Database["public"]["Enums"]["device_type"] | null
-          id: string
-          interaction_type: string
-          menu_file_id: string | null
-          page_changes: number | null
-          session_id: string | null
-          view_duration_seconds: number | null
-          zoom_actions: number | null
-        }
-        Insert: {
-          created_at?: string | null
-          device_type?: Database["public"]["Enums"]["device_type"] | null
-          id?: string
-          interaction_type: string
-          menu_file_id?: string | null
-          page_changes?: number | null
-          session_id?: string | null
-          view_duration_seconds?: number | null
-          zoom_actions?: number | null
-        }
-        Update: {
-          created_at?: string | null
-          device_type?: Database["public"]["Enums"]["device_type"] | null
-          id?: string
-          interaction_type?: string
-          menu_file_id?: string | null
-          page_changes?: number | null
-          session_id?: string | null
-          view_duration_seconds?: number | null
-          zoom_actions?: number | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "menu_interactions_menu_file_id_fkey"
-            columns: ["menu_file_id"]
-            isOneToOne: false
-            referencedRelation: "marketing_files"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      notification_events: {
-        Row: {
-          body: string
-          created_at: string
-          data: Json | null
-          id: string
-          title: string
-          url: string | null
-        }
-        Insert: {
-          body: string
-          created_at?: string
-          data?: Json | null
-          id?: string
-          title: string
-          url?: string | null
-        }
-        Update: {
-          body?: string
-          created_at?: string
-          data?: Json | null
-          id?: string
-          title?: string
-          url?: string | null
-        }
-        Relationships: []
-      }
-      notification_tracking: {
-        Row: {
-          created_at: string
-          event_type: string
-          id: string
-          metadata: Json | null
-          notification_id: string | null
-          subscription_id: string | null
-        }
-        Insert: {
-          created_at?: string
-          event_type: string
-          id?: string
-          metadata?: Json | null
-          notification_id?: string | null
-          subscription_id?: string | null
-        }
-        Update: {
-          created_at?: string
-          event_type?: string
-          id?: string
-          metadata?: Json | null
-          notification_id?: string | null
-          subscription_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "notification_tracking_notification_id_fkey"
-            columns: ["notification_id"]
-            isOneToOne: false
-            referencedRelation: "notification_events"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "notification_tracking_subscription_id_fkey"
-            columns: ["subscription_id"]
-            isOneToOne: false
-            referencedRelation: "push_subscriptions"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      offer_interactions: {
-        Row: {
-          created_at: string | null
-          device_type: Database["public"]["Enums"]["device_type"] | null
-          id: string
-          interaction_type: string
-          offer_id: string | null
-          session_id: string | null
-          view_duration_seconds: number | null
-        }
-        Insert: {
-          created_at?: string | null
-          device_type?: Database["public"]["Enums"]["device_type"] | null
-          id?: string
-          interaction_type: string
-          offer_id?: string | null
-          session_id?: string | null
-          view_duration_seconds?: number | null
-        }
-        Update: {
-          created_at?: string | null
-          device_type?: Database["public"]["Enums"]["device_type"] | null
-          id?: string
-          interaction_type?: string
-          offer_id?: string | null
-          session_id?: string | null
-          view_duration_seconds?: number | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "offer_interactions_offer_id_fkey"
-            columns: ["offer_id"]
-            isOneToOne: false
-            referencedRelation: "marketing_files"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      page_views: {
-        Row: {
-          browser_info: Json | null
-          created_at: string | null
-          device_type: Database["public"]["Enums"]["device_type"] | null
-          entry_time: string | null
-          exit_time: string | null
-          id: string
-          page_url: string
-          session_id: string | null
-        }
-        Insert: {
-          browser_info?: Json | null
-          created_at?: string | null
-          device_type?: Database["public"]["Enums"]["device_type"] | null
-          entry_time?: string | null
-          exit_time?: string | null
-          id?: string
-          page_url: string
-          session_id?: string | null
-        }
-        Update: {
-          browser_info?: Json | null
-          created_at?: string | null
-          device_type?: Database["public"]["Enums"]["device_type"] | null
-          entry_time?: string | null
-          exit_time?: string | null
-          id?: string
-          page_url?: string
-          session_id?: string | null
-        }
-        Relationships: []
       }
       payment_method_fees: {
         Row: {
@@ -1827,90 +1309,6 @@ export type Database = {
         }
         Relationships: []
       }
-      service_discovery_events: {
-        Row: {
-          category_id: string | null
-          created_at: string | null
-          description_viewed: boolean | null
-          device_type: Database["public"]["Enums"]["device_type"] | null
-          discovery_path: string[] | null
-          id: string
-          interaction_type: string
-          price_viewed: boolean | null
-          selected_service_name: string | null
-          service_id: string | null
-          session_id: string | null
-        }
-        Insert: {
-          category_id?: string | null
-          created_at?: string | null
-          description_viewed?: boolean | null
-          device_type?: Database["public"]["Enums"]["device_type"] | null
-          discovery_path?: string[] | null
-          id?: string
-          interaction_type: string
-          price_viewed?: boolean | null
-          selected_service_name?: string | null
-          service_id?: string | null
-          session_id?: string | null
-        }
-        Update: {
-          category_id?: string | null
-          created_at?: string | null
-          description_viewed?: boolean | null
-          device_type?: Database["public"]["Enums"]["device_type"] | null
-          discovery_path?: string[] | null
-          id?: string
-          interaction_type?: string
-          price_viewed?: boolean | null
-          selected_service_name?: string | null
-          service_id?: string | null
-          session_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "service_discovery_events_category_id_fkey"
-            columns: ["category_id"]
-            isOneToOne: false
-            referencedRelation: "service_categories"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "service_discovery_events_service_id_fkey"
-            columns: ["service_id"]
-            isOneToOne: false
-            referencedRelation: "services"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      service_tracking: {
-        Row: {
-          action: string
-          created_at: string
-          id: string
-          service_name: string
-          timestamp: string
-          user_id: string | null
-        }
-        Insert: {
-          action: string
-          created_at?: string
-          id?: string
-          service_name: string
-          timestamp?: string
-          user_id?: string | null
-        }
-        Update: {
-          action?: string
-          created_at?: string
-          id?: string
-          service_name?: string
-          timestamp?: string
-          user_id?: string | null
-        }
-        Relationships: []
-      }
       service_upsells: {
         Row: {
           created_at: string
@@ -2011,45 +1409,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      tracking_sessions: {
-        Row: {
-          created_at: string | null
-          device_type: Database["public"]["Enums"]["device_type"] | null
-          end_time: string | null
-          id: string
-          is_active: boolean | null
-          last_activity: string | null
-          platform_info: Json | null
-          session_data: Json | null
-          start_time: string | null
-          user_id: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          device_type?: Database["public"]["Enums"]["device_type"] | null
-          end_time?: string | null
-          id: string
-          is_active?: boolean | null
-          last_activity?: string | null
-          platform_info?: Json | null
-          session_data?: Json | null
-          start_time?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          device_type?: Database["public"]["Enums"]["device_type"] | null
-          end_time?: string | null
-          id?: string
-          is_active?: boolean | null
-          last_activity?: string | null
-          platform_info?: Json | null
-          session_data?: Json | null
-          start_time?: string | null
-          user_id?: string | null
-        }
-        Relationships: []
       }
       transactions: {
         Row: {
@@ -2205,54 +1564,6 @@ export type Database = {
           },
         ]
       }
-      unified_events: {
-        Row: {
-          created_at: string | null
-          device_type: Database["public"]["Enums"]["device_type"] | null
-          event_data: Json | null
-          event_name: string
-          event_type: Database["public"]["Enums"]["unified_event_type"]
-          id: string
-          interaction_details: Json | null
-          interaction_type: string | null
-          page_url: string | null
-          session_id: string | null
-          source_page: string | null
-          timestamp: string | null
-          user_id: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          device_type?: Database["public"]["Enums"]["device_type"] | null
-          event_data?: Json | null
-          event_name: string
-          event_type: Database["public"]["Enums"]["unified_event_type"]
-          id?: string
-          interaction_details?: Json | null
-          interaction_type?: string | null
-          page_url?: string | null
-          session_id?: string | null
-          source_page?: string | null
-          timestamp?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          device_type?: Database["public"]["Enums"]["device_type"] | null
-          event_data?: Json | null
-          event_name?: string
-          event_type?: Database["public"]["Enums"]["unified_event_type"]
-          id?: string
-          interaction_details?: Json | null
-          interaction_type?: string | null
-          page_url?: string | null
-          session_id?: string | null
-          source_page?: string | null
-          timestamp?: string | null
-          user_id?: string | null
-        }
-        Relationships: []
-      }
       vat_entries: {
         Row: {
           base_amount: number
@@ -2327,30 +1638,7 @@ export type Database = {
       }
     }
     Views: {
-      business_events: {
-        Row: {
-          created_at: string | null
-          event_data: Json | null
-          event_name: string | null
-          id: string | null
-          session_id: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          event_data?: Json | null
-          event_name?: string | null
-          id?: string | null
-          session_id?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          event_data?: Json | null
-          event_name?: string | null
-          id?: string | null
-          session_id?: string | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
       cleanup_invalid_subscriptions: {
@@ -2360,10 +1648,6 @@ export type Database = {
       cleanup_old_schedules: {
         Args: Record<PropertyKey, never>
         Returns: number
-      }
-      cleanup_old_sessions: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
       }
       create_loan_from_deposit: {
         Args: {
@@ -2409,10 +1693,6 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
-      migrate_existing_tracking_data: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
       round_amount: {
         Args: {
           amount: number
@@ -2442,13 +1722,6 @@ export type Database = {
       adjustment_type: "correction" | "refund"
       basic_payment_method: "cash" | "bank_transfer"
       calendar_view_type: "month" | "week" | "quick_select"
-      datetime_interaction_type:
-        | "calendar_open"
-        | "calendar_close"
-        | "date_select"
-        | "time_select"
-        | "time_slot_view"
-      device_type: "mobile" | "tablet" | "desktop"
       employee_role:
         | "manager"
         | "barber"
@@ -2457,19 +1730,6 @@ export type Database = {
         | "massage_therapist"
         | "hammam_specialist"
       expense_payment_method: "cash" | "deposit" | "bank_transfer"
-      interaction_type:
-        | "page_view"
-        | "button_click"
-        | "dialog_open"
-        | "dialog_close"
-        | "form_interaction"
-        | "pdf_view"
-        | "menu_view"
-        | "offer_view"
-        | "branch_select"
-        | "service_select"
-        | "barber_select"
-        | "language_switch"
       payment_method_type: "cash" | "deposit" | "bank_transfer"
       salary_calculation_type:
         | "fixed"
@@ -2496,7 +1756,6 @@ export type Database = {
         | "refunded"
         | "void"
       transaction_type: "income" | "expense"
-      unified_event_type: "page_view" | "interaction" | "business" | "analytics"
       user_role: "owner" | "employee" | "shop_manager" | "accountant"
     }
     CompositeTypes: {
