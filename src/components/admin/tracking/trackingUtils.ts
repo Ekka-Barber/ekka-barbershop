@@ -14,6 +14,12 @@ interface ServiceAnalytics {
   averageViewDuration: number;
 }
 
+interface ServiceData {
+  viewCount: number;
+  totalDuration: number;
+  bookings: number;
+}
+
 export const processTimePatterns = (bookingData: BookingData[]): TimePattern[] => {
   const timePatterns = bookingData.reduce((acc, booking) => {
     const hour = parseInt(booking.appointment_time.split(':')[0]);
@@ -40,8 +46,11 @@ export const processTimePatterns = (bookingData: BookingData[]): TimePattern[] =
 
 export const processServiceHeatmapData = (interactionEvents: any[]): ServiceAnalytics[] => {
   const serviceData = interactionEvents.reduce((acc, event) => {
-    if (event.interaction_type === 'service_select' && event.interaction_details?.serviceName) {
-      const serviceName = event.interaction_details.serviceName;
+    if (event.interaction_type === 'service_select' && 
+        typeof event.interaction_details === 'object' && 
+        event.interaction_details !== null &&
+        'serviceName' in event.interaction_details) {
+      const serviceName = event.interaction_details.serviceName as string;
       if (!acc[serviceName]) {
         acc[serviceName] = {
           viewCount: 0,
@@ -49,17 +58,19 @@ export const processServiceHeatmapData = (interactionEvents: any[]): ServiceAnal
           bookings: 0
         };
       }
-      const data = acc[serviceName];
+      const data = acc[serviceName] as ServiceData;
       data.viewCount++;
-      if (event.interaction_details.duration) {
-        data.totalDuration += event.interaction_details.duration;
+      if (typeof event.interaction_details === 'object' && 
+          'duration' in event.interaction_details) {
+        data.totalDuration += Number(event.interaction_details.duration) || 0;
       }
-      if (event.interaction_details.booked) {
-        data.bookings++;
+      if (typeof event.interaction_details === 'object' && 
+          'booked' in event.interaction_details) {
+        data.bookings += event.interaction_details.booked ? 1 : 0;
       }
     }
     return acc;
-  }, {} as Record<string, { viewCount: number; totalDuration: number; bookings: number; }>);
+  }, {} as Record<string, ServiceData>);
 
   return Object.entries(serviceData).map(([name, data]) => ({
     serviceName: name,

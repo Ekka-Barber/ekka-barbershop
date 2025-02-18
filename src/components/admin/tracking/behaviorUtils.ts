@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { PathAnalysis, DropOffPoint, UserBehaviorMetrics } from "./types";
 
@@ -42,7 +43,9 @@ export const getUserBehaviorMetrics = async (dateRange: { from: Date; to: Date }
     if (event.session_id && 
         event.interaction_type === 'form_interaction' && 
         typeof event.interaction_details === 'object' && 
-        event.interaction_details?.completed === true) {
+        event.interaction_details !== null &&
+        'completed' in event.interaction_details &&
+        event.interaction_details.completed === true) {
       const session = sessions.get(event.session_id);
       if (session) {
         session.completed = true;
