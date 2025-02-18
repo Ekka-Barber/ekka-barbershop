@@ -77,8 +77,7 @@ const CustomerTrackingDashboard = () => {
         predictedBookings: 15,
         confidence: 85,
         dayOfWeek: 1
-      },
-      // Add more sample data
+      }
     ],
     revenueForecasts: [
       {
@@ -87,36 +86,45 @@ const CustomerTrackingDashboard = () => {
         lowerBound: 4500,
         upperBound: 5500,
         confidence: 90
-      },
-      // Add more sample data
+      }
     ],
     seasonalPatterns: [],
     trends: []
   };
 
-  const geographicData = {
+  const geographicData: GeographicInsights = {
     branchLocations: [
       {
         id: '1',
         name: 'Main Branch',
-        coordinates: [45.0, 25.0],
+        coordinates: [45.0, 25.0] as [number, number],
         performance: {
           bookings: 150,
           revenue: 15000,
           satisfaction: 4.5
         }
-      },
-      // Add more sample data
+      }
     ],
     customerDensity: [
       {
-        coordinates: [45.0, 25.0],
+        coordinates: [45.0, 25.0] as [number, number],
         weight: 0.8
-      },
-      // Add more sample data
+      }
     ],
-    performanceMetrics: [],
-    catchmentAreas: []
+    performanceMetrics: [{
+      branchId: '1',
+      metrics: {
+        bookingsPerCapita: 0.5,
+        marketShare: 0.3,
+        competitorProximity: 0.8
+      }
+    }],
+    catchmentAreas: [{
+      branchId: '1',
+      polygon: [[45.0, 25.0], [45.1, 25.1], [45.0, 25.1], [45.0, 25.0]] as [number, number][],
+      population: 50000,
+      potentialMarket: 10000
+    }]
   };
 
   return (
