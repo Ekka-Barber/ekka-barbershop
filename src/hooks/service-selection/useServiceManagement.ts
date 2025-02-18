@@ -1,10 +1,8 @@
 
 import { useState, useCallback } from 'react';
 import { Service, ServiceViewState } from '@/types/service';
-import { useTracking } from '@/hooks/useTracking';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useToast } from '@/hooks/use-toast';
-import { roundPrice } from '@/utils/formatting/price';
 
 export const useServiceManagement = (
   selectedServices: Service[],
@@ -12,7 +10,6 @@ export const useServiceManagement = (
 ) => {
   const { language } = useLanguage();
   const { toast } = useToast();
-  const { trackServiceInteraction } = useTracking();
   const [serviceState, setServiceState] = useState<ServiceViewState>({
     selected: null,
     isOpen: false,
@@ -20,7 +17,7 @@ export const useServiceManagement = (
     viewTimes: {}
   });
 
-  const handleServiceClick = useCallback(async (service: Service) => {
+  const handleServiceClick = useCallback((service: Service) => {
     const timestamp = Date.now();
     setServiceState(prev => ({
       selected: service,
@@ -28,34 +25,10 @@ export const useServiceManagement = (
       viewTime: timestamp,
       viewTimes: { ...prev.viewTimes, [service.id]: timestamp }
     }));
-    
-    await trackServiceInteraction({
-      category_id: service.category_id,
-      service_id: service.id,
-      event_name: 'service_view',
-      interaction_type: 'service_view',
-      selected_service_name: language === 'ar' ? service.name_ar : service.name_en,
-      price_viewed: true,
-      description_viewed: false
-    });
-  }, [language, trackServiceInteraction]);
+  }, []);
 
   const handleServiceToggleWrapper = useCallback(async (service: Service) => {
     try {
-      const startTime = serviceState.viewTimes[service.id];
-      const viewDuration = startTime ? Date.now() - startTime : 0;
-      
-      await trackServiceInteraction({
-        category_id: service.category_id,
-        service_id: service.id,
-        event_name: 'service_selection',
-        interaction_type: 'service_selection',
-        selected_service_name: language === 'ar' ? service.name_ar : service.name_en,
-        price_viewed: true,
-        description_viewed: true,
-        view_duration_seconds: Math.floor(viewDuration / 1000)
-      });
-
       onServiceToggle(service);
       setServiceState(prev => ({
         ...prev,
@@ -74,7 +47,7 @@ export const useServiceManagement = (
         variant: "destructive"
       });
     }
-  }, [language, onServiceToggle, serviceState.viewTimes, toast, trackServiceInteraction]);
+  }, [language, onServiceToggle, toast]);
 
   return {
     serviceState,
