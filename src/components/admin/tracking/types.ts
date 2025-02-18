@@ -72,6 +72,9 @@ export interface PathAnalysis {
   dropOffPoints: string[];
   conversionRate: number;
   averageTimeToComplete: number;
+  successRate: number;
+  frequency: number;
+  averageDuration: number;
 }
 
 export interface UserBehaviorMetrics {
@@ -79,6 +82,7 @@ export interface UserBehaviorMetrics {
   averageSessionDuration: number;
   bounceRate: number;
   conversionRate: number;
+  completionRate: number;
   deviceDistribution: {
     mobile: number;
     tablet: number;
@@ -86,6 +90,15 @@ export interface UserBehaviorMetrics {
   };
   pathAnalysis: PathAnalysis;
   timePatterns: TimePattern[];
+  commonPaths: {
+    path: string[];
+    frequency: number;
+    successRate: number;
+  }[];
+  dropOffPoints: {
+    page: string;
+    rate: number;
+  }[];
 }
 
 export interface ProcessedJourneyData {
@@ -113,6 +126,46 @@ export interface DropOffPoint {
   exitRate: number;
   averageTimeBeforeExit: number;
   previousPages: string[];
+}
+
+export interface ABTestVariant {
+  id: string;
+  name: string;
+  description: string;
+  isControl: boolean;
+}
+
+export interface ABTestResult {
+  variantId: string;
+  totalUsers: number;
+  conversions: number;
+  conversionRate: number;
+  averageTimeToConversion: number;
+  bounceRate: number;
+  deviceDistribution: {
+    mobile: number;
+    tablet: number;
+    desktop: number;
+  };
+  confidenceInterval: {
+    lower: number;
+    upper: number;
+  };
+  statisticalSignificance: number;
+}
+
+export interface ABTest {
+  id: string;
+  name: string;
+  description: string;
+  startDate: string;
+  endDate?: string;
+  status: 'draft' | 'running' | 'completed' | 'archived';
+  variants: ABTestVariant[];
+  results?: ABTestResult[];
+  targetMetric: 'conversion' | 'timeToBook' | 'revenue';
+  minimumSampleSize: number;
+  currentSampleSize: number;
 }
 
 export const COLORS = ['#4ade80', '#f87171', '#60a5fa', '#facc15'];

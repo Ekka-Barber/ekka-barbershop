@@ -12,7 +12,12 @@ export type PageInteractionType =
   | 'button_click'
   | 'form_interaction'
   | 'service_select'
-  | 'location_view';
+  | 'menu_view'
+  | 'offer_view'
+  | 'branch_select'
+  | 'barber_select'
+  | 'pdf_view'
+  | 'language_switch';
 
 export const trackPageView = async (pageUrl: string): Promise<void> => {
   if (!shouldTrack()) return;
@@ -47,7 +52,7 @@ export const trackInteraction = async (
   await tryTracking(async () => {
     const { error } = await supabase.from('interaction_events').insert({
       interaction_type: type,
-      interaction_details: details,
+      interaction_details: { ...details, abTestVariant: details.abTestVariant },
       session_id: session,
       device_type: mapPlatformToDeviceType(getPlatformType()),
       page_url: window.location.pathname,
