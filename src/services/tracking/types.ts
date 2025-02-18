@@ -1,11 +1,27 @@
+
 export type MarketingFunnelStage = 'landing' | 'service_browse' | 'datetime_select' | 'barber_select' | 'booking_complete';
 
 export type DeviceType = 'mobile' | 'tablet' | 'desktop';
+
+export type InteractionType = 
+  | 'page_view'
+  | 'dialog_open'
+  | 'dialog_close'
+  | 'service_select'
+  | 'barber_select'
+  | 'datetime_select'
+  | 'branch_select'
+  | 'menu_view'
+  | 'offer_view'
+  | 'location_view'
+  | 'button_click'
+  | 'form_interaction';
 
 export interface BaseInteractionType {
   session_id?: string;
   device_type?: DeviceType;
   timestamp?: string;
+  interaction_type: InteractionType;
   interaction_details?: Record<string, any>;
 }
 
@@ -20,6 +36,7 @@ export interface SessionData {
   session_id: string;
   device_type: DeviceType;
   last_active: string;
+  timestamp: string;
 }
 
 export interface ServiceDiscoveryEvent extends BaseInteractionType {
@@ -34,7 +51,7 @@ export interface ServiceDiscoveryEvent extends BaseInteractionType {
 export interface DateTimeEvent extends BaseInteractionType {
   selected_date?: string;
   selected_time?: string;
-  calendar_view_type?: 'month' | 'week' | 'day';
+  calendar_view_type?: 'month' | 'week' | 'day' | 'quick_select';
   days_in_advance?: number;
   time_slot_position?: string;
   quick_select_usage?: boolean;

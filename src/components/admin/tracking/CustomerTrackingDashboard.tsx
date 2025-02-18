@@ -1,4 +1,3 @@
-
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2 } from "lucide-react";
 import { useState } from "react";
@@ -14,6 +13,8 @@ import { PeriodComparison } from "./PeriodComparison";
 import { processTimePatterns, processServiceHeatmapData, processCustomerJourney } from "./trackingUtils";
 import { calculatePeriodMetrics } from "./analyticsUtils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { DropOffAnalysisCard } from "./DropOffAnalysisCard";
+import { ServiceBundleCard } from "./ServiceBundleCard";
 
 const CustomerTrackingDashboard = () => {
   const [dateRange, setDateRange] = useState<DateRange>({
@@ -86,6 +87,12 @@ const CustomerTrackingDashboard = () => {
 
           <CoreMetricsGrid metrics={coreMetrics} />
           <CustomerJourneyCard nodes={journeyData.nodes} links={journeyData.links} />
+          
+          <div className="grid gap-4 md:grid-cols-2">
+            <DropOffAnalysisCard dropOffPoints={journeyData.dropOffPoints || []} />
+            <ServiceBundleCard bundles={journeyData.serviceBundles || []} />
+          </div>
+          
           <div className="grid gap-4 md:grid-cols-2">
             <TimePatternCard timePatterns={timePatterns} />
             <ServiceHeatmapCard serviceData={heatmapData} />
