@@ -67,17 +67,17 @@ const AppWithTracking = () => {
 
 const App = () => {
   return (
-    <QueryClientProvider client={queryClient}>
-      <LanguageProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
+    <BrowserRouter>
+      <QueryClientProvider client={queryClient}>
+        <LanguageProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
             <AppWithTracking />
-          </BrowserRouter>
-        </TooltipProvider>
-      </LanguageProvider>
-    </QueryClientProvider>
+          </TooltipProvider>
+        </LanguageProvider>
+      </QueryClientProvider>
+    </BrowserRouter>
   );
 };
 
