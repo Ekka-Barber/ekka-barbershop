@@ -3,15 +3,17 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useBooking } from '@/hooks/useBooking';
-import { Employee } from '@/types/booking';
+import { Employee, Branch } from '@/types/booking';
 import { BarberCard } from './barber/BarberCard';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useBranchManagement } from '@/hooks/booking/useBranchManagement';
 
 const BarberSelection = () => {
   const navigate = useNavigate();
   const { t } = useLanguage();
-  const { branch, selectedServices, selectedDate, selectedBarber, setSelectedBarber, employeeWorkingHours } = useBooking(branch);
+  const { branch } = useBranchManagement();
+  const { selectedServices, selectedDate, selectedBarber, setSelectedBarber, employeeWorkingHours } = useBooking(branch);
 
   const { data: barbers = [], isLoading } = useQuery({
     queryKey: ['barbers', branch?.id],

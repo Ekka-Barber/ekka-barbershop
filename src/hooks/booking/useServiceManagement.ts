@@ -1,6 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from '@tanstack/react-query';
-import { Service, validateService } from '@/types/service';
+import { Service, Category, validateService } from '@/types/service';
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useToast } from "@/hooks/use-toast";
 import { SelectedService } from '@/types/service';
@@ -19,6 +19,7 @@ export const useServiceManagement = () => {
           name_en,
           name_ar,
           display_order,
+          created_at,
           services (
             id,
             name_en,
@@ -40,17 +41,7 @@ export const useServiceManagement = () => {
         throw categoriesError;
       }
       
-      return categories?.map(category => ({
-        ...category,
-        services: category.services
-          .map(service => ({
-            ...service,
-            category_id: category.id
-          }))
-          .map(validateService)
-          .filter(Boolean)
-          .sort((a, b) => (a?.display_order || 0) - (b?.display_order || 0))
-      }));
+      return categories as Category[];
     },
   });
 

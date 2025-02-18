@@ -6,11 +6,11 @@ import { BarberStep } from './BarberStep';
 import { DetailsStep } from './DetailsStep';
 import { BookingStep } from '../BookingProgress';
 import { CustomerDetails, Branch, Employee } from '@/types/booking';
-import { Service, SelectedService } from '@/types/service';
+import { Service, SelectedService, Category } from '@/types/service';
 
 interface StepRendererProps {
   currentStep: BookingStep;
-  categories: { services: Service[]; id: string; name_en: string; name_ar: string; display_order: number; }[];
+  categories: Category[];
   categoriesLoading: boolean;
   selectedServices: SelectedService[];
   handleServiceToggle: (service: Service) => void;
@@ -88,7 +88,7 @@ export const StepRenderer: React.FC<StepRendererProps> = ({
       return (
         <DetailsStep
           customerDetails={customerDetails}
-          handleCustomerDetailsChange={handleCustomerDetailsChange}
+          onCustomerDetailsChange={handleCustomerDetailsChange}
           totalPrice={totalPrice}
           branch={branch}
         />

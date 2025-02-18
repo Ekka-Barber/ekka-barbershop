@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -6,11 +5,13 @@ import { useBooking } from '@/hooks/useBooking';
 import { useTimeSlots } from '@/hooks/useTimeSlots';
 import { TimeSlotPicker } from './barber/TimeSlotPicker';
 import { useQuery } from '@tanstack/react-query';
+import { useBranchManagement } from '@/hooks/booking/useBranchManagement';
 
 const DateTimeSelection = () => {
   const navigate = useNavigate();
   const { t } = useLanguage();
-  const { branch, selectedBarber, selectedDate, setSelectedDate, selectedTime, setSelectedTime } = useBooking(branch);
+  const { branch } = useBranchManagement();
+  const { selectedBarber, selectedDate, setSelectedDate, selectedTime, setSelectedTime } = useBooking(branch);
 
   const { data: timeSlots = [], isLoading } = useQuery({
     queryKey: ['timeSlots', selectedBarber?.id, selectedDate],
