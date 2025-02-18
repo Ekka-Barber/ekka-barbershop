@@ -54,7 +54,8 @@ export const LocationDialog = ({
   }, [open, trackInteraction]);
 
   const handleLocationClick = (branch: Branch) => {
-    trackInteraction('location_view', {
+    trackInteraction('button_click', {
+      action: 'location_select',
       branch_id: branch.id,
       branch_name: language === 'ar' ? branch.name_ar : branch.name,
       branch_address: language === 'ar' ? branch.address_ar : branch.address,

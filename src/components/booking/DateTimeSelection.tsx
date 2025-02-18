@@ -1,4 +1,3 @@
-
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
@@ -38,8 +37,6 @@ export const DateTimeSelection = ({
     trackDateTimeInteraction({
       interaction_type: 'calendar_open',
       calendar_view_type: 'quick_select',
-      session_id: 'temp',
-      device_type: 'desktop',
       quick_select_usage: true,
       view_duration_seconds: 0,
       calendar_navigation_path: []
@@ -50,8 +47,6 @@ export const DateTimeSelection = ({
       trackDateTimeInteraction({
         interaction_type: 'calendar_close',
         calendar_view_type: showFullCalendar ? 'month' : 'quick_select',
-        session_id: 'temp',
-        device_type: 'desktop',
         view_duration_seconds: duration,
         calendar_navigation_path: navigationPath,
         quick_select_usage: !showFullCalendar,
@@ -67,12 +62,9 @@ export const DateTimeSelection = ({
   const handleDateSelect = (date: Date | undefined) => {
     const daysInAdvance = date ? differenceInDays(date, new Date()) : 0;
     
-    // Track time slot selection details
     trackDateTimeInteraction({
       interaction_type: 'date_select',
       calendar_view_type: showFullCalendar ? 'month' : 'quick_select',
-      session_id: 'temp',
-      device_type: 'desktop',
       selected_date: date?.toISOString(),
       days_in_advance: daysInAdvance,
       quick_select_usage: !showFullCalendar,
@@ -93,8 +85,6 @@ export const DateTimeSelection = ({
     trackDateTimeInteraction({
       interaction_type: show ? 'calendar_open' : 'calendar_close',
       calendar_view_type: show ? 'month' : 'quick_select',
-      session_id: 'temp',
-      device_type: 'desktop',
       view_duration_seconds: duration,
       calendar_navigation_path: navigationPath,
       quick_select_usage: !show,
