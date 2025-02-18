@@ -3,6 +3,8 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { BookingStep } from '@/components/booking/BookingProgress';
 import { SelectedService } from '@/types/service';
 import { CustomerDetails, Branch } from '@/types/booking';
+import { toast } from 'sonner';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export const useBookingNavigation = (
   currentStep: BookingStep,
@@ -12,6 +14,7 @@ export const useBookingNavigation = (
 ) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { language } = useLanguage();
   
   const getBranchParam = () => {
     const searchParams = new URLSearchParams(location.search);
@@ -22,10 +25,36 @@ export const useBookingNavigation = (
     const branchId = getBranchParam();
     if (!branchId) {
       console.error('No branch ID found in URL');
+      toast.error(language === 'ar' ? 'يرجى تحديد الفرع أولاً' : 'Please select a branch first');
       navigate('/customer');
       return null;
     }
     return `${path}?branch=${branchId}`;
+  };
+
+  const validateStep = (step: BookingStep): boolean => {
+    if (!branch) {
+      toast.error(language === 'ar' ? 'يرجى تحديد الفرع أولاً' : 'Please select a branch first');
+      return false;
+    }
+
+    switch (step) {
+      case 'services':
+        return true;
+      case 'datetime':
+        if (selectedServices.length === 0) {
+          toast.error(language === 'ar' ? 'يرجى اختيار الخدمات أولاً' : 'Please select services first');
+          return false;
+        }
+        return true;
+      case 'barber':
+        // Add date/time validation if needed
+        return true;
+      case 'details':
+        return true;
+      default:
+        return false;
+    }
   };
 
   const canProceedToNext = () => {
@@ -38,11 +67,12 @@ export const useBookingNavigation = (
       case 'services':
         return selectedServices.length > 0;
       case 'datetime':
-        return true; // Add date/time validation if needed
+        return true;
       case 'barber':
-        return true; // Add barber validation if needed
+        return true;
       case 'details':
-        return customerDetails.name && customerDetails.phone;
+        return customerDetails.name.trim() !== '' && 
+               customerDetails.phone.trim() !== '';
       default:
         return false;
     }
@@ -50,7 +80,11 @@ export const useBookingNavigation = (
 
   const handleBack = (currentStepIndex: number, steps: BookingStep[]) => {
     if (currentStepIndex > 0) {
-      return steps[currentStepIndex - 1];
+      const previousStep = steps[currentStepIndex - 1];
+      if (validateStep(previousStep)) {
+        return previousStep;
+      }
+      return null;
     } else {
       const path = preserveBranchInUrl('/customer');
       if (path) navigate(path);
@@ -60,6 +94,10 @@ export const useBookingNavigation = (
 
   const handleNext = (currentStepIndex: number, steps: BookingStep[]) => {
     if (!canProceedToNext()) {
+      toast.error(language === 'ar' 
+        ? 'يرجى إكمال جميع الحقول المطلوبة' 
+        : 'Please complete all required fields'
+      );
       return null;
     }
     
@@ -71,10 +109,12 @@ export const useBookingNavigation = (
 
     if (currentStepIndex < steps.length - 1) {
       const nextStep = steps[currentStepIndex + 1];
-      const path = preserveBranchInUrl('/bookings');
-      if (path) {
-        navigate(path);
-        return nextStep;
+      if (validateStep(nextStep)) {
+        const path = preserveBranchInUrl('/bookings');
+        if (path) {
+          navigate(path);
+          return nextStep;
+        }
       }
     }
     return null;
@@ -85,6 +125,7 @@ export const useBookingNavigation = (
     handleNext,
     canProceedToNext,
     getBranchParam,
-    preserveBranchInUrl
+    preserveBranchInUrl,
+    validateStep
   };
 };
