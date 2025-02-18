@@ -2,21 +2,61 @@
 import { supabase } from "@/integrations/supabase/client";
 import { v4 as uuidv4 } from 'uuid';
 import { getPlatformType } from "@/services/platformDetection";
+import { Json } from "@/integrations/supabase/types";
+
+// Types that match our database schema
+type DeviceType = 'mobile' | 'tablet' | 'desktop';
+type InteractionType = 'page_view' | 'button_click' | 'dialog_open' | 'dialog_close' | 
+                      'form_interaction' | 'pdf_view' | 'menu_view' | 'offer_view' | 
+                      'branch_select' | 'service_select' | 'barber_select' | 'language_switch';
+
+interface SessionData {
+  id: string;
+  timestamp: number;
+}
+
+// Production check
+const shouldTrack = (): boolean => {
+  return window.location.hostname === 'ekka-barbershop.lovable.app';
+};
 
 // Session management
 let sessionId: string | null = null;
 
-const getSessionId = (): string => {
+const getSessionId = (): string | null => {
+  if (!shouldTrack()) return null;
+
   if (!sessionId) {
-    // Try to get from localStorage first
-    sessionId = localStorage.getItem('tracking_session_id');
+    const stored = localStorage.getItem('tracking_session_id');
+    if (stored) {
+      const sessionData: SessionData = JSON.parse(stored);
+      if (Date.now() - sessionData.timestamp < 30 * 60 * 1000) { // 30 minutes
+        sessionId = sessionData.id;
+      }
+    }
+    
     if (!sessionId) {
-      // Generate new session ID if none exists
-      sessionId = uuidv4();
-      localStorage.setItem('tracking_session_id', sessionId);
+      const newSession: SessionData = {
+        id: uuidv4(),
+        timestamp: Date.now()
+      };
+      localStorage.setItem('tracking_session_id', JSON.stringify(newSession));
+      sessionId = newSession.id;
     }
   }
   return sessionId;
+};
+
+// Map platform to device type
+const mapPlatformToDeviceType = (platform: ReturnType<typeof getPlatformType>): DeviceType => {
+  switch (platform) {
+    case 'ios':
+    case 'android':
+      return 'mobile';
+    case 'desktop':
+    default:
+      return 'desktop';
+  }
 };
 
 // Common tracking utilities
@@ -30,64 +70,96 @@ const getBrowserInfo = () => {
   };
 };
 
+// Error handling with retry logic
+const tryTracking = async (operation: () => Promise<any>, maxRetries = 3): Promise<any> => {
+  let retries = 0;
+  while (retries < maxRetries) {
+    try {
+      return await operation();
+    } catch (error) {
+      retries++;
+      if (retries === maxRetries) {
+        console.error('Tracking failed after max retries:', error);
+        return null;
+      }
+      await new Promise(resolve => setTimeout(resolve, 1000 * retries));
+    }
+  }
+};
+
 // Page view tracking
-export const trackPageView = async (path: string) => {
-  try {
+export const trackPageView = async (pageUrl: string): Promise<void> => {
+  if (!shouldTrack()) return;
+
+  const session = getSessionId();
+  if (!session) return;
+
+  const deviceType = mapPlatformToDeviceType(getPlatformType());
+
+  await tryTracking(async () => {
     const { error } = await supabase.from('page_views').insert({
-      path,
-      session_id: getSessionId(),
+      page_url: pageUrl,
+      session_id: session,
       browser_info: getBrowserInfo(),
-      device_type: getPlatformType(),
-      referrer: document.referrer || null,
+      device_type: deviceType,
+      entry_time: new Date().toISOString()
     });
 
     if (error) {
       console.error('Error tracking page view:', error);
     }
-  } catch (error) {
-    console.error('Error in trackPageView:', error);
-  }
+  });
 };
 
 // Interaction tracking
 export const trackInteraction = async (
-  interactionType: string,
+  type: InteractionType,
   details: Record<string, any>
-) => {
-  try {
+): Promise<void> => {
+  if (!shouldTrack()) return;
+
+  const session = getSessionId();
+  if (!session) return;
+
+  const deviceType = mapPlatformToDeviceType(getPlatformType());
+
+  await tryTracking(async () => {
     const { error } = await supabase.from('interaction_events').insert({
-      interaction_type: interactionType,
-      details,
-      session_id: getSessionId(),
-      device_type: getPlatformType(),
+      interaction_type: type,
+      interaction_details: details,
+      session_id: session,
+      device_type: deviceType,
+      page_url: window.location.pathname,
+      timestamp: new Date().toISOString()
     });
 
     if (error) {
       console.error('Error tracking interaction:', error);
     }
-  } catch (error) {
-    console.error('Error in trackInteraction:', error);
-  }
+  });
 };
 
-// Enhanced click tracking (building on existing implementation)
-export const enhancedTrackClick = async (event: MouseEvent) => {
+// Enhanced click tracking
+export const enhancedTrackClick = async (event: MouseEvent): Promise<void> => {
+  if (!shouldTrack()) return;
+
   const target = event.target as HTMLElement;
   const interactionDetails = {
     elementType: target.tagName.toLowerCase(),
     elementId: target.id || null,
     elementClass: target.className || null,
-    path: window.location.pathname,
     x: event.clientX,
     y: event.clientY,
     timestamp: new Date().toISOString(),
   };
 
-  await trackInteraction('click', interactionDetails);
+  await trackInteraction('button_click', interactionDetails);
 };
 
 // Initialize tracking
-export const initializeTracking = () => {
+export const initializeTracking = (): void => {
+  if (!shouldTrack()) return;
+  
   // Initialize session
   getSessionId();
   
@@ -99,6 +171,7 @@ export const initializeTracking = () => {
 };
 
 // Cleanup tracking
-export const cleanupTracking = () => {
+export const cleanupTracking = (): void => {
+  if (!shouldTrack()) return;
   document.removeEventListener('click', enhancedTrackClick);
 };

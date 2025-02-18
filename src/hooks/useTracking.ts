@@ -12,18 +12,22 @@ export const useTracking = () => {
   const location = useLocation();
 
   useEffect(() => {
-    // Initialize tracking when the hook is first used
-    initializeTracking();
-
-    // Cleanup on unmount
-    return () => {
-      cleanupTracking();
-    };
+    try {
+      initializeTracking();
+      return () => {
+        cleanupTracking();
+      };
+    } catch (error) {
+      console.error('Error in tracking initialization:', error);
+    }
   }, []);
 
-  // Track page views on route changes
   useEffect(() => {
-    trackPageView(location.pathname);
+    try {
+      trackPageView(location.pathname);
+    } catch (error) {
+      console.error('Error in page view tracking:', error);
+    }
   }, [location]);
 
   return {
