@@ -9,6 +9,7 @@ import './index.css'
 import { LanguageProvider } from './contexts/LanguageContext'
 import { Toaster } from '@/components/ui/sonner'
 
+// Initialize QueryClient outside of render
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -18,10 +19,14 @@ const queryClient = new QueryClient({
   },
 })
 
-ReactDOM.createRoot(document.getElementById('root')!).render(
+// Initialize root outside of render
+const root = ReactDOM.createRoot(document.getElementById('root')!)
+
+// Render with error boundary
+root.render(
   <React.StrictMode>
     <BrowserRouter>
-      <ThemeProvider attribute="class" defaultTheme="light">
+      <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
         <QueryClientProvider client={queryClient}>
           <LanguageProvider>
             <App />

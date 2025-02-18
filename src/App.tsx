@@ -32,40 +32,38 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 const AppWithTracking = () => {
   useTracking(); // Initialize tracking
   return (
-    <Routes>
-      {/* Redirect root to customer page */}
-      <Route path="/" element={<Navigate to="/customer" replace />} />
-      
-      {/* Public routes */}
-      <Route path="/customer" element={<Customer />} />
-      <Route path="/menu" element={<Menu />} />
-      <Route path="/offers" element={<Offers />} />
-      <Route path="/bookings" element={<Bookings />} />
-      
-      {/* Protected routes */}
-      <Route 
-        path="/admin" 
-        element={
-          <ProtectedRoute>
-            <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
-              <Admin />
-            </Suspense>
-          </ProtectedRoute>
-        } 
-      />
-      
-      {/* Catch all other routes and redirect to customer page */}
-      <Route path="*" element={<Navigate to="/customer" replace />} />
-    </Routes>
+    <TooltipProvider delayDuration={0}>
+      <Routes>
+        {/* Redirect root to customer page */}
+        <Route path="/" element={<Navigate to="/customer" replace />} />
+        
+        {/* Public routes */}
+        <Route path="/customer" element={<Customer />} />
+        <Route path="/menu" element={<Menu />} />
+        <Route path="/offers" element={<Offers />} />
+        <Route path="/bookings" element={<Bookings />} />
+        
+        {/* Protected routes */}
+        <Route 
+          path="/admin" 
+          element={
+            <ProtectedRoute>
+              <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
+                <Admin />
+              </Suspense>
+            </ProtectedRoute>
+          } 
+        />
+        
+        {/* Catch all other routes and redirect to customer page */}
+        <Route path="*" element={<Navigate to="/customer" replace />} />
+      </Routes>
+    </TooltipProvider>
   );
 };
 
 const App = () => {
-  return (
-    <TooltipProvider>
-      <AppWithTracking />
-    </TooltipProvider>
-  );
+  return <AppWithTracking />;
 };
 
 export default App;
