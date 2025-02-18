@@ -5,7 +5,14 @@ import { getSessionId, shouldTrack } from './sessionManager';
 import { mapPlatformToDeviceType, getBrowserInfo, tryTracking } from './utils';
 import { getPlatformType } from "@/services/platformDetection";
 
-export const trackDateTimeInteraction = async (event: DateTimeEvent): Promise<void> => {
+type DateTimeInteractionType = 
+  | 'calendar_open'
+  | 'calendar_close'
+  | 'date_select'
+  | 'time_select'
+  | 'time_slot_view';
+
+export const trackDateTimeInteraction = async (event: Omit<DateTimeEvent, 'interaction_type'> & { interaction_type: DateTimeInteractionType }): Promise<void> => {
   if (!shouldTrack()) return;
 
   const session = getSessionId();
@@ -13,7 +20,6 @@ export const trackDateTimeInteraction = async (event: DateTimeEvent): Promise<vo
 
   await tryTracking(async () => {
     const { error } = await supabase.from('datetime_tracking').insert({
-      interaction_type: event.interaction_type,
       calendar_view_type: event.calendar_view_type,
       selected_date: event.selected_date,
       selected_time: event.selected_time,
@@ -24,7 +30,8 @@ export const trackDateTimeInteraction = async (event: DateTimeEvent): Promise<vo
       session_id: session,
       device_type: mapPlatformToDeviceType(getPlatformType()),
       browser_info: getBrowserInfo(),
-      created_at: new Date().toISOString()
+      created_at: new Date().toISOString(),
+      interaction_type: event.interaction_type
     });
 
     if (error) {

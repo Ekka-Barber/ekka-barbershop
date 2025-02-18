@@ -1,9 +1,16 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { getPlatformType } from "@/services/platformDetection";
-import { BaseInteractionType, InteractionType } from './types';
+import { InteractionType } from './types';
 import { getSessionId, shouldTrack } from './sessionManager';
 import { mapPlatformToDeviceType, getBrowserInfo, tryTracking } from './utils';
+
+type PageInteractionType =
+  | 'page_view'
+  | 'dialog_open'
+  | 'dialog_close'
+  | 'button_click'
+  | 'form_interaction';
 
 export const trackPageView = async (pageUrl: string): Promise<void> => {
   if (!shouldTrack()) return;
@@ -27,7 +34,7 @@ export const trackPageView = async (pageUrl: string): Promise<void> => {
 };
 
 export const trackInteraction = async (
-  type: InteractionType,
+  type: PageInteractionType,
   details: Record<string, any> = {}
 ): Promise<void> => {
   if (!shouldTrack()) return;
