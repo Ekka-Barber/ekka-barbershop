@@ -43,6 +43,24 @@ export default function LoyaltyProgramManager() {
     fetchProgram();
   }, []);
 
+  const convertDatabaseToProgram = (data: any): LoyaltyProgram => {
+    return {
+      id: data.id,
+      points_required: typeof data.points_required === 'string' 
+        ? JSON.parse(data.points_required)
+        : data.points_required,
+      tiers: typeof data.tiers === 'string'
+        ? JSON.parse(data.tiers)
+        : data.tiers,
+      happy_hour: typeof data.happy_hour === 'string'
+        ? JSON.parse(data.happy_hour)
+        : data.happy_hour,
+      description_template: data.description_template,
+      is_active: data.is_active,
+      updated_at: data.updated_at
+    };
+  };
+
   const fetchProgram = async () => {
     try {
       const { data, error } = await supabase
@@ -54,7 +72,7 @@ export default function LoyaltyProgramManager() {
       if (error) throw error;
 
       if (data) {
-        setProgram(data);
+        setProgram(convertDatabaseToProgram(data));
       } else {
         // Create default program if none exists
         const { data: newProgram, error: createError } = await supabase
@@ -64,7 +82,7 @@ export default function LoyaltyProgramManager() {
           .single();
 
         if (createError) throw createError;
-        setProgram(newProgram);
+        setProgram(convertDatabaseToProgram(newProgram));
       }
     } catch (error) {
       console.error("Error fetching loyalty program:", error);
