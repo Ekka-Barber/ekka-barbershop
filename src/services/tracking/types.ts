@@ -1,4 +1,3 @@
-
 export type DeviceType = 'mobile' | 'tablet' | 'desktop';
 
 export type BaseInteractionType = 'page_view' | 'button_click' | 'dialog_open' | 'dialog_close' | 
@@ -62,4 +61,51 @@ export interface BarberSelectionEvent {
   session_id: string;
   device_type: DeviceType;
   timestamp: string;
+}
+
+export type MarketingFunnelStage = 
+  | 'landing'
+  | 'offer_view'
+  | 'service_browse'
+  | 'service_select'
+  | 'datetime_select'
+  | 'barber_select'
+  | 'booking_complete';
+
+export interface OfferInteractionEvent {
+  offer_id: string;
+  interaction_type: string;
+  view_duration_seconds: number;
+  session_id: string;
+  device_type: DeviceType;
+  source_page: string;
+  interaction_details?: {
+    scroll_depth?: number;
+    zoom_actions?: number;
+    click_positions?: Array<{ x: number; y: number }>;
+    total_interaction_time?: number;
+  };
+  conversion_info?: {
+    converted: boolean;
+    time_to_conversion?: number;
+    conversion_path?: string[];
+    conversion_type?: string;
+  };
+}
+
+export interface MarketingFunnelEvent {
+  session_id: string;
+  device_type: DeviceType;
+  funnel_stage: MarketingFunnelStage;
+  previous_stage?: MarketingFunnelStage;
+  time_in_stage: number;
+  conversion_successful: boolean;
+  drop_off_point: boolean;
+  entry_point: string;
+  exit_point?: string;
+  interaction_path?: {
+    path: string[];
+    timestamps: number[];
+  };
+  metadata?: Record<string, any>;
 }

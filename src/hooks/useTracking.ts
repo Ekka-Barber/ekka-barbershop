@@ -8,7 +8,9 @@ import {
   trackInteraction,
   trackServiceInteraction,
   trackDateTimeInteraction,
-  trackBarberInteraction
+  trackBarberInteraction,
+  trackOfferInteraction,
+  trackMarketingFunnel
 } from '@/services/trackingService';
 
 export const useTracking = () => {
@@ -37,6 +39,8 @@ export const useTracking = () => {
     trackInteraction,
     trackServiceInteraction,
     trackDateTimeInteraction,
-    trackBarberInteraction
+    trackBarberInteraction,
+    trackOfferInteraction,
+    trackMarketingFunnel
   };
 };

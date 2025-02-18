@@ -1,11 +1,12 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { getPlatformType } from "@/services/platformDetection";
 import { 
   ServiceDiscoveryEvent, 
   DateTimeEvent, 
   BarberSelectionEvent,
-  BaseInteractionType 
+  BaseInteractionType,
+  OfferInteractionEvent,
+  MarketingFunnelEvent
 } from './tracking/types';
 import { getSessionId, shouldTrack } from './tracking/sessionManager';
 import { mapPlatformToDeviceType, getBrowserInfo, tryTracking } from './tracking/utils';
@@ -117,10 +118,62 @@ const trackBarberInteraction = async (event: BarberSelectionEvent): Promise<void
   });
 };
 
+const trackOfferInteraction = async (event: OfferInteractionEvent): Promise<void> => {
+  if (!shouldTrack()) return;
+
+  const session = getSessionId();
+  if (!session) return;
+
+  await tryTracking(async () => {
+    const { error } = await supabase.from('offer_interactions').insert({
+      ...event,
+      session_id: session,
+      device_type: mapPlatformToDeviceType(getPlatformType()),
+      created_at: new Date().toISOString()
+    });
+
+    if (error) {
+      console.error('Error tracking offer interaction:', error);
+    }
+  });
+};
+
+const trackMarketingFunnel = async (event: MarketingFunnelEvent): Promise<void> => {
+  if (!shouldTrack()) return;
+
+  const session = getSessionId();
+  if (!session) return;
+
+  await tryTracking(async () => {
+    const { error } = await supabase.from('marketing_funnel_events').insert({
+      ...event,
+      session_id: session,
+      device_type: mapPlatformToDeviceType(getPlatformType()),
+      created_at: new Date().toISOString()
+    });
+
+    if (error) {
+      console.error('Error tracking marketing funnel event:', error);
+    }
+  });
+};
+
 const initializeTracking = (): void => {
   if (!shouldTrack()) return;
   getSessionId();
   trackPageView(window.location.pathname);
+  // Track initial marketing funnel stage
+  trackMarketingFunnel({
+    funnel_stage: 'landing',
+    time_in_stage: 0,
+    conversion_successful: false,
+    drop_off_point: false,
+    entry_point: window.location.pathname,
+    interaction_path: {
+      path: [window.location.pathname],
+      timestamps: [Date.now()]
+    }
+  });
 };
 
 const cleanupTracking = (): void => {
@@ -133,6 +186,8 @@ export {
   trackServiceInteraction,
   trackDateTimeInteraction,
   trackBarberInteraction,
+  trackOfferInteraction,
+  trackMarketingFunnel,
   initializeTracking,
   cleanupTracking
 };
