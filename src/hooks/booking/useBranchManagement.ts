@@ -23,7 +23,23 @@ export const useBranchManagement = () => {
         .maybeSingle();
       
       if (error) throw error;
-      return data as Branch;
+      
+      if (!data) return null;
+
+      // Transform working_hours to match WorkingHours interface
+      const working_hours = data.working_hours as Record<string, string[]>;
+      return {
+        ...data,
+        working_hours: {
+          monday: working_hours.monday || [],
+          tuesday: working_hours.tuesday || [],
+          wednesday: working_hours.wednesday || [],
+          thursday: working_hours.thursday || [],
+          friday: working_hours.friday || [],
+          saturday: working_hours.saturday || [],
+          sunday: working_hours.sunday || [],
+        }
+      } as Branch;
     },
     enabled: !!branchId,
     retry: 2,

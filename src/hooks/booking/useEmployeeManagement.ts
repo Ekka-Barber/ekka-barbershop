@@ -21,11 +21,24 @@ export const useEmployeeManagement = (branch: Branch | null) => {
       
       if (error) throw error;
 
-      // Ensure the working_hours property conforms to WorkingHours interface
-      return (data as Employee[]).map(employee => ({
-        ...employee,
-        working_hours: employee.working_hours as WorkingHours
-      }));
+      // Transform working_hours to match WorkingHours interface
+      return data.map(employee => {
+        const rawHours = employee.working_hours as Record<string, string[]>;
+        const working_hours: WorkingHours = {
+          monday: rawHours.monday || [],
+          tuesday: rawHours.tuesday || [],
+          wednesday: rawHours.wednesday || [],
+          thursday: rawHours.thursday || [],
+          friday: rawHours.friday || [],
+          saturday: rawHours.saturday || [],
+          sunday: rawHours.sunday || [],
+        };
+
+        return {
+          ...employee,
+          working_hours,
+        } as Employee;
+      });
     },
     enabled: !!branch?.id,
     staleTime: STALE_TIME,
