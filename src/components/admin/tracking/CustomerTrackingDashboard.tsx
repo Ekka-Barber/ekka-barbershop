@@ -1,3 +1,4 @@
+
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2 } from "lucide-react";
 import { useState } from "react";
@@ -16,12 +17,17 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DropOffAnalysisCard } from "./DropOffAnalysisCard";
 import { ServiceBundleCard } from "./ServiceBundleCard";
 import { PathOptimizationCard } from "./PathOptimizationCard";
+import { Button } from "@/components/ui/button";
+import { Pagination } from "@/components/ui/pagination";
+
+const ITEMS_PER_PAGE = 50;
 
 const CustomerTrackingDashboard = () => {
   const [dateRange, setDateRange] = useState<DateRange>({
     from: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
     to: new Date()
   });
+  const [currentPage, setCurrentPage] = useState(0);
 
   const { 
     coreMetrics,
@@ -29,8 +35,9 @@ const CustomerTrackingDashboard = () => {
     sessionData,
     bookingData,
     interactionEvents,
-    previousPeriodData
-  } = useTrackingData(dateRange);
+    previousPeriodData,
+    totalCounts
+  } = useTrackingData(dateRange, { page: currentPage, pageSize: ITEMS_PER_PAGE });
 
   if (isLoading) {
     return (
@@ -53,8 +60,13 @@ const CustomerTrackingDashboard = () => {
   const timePatterns = processTimePatterns(bookingData);
   const heatmapData = processServiceHeatmapData(interactionEvents);
   const journeyData = processCustomerJourney(interactionEvents);
-  
   const periodMetrics = calculatePeriodMetrics(interactionEvents, previousPeriodData || []);
+
+  const totalPages = Math.ceil(Math.max(
+    totalCounts.sessions,
+    totalCounts.bookings,
+    totalCounts.interactions
+  ) / ITEMS_PER_PAGE);
 
   return (
     <div className="space-y-8">
@@ -66,7 +78,18 @@ const CustomerTrackingDashboard = () => {
         </TabsList>
 
         <TabsContent value="overview" className="space-y-4">
-          <DateRangeSelector onRangeChange={setDateRange} />
+          <div className="flex justify-between items-center">
+            <DateRangeSelector onRangeChange={setDateRange} />
+            <Button
+              variant="outline"
+              onClick={() => {
+                setCurrentPage(0);
+                window.location.reload();
+              }}
+            >
+              Refresh Data
+            </Button>
+          </div>
           
           <div className="grid gap-4 md:grid-cols-3">
             <PeriodComparison
@@ -100,6 +123,16 @@ const CustomerTrackingDashboard = () => {
             <TimePatternCard timePatterns={timePatterns} />
             <ServiceHeatmapCard serviceData={heatmapData} />
           </div>
+
+          {totalPages > 1 && (
+            <div className="flex justify-center mt-4">
+              <Pagination
+                totalPages={totalPages}
+                currentPage={currentPage}
+                onPageChange={setCurrentPage}
+              />
+            </div>
+          )}
         </TabsContent>
 
         <TabsContent value="realtime">

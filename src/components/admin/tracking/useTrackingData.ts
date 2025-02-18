@@ -3,24 +3,39 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { DateRange } from "./DateRangeSelector";
 
-export const useTrackingData = (dateRange: DateRange) => {
+export interface TrackingPaginationParams {
+  page: number;
+  pageSize: number;
+}
+
+export const useTrackingData = (dateRange: DateRange, pagination?: TrackingPaginationParams) => {
   // Calculate previous period range
   const periodDuration = dateRange.to.getTime() - dateRange.from.getTime();
   const previousPeriodStart = new Date(dateRange.from.getTime() - periodDuration);
   const previousPeriodEnd = new Date(dateRange.from.getTime() - 1); // -1 to avoid overlap
 
   const { data: interactionEvents, isLoading: interactionsLoading } = useQuery({
-    queryKey: ['interaction-events', dateRange],
+    queryKey: ['interaction-events', dateRange, pagination?.page],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from('interaction_events')
-        .select('*')
+        .select('*', { count: 'exact' })
         .gte('created_at', dateRange.from.toISOString())
         .lte('created_at', dateRange.to.toISOString());
+
+      if (pagination) {
+        const start = pagination.page * pagination.pageSize;
+        const end = start + pagination.pageSize - 1;
+        query = query.range(start, end);
+      }
+
+      const { data, error, count } = await query;
       
       if (error) throw error;
-      return data;
-    }
+      return { data, totalCount: count || 0 };
+    },
+    staleTime: 1000 * 60 * 5, // Consider data fresh for 5 minutes
+    cacheTime: 1000 * 60 * 30, // Keep in cache for 30 minutes
   });
 
   const { data: previousPeriodData } = useQuery({
@@ -34,39 +49,61 @@ export const useTrackingData = (dateRange: DateRange) => {
       
       if (error) throw error;
       return data;
-    }
+    },
+    staleTime: 1000 * 60 * 5,
+    cacheTime: 1000 * 60 * 30,
   });
 
   const { data: sessionData, isLoading: sessionsLoading } = useQuery({
-    queryKey: ['page-views', dateRange],
+    queryKey: ['page-views', dateRange, pagination?.page],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from('page_views')
-        .select('*')
+        .select('*', { count: 'exact' })
         .gte('created_at', dateRange.from.toISOString())
         .lte('created_at', dateRange.to.toISOString());
+
+      if (pagination) {
+        const start = pagination.page * pagination.pageSize;
+        const end = start + pagination.pageSize - 1;
+        query = query.range(start, end);
+      }
+
+      const { data, error, count } = await query;
       
       if (error) throw error;
-      return data;
-    }
+      return { data, totalCount: count || 0 };
+    },
+    staleTime: 1000 * 60 * 5,
+    cacheTime: 1000 * 60 * 30,
   });
 
   const { data: bookingData, isLoading: bookingsLoading } = useQuery({
-    queryKey: ['bookings', dateRange],
+    queryKey: ['bookings', dateRange, pagination?.page],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from('bookings')
-        .select('*')
+        .select('*', { count: 'exact' })
         .gte('created_at', dateRange.from.toISOString())
         .lte('created_at', dateRange.to.toISOString());
+
+      if (pagination) {
+        const start = pagination.page * pagination.pageSize;
+        const end = start + pagination.pageSize - 1;
+        query = query.range(start, end);
+      }
+
+      const { data, error, count } = await query;
       
       if (error) throw error;
-      return data;
-    }
+      return { data, totalCount: count || 0 };
+    },
+    staleTime: 1000 * 60 * 5,
+    cacheTime: 1000 * 60 * 30,
   });
 
   const calculateCoreMetrics = () => {
-    if (!sessionData || !bookingData || !interactionEvents) {
+    if (!sessionData?.data || !bookingData?.data || !interactionEvents?.data) {
       return {
         activeUsers: 0,
         conversionRate: 0,
@@ -75,10 +112,10 @@ export const useTrackingData = (dateRange: DateRange) => {
       };
     }
 
-    const uniqueSessions = new Set(sessionData.map(s => s.session_id)).size;
-    const completedBookings = bookingData.length;
+    const uniqueSessions = new Set(sessionData.data.map(s => s.session_id)).size;
+    const completedBookings = bookingData.data.length;
     
-    const sessionsWithDuration = sessionData.filter(s => s.exit_time);
+    const sessionsWithDuration = sessionData.data.filter(s => s.exit_time);
     const avgDuration = sessionsWithDuration.reduce((acc, session) => {
       const duration = new Date(session.exit_time).getTime() - new Date(session.entry_time).getTime();
       return acc + duration;
@@ -88,16 +125,21 @@ export const useTrackingData = (dateRange: DateRange) => {
       activeUsers: uniqueSessions,
       conversionRate: (completedBookings / uniqueSessions) * 100,
       avgSessionDuration: avgDuration,
-      totalInteractions: interactionEvents.length
+      totalInteractions: interactionEvents.data.length
     };
   };
 
   return {
     coreMetrics: calculateCoreMetrics(),
     isLoading: interactionsLoading || sessionsLoading || bookingsLoading,
-    sessionData,
-    bookingData,
-    interactionEvents,
-    previousPeriodData
+    sessionData: sessionData?.data || [],
+    bookingData: bookingData?.data || [],
+    interactionEvents: interactionEvents?.data || [],
+    previousPeriodData,
+    totalCounts: {
+      sessions: sessionData?.totalCount || 0,
+      bookings: bookingData?.totalCount || 0,
+      interactions: interactionEvents?.totalCount || 0
+    }
   };
 };
