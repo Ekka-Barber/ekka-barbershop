@@ -22,6 +22,13 @@ export type BarberInteractionType =
   | 'selection' 
   | 'comparison';
 
+export type BaseInteractionType = 
+  | 'page_view' 
+  | 'dialog_open' 
+  | 'dialog_close' 
+  | 'service_select'
+  | 'branch_select';
+
 export interface ServiceDiscoveryEvent {
   category_id?: string;
   service_id?: string;
@@ -77,8 +84,6 @@ export interface SessionData {
   id: string;
   timestamp: number;
 }
-
-export type BaseInteractionType = 'page_view' | 'dialog_open' | 'dialog_close' | 'service_select';
 
 export interface OfferInteractionEvent {
   offer_id: string;
