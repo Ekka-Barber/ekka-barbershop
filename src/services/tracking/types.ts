@@ -27,7 +27,8 @@ export type BaseInteractionType =
   | 'dialog_open' 
   | 'dialog_close' 
   | 'service_select'
-  | 'branch_select';
+  | 'branch_select'
+  | 'location_view';
 
 export type BranchInteractionType = 
   | 'dialog_open'
