@@ -1159,6 +1159,44 @@ export type Database = {
           },
         ]
       }
+      offer_interactions: {
+        Row: {
+          created_at: string | null
+          device_type: Database["public"]["Enums"]["device_type"] | null
+          id: string
+          interaction_type: string
+          offer_id: string | null
+          session_id: string | null
+          view_duration_seconds: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          device_type?: Database["public"]["Enums"]["device_type"] | null
+          id?: string
+          interaction_type: string
+          offer_id?: string | null
+          session_id?: string | null
+          view_duration_seconds?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          device_type?: Database["public"]["Enums"]["device_type"] | null
+          id?: string
+          interaction_type?: string
+          offer_id?: string | null
+          session_id?: string | null
+          view_duration_seconds?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "offer_interactions_offer_id_fkey"
+            columns: ["offer_id"]
+            isOneToOne: false
+            referencedRelation: "marketing_files"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       page_views: {
         Row: {
           browser_info: Json | null
@@ -1561,6 +1599,63 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      service_discovery_events: {
+        Row: {
+          category_id: string | null
+          created_at: string | null
+          description_viewed: boolean | null
+          device_type: Database["public"]["Enums"]["device_type"] | null
+          discovery_path: string[] | null
+          id: string
+          interaction_type: string
+          price_viewed: boolean | null
+          selected_service_name: string | null
+          service_id: string | null
+          session_id: string | null
+        }
+        Insert: {
+          category_id?: string | null
+          created_at?: string | null
+          description_viewed?: boolean | null
+          device_type?: Database["public"]["Enums"]["device_type"] | null
+          discovery_path?: string[] | null
+          id?: string
+          interaction_type: string
+          price_viewed?: boolean | null
+          selected_service_name?: string | null
+          service_id?: string | null
+          session_id?: string | null
+        }
+        Update: {
+          category_id?: string | null
+          created_at?: string | null
+          description_viewed?: boolean | null
+          device_type?: Database["public"]["Enums"]["device_type"] | null
+          discovery_path?: string[] | null
+          id?: string
+          interaction_type?: string
+          price_viewed?: boolean | null
+          selected_service_name?: string | null
+          service_id?: string | null
+          session_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_discovery_events_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "service_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_discovery_events_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       service_tracking: {
         Row: {
