@@ -1,7 +1,20 @@
-import { ProcessedJourneyData, DropOffPoint, ServiceBundle, PathOptimization } from "./types";
+
+import { ProcessedJourneyData, DropOffPoint, ServiceBundle, TimePattern, JourneyNode, JourneyLink } from "./types";
 import { supabase } from "@/integrations/supabase/client";
 
-export const processTimePatterns = (bookingData: BookingData[]) => {
+interface BookingData {
+  appointment_time: string;
+  device_type: 'mobile' | 'tablet' | 'desktop';
+}
+
+interface ServiceAnalytics {
+  serviceName: string;
+  viewCount: number;
+  conversionRate: number;
+  averageViewDuration: number;
+}
+
+export const processTimePatterns = (bookingData: BookingData[]): TimePattern[] => {
   const timePatterns = bookingData.reduce((acc, booking) => {
     const hour = parseInt(booking.appointment_time.split(':')[0]);
     const deviceType = booking.device_type;
@@ -20,16 +33,10 @@ export const processTimePatterns = (bookingData: BookingData[]) => {
     acc[hour][deviceType]++;
     
     return acc;
-  }, {} as Record<number, { hour: number; total: number; mobile: number; tablet: number; desktop: number; }>);
+  }, {} as Record<number, TimePattern>);
 
   return Object.values(timePatterns).sort((a, b) => a.hour - b.hour);
 };
-
-interface ServiceData {
-  viewCount: number;
-  totalDuration: number;
-  bookings: number;
-}
 
 export const processServiceHeatmapData = (interactionEvents: any[]): ServiceAnalytics[] => {
   const serviceData = interactionEvents.reduce((acc, event) => {
@@ -42,7 +49,7 @@ export const processServiceHeatmapData = (interactionEvents: any[]): ServiceAnal
           bookings: 0
         };
       }
-      const data = acc[serviceName] as ServiceData;
+      const data = acc[serviceName];
       data.viewCount++;
       if (event.interaction_details.duration) {
         data.totalDuration += event.interaction_details.duration;
@@ -52,9 +59,9 @@ export const processServiceHeatmapData = (interactionEvents: any[]): ServiceAnal
       }
     }
     return acc;
-  }, {} as Record<string, ServiceData>);
+  }, {} as Record<string, { viewCount: number; totalDuration: number; bookings: number; }>);
 
-  return Object.entries(serviceData).map(([name, data]: [string, ServiceData]) => ({
+  return Object.entries(serviceData).map(([name, data]) => ({
     serviceName: name,
     viewCount: data.viewCount,
     conversionRate: (data.bookings / data.viewCount) * 100,
@@ -71,7 +78,7 @@ export const processCustomerJourney = (interactionEvents: any[]): ProcessedJourn
     links,
     dropOffPoints: dropOffPoints.map(point => ({
       ...point,
-      rate: point.exitRate
+      rate: point.exitRate // Ensure rate is set to match exitRate
     })),
     serviceBundles,
     pathOptimizations
@@ -149,9 +156,11 @@ const processBaseJourneyData = (interactionEvents: any[]) => {
   });
 
   pageExits.forEach((data, page) => {
+    const exitRate = (data.count / interactionEvents.length) * 100;
     dropOffPoints.push({
       page,
-      exitRate: (data.count / interactionEvents.length) * 100,
+      rate: data.count,
+      exitRate,
       averageTimeBeforeExit: data.totalTime / data.count,
       previousPages: data.paths[0] || []
     });
