@@ -90,6 +90,13 @@ interface ServiceBundle {
 }
 
 export const processCustomerJourney = (interactionEvents: any[]): ProcessedJourneyData => {
+  const { nodes, links, dropOffPoints, serviceBundles } = processBaseJourneyData(interactionEvents);
+  const pathOptimizations = generatePathOptimizations(interactionEvents, dropOffPoints, serviceBundles);
+  
+  return { nodes, links, dropOffPoints, serviceBundles, pathOptimizations };
+};
+
+const processBaseJourneyData = (interactionEvents: any[]) => {
   const nodeMap = new Map<string, number>();
   const nodes: JourneyNode[] = [];
   const links: JourneyLink[] = [];
@@ -475,4 +482,130 @@ export const analyzeBarberSelectionPatterns = async (
       timeSlotBased: (pattern.selectionCriteria.timeSlotBased / pattern.totalSelections) * 100
     }
   }));
+};
+
+interface PathOptimization {
+  currentPath: string[];
+  suggestedPath: string[];
+  potentialImpact: {
+    conversionRate: number;
+    timeToBook: number;
+    dropOffReduction: number;
+  };
+  reasoning: string;
+  priority: 'high' | 'medium';
+}
+
+const generatePathOptimizations = (
+  interactionEvents: any[],
+  dropOffPoints: DropOffPoint[],
+  serviceBundles: ServiceBundle[]
+): PathOptimization[] => {
+  const optimizations: PathOptimization[] = [];
+
+  dropOffPoints
+    .filter(point => point.exitRate > 30)
+    .forEach(point => {
+      const currentPath = point.previousPages;
+      const suggestedPath = [...currentPath];
+      
+      const successfulPaths = interactionEvents
+        .filter(event => event.interaction_type === 'service_selection_complete')
+        .map(event => event.interaction_details?.path || []);
+      
+      const betterPath = successfulPaths.find(path => 
+        path.includes(point.page) && 
+        calculatePathEfficiency(path) > calculatePathEfficiency(currentPath)
+      );
+
+      if (betterPath) {
+        optimizations.push({
+          currentPath,
+          suggestedPath: betterPath,
+          potentialImpact: {
+            conversionRate: estimateConversionImprovement(currentPath, betterPath, interactionEvents),
+            timeToBook: estimateTimeToBookImprovement(currentPath, betterPath, interactionEvents),
+            dropOffReduction: point.exitRate * 0.4
+          },
+          reasoning: `High drop-off rate of ${point.exitRate.toFixed(1)}% detected. Suggested path shows ${calculatePathEfficiency(betterPath).toFixed(1)}% better conversion rate.`,
+          priority: point.exitRate > 50 ? 'high' : 'medium'
+        });
+      }
+    });
+
+  serviceBundles
+    .filter(bundle => bundle.conversionRate < 30)
+    .forEach(bundle => {
+      const successfulBundles = serviceBundles
+        .filter(b => b.conversionRate > 50)
+        .sort((a, b) => b.frequency - a.frequency);
+
+      if (successfulBundles.length > 0) {
+        const recommendedBundle = successfulBundles[0];
+        optimizations.push({
+          currentPath: bundle.services,
+          suggestedPath: recommendedBundle.services,
+          potentialImpact: {
+            conversionRate: recommendedBundle.conversionRate - bundle.conversionRate,
+            timeToBook: recommendedBundle.performanceMetrics.timeToBook - bundle.performanceMetrics.timeToBook,
+            dropOffReduction: 15
+          },
+          reasoning: `Low-performing service bundle detected. Recommended bundle shows ${recommendedBundle.conversionRate.toFixed(1)}% conversion rate vs current ${bundle.conversionRate.toFixed(1)}%.`,
+          priority: bundle.frequency > 10 ? 'high' : 'medium'
+        });
+      }
+    });
+
+  return optimizations;
+};
+
+const calculatePathEfficiency = (path: string[]): number => {
+  return path.length > 0 ? 100 / path.length : 0;
+};
+
+const estimateConversionImprovement = (
+  currentPath: string[],
+  suggestedPath: string[],
+  events: any[]
+): number => {
+  const currentConversion = calculatePathConversion(currentPath, events);
+  const suggestedConversion = calculatePathConversion(suggestedPath, events);
+  return suggestedConversion - currentConversion;
+};
+
+const calculatePathConversion = (path: string[], events: any[]): number => {
+  const pathEvents = events.filter(event => 
+    path.includes(event.page_url || '')
+  );
+  
+  const completions = pathEvents.filter(event => 
+    event.interaction_type === 'service_selection_complete'
+  ).length;
+
+  return pathEvents.length > 0 ? (completions / pathEvents.length) * 100 : 0;
+};
+
+const estimateTimeToBookImprovement = (
+  currentPath: string[],
+  suggestedPath: string[],
+  events: any[]
+): number => {
+  const currentTime = calculateAverageTimeToBook(currentPath, events);
+  const suggestedTime = calculateAverageTimeToBook(suggestedPath, events);
+  return currentTime - suggestedTime;
+};
+
+const calculateAverageTimeToBook = (path: string[], events: any[]): number => {
+  const pathCompletions = events.filter(event => 
+    event.interaction_type === 'service_selection_complete' &&
+    event.interaction_details?.path?.join(',') === path.join(',')
+  );
+
+  const times = pathCompletions.map(event => 
+    event.interaction_details?.timeToBook || 0
+  );
+
+  return times.length > 0 
+    ? times.reduce((a, b) => a + b, 0) / times.length 
+    : 0;
 };

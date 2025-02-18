@@ -18,7 +18,25 @@ export type InteractionType =
   | 'category_select'
   | 'calendar_interaction'
   | 'profile_interaction'
-  | 'location_interaction';
+  | 'location_interaction'
+  | 'menu_open'
+  | 'menu_close'
+  | 'page_change'
+  | 'zoom'
+  | 'profile_view'
+  | 'selection'
+  | 'calendar_open'
+  | 'calendar_close'
+  | 'date_select'
+  | 'category_view'
+  | 'category_view_end'
+  | 'service_selection_update'
+  | 'service_view'
+  | 'service_selection'
+  | 'service_selection_complete'
+  | 'session_end'
+  | 'offer_view_start'
+  | 'offer_view_end';
 
 export interface BaseInteractionType {
   session_id?: string;
@@ -54,7 +72,7 @@ export interface ServiceDiscoveryEvent extends BaseInteractionType {
 export interface DateTimeEvent extends BaseInteractionType {
   selected_date?: string;
   selected_time?: string;
-  calendar_view_type?: 'month' | 'week' | 'day' | 'quick_select';
+  calendar_view_type?: 'month' | 'week' | 'quick_select';
   days_in_advance?: number;
   time_slot_position?: string;
   quick_select_usage?: boolean;
@@ -216,6 +234,19 @@ export interface ProcessedJourneyData {
   links: JourneyLink[];
   dropOffPoints: DropOffPoint[];
   serviceBundles: ServiceBundle[];
+  pathOptimizations: PathOptimization[];
+}
+
+export interface PathOptimization {
+  currentPath: string[];
+  suggestedPath: string[];
+  potentialImpact: {
+    conversionRate: number;
+    timeToBook: number;
+    dropOffReduction: number;
+  };
+  reasoning: string;
+  priority: 'high' | 'medium' | 'low';
 }
 
 export interface ServiceBundle {

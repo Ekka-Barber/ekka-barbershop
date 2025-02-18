@@ -15,6 +15,7 @@ import { calculatePeriodMetrics } from "./analyticsUtils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DropOffAnalysisCard } from "./DropOffAnalysisCard";
 import { ServiceBundleCard } from "./ServiceBundleCard";
+import { PathOptimizationCard } from "./PathOptimizationCard";
 
 const CustomerTrackingDashboard = () => {
   const [dateRange, setDateRange] = useState<DateRange>({
@@ -89,9 +90,11 @@ const CustomerTrackingDashboard = () => {
           <CustomerJourneyCard nodes={journeyData.nodes} links={journeyData.links} />
           
           <div className="grid gap-4 md:grid-cols-2">
-            <DropOffAnalysisCard dropOffPoints={journeyData.dropOffPoints || []} />
-            <ServiceBundleCard bundles={journeyData.serviceBundles || []} />
+            <DropOffAnalysisCard dropOffPoints={journeyData.dropOffPoints} />
+            <PathOptimizationCard optimizations={journeyData.pathOptimizations} />
           </div>
+          
+          <ServiceBundleCard bundles={journeyData.serviceBundles} />
           
           <div className="grid gap-4 md:grid-cols-2">
             <TimePatternCard timePatterns={timePatterns} />
