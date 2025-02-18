@@ -1,4 +1,3 @@
-
 export interface ServiceTracking {
   service_name: string;
   action: 'added' | 'removed';
@@ -60,3 +59,47 @@ export interface ServiceStats {
 }
 
 export const COLORS = ['#4ade80', '#f87171', '#60a5fa', '#facc15'];
+
+export interface UserJourney {
+  entryPoint: string;
+  pathSteps: PathStep[];
+  completionStatus: 'completed' | 'abandoned';
+  duration: number;
+  userAgent: string;
+  timestamp: string;
+}
+
+export interface PathStep {
+  page: string;
+  timeSpent: number;
+  interactions: UserInteraction[];
+}
+
+export interface UserInteraction {
+  type: 'click' | 'scroll' | 'input' | 'view';
+  target: string;
+  timestamp: string;
+  metadata?: Record<string, any>;
+}
+
+export interface UserBehaviorMetrics {
+  averageSessionDuration: number;
+  bounceRate: number;
+  completionRate: number;
+  commonPaths: PathAnalysis[];
+  dropOffPoints: DropOffPoint[];
+}
+
+export interface PathAnalysis {
+  path: string[];
+  frequency: number;
+  averageDuration: number;
+  successRate: number;
+}
+
+export interface DropOffPoint {
+  page: string;
+  exitRate: number;
+  averageTimeBeforeExit: number;
+  previousPages: string[];
+}
