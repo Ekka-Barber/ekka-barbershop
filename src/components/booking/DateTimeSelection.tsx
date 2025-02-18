@@ -30,16 +30,16 @@ export const DateTimeSelection = ({
     addDays(new Date(), 2)
   ], []);
 
+  // Track initial calendar view and cleanup
   useEffect(() => {
     const startTime = new Date();
     setViewStartTime(startTime);
     
-    // Track initial calendar view
     trackDateTimeInteraction({
       interaction_type: 'calendar_open',
       calendar_view_type: 'quick_select',
-      device_type: 'desktop',
       session_id: 'temp',
+      device_type: 'desktop',
       quick_select_usage: true,
       view_duration_seconds: 0,
       calendar_navigation_path: []
@@ -50,10 +50,16 @@ export const DateTimeSelection = ({
       trackDateTimeInteraction({
         interaction_type: 'calendar_close',
         calendar_view_type: showFullCalendar ? 'month' : 'quick_select',
-        device_type: 'desktop',
         session_id: 'temp',
+        device_type: 'desktop',
         view_duration_seconds: duration,
-        calendar_navigation_path: navigationPath
+        calendar_navigation_path: navigationPath,
+        quick_select_usage: !showFullCalendar,
+        preferred_time_slots: {
+          morning: 0,
+          afternoon: 0,
+          evening: 0
+        }
       });
     };
   }, []);
@@ -61,15 +67,21 @@ export const DateTimeSelection = ({
   const handleDateSelect = (date: Date | undefined) => {
     const daysInAdvance = date ? differenceInDays(date, new Date()) : 0;
     
+    // Track time slot selection details
     trackDateTimeInteraction({
       interaction_type: 'date_select',
-      selected_date: date?.toISOString(),
       calendar_view_type: showFullCalendar ? 'month' : 'quick_select',
-      device_type: 'desktop',
       session_id: 'temp',
+      device_type: 'desktop',
+      selected_date: date?.toISOString(),
       days_in_advance: daysInAdvance,
       quick_select_usage: !showFullCalendar,
-      calendar_navigation_path: navigationPath
+      calendar_navigation_path: navigationPath,
+      preferred_time_slots: {
+        morning: date && isTimeInRange(date, 6, 12) ? 1 : 0,
+        afternoon: date && isTimeInRange(date, 12, 17) ? 1 : 0,
+        evening: date && isTimeInRange(date, 17, 23) ? 1 : 0
+      }
     });
     
     onDateSelect(date);
@@ -81,16 +93,26 @@ export const DateTimeSelection = ({
     trackDateTimeInteraction({
       interaction_type: show ? 'calendar_open' : 'calendar_close',
       calendar_view_type: show ? 'month' : 'quick_select',
-      device_type: 'desktop',
       session_id: 'temp',
+      device_type: 'desktop',
       view_duration_seconds: duration,
+      calendar_navigation_path: navigationPath,
       quick_select_usage: !show,
-      calendar_navigation_path: navigationPath
+      preferred_time_slots: {
+        morning: 0,
+        afternoon: 0,
+        evening: 0
+      }
     });
     
     setShowFullCalendar(show);
     setViewStartTime(new Date());
     setNavigationPath([...navigationPath, show ? 'full_calendar' : 'quick_select']);
+  };
+
+  const isTimeInRange = (date: Date, startHour: number, endHour: number): boolean => {
+    const hour = date.getHours();
+    return hour >= startHour && hour < endHour;
   };
 
   const formatDate = (date: Date) => {

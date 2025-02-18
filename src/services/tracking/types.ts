@@ -1,3 +1,4 @@
+
 export type DeviceType = 'mobile' | 'tablet' | 'desktop';
 
 export type ServiceInteractionType = 
@@ -7,6 +8,19 @@ export type ServiceInteractionType =
   | 'service_selection'
   | 'service_selection_update'
   | 'service_selection_complete';
+
+export type DateTimeInteractionType = 
+  | 'calendar_open' 
+  | 'calendar_close' 
+  | 'date_select' 
+  | 'time_select' 
+  | 'time_slot_view';
+
+export type BarberInteractionType = 
+  | 'profile_view' 
+  | 'availability_check' 
+  | 'selection' 
+  | 'comparison';
 
 export interface ServiceDiscoveryEvent {
   category_id?: string;
@@ -20,14 +34,6 @@ export interface ServiceDiscoveryEvent {
   device_type?: DeviceType;
   timestamp?: string;
   session_id?: string;
-}
-
-export type DateTimeInteractionType = 'calendar_open' | 'calendar_close' | 'date_select' | 'time_select' | 'time_slot_view';
-export type BarberInteractionType = 'profile_view' | 'availability_check' | 'selection' | 'comparison';
-
-export interface SessionData {
-  id: string;
-  timestamp: number;
 }
 
 export interface DateTimeEvent {
