@@ -19,6 +19,7 @@ export type InteractionType =
   | 'form_interaction'
   | 'pdf_view'
   | 'language_switch'
+  | 'marketing_funnel'
   // Menu interactions
   | 'menu_open'
   | 'menu_close'

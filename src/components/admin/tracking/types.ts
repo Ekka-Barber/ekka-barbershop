@@ -202,3 +202,16 @@ export interface CatchmentArea {
   population: number;
   potentialMarket: number;
 }
+
+export interface PredictiveAnalyticsProps {
+  data?: {
+    busyPeriods: BusyPeriod[];
+    revenueForecasts: RevenueForecast[];
+    seasonalPatterns: SeasonalPattern[];
+    trends: TrendAnalysis[];
+  };
+}
+
+export interface GeographicInsightsProps {
+  data?: GeographicInsightsType;
+}

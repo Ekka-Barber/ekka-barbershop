@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { GeographicInsightsType } from './types';
@@ -6,10 +5,18 @@ import Map, { Source, Layer } from 'react-map-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 
 interface GeographicInsightsProps {
-  data: GeographicInsightsType;
+  data?: GeographicInsightsType;
 }
 
 export const GeographicInsights = ({ data }: GeographicInsightsProps) => {
+  if (!data) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <p className="text-muted-foreground">No geographic data available</p>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4">
       <Card>

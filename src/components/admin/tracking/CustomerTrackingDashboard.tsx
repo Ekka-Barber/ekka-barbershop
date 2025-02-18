@@ -1,4 +1,3 @@
-
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2 } from "lucide-react";
 import { useState } from "react";
@@ -137,11 +136,11 @@ const CustomerTrackingDashboard = () => {
         </TabsContent>
 
         <TabsContent value="predictive">
-          <PredictiveAnalytics />
+          <PredictiveAnalytics data={undefined} />
         </TabsContent>
 
         <TabsContent value="geographic">
-          <GeographicInsights />
+          <GeographicInsights data={undefined} />
         </TabsContent>
       </Tabs>
     </div>
