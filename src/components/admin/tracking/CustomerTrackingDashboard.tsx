@@ -1,4 +1,3 @@
-
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2 } from "lucide-react";
 import { useState } from "react";
@@ -19,6 +18,8 @@ import { ServiceBundleCard } from "./ServiceBundleCard";
 import { PathOptimizationCard } from "./PathOptimizationCard";
 import { Button } from "@/components/ui/button";
 import { Pagination } from "@/components/ui/pagination";
+import { PredictiveAnalytics } from './PredictiveAnalytics';
+import { GeographicInsights } from './GeographicInsights';
 
 const ITEMS_PER_PAGE = 50;
 
@@ -68,13 +69,64 @@ const CustomerTrackingDashboard = () => {
     totalCounts.interactions
   ) / ITEMS_PER_PAGE);
 
+  const predictiveData = {
+    busyPeriods: [
+      {
+        startTime: '10:00',
+        endTime: '12:00',
+        predictedBookings: 15,
+        confidence: 85,
+        dayOfWeek: 1
+      },
+      // Add more sample data
+    ],
+    revenueForecasts: [
+      {
+        date: '2024-03-01',
+        predictedRevenue: 5000,
+        lowerBound: 4500,
+        upperBound: 5500,
+        confidence: 90
+      },
+      // Add more sample data
+    ],
+    seasonalPatterns: [],
+    trends: []
+  };
+
+  const geographicData = {
+    branchLocations: [
+      {
+        id: '1',
+        name: 'Main Branch',
+        coordinates: [45.0, 25.0],
+        performance: {
+          bookings: 150,
+          revenue: 15000,
+          satisfaction: 4.5
+        }
+      },
+      // Add more sample data
+    ],
+    customerDensity: [
+      {
+        coordinates: [45.0, 25.0],
+        weight: 0.8
+      },
+      // Add more sample data
+    ],
+    performanceMetrics: [],
+    catchmentAreas: []
+  };
+
   return (
     <div className="space-y-8">
       <Tabs defaultValue="overview" className="w-full">
-        <TabsList className="grid w-full grid-cols-1 md:grid-cols-3">
+        <TabsList className="grid w-full grid-cols-1 md:grid-cols-4">
           <TabsTrigger value="overview">Overview & Patterns</TabsTrigger>
           <TabsTrigger value="realtime">Real-Time Monitoring</TabsTrigger>
-          <TabsTrigger value="branches">Branch Analytics</TabsTrigger>
+          <TabsTrigger value="predictive">Predictive Analytics</TabsTrigger>
+          <TabsTrigger value="geographic">Geographic Insights</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-4">
@@ -139,8 +191,12 @@ const CustomerTrackingDashboard = () => {
           <RealTimeMonitoring />
         </TabsContent>
 
-        <TabsContent value="branches">
-          <BranchAnalytics />
+        <TabsContent value="predictive">
+          <PredictiveAnalytics data={predictiveData} />
+        </TabsContent>
+
+        <TabsContent value="geographic">
+          <GeographicInsights data={geographicData} />
         </TabsContent>
       </Tabs>
     </div>

@@ -1,4 +1,3 @@
-
 export interface ServiceTracking {
   service_name: string;
   action: 'added' | 'removed';
@@ -127,3 +126,79 @@ export interface DropOffPoint {
 }
 
 export const COLORS = ['#4ade80', '#f87171', '#60a5fa', '#facc15'];
+
+export interface PredictiveAnalytics {
+  busyPeriods: BusyPeriod[];
+  revenueForecasts: RevenueForecast[];
+  seasonalPatterns: SeasonalPattern[];
+  trends: TrendAnalysis[];
+}
+
+export interface BusyPeriod {
+  startTime: string;
+  endTime: string;
+  predictedBookings: number;
+  confidence: number;
+  dayOfWeek: number;
+}
+
+export interface RevenueForecast {
+  date: string;
+  predictedRevenue: number;
+  lowerBound: number;
+  upperBound: number;
+  confidence: number;
+}
+
+export interface SeasonalPattern {
+  period: string;
+  pattern: string;
+  strength: number;
+  significance: number;
+}
+
+export interface TrendAnalysis {
+  metric: string;
+  trend: 'increasing' | 'decreasing' | 'stable';
+  changeRate: number;
+  confidence: number;
+}
+
+export interface GeographicInsights {
+  branchLocations: BranchLocation[];
+  customerDensity: DensityPoint[];
+  performanceMetrics: LocationPerformance[];
+  catchmentAreas: CatchmentArea[];
+}
+
+export interface BranchLocation {
+  id: string;
+  name: string;
+  coordinates: [number, number];
+  performance: {
+    bookings: number;
+    revenue: number;
+    satisfaction: number;
+  };
+}
+
+export interface DensityPoint {
+  coordinates: [number, number];
+  weight: number;
+}
+
+export interface LocationPerformance {
+  branchId: string;
+  metrics: {
+    bookingsPerCapita: number;
+    marketShare: number;
+    competitorProximity: number;
+  };
+}
+
+export interface CatchmentArea {
+  branchId: string;
+  polygon: [number, number][];
+  population: number;
+  potentialMarket: number;
+}
