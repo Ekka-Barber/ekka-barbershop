@@ -1,90 +1,84 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { ServiceTracking, BookingBehavior, BookingData } from "./types";
+import { DateRange } from "./DateRangeSelector";
 
-export const useTrackingData = () => {
-  const { data: serviceTracking, isLoading: serviceLoading, error: serviceError } = useQuery({
-    queryKey: ['service-tracking'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('service_tracking')
-        .select('service_name, action, timestamp')
-        .order('created_at', { ascending: false });
-      
-      if (error) throw error;
-      return data as ServiceTracking[];
-    }
-  });
-
-  const { data: bookingBehavior, isLoading: bookingLoading, error: bookingError } = useQuery({
-    queryKey: ['booking-behavior'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('booking_behavior')
-        .select('step, timestamp')
-        .order('created_at', { ascending: false });
-      
-      if (error) throw error;
-      return data as BookingBehavior[];
-    }
-  });
-
-  const { data: bookingsData, isLoading: bookingsLoading, error: bookingsError } = useQuery({
-    queryKey: ['bookings-stats'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('bookings')
-        .select(`
-          id,
-          device_type,
-          browser_info,
-          services,
-          total_price,
-          appointment_date,
-          appointment_time,
-          created_at
-        `)
-        .order('created_at', { ascending: false });
-      
-      if (error) throw error;
-      return data as BookingData[];
-    }
-  });
-
-  const { data: serviceDiscovery, isLoading: discoveryLoading, error: discoveryError } = useQuery({
-    queryKey: ['service-discovery'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('service_discovery_events')
-        .select('*')
-        .order('created_at', { ascending: false });
-      
-      if (error) throw error;
-      return data;
-    }
-  });
-
-  const { data: customerJourneyData, isLoading: journeyLoading, error: journeyError } = useQuery({
-    queryKey: ['customer-journey'],
+export const useTrackingData = (dateRange: DateRange) => {
+  const { data: interactionEvents, isLoading: interactionsLoading } = useQuery({
+    queryKey: ['interaction-events', dateRange],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('interaction_events')
         .select('*')
-        .order('timestamp', { ascending: true });
+        .gte('created_at', dateRange.from.toISOString())
+        .lte('created_at', dateRange.to.toISOString());
       
       if (error) throw error;
       return data;
     }
   });
 
+  const { data: sessionData, isLoading: sessionsLoading } = useQuery({
+    queryKey: ['page-views', dateRange],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('page_views')
+        .select('*')
+        .gte('created_at', dateRange.from.toISOString())
+        .lte('created_at', dateRange.to.toISOString());
+      
+      if (error) throw error;
+      return data;
+    }
+  });
+
+  const { data: bookingData, isLoading: bookingsLoading } = useQuery({
+    queryKey: ['bookings', dateRange],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('bookings')
+        .select('*')
+        .gte('created_at', dateRange.from.toISOString())
+        .lte('created_at', dateRange.to.toISOString());
+      
+      if (error) throw error;
+      return data;
+    }
+  });
+
+  const calculateCoreMetrics = () => {
+    if (!sessionData || !bookingData || !interactionEvents) {
+      return {
+        activeUsers: 0,
+        conversionRate: 0,
+        avgSessionDuration: 0,
+        totalInteractions: 0
+      };
+    }
+
+    const uniqueSessions = new Set(sessionData.map(s => s.session_id)).size;
+    const completedBookings = bookingData.length;
+    
+    // Calculate average session duration in seconds
+    const sessionsWithDuration = sessionData.filter(s => s.exit_time);
+    const avgDuration = sessionsWithDuration.reduce((acc, session) => {
+      const duration = new Date(session.exit_time).getTime() - new Date(session.entry_time).getTime();
+      return acc + duration;
+    }, 0) / (sessionsWithDuration.length * 1000); // Convert to seconds
+
+    return {
+      activeUsers: uniqueSessions,
+      conversionRate: (completedBookings / uniqueSessions) * 100,
+      avgSessionDuration: avgDuration,
+      totalInteractions: interactionEvents.length
+    };
+  };
+
   return {
-    serviceTracking,
-    bookingBehavior,
-    bookingsData,
-    serviceDiscovery,
-    customerJourneyData,
-    isLoading: serviceLoading || bookingLoading || bookingsLoading || discoveryLoading || journeyLoading,
-    error: serviceError || bookingError || bookingsError || discoveryError || journeyError
+    coreMetrics: calculateCoreMetrics(),
+    isLoading: interactionsLoading || sessionsLoading || bookingsLoading,
+    sessionData,
+    bookingData,
+    interactionEvents
   };
 };
