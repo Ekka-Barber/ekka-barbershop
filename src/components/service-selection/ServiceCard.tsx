@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { memo } from 'react';
 import { Service } from '@/types/service';
+import { formatPrice, calculateDiscountedPrice } from '@/utils/formatting/price';
+import { formatDuration, getTimeUnit } from '@/utils/formatting/time';
 
 interface ServiceCardProps {
   service: Service;
@@ -20,30 +22,15 @@ export const ServiceCard = memo(({
   onServiceClick,
   onServiceToggle 
 }: ServiceCardProps) => {
-  const formatPrice = (price: number) => {
-    const roundedPrice = Math.floor(price);
-    return `${roundedPrice} ${language === 'ar' ? 'ريال' : 'SAR'}`;
-  };
-
-  const getArabicTimeUnit = (duration: number) => {
-    return duration >= 5 && duration <= 10 ? 'دقائق' : 'دقيقة';
-  };
-
   const hasDiscount = (service: Service) => {
     return service.discount_type && service.discount_value;
   };
 
-  const calculateDiscountedPrice = (service: Service) => {
-    if (!service.discount_type || !service.discount_value) return service.price;
-    
-    let discountedPrice;
-    if (service.discount_type === 'percentage') {
-      discountedPrice = service.price - (service.price * (service.discount_value / 100));
-    } else {
-      discountedPrice = service.price - service.discount_value;
-    }
-    return Math.floor(discountedPrice);
-  };
+  const discountedPrice = calculateDiscountedPrice(
+    service.price,
+    service.discount_type,
+    service.discount_value
+  );
 
   return (
     <div
@@ -62,18 +49,14 @@ export const ServiceCard = memo(({
           <Badge variant="destructive" className="text-xs">
             {service.discount_type === 'percentage' 
               ? `${service.discount_value}%` 
-              : formatPrice(service.discount_value || 0)}
+              : formatPrice(service.discount_value || 0, language)}
           </Badge>
         )}
       </div>
 
       <div className="flex items-center text-sm text-gray-500">
         <Timer className="w-4 h-4 mr-1" />
-        <span>
-          {service.duration} {language === 'ar' 
-            ? getArabicTimeUnit(service.duration)
-            : 'min'}
-        </span>
+        <span>{formatDuration(service.duration, language)}</span>
       </div>
 
       <div className="flex items-center justify-between mt-2">
@@ -81,15 +64,15 @@ export const ServiceCard = memo(({
           {hasDiscount(service) ? (
             <>
               <span className="relative inline-flex items-center text-sm text-gray-500">
-                {formatPrice(service.price)}
+                {formatPrice(service.price, language)}
                 <Slash className="w-4 h-4 text-destructive absolute -translate-y-1/2 top-1/2 left-1/2 -translate-x-1/2" />
               </span>
               <span className="font-medium">
-                {formatPrice(calculateDiscountedPrice(service))}
+                {formatPrice(Math.floor(discountedPrice), language)}
               </span>
             </>
           ) : (
-            <span>{formatPrice(service.price)}</span>
+            <span>{formatPrice(service.price, language)}</span>
           )}
         </div>
         

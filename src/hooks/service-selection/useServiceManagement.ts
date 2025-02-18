@@ -1,8 +1,10 @@
+
 import { useState, useCallback } from 'react';
 import { Service, ServiceViewState } from '@/types/service';
 import { useTracking } from '@/hooks/useTracking';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useToast } from '@/hooks/use-toast';
+import { roundPrice } from '@/utils/formatting/price';
 
 export const useServiceManagement = (
   selectedServices: Service[],
