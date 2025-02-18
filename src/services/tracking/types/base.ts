@@ -19,27 +19,7 @@ export type InteractionType =
   | 'form_interaction'
   | 'pdf_view'
   | 'language_switch'
-  | 'category_select'
-  | 'calendar_interaction'
-  | 'profile_interaction'
-  | 'location_interaction'
-  | 'location_view'
-  | 'menu_open'
-  | 'menu_close'
-  | 'page_change'
-  | 'zoom'
-  | 'profile_view'
-  | 'selection'
-  | 'category_view'
-  | 'category_view_end'
-  | 'service_selection_update'
-  | 'service_view'
-  | 'service_selection'
-  | 'service_selection_complete'
-  | 'session_end'
-  | 'offer_view_start'
-  | 'offer_view_end'
-  | 'marketing_funnel';
+  | 'marketing_funnel';  // Added this type
 
 export interface BaseInteractionType {
   interaction_type: InteractionType;

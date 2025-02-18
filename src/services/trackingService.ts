@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { getPlatformType } from "@/services/platformDetection";
 import { getSessionId, shouldTrack, cleanupSession } from './tracking/sessionManager';
@@ -12,8 +11,8 @@ import type {
   BranchSelectionEvent,
   InteractionType
 } from './tracking/types';
+import type { Json } from '@/integrations/supabase/types';
 
-// Core tracking functions
 export const trackPageView = async (path: string): Promise<void> => {
   if (!shouldTrack()) return;
   
@@ -40,10 +39,11 @@ export const trackInteraction = async (
   try {
     const { error } = await supabase.from('interaction_events').insert({
       ...createTrackingEvent(type),
-      interaction_details: details,
+      interaction_details: details as Json,
       session_id: getSessionId(),
       device_type: mapPlatformToDeviceType(getPlatformType()),
-      page_url: window.location.pathname
+      page_url: window.location.pathname,
+      interaction_type: type
     });
 
     if (error) throw error;
@@ -94,7 +94,8 @@ export const trackDateTimeInteraction = async (event: DateTimeEvent): Promise<vo
       ...event,
       ...createTrackingEvent(event.interaction_type),
       session_id: getSessionId(),
-      device_type: mapPlatformToDeviceType(getPlatformType())
+      device_type: mapPlatformToDeviceType(getPlatformType()),
+      interaction_type: event.interaction_type as "calendar_open" | "calendar_close" | "date_select" | "time_select" | "time_slot_view"
     });
 
     if (error) throw error;

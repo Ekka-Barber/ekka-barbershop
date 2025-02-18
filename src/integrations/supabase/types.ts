@@ -1187,6 +1187,51 @@ export type Database = {
           },
         ]
       }
+      marketing_funnel_events: {
+        Row: {
+          conversion_successful: boolean | null
+          created_at: string
+          device_type: string | null
+          drop_off_point: boolean | null
+          entry_point: string | null
+          funnel_stage: string
+          id: string
+          interaction_path: Json | null
+          interaction_type: string
+          previous_stage: string | null
+          session_id: string | null
+          time_in_stage: number | null
+        }
+        Insert: {
+          conversion_successful?: boolean | null
+          created_at?: string
+          device_type?: string | null
+          drop_off_point?: boolean | null
+          entry_point?: string | null
+          funnel_stage: string
+          id?: string
+          interaction_path?: Json | null
+          interaction_type: string
+          previous_stage?: string | null
+          session_id?: string | null
+          time_in_stage?: number | null
+        }
+        Update: {
+          conversion_successful?: boolean | null
+          created_at?: string
+          device_type?: string | null
+          drop_off_point?: boolean | null
+          entry_point?: string | null
+          funnel_stage?: string
+          id?: string
+          interaction_path?: Json | null
+          interaction_type?: string
+          previous_stage?: string | null
+          session_id?: string | null
+          time_in_stage?: number | null
+        }
+        Relationships: []
+      }
       menu_interactions: {
         Row: {
           created_at: string | null
