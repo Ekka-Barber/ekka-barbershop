@@ -26,7 +26,7 @@ export const BookingConfirmDialog = ({
 }: BookingConfirmDialogProps) => {
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md" aria-describedby="booking-confirm-description">
         <DialogHeader className="space-y-4">
           <div className="mx-auto w-12 h-12 rounded-full bg-yellow-50 flex items-center justify-center">
             <AlertTriangle className="h-6 w-6 text-yellow-600" />
@@ -34,7 +34,7 @@ export const BookingConfirmDialog = ({
           <DialogTitle className="text-center text-xl">
             {language === 'ar' ? 'تأكيد الحجز' : 'Confirm Booking'}
           </DialogTitle>
-          <DialogDescription className="text-center space-y-2">
+          <DialogDescription id="booking-confirm-description" className="text-center space-y-2">
             {language === 'ar' ? (
               <>
                 <p className="text-base">

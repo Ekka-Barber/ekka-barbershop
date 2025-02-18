@@ -1,4 +1,3 @@
-
 import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { BookingFormData } from "../types/booking";
@@ -28,10 +27,7 @@ export const saveBookingData = async (formData: BookingFormData) => {
       browser_info: {
         userAgent: navigator.userAgent,
         language: navigator.language,
-      } as Json,
-      device_type: /Mobile|iP(hone|od|ad)|Android|BlackBerry|IEMobile/.test(navigator.userAgent) 
-        ? 'mobile' 
-        : 'desktop'
+      } as Json
     })
     .select();
 
