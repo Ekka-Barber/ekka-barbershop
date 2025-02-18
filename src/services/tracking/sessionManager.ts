@@ -4,8 +4,36 @@ import { SessionData } from './types';
 
 let sessionId: string | null = null;
 
+const isProductionDomain = (hostname: string): boolean => {
+  return hostname === 'ekka-barbershop.lovable.app';
+};
+
+const isPreviewDomain = (hostname: string): boolean => {
+  return hostname.includes('preview--') && hostname.endsWith('.lovable.app');
+};
+
+const isLocalDevelopment = (hostname: string): boolean => {
+  return hostname === 'localhost' || hostname === '127.0.0.1';
+};
+
 const shouldTrack = (): boolean => {
-  return window.location.hostname === 'ekka-barbershop.lovable.app';
+  const hostname = window.location.hostname;
+  
+  // Never track in local development
+  if (isLocalDevelopment(hostname)) {
+    console.log('Tracking disabled in local development');
+    return false;
+  }
+
+  // Always track on production and preview domains
+  if (isProductionDomain(hostname) || isPreviewDomain(hostname)) {
+    console.log(`Tracking enabled for ${hostname}`);
+    return true;
+  }
+
+  // Disable tracking for all other domains
+  console.log('Tracking disabled for unknown domain:', hostname);
+  return false;
 };
 
 export const getSessionId = (): string | null => {

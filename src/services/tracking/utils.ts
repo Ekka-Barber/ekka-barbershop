@@ -1,40 +1,37 @@
 
-import { getPlatformType } from "@/services/platformDetection";
 import { DeviceType } from './types';
+import { PlatformType } from '../platformDetection';
 
-export const mapPlatformToDeviceType = (platform: ReturnType<typeof getPlatformType>): DeviceType => {
+export const mapPlatformToDeviceType = (platform: PlatformType): DeviceType => {
   switch (platform) {
-    case 'ios':
-    case 'android':
+    case 'mobile':
       return 'mobile';
-    case 'desktop':
+    case 'tablet':
+      return 'tablet';
     default:
       return 'desktop';
   }
 };
 
-export const getBrowserInfo = () => {
+export const getBrowserInfo = (): Record<string, any> => {
+  const isPreview = window.location.hostname.includes('preview--');
   return {
-    userAgent: navigator.userAgent,
-    language: navigator.language,
-    platform: getPlatformType(),
-    screenWidth: window.innerWidth,
-    screenHeight: window.innerHeight,
+    userAgent: window.navigator.userAgent,
+    language: window.navigator.language,
+    platform: window.navigator.platform,
+    isPreviewEnvironment: isPreview,
+    environment: isPreview ? 'preview' : 'production',
+    viewport: {
+      width: window.innerWidth,
+      height: window.innerHeight
+    }
   };
 };
 
-export const tryTracking = async (operation: () => Promise<any>, maxRetries = 3): Promise<any> => {
-  let retries = 0;
-  while (retries < maxRetries) {
-    try {
-      return await operation();
-    } catch (error) {
-      retries++;
-      if (retries === maxRetries) {
-        console.error('Tracking failed after max retries:', error);
-        return null;
-      }
-      await new Promise(resolve => setTimeout(resolve, 1000 * retries));
-    }
+export const tryTracking = async (trackingFn: () => Promise<void>): Promise<void> => {
+  try {
+    await trackingFn();
+  } catch (error) {
+    console.error('Tracking operation failed:', error);
   }
 };
