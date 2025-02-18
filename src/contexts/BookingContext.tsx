@@ -44,17 +44,13 @@ const initialState: BookingState = {
   isStepChangeLocked: false
 };
 
-const BookingContext = createContext<{
-  state: BookingState;
-  dispatch: React.Dispatch<BookingAction>;
-} | undefined>(undefined);
-
 const STORAGE_KEY = 'booking_state';
+const LOCK_TIMEOUT = 2000; // 2 seconds timeout for locks
 
 function validateState(state: BookingState): boolean {
+  // Skip validation during initial load
   if (!state.branch) {
-    console.error('No branch selected in state validation');
-    return false;
+    return true;
   }
 
   switch (state.currentStep) {
@@ -69,6 +65,11 @@ function validateState(state: BookingState): boolean {
     default:
       return false;
   }
+}
+
+function getPersistableState(state: BookingState): Partial<BookingState> {
+  const { isStepChangeLocked, ...persistableState } = state;
+  return persistableState;
 }
 
 function bookingReducer(state: BookingState, action: BookingAction): BookingState {
@@ -125,11 +126,19 @@ function bookingReducer(state: BookingState, action: BookingAction): BookingStat
       return state;
   }
 
-  // Persist state to localStorage
+  // Persist state (excluding lock status)
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(newState));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(getPersistableState(newState)));
   } catch (error) {
     console.error('Failed to persist booking state:', error);
+  }
+
+  console.log('Booking state updated:', newState);
+  
+  // Validate state after updates (skip during initial load)
+  if (newState.branch && !validateState(newState)) {
+    console.warn('Invalid state detected:', newState);
+    toast.error('Please complete all required fields before proceeding');
   }
 
   return newState;
@@ -146,13 +155,34 @@ export function BookingProvider({ children }: { children: ReactNode }) {
         if (parsedState.selectedDate) {
           parsedState.selectedDate = new Date(parsedState.selectedDate);
         }
-        return parsedState;
+        return {
+          ...initialState,
+          ...parsedState,
+          isStepChangeLocked: false // Always start unlocked
+        };
       }
     } catch (error) {
       console.error('Failed to restore booking state:', error);
     }
     return initialState;
   });
+
+  // Auto-unlock mechanism
+  useEffect(() => {
+    let unlockTimeout: NodeJS.Timeout;
+    
+    if (state.isStepChangeLocked) {
+      unlockTimeout = setTimeout(() => {
+        dispatch({ type: 'UNLOCK_STEP_CHANGE' });
+      }, LOCK_TIMEOUT);
+    }
+
+    return () => {
+      if (unlockTimeout) {
+        clearTimeout(unlockTimeout);
+      }
+    };
+  }, [state.isStepChangeLocked]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -162,23 +192,17 @@ export function BookingProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  // Monitor state changes
-  useEffect(() => {
-    console.log('Booking state updated:', state);
-    
-    // Validate state based on current step
-    if (!validateState(state)) {
-      console.warn('Invalid state detected:', state);
-      toast.error('Please complete all required fields before proceeding');
-    }
-  }, [state]);
-
   return (
     <BookingContext.Provider value={{ state, dispatch }}>
       {children}
     </BookingContext.Provider>
   );
 }
+
+const BookingContext = createContext<{
+  state: BookingState;
+  dispatch: React.Dispatch<BookingAction>;
+} | undefined>(undefined);
 
 export function useBookingContext() {
   const context = useContext(BookingContext);
