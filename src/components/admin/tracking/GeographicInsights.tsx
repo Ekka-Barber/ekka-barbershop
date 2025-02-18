@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { GeographicInsights as GeographicInsightsType } from './types';
+import type { GeographicInsightsType } from './types';
 import Map, { Source, Layer } from 'react-map-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 
@@ -19,11 +19,10 @@ export const GeographicInsights = ({ data }: GeographicInsightsProps) => {
         <CardContent>
           <div className="h-[400px]">
             <Map
-              initialViewState={{
-                longitude: 45,
-                latitude: 25,
-                zoom: 8
-              }}
+              latitude={25}
+              longitude={45}
+              zoom={8}
+              style={{ width: '100%', height: '100%' }}
               mapStyle="mapbox://styles/mapbox/light-v11"
               mapboxAccessToken={process.env.NEXT_PUBLIC_MAPBOX_TOKEN}
             >

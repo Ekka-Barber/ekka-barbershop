@@ -164,7 +164,7 @@ export interface TrendAnalysis {
   confidence: number;
 }
 
-export interface GeographicInsights {
+export interface GeographicInsightsType {
   branchLocations: BranchLocation[];
   customerDensity: DensityPoint[];
   performanceMetrics: LocationPerformance[];

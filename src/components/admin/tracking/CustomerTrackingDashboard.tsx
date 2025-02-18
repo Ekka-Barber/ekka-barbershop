@@ -1,3 +1,4 @@
+
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2 } from "lucide-react";
 import { useState } from "react";
@@ -20,6 +21,7 @@ import { Button } from "@/components/ui/button";
 import { Pagination } from "@/components/ui/pagination";
 import { PredictiveAnalytics } from './PredictiveAnalytics';
 import { GeographicInsights } from './GeographicInsights';
+import type { GeographicInsightsType } from './types';
 
 const ITEMS_PER_PAGE = 50;
 
@@ -92,7 +94,7 @@ const CustomerTrackingDashboard = () => {
     trends: []
   };
 
-  const geographicData: GeographicInsights = {
+  const geographicData: GeographicInsightsType = {
     branchLocations: [
       {
         id: '1',
