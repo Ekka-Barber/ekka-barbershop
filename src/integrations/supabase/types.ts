@@ -907,6 +907,45 @@ export type Database = {
           },
         ]
       }
+      interaction_events: {
+        Row: {
+          created_at: string | null
+          device_type: Database["public"]["Enums"]["device_type"] | null
+          element_class: string | null
+          element_id: string | null
+          id: string
+          interaction_details: Json | null
+          interaction_type: Database["public"]["Enums"]["interaction_type"]
+          page_url: string
+          session_id: string | null
+          timestamp: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          device_type?: Database["public"]["Enums"]["device_type"] | null
+          element_class?: string | null
+          element_id?: string | null
+          id?: string
+          interaction_details?: Json | null
+          interaction_type: Database["public"]["Enums"]["interaction_type"]
+          page_url: string
+          session_id?: string | null
+          timestamp?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          device_type?: Database["public"]["Enums"]["device_type"] | null
+          element_class?: string | null
+          element_id?: string | null
+          id?: string
+          interaction_details?: Json | null
+          interaction_type?: Database["public"]["Enums"]["interaction_type"]
+          page_url?: string
+          session_id?: string | null
+          timestamp?: string | null
+        }
+        Relationships: []
+      }
       marketing_files: {
         Row: {
           branch_name: string | null
