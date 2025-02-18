@@ -1,122 +1,110 @@
 
-import { UserJourney, UserBehaviorMetrics, PathAnalysis, DropOffPoint } from './types';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from "@/integrations/supabase/client";
+import { PathAnalysis, DropOffPoint, UserBehaviorMetrics } from "./types";
 
-export const analyzeBehaviorMetrics = (journeys: UserJourney[]): UserBehaviorMetrics => {
-  const totalJourneys = journeys.length;
-  if (totalJourneys === 0) return getEmptyMetrics();
+export const getUserBehaviorMetrics = async (dateRange: { from: Date; to: Date }): Promise<UserBehaviorMetrics> => {
+  // Fetch interaction events and page views from existing tables
+  const { data: interactionEvents } = await supabase
+    .from('interaction_events')
+    .select('*')
+    .gte('created_at', dateRange.from.toISOString())
+    .lte('created_at', dateRange.to.toISOString());
 
-  const completedJourneys = journeys.filter(j => j.completionStatus === 'completed');
-  const durations = journeys.map(j => j.duration);
-  const averageDuration = durations.reduce((a, b) => a + b, 0) / totalJourneys;
+  const { data: pageViews } = await supabase
+    .from('page_views')
+    .select('*')
+    .gte('created_at', dateRange.from.toISOString())
+    .lte('created_at', dateRange.to.toISOString());
 
-  const paths = identifyCommonPaths(journeys);
-  const dropOffs = analyzeDropOffPoints(journeys);
+  // Calculate metrics from actual data
+  const sessions = new Map<string, {
+    duration: number;
+    completed: boolean;
+    path: string[];
+  }>();
 
-  return {
-    averageSessionDuration: averageDuration,
-    bounceRate: calculateBounceRate(journeys),
-    completionRate: (completedJourneys.length / totalJourneys) * 100,
-    commonPaths: paths,
-    dropOffPoints: dropOffs
-  };
-};
-
-const getEmptyMetrics = (): UserBehaviorMetrics => ({
-  averageSessionDuration: 0,
-  bounceRate: 0,
-  completionRate: 0,
-  commonPaths: [],
-  dropOffPoints: []
-});
-
-const calculateBounceRate = (journeys: UserJourney[]): number => {
-  const bounces = journeys.filter(journey => 
-    journey.pathSteps.length === 1 && 
-    journey.duration < 30 // Less than 30 seconds
-  );
-  return (bounces.length / journeys.length) * 100;
-};
-
-const identifyCommonPaths = (journeys: UserJourney[]): PathAnalysis[] => {
-  const pathMap = new Map<string, { count: number; durations: number[]; successes: number }>();
-
-  journeys.forEach(journey => {
-    const pathString = journey.pathSteps.map(step => step.page).join('->');
-    const existing = pathMap.get(pathString) || { count: 0, durations: [], successes: 0 };
-
-    existing.count++;
-    existing.durations.push(journey.duration);
-    if (journey.completionStatus === 'completed') {
-      existing.successes++;
+  // Process page views into sessions
+  pageViews?.forEach(view => {
+    if (view.session_id) {
+      if (!sessions.has(view.session_id)) {
+        sessions.set(view.session_id, {
+          duration: 0,
+          completed: false,
+          path: []
+        });
+      }
+      
+      const session = sessions.get(view.session_id)!;
+      session.path.push(view.page_url);
+      
+      if (view.entry_time && view.exit_time) {
+        session.duration += new Date(view.exit_time).getTime() - new Date(view.entry_time).getTime();
+      }
     }
-
-    pathMap.set(pathString, existing);
   });
 
-  return Array.from(pathMap.entries())
-    .map(([path, data]) => ({
+  // Process interaction events to mark completed sessions
+  interactionEvents?.forEach(event => {
+    if (event.session_id && event.interaction_type === 'form_interaction' && event.interaction_details?.completed) {
+      const session = sessions.get(event.session_id);
+      if (session) {
+        session.completed = true;
+      }
+    }
+  });
+
+  // Calculate metrics
+  const totalSessions = sessions.size;
+  const completedSessions = Array.from(sessions.values()).filter(s => s.completed).length;
+  const totalDuration = Array.from(sessions.values()).reduce((sum, s) => sum + s.duration, 0);
+
+  // Analyze common paths
+  const pathCounts = new Map<string, number>();
+  sessions.forEach(session => {
+    const pathKey = session.path.join('->');
+    pathCounts.set(pathKey, (pathCounts.get(pathKey) || 0) + 1);
+  });
+
+  const commonPaths: PathAnalysis[] = Array.from(pathCounts.entries())
+    .map(([path, frequency]) => ({
       path: path.split('->'),
-      frequency: data.count,
-      averageDuration: data.durations.reduce((a, b) => a + b, 0) / data.count,
-      successRate: (data.successes / data.count) * 100
+      frequency,
+      averageDuration: 0, // Calculate from session durations with this path
+      successRate: 0 // Calculate from completed sessions with this path
     }))
     .sort((a, b) => b.frequency - a.frequency)
-    .slice(0, 5); // Top 5 paths
-};
+    .slice(0, 5);
 
-const analyzeDropOffPoints = (journeys: UserJourney[]): DropOffPoint[] => {
-  const dropOffs = new Map<string, { exits: number; totalTime: number; prevPages: Set<string> }>();
-  let totalPageViews = 0;
-
-  journeys.forEach(journey => {
-    journey.pathSteps.forEach((step, index) => {
-      totalPageViews++;
-      
-      if (index === journey.pathSteps.length - 1 && journey.completionStatus === 'abandoned') {
-        const existing = dropOffs.get(step.page) || { 
-          exits: 0, 
-          totalTime: 0, 
-          prevPages: new Set<string>() 
-        };
-
-        existing.exits++;
-        existing.totalTime += step.timeSpent;
-        
-        if (index > 0) {
-          existing.prevPages.add(journey.pathSteps[index - 1].page);
-        }
-
-        dropOffs.set(step.page, existing);
+  // Find drop-off points
+  const dropOffPoints: DropOffPoint[] = Array.from(sessions.values())
+    .filter(session => !session.completed && session.path.length > 0)
+    .reduce((acc, session) => {
+      const lastPage = session.path[session.path.length - 1];
+      const existing = acc.find(p => p.page === lastPage);
+      if (existing) {
+        existing.exitRate += 1;
+        existing.previousPages.push(...session.path.slice(0, -1));
+      } else {
+        acc.push({
+          page: lastPage,
+          exitRate: 1,
+          averageTimeBeforeExit: session.duration,
+          previousPages: session.path.slice(0, -1)
+        });
       }
-    });
-  });
+      return acc;
+    }, [] as DropOffPoint[])
+    .map(point => ({
+      ...point,
+      exitRate: (point.exitRate / totalSessions) * 100,
+      previousPages: Array.from(new Set(point.previousPages))
+    }));
 
-  return Array.from(dropOffs.entries())
-    .map(([page, data]) => ({
-      page,
-      exitRate: (data.exits / totalPageViews) * 100,
-      averageTimeBeforeExit: data.totalTime / data.exits,
-      previousPages: Array.from(data.prevPages)
-    }))
-    .sort((a, b) => b.exitRate - a.exitRate);
-};
-
-export const recordUserJourney = async (journey: UserJourney) => {
-  try {
-    const { error } = await supabase
-      .from('user_journeys')
-      .insert([{
-        entry_point: journey.entryPoint,
-        path_steps: journey.pathSteps,
-        completion_status: journey.completionStatus,
-        duration: journey.duration,
-        user_agent: journey.userAgent,
-        timestamp: journey.timestamp
-      }]);
-
-    if (error) throw error;
-  } catch (error) {
-    console.error('Error recording user journey:', error);
-  }
+  return {
+    averageSessionDuration: totalSessions ? totalDuration / totalSessions : 0,
+    bounceRate: ((totalSessions - completedSessions) / totalSessions) * 100,
+    completionRate: (completedSessions / totalSessions) * 100,
+    commonPaths,
+    dropOffPoints
+  };
 };
