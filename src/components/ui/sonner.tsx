@@ -20,9 +20,7 @@ const Toaster = ({ ...props }: ToasterProps) => {
         duration: 5000,
         className:
           "group toast group-[.toaster]:bg-background group-[.toaster]:text-foreground group-[.toaster]:border-border group-[.toaster]:shadow-lg",
-        descriptionClassName: "group-[.toast]:text-muted-foreground",
-        cancelButtonClassName:
-          "group-[.toast]:bg-muted group-[.toast]:text-muted-foreground"
+        descriptionClassName: "group-[.toast]:text-muted-foreground"
       }}
       {...props}
     />

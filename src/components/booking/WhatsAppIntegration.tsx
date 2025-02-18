@@ -1,4 +1,3 @@
-
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
@@ -44,7 +43,6 @@ export const WhatsAppIntegration = (props: BookingFormData) => {
 
   const showError = (message: string) => {
     toast({
-      title: t('booking.alert'),
       description: message,
       variant: "destructive"
     });
@@ -76,7 +74,7 @@ export const WhatsAppIntegration = (props: BookingFormData) => {
       
       setIsConfirmDialogOpen(false);
       toast({
-        description: t('whatsapp.opened'),
+        description: t('whatsapp.opened')
       });
     } catch (error) {
       console.error('Booking error:', error);

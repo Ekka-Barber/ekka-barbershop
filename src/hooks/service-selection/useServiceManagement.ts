@@ -1,4 +1,3 @@
-
 import { useState, useCallback } from 'react';
 import { Service, ServiceViewState } from '@/types/service';
 import { useTracking } from '@/hooks/useTracking';
@@ -67,11 +66,10 @@ export const useServiceManagement = (
     } catch (error) {
       console.error('Service toggle error:', error);
       toast({
-        variant: "destructive",
-        title: language === 'ar' ? 'خطأ' : 'Error',
         description: language === 'ar' 
           ? 'حدث خطأ أثناء إضافة/إزالة الخدمة. يرجى المحاولة مرة أخرى.'
           : 'There was an error adding/removing the service. Please try again.',
+        variant: "destructive"
       });
     }
   }, [language, onServiceToggle, serviceState.viewTimes, toast, trackServiceInteraction]);
