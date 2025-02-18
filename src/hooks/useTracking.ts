@@ -10,13 +10,14 @@ import type {
   BranchSelectionEvent,
   MarketingFunnelEvent
 } from '@/services/tracking/types/unified';
+import { InteractionType } from '@/services/tracking/types/base';
 
 export const useTracking = () => {
   const trackPageView = useCallback((url: string, additionalData = {}) => {
     unifiedTracking.trackPageView(url, additionalData);
   }, []);
 
-  const trackInteraction = useCallback((type: string, details = {}) => {
+  const trackInteraction = useCallback((type: InteractionType, details = {}) => {
     unifiedTracking.trackInteraction(type, details);
   }, []);
 
