@@ -2,6 +2,7 @@
 import { useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BarChart3, MessageCircle } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import { NotificationComposer } from "./notification/NotificationComposer";
 import { NotificationHistory } from "./notification/NotificationHistory";
 import { NotificationAnalyticsView } from "./notification/NotificationAnalytics";
@@ -10,11 +11,31 @@ import { useNotificationAnalytics } from "@/hooks/useNotificationAnalytics";
 
 const NotificationManager = () => {
   const { messages, loading, fetchMessages } = useNotificationMessages();
-  const { analytics, fetchAnalytics } = useNotificationAnalytics();
+  const { analytics, fetchAnalytics } = useNotificationAnalytics(messages);
 
   useEffect(() => {
     fetchMessages();
     fetchAnalytics();
+    
+    const channel = supabase
+      .channel('notification-updates')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'notification_events'
+        },
+        () => {
+          fetchMessages();
+          fetchAnalytics();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   return (

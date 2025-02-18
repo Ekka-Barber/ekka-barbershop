@@ -1,56 +1,150 @@
 
-import { ErrorBoundary } from "@/components/common/ErrorBoundary";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { useBranchManagement } from "@/hooks/booking/useBranchManagement";
-import { BookingLayout } from "./layout/BookingLayout";
-import { BookingLoadingState } from "./layout/BookingLoadingState";
-import { BookingErrorState } from "./layout/BookingErrorState";
-import { NoBranchState } from "./layout/NoBranchState";
-import { BookingContent } from "./containers/BookingContent";
-import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { BookingHeader } from "@/components/booking/BookingHeader";
+import { BookingSteps } from "@/components/booking/BookingSteps";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { Branch } from "@/types/booking";
+import { ErrorBoundary } from "@/components/common/ErrorBoundary";
+import { Loader2 } from "lucide-react";
+import { Card } from "@/components/ui/card";
 
 export const BookingContainer = () => {
-  const { language } = useLanguage();
   const navigate = useNavigate();
-  const { branch, isLoading, error, branchId } = useBranchManagement();
+  const { t, language } = useLanguage();
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  const branchId = searchParams.get('branch');
 
-  useEffect(() => {
-    if (!branchId) {
-      navigate('/customer');
-    }
-  }, [branchId, navigate]);
+  const { data: branch, isLoading: branchLoading, error: branchError } = useQuery({
+    queryKey: ['branch', branchId],
+    queryFn: async () => {
+      if (!branchId) return null;
+      const { data, error } = await supabase
+        .from('branches')
+        .select('*')
+        .eq('id', branchId)
+        .maybeSingle();
+      
+      if (error) throw error;
+      return data as Branch;
+    },
+    enabled: !!branchId,
+    retry: 2,
+    retryDelay: 1000,
+  });
 
   if (!branchId) {
     return (
-      <BookingLayout>
-        <NoBranchState />
-      </BookingLayout>
+      <div className="min-h-screen flex flex-col">
+        <div className="app-header">
+          <div className="language-switcher-container">
+            <LanguageSwitcher />
+          </div>
+        </div>
+        <div className="flex-grow max-w-4xl mx-auto p-4 sm:p-6 lg:p-8 w-full">
+          <div className="content-area flex flex-col items-center justify-center">
+            <div className="text-center w-full max-w-2xl mx-auto">
+              <h1 className="text-2xl font-bold text-gray-800 mb-4">
+                {t('select.branch')}
+              </h1>
+              <Button 
+                className="touch-target bg-[#C4A36F] hover:bg-[#B39260] text-white shadow-md hover:shadow-lg"
+                onClick={() => navigate('/customer')}
+              >
+                {t('go.back')}
+              </Button>
+            </div>
+          </div>
+        </div>
+        <footer className="page-footer" />
+      </div>
     );
   }
 
-  if (error) {
+  if (branchError) {
     return (
-      <BookingLayout>
-        <BookingErrorState />
-      </BookingLayout>
+      <div className="min-h-screen flex flex-col">
+        <div className="app-header">
+          <div className="language-switcher-container">
+            <LanguageSwitcher />
+          </div>
+        </div>
+        <div className="flex-grow max-w-4xl mx-auto p-4 sm:p-6 lg:p-8 w-full">
+          <div className="content-area flex flex-col items-center justify-center">
+            <div className="text-center w-full max-w-2xl mx-auto space-y-4">
+              <h1 className="text-2xl font-bold text-red-600">
+                {language === 'ar' ? 'عذراً! حدث خطأ ما' : 'Error Loading Branch'}
+              </h1>
+              <p className="text-gray-600">
+                {language === 'ar' 
+                  ? 'لم نتمكن من تحميل معلومات الفرع. يرجى المحاولة مرة أخرى.'
+                  : 'We could not load the branch information. Please try again.'}
+              </p>
+              <Button 
+                onClick={() => navigate('/customer')}
+                variant="outline"
+                className="touch-target"
+              >
+                {t('go.back')}
+              </Button>
+            </div>
+          </div>
+        </div>
+        <footer className="page-footer" />
+      </div>
     );
   }
 
-  if (isLoading || !branch) {
+  if (branchLoading) {
     return (
-      <BookingLayout>
-        <BookingLoadingState />
-      </BookingLayout>
+      <div className="min-h-screen flex flex-col">
+        <div className="app-header">
+          <div className="language-switcher-container">
+            <LanguageSwitcher />
+          </div>
+        </div>
+        <div className="flex-grow max-w-4xl mx-auto p-4 sm:p-6 lg:p-8 w-full">
+          <div className="content-area flex flex-col items-center justify-center">
+            <Loader2 className="h-8 w-8 animate-spin text-[#C4A36F]" />
+          </div>
+        </div>
+        <footer className="page-footer" />
+      </div>
     );
   }
 
   return (
     <ErrorBoundary>
-      <div dir={language === 'ar' ? 'rtl' : 'ltr'}>
-        <BookingLayout>
-          <BookingContent branch={branch} isLoading={isLoading} />
-        </BookingLayout>
+      <div dir={language === 'ar' ? 'rtl' : 'ltr'} className="min-h-screen flex flex-col">
+        <div className="app-header">
+          <div className="language-switcher-container">
+            <LanguageSwitcher />
+          </div>
+        </div>
+        
+        <div className="flex-grow max-w-4xl mx-auto p-4 sm:p-6 lg:p-8 w-full">
+          <div className="content-area flex flex-col items-center justify-center">
+            <div className="text-center w-full max-w-2xl mx-auto">
+              <BookingHeader
+                branchName={language === 'ar' ? branch?.name_ar : branch?.name}
+                branchAddress={language === 'ar' ? branch?.address_ar : branch?.address}
+                isLoading={branchLoading}
+              />
+            </div>
+            
+            <Card className="overflow-hidden bg-white shadow-xl rounded-xl border-[#C4A36F]/20 w-full mt-8">
+              <div className="p-6">
+                <BookingSteps branch={branch} />
+              </div>
+            </Card>
+          </div>
+        </div>
+        
+        <footer className="page-footer" />
       </div>
     </ErrorBoundary>
   );

@@ -1,4 +1,3 @@
-
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from "@/integrations/supabase/client";
 import PDFViewer from '@/components/PDFViewer';
@@ -48,7 +47,7 @@ const Offers = () => {
         const endDate = file.end_date ? new Date(file.end_date).getTime() : null;
         const isExpired = endDate ? endDate < now : false;
         const isWithinThreeDays = endDate ? 
-          (endDate - now) < (3 * 24 * 60 * 60 * 1000) : false;
+          (now - endDate) < (3 * 24 * 60 * 60 * 1000) : false;
         
         return { 
           ...file, 
@@ -59,10 +58,13 @@ const Offers = () => {
         };
       }));
       
+      // Sort offers: active non-expired first, then recently expired (within 3 days)
       return filesWithUrls.sort((a, b) => {
+        // If one is expired and the other isn't, non-expired comes first
         if (a.isExpired !== b.isExpired) {
           return a.isExpired ? 1 : -1;
         }
+        // Both are either expired or not, sort by display_order
         return (a.display_order || 0) - (b.display_order || 0);
       });
     },
@@ -129,10 +131,7 @@ const Offers = () => {
                 <div className="text-center py-8 text-[#222222]">{t('loading.offers')}</div>
               ) : offersFiles && offersFiles.length > 0 ? (
                 offersFiles.map((file) => (
-                  <Card 
-                    key={file.id} 
-                    className="overflow-hidden bg-white shadow-xl rounded-xl border-[#C4A36F]/20"
-                  >
+                  <Card key={file.id} className="overflow-hidden bg-white shadow-xl rounded-xl border-[#C4A36F]/20">
                     <div className="p-6">
                       {file.branchName && (
                         <div className="mb-4">

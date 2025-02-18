@@ -1,21 +1,10 @@
 
 import { Card } from "@/components/ui/card";
-import { useNotificationAnalytics } from "@/hooks/useNotificationAnalytics";
+import { NotificationAnalytics } from "@/hooks/useNotificationAnalytics";
 import { formatNumber } from "@/utils/formatters";
 
-interface AnalyticsData {
-  totalSent: number;
-  totalClicked: number;
-  totalReceived: number;
-  activeSubscriptions: number;
-  deliveryRate: number;
-  clickThroughRate: number;
-  errorRate: number;
-  platformBreakdown: Record<string, number>;
-}
-
 interface NotificationAnalyticsViewProps {
-  analytics: AnalyticsData;
+  analytics: NotificationAnalytics;
 }
 
 export const NotificationAnalyticsView = ({ analytics }: NotificationAnalyticsViewProps) => {

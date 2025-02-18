@@ -4,7 +4,16 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useTimeFormatting } from "@/hooks/useTimeFormatting";
 import { Clock, Car } from "lucide-react";
-import { Branch } from "@/types/branch";
+
+interface Branch {
+  id: string;
+  name: string;
+  name_ar: string;
+  address: string;
+  address_ar: string;
+  working_hours: any;
+  google_maps_url: string | null;
+}
 
 interface LocationDialogProps {
   open: boolean;
@@ -21,10 +30,6 @@ export const LocationDialog = ({
 }: LocationDialogProps) => {
   const { language } = useLanguage();
   const { getAllDaysHours } = useTimeFormatting();
-
-  const handleLocationClick = (branch: Branch) => {
-    onLocationClick(branch.google_maps_url);
-  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -53,14 +58,14 @@ export const LocationDialog = ({
               key={branch.id}
               variant="outline"
               className="w-full h-[100px] flex flex-row items-center justify-between gap-3 px-4 bg-white hover:bg-[#C4A36F]/5 border-2 border-gray-200 hover:border-[#C4A36F] transition-all duration-300 rounded-lg group"
-              onClick={() => handleLocationClick(branch)}
+              onClick={() => onLocationClick(branch.google_maps_url)}
             >
               <div className={`flex flex-col items-${language === 'ar' ? 'end' : 'start'} flex-shrink min-w-0 max-w-[70%]`}>
                 <span className="w-full font-bold text-base text-[#222222] group-hover:text-[#C4A36F] transition-colors truncate">
-                  {language === 'ar' ? branch.name_ar || branch.name : branch.name}
+                  {language === 'ar' ? branch.name_ar : branch.name}
                 </span>
                 <span className="w-full text-sm text-gray-600 group-hover:text-[#C4A36F]/70 transition-colors truncate mt-1">
-                  {language === 'ar' ? branch.address_ar || branch.address : branch.address}
+                  {language === 'ar' ? branch.address_ar : branch.address}
                 </span>
               </div>
               <div className={`flex-shrink-0 ${language === 'ar' ? 'border-s' : 'border-e'} border-gray-200 ${language === 'ar' ? 'ps-3' : 'pe-3'}`}>

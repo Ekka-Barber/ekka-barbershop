@@ -1,105 +1,92 @@
 
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useLanguage } from '@/contexts/LanguageContext';
-import { useBooking } from '@/hooks/useBooking';
-import { useTimeSlots } from '@/hooks/useTimeSlots';
-import { TimeSlotPicker } from './barber/TimeSlotPicker';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useBranchManagement } from '@/hooks/booking/useBranchManagement';
-import { addDays, format } from 'date-fns';
-import { useToast } from '@/hooks/use-toast';
+import { useLanguage } from "@/contexts/LanguageContext";
+import { Calendar } from "@/components/ui/calendar";
+import { Button } from "@/components/ui/button";
+import { format, addDays, isBefore, startOfDay } from "date-fns";
+import { cn } from "@/lib/utils";
+import { useState } from "react";
+import { ar } from 'date-fns/locale';
 
-const PREFETCH_DAYS = 3; // Number of future days to prefetch
-const STALE_TIME = 5 * 60 * 1000; // 5 minutes
-const CACHE_TIME = 10 * 60 * 1000; // 10 minutes
+interface DateTimeSelectionProps {
+  selectedDate: Date | undefined;
+  onDateSelect: (date: Date | undefined) => void;
+}
 
-const DateTimeSelection = () => {
-  const navigate = useNavigate();
-  const { t } = useLanguage();
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
-  const { branch } = useBranchManagement();
-  const { selectedBarber, selectedDate, setSelectedDate, selectedTime, setSelectedTime } = useBooking(branch);
+export const DateTimeSelection = ({
+  selectedDate,
+  onDateSelect,
+}: DateTimeSelectionProps) => {
+  const { t, language } = useLanguage();
+  const [showFullCalendar, setShowFullCalendar] = useState(false);
 
-  // Query for current day's time slots with correct TypeScript configuration
-  const { data: timeSlots = [], isLoading, error } = useQuery({
-    queryKey: ['timeSlots', selectedBarber?.id, selectedDate?.toISOString()],
-    queryFn: async () => {
-      if (!selectedBarber || !selectedDate) return [];
-      return useTimeSlots().getAvailableTimeSlots(selectedBarber, selectedDate);
-    },
-    enabled: !!selectedBarber && !!selectedDate,
-    staleTime: STALE_TIME,
-    gcTime: CACHE_TIME,
-    retry: 2
-  });
+  // Get current date and next two days
+  const today = startOfDay(new Date());
+  const threeDays = [
+    today,
+    addDays(today, 1),
+    addDays(today, 2)
+  ];
 
-  // Prefetch multiple future days
-  React.useEffect(() => {
-    if (selectedBarber && selectedDate) {
-      // Prefetch next PREFETCH_DAYS days
-      for (let i = 1; i <= PREFETCH_DAYS; i++) {
-        const futureDate = addDays(selectedDate, i);
-        const queryKey = ['timeSlots', selectedBarber.id, futureDate.toISOString()];
-        
-        // Only prefetch if not already in cache
-        if (!queryClient.getQueryData(queryKey)) {
-          queryClient.prefetchQuery({
-            queryKey,
-            queryFn: async () => useTimeSlots().getAvailableTimeSlots(selectedBarber, futureDate),
-            staleTime: STALE_TIME
-          });
-        }
-      }
-    }
-  }, [selectedBarber, selectedDate, queryClient]);
+  const formatDate = (date: Date) => {
+    return language === 'ar' 
+      ? format(date, 'dd/MM')
+      : format(date, 'MMM dd');
+  };
 
-  // Error handling in separate useEffect
-  React.useEffect(() => {
-    if (error) {
-      console.error('Error fetching time slots:', error);
-      toast({
-        title: t('Error'),
-        description: t('Failed to load available time slots. Please try again.'),
-        variant: "destructive"
-      });
-    }
-  }, [error, toast, t]);
-
-  // Clear selected time when date changes
-  React.useEffect(() => {
-    setSelectedTime('');
-  }, [selectedDate, setSelectedTime]);
-
-  if (!selectedBarber) {
-    navigate('/customer');
-    return null;
-  }
-
-  if (error) {
-    return (
-      <div className="w-full max-w-3xl mx-auto px-4 py-8 text-center">
-        <p className="text-red-500">
-          {t('Failed to load time slots. Please try again.')}
-        </p>
-      </div>
-    );
-  }
+  const formatDay = (date: Date) => {
+    return language === 'ar'
+      ? format(date, 'EEEE', { locale: ar })
+      : format(date, 'EEE');
+  };
 
   return (
-    <div className="w-full max-w-3xl mx-auto px-4 py-8">
-      <TimeSlotPicker
-        selectedBarber={selectedBarber}
-        selectedDate={selectedDate}
-        onDateChange={setSelectedDate}
-        selectedTime={selectedTime}
-        onTimeChange={setSelectedTime}
-        availableTimeSlots={timeSlots}
-        isLoading={isLoading}
-      />
+    <div className="space-y-6">
+      {!showFullCalendar ? (
+        <div className="space-y-4">
+          <div className="grid grid-cols-3 gap-3">
+            {threeDays.map((date) => (
+              <Button
+                key={date.toISOString()}
+                variant={selectedDate?.toDateString() === date.toDateString() ? "default" : "outline"}
+                onClick={() => onDateSelect(date)}
+                className={cn(
+                  "flex flex-col items-center justify-center h-20 p-2",
+                  isBefore(date, startOfDay(new Date())) && "opacity-50 cursor-not-allowed"
+                )}
+                disabled={isBefore(date, startOfDay(new Date()))}
+              >
+                <span className="text-sm font-medium">
+                  {formatDay(date)}
+                </span>
+                <span className="text-lg font-bold">{formatDate(date)}</span>
+              </Button>
+            ))}
+          </div>
+          <button
+            onClick={() => setShowFullCalendar(true)}
+            className="text-sm text-primary hover:underline w-full text-center"
+          >
+            {language === 'ar' ? 'المزيد من التواريخ' : 'More dates'}
+          </button>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          <Calendar
+            mode="single"
+            selected={selectedDate}
+            onSelect={onDateSelect}
+            className="rounded-md border mx-auto"
+            disabled={(date) => isBefore(date, startOfDay(new Date()))}
+            locale={language === 'ar' ? ar : undefined}
+          />
+          <button
+            onClick={() => setShowFullCalendar(false)}
+            className="text-sm text-primary hover:underline w-full text-center"
+          >
+            {language === 'ar' ? 'عرض أقل' : 'Show less'}
+          </button>
+        </div>
+      )}
     </div>
   );
 };
-
-export default DateTimeSelection;

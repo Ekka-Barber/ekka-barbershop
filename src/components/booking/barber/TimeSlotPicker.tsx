@@ -4,30 +4,36 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Clock12 } from "lucide-react";
-import { Employee, TimeSlot } from "@/types/booking";
+
+interface TimeSlot {
+  time: string;
+  isAvailable: boolean;
+}
 
 interface TimeSlotPickerProps {
-  selectedBarber: Employee;
-  selectedDate: Date | undefined;
-  onDateChange: (date: Date) => void;
-  selectedTime: string;
-  onTimeChange: (time: string) => void;
-  availableTimeSlots: TimeSlot[];
-  isLoading: boolean;
+  timeSlots: TimeSlot[];
+  selectedTime: string | undefined;
+  onTimeSelect: (time: string) => void;
+  showAllSlots: boolean;
+  onToggleShowAll: () => void;
 }
 
 export const TimeSlotPicker = ({
-  selectedBarber,
-  selectedDate,
-  onDateChange,
+  timeSlots,
   selectedTime,
-  onTimeChange,
-  availableTimeSlots,
-  isLoading
+  onTimeSelect,
+  showAllSlots,
+  onToggleShowAll
 }: TimeSlotPickerProps) => {
   const { language } = useLanguage();
+  const displayedTimeSlots = showAllSlots ? timeSlots : timeSlots.slice(0, 6);
 
-  if (isLoading) {
+  const isAfterMidnight = (time: string) => {
+    const [hours] = time.split(':').map(Number);
+    return hours < 12 && hours >= 0; // 00:00 to 11:59
+  };
+
+  if (timeSlots.length === 0) {
     return (
       <div className="space-y-4">
         <h3 className="text-lg font-medium text-center">
@@ -48,6 +54,10 @@ export const TimeSlotPicker = ({
     );
   }
 
+  const needsSeparator = (currentTime: string, prevTime: string) => {
+    return prevTime === "23:30" && currentTime === "00:00";
+  };
+
   return (
     <div className="space-y-4">
       <h3 className="text-lg font-medium text-center">
@@ -57,24 +67,48 @@ export const TimeSlotPicker = ({
         <div className="bg-gradient-to-b from-white to-gray-50 shadow-sm border border-gray-100 rounded-lg">
           <div className="overflow-x-auto scrollbar-hide px-4 py-4">
             <div className="flex space-x-3 rtl:space-x-reverse">
-              {availableTimeSlots.map((slot) => (
-                <Button
-                  key={slot.time}
-                  variant={selectedTime === slot.time ? "default" : "outline"}
-                  onClick={() => slot.isAvailable && onTimeChange(slot.time)}
-                  disabled={!slot.isAvailable}
-                  className={cn(
-                    "flex-shrink-0",
-                    !slot.isAvailable && "bg-red-50 hover:bg-red-50 cursor-not-allowed text-gray-400 border-red-100"
-                  )}
-                >
-                  {slot.time}
-                </Button>
-              ))}
+              {displayedTimeSlots.map((slot, index) => {
+                const showSeparator = index > 0 && needsSeparator(slot.time, displayedTimeSlots[index - 1].time);
+
+                return (
+                  <>
+                    {showSeparator && (
+                      <div className="flex items-center mx-2" key={`separator-${index}`}>
+                        <Clock12 className="h-6 w-6 text-red-500" />
+                      </div>
+                    )}
+                    <div key={slot.time}>
+                      <Button
+                        variant={selectedTime === slot.time ? "default" : "outline"}
+                        onClick={() => slot.isAvailable && onTimeSelect(slot.time)}
+                        disabled={!slot.isAvailable}
+                        className={cn(
+                          "flex-shrink-0",
+                          !slot.isAvailable && "bg-red-50 hover:bg-red-50 cursor-not-allowed text-gray-400 border-red-100"
+                        )}
+                      >
+                        {slot.time}
+                      </Button>
+                    </div>
+                  </>
+                );
+              })}
             </div>
           </div>
         </div>
       </div>
+      
+      {timeSlots.length > 6 && (
+        <Button
+          variant="ghost"
+          onClick={onToggleShowAll}
+          className="w-full mt-2"
+        >
+          {showAllSlots 
+            ? (language === 'ar' ? 'عرض أقل' : 'Show Less')
+            : (language === 'ar' ? 'للمزيد' : 'Show More')}
+        </Button>
+      )}
     </div>
   );
 };

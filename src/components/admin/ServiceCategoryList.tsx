@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { useOptimizedCategories } from '@/hooks/useOptimizedCategories';
@@ -6,8 +7,8 @@ import { CategoryActions } from './category-management/CategoryActions';
 import { ServiceManagementHeader } from './service-management/ServiceManagementHeader';
 import { ServiceCategorySkeleton } from './service-management/ServiceCategorySkeleton';
 import { EmptyServiceState } from './service-management/EmptyServiceState';
-import { useToast } from "@/hooks/use-toast";
-import { OnDragEndResponder } from '@hello-pangea/dnd';
+import { useToast } from "@/components/ui/use-toast";
+import type { DragDropContextProps } from '@hello-pangea/dnd';
 
 const ServiceCategoryList = () => {
   const [expandedCategories, setExpandedCategories] = useState<string[]>([]);
@@ -54,17 +55,19 @@ const ServiceCategoryList = () => {
         .eq('id', categoryId);
       
       toast({
+        title: "Category Deleted",
         description: "Category has been deleted successfully.",
       });
     } catch (error) {
       toast({
+        title: "Error",
         description: "Failed to delete category. Please try again.",
         variant: "destructive",
       });
     }
   };
 
-  const handleDragEnd: OnDragEndResponder = useCallback(async (result) => {
+  const handleDragEnd = useCallback<NonNullable<DragDropContextProps['onDragEnd']>>(async (result) => {
     if (!result.destination || !categories) return;
 
     const { source, destination } = result;
@@ -79,10 +82,12 @@ const ServiceCategoryList = () => {
         .eq('id', removed.id);
 
       toast({
+        title: "Order Updated",
         description: "Category order has been updated successfully.",
       });
     } catch (error) {
       toast({
+        title: "Error",
         description: "Failed to update category order.",
         variant: "destructive",
       });

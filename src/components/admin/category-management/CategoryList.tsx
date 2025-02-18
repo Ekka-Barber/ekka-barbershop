@@ -1,5 +1,5 @@
 
-import { DragDropContext, Droppable, OnDragEndResponder } from '@hello-pangea/dnd';
+import { DragDropContext, Droppable } from '@hello-pangea/dnd';
 import { Category } from '@/types/service';
 import { CategoryItem } from '../CategoryItem';
 
@@ -8,7 +8,7 @@ interface CategoryListProps {
   expandedCategories: string[];
   onToggleCategory: (categoryId: string) => void;
   onDeleteCategory: (categoryId: string) => void;
-  onDragEnd: OnDragEndResponder;
+  onDragEnd: (result: any) => void;
 }
 
 export const CategoryList = ({

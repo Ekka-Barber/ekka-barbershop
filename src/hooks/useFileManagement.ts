@@ -1,7 +1,8 @@
+
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/components/ui/use-toast";
 import { FileMetadata } from '@/types/admin';
 
 export const useFileManagement = () => {
@@ -84,6 +85,7 @@ export const useFileManagement = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['marketing-files'] });
       toast({
+        title: "Success",
         description: "File uploaded successfully",
       });
       setSelectedBranch(null);
@@ -93,6 +95,7 @@ export const useFileManagement = () => {
     },
     onError: (error) => {
       toast({
+        title: "Error",
         description: "Failed to upload file",
         variant: "destructive",
       });
@@ -112,6 +115,7 @@ export const useFileManagement = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['marketing-files'] });
       toast({
+        title: "Success",
         description: "File status updated",
       });
     }
@@ -138,6 +142,7 @@ export const useFileManagement = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['marketing-files'] });
       toast({
+        title: "Success",
         description: "File deleted successfully",
       });
     }
@@ -155,11 +160,13 @@ export const useFileManagement = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['marketing-files'] });
       toast({
+        title: "Success",
         description: "End date updated successfully",
       });
     },
     onError: (error) => {
       toast({
+        title: "Error",
         description: "Failed to update end date",
         variant: "destructive",
       });

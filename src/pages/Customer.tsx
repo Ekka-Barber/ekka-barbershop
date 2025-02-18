@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -9,41 +8,38 @@ import { supabase } from "@/integrations/supabase/client";
 import { MapPin } from "lucide-react";
 import { BranchDialog } from "@/components/customer/BranchDialog";
 import { LocationDialog } from "@/components/customer/LocationDialog";
-import { Branch } from "@/types/branch";
 
 const Customer = () => {
   const navigate = useNavigate();
-  const { t, language } = useLanguage();
+  const {
+    t,
+    language
+  } = useLanguage();
   const [branchDialogOpen, setBranchDialogOpen] = useState(false);
   const [locationDialogOpen, setLocationDialogOpen] = useState(false);
-
-  const { data: branches } = useQuery({
+  const {
+    data: branches
+  } = useQuery({
     queryKey: ['branches'],
     queryFn: async () => {
-      const { data, error } = await supabase.from('branches').select('*');
+      const {
+        data,
+        error
+      } = await supabase.from('branches').select('*');
       if (error) throw error;
-      
-      // Transform the data to ensure working_hours is properly typed
-      return data.map(branch => ({
-        ...branch,
-        working_hours: branch.working_hours as Branch['working_hours']
-      })) as Branch[];
+      return data;
     }
   });
-
   const handleBranchSelect = (branchId: string) => {
     setBranchDialogOpen(false);
     navigate(`/bookings?branch=${branchId}`);
   };
-
   const handleLocationClick = (url: string | null) => {
     if (url) {
       window.open(url, '_blank');
     }
   };
-
-  return (
-    <div dir={language === 'ar' ? 'rtl' : 'ltr'} className="min-h-screen flex flex-col">
+  return <div dir={language === 'ar' ? 'rtl' : 'ltr'} className="min-h-screen flex flex-col">
       <div className="app-header">
         <div className="language-switcher-container">
           <LanguageSwitcher />
@@ -53,7 +49,7 @@ const Customer = () => {
       <div className="app-container">
         <div className="content-area">
           <div className="text-center mb-8">
-            <img src="lovable-uploads/8289fb1d-c6e6-4528-980c-6b52313ca898.png" alt="Ekka Barbershop Logo" className="h-32 mx-auto mb-6" />
+            <img src="/lovable-uploads/8289fb1d-c6e6-4528-980c-6b52313ca898.png" alt="Ekka Barbershop Logo" className="h-32 mx-auto mb-6" />
             <div className="space-y-2">
               <h2 className="text-xl font-medium text-[#222222]">
                 {t('welcome.line1')}
@@ -88,7 +84,7 @@ const Customer = () => {
             <Button className="w-full h-14 text-lg font-medium bg-white hover:bg-gray-50 text-gray-800 transition-all duration-300 shadow-lg hover:shadow-xl border border-gray-200 touch-target overflow-hidden" onClick={() => window.open('https://enroll.boonus.app/64b7c34953090f001de0fb6c/wallet/64b7efed53090f001de815b4', '_blank')}>
               <div className={`w-full flex items-center ${language === 'ar' ? 'flex-row-reverse' : 'flex-row'} justify-between gap-2 px-3`}>
                 <span className="font-semibold truncate text-base flex-grow max-w-[75%]">{language === 'ar' ? 'انضم لبرنامج الولاء' : 'Join loyalty program'}</span>
-                <img src="lovable-uploads/ba9a65f1-bf31-4b9c-ab41-7c7228a2f1b7.png" alt="Rescale Logo" className="h-7 w-auto flex-shrink-0" />
+                <img src="/lovable-uploads/ba9a65f1-bf31-4b9c-ab41-7c7228a2f1b7.png" alt="Rescale Logo" className="h-7 w-auto flex-shrink-0" />
               </div>
             </Button>
           </div>
@@ -100,8 +96,7 @@ const Customer = () => {
       <LocationDialog open={locationDialogOpen} onOpenChange={setLocationDialogOpen} branches={branches} onLocationClick={handleLocationClick} />
 
       <footer className="page-footer" />
-    </div>
-  );
+    </div>;
 };
 
 export default Customer;

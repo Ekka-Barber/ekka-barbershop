@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/components/ui/use-toast";
 import { Service } from '@/types/service';
 
 export const useServiceForm = (onSuccess: () => void) => {
@@ -65,6 +65,7 @@ export const useServiceForm = (onSuccess: () => void) => {
     },
     onError: (error) => {
       toast({
+        title: "Error",
         description: "Failed to add service",
         variant: "destructive",
       });
@@ -117,6 +118,7 @@ export const useServiceForm = (onSuccess: () => void) => {
     },
     onError: (error) => {
       toast({
+        title: "Error",
         description: "Failed to update service",
         variant: "destructive",
       });

@@ -1,10 +1,11 @@
+
 import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Plus, X } from 'lucide-react';
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/components/ui/use-toast";
 import { ServiceDialog } from '../ServiceDialog';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Category } from '@/types/service';
@@ -40,11 +41,13 @@ export const CategoryActions = ({ categories }: CategoryActionsProps) => {
       setIsOpen(false);
       setNewCategory({ name_en: '', name_ar: '' });
       toast({
+        title: "Success",
         description: "Category added successfully",
       });
     },
     onError: (error) => {
       toast({
+        title: "Error",
         description: "Failed to add category",
         variant: "destructive",
       });
