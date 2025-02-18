@@ -1,4 +1,3 @@
-
 export interface Service {
   id: string;
   name_en: string;
@@ -74,3 +73,18 @@ export const validateService = (service: any): Service | null => {
 };
 
 export type ValidService = ReturnType<typeof validateService>;
+
+export interface ServiceViewState {
+  selected: Service | null;
+  isOpen: boolean;
+  viewTime: number;
+  viewTimes: Record<string, number>;
+}
+
+export interface ServiceDiscoveryEvent {
+  categoryId: string;
+  serviceId?: string;
+  viewDuration?: number;
+  interactionType: 'view' | 'select' | 'deselect';
+  timestamp: number;
+}
