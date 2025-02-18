@@ -1,6 +1,7 @@
 
 import { CustomerDetails, Branch, Employee } from '@/types/booking';
 import { Service, SelectedService } from '@/types/service';
+import { BookingStep } from '@/components/booking/BookingProgress';
 import { useBookingState } from './booking/useBookingState';
 import { useServiceManagement } from './booking/useServiceManagement';
 import { useEmployeeManagement } from './booking/useEmployeeManagement';
