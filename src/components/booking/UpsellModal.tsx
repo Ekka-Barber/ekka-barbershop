@@ -1,11 +1,10 @@
 
 import React from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Slash } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { SelectedService } from '@/types/service';
 
 interface UpsellService {
   id: string;
@@ -66,23 +65,13 @@ export const UpsellModal = ({
                 'Special Offers Available!'
               )}
             </div>
-            {language === 'ar' && (
-              <div className="flex items-center justify-center gap-2 text-base font-bold">
-                <span>🔥</span>
-                <span>اجعل تجربتك أفضل بأقل سعر</span>
-                <span>🔥</span>
-              </div>
-            )}
           </DialogTitle>
-        </DialogHeader>
-
-        <div className="px-6 py-2">
-          <p className="text-center text-muted-foreground text-sm">
-            {language === 'ar'
+          <DialogDescription className="text-center">
+            {language === 'ar' 
               ? 'اختر من الخدمات الإضافية التالية ما تحب بسعر مخفض'
               : 'Select from the following additional services at discounted prices'}
-          </p>
-        </div>
+          </DialogDescription>
+        </DialogHeader>
 
         <div className="flex-1 overflow-hidden flex flex-col">
           <ScrollArea className="flex-1">
@@ -155,4 +144,3 @@ export const UpsellModal = ({
     </Dialog>
   );
 };
-

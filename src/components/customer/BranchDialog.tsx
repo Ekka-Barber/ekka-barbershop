@@ -1,6 +1,6 @@
 
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useTimeFormatting } from "@/hooks/useTimeFormatting";
 import { Clock } from "lucide-react";
@@ -30,9 +30,12 @@ export const BranchDialog = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-xl bg-white border-0 shadow-2xl p-4">
         <DialogHeader>
-          <DialogTitle className="text-center text-xl font-bold text-[#222222] mb-4">
+          <DialogTitle className="text-center text-xl font-bold text-[#222222] mb-2">
             {t('select.branch')}
           </DialogTitle>
+          <DialogDescription className="text-center text-sm text-gray-600">
+            {language === 'ar' ? 'اختر الفرع المناسب لك' : 'Select your preferred branch'}
+          </DialogDescription>
         </DialogHeader>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {branches?.map((branch) => (
