@@ -7,7 +7,7 @@ export const useUpsellWorkflow = () => {
   const [pendingStep, setPendingStep] = useState<BookingStep | null>(null);
 
   const handleStepChange = useCallback((
-    nextStep: string,
+    nextStep: BookingStep,
     availableUpsells: any[],
     selectedServices: any[],
     totalPrice: number

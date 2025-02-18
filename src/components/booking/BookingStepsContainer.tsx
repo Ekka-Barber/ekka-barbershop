@@ -50,7 +50,7 @@ export const BookingStepsContainer = ({ branch }: BookingStepsContainerProps) =>
     setPendingStep
   } = useUpsellWorkflow();
 
-  const handleStepChange = (step: string) => {
+  const handleStepChange = (step: BookingStep) => {
     const wasUpsellHandled = handleUpsellStepChange(
       step,
       availableUpsells || [],
@@ -59,7 +59,7 @@ export const BookingStepsContainer = ({ branch }: BookingStepsContainerProps) =>
     );
     
     if (!wasUpsellHandled) {
-      setCurrentStep(step as BookingStep);
+      setCurrentStep(step);
     }
   };
 
