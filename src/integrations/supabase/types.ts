@@ -1029,6 +1029,39 @@ export type Database = {
           },
         ]
       }
+      page_views: {
+        Row: {
+          browser_info: Json | null
+          created_at: string | null
+          device_type: Database["public"]["Enums"]["device_type"] | null
+          entry_time: string | null
+          exit_time: string | null
+          id: string
+          page_url: string
+          session_id: string | null
+        }
+        Insert: {
+          browser_info?: Json | null
+          created_at?: string | null
+          device_type?: Database["public"]["Enums"]["device_type"] | null
+          entry_time?: string | null
+          exit_time?: string | null
+          id?: string
+          page_url: string
+          session_id?: string | null
+        }
+        Update: {
+          browser_info?: Json | null
+          created_at?: string | null
+          device_type?: Database["public"]["Enums"]["device_type"] | null
+          entry_time?: string | null
+          exit_time?: string | null
+          id?: string
+          page_url?: string
+          session_id?: string | null
+        }
+        Relationships: []
+      }
       payment_method_fees: {
         Row: {
           created_at: string
@@ -1847,6 +1880,19 @@ export type Database = {
         | "massage_therapist"
         | "hammam_specialist"
       expense_payment_method: "cash" | "deposit" | "bank_transfer"
+      interaction_type:
+        | "page_view"
+        | "button_click"
+        | "dialog_open"
+        | "dialog_close"
+        | "form_interaction"
+        | "pdf_view"
+        | "menu_view"
+        | "offer_view"
+        | "branch_select"
+        | "service_select"
+        | "barber_select"
+        | "language_switch"
       payment_method_type: "cash" | "deposit" | "bank_transfer"
       salary_calculation_type:
         | "fixed"
