@@ -1,29 +1,30 @@
 
 import { Service, Category } from '@/types/service';
 import { ServiceSelection } from '@/components/booking/ServiceSelection';
+import { BookingStep } from '../BookingProgress';
 
 interface ServiceStepProps {
   categories: Category[];
-  isLoading: boolean;
+  categoriesLoading: boolean;
   selectedServices: Service[];
-  onServiceToggle: (service: Service) => void;
-  onStepChange: (step: string) => void;
+  handleServiceToggle: (service: Service) => void;
+  handleStepChange: (step: BookingStep) => void;
 }
 
 export const ServiceStep = ({
   categories,
-  isLoading,
+  categoriesLoading,
   selectedServices,
-  onServiceToggle,
-  onStepChange
+  handleServiceToggle,
+  handleStepChange
 }: ServiceStepProps) => {
   return (
     <ServiceSelection
       categories={categories}
-      isLoading={isLoading}
+      isLoading={categoriesLoading}
       selectedServices={selectedServices}
-      onServiceToggle={onServiceToggle}
-      onStepChange={onStepChange}
+      onServiceToggle={handleServiceToggle}
+      onStepChange={handleStepChange}
     />
   );
 };
