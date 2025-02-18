@@ -4,6 +4,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
 import { BookingStep } from "@/components/booking/BookingProgress";
 import { toast } from "sonner";
+import { useBookingContext } from "@/contexts/BookingContext";
 
 interface BookingNavigationProps {
   currentStepIndex: number;
@@ -32,6 +33,7 @@ export const BookingNavigation = ({
   const navigate = useNavigate();
   const location = useLocation();
   const { t, language } = useLanguage();
+  const { dispatch } = useBookingContext();
 
   const getBranchId = () => {
     const searchParams = new URLSearchParams(location.search);
@@ -39,26 +41,39 @@ export const BookingNavigation = ({
   };
 
   const handleNext = () => {
-    const branchId = getBranchId();
-    if (!branchId || !branch) {
-      toast.error(language === 'ar' ? 'يرجى تحديد الفرع أولاً' : 'Please select a branch first');
-      navigate('/customer');
-      return;
-    }
+    dispatch({ type: 'LOCK_STEP_CHANGE' });
+    try {
+      const branchId = getBranchId();
+      if (!branchId || !branch) {
+        toast.error(language === 'ar' ? 'يرجى تحديد الفرع أولاً' : 'Please select a branch first');
+        navigate('/customer');
+        return;
+      }
 
-    if (onNextClick) {
-      onNextClick();
-    } else if (currentStepIndex < steps.length - 1) {
-      setCurrentStep(steps[currentStepIndex + 1]);
+      if (onNextClick) {
+        onNextClick();
+      } else if (currentStepIndex < steps.length - 1) {
+        setCurrentStep(steps[currentStepIndex + 1]);
+      }
+    } finally {
+      dispatch({ type: 'UNLOCK_STEP_CHANGE' });
     }
   };
 
   const handleBack = () => {
-    if (currentStepIndex > 0) {
-      setCurrentStep(steps[currentStepIndex - 1]);
-    } else {
-      const branchId = getBranchId();
-      navigate(`/customer${branchId ? `?branch=${branchId}` : ''}`);
+    dispatch({ type: 'LOCK_STEP_CHANGE' });
+    try {
+      if (currentStepIndex > 0) {
+        setCurrentStep(steps[currentStepIndex - 1]);
+      } else {
+        const branchId = getBranchId();
+        if (!branchId) {
+          console.warn('No branch ID found during back navigation');
+        }
+        navigate(`/customer${branchId ? `?branch=${branchId}` : ''}`);
+      }
+    } finally {
+      dispatch({ type: 'UNLOCK_STEP_CHANGE' });
     }
   };
 

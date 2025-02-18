@@ -10,6 +10,8 @@ import { StepRenderer } from "./steps/StepRenderer";
 import { useUpsellWorkflow } from "@/hooks/booking/useUpsellWorkflow";
 import { Branch } from "@/types/booking";
 import { ErrorBoundary } from "@/components/common/ErrorBoundary";
+import { toast } from "sonner";
+import { useBookingContext } from "@/contexts/BookingContext";
 
 const STEPS: BookingStep[] = ['services', 'datetime', 'barber', 'details'];
 
@@ -19,6 +21,8 @@ interface BookingStepsContainerProps {
 
 export const BookingStepsContainer = ({ branch }: BookingStepsContainerProps) => {
   const { language } = useLanguage();
+  const { dispatch } = useBookingContext();
+  
   const {
     selectedServices,
     selectedDate,
@@ -53,23 +57,39 @@ export const BookingStepsContainer = ({ branch }: BookingStepsContainerProps) =>
     setPendingStep
   } = useUpsellWorkflow();
 
+  // Effect to set branch in context when component mounts or branch changes
+  useEffect(() => {
+    if (branch) {
+      console.log('Setting branch in context:', branch);
+      dispatch({ type: 'SET_BRANCH', payload: branch });
+    } else {
+      console.error('No branch provided to BookingStepsContainer');
+      toast.error('Please select a branch to continue');
+    }
+  }, [branch, dispatch]);
+
   const handleMainStepChange = (step: BookingStep) => {
     if (isStepChangeLocked) {
       console.log('Step change locked, skipping...', { step });
       return;
     }
 
-    console.log('Step change requested:', { from: currentStep, to: step });
-    
-    const shouldPreventStepChange = handleUpsellStepChange(
-      step,
-      availableUpsells || [],
-      selectedServices,
-      totalPrice
-    );
-    
-    if (!shouldPreventStepChange) {
-      handleStepChange(step);
+    dispatch({ type: 'LOCK_STEP_CHANGE' });
+    try {
+      console.log('Step change requested:', { from: currentStep, to: step });
+      
+      const shouldPreventStepChange = handleUpsellStepChange(
+        step,
+        availableUpsells || [],
+        selectedServices,
+        totalPrice
+      );
+      
+      if (!shouldPreventStepChange) {
+        handleStepChange(step);
+      }
+    } finally {
+      dispatch({ type: 'UNLOCK_STEP_CHANGE' });
     }
   };
 
@@ -82,8 +102,13 @@ export const BookingStepsContainer = ({ branch }: BookingStepsContainerProps) =>
   };
 
   const handleUpsellConfirm = (selectedUpsells: any[]) => {
-    handleUpsellServiceAdd(selectedUpsells);
-    handleUpsellModalCloseWrapper();
+    dispatch({ type: 'LOCK_STEP_CHANGE' });
+    try {
+      handleUpsellServiceAdd(selectedUpsells);
+      handleUpsellModalCloseWrapper();
+    } finally {
+      dispatch({ type: 'UNLOCK_STEP_CHANGE' });
+    }
   };
 
   const currentStepIndex = STEPS.indexOf(currentStep);
