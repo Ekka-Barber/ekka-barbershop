@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -15,8 +14,13 @@ const isProduction = (): boolean => {
   return window.location.hostname === 'ekka-barbershop.lovable.app';
 };
 
-// Track click events
+// Track click events - currently disabled
 export const trackClick = async (event: MouseEvent) => {
+  // Tracking disabled
+  return;
+
+  // Keeping the old code commented for future reference
+  /*
   // Only track clicks in production environment
   if (!isProduction()) {
     return;
@@ -86,5 +90,5 @@ export const trackClick = async (event: MouseEvent) => {
     console.error('Error tracking click:', error);
     toast.error('Error tracking click');
   }
+  */
 };
-
