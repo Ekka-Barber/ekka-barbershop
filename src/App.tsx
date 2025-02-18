@@ -1,11 +1,7 @@
 
 import React from "react";
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
-import { LanguageProvider } from "@/contexts/LanguageContext";
+import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { useEffect, lazy, Suspense } from "react";
 import { useTracking } from "@/hooks/useTracking";
 import Customer from "./pages/Customer";
@@ -15,8 +11,6 @@ import Bookings from "./pages/Bookings";
 
 // Lazy load Admin component
 const Admin = lazy(() => import("./pages/Admin"));
-
-const queryClient = new QueryClient();
 
 // List of public routes that customers can access
 const PUBLIC_ROUTES = ['/customer', '/menu', '/offers', '/bookings'];
@@ -68,19 +62,9 @@ const AppWithTracking = () => {
 
 const App = () => {
   return (
-    <React.StrictMode>
-      <TooltipProvider>
-        <BrowserRouter>
-          <QueryClientProvider client={queryClient}>
-            <LanguageProvider>
-              <Toaster />
-              <Sonner />
-              <AppWithTracking />
-            </LanguageProvider>
-          </QueryClientProvider>
-        </BrowserRouter>
-      </TooltipProvider>
-    </React.StrictMode>
+    <TooltipProvider>
+      <AppWithTracking />
+    </TooltipProvider>
   );
 };
 
