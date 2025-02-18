@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
@@ -9,7 +10,6 @@ import { cacheServices, getCachedServices, cacheActiveCategory, getCachedActiveC
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useToast } from "@/hooks/use-toast";
 import { AlertTriangle } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import { useTracking } from "@/hooks/useTracking";
 import { getPlatformType } from "@/services/platformDetection";
 
@@ -38,28 +38,49 @@ export const ServiceSelection = ({
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [discoveryPath, setDiscoveryPath] = useState<string[]>([]);
   const [viewStartTime, setViewStartTime] = useState<Date | null>(null);
+  const [serviceViewTimes, setServiceViewTimes] = useState<Record<string, number>>({});
 
+  // Track category view duration
   useEffect(() => {
     if (activeCategory) {
+      const viewStartTime = Date.now();
       cacheActiveCategory(activeCategory);
-      const deviceType = getPlatformType() === 'desktop' ? 'desktop' : 'mobile';
+
       trackServiceInteraction({
         category_id: activeCategory,
         interaction_type: 'category_view',
         discovery_path: [...discoveryPath, activeCategory],
         price_viewed: false,
-        description_viewed: false,
-        timestamp: new Date().toISOString(),
-        session_id: 'temp',
-        device_type: deviceType
+        description_viewed: false
       });
+
       setDiscoveryPath(prev => [...prev, activeCategory]);
+
+      return () => {
+        const viewDuration = Date.now() - viewStartTime;
+        trackServiceInteraction({
+          category_id: activeCategory,
+          interaction_type: 'category_view_end',
+          discovery_path: discoveryPath,
+          price_viewed: true,
+          description_viewed: true,
+          view_duration_seconds: Math.floor(viewDuration / 1000)
+        });
+      };
     }
   }, [activeCategory]);
 
+  // Track service selection persistence
   useEffect(() => {
     if (selectedServices.length > 0) {
       cacheServices(selectedServices);
+      trackServiceInteraction({
+        interaction_type: 'service_selection_update',
+        discovery_path: discoveryPath,
+        selected_service_name: selectedServices.map(s => language === 'ar' ? s.name_ar : s.name_en).join(', '),
+        price_viewed: true,
+        description_viewed: true
+      });
     }
   }, [selectedServices]);
 
@@ -67,7 +88,7 @@ export const ServiceSelection = ({
     setSelectedService(service);
     setIsSheetOpen(true);
     setViewStartTime(new Date());
-    const deviceType = getPlatformType() === 'desktop' ? 'desktop' : 'mobile';
+    setServiceViewTimes(prev => ({ ...prev, [service.id]: Date.now() }));
     
     await trackServiceInteraction({
       category_id: activeCategory || '',
@@ -76,34 +97,33 @@ export const ServiceSelection = ({
       discovery_path: discoveryPath,
       selected_service_name: language === 'ar' ? service.name_ar : service.name_en,
       price_viewed: true,
-      description_viewed: false,
-      timestamp: new Date().toISOString(),
-      session_id: 'temp',
-      device_type: deviceType
+      description_viewed: false
     });
   };
 
   const handleServiceToggleWrapper = async (service: any) => {
     try {
-      const deviceType = getPlatformType() === 'desktop' ? 'desktop' : 'mobile';
-      const viewDuration = viewStartTime ? new Date().getTime() - viewStartTime.getTime() : 0;
+      const startTime = serviceViewTimes[service.id];
+      const viewDuration = startTime ? Date.now() - startTime : 0;
       
       await trackServiceInteraction({
         category_id: activeCategory || '',
         service_id: service.id,
-        interaction_type: 'service_compare',
+        interaction_type: 'service_selection',
         discovery_path: discoveryPath,
         selected_service_name: language === 'ar' ? service.name_ar : service.name_en,
         price_viewed: true,
         description_viewed: true,
-        timestamp: new Date().toISOString(),
-        session_id: 'temp',
-        device_type: deviceType
+        view_duration_seconds: Math.floor(viewDuration / 1000)
       });
 
       onServiceToggle(service);
       setIsSheetOpen(false);
       setViewStartTime(null);
+      
+      // Remove service from view times after tracking
+      const { [service.id]: _, ...remainingTimes } = serviceViewTimes;
+      setServiceViewTimes(remainingTimes);
     } catch (error) {
       handleServiceToggleError();
       console.error('Service toggle error:', error);
@@ -121,6 +141,13 @@ export const ServiceSelection = ({
   };
 
   const handleStepChange = (step: string) => {
+    trackServiceInteraction({
+      interaction_type: 'service_selection_complete',
+      discovery_path: discoveryPath,
+      selected_service_name: selectedServices.map(s => language === 'ar' ? s.name_ar : s.name_en).join(', '),
+      price_viewed: true,
+      description_viewed: true
+    });
     onStepChange?.(step);
   };
 

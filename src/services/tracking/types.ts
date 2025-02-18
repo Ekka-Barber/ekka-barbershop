@@ -1,29 +1,33 @@
 export type DeviceType = 'mobile' | 'tablet' | 'desktop';
 
-export type BaseInteractionType = 'page_view' | 'button_click' | 'dialog_open' | 'dialog_close' | 
-                                 'form_interaction' | 'pdf_view' | 'menu_view' | 'offer_view' | 
-                                 'branch_select' | 'service_select' | 'barber_select' | 'language_switch';
-
-export type ServiceInteractionType = 'category_view' | 'service_view' | 'service_compare';
-export type DateTimeInteractionType = 'calendar_open' | 'calendar_close' | 'date_select' | 'time_select' | 'time_slot_view';
-export type BarberInteractionType = 'profile_view' | 'availability_check' | 'selection' | 'comparison';
-
-export interface SessionData {
-  id: string;
-  timestamp: number;
-}
+export type ServiceInteractionType = 
+  | 'category_view'
+  | 'category_view_end'
+  | 'service_view'
+  | 'service_selection'
+  | 'service_selection_update'
+  | 'service_selection_complete';
 
 export interface ServiceDiscoveryEvent {
-  category_id: string;
+  category_id?: string;
   service_id?: string;
   interaction_type: ServiceInteractionType;
   discovery_path: string[];
   selected_service_name?: string;
   price_viewed: boolean;
   description_viewed: boolean;
-  session_id: string;
-  device_type: DeviceType;
-  timestamp: string;
+  view_duration_seconds?: number;
+  device_type?: DeviceType;
+  timestamp?: string;
+  session_id?: string;
+}
+
+export type DateTimeInteractionType = 'calendar_open' | 'calendar_close' | 'date_select' | 'time_select' | 'time_slot_view';
+export type BarberInteractionType = 'profile_view' | 'availability_check' | 'selection' | 'comparison';
+
+export interface SessionData {
+  id: string;
+  timestamp: number;
 }
 
 export interface DateTimeEvent {
