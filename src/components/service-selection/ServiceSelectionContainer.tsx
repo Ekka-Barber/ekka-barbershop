@@ -9,13 +9,14 @@ import { ServicesSkeleton } from '../booking/ServicesSkeleton';
 import { AlertTriangle } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Service, Category } from '@/types/service';
+import { BookingStep } from '@/components/booking/BookingProgress';
 
 interface ServiceSelectionContainerProps {
   categories: Category[] | undefined;
   isLoading: boolean;
   selectedServices: Service[];
   onServiceToggle: (service: Service) => void;
-  onStepChange?: (step: string) => void;
+  onStepChange: (step: BookingStep) => void;
 }
 
 export const ServiceSelectionContainer = ({
@@ -95,7 +96,7 @@ export const ServiceSelectionContainer = ({
         totalDuration={selectedServices.reduce((total, service) => total + service.duration, 0)}
         totalPrice={selectedServices.reduce((total, service) => total + service.price, 0)}
         language={language}
-        onNextStep={() => onStepChange?.('datetime')}
+        onNextStep={() => onStepChange('datetime')}
       />
     </div>
   );

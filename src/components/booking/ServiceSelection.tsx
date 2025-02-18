@@ -1,13 +1,14 @@
 
 import { ServiceSelectionContainer } from '../service-selection/ServiceSelectionContainer';
 import type { Service, Category } from '@/types/service';
+import { BookingStep } from './BookingProgress';
 
 interface ServiceSelectionProps {
   categories: Category[] | undefined;
   isLoading: boolean;
   selectedServices: Service[];
   onServiceToggle: (service: Service) => void;
-  onStepChange?: (step: string) => void;
+  onStepChange: (step: BookingStep) => void;
 }
 
 export const ServiceSelection = ({
