@@ -31,12 +31,12 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 };
 
 const AppContent = () => {
-  const { initializeTracking, cleanupTracking } = useTracking();
+  const { trackPageView } = useTracking();
+  const location = useLocation();
 
   useEffect(() => {
-    initializeTracking();
-    return () => cleanupTracking();
-  }, []);
+    trackPageView(location.pathname);
+  }, [location.pathname, trackPageView]);
 
   return (
     <Routes>
