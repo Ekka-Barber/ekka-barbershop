@@ -1,59 +1,36 @@
 
-import { v4 as uuidv4 } from 'uuid';
-import { SessionData } from './types';
+let currentSession: string | null = null;
+let lastActivity: number = Date.now();
+const SESSION_TIMEOUT = 30 * 60 * 1000; // 30 minutes
 
-let sessionId: string | null = null;
-
-const isProductionDomain = (hostname: string): boolean => {
-  return hostname === 'ekka-barbershop.lovable.app';
-};
-
-const isLocalDevelopment = (hostname: string): boolean => {
-  return hostname === 'localhost' || hostname === '127.0.0.1';
-};
-
-const shouldTrack = (): boolean => {
-  const hostname = window.location.hostname;
-  
-  // Never track in local development
-  if (isLocalDevelopment(hostname)) {
-    console.log('Tracking disabled in local development');
-    return false;
-  }
-
-  // Only track on production domain
-  if (isProductionDomain(hostname)) {
-    console.log(`Tracking enabled for production domain`);
-    return true;
-  }
-
-  // Disable tracking for all other domains (including preview)
-  console.log('Tracking disabled for non-production domain:', hostname);
-  return false;
+export const initializeSession = () => {
+  currentSession = generateSessionId();
+  lastActivity = Date.now();
 };
 
 export const getSessionId = (): string | null => {
-  if (!shouldTrack()) return null;
-
-  if (!sessionId) {
-    const stored = localStorage.getItem('tracking_session_id');
-    if (stored) {
-      const sessionData: SessionData = JSON.parse(stored);
-      if (Date.now() - sessionData.timestamp < 30 * 60 * 1000) { // 30 minutes
-        sessionId = sessionData.id;
-      }
-    }
-    
-    if (!sessionId) {
-      const newSession: SessionData = {
-        id: uuidv4(),
-        timestamp: Date.now()
-      };
-      localStorage.setItem('tracking_session_id', JSON.stringify(newSession));
-      sessionId = newSession.id;
-    }
+  if (!currentSession) {
+    initializeSession();
   }
-  return sessionId;
+  return currentSession;
 };
 
-export { shouldTrack };
+export const updateLastActivity = () => {
+  lastActivity = Date.now();
+};
+
+export const isSessionExpired = (): boolean => {
+  return Date.now() - lastActivity > SESSION_TIMEOUT;
+};
+
+export const generateSessionId = (): string => {
+  return Date.now().toString(36) + Math.random().toString(36).substring(2);
+};
+
+export const shouldTrack = (): boolean => {
+  if (isSessionExpired()) {
+    initializeSession();
+  }
+  updateLastActivity();
+  return true;
+};

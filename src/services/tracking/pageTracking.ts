@@ -1,7 +1,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { getPlatformType } from "@/services/platformDetection";
-import { BaseInteractionType, DatabaseInteractionType } from './types';
+import { BaseInteractionType, InteractionType } from './types';
 import { getSessionId, shouldTrack } from './sessionManager';
 import { mapPlatformToDeviceType, getBrowserInfo, tryTracking } from './utils';
 
@@ -26,18 +26,9 @@ export const trackPageView = async (pageUrl: string): Promise<void> => {
   });
 };
 
-const mapToValidDatabaseInteraction = (type: BaseInteractionType): DatabaseInteractionType => {
-  switch (type) {
-    case 'location_view':
-      return 'page_view';
-    default:
-      return type as DatabaseInteractionType;
-  }
-};
-
 export const trackInteraction = async (
-  type: BaseInteractionType,
-  details: Record<string, any>
+  type: InteractionType,
+  details: Record<string, any> = {}
 ): Promise<void> => {
   if (!shouldTrack()) return;
 
@@ -46,7 +37,7 @@ export const trackInteraction = async (
 
   await tryTracking(async () => {
     const { error } = await supabase.from('interaction_events').insert({
-      interaction_type: mapToValidDatabaseInteraction(type),
+      interaction_type: type,
       interaction_details: details,
       session_id: session,
       device_type: mapPlatformToDeviceType(getPlatformType()),

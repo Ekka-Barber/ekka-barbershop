@@ -1,8 +1,19 @@
-export type MarketingFunnelStage = 'landing' | 'service_browse' | 'datetime_select' | 'barber_select' | 'booking_complete';
+export type MarketingFunnelStage = 
+  | 'landing' 
+  | 'service_browse' 
+  | 'datetime_select' 
+  | 'barber_select' 
+  | 'booking_complete'
+  | 'offer_view';
 
 export type DeviceType = 'mobile' | 'tablet' | 'desktop';
 
 export type InteractionType = 
+  | 'calendar_open'
+  | 'calendar_close'
+  | 'date_select'
+  | 'time_select'
+  | 'time_slot_view'
   | 'barber_select'
   | 'page_view'
   | 'dialog_open'
@@ -25,9 +36,6 @@ export type InteractionType =
   | 'zoom'
   | 'profile_view'
   | 'selection'
-  | 'calendar_open'
-  | 'calendar_close'
-  | 'date_select'
   | 'category_view'
   | 'category_view_end'
   | 'service_selection_update'
@@ -39,11 +47,12 @@ export type InteractionType =
   | 'offer_view_end';
 
 export interface BaseInteractionType {
+  interaction_type: InteractionType;
   session_id?: string;
   device_type?: DeviceType;
   timestamp?: string;
-  interaction_type: InteractionType;
   interaction_details?: Record<string, any>;
+  source_page?: string;
 }
 
 export interface DatabaseInteractionType extends BaseInteractionType {
@@ -67,6 +76,7 @@ export interface ServiceDiscoveryEvent extends BaseInteractionType {
   discovery_path?: string[];
   description_viewed?: boolean;
   price_viewed?: boolean;
+  view_duration_seconds?: number;
 }
 
 export interface DateTimeEvent extends BaseInteractionType {
@@ -76,6 +86,8 @@ export interface DateTimeEvent extends BaseInteractionType {
   days_in_advance?: number;
   time_slot_position?: string;
   quick_select_usage?: boolean;
+  view_duration_seconds?: number;
+  calendar_navigation_path?: string[];
 }
 
 export interface BarberSelectionEvent extends BaseInteractionType {
@@ -109,6 +121,7 @@ export interface MenuInteractionEvent extends BaseInteractionType {
 export interface OfferInteractionEvent extends BaseInteractionType {
   offer_id?: string;
   view_duration_seconds?: number;
+  source_page?: string;
 }
 
 export interface MarketingFunnelEvent extends BaseInteractionType {
@@ -237,27 +250,6 @@ export interface ProcessedJourneyData {
   pathOptimizations: PathOptimization[];
 }
 
-export interface PathOptimization {
-  currentPath: string[];
-  suggestedPath: string[];
-  potentialImpact: {
-    conversionRate: number;
-    timeToBook: number;
-    dropOffReduction: number;
-  };
-  reasoning: string;
-  priority: 'high' | 'medium' | 'low';
-}
-
-export interface ServiceBundle {
-  name: string;
-  frequency: number;
-  averageValue: number;
-  conversionRate: number;
-  services: string[];
-  performanceMetrics: {
-    timeToBook: number;
-    customerSatisfaction: number;
-    repeatBookingRate: number;
-  };
-}
+// Re-export interfaces from admin tracking types
+export type { ServiceBundle } from '@/components/admin/tracking/types';
+export type { PathOptimization } from '@/components/admin/tracking/types';
