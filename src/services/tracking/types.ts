@@ -1,6 +1,20 @@
 
 export type DeviceType = 'mobile' | 'tablet' | 'desktop';
 
+export type DatabaseInteractionType = 
+  | 'page_view'
+  | 'dialog_open'
+  | 'dialog_close'
+  | 'service_select'
+  | 'branch_select'
+  | 'offer_view'
+  | 'barber_select'
+  | 'button_click'
+  | 'form_interaction'
+  | 'pdf_view'
+  | 'menu_view'
+  | 'language_switch';
+
 export type ServiceInteractionType = 
   | 'category_view'
   | 'category_view_end'
@@ -22,13 +36,7 @@ export type BarberInteractionType =
   | 'selection' 
   | 'comparison';
 
-export type BaseInteractionType = 
-  | 'page_view' 
-  | 'dialog_open' 
-  | 'dialog_close' 
-  | 'service_select'
-  | 'branch_select'
-  | 'location_view';
+export type BaseInteractionType = DatabaseInteractionType;
 
 export type BranchInteractionType = 
   | 'dialog_open'
