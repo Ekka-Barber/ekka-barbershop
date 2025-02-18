@@ -1,5 +1,9 @@
 
 import { SelectedService } from "./service";
+import { Branch as BaseBranch, WorkingHours } from "./branch";
+
+// Re-export the Branch type from branch.ts to ensure consistency
+export type { Branch } from "./branch";
 
 export interface BookingDetails {
   selectedServices: SelectedService[];
@@ -31,17 +35,6 @@ export interface EmployeeSchedule {
   is_available: boolean;
 }
 
-export interface Branch {
-  id: string;
-  name: string;
-  name_ar: string | null;
-  address: string;
-  address_ar: string | null;
-  working_hours: Record<string, string[]>;
-  whatsapp_number?: string | null;
-  google_maps_url?: string | null;
-}
-
 // Alias for backward compatibility
 export type BarberDetails = Employee;
 
@@ -52,7 +45,7 @@ export interface Employee {
   role: string;
   photo_url: string | null;
   nationality: string | null;
-  working_hours: Record<string, string[]>;
+  working_hours: WorkingHours;
   off_days: string[];
 }
 
