@@ -54,7 +54,7 @@ export const LightweightMonitoring = () => {
       const { data: conversions, error: conversionsError } = await supabase
         .from('interaction_events')
         .select('session_id')
-        .eq('interaction_type', 'service_selection_complete')
+        .eq('interaction_type', 'service_select')
         .gte('created_at', thirtyMinutesAgo)
         .limit(1000);
 

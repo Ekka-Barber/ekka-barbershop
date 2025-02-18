@@ -137,11 +137,11 @@ const CustomerTrackingDashboard = () => {
         </TabsContent>
 
         <TabsContent value="predictive">
-          <PredictiveAnalytics data={predictiveData} />
+          <PredictiveAnalytics />
         </TabsContent>
 
         <TabsContent value="geographic">
-          <GeographicInsights data={geographicData} />
+          <GeographicInsights />
         </TabsContent>
       </Tabs>
     </div>
