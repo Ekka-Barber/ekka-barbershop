@@ -3,19 +3,10 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useTimeFormatting } from "@/hooks/useTimeFormatting";
-import { useTracking } from "@/hooks/useTracking";
 import { Clock } from "lucide-react";
 import { useEffect, useRef } from "react";
 import { trackBranchSelection } from "@/services/tracking/branchTracking";
-
-interface Branch {
-  id: string;
-  name: string;
-  name_ar: string;
-  address: string;
-  address_ar: string;
-  working_hours: any;
-}
+import { Branch, BranchSelectionEvent } from "@/types/branch";
 
 interface BranchDialogProps {
   open: boolean;
@@ -38,30 +29,33 @@ export const BranchDialog = ({
     if (open) {
       const now = new Date();
       dialogOpenTime.current = now;
-      trackBranchSelection({
+      const event: BranchSelectionEvent = {
         interaction_type: 'dialog_open',
         source_page: window.location.pathname,
         dialog_open_time: now.toISOString()
-      });
+      };
+      trackBranchSelection(event);
     } else if (dialogOpenTime.current) {
       const closeTime = new Date();
-      trackBranchSelection({
+      const event: BranchSelectionEvent = {
         interaction_type: 'dialog_close',
         source_page: window.location.pathname,
         dialog_open_time: dialogOpenTime.current.toISOString(),
         dialog_close_time: closeTime.toISOString()
-      });
+      };
+      trackBranchSelection(event);
       dialogOpenTime.current = null;
     }
   }, [open]);
 
   const handleBranchSelect = (branch: Branch) => {
-    trackBranchSelection({
+    const event: BranchSelectionEvent = {
       interaction_type: 'branch_select',
       branch_id: branch.id,
-      selected_branch_name: language === 'ar' ? branch.name_ar : branch.name,
+      selected_branch_name: language === 'ar' ? branch.name_ar || branch.name : branch.name,
       source_page: window.location.pathname
-    });
+    };
+    trackBranchSelection(event);
     onBranchSelect(branch.id);
   };
 
@@ -83,10 +77,10 @@ export const BranchDialog = ({
             >
               <div className={`flex flex-col items-${language === 'ar' ? 'end' : 'start'} flex-shrink min-w-0 max-w-[70%]`}>
                 <span className="w-full font-bold text-base text-[#222222] group-hover:text-[#C4A36F] transition-colors truncate">
-                  {language === 'ar' ? branch.name_ar : branch.name}
+                  {language === 'ar' ? branch.name_ar || branch.name : branch.name}
                 </span>
                 <span className="w-full text-sm text-gray-600 group-hover:text-[#C4A36F]/70 transition-colors truncate mt-1">
-                  {language === 'ar' ? branch.address_ar : branch.address}
+                  {language === 'ar' ? branch.address_ar || branch.address : branch.address}
                 </span>
               </div>
               <div className={`flex-shrink-0 ${language === 'ar' ? 'border-s' : 'border-e'} border-gray-200 ${language === 'ar' ? 'ps-3' : 'pe-3'}`}>

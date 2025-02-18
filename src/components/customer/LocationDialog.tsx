@@ -6,16 +6,7 @@ import { useTimeFormatting } from "@/hooks/useTimeFormatting";
 import { Clock, Car } from "lucide-react";
 import { useTracking } from "@/hooks/useTracking";
 import { useEffect, useRef } from "react";
-
-interface Branch {
-  id: string;
-  name: string;
-  name_ar: string;
-  address: string;
-  address_ar: string;
-  working_hours: any;
-  google_maps_url: string | null;
-}
+import { Branch } from "@/types/branch";
 
 interface LocationDialogProps {
   open: boolean;
@@ -57,8 +48,8 @@ export const LocationDialog = ({
     trackInteraction('button_click', {
       action: 'location_select',
       branch_id: branch.id,
-      branch_name: language === 'ar' ? branch.name_ar : branch.name,
-      branch_address: language === 'ar' ? branch.address_ar : branch.address,
+      branch_name: language === 'ar' ? branch.name_ar || branch.name : branch.name,
+      branch_address: language === 'ar' ? branch.address_ar || branch.address : branch.address,
       has_maps_url: !!branch.google_maps_url,
       page_url: window.location.pathname,
       language: language
@@ -97,10 +88,10 @@ export const LocationDialog = ({
             >
               <div className={`flex flex-col items-${language === 'ar' ? 'end' : 'start'} flex-shrink min-w-0 max-w-[70%]`}>
                 <span className="w-full font-bold text-base text-[#222222] group-hover:text-[#C4A36F] transition-colors truncate">
-                  {language === 'ar' ? branch.name_ar : branch.name}
+                  {language === 'ar' ? branch.name_ar || branch.name : branch.name}
                 </span>
                 <span className="w-full text-sm text-gray-600 group-hover:text-[#C4A36F]/70 transition-colors truncate mt-1">
-                  {language === 'ar' ? branch.address_ar : branch.address}
+                  {language === 'ar' ? branch.address_ar || branch.address : branch.address}
                 </span>
               </div>
               <div className={`flex-shrink-0 ${language === 'ar' ? 'border-s' : 'border-e'} border-gray-200 ${language === 'ar' ? 'ps-3' : 'pe-3'}`}>
