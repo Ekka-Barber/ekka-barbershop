@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { useOptimizedCategories } from '@/hooks/useOptimizedCategories';
@@ -8,7 +7,7 @@ import { ServiceManagementHeader } from './service-management/ServiceManagementH
 import { ServiceCategorySkeleton } from './service-management/ServiceCategorySkeleton';
 import { EmptyServiceState } from './service-management/EmptyServiceState';
 import { useToast } from "@/components/ui/use-toast";
-import type { DragDropContextProps } from '@hello-pangea/dnd';
+import { DropResult } from '@hello-pangea/dnd';
 
 const ServiceCategoryList = () => {
   const [expandedCategories, setExpandedCategories] = useState<string[]>([]);
@@ -67,28 +66,37 @@ const ServiceCategoryList = () => {
     }
   };
 
-  const handleDragEnd = useCallback<NonNullable<DragDropContextProps['onDragEnd']>>(async (result) => {
+  const handleDragEnd = useCallback((result: DropResult) => {
     if (!result.destination || !categories) return;
 
-    const { source, destination } = result;
-    const newCategories = Array.from(categories);
-    const [removed] = newCategories.splice(source.index, 1);
-    newCategories.splice(destination.index, 0, removed);
-
     try {
-      await supabase
+      const { source, destination } = result;
+      const newCategories = Array.from(categories);
+      const [removed] = newCategories.splice(source.index, 1);
+      newCategories.splice(destination.index, 0, removed);
+
+      supabase
         .from('service_categories')
         .update({ display_order: destination.index })
-        .eq('id', removed.id);
-
-      toast({
-        title: "Order Updated",
-        description: "Category order has been updated successfully.",
-      });
+        .eq('id', removed.id)
+        .then(() => {
+          toast({
+            title: "Order Updated",
+            description: "Category order has been updated successfully.",
+          });
+        })
+        .catch(() => {
+          toast({
+            title: "Error",
+            description: "Failed to update category order.",
+            variant: "destructive",
+          });
+        });
     } catch (error) {
+      console.error('Drag end error:', error);
       toast({
         title: "Error",
-        description: "Failed to update category order.",
+        description: "An error occurred while reordering categories.",
         variant: "destructive",
       });
     }
