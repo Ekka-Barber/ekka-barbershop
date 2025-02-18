@@ -179,6 +179,53 @@ export type Database = {
           },
         ]
       }
+      branch_selection_events: {
+        Row: {
+          branch_id: string | null
+          created_at: string | null
+          device_type: Database["public"]["Enums"]["device_type"] | null
+          dialog_close_time: string | null
+          dialog_open_time: string | null
+          id: string
+          interaction_type: string
+          selected_branch_name: string | null
+          session_id: string | null
+          source_page: string
+        }
+        Insert: {
+          branch_id?: string | null
+          created_at?: string | null
+          device_type?: Database["public"]["Enums"]["device_type"] | null
+          dialog_close_time?: string | null
+          dialog_open_time?: string | null
+          id?: string
+          interaction_type: string
+          selected_branch_name?: string | null
+          session_id?: string | null
+          source_page: string
+        }
+        Update: {
+          branch_id?: string | null
+          created_at?: string | null
+          device_type?: Database["public"]["Enums"]["device_type"] | null
+          dialog_close_time?: string | null
+          dialog_open_time?: string | null
+          id?: string
+          interaction_type?: string
+          selected_branch_name?: string | null
+          session_id?: string | null
+          source_page?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "branch_selection_events_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       branches: {
         Row: {
           address: string | null
@@ -996,6 +1043,50 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "branches"
             referencedColumns: ["name"]
+          },
+        ]
+      }
+      menu_interactions: {
+        Row: {
+          created_at: string | null
+          device_type: Database["public"]["Enums"]["device_type"] | null
+          id: string
+          interaction_type: string
+          menu_file_id: string | null
+          page_changes: number | null
+          session_id: string | null
+          view_duration_seconds: number | null
+          zoom_actions: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          device_type?: Database["public"]["Enums"]["device_type"] | null
+          id?: string
+          interaction_type: string
+          menu_file_id?: string | null
+          page_changes?: number | null
+          session_id?: string | null
+          view_duration_seconds?: number | null
+          zoom_actions?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          device_type?: Database["public"]["Enums"]["device_type"] | null
+          id?: string
+          interaction_type?: string
+          menu_file_id?: string | null
+          page_changes?: number | null
+          session_id?: string | null
+          view_duration_seconds?: number | null
+          zoom_actions?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "menu_interactions_menu_file_id_fkey"
+            columns: ["menu_file_id"]
+            isOneToOne: false
+            referencedRelation: "marketing_files"
+            referencedColumns: ["id"]
           },
         ]
       }
