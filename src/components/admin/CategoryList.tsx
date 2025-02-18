@@ -2,14 +2,9 @@
 import { DragDropContext, Droppable } from '@hello-pangea/dnd';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Card } from '@/components/ui/card';
-import { CategoryItem } from './CategoryItem';
+import { CategoryItem } from '../CategoryItem';
 import { useLanguage } from '@/contexts/LanguageContext';
-
-interface Category {
-  id: string;
-  name: string;
-  services: any[];
-}
+import { Category } from '@/types/service';
 
 interface CategoryListProps {
   categories: Category[];

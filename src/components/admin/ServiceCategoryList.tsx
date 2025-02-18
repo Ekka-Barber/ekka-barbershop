@@ -28,11 +28,7 @@ const ServiceCategoryList = () => {
     const searchParams = new URLSearchParams(window.location.search);
     const accessCode = searchParams.get('access');
     if (accessCode === 'owner123') {
-      supabase.rpc('set_branch_manager_code', { code: 'true' }).then(() => {
-        // Code set successfully
-      }).catch(error => {
-        console.error('Error setting branch manager code:', error);
-      });
+      void supabase.rpc('set_branch_manager_code', { code: 'true' });
     }
   }, []);
 
@@ -53,10 +49,12 @@ const ServiceCategoryList = () => {
 
   const handleDeleteCategory = async (categoryId: string) => {
     try {
-      await supabase
+      const { error } = await supabase
         .from('service_categories')
         .delete()
         .eq('id', categoryId);
+        
+      if (error) throw error;
       
       toast({
         title: "Category Deleted",
@@ -71,7 +69,7 @@ const ServiceCategoryList = () => {
     }
   };
 
-  const handleDragEnd = useCallback((result: DropResult) => {
+  const handleDragEnd = useCallback(async (result: DropResult) => {
     if (!result.destination || !categories) return;
 
     try {
@@ -80,23 +78,17 @@ const ServiceCategoryList = () => {
       const [removed] = newCategories.splice(source.index, 1);
       newCategories.splice(destination.index, 0, removed);
 
-      supabase
+      const { error } = await supabase
         .from('service_categories')
         .update({ display_order: destination.index })
-        .eq('id', removed.id)
-        .then(() => {
-          toast({
-            title: "Order Updated",
-            description: "Category order has been updated successfully.",
-          });
-        })
-        .catch(() => {
-          toast({
-            title: "Error",
-            description: "Failed to update category order.",
-            variant: "destructive",
-          });
-        });
+        .eq('id', removed.id);
+        
+      if (error) throw error;
+
+      toast({
+        title: "Order Updated",
+        description: "Category order has been updated successfully.",
+      });
     } catch (error) {
       console.error('Drag end error:', error);
       toast({
