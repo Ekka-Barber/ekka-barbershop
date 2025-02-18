@@ -11,7 +11,7 @@ import { supabase } from '@/integrations/supabase/client';
 const BarberSelection = () => {
   const navigate = useNavigate();
   const { t } = useLanguage();
-  const { branch, selectedServices, selectedDate, selectedBarber, setSelectedBarber } = useBooking(true);
+  const { selectedServices, selectedDate, selectedBarber, setSelectedBarber, employeeWorkingHours } = useBooking();
 
   const { data: barbers = [], isLoading } = useQuery({
     queryKey: ['barbers'],
@@ -34,18 +34,25 @@ const BarberSelection = () => {
   return (
     <div className="w-full max-w-3xl mx-auto px-4 py-8">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {barbers.map((barber) => (
-          <BarberCard
-            key={barber.id}
-            id={barber.id}
-            name={barber.name}
-            name_ar={barber.name_ar}
-            photo_url={barber.photo_url}
-            nationality={barber.nationality}
-            isSelected={selectedBarber?.id === barber.id}
-            onSelect={() => setSelectedBarber(barber.id)}
-          />
-        ))}
+        {barbers.map((barber) => {
+          const isAvailable = selectedDate 
+            ? employeeWorkingHours?.[barber.id]?.includes(selectedDate.toISOString().split('T')[0]) ?? true
+            : true;
+
+          return (
+            <BarberCard
+              key={barber.id}
+              id={barber.id}
+              name={barber.name}
+              name_ar={barber.name_ar}
+              photo_url={barber.photo_url}
+              nationality={barber.nationality}
+              isAvailable={isAvailable}
+              isSelected={selectedBarber?.id === barber.id}
+              onSelect={() => setSelectedBarber(barber.id)}
+            />
+          );
+        })}
       </div>
     </div>
   );

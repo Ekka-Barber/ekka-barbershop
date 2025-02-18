@@ -10,7 +10,7 @@ import { useQuery } from '@tanstack/react-query';
 const DateTimeSelection = () => {
   const navigate = useNavigate();
   const { t } = useLanguage();
-  const { branch, selectedBarber, selectedDate, setSelectedDate, selectedTime, setSelectedTime } = useBooking(true);
+  const { selectedBarber, selectedDate, setSelectedDate, selectedTime, setSelectedTime } = useBooking();
 
   const { data: timeSlots = [], isLoading } = useQuery({
     queryKey: ['timeSlots', selectedBarber?.id, selectedDate],
