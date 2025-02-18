@@ -118,7 +118,7 @@ const trackBarberInteraction = async (event: BarberSelectionEvent): Promise<void
   });
 };
 
-const trackOfferInteraction = async (event: OfferInteractionEvent): Promise<void> => {
+const trackOfferInteraction = async (event: Partial<OfferInteractionEvent>): Promise<void> => {
   if (!shouldTrack()) return;
 
   const session = getSessionId();
@@ -138,18 +138,22 @@ const trackOfferInteraction = async (event: OfferInteractionEvent): Promise<void
   });
 };
 
-const trackMarketingFunnel = async (event: MarketingFunnelEvent): Promise<void> => {
+const trackMarketingFunnel = async (event: Partial<MarketingFunnelEvent>): Promise<void> => {
   if (!shouldTrack()) return;
 
   const session = getSessionId();
   if (!session) return;
 
   await tryTracking(async () => {
-    const { error } = await supabase.from('marketing_funnel_events').insert({
-      ...event,
-      session_id: session,
-      device_type: mapPlatformToDeviceType(getPlatformType()),
-      created_at: new Date().toISOString()
+    const { error } = await supabase.from('audit_logs').insert({
+      operation: 'marketing_funnel',
+      table_name: 'marketing_funnel',
+      details: JSON.stringify({
+        ...event,
+        session_id: session,
+        device_type: mapPlatformToDeviceType(getPlatformType()),
+        created_at: new Date().toISOString()
+      })
     });
 
     if (error) {
@@ -160,8 +164,12 @@ const trackMarketingFunnel = async (event: MarketingFunnelEvent): Promise<void> 
 
 const initializeTracking = (): void => {
   if (!shouldTrack()) return;
-  getSessionId();
+  
+  const sessionId = getSessionId();
+  if (!sessionId) return;
+  
   trackPageView(window.location.pathname);
+  
   // Track initial marketing funnel stage
   trackMarketingFunnel({
     funnel_stage: 'landing',
