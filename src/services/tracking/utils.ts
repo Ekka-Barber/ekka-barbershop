@@ -1,5 +1,5 @@
 
-import { DeviceType } from './types/unified';
+import { DeviceType } from './types/base';
 
 export const mapPlatformToDeviceType = (platform: string): DeviceType => {
   switch (platform) {

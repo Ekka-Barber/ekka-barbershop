@@ -13,10 +13,12 @@ export type UnifiedEventType =
 export interface UnifiedEvent {
   event_type: UnifiedEventType;
   event_name: string;
+  interaction_type: string;
   session_id?: string;
   user_id?: string;
   device_type?: DeviceType;
   page_url?: string;
+  source_page?: string;
   event_data?: Record<string, any>;
   timestamp?: string;
 }
@@ -34,6 +36,7 @@ export interface TrackingSession {
 
 // Marketing funnel
 export interface MarketingFunnelEvent {
+  interaction_type: string;
   session_id: string;
   funnel_stage: string;
   entry_time: string;
@@ -42,6 +45,8 @@ export interface MarketingFunnelEvent {
   drop_off_point: boolean;
   entry_point: string;
   previous_stage?: string;
+  source_page?: string;
+  time_in_stage?: number;
   interaction_path: {
     path: string[];
     timestamps: number[];
