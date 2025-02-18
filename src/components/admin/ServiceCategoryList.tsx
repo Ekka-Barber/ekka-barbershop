@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { useOptimizedCategories } from '@/hooks/useOptimizedCategories';
@@ -55,12 +54,10 @@ const ServiceCategoryList = () => {
         .eq('id', categoryId);
       
       toast({
-        title: "Category Deleted",
         description: "Category has been deleted successfully.",
       });
     } catch (error) {
       toast({
-        title: "Error",
         description: "Failed to delete category. Please try again.",
         variant: "destructive",
       });
@@ -82,12 +79,10 @@ const ServiceCategoryList = () => {
         .eq('id', removed.id);
 
       toast({
-        title: "Order Updated",
         description: "Category order has been updated successfully.",
       });
     } catch (error) {
       toast({
-        title: "Error",
         description: "Failed to update category order.",
         variant: "destructive",
       });

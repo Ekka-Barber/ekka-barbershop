@@ -12,7 +12,6 @@ const CreateQRCodeForm = () => {
   const [newUrl, setNewUrl] = useState("");
   const [newQrId, setNewQrId] = useState("");
 
-  // Set owner access before creating QR code
   const setOwnerAccess = async () => {
     const { error } = await supabase.rpc('set_owner_access', { value: 'owner123' });
     if (error) {
@@ -29,7 +28,6 @@ const CreateQRCodeForm = () => {
         throw new Error("Failed to set owner access");
       }
 
-      // Use provided ID or generate a random one
       const qrId = id || `qr-${Math.random().toString(36).substring(2, 9)}`;
 
       const { error } = await supabase
@@ -45,7 +43,6 @@ const CreateQRCodeForm = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["qrCodes"] });
       toast({
-        title: "Success",
         description: "New QR code has been created",
       });
       setNewQrId("");
@@ -53,7 +50,6 @@ const CreateQRCodeForm = () => {
     },
     onError: (error) => {
       toast({
-        title: "Error",
         description: "Failed to create QR code. The ID might already be in use.",
         variant: "destructive",
       });

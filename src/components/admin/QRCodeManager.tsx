@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -20,7 +19,6 @@ const QRCodeManager = () => {
     if (error) {
       console.error('Error setting owner access:', error);
       toast({
-        title: "Error",
         description: "Failed to set owner access. Please try again.",
         variant: "destructive",
       });
@@ -51,7 +49,6 @@ const QRCodeManager = () => {
     },
   });
 
-  // Set the first QR code as selected when data is loaded
   if (qrCodes && qrCodes.length > 0 && !selectedQrId) {
     setSelectedQrId(qrCodes[0].id);
   }
@@ -85,6 +82,38 @@ const QRCodeManager = () => {
     };
     
     img.src = "data:image/svg+xml;base64," + btoa(svgData);
+  };
+
+  const handleUpdateUrl = async () => {
+    if (!newUrl || !selectedQrId) return;
+    
+    const ownerAccessSet = await setOwnerAccess();
+    if (!ownerAccessSet) {
+      toast({
+        description: "Failed to set owner access",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const { error } = await supabase
+      .from("qr_codes")
+      .update({ url: newUrl })
+      .eq("id", selectedQrId);
+
+    if (error) {
+      toast({
+        description: "Failed to update QR code URL",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    queryClient.invalidateQueries({ queryKey: ["qrCodes"] });
+    toast({
+      description: "QR code URL has been updated",
+    });
+    setNewUrl("");
   };
 
   if (isLoading) {
@@ -141,45 +170,7 @@ const QRCodeManager = () => {
                   currentUrl={selectedQrCode.url}
                   newUrl={newUrl}
                   setNewUrl={setNewUrl}
-                  handleSubmit={(e) => {
-                    e.preventDefault();
-                    if (!newUrl || !selectedQrId) return;
-                    
-                    const updateUrl = async () => {
-                      const ownerAccessSet = await setOwnerAccess();
-                      if (!ownerAccessSet) {
-                        toast({
-                          title: "Error",
-                          description: "Failed to set owner access",
-                          variant: "destructive",
-                        });
-                        return;
-                      }
-
-                      const { error } = await supabase
-                        .from("qr_codes")
-                        .update({ url: newUrl })
-                        .eq("id", selectedQrId);
-
-                      if (error) {
-                        toast({
-                          title: "Error",
-                          description: "Failed to update QR code URL",
-                          variant: "destructive",
-                        });
-                        return;
-                      }
-
-                      queryClient.invalidateQueries({ queryKey: ["qrCodes"] });
-                      toast({
-                        title: "Success",
-                        description: "QR code URL has been updated",
-                      });
-                      setNewUrl("");
-                    };
-
-                    updateUrl();
-                  }}
+                  handleSubmit={handleUpdateUrl}
                   isUpdating={false}
                 />
               </>

@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Plus, X } from 'lucide-react';
@@ -41,13 +40,11 @@ export const CategoryActions = ({ categories }: CategoryActionsProps) => {
       setIsOpen(false);
       setNewCategory({ name_en: '', name_ar: '' });
       toast({
-        title: "Success",
         description: "Category added successfully",
       });
     },
     onError: (error) => {
       toast({
-        title: "Error",
         description: "Failed to add category",
         variant: "destructive",
       });

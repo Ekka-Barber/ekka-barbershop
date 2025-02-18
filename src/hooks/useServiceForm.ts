@@ -65,7 +65,6 @@ export const useServiceForm = (onSuccess: () => void) => {
     },
     onError: (error) => {
       toast({
-        title: "Error",
         description: "Failed to add service",
         variant: "destructive",
       });
@@ -118,7 +117,6 @@ export const useServiceForm = (onSuccess: () => void) => {
     },
     onError: (error) => {
       toast({
-        title: "Error",
         description: "Failed to update service",
         variant: "destructive",
       });
