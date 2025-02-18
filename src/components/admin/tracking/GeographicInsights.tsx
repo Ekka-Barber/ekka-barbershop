@@ -24,7 +24,7 @@ export const GeographicInsights = ({ data }: GeographicInsightsProps) => {
               zoom={8}
               style={{ width: '100%', height: '100%' }}
               mapStyle="mapbox://styles/mapbox/light-v11"
-              mapboxAccessToken={process.env.NEXT_PUBLIC_MAPBOX_TOKEN}
+              mapboxApiAccessToken={process.env.NEXT_PUBLIC_MAPBOX_TOKEN}
             >
               {/* Heat map layer for customer density */}
               <Source
