@@ -38,7 +38,8 @@ export const BookingStepsContainer = ({ branch }: BookingStepsContainerProps) =>
     totalPrice,
     currentStep,
     setCurrentStep,
-    canProceedToNext
+    canProceedToNext,
+    handleStepChange
   } = useBooking(branch);
 
   const { data: availableUpsells } = useBookingUpsells(selectedServices, language);
@@ -50,7 +51,7 @@ export const BookingStepsContainer = ({ branch }: BookingStepsContainerProps) =>
     setPendingStep
   } = useUpsellWorkflow();
 
-  const handleStepChange = (step: BookingStep) => {
+  const handleMainStepChange = (step: BookingStep) => {
     const wasUpsellHandled = handleUpsellStepChange(
       step,
       availableUpsells || [],
@@ -59,14 +60,14 @@ export const BookingStepsContainer = ({ branch }: BookingStepsContainerProps) =>
     );
     
     if (!wasUpsellHandled) {
-      setCurrentStep(step);
+      handleStepChange(step);
     }
   };
 
   const handleUpsellModalCloseWrapper = () => {
     const pendingStep = handleUpsellModalClose();
     if (pendingStep) {
-      setCurrentStep(pendingStep);
+      handleStepChange(pendingStep);
       setPendingStep(null);
     }
   };
@@ -83,7 +84,7 @@ export const BookingStepsContainer = ({ branch }: BookingStepsContainerProps) =>
       <BookingProgress
         currentStep={currentStep}
         steps={STEPS}
-        onStepClick={setCurrentStep}
+        onStepClick={handleMainStepChange}
         currentStepIndex={currentStepIndex}
       />
 
@@ -94,7 +95,7 @@ export const BookingStepsContainer = ({ branch }: BookingStepsContainerProps) =>
           categoriesLoading={categoriesLoading}
           selectedServices={selectedServices}
           handleServiceToggle={handleServiceToggle}
-          handleStepChange={handleStepChange}
+          handleStepChange={handleMainStepChange}
           employees={employees}
           employeesLoading={employeesLoading}
           selectedBarber={selectedBarber}
@@ -116,7 +117,7 @@ export const BookingStepsContainer = ({ branch }: BookingStepsContainerProps) =>
           currentStepIndex={currentStepIndex}
           steps={STEPS}
           currentStep={currentStep}
-          setCurrentStep={setCurrentStep}
+          setCurrentStep={handleMainStepChange}
           isNextDisabled={!canProceedToNext()}
           customerDetails={customerDetails}
           branch={branch}

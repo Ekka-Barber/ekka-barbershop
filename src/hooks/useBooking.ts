@@ -69,6 +69,12 @@ export const useBooking = (branch: Branch) => {
     }
   };
 
+  const handleStepChange = (nextStep: BookingStep) => {
+    if (canProceedToNext()) {
+      setCurrentStep(nextStep);
+    }
+  };
+
   return {
     currentStep,
     setCurrentStep,
@@ -91,6 +97,6 @@ export const useBooking = (branch: Branch) => {
     handleUpsellServiceAdd,
     totalPrice,
     canProceedToNext,
-    branch
+    handleStepChange
   };
 };
