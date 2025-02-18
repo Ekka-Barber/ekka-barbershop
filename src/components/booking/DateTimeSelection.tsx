@@ -10,7 +10,7 @@ import { useQuery } from '@tanstack/react-query';
 const DateTimeSelection = () => {
   const navigate = useNavigate();
   const { t } = useLanguage();
-  const { branch, selectedBarber, selectedDate, setSelectedDate, selectedTime, setSelectedTime } = useBooking();
+  const { branch, selectedBarber, selectedDate, setSelectedDate, selectedTime, setSelectedTime } = useBooking(branch);
 
   const { data: timeSlots = [], isLoading } = useQuery({
     queryKey: ['timeSlots', selectedBarber?.id, selectedDate],
@@ -29,7 +29,7 @@ const DateTimeSelection = () => {
   return (
     <div className="w-full max-w-3xl mx-auto px-4 py-8">
       <TimeSlotPicker
-        selectedBarberData={selectedBarber}
+        selectedBarber={selectedBarber}
         selectedDate={selectedDate}
         onDateChange={setSelectedDate}
         selectedTime={selectedTime}
