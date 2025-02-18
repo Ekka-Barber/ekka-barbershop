@@ -2,6 +2,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { DateRange } from "./DateRangeSelector";
+import { UnifiedEvent, TimePattern } from "./types";
 
 export interface TrackingPaginationParams {
   page: number;
@@ -33,7 +34,7 @@ export const useTrackingData = (dateRange: DateRange, pagination?: TrackingPagin
       const { data, error, count } = await query.order('timestamp', { ascending: false });
       
       if (error) throw error;
-      return { data, totalCount: count || 0 };
+      return { data: data as UnifiedEvent[], totalCount: count || 0 };
     },
     staleTime: 1000 * 60 * 5, // 5 minutes before refetch
   });
@@ -50,7 +51,7 @@ export const useTrackingData = (dateRange: DateRange, pagination?: TrackingPagin
         .order('timestamp', { ascending: false });
       
       if (error) throw error;
-      return data;
+      return data as UnifiedEvent[];
     },
     staleTime: 1000 * 60 * 5,
   });
@@ -74,7 +75,7 @@ export const useTrackingData = (dateRange: DateRange, pagination?: TrackingPagin
       const { data, error, count } = await query.order('timestamp', { ascending: false });
       
       if (error) throw error;
-      return { data, totalCount: count || 0 };
+      return { data: data as UnifiedEvent[], totalCount: count || 0 };
     },
     staleTime: 1000 * 60 * 5,
   });
@@ -99,7 +100,7 @@ export const useTrackingData = (dateRange: DateRange, pagination?: TrackingPagin
       const { data, error, count } = await query.order('timestamp', { ascending: false });
       
       if (error) throw error;
-      return { data, totalCount: count || 0 };
+      return { data: data as UnifiedEvent[], totalCount: count || 0 };
     },
     staleTime: 1000 * 60 * 5,
   });
@@ -117,10 +118,16 @@ export const useTrackingData = (dateRange: DateRange, pagination?: TrackingPagin
     const uniqueSessions = new Set(sessionData.data.map(s => s.session_id)).size;
     const completedBookings = bookingData.data.length;
     
-    const sessionsWithDuration = sessionData.data.filter(s => s.event_data?.exit_time);
+    const sessionsWithDuration = sessionData.data.filter(s => 
+      s.event_data && 
+      typeof s.event_data === 'object' && 
+      'exit_time' in s.event_data && 
+      'entry_time' in s.event_data
+    );
+
     const avgDuration = sessionsWithDuration.reduce((acc, session) => {
-      const entryTime = new Date(session.event_data.entry_time).getTime();
-      const exitTime = new Date(session.event_data.exit_time).getTime();
+      const entryTime = new Date(session.event_data.entry_time as string).getTime();
+      const exitTime = new Date(session.event_data.exit_time as string).getTime();
       return acc + (exitTime - entryTime);
     }, 0) / (sessionsWithDuration.length * 1000 || 1); // Avoid division by zero
 

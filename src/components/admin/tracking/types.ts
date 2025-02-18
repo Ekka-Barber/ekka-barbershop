@@ -215,3 +215,23 @@ export interface PredictiveAnalyticsProps {
 export interface GeographicInsightsProps {
   data?: GeographicInsightsType;
 }
+
+export interface UnifiedEvent {
+  created_at: string;
+  device_type: "mobile" | "tablet" | "desktop";
+  event_data: {
+    entry_time?: string;
+    exit_time?: string;
+    appointment_time?: string;
+    [key: string]: any;
+  };
+  event_name: string;
+  event_type: "page_view" | "interaction" | "business" | "analytics";
+  id: string;
+  interaction_type?: string;
+  page_url?: string;
+  session_id?: string;
+  source_page?: string;
+  timestamp: string;
+  user_id?: string;
+}

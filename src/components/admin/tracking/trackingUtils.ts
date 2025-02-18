@@ -1,5 +1,13 @@
+import { 
+  ProcessedJourneyData, 
+  DropOffPoint, 
+  ServiceBundle, 
+  TimePattern, 
+  JourneyNode, 
+  JourneyLink,
+  UnifiedEvent 
+} from "./types";
 
-import { ProcessedJourneyData, DropOffPoint, ServiceBundle, TimePattern, JourneyNode, JourneyLink } from "./types";
 import { supabase } from "@/integrations/supabase/client";
 
 interface BookingData {
@@ -20,10 +28,12 @@ interface ServiceData {
   bookings: number;
 }
 
-export const processTimePatterns = (bookingData: BookingData[]): TimePattern[] => {
-  const timePatterns = bookingData.reduce((acc, booking) => {
-    const hour = parseInt(booking.appointment_time.split(':')[0]);
-    const deviceType = booking.device_type;
+export const processTimePatterns = (bookingEvents: UnifiedEvent[]): TimePattern[] => {
+  const timePatterns = bookingEvents.reduce((acc, event) => {
+    if (!event.event_data?.appointment_time) return acc;
+
+    const hour = parseInt(event.event_data.appointment_time.split(':')[0]);
+    const deviceType = event.device_type;
     
     if (!acc[hour]) {
       acc[hour] = {
