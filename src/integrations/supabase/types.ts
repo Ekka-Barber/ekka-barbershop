@@ -2218,6 +2218,7 @@ export type Database = {
           page_url: string | null
           session_id: string | null
           source_page: string | null
+          timestamp: string | null
           user_id: string | null
         }
         Insert: {
@@ -2232,6 +2233,7 @@ export type Database = {
           page_url?: string | null
           session_id?: string | null
           source_page?: string | null
+          timestamp?: string | null
           user_id?: string | null
         }
         Update: {
@@ -2246,6 +2248,7 @@ export type Database = {
           page_url?: string | null
           session_id?: string | null
           source_page?: string | null
+          timestamp?: string | null
           user_id?: string | null
         }
         Relationships: []
