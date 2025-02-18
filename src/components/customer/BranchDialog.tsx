@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -31,6 +30,7 @@ export const BranchDialog = ({
       const now = new Date();
       dialogOpenTime.current = now;
       trackBranchSelection({
+        event_name: 'branch_dialog_opened',
         interaction_type: 'dialog_open',
         source_page: window.location.pathname,
         dialog_open_time: now.toISOString()
@@ -38,6 +38,7 @@ export const BranchDialog = ({
     } else if (dialogOpenTime.current) {
       const closeTime = new Date();
       trackBranchSelection({
+        event_name: 'branch_dialog_closed',
         interaction_type: 'dialog_close',
         source_page: window.location.pathname,
         dialog_open_time: dialogOpenTime.current.toISOString(),
@@ -49,6 +50,7 @@ export const BranchDialog = ({
 
   const handleBranchSelect = (branch: Branch) => {
     trackBranchSelection({
+      event_name: 'branch_selected',
       interaction_type: 'branch_select',
       branch_id: branch.id,
       selected_branch_name: language === 'ar' ? branch.name_ar || branch.name : branch.name,

@@ -49,7 +49,7 @@ const Offers = () => {
           .from('marketing_files')
           .getPublicUrl(file.file_path);
         
-        const now = new Date().getTime();
+        const now = new Date();
         const endDate = file.end_date ? new Date(file.end_date).getTime() : null;
         const isExpired = endDate ? endDate < now : false;
         const isWithinThreeDays = endDate ? 
@@ -76,7 +76,10 @@ const Offers = () => {
   });
 
   useEffect(() => {
+    const now = new Date();
     trackMarketingFunnel({
+      session_id: getSessionId(),
+      entry_time: now.toISOString(),
       interaction_type: 'marketing_funnel',
       funnel_stage: 'offer_view',
       previous_stage: 'landing',
@@ -94,6 +97,7 @@ const Offers = () => {
       const totalViewTime = Math.floor((Date.now() - viewStartTime.current) / 1000);
       
       trackOfferInteraction({
+        event_name: 'session_ended',
         offer_id: 'session-summary',
         interaction_type: 'session_end',
         view_duration_seconds: totalViewTime,
@@ -109,6 +113,7 @@ const Offers = () => {
     interactionStartTimes.current[offerId] = Date.now();
     
     trackOfferInteraction({
+      event_name: 'offer_view_started',
       offer_id: offerId,
       interaction_type: 'offer_view_start',
       view_duration_seconds: 0,
@@ -126,6 +131,7 @@ const Offers = () => {
       const duration = Math.floor((Date.now() - startTime) / 1000);
       
       trackOfferInteraction({
+        event_name: 'offer_view_ended',
         offer_id: offerId,
         interaction_type: 'offer_view_end',
         view_duration_seconds: duration,

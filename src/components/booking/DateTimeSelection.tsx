@@ -29,12 +29,12 @@ export const DateTimeSelection = ({
     addDays(new Date(), 2)
   ], []);
 
-  // Track initial calendar view and cleanup
   useEffect(() => {
     const startTime = new Date();
     setViewStartTime(startTime);
     
     trackDateTimeInteraction({
+      event_name: 'calendar_opened',
       interaction_type: 'calendar_open',
       calendar_view_type: 'quick_select',
       quick_select_usage: true,
@@ -45,6 +45,7 @@ export const DateTimeSelection = ({
     return () => {
       const duration = Math.floor((new Date().getTime() - startTime.getTime()) / 1000);
       trackDateTimeInteraction({
+        event_name: 'calendar_closed',
         interaction_type: 'calendar_close',
         calendar_view_type: showFullCalendar ? 'month' : 'quick_select',
         view_duration_seconds: duration,
@@ -63,6 +64,7 @@ export const DateTimeSelection = ({
     const daysInAdvance = date ? differenceInDays(date, new Date()) : 0;
     
     trackDateTimeInteraction({
+      event_name: 'date_selected',
       interaction_type: 'date_select',
       calendar_view_type: showFullCalendar ? 'month' : 'quick_select',
       selected_date: date?.toISOString(),
@@ -83,6 +85,7 @@ export const DateTimeSelection = ({
     const duration = Math.floor((new Date().getTime() - viewStartTime.getTime()) / 1000);
     
     trackDateTimeInteraction({
+      event_name: show ? 'calendar_expanded' : 'calendar_collapsed',
       interaction_type: show ? 'calendar_open' : 'calendar_close',
       calendar_view_type: show ? 'month' : 'quick_select',
       view_duration_seconds: duration,

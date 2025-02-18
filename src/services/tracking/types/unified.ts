@@ -1,3 +1,4 @@
+
 import { DeviceType, InteractionType } from './base';
 
 // Core event types - match exactly with database enum
@@ -22,10 +23,21 @@ export interface UnifiedEvent {
   timestamp?: string;
 }
 
+// Session tracking
+export interface TrackingSession {
+  id: string;
+  user_id?: string;
+  device_type?: DeviceType;
+  start_time: string;
+  end_time?: string;
+  last_activity?: string;
+  session_data?: Record<string, any>;
+}
+
 // Marketing funnel event interface
 export interface MarketingFunnelEvent {
   session_id: string;
-  interaction_type: string;
+  interaction_type: InteractionType;
   funnel_stage: string;
   entry_time: string;
   exit_time?: string;
