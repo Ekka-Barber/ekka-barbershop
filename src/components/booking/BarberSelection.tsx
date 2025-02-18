@@ -8,6 +8,7 @@ import { BarberCard } from './barber/BarberCard';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useBranchManagement } from '@/hooks/booking/useBranchManagement';
+import { WorkingHours } from '@/types/branch';
 
 const BarberSelection = () => {
   const navigate = useNavigate();
@@ -25,7 +26,31 @@ const BarberSelection = () => {
         .eq('branch_id', branch.id);
         
       if (error) throw error;
-      return data as Employee[];
+
+      // Transform the raw data to match Employee type
+      return data.map(barber => {
+        const rawHours = barber.working_hours as Record<string, string[]>;
+        const working_hours: WorkingHours = {
+          monday: rawHours.monday || [],
+          tuesday: rawHours.tuesday || [],
+          wednesday: rawHours.wednesday || [],
+          thursday: rawHours.thursday || [],
+          friday: rawHours.friday || [],
+          saturday: rawHours.saturday || [],
+          sunday: rawHours.sunday || [],
+        };
+
+        return {
+          id: barber.id,
+          name: barber.name,
+          name_ar: barber.name_ar,
+          role: barber.role,
+          photo_url: barber.photo_url,
+          nationality: barber.nationality,
+          working_hours,
+          off_days: barber.off_days || []
+        } as Employee;
+      });
     },
     enabled: !!branch?.id
   });
