@@ -1,3 +1,4 @@
+
 import { useState, useCallback } from 'react';
 import { Service, ServiceViewState } from '@/types/service';
 import { useTracking } from '@/hooks/useTracking';
@@ -30,8 +31,8 @@ export const useServiceManagement = (
     await trackServiceInteraction({
       category_id: service.category_id,
       service_id: service.id,
+      event_name: 'service_view',
       interaction_type: 'service_view',
-      discovery_path: [],
       selected_service_name: language === 'ar' ? service.name_ar : service.name_en,
       price_viewed: true,
       description_viewed: false
@@ -46,8 +47,8 @@ export const useServiceManagement = (
       await trackServiceInteraction({
         category_id: service.category_id,
         service_id: service.id,
+        event_name: 'service_selection',
         interaction_type: 'service_selection',
-        discovery_path: [],
         selected_service_name: language === 'ar' ? service.name_ar : service.name_en,
         price_viewed: true,
         description_viewed: true,

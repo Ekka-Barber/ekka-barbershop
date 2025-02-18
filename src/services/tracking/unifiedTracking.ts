@@ -13,6 +13,7 @@ import {
 import { getSessionId, shouldTrack } from './sessionManager';
 import { getPlatformType } from '@/services/platformDetection';
 import { mapPlatformToDeviceType, formatTimestamp } from './utils';
+import { InteractionType } from './types/base';
 
 class UnifiedTrackingService {
   private async trackEvent(event: UnifiedEvent) {
@@ -25,9 +26,9 @@ class UnifiedTrackingService {
         page_url: event.page_url || window.location.pathname,
         timestamp: event.timestamp || formatTimestamp(new Date()),
         created_at: formatTimestamp(new Date()),
-        interaction_type: event.interaction_type,
+        interaction_type: event.interaction_type as string,
         event_name: event.event_name,
-        event_type: event.event_type,
+        event_type: event.event_type as "page_view" | "interaction" | "business" | "analytics",
         source_page: event.source_page || window.location.pathname,
         event_data: event.event_data || {}
       };
@@ -56,7 +57,7 @@ class UnifiedTrackingService {
     });
   }
 
-  async trackInteraction(type: string, details: Record<string, any> = {}) {
+  async trackInteraction(type: InteractionType, details: Record<string, any> = {}) {
     await this.trackEvent({
       event_type: 'interaction',
       event_name: type,

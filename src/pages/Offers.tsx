@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import CountdownTimer from '@/components/CountdownTimer';
 import { useTracking } from '@/hooks/useTracking';
 import { useEffect, useRef } from 'react';
+import { getSessionId } from '@/services/tracking/sessionManager';
 
 const Offers = () => {
   const navigate = useNavigate();
@@ -77,6 +78,8 @@ const Offers = () => {
 
   useEffect(() => {
     const now = new Date();
+    const nowTimestamp = now.getTime();
+    
     trackMarketingFunnel({
       session_id: getSessionId(),
       entry_time: now.toISOString(),
@@ -89,7 +92,7 @@ const Offers = () => {
       entry_point: window.location.pathname,
       interaction_path: {
         path: [window.location.pathname],
-        timestamps: [Date.now()]
+        timestamps: [nowTimestamp]
       }
     });
 

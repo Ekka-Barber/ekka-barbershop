@@ -4,6 +4,7 @@ import { useTracking } from '@/hooks/useTracking';
 import { BookingStep } from '@/components/booking/BookingProgress';
 import { MarketingFunnelStage } from '@/services/tracking/types';
 import { InteractionType } from '@/services/tracking/types/base';
+import { getSessionId } from '@/services/tracking/sessionManager';
 
 export const useBookingTracking = (
   currentStep: BookingStep,
@@ -27,6 +28,8 @@ export const useBookingTracking = (
     };
 
     trackMarketingFunnel({
+      session_id: getSessionId(),
+      entry_time: new Date().toISOString(),
       interaction_type: 'marketing_funnel',
       funnel_stage: stepToFunnelStage[currentStep],
       time_in_stage: timeInStage,
