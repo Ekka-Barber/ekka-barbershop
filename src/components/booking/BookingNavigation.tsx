@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { BookingStep } from "@/components/booking/BookingProgress";
 import { toast } from "sonner";
 import { useBookingContext } from "@/contexts/BookingContext";
+import { v4 as uuidv4 } from 'uuid';
 
 interface BookingNavigationProps {
   currentStepIndex: number;
@@ -41,7 +42,11 @@ export const BookingNavigation = ({
   };
 
   const handleNext = () => {
-    dispatch({ type: 'LOCK_STEP_CHANGE' });
+    const transactionId = uuidv4();
+    dispatch({ 
+      type: 'ACQUIRE_LOCK',
+      payload: { componentId: 'navigation-next', transactionId }
+    });
     try {
       const branchId = getBranchId();
       if (!branchId || !branch) {
@@ -56,12 +61,19 @@ export const BookingNavigation = ({
         setCurrentStep(steps[currentStepIndex + 1]);
       }
     } finally {
-      dispatch({ type: 'UNLOCK_STEP_CHANGE' });
+      dispatch({ 
+        type: 'RELEASE_LOCK',
+        payload: { transactionId }
+      });
     }
   };
 
   const handleBack = () => {
-    dispatch({ type: 'LOCK_STEP_CHANGE' });
+    const transactionId = uuidv4();
+    dispatch({ 
+      type: 'ACQUIRE_LOCK',
+      payload: { componentId: 'navigation-back', transactionId }
+    });
     try {
       if (currentStepIndex > 0) {
         setCurrentStep(steps[currentStepIndex - 1]);
@@ -73,7 +85,10 @@ export const BookingNavigation = ({
         navigate(`/customer${branchId ? `?branch=${branchId}` : ''}`);
       }
     } finally {
-      dispatch({ type: 'UNLOCK_STEP_CHANGE' });
+      dispatch({ 
+        type: 'RELEASE_LOCK',
+        payload: { transactionId }
+      });
     }
   };
 

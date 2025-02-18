@@ -1,4 +1,3 @@
-
 import { useEffect } from "react";
 import { BookingProgress, BookingStep } from "@/components/booking/BookingProgress";
 import { BookingNavigation } from "@/components/booking/BookingNavigation";
@@ -12,6 +11,7 @@ import { Branch } from "@/types/booking";
 import { ErrorBoundary } from "@/components/common/ErrorBoundary";
 import { toast } from "sonner";
 import { useBookingContext } from "@/contexts/BookingContext";
+import { v4 as uuidv4 } from 'uuid';
 
 const STEPS: BookingStep[] = ['services', 'datetime', 'barber', 'details'];
 
@@ -45,7 +45,7 @@ export const BookingStepsContainer = ({ branch }: BookingStepsContainerProps) =>
     setCurrentStep,
     canProceedToNext,
     handleStepChange,
-    isStepChangeLocked
+    activeLock
   } = useBooking(branch);
 
   const { data: availableUpsells } = useBookingUpsells(selectedServices, language);
@@ -57,11 +57,22 @@ export const BookingStepsContainer = ({ branch }: BookingStepsContainerProps) =>
     setPendingStep
   } = useUpsellWorkflow();
 
-  // Effect to set branch in context when component mounts or branch changes
   useEffect(() => {
     if (branch) {
-      console.log('Setting branch in context:', branch);
-      dispatch({ type: 'SET_BRANCH', payload: branch });
+      const transactionId = uuidv4();
+      dispatch({ 
+        type: 'ACQUIRE_LOCK',
+        payload: { componentId: 'branch-setup', transactionId }
+      });
+      try {
+        console.log('Setting branch in context:', branch);
+        dispatch({ type: 'SET_BRANCH', payload: branch });
+      } finally {
+        dispatch({ 
+          type: 'RELEASE_LOCK',
+          payload: { transactionId }
+        });
+      }
     } else {
       console.error('No branch provided to BookingStepsContainer');
       toast.error('Please select a branch to continue');
@@ -69,12 +80,17 @@ export const BookingStepsContainer = ({ branch }: BookingStepsContainerProps) =>
   }, [branch, dispatch]);
 
   const handleMainStepChange = (step: BookingStep) => {
-    if (isStepChangeLocked) {
+    if (activeLock) {
       console.log('Step change locked, skipping...', { step });
       return;
     }
 
-    dispatch({ type: 'LOCK_STEP_CHANGE' });
+    const transactionId = uuidv4();
+    dispatch({ 
+      type: 'ACQUIRE_LOCK',
+      payload: { componentId: 'main-step-change', transactionId }
+    });
+    
     try {
       console.log('Step change requested:', { from: currentStep, to: step });
       
@@ -89,25 +105,10 @@ export const BookingStepsContainer = ({ branch }: BookingStepsContainerProps) =>
         handleStepChange(step);
       }
     } finally {
-      dispatch({ type: 'UNLOCK_STEP_CHANGE' });
-    }
-  };
-
-  const handleUpsellModalCloseWrapper = () => {
-    const pendingStep = handleUpsellModalClose();
-    if (pendingStep) {
-      handleStepChange(pendingStep);
-      setPendingStep(null);
-    }
-  };
-
-  const handleUpsellConfirm = (selectedUpsells: any[]) => {
-    dispatch({ type: 'LOCK_STEP_CHANGE' });
-    try {
-      handleUpsellServiceAdd(selectedUpsells);
-      handleUpsellModalCloseWrapper();
-    } finally {
-      dispatch({ type: 'UNLOCK_STEP_CHANGE' });
+      dispatch({ 
+        type: 'RELEASE_LOCK',
+        payload: { transactionId }
+      });
     }
   };
 
@@ -160,8 +161,8 @@ export const BookingStepsContainer = ({ branch }: BookingStepsContainerProps) =>
 
       <UpsellModal
         isOpen={showUpsellModal}
-        onClose={handleUpsellModalCloseWrapper}
-        onConfirm={handleUpsellConfirm}
+        onClose={handleUpsellModalClose}
+        onConfirm={handleUpsellServiceAdd}
         availableUpsells={availableUpsells || []}
       />
     </ErrorBoundary>
