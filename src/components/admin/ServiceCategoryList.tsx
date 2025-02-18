@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { useOptimizedCategories } from '@/hooks/useOptimizedCategories';
@@ -27,7 +28,11 @@ const ServiceCategoryList = () => {
     const searchParams = new URLSearchParams(window.location.search);
     const accessCode = searchParams.get('access');
     if (accessCode === 'owner123') {
-      supabase.rpc('set_branch_manager_code', { code: 'true' });
+      supabase.rpc('set_branch_manager_code', { code: 'true' }).then(() => {
+        // Code set successfully
+      }).catch(error => {
+        console.error('Error setting branch manager code:', error);
+      });
     }
   }, []);
 
