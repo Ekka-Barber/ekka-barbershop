@@ -67,11 +67,14 @@ export interface BookingData {
   device_type: 'mobile' | 'tablet' | 'desktop';
 }
 
-export interface PathAnalysis {
+export interface CommonPath {
   path: string[];
   frequency: number;
   successRate: number;
   averageDuration: number;
+}
+
+export interface PathAnalysis extends CommonPath {
   commonPaths: string[][];
   dropOffPoints: string[];
   conversionRate: number;
@@ -91,17 +94,8 @@ export interface UserBehaviorMetrics {
   };
   pathAnalysis: PathAnalysis;
   timePatterns: TimePattern[];
-  commonPaths: {
-    path: string[];
-    frequency: number;
-    successRate: number;
-  }[];
-  dropOffPoints: {
-    page: string;
-    rate: number;
-    averageTimeBeforeExit: number;
-    exitRate: number;
-  }[];
+  commonPaths: CommonPath[];
+  dropOffPoints: DropOffPoint[];
 }
 
 export interface ProcessedJourneyData {
@@ -126,10 +120,10 @@ export interface JourneyLink {
 
 export interface DropOffPoint {
   page: string;
+  rate: number;
   exitRate: number;
   averageTimeBeforeExit: number;
   previousPages: string[];
-  rate: number;
 }
 
 export const COLORS = ['#4ade80', '#f87171', '#60a5fa', '#facc15'];
