@@ -1101,6 +1101,39 @@ export type Database = {
         }
         Relationships: []
       }
+      loyalty_program: {
+        Row: {
+          created_at: string
+          description_template: string | null
+          happy_hour: Json
+          id: string
+          is_active: boolean
+          points_required: Json
+          tiers: Json
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description_template?: string | null
+          happy_hour?: Json
+          id?: string
+          is_active?: boolean
+          points_required?: Json
+          tiers?: Json
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description_template?: string | null
+          happy_hour?: Json
+          id?: string
+          is_active?: boolean
+          points_required?: Json
+          tiers?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
       marketing_files: {
         Row: {
           branch_name: string | null
