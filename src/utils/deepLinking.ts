@@ -38,3 +38,4 @@ export const openExternalLink = (url: string) => {
     window.location.href = url;
   }
 };
+

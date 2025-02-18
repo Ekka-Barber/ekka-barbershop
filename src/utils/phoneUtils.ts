@@ -38,3 +38,4 @@ export const isValidWhatsAppNumber = (number: string | null | undefined): boolea
   // Should be 966 followed by 9 digits
   return /^966\d{9}$/.test(formatted);
 };
+
