@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { v4 as uuidv4 } from 'uuid';
 import { getPlatformType } from "@/services/platformDetection";
@@ -8,7 +7,21 @@ import { Json } from "@/integrations/supabase/types";
 type DeviceType = 'mobile' | 'tablet' | 'desktop';
 type InteractionType = 'page_view' | 'button_click' | 'dialog_open' | 'dialog_close' | 
                       'form_interaction' | 'pdf_view' | 'menu_view' | 'offer_view' | 
-                      'branch_select' | 'service_select' | 'barber_select' | 'language_switch';
+                      'branch_select' | 'service_select' | 'barber_select' | 'language_switch' |
+                      'category_view' | 'service_view' | 'service_compare';
+
+interface ServiceDiscoveryEvent {
+  category_id: string;
+  service_id?: string;
+  interaction_type: 'category_view' | 'service_view' | 'service_compare';
+  discovery_path: string[];
+  selected_service_name?: string;
+  price_viewed: boolean;
+  description_viewed: boolean;
+  session_id: string;
+  device_type: DeviceType;
+  timestamp: string;
+}
 
 interface SessionData {
   id: string;
@@ -154,6 +167,27 @@ export const enhancedTrackClick = async (event: MouseEvent): Promise<void> => {
   };
 
   await trackInteraction('button_click', interactionDetails);
+};
+
+// Enhanced service selection tracking
+export const trackServiceInteraction = async (event: ServiceDiscoveryEvent): Promise<void> => {
+  if (!shouldTrack()) return;
+
+  const session = getSessionId();
+  if (!session) return;
+
+  await tryTracking(async () => {
+    const { error } = await supabase.from('service_interactions').insert({
+      ...event,
+      session_id: session,
+      device_type: mapPlatformToDeviceType(getPlatformType()),
+      timestamp: new Date().toISOString()
+    });
+
+    if (error) {
+      console.error('Error tracking service interaction:', error);
+    }
+  });
 };
 
 // Initialize tracking

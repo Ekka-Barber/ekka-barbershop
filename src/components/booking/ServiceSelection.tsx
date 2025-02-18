@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
@@ -11,6 +10,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { useToast } from "@/hooks/use-toast";
 import { AlertTriangle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useTracking } from "@/hooks/useTracking";
 
 interface ServiceSelectionProps {
   categories: any[] | undefined;
@@ -29,15 +29,27 @@ export const ServiceSelection = ({
 }: ServiceSelectionProps) => {
   const { language } = useLanguage();
   const { toast } = useToast();
+  const { trackServiceInteraction } = useTracking();
   const [activeCategory, setActiveCategory] = useState<string | null>(
     getCachedActiveCategory() || categories?.[0]?.id || null
   );
   const [selectedService, setSelectedService] = useState<any | null>(null);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const [discoveryPath, setDiscoveryPath] = useState<string[]>([]);
+  const [viewStartTime, setViewStartTime] = useState<Date | null>(null);
 
   useEffect(() => {
     if (activeCategory) {
       cacheActiveCategory(activeCategory);
+      trackServiceInteraction({
+        category_id: activeCategory,
+        interaction_type: 'category_view',
+        discovery_path: [...discoveryPath, activeCategory],
+        price_viewed: false,
+        description_viewed: false,
+        timestamp: new Date().toISOString()
+      });
+      setDiscoveryPath(prev => [...prev, activeCategory]);
     }
   }, [activeCategory]);
 
@@ -47,32 +59,46 @@ export const ServiceSelection = ({
     }
   }, [selectedServices]);
 
-  const trackServiceAction = async (service: any, action: 'added' | 'removed') => {
-    try {
-      await supabase.from('service_tracking').insert({
-        service_name: language === 'ar' ? service.name_ar : service.name_en,
-        action: action,
-        timestamp: new Date().toISOString()
-      });
-    } catch (error) {
-      console.error('Error tracking service action:', error);
-    }
-  };
-
-  const trackBookingStep = async (step: string) => {
-    try {
-      await supabase.from('booking_behavior').insert({
-        step: step,
-        timestamp: new Date().toISOString()
-      });
-    } catch (error) {
-      console.error('Error tracking booking step:', error);
-    }
-  };
-
-  const handleServiceClick = (service: any) => {
+  const handleServiceClick = async (service: any) => {
     setSelectedService(service);
     setIsSheetOpen(true);
+    setViewStartTime(new Date());
+    
+    await trackServiceInteraction({
+      category_id: activeCategory || '',
+      service_id: service.id,
+      interaction_type: 'service_view',
+      discovery_path: discoveryPath,
+      selected_service_name: language === 'ar' ? service.name_ar : service.name_en,
+      price_viewed: true,
+      description_viewed: false,
+      timestamp: new Date().toISOString()
+    });
+  };
+
+  const handleServiceToggleWrapper = async (service: any) => {
+    try {
+      const isSelected = selectedServices.some(s => s.id === service.id);
+      const viewDuration = viewStartTime ? new Date().getTime() - viewStartTime.getTime() : 0;
+      
+      await trackServiceInteraction({
+        category_id: activeCategory || '',
+        service_id: service.id,
+        interaction_type: 'service_compare',
+        discovery_path: discoveryPath,
+        selected_service_name: language === 'ar' ? service.name_ar : service.name_en,
+        price_viewed: true,
+        description_viewed: true,
+        timestamp: new Date().toISOString()
+      });
+
+      onServiceToggle(service);
+      setIsSheetOpen(false);
+      setViewStartTime(null);
+    } catch (error) {
+      handleServiceToggleError();
+      console.error('Service toggle error:', error);
+    }
   };
 
   const handleServiceToggleError = () => {
@@ -83,17 +109,6 @@ export const ServiceSelection = ({
         ? 'حدث خطأ أثناء إضافة/إزالة الخدمة. يرجى المحاولة مرة أخرى.'
         : 'There was an error adding/removing the service. Please try again.',
     });
-  };
-
-  const handleServiceToggleWrapper = async (service: any) => {
-    try {
-      const isSelected = selectedServices.some(s => s.id === service.id);
-      await trackServiceAction(service, isSelected ? 'removed' : 'added');
-      onServiceToggle(service);
-    } catch (error) {
-      handleServiceToggleError();
-      console.error('Service toggle error:', error);
-    }
   };
 
   const handleStepChange = async (step: string) => {
