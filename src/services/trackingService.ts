@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { getPlatformType } from "@/services/platformDetection";
 import { getSessionId, shouldTrack, cleanupSession } from './tracking/sessionManager';
@@ -18,10 +19,11 @@ export const trackPageView = async (path: string): Promise<void> => {
   
   try {
     const { error } = await supabase.from('page_views').insert({
-      ...createTrackingEvent('page_view'),
       page_url: path,
       session_id: getSessionId(),
-      device_type: mapPlatformToDeviceType(getPlatformType())
+      device_type: mapPlatformToDeviceType(getPlatformType()),
+      entry_time: new Date().toISOString(),
+      created_at: new Date().toISOString()
     });
 
     if (error) throw error;
@@ -31,7 +33,19 @@ export const trackPageView = async (path: string): Promise<void> => {
 };
 
 export const trackInteraction = async (
-  type: InteractionType,
+  type: Extract<InteractionType, 
+    | 'page_view' 
+    | 'barber_select' 
+    | 'dialog_open' 
+    | 'dialog_close' 
+    | 'service_select' 
+    | 'branch_select' 
+    | 'menu_view' 
+    | 'offer_view' 
+    | 'button_click' 
+    | 'form_interaction' 
+    | 'pdf_view' 
+    | 'language_switch'>,
   details: Record<string, any> = {}
 ): Promise<void> => {
   if (!shouldTrack()) return;
@@ -176,8 +190,8 @@ export const initializeTracking = async (): Promise<void> => {
   try {
     await trackPageView(window.location.pathname);
     await trackMarketingFunnel({
-      interaction_type: 'marketing_funnel',
       funnel_stage: 'landing',
+      interaction_type: 'marketing_funnel',
       time_in_stage: 0,
       conversion_successful: false,
       drop_off_point: false,

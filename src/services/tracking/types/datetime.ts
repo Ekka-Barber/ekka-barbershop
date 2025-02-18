@@ -8,7 +8,7 @@ export type DateTimeInteractionType =
   | 'time_select'
   | 'time_slot_view';
 
-export interface DateTimeEvent extends BaseInteractionType {
+export interface DateTimeEvent {
   interaction_type: DateTimeInteractionType;
   selected_date?: string;
   selected_time?: string;
@@ -23,5 +23,5 @@ export interface DateTimeEvent extends BaseInteractionType {
     afternoon: number;
     evening: number;
   };
-  browser_info?: Record<string, any>;
+  interaction_details?: Record<string, any>;
 }
