@@ -5,12 +5,14 @@ import { InteractionType } from './types';
 import { getSessionId, shouldTrack } from './sessionManager';
 import { mapPlatformToDeviceType, getBrowserInfo, tryTracking } from './utils';
 
-type PageInteractionType =
+export type PageInteractionType =
   | 'page_view'
   | 'dialog_open'
   | 'dialog_close'
   | 'button_click'
-  | 'form_interaction';
+  | 'form_interaction'
+  | 'service_select'
+  | 'location_view';
 
 export const trackPageView = async (pageUrl: string): Promise<void> => {
   if (!shouldTrack()) return;

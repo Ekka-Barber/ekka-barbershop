@@ -54,6 +54,40 @@ export interface PathOptimization {
   priority: 'high' | 'medium' | 'low';
 }
 
+export interface TimePattern {
+  hour: number;
+  total: number;
+  mobile: number;
+  tablet: number;
+  desktop: number;
+}
+
+export interface BookingData {
+  appointment_time: string;
+  device_type: 'mobile' | 'tablet' | 'desktop';
+}
+
+export interface PathAnalysis {
+  commonPaths: string[][];
+  dropOffPoints: string[];
+  conversionRate: number;
+  averageTimeToComplete: number;
+}
+
+export interface UserBehaviorMetrics {
+  totalSessions: number;
+  averageSessionDuration: number;
+  bounceRate: number;
+  conversionRate: number;
+  deviceDistribution: {
+    mobile: number;
+    tablet: number;
+    desktop: number;
+  };
+  pathAnalysis: PathAnalysis;
+  timePatterns: TimePattern[];
+}
+
 export interface ProcessedJourneyData {
   nodes: JourneyNode[];
   links: JourneyLink[];

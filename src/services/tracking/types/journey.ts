@@ -1,3 +1,4 @@
+
 import type { ServiceBundle, PathOptimization } from "@/components/admin/tracking/types";
 
 export interface JourneyNode {
