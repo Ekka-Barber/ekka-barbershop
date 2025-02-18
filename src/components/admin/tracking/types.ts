@@ -1,3 +1,4 @@
+
 export interface ServiceTracking {
   service_name: string;
   action: 'added' | 'removed';
@@ -12,7 +13,7 @@ export interface BookingBehavior {
 export interface BookingData {
   id: string;
   device_type: 'mobile' | 'tablet' | 'desktop';
-  browser_info: any;
+  browser_info: any; // Changed from any[] to any to match JSON
   services: any; // Changed from any[] to any to match JSON
   total_price: number;
   appointment_date: string;

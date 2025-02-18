@@ -1,3 +1,89 @@
+export type MarketingFunnelStage = 'landing' | 'service_browse' | 'datetime_select' | 'barber_select' | 'booking_complete';
+
+export type DeviceType = 'mobile' | 'tablet' | 'desktop';
+
+export interface BaseInteractionType {
+  session_id?: string;
+  device_type?: DeviceType;
+  timestamp?: string;
+  interaction_details?: Record<string, any>;
+}
+
+export interface DatabaseInteractionType extends BaseInteractionType {
+  id: string;
+  created_at: string;
+}
+
+export interface SessionData {
+  id: string;
+  created_at: string;
+  session_id: string;
+  device_type: DeviceType;
+  last_active: string;
+}
+
+export interface ServiceDiscoveryEvent extends BaseInteractionType {
+  category_id?: string;
+  service_id?: string;
+  selected_service_name?: string;
+  discovery_path?: string[];
+  description_viewed?: boolean;
+  price_viewed?: boolean;
+}
+
+export interface DateTimeEvent extends BaseInteractionType {
+  selected_date?: string;
+  selected_time?: string;
+  calendar_view_type?: 'month' | 'week' | 'day';
+  days_in_advance?: number;
+  time_slot_position?: string;
+  quick_select_usage?: boolean;
+}
+
+export interface BarberSelectionEvent extends BaseInteractionType {
+  barber_id: string;
+  comparison_count?: number;
+  time_to_selection_seconds?: number;
+  availability_status: boolean;
+  view_duration_seconds: number;
+  selection_criteria?: {
+    availability_based?: boolean;
+    nationality_based?: boolean;
+    time_slot_based?: boolean;
+  };
+}
+
+export interface BranchSelectionEvent extends BaseInteractionType {
+  branch_id?: string;
+  dialog_open_time?: string;
+  dialog_close_time?: string;
+  selected_branch_name?: string;
+  source_page: string;
+}
+
+export interface MenuInteractionEvent extends BaseInteractionType {
+  menu_file_id?: string;
+  view_duration_seconds?: number;
+  zoom_actions?: number;
+  page_changes?: number;
+}
+
+export interface OfferInteractionEvent extends BaseInteractionType {
+  offer_id?: string;
+  view_duration_seconds?: number;
+}
+
+export interface MarketingFunnelEvent extends BaseInteractionType {
+  funnel_stage: MarketingFunnelStage;
+  time_in_stage: number;
+  conversion_successful: boolean;
+  drop_off_point: boolean;
+  entry_point: string;
+  interaction_path: {
+    path: string[];
+    timestamps: number[];
+  };
+}
 
 export interface ServiceTracking {
   service_name: string;
