@@ -4,10 +4,11 @@ import { PlatformType } from '../platformDetection';
 
 export const mapPlatformToDeviceType = (platform: PlatformType): DeviceType => {
   switch (platform) {
-    case 'mobile':
+    case 'ios':
+    case 'android':
       return 'mobile';
-    case 'tablet':
-      return 'tablet';
+    case 'desktop':
+      return 'desktop';
     default:
       return 'desktop';
   }
