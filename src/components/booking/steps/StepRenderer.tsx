@@ -7,6 +7,7 @@ import { DetailsStep } from './DetailsStep';
 import { BookingStep } from '../BookingProgress';
 import { CustomerDetails, Branch, Employee } from '@/types/booking';
 import { Service, SelectedService, Category } from '@/types/service';
+import { useBookingContext } from '@/contexts/BookingContext';
 
 interface StepRendererProps {
   currentStep: BookingStep;
@@ -51,6 +52,14 @@ export const StepRenderer: React.FC<StepRendererProps> = ({
   language,
   branch
 }) => {
+  const { state } = useBookingContext();
+
+  // Ensure we have the required data for each step
+  if (!branch) {
+    console.error('Branch not found in StepRenderer');
+    return null;
+  }
+
   switch (currentStep) {
     case 'services':
       return (
@@ -63,6 +72,11 @@ export const StepRenderer: React.FC<StepRendererProps> = ({
         />
       );
     case 'datetime':
+      if (selectedServices.length === 0) {
+        console.error('No services selected for datetime step');
+        handleStepChange('services');
+        return null;
+      }
       return (
         <DateTimeStep
           selectedDate={selectedDate}
@@ -70,6 +84,11 @@ export const StepRenderer: React.FC<StepRendererProps> = ({
         />
       );
     case 'barber':
+      if (!selectedDate) {
+        console.error('No date selected for barber step');
+        handleStepChange('datetime');
+        return null;
+      }
       return (
         <BarberStep
           employees={employees}
@@ -85,6 +104,11 @@ export const StepRenderer: React.FC<StepRendererProps> = ({
         />
       );
     case 'details':
+      if (!selectedBarber || !selectedTime) {
+        console.error('Missing barber or time for details step');
+        handleStepChange('barber');
+        return null;
+      }
       return (
         <DetailsStep
           customerDetails={customerDetails}
