@@ -1,134 +1,16 @@
 
-import { useEffect, useState } from "react";
-import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import PointsRewardsSection from "./sections/PointsRewardsSection";
 import LoyaltyTiersSection from "./sections/LoyaltyTiersSection";
 import HappyHourSection from "./sections/HappyHourSection";
 import DescriptionSection from "./sections/DescriptionSection";
-
-interface LoyaltyProgram {
-  id: string;
-  points_required: Record<string, number>;
-  tiers: Record<string, { points: number; discount: number }>;
-  happy_hour: Record<string, string[]>;
-  description_template: string | null;
-  is_active: boolean;
-  updated_at: string;
-}
-
-const defaultProgram: Partial<LoyaltyProgram> = {
-  points_required: {},
-  tiers: {
-    bronze: { points: 0, discount: 0 },
-    silver: { points: 1000, discount: 5 },
-    gold: { points: 5000, discount: 10 }
-  },
-  happy_hour: {},
-  description_template: "Earn {points} points and get {reward} SAR cashback!",
-  is_active: true
-};
+import { useLoyaltyProgram } from "./hooks/useLoyaltyProgram";
 
 export default function LoyaltyProgramManager() {
-  const [program, setProgram] = useState<LoyaltyProgram | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const { toast } = useToast();
-
-  useEffect(() => {
-    fetchProgram();
-  }, []);
-
-  const convertDatabaseToProgram = (data: any): LoyaltyProgram => {
-    return {
-      id: data.id,
-      points_required: typeof data.points_required === 'string' 
-        ? JSON.parse(data.points_required)
-        : data.points_required,
-      tiers: typeof data.tiers === 'string'
-        ? JSON.parse(data.tiers)
-        : data.tiers,
-      happy_hour: typeof data.happy_hour === 'string'
-        ? JSON.parse(data.happy_hour)
-        : data.happy_hour,
-      description_template: data.description_template,
-      is_active: data.is_active,
-      updated_at: data.updated_at
-    };
-  };
-
-  const fetchProgram = async () => {
-    try {
-      const { data, error } = await supabase
-        .from("loyalty_program")
-        .select("*")
-        .eq("is_active", true)
-        .single();
-
-      if (error) throw error;
-
-      if (data) {
-        setProgram(convertDatabaseToProgram(data));
-      } else {
-        // Create default program if none exists
-        const { data: newProgram, error: createError } = await supabase
-          .from("loyalty_program")
-          .insert([defaultProgram])
-          .select()
-          .single();
-
-        if (createError) throw createError;
-        setProgram(convertDatabaseToProgram(newProgram));
-      }
-    } catch (error) {
-      console.error("Error fetching loyalty program:", error);
-      toast({
-        title: "Error",
-        description: "Failed to load loyalty program settings",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSave = async () => {
-    if (!program?.id) return;
-    
-    setSaving(true);
-    try {
-      const { error } = await supabase
-        .from("loyalty_program")
-        .update({
-          points_required: program.points_required,
-          tiers: program.tiers,
-          happy_hour: program.happy_hour,
-          description_template: program.description_template,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", program.id);
-
-      if (error) throw error;
-
-      toast({
-        title: "Success",
-        description: "Loyalty program settings saved successfully",
-      });
-    } catch (error) {
-      console.error("Error saving loyalty program:", error);
-      toast({
-        title: "Error",
-        description: "Failed to save loyalty program settings",
-        variant: "destructive",
-      });
-    } finally {
-      setSaving(false);
-    }
-  };
+  const { program, setProgram, loading, saving, handleSave } = useLoyaltyProgram();
 
   if (loading) {
     return (
