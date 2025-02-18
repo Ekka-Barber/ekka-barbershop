@@ -4,7 +4,6 @@ import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useBooking } from '@/hooks/useBooking';
 import { useTimeSlots } from '@/hooks/useTimeSlots';
-import { format } from 'date-fns';
 import { TimeSlotPicker } from './barber/TimeSlotPicker';
 import { useQuery } from '@tanstack/react-query';
 
@@ -30,7 +29,7 @@ const DateTimeSelection = () => {
   return (
     <div className="w-full max-w-3xl mx-auto px-4 py-8">
       <TimeSlotPicker
-        selectedBarber={selectedBarber}
+        selectedBarberData={selectedBarber}
         selectedDate={selectedDate}
         onDateChange={setSelectedDate}
         selectedTime={selectedTime}

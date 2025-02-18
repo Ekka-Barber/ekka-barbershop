@@ -1,7 +1,6 @@
 
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useBooking } from '@/hooks/useBooking';
 import { Employee } from '@/types/booking';
@@ -32,19 +31,19 @@ const BarberSelection = () => {
     return null;
   }
 
-  const handleBarberSelect = (barber: Employee) => {
-    setSelectedBarber(barber);
-  };
-
   return (
     <div className="w-full max-w-3xl mx-auto px-4 py-8">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {barbers.map((barber) => (
           <BarberCard
             key={barber.id}
-            barber={barber}
+            id={barber.id}
+            name={barber.name}
+            name_ar={barber.name_ar}
+            photo_url={barber.photo_url}
+            nationality={barber.nationality}
             isSelected={selectedBarber?.id === barber.id}
-            onSelect={() => handleBarberSelect(barber)}
+            onSelect={() => setSelectedBarber(barber)}
             date={selectedDate}
           />
         ))}

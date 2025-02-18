@@ -1,9 +1,9 @@
 
-import { BarberSelection } from '@/components/booking/BarberSelection';
-import { BarberDetails } from '@/types/booking';
+import BarberSelection from '@/components/booking/BarberSelection';
+import { Employee } from '@/types/booking';
 
 interface BarberStepProps {
-  employees: BarberDetails[];
+  employees: Employee[];
   isLoading: boolean;
   selectedBarber: string | undefined;
   onBarberSelect: (id: string) => void;
@@ -22,14 +22,6 @@ export const BarberStep = ({
   onTimeSelect
 }: BarberStepProps) => {
   return (
-    <BarberSelection
-      employees={employees}
-      isLoading={isLoading}
-      selectedBarber={selectedBarber}
-      onBarberSelect={onBarberSelect}
-      selectedDate={selectedDate}
-      selectedTime={selectedTime}
-      onTimeSelect={onTimeSelect}
-    />
+    <BarberSelection />
   );
 };

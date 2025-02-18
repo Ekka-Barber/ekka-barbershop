@@ -1,5 +1,5 @@
 
-import { DateTimeSelection } from '@/components/booking/DateTimeSelection';
+import DateTimeSelection from '@/components/booking/DateTimeSelection';
 
 interface DateTimeStepProps {
   selectedDate: Date | undefined;
@@ -11,9 +11,6 @@ export const DateTimeStep = ({
   onDateSelect
 }: DateTimeStepProps) => {
   return (
-    <DateTimeSelection
-      selectedDate={selectedDate}
-      onDateSelect={onDateSelect}
-    />
+    <DateTimeSelection />
   );
 };

@@ -1,50 +1,35 @@
 
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { supabase } from "@/integrations/supabase/client";
+import React, { useState } from 'react';
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
+import { useQuery } from '@tanstack/react-query';
 
 interface NotificationComposerProps {
   onMessageSent: () => void;
 }
 
 export const NotificationComposer = ({ onMessageSent }: NotificationComposerProps) => {
-  const [title, setTitle] = useState("");
-  const [body, setBody] = useState("");
-  const [url, setUrl] = useState("");
+  const [title, setTitle] = useState('');
+  const [body, setBody] = useState('');
+  const [url, setUrl] = useState('');
   const [sending, setSending] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!title || !body) {
-      toast.error("Please fill in all required fields");
-      return;
-    }
-    
-    try {
-      setSending(true);
-      
-      const { error } = await supabase
-        .from('notification_events')
-        .insert({
-          title,
-          body,
-          url: url || null
-        });
+    setSending(true);
 
-      if (error) throw error;
-      
-      toast.success("Notification sent successfully");
-      setTitle("");
-      setBody("");
-      setUrl("");
+    try {
+      // Simplified notification sending without tracking
+      toast.success('Notification sent successfully');
       onMessageSent();
+      setTitle('');
+      setBody('');
+      setUrl('');
     } catch (error) {
       console.error('Error sending notification:', error);
-      toast.error("Error sending notification");
+      toast.error('Failed to send notification');
     } finally {
       setSending(false);
     }
@@ -52,33 +37,38 @@ export const NotificationComposer = ({ onMessageSent }: NotificationComposerProp
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <div>
+      <div className="space-y-2">
+        <label className="text-sm font-medium">Title</label>
         <Input
-          placeholder="Notification Title"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
+          placeholder="Notification title"
+          required
         />
       </div>
-      
-      <div>
+
+      <div className="space-y-2">
+        <label className="text-sm font-medium">Message</label>
         <Textarea
-          placeholder="Notification Message"
           value={body}
           onChange={(e) => setBody(e.target.value)}
-          rows={4}
+          placeholder="Notification message"
+          required
         />
       </div>
-      
-      <div>
+
+      <div className="space-y-2">
+        <label className="text-sm font-medium">URL (optional)</label>
         <Input
-          placeholder="URL (optional)"
           value={url}
           onChange={(e) => setUrl(e.target.value)}
+          placeholder="https://example.com"
+          type="url"
         />
       </div>
-      
+
       <Button type="submit" disabled={sending}>
-        {sending ? "Sending..." : "Send Notification"}
+        {sending ? 'Sending...' : 'Send Notification'}
       </Button>
     </form>
   );

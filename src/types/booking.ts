@@ -42,6 +42,9 @@ export interface Branch {
   google_maps_url?: string | null;
 }
 
+// Alias for backward compatibility
+export type BarberDetails = Employee;
+
 export interface Employee {
   id: string;
   name: string;
@@ -51,4 +54,25 @@ export interface Employee {
   nationality: string | null;
   working_hours: Record<string, string[]>;
   off_days: string[];
+}
+
+export interface BarberCardProps {
+  id: string;
+  name: string;
+  name_ar: string | null;
+  photo_url: string | null;
+  nationality: string | null;
+  isSelected: boolean;
+  onSelect: () => void;
+  date?: Date;
+}
+
+export interface TimeSlotPickerProps {
+  selectedBarberData: Employee;
+  selectedDate: Date | undefined;
+  onDateChange: (date: Date) => void;
+  selectedTime: string;
+  onTimeChange: (time: string) => void;
+  availableTimeSlots: TimeSlot[];
+  isLoading: boolean;
 }
