@@ -9,6 +9,7 @@ import { useBookingUpsells } from "@/hooks/useBookingUpsells";
 import { StepRenderer } from "./steps/StepRenderer";
 import { useUpsellWorkflow } from "@/hooks/booking/useUpsellWorkflow";
 import { Branch } from "@/types/booking";
+import { ErrorBoundary } from "@/components/common/ErrorBoundary";
 
 const STEPS: BookingStep[] = ['services', 'datetime', 'barber', 'details'];
 
@@ -52,14 +53,16 @@ export const BookingStepsContainer = ({ branch }: BookingStepsContainerProps) =>
   } = useUpsellWorkflow();
 
   const handleMainStepChange = (step: BookingStep) => {
-    const wasUpsellHandled = handleUpsellStepChange(
+    console.log('Step change requested:', { from: currentStep, to: step });
+    
+    const shouldPreventStepChange = handleUpsellStepChange(
       step,
       availableUpsells || [],
       selectedServices,
       totalPrice
     );
     
-    if (!wasUpsellHandled) {
+    if (!shouldPreventStepChange) {
       handleStepChange(step);
     }
   };
@@ -80,7 +83,7 @@ export const BookingStepsContainer = ({ branch }: BookingStepsContainerProps) =>
   const currentStepIndex = STEPS.indexOf(currentStep);
 
   return (
-    <>
+    <ErrorBoundary>
       <BookingProgress
         currentStep={currentStep}
         steps={STEPS}
@@ -130,6 +133,6 @@ export const BookingStepsContainer = ({ branch }: BookingStepsContainerProps) =>
         onConfirm={handleUpsellConfirm}
         availableUpsells={availableUpsells || []}
       />
-    </>
+    </ErrorBoundary>
   );
 };
