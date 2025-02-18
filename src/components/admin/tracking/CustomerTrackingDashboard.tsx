@@ -22,13 +22,14 @@ import { Pagination } from "@/components/ui/pagination";
 import { PredictiveAnalytics } from './PredictiveAnalytics';
 import { GeographicInsights } from './GeographicInsights';
 import { ErrorBoundary } from "@/components/common/ErrorBoundary";
-import type { GeographicInsightsType } from './types';
+import { toast } from "@/hooks/use-toast";
 
-const ITEMS_PER_PAGE = 50;
+const ITEMS_PER_PAGE = 20; // Reduced from 50 to better handle smaller datasets
 
 const CustomerTrackingDashboard = () => {
+  // Set default date range to last 30 days instead of future dates
   const [dateRange, setDateRange] = useState<DateRange>({
-    from: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+    from: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
     to: new Date()
   });
   const [currentPage, setCurrentPage] = useState(0);
@@ -48,11 +49,25 @@ const CustomerTrackingDashboard = () => {
     activeTab === "overview" ? { page: currentPage, pageSize: ITEMS_PER_PAGE } : undefined
   );
 
+  const handleDateRangeChange = (newRange: DateRange) => {
+    // Validate date range
+    if (newRange.to > new Date()) {
+      toast({
+        title: "Invalid Date Range",
+        description: "Cannot select future dates for tracking data",
+        variant: "destructive"
+      });
+      return;
+    }
+    setDateRange(newRange);
+    setCurrentPage(0); // Reset to first page when date range changes
+  };
+
   if (error) {
     return (
       <Alert variant="destructive">
         <AlertDescription>
-          Error loading tracking data: {error.message}
+          {error.message || "Error loading tracking data. Please try again."}
         </AlertDescription>
       </Alert>
     );
@@ -66,16 +81,36 @@ const CustomerTrackingDashboard = () => {
     );
   }
 
-  const timePatterns = sessionData ? processTimePatterns(bookingData || []) : [];
-  const heatmapData = interactionEvents ? processServiceHeatmapData(interactionEvents) : [];
-  const journeyData = interactionEvents ? processCustomerJourney(interactionEvents) : { nodes: [], links: [] };
-  const periodMetrics = calculatePeriodMetrics(interactionEvents || [], previousPeriodData || []);
+  // Only process data if it exists
+  const timePatterns = Array.isArray(bookingData) && bookingData.length > 0 
+    ? processTimePatterns(bookingData) 
+    : [];
 
-  const totalPages = Math.ceil(Math.max(
-    totalCounts?.sessions || 0,
-    totalCounts?.bookings || 0,
-    totalCounts?.interactions || 0
-  ) / ITEMS_PER_PAGE);
+  const heatmapData = Array.isArray(interactionEvents) && interactionEvents.length > 0 
+    ? processServiceHeatmapData(interactionEvents) 
+    : [];
+
+  const journeyData = Array.isArray(interactionEvents) && interactionEvents.length > 0 
+    ? processCustomerJourney(interactionEvents) 
+    : { nodes: [], links: [] };
+
+  const periodMetrics = calculatePeriodMetrics(
+    Array.isArray(interactionEvents) ? interactionEvents : [], 
+    Array.isArray(previousPeriodData) ? previousPeriodData : []
+  );
+
+  // Calculate total pages based on the smallest non-zero count to prevent range errors
+  const totalPages = Math.max(1, Math.ceil(Math.min(
+    totalCounts?.sessions || Infinity,
+    totalCounts?.bookings || Infinity,
+    totalCounts?.interactions || Infinity,
+    ITEMS_PER_PAGE
+  ) / ITEMS_PER_PAGE));
+
+  // Ensure currentPage stays within bounds
+  if (currentPage >= totalPages) {
+    setCurrentPage(Math.max(0, totalPages - 1));
+  }
 
   return (
     <div className="space-y-8">
@@ -90,7 +125,7 @@ const CustomerTrackingDashboard = () => {
         <TabsContent value="overview" className="space-y-4">
           <ErrorBoundary>
             <div className="flex justify-between items-center">
-              <DateRangeSelector onRangeChange={setDateRange} />
+              <DateRangeSelector onRangeChange={handleDateRangeChange} />
               <Button
                 variant="outline"
                 onClick={() => {
@@ -101,51 +136,61 @@ const CustomerTrackingDashboard = () => {
                 Refresh Data
               </Button>
             </div>
-            
-            <div className="grid gap-4 md:grid-cols-3">
-              <PeriodComparison
-                title="Active Users"
-                {...periodMetrics.sessions}
-                format={(value) => value.toString()}
-              />
-              <PeriodComparison
-                title="Bookings"
-                {...periodMetrics.bookings}
-                format={(value) => value.toString()}
-              />
-              <PeriodComparison
-                title="Conversion Rate"
-                {...periodMetrics.conversionRate}
-                format={(value) => `${value.toFixed(1)}%`}
-              />
-            </div>
 
-            {coreMetrics && <CoreMetricsGrid metrics={coreMetrics} />}
-            
-            {journeyData.nodes.length > 0 && (
-              <CustomerJourneyCard 
-                nodes={journeyData.nodes} 
-                links={journeyData.links} 
-              />
-            )}
-            
-            <div className="grid gap-4 md:grid-cols-2">
-              {timePatterns.length > 0 && (
-                <TimePatternCard timePatterns={timePatterns} />
-              )}
-              {heatmapData.length > 0 && (
-                <ServiceHeatmapCard serviceData={heatmapData} />
-              )}
-            </div>
+            {(!sessionData?.length && !bookingData?.length && !interactionEvents?.length) ? (
+              <Alert>
+                <AlertDescription>
+                  No tracking data available for the selected date range. Try selecting a different period.
+                </AlertDescription>
+              </Alert>
+            ) : (
+              <>
+                <div className="grid gap-4 md:grid-cols-3">
+                  <PeriodComparison
+                    title="Active Users"
+                    {...periodMetrics.sessions}
+                    format={(value) => value.toString()}
+                  />
+                  <PeriodComparison
+                    title="Bookings"
+                    {...periodMetrics.bookings}
+                    format={(value) => value.toString()}
+                  />
+                  <PeriodComparison
+                    title="Conversion Rate"
+                    {...periodMetrics.conversionRate}
+                    format={(value) => `${value.toFixed(1)}%`}
+                  />
+                </div>
 
-            {totalPages > 1 && activeTab === "overview" && (
-              <div className="flex justify-center mt-4">
-                <Pagination
-                  totalPages={totalPages}
-                  currentPage={currentPage}
-                  onPageChange={setCurrentPage}
-                />
-              </div>
+                {coreMetrics && <CoreMetricsGrid metrics={coreMetrics} />}
+                
+                {journeyData.nodes.length > 0 && (
+                  <CustomerJourneyCard 
+                    nodes={journeyData.nodes} 
+                    links={journeyData.links} 
+                  />
+                )}
+                
+                <div className="grid gap-4 md:grid-cols-2">
+                  {timePatterns.length > 0 && (
+                    <TimePatternCard timePatterns={timePatterns} />
+                  )}
+                  {heatmapData.length > 0 && (
+                    <ServiceHeatmapCard serviceData={heatmapData} />
+                  )}
+                </div>
+
+                {totalPages > 1 && activeTab === "overview" && (
+                  <div className="flex justify-center mt-4">
+                    <Pagination
+                      totalPages={totalPages}
+                      currentPage={currentPage}
+                      onPageChange={setCurrentPage}
+                    />
+                  </div>
+                )}
+              </>
             )}
           </ErrorBoundary>
         </TabsContent>

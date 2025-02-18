@@ -15,24 +15,50 @@ export const useTrackingData = (dateRange: DateRange, pagination?: TrackingPagin
   const previousPeriodStart = new Date(dateRange.from.getTime() - periodDuration);
   const previousPeriodEnd = new Date(dateRange.from.getTime() - 1); // -1 to avoid overlap
 
+  // Helper function to safely get range parameters
+  const getRangeParams = (count: number | null, pagination?: TrackingPaginationParams) => {
+    if (!pagination || !count) return undefined;
+    
+    const start = pagination.page * pagination.pageSize;
+    // If start is beyond the total count, return last page
+    if (start >= (count || 0)) {
+      const lastPage = Math.floor((count - 1) / pagination.pageSize);
+      return {
+        start: lastPage * pagination.pageSize,
+        end: count - 1
+      };
+    }
+    return {
+      start,
+      end: Math.min(start + pagination.pageSize - 1, count - 1)
+    };
+  };
+
   const { data: interactionEvents, error: interactionsError, isLoading: interactionsLoading } = useQuery({
     queryKey: ['interaction-events', dateRange, pagination?.page],
     queryFn: async () => {
       try {
-        let query = supabase
+        // First get count
+        const { count, error: countError } = await supabase
           .from('unified_events')
-          .select('*', { count: 'exact' })
+          .select('*', { count: 'exact', head: true })
           .eq('event_type', 'interaction')
           .gte('timestamp', dateRange.from.toISOString())
           .lte('timestamp', dateRange.to.toISOString());
 
-        if (pagination) {
-          const start = pagination.page * pagination.pageSize;
-          const end = start + pagination.pageSize - 1;
-          query = query.range(start, end);
-        }
+        if (countError) throw countError;
 
-        const { data, error, count } = await query.order('timestamp', { ascending: false });
+        const range = getRangeParams(count, pagination);
+        
+        // Then get data with safe range
+        const { data, error } = await supabase
+          .from('unified_events')
+          .select('*')
+          .eq('event_type', 'interaction')
+          .gte('timestamp', dateRange.from.toISOString())
+          .lte('timestamp', dateRange.to.toISOString())
+          .order('timestamp', { ascending: false })
+          ...(range ? `.range(${range.start}, ${range.end})` : '');
         
         if (error) throw error;
         return { data: data as UnifiedEvent[], totalCount: count || 0 };
@@ -70,20 +96,27 @@ export const useTrackingData = (dateRange: DateRange, pagination?: TrackingPagin
     queryKey: ['unified-events-pageviews', dateRange, pagination?.page],
     queryFn: async () => {
       try {
-        let query = supabase
+        // First get count
+        const { count, error: countError } = await supabase
           .from('unified_events')
-          .select('*', { count: 'exact' })
+          .select('*', { count: 'exact', head: true })
           .eq('event_type', 'page_view')
           .gte('timestamp', dateRange.from.toISOString())
           .lte('timestamp', dateRange.to.toISOString());
 
-        if (pagination) {
-          const start = pagination.page * pagination.pageSize;
-          const end = start + pagination.pageSize - 1;
-          query = query.range(start, end);
-        }
+        if (countError) throw countError;
 
-        const { data, error, count } = await query.order('timestamp', { ascending: false });
+        const range = getRangeParams(count, pagination);
+        
+        // Then get data with safe range
+        const { data, error } = await supabase
+          .from('unified_events')
+          .select('*')
+          .eq('event_type', 'page_view')
+          .gte('timestamp', dateRange.from.toISOString())
+          .lte('timestamp', dateRange.to.toISOString())
+          .order('timestamp', { ascending: false })
+          ...(range ? `.range(${range.start}, ${range.end})` : '');
         
         if (error) throw error;
         return { data: data as UnifiedEvent[], totalCount: count || 0 };
@@ -99,21 +132,29 @@ export const useTrackingData = (dateRange: DateRange, pagination?: TrackingPagin
     queryKey: ['unified-events-bookings', dateRange, pagination?.page],
     queryFn: async () => {
       try {
-        let query = supabase
+        // First get count
+        const { count, error: countError } = await supabase
           .from('unified_events')
-          .select('*', { count: 'exact' })
+          .select('*', { count: 'exact', head: true })
           .eq('event_type', 'business')
           .eq('event_name', 'booking_completed')
           .gte('timestamp', dateRange.from.toISOString())
           .lte('timestamp', dateRange.to.toISOString());
 
-        if (pagination) {
-          const start = pagination.page * pagination.pageSize;
-          const end = start + pagination.pageSize - 1;
-          query = query.range(start, end);
-        }
+        if (countError) throw countError;
 
-        const { data, error, count } = await query.order('timestamp', { ascending: false });
+        const range = getRangeParams(count, pagination);
+        
+        // Then get data with safe range
+        const { data, error } = await supabase
+          .from('unified_events')
+          .select('*')
+          .eq('event_type', 'business')
+          .eq('event_name', 'booking_completed')
+          .gte('timestamp', dateRange.from.toISOString())
+          .lte('timestamp', dateRange.to.toISOString())
+          .order('timestamp', { ascending: false })
+          ...(range ? `.range(${range.start}, ${range.end})` : '');
         
         if (error) throw error;
         return { data: data as UnifiedEvent[], totalCount: count || 0 };
@@ -125,7 +166,7 @@ export const useTrackingData = (dateRange: DateRange, pagination?: TrackingPagin
     retry: 1,
   });
 
-  const error = interactionsError || previousPeriodError || sessionsError || bookingsError;
+  const error = interactionsError || sessionsError || bookingsError;
   const isLoading = interactionsLoading || sessionsLoading || bookingsLoading;
 
   const calculateCoreMetrics = () => {
