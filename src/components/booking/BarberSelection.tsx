@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useBooking } from '@/hooks/useBooking';
 import { Employee } from '@/types/booking';
-import BarberCard from './barber/BarberCard';
+import { BarberCard } from './barber/BarberCard';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -44,7 +44,7 @@ const BarberSelection = () => {
             key={barber.id}
             barber={barber}
             isSelected={selectedBarber?.id === barber.id}
-            onSelect={handleBarberSelect}
+            onSelect={() => handleBarberSelect(barber)}
             date={selectedDate}
           />
         ))}

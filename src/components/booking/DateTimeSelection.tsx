@@ -5,13 +5,22 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useBooking } from '@/hooks/useBooking';
 import { useTimeSlots } from '@/hooks/useTimeSlots';
 import { format } from 'date-fns';
-import TimeSlotPicker from './barber/TimeSlotPicker';
+import { TimeSlotPicker } from './barber/TimeSlotPicker';
+import { useQuery } from '@tanstack/react-query';
 
 const DateTimeSelection = () => {
   const navigate = useNavigate();
   const { t } = useLanguage();
   const { selectedBarber, selectedDate, setSelectedDate, selectedTime, setSelectedTime } = useBooking();
-  const { timeSlots, isLoading } = useTimeSlots(selectedBarber?.id, selectedDate);
+
+  const { data: timeSlots = [], isLoading } = useQuery({
+    queryKey: ['timeSlots', selectedBarber?.id, selectedDate],
+    queryFn: async () => {
+      if (!selectedBarber || !selectedDate) return [];
+      return useTimeSlots().getAvailableTimeSlots(selectedBarber, selectedDate);
+    },
+    enabled: !!selectedBarber && !!selectedDate
+  });
 
   if (!selectedBarber) {
     navigate('/customer');

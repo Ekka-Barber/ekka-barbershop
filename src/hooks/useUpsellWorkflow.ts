@@ -1,23 +1,36 @@
 
-import { useBooking } from '@/hooks/useBooking';
-import { Service } from '@/types/service';
-import { useBookingUpsells } from '@/hooks/useBookingUpsells';
+import { useState, useCallback } from 'react';
+import { BookingStep } from '@/components/booking/BookingProgress';
 
 export const useUpsellWorkflow = () => {
-  const { upsellsForSelectedServices } = useBookingUpsells();
-  const { addService, removeService } = useBooking();
+  const [showUpsellModal, setShowUpsellModal] = useState(false);
+  const [pendingStep, setPendingStep] = useState<BookingStep | null>(null);
+  const stepStartTime = Date.now();
 
-  const handleAddUpsell = (service: Service) => {
-    addService(service);
-  };
+  const handleStepChange = useCallback((
+    nextStep: string,
+    availableUpsells: any[],
+    selectedServices: any[],
+    totalPrice: number
+  ) => {
+    if (nextStep === 'datetime' && availableUpsells?.length) {
+      setShowUpsellModal(true);
+      setPendingStep('datetime');
+      return true;
+    }
+    return false;
+  }, []);
 
-  const handleRemoveUpsell = (service: Service) => {
-    removeService(service);
-  };
+  const handleUpsellModalClose = useCallback(() => {
+    setShowUpsellModal(false);
+    return pendingStep;
+  }, [pendingStep, stepStartTime]);
 
   return {
-    upsellsForSelectedServices,
-    handleAddUpsell,
-    handleRemoveUpsell
+    showUpsellModal,
+    pendingStep,
+    handleStepChange,
+    handleUpsellModalClose,
+    setPendingStep
   };
 };

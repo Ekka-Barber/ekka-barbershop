@@ -5,7 +5,7 @@ export interface BookingDetails {
   selectedServices: SelectedService[];
   selectedDate?: Date;
   selectedTime?: string;
-  selectedBarber?: string;
+  selectedBarber?: Employee;
   totalPrice: number;
   totalDuration: number;
 }
@@ -42,7 +42,7 @@ export interface Branch {
   google_maps_url?: string | null;
 }
 
-export interface BarberDetails {
+export interface Employee {
   id: string;
   name: string;
   name_ar: string | null;
