@@ -22,7 +22,8 @@ export const GeographicInsights = ({ data }: GeographicInsightsProps) => {
               latitude={25}
               longitude={45}
               zoom={8}
-              style={{ width: '100%', height: '100%' }}
+              width="100%"
+              height="100%"
               mapStyle="mapbox://styles/mapbox/light-v11"
               mapboxApiAccessToken={process.env.NEXT_PUBLIC_MAPBOX_TOKEN}
             >
