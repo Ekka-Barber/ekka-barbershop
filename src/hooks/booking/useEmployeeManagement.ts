@@ -1,54 +1,11 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from "@/integrations/supabase/client";
-import { BarberDetails } from "@/types/booking";
+import { Employee } from "@/types/booking";
 import { Json } from '@/integrations/supabase/types';
 
-interface Employee {
-  id: string;
-  name: string;
-  name_ar: string | null;
-  role: string;
-  photo_url: string | null;
-  nationality: string | null;
-  working_hours: Json;
-  off_days: string[] | null;
-}
-
-const transformEmployeeToBarberDetails = (employee: Employee): BarberDetails => {
-  let workingHours: Record<string, string[]> = {
-    monday: [],
-    tuesday: [],
-    wednesday: [],
-    thursday: [],
-    friday: [],
-    saturday: [],
-    sunday: []
-  };
-  
-  if (typeof employee.working_hours === 'object' && employee.working_hours !== null) {
-    const hours = employee.working_hours as Record<string, unknown>;
-    Object.keys(hours).forEach(day => {
-      if (Array.isArray(hours[day])) {
-        workingHours[day] = hours[day] as string[];
-      }
-    });
-  }
-
-  return {
-    id: employee.id,
-    name: employee.name,
-    name_ar: employee.name_ar,
-    role: employee.role,
-    photo_url: employee.photo_url,
-    nationality: employee.nationality,
-    working_hours: workingHours,
-    off_days: employee.off_days || []
-  };
-};
-
-export const useEmployeeManagement = (branch: any, selectedEmployeeId?: string) => {
-  const { data: employees, isLoading: employeesLoading } = useQuery({
+export const useEmployeeManagement = (branch: any) => {
+  const { data: employees = [], isLoading: employeesLoading } = useQuery({
     queryKey: ['employees', branch?.id],
     queryFn: async () => {
       if (!branch?.id) return [];
@@ -58,30 +15,24 @@ export const useEmployeeManagement = (branch: any, selectedEmployeeId?: string) 
         .eq('branch_id', branch.id);
       
       if (error) throw error;
-      return data.map(transformEmployeeToBarberDetails);
+      return data as Employee[];
     },
     enabled: !!branch?.id,
   });
 
-  const { data: selectedEmployee } = useQuery({
-    queryKey: ['employee', selectedEmployeeId],
-    queryFn: async () => {
-      if (!selectedEmployeeId) return null;
-      const { data, error } = await supabase
-        .from('employees')
-        .select('*')
-        .eq('id', selectedEmployeeId)
-        .maybeSingle();
-      
-      if (error) throw error;
-      return data ? transformEmployeeToBarberDetails(data) : null;
-    },
-    enabled: !!selectedEmployeeId
+  const employeeWorkingHours: Record<string, string[]> = {};
+  employees.forEach(employee => {
+    if (employee.working_hours && typeof employee.working_hours === 'object') {
+      employeeWorkingHours[employee.id] = Object.values(employee.working_hours).flat();
+    }
   });
+
+  const selectedEmployee = employees[0]; // Default to first employee if none selected
 
   return {
     employees,
     employeesLoading,
-    selectedEmployee
+    selectedEmployee,
+    employeeWorkingHours
   };
 };

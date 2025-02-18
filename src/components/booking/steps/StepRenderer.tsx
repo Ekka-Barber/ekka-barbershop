@@ -1,28 +1,28 @@
 
-import { BookingStep } from "@/components/booking/BookingProgress";
-import { ServiceStep } from "./ServiceStep";
-import { DateTimeStep } from "./DateTimeStep";
-import { BarberStep } from "./BarberStep";
-import { DetailsStep } from "./DetailsStep";
-import { Service, SelectedService, WorkingHours } from "@/types/service";
-import { CustomerDetails, Branch, BarberDetails } from "@/types/booking";
+import React from 'react';
+import { ServiceStep } from './ServiceStep';
+import { DateTimeStep } from './DateTimeStep';
+import { BarberStep } from './BarberStep';
+import { DetailsStep } from './DetailsStep';
+import { BookingStep } from '../BookingProgress';
+import { CustomerDetails, Branch, Employee } from '@/types/booking';
+import { Service, SelectedService } from '@/types/service';
 
 interface StepRendererProps {
   currentStep: BookingStep;
-  categories: any[];
+  categories: { services: Service[]; id: string; name_en: string; name_ar: string; display_order: number; }[];
   categoriesLoading: boolean;
   selectedServices: SelectedService[];
   handleServiceToggle: (service: Service) => void;
-  handleStepChange: (step: string) => void;
-  employees: BarberDetails[];
+  handleStepChange: (step: BookingStep) => void;
+  employees: Employee[];
   employeesLoading: boolean;
-  selectedBarber: string | undefined;
-  setSelectedBarber: (id: string) => void;
+  selectedBarber: Employee | null;
+  setSelectedBarber: (barber: Employee) => void;
   selectedDate: Date | undefined;
-  selectedTime: string | undefined;
-  setSelectedDate: (date: Date | undefined) => void;
-  setSelectedTime: (time: string | undefined) => void;
-  employeeWorkingHours: WorkingHours | null;
+  selectedTime: string;
+  setSelectedDate: (date: Date) => void;
+  setSelectedTime: (time: string) => void;
   customerDetails: CustomerDetails;
   handleCustomerDetailsChange: (field: keyof CustomerDetails, value: string) => void;
   totalPrice: number;
@@ -30,7 +30,7 @@ interface StepRendererProps {
   branch: Branch;
 }
 
-export const StepRenderer = ({
+export const StepRenderer: React.FC<StepRendererProps> = ({
   currentStep,
   categories,
   categoriesLoading,
@@ -50,63 +50,50 @@ export const StepRenderer = ({
   totalPrice,
   language,
   branch
-}: StepRendererProps) => {
-  if (currentStep === 'services') {
-    return (
-      <ServiceStep
-        categories={categories}
-        isLoading={categoriesLoading}
-        selectedServices={selectedServices}
-        onServiceToggle={handleServiceToggle}
-        onStepChange={handleStepChange}
-      />
-    );
+}) => {
+  switch (currentStep) {
+    case 'services':
+      return (
+        <ServiceStep
+          categories={categories}
+          categoriesLoading={categoriesLoading}
+          selectedServices={selectedServices}
+          handleServiceToggle={handleServiceToggle}
+          handleStepChange={handleStepChange}
+        />
+      );
+    case 'datetime':
+      return (
+        <DateTimeStep
+          selectedDate={selectedDate}
+          onDateSelect={setSelectedDate}
+        />
+      );
+    case 'barber':
+      return (
+        <BarberStep
+          employees={employees}
+          isLoading={employeesLoading}
+          selectedBarber={selectedBarber?.id}
+          onBarberSelect={(id) => {
+            const barber = employees.find(e => e.id === id);
+            if (barber) setSelectedBarber(barber);
+          }}
+          selectedDate={selectedDate}
+          selectedTime={selectedTime}
+          onTimeSelect={setSelectedTime}
+        />
+      );
+    case 'details':
+      return (
+        <DetailsStep
+          customerDetails={customerDetails}
+          handleCustomerDetailsChange={handleCustomerDetailsChange}
+          totalPrice={totalPrice}
+          branch={branch}
+        />
+      );
+    default:
+      return null;
   }
-
-  if (currentStep === 'datetime') {
-    return (
-      <DateTimeStep
-        selectedDate={selectedDate}
-        onDateSelect={setSelectedDate}
-      />
-    );
-  }
-
-  if (currentStep === 'barber') {
-    return (
-      <BarberStep
-        employees={employees}
-        isLoading={employeesLoading}
-        selectedBarber={selectedBarber}
-        onBarberSelect={setSelectedBarber}
-        selectedDate={selectedDate}
-        selectedTime={selectedTime}
-        onTimeSelect={setSelectedTime}
-      />
-    );
-  }
-
-  if (currentStep === 'details') {
-    return (
-      <DetailsStep
-        selectedServices={selectedServices}
-        totalPrice={totalPrice}
-        selectedDate={selectedDate}
-        selectedTime={selectedTime}
-        selectedBarberName={selectedBarber ? employees?.find(emp => emp.id === selectedBarber)?.[language === 'ar' ? 'name_ar' : 'name_en'] : undefined}
-        customerDetails={customerDetails}
-        onCustomerDetailsChange={handleCustomerDetailsChange}
-        onRemoveService={(serviceId) => {
-          const service = selectedServices.find(s => s.id === serviceId);
-          if (service) {
-            handleServiceToggle(service);
-          }
-        }}
-        language={language}
-        branch={branch}
-      />
-    );
-  }
-
-  return null;
 };

@@ -11,19 +11,21 @@ import { supabase } from '@/integrations/supabase/client';
 const BarberSelection = () => {
   const navigate = useNavigate();
   const { t } = useLanguage();
-  const { selectedServices, selectedDate, selectedBarber, setSelectedBarber, employeeWorkingHours } = useBooking();
+  const { branch, selectedServices, selectedDate, selectedBarber, setSelectedBarber, employeeWorkingHours } = useBooking();
 
   const { data: barbers = [], isLoading } = useQuery({
-    queryKey: ['barbers'],
+    queryKey: ['barbers', branch?.id],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('employees')
         .select('*')
-        .eq('role', 'barber');
+        .eq('role', 'barber')
+        .eq('branch_id', branch.id);
         
       if (error) throw error;
       return data as Employee[];
-    }
+    },
+    enabled: !!branch?.id
   });
 
   if (!selectedServices?.length) {
@@ -49,7 +51,7 @@ const BarberSelection = () => {
               nationality={barber.nationality}
               isAvailable={isAvailable}
               isSelected={selectedBarber?.id === barber.id}
-              onSelect={() => setSelectedBarber(barber.id)}
+              onSelect={() => setSelectedBarber(barber)}
             />
           );
         })}
