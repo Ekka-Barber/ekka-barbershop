@@ -1,15 +1,12 @@
 
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { BookingProgress, BookingStep } from "@/components/booking/BookingProgress";
 import { BookingNavigation } from "@/components/booking/BookingNavigation";
 import { UpsellModal } from "@/components/booking/UpsellModal";
 import { useBooking } from "@/hooks/useBooking";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useBookingUpsells } from "@/hooks/useBookingUpsells";
-import { transformWorkingHours } from "@/utils/workingHoursUtils";
 import { StepRenderer } from "./steps/StepRenderer";
-import { useBookingTracking } from "@/hooks/booking/useBookingTracking";
-import { useStepManager } from "@/hooks/booking/useStepManager";
 import { useUpsellWorkflow } from "@/hooks/booking/useUpsellWorkflow";
 import { Branch } from "@/types/booking";
 
@@ -21,8 +18,6 @@ interface BookingStepsContainerProps {
 
 export const BookingStepsContainer = ({ branch }: BookingStepsContainerProps) => {
   const { language } = useLanguage();
-  const [stepStartTime, setStepStartTime] = useState<number>(Date.now());
-
   const {
     selectedServices,
     selectedDate,
@@ -40,26 +35,13 @@ export const BookingStepsContainer = ({ branch }: BookingStepsContainerProps) =>
     selectedEmployee,
     handleServiceToggle,
     handleUpsellServiceAdd,
-    totalPrice
+    totalPrice,
+    currentStep,
+    setCurrentStep,
+    canProceedToNext
   } = useBooking(branch);
 
   const { data: availableUpsells } = useBookingUpsells(selectedServices, language);
-
-  const { currentStep, setCurrentStep, canProceedToNext } = useStepManager(
-    selectedServices,
-    selectedDate,
-    selectedBarber,
-    selectedTime,
-    customerDetails
-  );
-
-  useBookingTracking(
-    currentStep,
-    selectedServices,
-    selectedDate,
-    selectedBarber,
-    customerDetails
-  );
 
   const {
     showUpsellModal,
@@ -95,9 +77,6 @@ export const BookingStepsContainer = ({ branch }: BookingStepsContainerProps) =>
   };
 
   const currentStepIndex = STEPS.indexOf(currentStep);
-  const employeeWorkingHours = selectedEmployee?.working_hours 
-    ? transformWorkingHours(selectedEmployee.working_hours)
-    : null;
 
   return (
     <>
@@ -124,7 +103,6 @@ export const BookingStepsContainer = ({ branch }: BookingStepsContainerProps) =>
           selectedTime={selectedTime}
           setSelectedDate={setSelectedDate}
           setSelectedTime={setSelectedTime}
-          employeeWorkingHours={employeeWorkingHours}
           customerDetails={customerDetails}
           handleCustomerDetailsChange={handleCustomerDetailsChange}
           totalPrice={totalPrice}

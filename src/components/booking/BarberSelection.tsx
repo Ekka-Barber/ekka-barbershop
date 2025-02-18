@@ -11,7 +11,7 @@ import { supabase } from '@/integrations/supabase/client';
 const BarberSelection = () => {
   const navigate = useNavigate();
   const { t } = useLanguage();
-  const { selectedServices, selectedDate, selectedBarber, setSelectedBarber } = useBooking();
+  const { branch, selectedServices, selectedDate, selectedBarber, setSelectedBarber } = useBooking(true);
 
   const { data: barbers = [], isLoading } = useQuery({
     queryKey: ['barbers'],
@@ -43,8 +43,7 @@ const BarberSelection = () => {
             photo_url={barber.photo_url}
             nationality={barber.nationality}
             isSelected={selectedBarber?.id === barber.id}
-            onSelect={() => setSelectedBarber(barber)}
-            date={selectedDate}
+            onSelect={() => setSelectedBarber(barber.id)}
           />
         ))}
       </div>
