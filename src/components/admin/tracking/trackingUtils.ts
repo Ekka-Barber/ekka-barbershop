@@ -54,7 +54,6 @@ export const processServiceHeatmapData = (interactionEvents: any[]): ServiceAnal
     return acc;
   }, {} as Record<string, ServiceData>);
 
-  // Explicitly type the destructured values in map
   return Object.entries(serviceData).map(([name, data]: [string, ServiceData]) => ({
     serviceName: name,
     viewCount: data.viewCount,
@@ -70,11 +69,16 @@ export const processCustomerJourney = (interactionEvents: any[]): { nodes: Journ
 
   // First pass: create nodes with numeric indices
   interactionEvents.forEach(event => {
-    const page = event.page_url;
-    if (!nodeMap.has(page)) {
-      const index = nodes.length;
-      nodeMap.set(page, index);
-      nodes.push({ id: page, name: page, index });
+    if (event.page_url) {
+      if (!nodeMap.has(event.page_url)) {
+        const index = nodes.length;
+        nodeMap.set(event.page_url, index);
+        nodes.push({ 
+          id: event.page_url, 
+          name: event.page_url.split('/').pop() || event.page_url,
+          index 
+        });
+      }
     }
   });
 
@@ -83,28 +87,71 @@ export const processCustomerJourney = (interactionEvents: any[]): { nodes: Journ
     const sourceEvent = interactionEvents[i];
     const targetEvent = interactionEvents[i + 1];
 
-    const sourcePage = sourceEvent.page_url;
-    const targetPage = targetEvent.page_url;
+    if (sourceEvent.page_url && targetEvent.page_url) {
+      const sourceIndex = nodeMap.get(sourceEvent.page_url);
+      const targetIndex = nodeMap.get(targetEvent.page_url);
 
-    if (sourcePage && targetPage) {
-      const sourceIndex = nodeMap.get(sourcePage)!;
-      const targetIndex = nodeMap.get(targetPage)!;
+      if (typeof sourceIndex === 'number' && typeof targetIndex === 'number') {
+        const existingLink = links.find(link => 
+          link.source === sourceIndex && link.target === targetIndex
+        );
 
-      const existingLink = links.find(link => 
-        link.source === sourceIndex && link.target === targetIndex
-      );
-
-      if (existingLink) {
-        existingLink.value += 1;
-      } else {
-        links.push({ 
-          source: sourceIndex,
-          target: targetIndex,
-          value: 1 
-        });
+        if (existingLink) {
+          existingLink.value += 1;
+        } else {
+          links.push({ 
+            source: sourceIndex,
+            target: targetIndex,
+            value: 1 
+          });
+        }
       }
     }
   }
 
   return { nodes, links };
+};
+
+export const processUserBehavior = (pageViews: any[], interactionEvents: any[]) => {
+  // Combine page views and interactions to create a complete journey
+  const sessions = new Map<string, {
+    views: any[],
+    interactions: any[]
+  }>();
+
+  // Group by session
+  pageViews.forEach(view => {
+    if (view.session_id) {
+      if (!sessions.has(view.session_id)) {
+        sessions.set(view.session_id, { views: [], interactions: [] });
+      }
+      sessions.get(view.session_id)!.views.push(view);
+    }
+  });
+
+  interactionEvents.forEach(event => {
+    if (event.session_id) {
+      if (!sessions.has(event.session_id)) {
+        sessions.set(event.session_id, { views: [], interactions: [] });
+      }
+      sessions.get(event.session_id)!.interactions.push(event);
+    }
+  });
+
+  // Process session data
+  return Array.from(sessions.entries()).map(([sessionId, data]) => {
+    const { views, interactions } = data;
+    const duration = views.length > 0 ? 
+      new Date(views[views.length - 1].exit_time || views[views.length - 1].entry_time).getTime() - 
+      new Date(views[0].entry_time).getTime() : 0;
+
+    return {
+      sessionId,
+      pageCount: views.length,
+      interactionCount: interactions.length,
+      duration,
+      deviceType: views[0]?.device_type || interactions[0]?.device_type,
+      startTime: views[0]?.entry_time || interactions[0]?.timestamp
+    };
+  });
 };
