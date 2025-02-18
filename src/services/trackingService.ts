@@ -6,15 +6,19 @@ import { Json } from "@/integrations/supabase/types";
 
 // Types that match our database schema
 type DeviceType = 'mobile' | 'tablet' | 'desktop';
-type InteractionType = 'page_view' | 'button_click' | 'dialog_open' | 'dialog_close' | 
-                      'form_interaction' | 'pdf_view' | 'menu_view' | 'offer_view' | 
-                      'branch_select' | 'service_select' | 'barber_select' | 'language_switch' |
-                      'category_view' | 'service_view' | 'service_compare';
+type BaseInteractionType = 'page_view' | 'button_click' | 'dialog_open' | 'dialog_close' | 
+                          'form_interaction' | 'pdf_view' | 'menu_view' | 'offer_view' | 
+                          'branch_select' | 'service_select' | 'barber_select' | 'language_switch';
+
+type ServiceInteractionType = 'category_view' | 'service_view' | 'service_compare';
+type DateTimeInteractionType = 'calendar_open' | 'calendar_close' | 'date_select' | 'time_select' | 'time_slot_view';
+
+type InteractionType = BaseInteractionType | ServiceInteractionType;
 
 interface ServiceDiscoveryEvent {
   category_id: string;
   service_id?: string;
-  interaction_type: 'category_view' | 'service_view' | 'service_compare';
+  interaction_type: ServiceInteractionType;
   discovery_path: string[];
   selected_service_name?: string;
   price_viewed: boolean;
@@ -26,8 +30,8 @@ interface ServiceDiscoveryEvent {
 
 interface DateTimeInteractionEvent {
   session_id: string;
-  interaction_type: 'calendar_open' | 'calendar_close' | 'date_select' | 'time_select' | 'time_slot_view';
-  selected_date?: Date;
+  interaction_type: DateTimeInteractionType;
+  selected_date?: string;
   selected_time?: string;
   calendar_view_type: 'month' | 'week' | 'quick_select';
   time_slot_position?: string;
@@ -193,8 +197,11 @@ export const trackDateTimeInteraction = async (event: DateTimeInteractionEvent):
   if (!session) return;
 
   await tryTracking(async () => {
+    const formattedDate = event.selected_date ? new Date(event.selected_date).toISOString().split('T')[0] : undefined;
+
     const { error } = await supabase.from('datetime_tracking').insert({
       ...event,
+      selected_date: formattedDate,
       session_id: session,
       device_type: mapPlatformToDeviceType(getPlatformType()),
       browser_info: getBrowserInfo(),
@@ -210,19 +217,14 @@ export const trackDateTimeInteraction = async (event: DateTimeInteractionEvent):
 // Initialize tracking
 export const initializeTracking = (): void => {
   if (!shouldTrack()) return;
-  
-  // Initialize session
   getSessionId();
-  
-  // Track initial page view
   trackPageView(window.location.pathname);
-  
-  // Setup global click tracking
-  document.addEventListener('click', enhancedTrackClick);
 };
 
 // Cleanup tracking
 export const cleanupTracking = (): void => {
   if (!shouldTrack()) return;
-  document.removeEventListener('click', enhancedTrackClick);
 };
+
+// Export other functions
+export { trackPageView, trackInteraction, trackServiceInteraction };

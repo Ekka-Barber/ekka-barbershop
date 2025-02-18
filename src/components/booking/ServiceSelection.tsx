@@ -11,6 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { AlertTriangle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useTracking } from "@/hooks/useTracking";
+import { getPlatformType } from "@/services/platformDetection";
 
 interface ServiceSelectionProps {
   categories: any[] | undefined;
@@ -119,8 +120,7 @@ export const ServiceSelection = ({
     });
   };
 
-  const handleStepChange = async (step: string) => {
-    await trackBookingStep(step);
+  const handleStepChange = (step: string) => {
     onStepChange?.(step);
   };
 
