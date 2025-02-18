@@ -1,3 +1,4 @@
+
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
@@ -21,7 +22,7 @@ export const DateTimeSelection = ({
   const [calendarViewDuration, setCalendarViewDuration] = useState<number>(0);
   const [viewStartTime, setViewStartTime] = useState<Date>(new Date());
   const [navigationPath, setNavigationPath] = useState<string[]>([]);
-  const { trackEnhancedDateTimeInteraction } = useTracking();
+  const { trackDateTimeInteraction } = useTracking();
 
   const threeDays = useMemo(() => [
     new Date(),
@@ -34,7 +35,7 @@ export const DateTimeSelection = ({
     setViewStartTime(startTime);
     
     // Track initial calendar view
-    trackEnhancedDateTimeInteraction({
+    trackDateTimeInteraction({
       interaction_type: 'calendar_open',
       calendar_view_type: 'quick_select',
       device_type: 'desktop',
@@ -46,8 +47,8 @@ export const DateTimeSelection = ({
 
     return () => {
       const duration = Math.floor((new Date().getTime() - startTime.getTime()) / 1000);
-      trackEnhancedDateTimeInteraction({
-        interaction_type: 'view_duration',
+      trackDateTimeInteraction({
+        interaction_type: 'calendar_close',
         calendar_view_type: showFullCalendar ? 'month' : 'quick_select',
         device_type: 'desktop',
         session_id: 'temp',
@@ -60,7 +61,7 @@ export const DateTimeSelection = ({
   const handleDateSelect = (date: Date | undefined) => {
     const daysInAdvance = date ? differenceInDays(date, new Date()) : 0;
     
-    trackEnhancedDateTimeInteraction({
+    trackDateTimeInteraction({
       interaction_type: 'date_select',
       selected_date: date?.toISOString(),
       calendar_view_type: showFullCalendar ? 'month' : 'quick_select',
@@ -77,7 +78,7 @@ export const DateTimeSelection = ({
   const handleCalendarToggle = (show: boolean) => {
     const duration = Math.floor((new Date().getTime() - viewStartTime.getTime()) / 1000);
     
-    trackEnhancedDateTimeInteraction({
+    trackDateTimeInteraction({
       interaction_type: show ? 'calendar_open' : 'calendar_close',
       calendar_view_type: show ? 'month' : 'quick_select',
       device_type: 'desktop',

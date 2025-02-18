@@ -7,7 +7,7 @@ import {
   trackPageView, 
   trackInteraction,
   trackServiceInteraction,
-  trackEnhancedDateTimeInteraction,
+  trackDateTimeInteraction,
   trackBarberInteraction
 } from '@/services/trackingService';
 
@@ -36,7 +36,7 @@ export const useTracking = () => {
   return {
     trackInteraction,
     trackServiceInteraction,
-    trackEnhancedDateTimeInteraction,
+    trackDateTimeInteraction,
     trackBarberInteraction
   };
 };

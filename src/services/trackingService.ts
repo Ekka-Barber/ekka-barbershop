@@ -10,8 +10,7 @@ type BaseInteractionType = 'page_view' | 'button_click' | 'dialog_open' | 'dialo
                           'branch_select' | 'service_select' | 'barber_select' | 'language_switch';
 
 type ServiceInteractionType = 'category_view' | 'service_view' | 'service_compare';
-type DateTimeInteractionType = 'calendar_open' | 'calendar_close' | 'date_select' | 'time_select' | 'time_slot_view' |
-                              'calendar_navigation' | 'view_duration';
+type DateTimeInteractionType = 'calendar_open' | 'calendar_close' | 'date_select' | 'time_select' | 'time_slot_view';
 type BarberInteractionType = 'profile_view' | 'availability_check' | 'selection' | 'comparison';
 
 interface ServiceDiscoveryEvent {
@@ -27,7 +26,7 @@ interface ServiceDiscoveryEvent {
   timestamp: string;
 }
 
-interface EnhancedDateTimeEvent {
+interface DateTimeEvent {
   interaction_type: DateTimeInteractionType;
   calendar_view_type: 'month' | 'week' | 'quick_select';
   session_id: string;
@@ -62,11 +61,6 @@ interface BarberSelectionEvent {
   session_id: string;
   device_type: DeviceType;
   timestamp: string;
-}
-
-interface SessionData {
-  id: string;
-  timestamp: number;
 }
 
 // Production check
@@ -211,18 +205,15 @@ const trackServiceInteraction = async (event: ServiceDiscoveryEvent): Promise<vo
   });
 };
 
-const trackEnhancedDateTimeInteraction = async (event: EnhancedDateTimeEvent): Promise<void> => {
+const trackDateTimeInteraction = async (event: DateTimeEvent): Promise<void> => {
   if (!shouldTrack()) return;
 
   const session = getSessionId();
   if (!session) return;
 
   await tryTracking(async () => {
-    const formattedDate = event.selected_date ? new Date(event.selected_date).toISOString().split('T')[0] : undefined;
-
     const { error } = await supabase.from('datetime_tracking').insert({
       ...event,
-      selected_date: formattedDate,
       session_id: session,
       device_type: mapPlatformToDeviceType(getPlatformType()),
       browser_info: getBrowserInfo(),
@@ -270,7 +261,7 @@ export {
   trackPageView,
   trackInteraction,
   trackServiceInteraction,
-  trackEnhancedDateTimeInteraction,
+  trackDateTimeInteraction,
   trackBarberInteraction,
   initializeTracking,
   cleanupTracking
