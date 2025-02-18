@@ -15,9 +15,6 @@ import { BookingProvider } from "@/contexts/BookingContext";
 // Lazy load Admin component
 const Admin = lazy(() => import("./pages/Admin"));
 
-// List of public routes that customers can access
-const PUBLIC_ROUTES = ['/customer', '/menu', '/offers', '/bookings'];
-
 // Protected route component
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const location = useLocation();
