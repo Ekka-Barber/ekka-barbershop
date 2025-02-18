@@ -10,7 +10,9 @@ import { ServiceHeatmapCard } from "./ServiceHeatmapCard";
 import { CustomerJourneyCard } from "./CustomerJourneyCard";
 import { RealTimeMonitoring } from "./RealTimeMonitoring";
 import { BranchAnalytics } from "./BranchAnalytics";
+import { PeriodComparison } from "./PeriodComparison";
 import { processTimePatterns, processServiceHeatmapData, processCustomerJourney } from "./trackingUtils";
+import { calculatePeriodMetrics } from "./analyticsUtils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const CustomerTrackingDashboard = () => {
@@ -24,7 +26,8 @@ const CustomerTrackingDashboard = () => {
     isLoading,
     sessionData,
     bookingData,
-    interactionEvents
+    interactionEvents,
+    previousPeriodData
   } = useTrackingData(dateRange);
 
   if (isLoading) {
@@ -48,6 +51,8 @@ const CustomerTrackingDashboard = () => {
   const timePatterns = processTimePatterns(bookingData);
   const heatmapData = processServiceHeatmapData(interactionEvents);
   const journeyData = processCustomerJourney(interactionEvents);
+  
+  const periodMetrics = calculatePeriodMetrics(interactionEvents, previousPeriodData || []);
 
   return (
     <div className="space-y-8">
@@ -60,6 +65,25 @@ const CustomerTrackingDashboard = () => {
 
         <TabsContent value="overview" className="space-y-4">
           <DateRangeSelector onRangeChange={setDateRange} />
+          
+          <div className="grid gap-4 md:grid-cols-3">
+            <PeriodComparison
+              title="Active Users"
+              {...periodMetrics.sessions}
+              format={(value) => value.toString()}
+            />
+            <PeriodComparison
+              title="Bookings"
+              {...periodMetrics.bookings}
+              format={(value) => value.toString()}
+            />
+            <PeriodComparison
+              title="Conversion Rate"
+              {...periodMetrics.conversionRate}
+              format={(value) => `${value.toFixed(1)}%`}
+            />
+          </div>
+
           <CoreMetricsGrid metrics={coreMetrics} />
           <CustomerJourneyCard nodes={journeyData.nodes} links={journeyData.links} />
           <div className="grid gap-4 md:grid-cols-2">
