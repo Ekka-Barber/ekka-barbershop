@@ -20,14 +20,22 @@ class UnifiedTrackingService {
     if (!shouldTrack()) return;
 
     try {
-      const { error } = await supabase.from('unified_events').insert({
-        ...event,
+      const baseEvent = {
         session_id: event.session_id || getSessionId(),
         device_type: event.device_type || mapPlatformToDeviceType(getPlatformType()),
         page_url: event.page_url || window.location.pathname,
         timestamp: event.timestamp || formatTimestamp(new Date()),
-        created_at: formatTimestamp(new Date())
-      });
+        created_at: formatTimestamp(new Date()),
+        interaction_type: event.interaction_type,
+        event_name: event.event_name,
+        event_type: event.event_type,
+        source_page: event.source_page || window.location.pathname,
+        event_data: event.event_data || {}
+      };
+
+      const { error } = await supabase
+        .from('unified_events')
+        .insert(baseEvent);
 
       if (error) throw error;
     } catch (error) {
@@ -39,6 +47,7 @@ class UnifiedTrackingService {
     await this.trackEvent({
       event_type: 'page_view',
       event_name: 'page_view',
+      interaction_type: 'page_view',
       page_url: url,
       event_data: {
         ...additionalData,
@@ -52,6 +61,7 @@ class UnifiedTrackingService {
     await this.trackEvent({
       event_type: 'interaction',
       event_name: type,
+      interaction_type: type,
       event_data: details
     });
   }
@@ -110,7 +120,11 @@ class UnifiedTrackingService {
     try {
       const { error } = await supabase.from('marketing_funnel_events').insert({
         ...event,
-        created_at: formatTimestamp(new Date())
+        interaction_type: 'marketing_funnel',
+        session_id: event.session_id || getSessionId(),
+        created_at: formatTimestamp(new Date()),
+        device_type: mapPlatformToDeviceType(getPlatformType()),
+        source_page: event.source_page || window.location.pathname
       });
 
       if (error) throw error;

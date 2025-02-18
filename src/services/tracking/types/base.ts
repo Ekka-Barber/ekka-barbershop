@@ -2,6 +2,7 @@
 export type DeviceType = 'mobile' | 'tablet' | 'desktop';
 
 export type InteractionType = 
+  // Core interactions
   | 'page_view'
   | 'calendar_open'
   | 'calendar_close'
@@ -19,7 +20,22 @@ export type InteractionType =
   | 'form_interaction'
   | 'pdf_view'
   | 'language_switch'
-  | 'marketing_funnel';
+  | 'marketing_funnel'
+  // Menu interactions
+  | 'menu_open'
+  | 'menu_close'
+  | 'page_change'
+  | 'zoom'
+  // Barber interactions
+  | 'profile_view'
+  | 'selection'
+  // Service interactions
+  | 'service_view'
+  | 'service_selection'
+  // Offer interactions
+  | 'offer_view_start'
+  | 'offer_view_end'
+  | 'session_end';
 
 export interface BaseInteractionType {
   interaction_type: InteractionType;
