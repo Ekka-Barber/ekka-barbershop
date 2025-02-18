@@ -3,6 +3,7 @@ import { useEffect, useRef } from 'react';
 import { useTracking } from '@/hooks/useTracking';
 import { BookingStep } from '@/components/booking/BookingProgress';
 import { MarketingFunnelStage } from '@/services/tracking/types';
+import { InteractionType } from '@/services/tracking/types/base';
 
 export const useBookingTracking = (
   currentStep: BookingStep,
@@ -51,7 +52,7 @@ export const useBookingTracking = (
   }, [currentStep]);
 
   return {
-    trackUpsellInteraction: (type: string, details: Record<string, any>) => {
+    trackUpsellInteraction: (type: Extract<InteractionType, 'dialog_open' | 'dialog_close'>, details: Record<string, any>) => {
       trackInteraction(type, details);
     }
   };
