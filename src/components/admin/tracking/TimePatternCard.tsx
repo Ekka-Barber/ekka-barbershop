@@ -1,7 +1,8 @@
 
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart } from 'recharts';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useState } from 'react';
 
 interface TimePattern {
   hour: number;
@@ -14,14 +15,16 @@ interface TimePatternCardProps {
 }
 
 export const TimePatternCard = ({ timePatterns }: TimePatternCardProps) => {
+  const [viewType, setViewType] = useState('hourly');
+
   return (
     <Card className="col-span-4">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <div>
           <CardTitle>Booking Time Patterns</CardTitle>
-          <CardDescription>Shows when customers are most likely to book</CardDescription>
+          <CardDescription>Shows when customers are most likely to book with detailed time analysis</CardDescription>
         </div>
-        <Select defaultValue="hourly">
+        <Select defaultValue={viewType} onValueChange={setViewType}>
           <SelectTrigger className="w-[120px]">
             <SelectValue placeholder="Select view" />
           </SelectTrigger>
@@ -35,7 +38,13 @@ export const TimePatternCard = ({ timePatterns }: TimePatternCardProps) => {
       <CardContent>
         <div className="h-[300px]">
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={timePatterns}>
+            <AreaChart data={timePatterns}>
+              <defs>
+                <linearGradient id="colorCount" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.8}/>
+                  <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0.2}/>
+                </linearGradient>
+              </defs>
               <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
               <XAxis dataKey="label" className="text-sm" />
               <YAxis className="text-sm" />
@@ -46,15 +55,14 @@ export const TimePatternCard = ({ timePatterns }: TimePatternCardProps) => {
                 }}
                 labelStyle={{ color: 'hsl(var(--foreground))' }}
               />
-              <Line 
+              <Area 
                 type="monotone" 
                 dataKey="count" 
                 stroke="hsl(var(--primary))"
-                strokeWidth={2}
-                dot={{ strokeWidth: 2 }}
-                activeDot={{ r: 6, strokeWidth: 2 }}
+                fillOpacity={1}
+                fill="url(#colorCount)"
               />
-            </LineChart>
+            </AreaChart>
           </ResponsiveContainer>
         </div>
       </CardContent>

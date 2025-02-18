@@ -34,10 +34,9 @@ export const processBookingSteps = (bookingBehavior: BookingBehavior[] | null): 
     stepCounts.set(behavior.step, (stepCounts.get(behavior.step) || 0) + 1);
   });
 
-  return Array.from(stepCounts.entries()).map(([name, count]) => ({
-    name,
-    count
-  })).sort((a, b) => b.count - a.count);
+  return Array.from(stepCounts.entries())
+    .map(([name, count]) => ({ name, count }))
+    .sort((a, b) => b.count - a.count);
 };
 
 export const processDeviceStats = (bookingsData: BookingData[] | null) => {
@@ -75,4 +74,67 @@ export const calculateBookingValues = (bookingsData: BookingData[] | null) => {
     average: total / bookingsData.length,
     total: total
   };
+};
+
+export const processServiceHeatmapData = (serviceDiscovery: any[] | null) => {
+  if (!serviceDiscovery) return [];
+
+  const serviceStats = new Map();
+  
+  serviceDiscovery.forEach(event => {
+    if (!serviceStats.has(event.service_id)) {
+      serviceStats.set(event.service_id, {
+        serviceName: event.selected_service_name || 'Unknown Service',
+        viewCount: 0,
+        bookingCount: 0,
+        totalViewDuration: 0,
+        viewSessions: 0
+      });
+    }
+    
+    const stats = serviceStats.get(event.service_id);
+    stats.viewCount++;
+    
+    if (event.interaction_type === 'service_selection') {
+      stats.bookingCount++;
+    }
+    
+    if (event.view_duration_seconds) {
+      stats.totalViewDuration += event.view_duration_seconds;
+      stats.viewSessions++;
+    }
+  });
+
+  return Array.from(serviceStats.values()).map(stats => ({
+    serviceName: stats.serviceName,
+    viewCount: stats.viewCount,
+    conversionRate: (stats.bookingCount / stats.viewCount) * 100,
+    averageViewDuration: stats.viewSessions > 0 
+      ? stats.totalViewDuration / stats.viewSessions 
+      : 0
+  }));
+};
+
+export const processCustomerJourney = (journeyData: any[] | null) => {
+  if (!journeyData) return { nodes: [], links: [] };
+
+  const nodes = [
+    { name: 'Entry' },
+    { name: 'Service Browse' },
+    { name: 'Service Select' },
+    { name: 'Date/Time' },
+    { name: 'Barber' },
+    { name: 'Booking Complete' }
+  ];
+
+  // This is a simplified version - in reality, you'd calculate these values from actual journey data
+  const links = [
+    { source: 0, target: 1, value: 1000 }, // Entry → Browse
+    { source: 1, target: 2, value: 800 },  // Browse → Select
+    { source: 2, target: 3, value: 600 },  // Select → Date/Time
+    { source: 3, target: 4, value: 400 },  // Date/Time → Barber
+    { source: 4, target: 5, value: 200 }   // Barber → Complete
+  ];
+
+  return { nodes, links };
 };

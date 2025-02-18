@@ -52,11 +52,39 @@ export const useTrackingData = () => {
     }
   });
 
+  const { data: serviceDiscovery, isLoading: discoveryLoading, error: discoveryError } = useQuery({
+    queryKey: ['service-discovery'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('service_discovery_events')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      return data;
+    }
+  });
+
+  const { data: customerJourneyData, isLoading: journeyLoading, error: journeyError } = useQuery({
+    queryKey: ['customer-journey'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('interaction_events')
+        .select('*')
+        .order('timestamp', { ascending: true });
+      
+      if (error) throw error;
+      return data;
+    }
+  });
+
   return {
     serviceTracking,
     bookingBehavior,
     bookingsData,
-    isLoading: serviceLoading || bookingLoading || bookingsLoading,
-    error: serviceError || bookingError || bookingsError
+    serviceDiscovery,
+    customerJourneyData,
+    isLoading: serviceLoading || bookingLoading || bookingsLoading || discoveryLoading || journeyLoading,
+    error: serviceError || bookingError || bookingsError || discoveryError || journeyError
   };
 };

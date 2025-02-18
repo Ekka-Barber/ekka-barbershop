@@ -6,20 +6,29 @@ import {
   processServiceStats, 
   processBookingSteps, 
   processDeviceStats, 
-  processTimePatterns, 
-  calculateBookingValues 
+  processTimePatterns,
+  calculateBookingValues,
+  processServiceHeatmapData,
+  processCustomerJourney
 } from "./trackingUtils";
-import { DeviceDistributionCard } from "./DeviceDistributionCard";
 import { TimePatternCard } from "./TimePatternCard";
-import { ServiceStatsCard } from "./ServiceStatsCard";
+import { ServiceHeatmapCard } from "./ServiceHeatmapCard";
+import { CustomerJourneyCard } from "./CustomerJourneyCard";
 import { BookingStepsCard } from "./BookingStepsCard";
 import { BookingValuesCard } from "./BookingValuesCard";
-import { RecentActivityCard } from "./RecentActivityCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const CustomerTrackingDashboard = () => {
-  const { serviceTracking, bookingBehavior, bookingsData, isLoading, error } = useTrackingData();
+  const { 
+    serviceTracking, 
+    bookingBehavior, 
+    bookingsData, 
+    serviceDiscovery,
+    customerJourneyData,
+    isLoading, 
+    error 
+  } = useTrackingData();
 
   if (isLoading) {
     return (
@@ -44,6 +53,8 @@ const CustomerTrackingDashboard = () => {
   const deviceStats = processDeviceStats(bookingsData);
   const timePatterns = processTimePatterns(bookingsData);
   const bookingValues = calculateBookingValues(bookingsData);
+  const heatmapData = processServiceHeatmapData(serviceDiscovery);
+  const journeyData = processCustomerJourney(customerJourneyData);
 
   return (
     <div className="space-y-8">
@@ -117,28 +128,22 @@ const CustomerTrackingDashboard = () => {
         </Card>
       </div>
 
-      {/* Main Dashboard Content */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-        <div className="col-span-4">
-          <TimePatternCard timePatterns={timePatterns} />
-        </div>
-        <div className="col-span-3">
-          <DeviceDistributionCard deviceStats={deviceStats} />
-        </div>
-      </div>
+      {/* Customer Journey Flow */}
+      <CustomerJourneyCard 
+        nodes={journeyData.nodes}
+        links={journeyData.links}
+      />
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-        <div className="col-span-4">
-          <ServiceStatsCard serviceStats={serviceStats} />
-        </div>
-        <div className="col-span-3">
-          <BookingStepsCard bookingStats={bookingStats} />
-        </div>
-      </div>
-
+      {/* Time Patterns and Service Heatmap */}
       <div className="grid gap-4 md:grid-cols-2">
+        <TimePatternCard timePatterns={timePatterns} />
+        <ServiceHeatmapCard serviceData={heatmapData} />
+      </div>
+
+      {/* Booking Steps and Values */}
+      <div className="grid gap-4 md:grid-cols-2">
+        <BookingStepsCard bookingStats={bookingStats} />
         <BookingValuesCard bookingValues={bookingValues} />
-        <RecentActivityCard serviceTracking={serviceTracking} />
       </div>
     </div>
   );
