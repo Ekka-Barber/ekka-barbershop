@@ -25,6 +25,12 @@ export const processTimePatterns = (bookingData: BookingData[]) => {
   return Object.values(timePatterns).sort((a, b) => a.hour - b.hour);
 };
 
+interface ServiceData {
+  viewCount: number;
+  totalDuration: number;
+  bookings: number;
+}
+
 export const processServiceHeatmapData = (interactionEvents: any[]): ServiceAnalytics[] => {
   const serviceData = interactionEvents.reduce((acc, event) => {
     if (event.interaction_type === 'service_select' && event.interaction_details?.serviceName) {
@@ -36,16 +42,17 @@ export const processServiceHeatmapData = (interactionEvents: any[]): ServiceAnal
           bookings: 0
         };
       }
-      acc[serviceName].viewCount++;
+      const data = acc[serviceName] as ServiceData;
+      data.viewCount++;
       if (event.interaction_details.duration) {
-        acc[serviceName].totalDuration += event.interaction_details.duration;
+        data.totalDuration += event.interaction_details.duration;
       }
       if (event.interaction_details.booked) {
-        acc[serviceName].bookings++;
+        data.bookings++;
       }
     }
     return acc;
-  }, {} as Record<string, { viewCount: number; totalDuration: number; bookings: number; }>);
+  }, {} as Record<string, ServiceData>);
 
   return Object.entries(serviceData).map(([name, data]) => ({
     serviceName: name,
@@ -56,16 +63,21 @@ export const processServiceHeatmapData = (interactionEvents: any[]): ServiceAnal
 };
 
 export const processCustomerJourney = (interactionEvents: any[]): { nodes: JourneyNode[]; links: JourneyLink[] } => {
-  const nodes = new Map<string, JourneyNode>();
+  const nodeMap = new Map<string, number>();
+  const nodes: JourneyNode[] = [];
   const links: JourneyLink[] = [];
 
+  // First pass: create nodes with numeric indices
   interactionEvents.forEach(event => {
     const page = event.page_url;
-    if (!nodes.has(page)) {
-      nodes.set(page, { id: page, name: page });
+    if (!nodeMap.has(page)) {
+      const index = nodes.length;
+      nodeMap.set(page, index);
+      nodes.push({ id: page, name: page, index });
     }
   });
 
+  // Second pass: create links using numeric indices
   for (let i = 0; i < interactionEvents.length - 1; i++) {
     const sourceEvent = interactionEvents[i];
     const targetEvent = interactionEvents[i + 1];
@@ -74,24 +86,24 @@ export const processCustomerJourney = (interactionEvents: any[]): { nodes: Journ
     const targetPage = targetEvent.page_url;
 
     if (sourcePage && targetPage) {
+      const sourceIndex = nodeMap.get(sourcePage)!;
+      const targetIndex = nodeMap.get(targetPage)!;
+
       const existingLink = links.find(link => 
-        link.source === sourcePage && link.target === targetPage
+        link.source === sourceIndex && link.target === targetIndex
       );
 
       if (existingLink) {
         existingLink.value += 1;
       } else {
         links.push({ 
-          source: sourcePage, 
-          target: targetPage, 
+          source: sourceIndex,
+          target: targetIndex,
           value: 1 
         });
       }
     }
   }
 
-  return { 
-    nodes: Array.from(nodes.values()), 
-    links 
-  };
+  return { nodes, links };
 };

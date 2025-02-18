@@ -13,8 +13,8 @@ export interface BookingBehavior {
 export interface BookingData {
   id: string;
   device_type: 'mobile' | 'tablet' | 'desktop';
-  browser_info: any; // Changed from strict type to match JSON from database
-  services: any[];
+  browser_info: any;
+  services: any; // Changed from any[] to any to match JSON
   total_price: number;
   appointment_date: string;
   appointment_time: string;
@@ -31,11 +31,12 @@ export interface BookingData {
 export interface JourneyNode {
   id: string;
   name: string;
+  index?: number; // Added for Sankey diagram
 }
 
 export interface JourneyLink {
-  source: string;
-  target: string;
+  source: number; // Changed from string to number for Sankey diagram
+  target: number; // Changed from string to number for Sankey diagram
   value: number;
 }
 
@@ -44,6 +45,18 @@ export interface ServiceAnalytics {
   viewCount: number;
   conversionRate: number;
   averageViewDuration: number;
+}
+
+export interface StepStats {
+  name: string;
+  count: number;
+}
+
+export interface ServiceStats {
+  name: string;
+  added: number;
+  removed: number;
+  net: number;
 }
 
 export const COLORS = ['#4ade80', '#f87171', '#60a5fa', '#facc15'];
