@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { BookingProgress, BookingStep } from "@/components/booking/BookingProgress";
 import { BookingNavigation } from "@/components/booking/BookingNavigation";
@@ -48,7 +47,6 @@ export const BookingSteps = ({ branch }: BookingStepsProps) => {
 
   const { data: availableUpsells } = useBookingUpsells(selectedServices, language);
 
-  // Track step changes and duration
   useEffect(() => {
     const currentTime = Date.now();
     const timeInStage = Math.floor((currentTime - stepStartTime) / 1000);
@@ -62,6 +60,7 @@ export const BookingSteps = ({ branch }: BookingStepsProps) => {
     };
 
     trackMarketingFunnel({
+      interaction_type: 'marketing_funnel',
       funnel_stage: stepToFunnelStage[currentStep],
       time_in_stage: timeInStage,
       conversion_successful: currentStep === 'details' && !!customerDetails.name,

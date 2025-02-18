@@ -17,3 +17,11 @@ export const createTrackingEvent = (type: string): { interaction_type: string; c
     created_at: new Date().toISOString()
   };
 };
+
+export const tryTracking = async (fn: () => Promise<void>): Promise<void> => {
+  try {
+    await fn();
+  } catch (error) {
+    console.error('Error in tracking operation:', error);
+  }
+};

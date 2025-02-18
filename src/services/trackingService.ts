@@ -1,7 +1,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { getPlatformType } from "@/services/platformDetection";
-import { getSessionId, shouldTrack } from './tracking/sessionManager';
+import { getSessionId, shouldTrack, cleanupSession } from './tracking/sessionManager';
 import { mapPlatformToDeviceType, createTrackingEvent } from './tracking/utils';
 import type { 
   BarberSelectionEvent, 

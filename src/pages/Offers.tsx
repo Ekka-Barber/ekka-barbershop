@@ -77,6 +77,7 @@ const Offers = () => {
 
   useEffect(() => {
     trackMarketingFunnel({
+      interaction_type: 'marketing_funnel',
       funnel_stage: 'offer_view',
       previous_stage: 'landing',
       time_in_stage: 0,
