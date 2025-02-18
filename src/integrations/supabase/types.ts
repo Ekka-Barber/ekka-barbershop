@@ -1234,10 +1234,11 @@ export type Database = {
           entry_point: string | null
           funnel_stage: string
           id: string
-          interaction_path: Json | null
+          interaction_path: Json
           interaction_type: string
           previous_stage: string | null
           session_id: string | null
+          source_page: string | null
           time_in_stage: number | null
         }
         Insert: {
@@ -1248,10 +1249,11 @@ export type Database = {
           entry_point?: string | null
           funnel_stage: string
           id?: string
-          interaction_path?: Json | null
+          interaction_path?: Json
           interaction_type: string
           previous_stage?: string | null
           session_id?: string | null
+          source_page?: string | null
           time_in_stage?: number | null
         }
         Update: {
@@ -1262,10 +1264,11 @@ export type Database = {
           entry_point?: string | null
           funnel_stage?: string
           id?: string
-          interaction_path?: Json | null
+          interaction_path?: Json
           interaction_type?: string
           previous_stage?: string | null
           session_id?: string | null
+          source_page?: string | null
           time_in_stage?: number | null
         }
         Relationships: []
@@ -2015,7 +2018,9 @@ export type Database = {
           device_type: Database["public"]["Enums"]["device_type"] | null
           end_time: string | null
           id: string
+          is_active: boolean | null
           last_activity: string | null
+          platform_info: Json | null
           session_data: Json | null
           start_time: string | null
           user_id: string | null
@@ -2025,7 +2030,9 @@ export type Database = {
           device_type?: Database["public"]["Enums"]["device_type"] | null
           end_time?: string | null
           id: string
+          is_active?: boolean | null
           last_activity?: string | null
+          platform_info?: Json | null
           session_data?: Json | null
           start_time?: string | null
           user_id?: string | null
@@ -2035,7 +2042,9 @@ export type Database = {
           device_type?: Database["public"]["Enums"]["device_type"] | null
           end_time?: string | null
           id?: string
+          is_active?: boolean | null
           last_activity?: string | null
+          platform_info?: Json | null
           session_data?: Json | null
           start_time?: string | null
           user_id?: string | null
@@ -2204,8 +2213,11 @@ export type Database = {
           event_name: string
           event_type: Database["public"]["Enums"]["unified_event_type"]
           id: string
+          interaction_details: Json | null
+          interaction_type: string | null
           page_url: string | null
           session_id: string | null
+          source_page: string | null
           user_id: string | null
         }
         Insert: {
@@ -2215,8 +2227,11 @@ export type Database = {
           event_name: string
           event_type: Database["public"]["Enums"]["unified_event_type"]
           id?: string
+          interaction_details?: Json | null
+          interaction_type?: string | null
           page_url?: string | null
           session_id?: string | null
+          source_page?: string | null
           user_id?: string | null
         }
         Update: {
@@ -2226,8 +2241,11 @@ export type Database = {
           event_name?: string
           event_type?: Database["public"]["Enums"]["unified_event_type"]
           id?: string
+          interaction_details?: Json | null
+          interaction_type?: string | null
           page_url?: string | null
           session_id?: string | null
+          source_page?: string | null
           user_id?: string | null
         }
         Relationships: []
@@ -2339,6 +2357,10 @@ export type Database = {
       cleanup_old_schedules: {
         Args: Record<PropertyKey, never>
         Returns: number
+      }
+      cleanup_old_sessions: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
       }
       create_loan_from_deposit: {
         Args: {

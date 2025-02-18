@@ -3,10 +3,10 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useTimeFormatting } from "@/hooks/useTimeFormatting";
+import { useTracking } from "@/hooks/useTracking";
 import { Clock } from "lucide-react";
 import { useEffect, useRef } from "react";
-import { trackBranchSelection } from "@/services/tracking/branchTracking";
-import { Branch, BranchSelectionEvent } from "@/types/branch";
+import { Branch } from "@/types/branch";
 
 interface BranchDialogProps {
   open: boolean;
@@ -23,39 +23,37 @@ export const BranchDialog = ({
 }: BranchDialogProps) => {
   const { language, t } = useLanguage();
   const { getCurrentDayHours } = useTimeFormatting();
+  const { trackBranchSelection } = useTracking();
   const dialogOpenTime = useRef<Date | null>(null);
 
   useEffect(() => {
     if (open) {
       const now = new Date();
       dialogOpenTime.current = now;
-      const event: BranchSelectionEvent = {
+      trackBranchSelection({
         interaction_type: 'dialog_open',
         source_page: window.location.pathname,
         dialog_open_time: now.toISOString()
-      };
-      trackBranchSelection(event);
+      });
     } else if (dialogOpenTime.current) {
       const closeTime = new Date();
-      const event: BranchSelectionEvent = {
+      trackBranchSelection({
         interaction_type: 'dialog_close',
         source_page: window.location.pathname,
         dialog_open_time: dialogOpenTime.current.toISOString(),
         dialog_close_time: closeTime.toISOString()
-      };
-      trackBranchSelection(event);
+      });
       dialogOpenTime.current = null;
     }
-  }, [open]);
+  }, [open, trackBranchSelection]);
 
   const handleBranchSelect = (branch: Branch) => {
-    const event: BranchSelectionEvent = {
+    trackBranchSelection({
       interaction_type: 'branch_select',
       branch_id: branch.id,
       selected_branch_name: language === 'ar' ? branch.name_ar || branch.name : branch.name,
       source_page: window.location.pathname
-    };
-    trackBranchSelection(event);
+    });
     onBranchSelect(branch.id);
   };
 
