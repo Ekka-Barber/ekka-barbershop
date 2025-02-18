@@ -1,21 +1,20 @@
 
-import { DeviceType } from './types';
+import { DeviceType } from './types/unified';
 
 export const mapPlatformToDeviceType = (platform: string): DeviceType => {
   switch (platform) {
     case 'ios':
     case 'android':
       return 'mobile';
+    case 'tablet':
+      return 'tablet';
     default:
       return 'desktop';
   }
 };
 
-export const createTrackingEvent = (type: string): { interaction_type: string; created_at: string } => {
-  return {
-    interaction_type: type,
-    created_at: new Date().toISOString()
-  };
+export const formatTimestamp = (date: Date): string => {
+  return date.toISOString();
 };
 
 export const tryTracking = async (fn: () => Promise<void>): Promise<void> => {
@@ -24,4 +23,14 @@ export const tryTracking = async (fn: () => Promise<void>): Promise<void> => {
   } catch (error) {
     console.error('Error in tracking operation:', error);
   }
+};
+
+export const createTrackingEvent = (type: string): { 
+  interaction_type: string; 
+  timestamp: string;
+} => {
+  return {
+    interaction_type: type,
+    timestamp: formatTimestamp(new Date())
+  };
 };
