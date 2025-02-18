@@ -4,6 +4,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Clock12 } from "lucide-react";
+import { formatTime } from "@/utils/timeFormatting";
 
 interface TimeSlot {
   time: string;
@@ -87,7 +88,7 @@ export const TimeSlotPicker = ({
                           !slot.isAvailable && "bg-red-50 hover:bg-red-50 cursor-not-allowed text-gray-400 border-red-100"
                         )}
                       >
-                        {slot.time}
+                        {formatTime(slot.time, language === 'ar')}
                       </Button>
                     </div>
                   </>
