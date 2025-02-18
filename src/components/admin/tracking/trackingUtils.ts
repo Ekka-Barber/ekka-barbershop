@@ -1,6 +1,5 @@
 import { BookingData, JourneyNode, JourneyLink, ServiceAnalytics } from "./types";
 import { supabase } from "@/integrations/supabase/client";
-import { Database } from "@/types/supabase";
 
 export const processTimePatterns = (bookingData: BookingData[]) => {
   const timePatterns = bookingData.reduce((acc, booking) => {
@@ -111,47 +110,6 @@ export const processCustomerJourney = (interactionEvents: any[]): { nodes: Journ
   return { nodes, links };
 };
 
-export const processUserBehavior = (pageViews: any[], interactionEvents: any[]) => {
-  const sessions = new Map<string, {
-    views: any[],
-    interactions: any[]
-  }>();
-
-  pageViews.forEach(view => {
-    if (view.session_id) {
-      if (!sessions.has(view.session_id)) {
-        sessions.set(view.session_id, { views: [], interactions: [] });
-      }
-      sessions.get(view.session_id)!.views.push(view);
-    }
-  });
-
-  interactionEvents.forEach(event => {
-    if (event.session_id) {
-      if (!sessions.has(event.session_id)) {
-        sessions.set(event.session_id, { views: [], interactions: [] });
-      }
-      sessions.get(event.session_id)!.interactions.push(event);
-    }
-  });
-
-  return Array.from(sessions.entries()).map(([sessionId, data]) => {
-    const { views, interactions } = data;
-    const duration = views.length > 0 ? 
-      new Date(views[views.length - 1].exit_time || views[views.length - 1].entry_time).getTime() - 
-      new Date(views[0].entry_time).getTime() : 0;
-
-    return {
-      sessionId,
-      pageCount: views.length,
-      interactionCount: interactions.length,
-      duration,
-      deviceType: views[0]?.device_type || interactions[0]?.device_type,
-      startTime: views[0]?.entry_time || interactions[0]?.timestamp
-    };
-  });
-};
-
 interface CategoryPerformance {
   categoryId: string;
   categoryName: string;
@@ -199,9 +157,16 @@ export const analyzeCategoryPerformance = async (
 
     if (event.interaction_type === 'category_view') {
       category.viewCount++;
-      if (event.view_duration_seconds) {
+      const viewEndEvent = events.find(e => 
+        e.category_id === event.category_id && 
+        e.interaction_type === 'category_view_end' &&
+        new Date(e.created_at).getTime() > new Date(event.created_at).getTime()
+      );
+      
+      if (viewEndEvent) {
+        const duration = (new Date(viewEndEvent.created_at).getTime() - new Date(event.created_at).getTime()) / 1000;
         category.averageTimeSpent = 
-          (category.averageTimeSpent * (category.viewCount - 1) + event.view_duration_seconds) / 
+          (category.averageTimeSpent * (category.viewCount - 1) + duration) / 
           category.viewCount;
       }
     }
