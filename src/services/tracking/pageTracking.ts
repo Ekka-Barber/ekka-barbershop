@@ -27,11 +27,12 @@ export const trackPageView = async (pageUrl: string): Promise<void> => {
 };
 
 const mapToValidDatabaseInteraction = (type: BaseInteractionType): DatabaseInteractionType => {
-  // Map location_view to page_view as it's the closest equivalent
-  if (type === 'location_view') {
-    return 'page_view';
+  switch (type) {
+    case 'location_view':
+      return 'page_view';
+    default:
+      return type as DatabaseInteractionType;
   }
-  return type;
 };
 
 export const trackInteraction = async (

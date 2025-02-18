@@ -36,7 +36,9 @@ export type BarberInteractionType =
   | 'selection' 
   | 'comparison';
 
-export type BaseInteractionType = DatabaseInteractionType;
+export type BaseInteractionType = 
+  | DatabaseInteractionType
+  | 'location_view';
 
 export type BranchInteractionType = 
   | 'dialog_open'
