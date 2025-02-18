@@ -9,10 +9,16 @@ import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import CountdownTimer from '@/components/CountdownTimer';
+import { useTracking } from '@/hooks/useTracking';
+import { useEffect, useRef } from 'react';
 
 const Offers = () => {
   const navigate = useNavigate();
   const { t, language } = useLanguage();
+  const { trackOfferInteraction, trackMarketingFunnel } = useTracking();
+  
+  const viewStartTime = useRef(Date.now());
+  const interactionStartTimes = useRef<Record<string, number>>({});
   
   const { data: offersFiles, isLoading, error } = useQuery({
     queryKey: ['active-offers', language],
@@ -58,19 +64,79 @@ const Offers = () => {
         };
       }));
       
-      // Sort offers: active non-expired first, then recently expired (within 3 days)
       return filesWithUrls.sort((a, b) => {
-        // If one is expired and the other isn't, non-expired comes first
         if (a.isExpired !== b.isExpired) {
           return a.isExpired ? 1 : -1;
         }
-        // Both are either expired or not, sort by display_order
         return (a.display_order || 0) - (b.display_order || 0);
       });
     },
     retry: 1,
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
+
+  useEffect(() => {
+    trackMarketingFunnel({
+      funnel_stage: 'offer_view',
+      previous_stage: 'landing',
+      time_in_stage: 0,
+      conversion_successful: false,
+      drop_off_point: false,
+      entry_point: window.location.pathname,
+      interaction_path: {
+        path: [window.location.pathname],
+        timestamps: [Date.now()]
+      }
+    });
+
+    return () => {
+      const totalViewTime = Math.floor((Date.now() - viewStartTime.current) / 1000);
+      
+      trackOfferInteraction({
+        offer_id: 'session-summary',
+        interaction_type: 'session_end',
+        view_duration_seconds: totalViewTime,
+        source_page: window.location.pathname,
+        interaction_details: {
+          total_interaction_time: totalViewTime
+        }
+      });
+    };
+  }, []);
+
+  const handleOfferView = (offerId: string) => {
+    interactionStartTimes.current[offerId] = Date.now();
+    
+    trackOfferInteraction({
+      offer_id: offerId,
+      interaction_type: 'offer_view_start',
+      view_duration_seconds: 0,
+      source_page: window.location.pathname,
+      interaction_details: {
+        scroll_depth: 0,
+        zoom_actions: 0
+      }
+    });
+  };
+
+  const handleOfferInteractionEnd = (offerId: string) => {
+    const startTime = interactionStartTimes.current[offerId];
+    if (startTime) {
+      const duration = Math.floor((Date.now() - startTime) / 1000);
+      
+      trackOfferInteraction({
+        offer_id: offerId,
+        interaction_type: 'offer_view_end',
+        view_duration_seconds: duration,
+        source_page: window.location.pathname,
+        interaction_details: {
+          total_interaction_time: duration
+        }
+      });
+      
+      delete interactionStartTimes.current[offerId];
+    }
+  };
 
   if (error) {
     console.error('Query error:', error);
@@ -131,7 +197,12 @@ const Offers = () => {
                 <div className="text-center py-8 text-[#222222]">{t('loading.offers')}</div>
               ) : offersFiles && offersFiles.length > 0 ? (
                 offersFiles.map((file) => (
-                  <Card key={file.id} className="overflow-hidden bg-white shadow-xl rounded-xl border-[#C4A36F]/20">
+                  <Card 
+                    key={file.id} 
+                    className="overflow-hidden bg-white shadow-xl rounded-xl border-[#C4A36F]/20"
+                    onMouseEnter={() => handleOfferView(file.id)}
+                    onMouseLeave={() => handleOfferInteractionEnd(file.id)}
+                  >
                     <div className="p-6">
                       {file.branchName && (
                         <div className="mb-4">
