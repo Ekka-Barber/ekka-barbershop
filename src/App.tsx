@@ -9,6 +9,7 @@ import Customer from "./pages/Customer";
 import Menu from "./pages/Menu";
 import Offers from "./pages/Offers";
 import Bookings from "./pages/Bookings";
+import { LanguageProvider } from "@/contexts/LanguageContext";
 
 // Lazy load Admin component
 const Admin = lazy(() => import("./pages/Admin"));
@@ -61,12 +62,16 @@ const AppContent = () => {
 
 const App = () => {
   return (
-    <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
-      <TooltipProvider delayDuration={0}>
-        <AppContent />
-        <Toaster />
-      </TooltipProvider>
-    </ThemeProvider>
+    <React.StrictMode>
+      <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
+        <LanguageProvider>
+          <TooltipProvider delayDuration={0}>
+            <AppContent />
+            <Toaster />
+          </TooltipProvider>
+        </LanguageProvider>
+      </ThemeProvider>
+    </React.StrictMode>
   );
 };
 
