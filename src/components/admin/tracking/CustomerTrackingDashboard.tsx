@@ -8,7 +8,10 @@ import { CoreMetricsGrid } from "./CoreMetricsGrid";
 import { TimePatternCard } from "./TimePatternCard";
 import { ServiceHeatmapCard } from "./ServiceHeatmapCard";
 import { CustomerJourneyCard } from "./CustomerJourneyCard";
+import { RealTimeMonitoring } from "./RealTimeMonitoring";
+import { BranchAnalytics } from "./BranchAnalytics";
 import { processTimePatterns, processServiceHeatmapData, processCustomerJourney } from "./trackingUtils";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const CustomerTrackingDashboard = () => {
   const [dateRange, setDateRange] = useState<DateRange>({
@@ -48,23 +51,31 @@ const CustomerTrackingDashboard = () => {
 
   return (
     <div className="space-y-8">
-      {/* Date Range Selection */}
-      <DateRangeSelector onRangeChange={setDateRange} />
+      <Tabs defaultValue="overview" className="w-full">
+        <TabsList className="grid w-full grid-cols-1 md:grid-cols-3">
+          <TabsTrigger value="overview">Overview & Patterns</TabsTrigger>
+          <TabsTrigger value="realtime">Real-Time Monitoring</TabsTrigger>
+          <TabsTrigger value="branches">Branch Analytics</TabsTrigger>
+        </TabsList>
 
-      {/* Core Metrics */}
-      <CoreMetricsGrid metrics={coreMetrics} />
+        <TabsContent value="overview" className="space-y-4">
+          <DateRangeSelector onRangeChange={setDateRange} />
+          <CoreMetricsGrid metrics={coreMetrics} />
+          <CustomerJourneyCard nodes={journeyData.nodes} links={journeyData.links} />
+          <div className="grid gap-4 md:grid-cols-2">
+            <TimePatternCard timePatterns={timePatterns} />
+            <ServiceHeatmapCard serviceData={heatmapData} />
+          </div>
+        </TabsContent>
 
-      {/* Customer Journey Flow */}
-      <CustomerJourneyCard 
-        nodes={journeyData.nodes}
-        links={journeyData.links}
-      />
+        <TabsContent value="realtime">
+          <RealTimeMonitoring />
+        </TabsContent>
 
-      {/* Time Patterns and Service Heatmap */}
-      <div className="grid gap-4 md:grid-cols-2">
-        <TimePatternCard timePatterns={timePatterns} />
-        <ServiceHeatmapCard serviceData={heatmapData} />
-      </div>
+        <TabsContent value="branches">
+          <BranchAnalytics />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
