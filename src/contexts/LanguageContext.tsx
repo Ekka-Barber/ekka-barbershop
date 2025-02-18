@@ -1,7 +1,5 @@
 
-'use client';
-
-import * as React from 'react';
+import React from 'react';
 
 type Language = 'en' | 'ar';
 
@@ -160,8 +158,14 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     document.body.classList.toggle('rtl', language === 'ar');
   }, [language]);
 
+  const value = React.useMemo(() => ({
+    language,
+    setLanguage,
+    t
+  }), [language]);
+
   return (
-    <LanguageContext.Provider value={{ language, setLanguage, t }}>
+    <LanguageContext.Provider value={value}>
       {children}
     </LanguageContext.Provider>
   );
