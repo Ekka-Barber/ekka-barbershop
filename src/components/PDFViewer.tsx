@@ -6,7 +6,6 @@ import 'react-pdf/dist/esm/Page/TextLayer.css';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { trackMenuInteraction } from '@/services/tracking/menuTracking';
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
 
@@ -15,16 +14,13 @@ interface PDFViewerProps {
   menuFileId?: string;
 }
 
-const PDFViewer = ({ pdfUrl, menuFileId }: PDFViewerProps) => {
+const PDFViewer = ({ pdfUrl }: PDFViewerProps) => {
   const [numPages, setNumPages] = useState<number | null>(null);
   const [pageNumber, setPageNumber] = useState(1);
   const [pageWidth, setPageWidth] = useState(800);
   const [scale, setScale] = useState(1);
   const isMobile = useIsMobile();
   const { language } = useLanguage();
-  const startTime = useRef<Date>(new Date());
-  const pageChanges = useRef(0);
-  const zoomActions = useRef(0);
 
   useEffect(() => {
     const updatePageWidth = () => {
@@ -35,25 +31,10 @@ const PDFViewer = ({ pdfUrl, menuFileId }: PDFViewerProps) => {
     updatePageWidth();
     window.addEventListener('resize', updatePageWidth);
 
-    // Track menu open
-    trackMenuInteraction({
-      menu_file_id: menuFileId,
-      interaction_type: 'menu_open'
-    });
-
     return () => {
       window.removeEventListener('resize', updatePageWidth);
-      // Track menu close with duration
-      const duration = Math.floor((new Date().getTime() - startTime.current.getTime()) / 1000);
-      trackMenuInteraction({
-        menu_file_id: menuFileId,
-        interaction_type: 'menu_close',
-        view_duration_seconds: duration,
-        page_changes: pageChanges.current,
-        zoom_actions: zoomActions.current
-      });
     };
-  }, [menuFileId]);
+  }, []);
 
   function onDocumentLoadSuccess({ numPages }: { numPages: number }) {
     setNumPages(numPages);
@@ -61,22 +42,12 @@ const PDFViewer = ({ pdfUrl, menuFileId }: PDFViewerProps) => {
 
   const handlePageChange = (newPage: number) => {
     setPageNumber(newPage);
-    pageChanges.current += 1;
-    trackMenuInteraction({
-      menu_file_id: menuFileId,
-      interaction_type: 'page_change'
-    });
   };
 
   const handleZoom = (zoomIn: boolean) => {
     setScale(prevScale => {
       const newScale = zoomIn ? prevScale + 0.2 : prevScale - 0.2;
       if (newScale >= 0.5 && newScale <= 2) {
-        zoomActions.current += 1;
-        trackMenuInteraction({
-          menu_file_id: menuFileId,
-          interaction_type: 'zoom'
-        });
         return newScale;
       }
       return prevScale;

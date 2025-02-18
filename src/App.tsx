@@ -2,8 +2,7 @@
 import React from "react";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
-import { useEffect, lazy, Suspense } from "react";
-import { useTracking } from "@/hooks/useTracking";
+import { lazy, Suspense } from "react";
 import { ThemeProvider } from "next-themes";
 import { Toaster } from "@/components/ui/sonner";
 import Customer from "./pages/Customer";
@@ -31,13 +30,6 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 };
 
 const AppContent = () => {
-  const { trackPageView } = useTracking();
-  const location = useLocation();
-
-  useEffect(() => {
-    trackPageView(location.pathname);
-  }, [location.pathname, trackPageView]);
-
   return (
     <Routes>
       {/* Redirect root to customer page */}

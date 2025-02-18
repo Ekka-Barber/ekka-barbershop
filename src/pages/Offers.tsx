@@ -1,3 +1,4 @@
+
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from "@/integrations/supabase/client";
 import PDFViewer from '@/components/PDFViewer';
@@ -9,17 +10,10 @@ import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import CountdownTimer from '@/components/CountdownTimer';
-import { useTracking } from '@/hooks/useTracking';
-import { useEffect, useRef } from 'react';
-import { getSessionId } from '@/services/tracking/sessionManager';
 
 const Offers = () => {
   const navigate = useNavigate();
   const { t, language } = useLanguage();
-  const { trackOfferInteraction, trackMarketingFunnel } = useTracking();
-  
-  const viewStartTime = useRef(Date.now());
-  const interactionStartTimes = useRef<Record<string, number>>({});
   
   const { data: offersFiles, isLoading, error } = useQuery({
     queryKey: ['active-offers', language],
@@ -75,78 +69,6 @@ const Offers = () => {
     retry: 1,
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
-
-  useEffect(() => {
-    const now = new Date();
-    const nowTimestamp = now.getTime();
-    
-    trackMarketingFunnel({
-      session_id: getSessionId(),
-      entry_time: now.toISOString(),
-      interaction_type: 'marketing_funnel',
-      funnel_stage: 'offer_view',
-      previous_stage: 'landing',
-      time_in_stage: 0,
-      conversion_successful: false,
-      drop_off_point: false,
-      entry_point: window.location.pathname,
-      interaction_path: {
-        path: [window.location.pathname],
-        timestamps: [nowTimestamp]
-      }
-    });
-
-    return () => {
-      const totalViewTime = Math.floor((Date.now() - viewStartTime.current) / 1000);
-      
-      trackOfferInteraction({
-        event_name: 'session_ended',
-        offer_id: 'session-summary',
-        interaction_type: 'session_end',
-        view_duration_seconds: totalViewTime,
-        source_page: window.location.pathname,
-        interaction_details: {
-          total_interaction_time: totalViewTime
-        }
-      });
-    };
-  }, []);
-
-  const handleOfferView = (offerId: string) => {
-    interactionStartTimes.current[offerId] = Date.now();
-    
-    trackOfferInteraction({
-      event_name: 'offer_view_started',
-      offer_id: offerId,
-      interaction_type: 'offer_view_start',
-      view_duration_seconds: 0,
-      source_page: window.location.pathname,
-      interaction_details: {
-        scroll_depth: 0,
-        zoom_actions: 0
-      }
-    });
-  };
-
-  const handleOfferInteractionEnd = (offerId: string) => {
-    const startTime = interactionStartTimes.current[offerId];
-    if (startTime) {
-      const duration = Math.floor((Date.now() - startTime) / 1000);
-      
-      trackOfferInteraction({
-        event_name: 'offer_view_ended',
-        offer_id: offerId,
-        interaction_type: 'offer_view_end',
-        view_duration_seconds: duration,
-        source_page: window.location.pathname,
-        interaction_details: {
-          total_interaction_time: duration
-        }
-      });
-      
-      delete interactionStartTimes.current[offerId];
-    }
-  };
 
   if (error) {
     console.error('Query error:', error);
@@ -210,8 +132,6 @@ const Offers = () => {
                   <Card 
                     key={file.id} 
                     className="overflow-hidden bg-white shadow-xl rounded-xl border-[#C4A36F]/20"
-                    onMouseEnter={() => handleOfferView(file.id)}
-                    onMouseLeave={() => handleOfferInteractionEnd(file.id)}
                   >
                     <div className="p-6">
                       {file.branchName && (

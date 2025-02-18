@@ -1,9 +1,5 @@
 
-// Minimal no-op implementation to maintain API compatibility
+// Empty hook - tracking functionality removed
 export const useTracking = () => {
-  return {
-    trackInteraction: () => Promise.resolve(),
-    trackBranchSelection: () => Promise.resolve(),
-    trackServiceInteraction: () => Promise.resolve(),
-  };
+  return {};
 };
