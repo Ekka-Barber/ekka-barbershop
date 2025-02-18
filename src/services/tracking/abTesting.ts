@@ -118,7 +118,9 @@ export const calculateTestResults = async (testId: string): Promise<ABTestResult
       upper: Math.min(100, ((p + z * z / (2 * n) + z * Math.sqrt((p * (1 - p) + z * z / (4 * n)) / n)) / (1 + z * z / n)) * 100
     };
 
-    results.push({
+    const previousResults = [...results];
+    const control = previousResults.length > 0 ? previousResults[0] : null;
+    const currentVariant = {
       variantId: variant.id,
       totalUsers,
       conversions: conversionCount,
@@ -134,8 +136,10 @@ export const calculateTestResults = async (testId: string): Promise<ABTestResult
         desktop: sessions.filter(s => s.device_type === 'desktop').length / totalUsers * 100
       },
       confidenceInterval,
-      statisticalSignificance: calculateSignificance(results[0], results[results.length - 1])
-    });
+      statisticalSignificance: control ? calculateSignificance(control, currentVariant) : 0
+    };
+
+    results.push(currentVariant);
   }
 
   return results;
