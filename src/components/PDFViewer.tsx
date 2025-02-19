@@ -61,7 +61,7 @@ const PDFViewer = ({ pdfUrl }: PDFViewerProps) => {
             className="p-3 rounded-full bg-[#C4A36F] hover:bg-[#B39260] text-white transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg transform hover:-translate-y-0.5 flex items-center justify-center"
             aria-label="Previous page"
           >
-            <ChevronLeft className="w-6 h-6" />
+            <ChevronRight className="w-6 h-6 rotate-180" />
           </button>
           
           <p className="text-center text-[#222222] font-medium min-w-[100px]">
@@ -77,7 +77,7 @@ const PDFViewer = ({ pdfUrl }: PDFViewerProps) => {
             className="p-3 rounded-full bg-[#C4A36F] hover:bg-[#B39260] text-white transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg transform hover:-translate-y-0.5 flex items-center justify-center"
             aria-label="Next page"
           >
-            <ChevronRight className="w-6 h-6" />
+            <ChevronLeft className="w-6 h-6 rotate-180" />
           </button>
         </div>
       )}
