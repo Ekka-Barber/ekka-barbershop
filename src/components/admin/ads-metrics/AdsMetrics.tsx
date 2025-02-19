@@ -17,11 +17,12 @@ import {
 } from "recharts";
 import { DateRangePicker } from "@/components/ui/date-range-picker";
 import { addDays } from "date-fns";
+import { DateRange } from "react-day-picker";
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
 
 export const AdsMetrics = () => {
-  const [dateRange, setDateRange] = useState({
+  const [dateRange, setDateRange] = useState<DateRange>({
     from: addDays(new Date(), -30),
     to: new Date(),
   });
@@ -30,6 +31,8 @@ export const AdsMetrics = () => {
   const { data: summaryData, isLoading: isLoadingSummary } = useQuery({
     queryKey: ['campaign-summary', dateRange],
     queryFn: async () => {
+      if (!dateRange.from || !dateRange.to) return null;
+
       const { data, error } = await supabase
         .from('campaign_visits')
         .select('*')
@@ -54,6 +57,8 @@ export const AdsMetrics = () => {
   const { data: timelineData } = useQuery({
     queryKey: ['campaign-timeline', dateRange],
     queryFn: async () => {
+      if (!dateRange.from || !dateRange.to) return [];
+
       const { data, error } = await supabase
         .from('campaign_visits')
         .select('*')
@@ -82,6 +87,8 @@ export const AdsMetrics = () => {
   const { data: deviceData } = useQuery({
     queryKey: ['device-distribution', dateRange],
     queryFn: async () => {
+      if (!dateRange.from || !dateRange.to) return [];
+
       const { data, error } = await supabase
         .from('campaign_visits')
         .select('device_type')
@@ -120,7 +127,7 @@ export const AdsMetrics = () => {
             <CardTitle className="text-sm font-medium">Total Visits</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{summaryData?.total_visits}</div>
+            <div className="text-2xl font-bold">{summaryData?.total_visits || 0}</div>
           </CardContent>
         </Card>
         <Card>
@@ -128,7 +135,7 @@ export const AdsMetrics = () => {
             <CardTitle className="text-sm font-medium">Conversions</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{summaryData?.conversions}</div>
+            <div className="text-2xl font-bold">{summaryData?.conversions || 0}</div>
           </CardContent>
         </Card>
         <Card>
@@ -136,7 +143,7 @@ export const AdsMetrics = () => {
             <CardTitle className="text-sm font-medium">Conversion Rate</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{summaryData?.conversion_rate}%</div>
+            <div className="text-2xl font-bold">{summaryData?.conversion_rate || 0}%</div>
           </CardContent>
         </Card>
       </div>
