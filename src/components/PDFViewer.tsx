@@ -54,7 +54,7 @@ const PDFViewer = ({ pdfUrl }: PDFViewerProps) => {
         />
       </Document>
       {showNavigation && (
-        <div className="flex items-center justify-center gap-6 mt-6">
+        <div className="flex items-center justify-between px-4 mt-6 max-w-[400px] mx-auto">
           <button
             onClick={() => setPageNumber(page => Math.max(1, page - 1))}
             disabled={pageNumber <= 1}
@@ -86,3 +86,4 @@ const PDFViewer = ({ pdfUrl }: PDFViewerProps) => {
 };
 
 export default PDFViewer;
+
