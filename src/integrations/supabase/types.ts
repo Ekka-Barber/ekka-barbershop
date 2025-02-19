@@ -218,6 +218,51 @@ export type Database = {
         }
         Relationships: []
       }
+      campaign_visits: {
+        Row: {
+          booking_id: string | null
+          browser_info: Json | null
+          conversion_date: string | null
+          converted_to_booking: boolean | null
+          device_type: Database["public"]["Enums"]["device_type"] | null
+          id: string
+          page_url: string | null
+          timestamp: string | null
+          utm_campaign: string | null
+          utm_campaign_id: string | null
+          utm_medium: string | null
+          utm_source: string | null
+        }
+        Insert: {
+          booking_id?: string | null
+          browser_info?: Json | null
+          conversion_date?: string | null
+          converted_to_booking?: boolean | null
+          device_type?: Database["public"]["Enums"]["device_type"] | null
+          id?: string
+          page_url?: string | null
+          timestamp?: string | null
+          utm_campaign?: string | null
+          utm_campaign_id?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+        }
+        Update: {
+          booking_id?: string | null
+          browser_info?: Json | null
+          conversion_date?: string | null
+          converted_to_booking?: boolean | null
+          device_type?: Database["public"]["Enums"]["device_type"] | null
+          id?: string
+          page_url?: string | null
+          timestamp?: string | null
+          utm_campaign?: string | null
+          utm_campaign_id?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+        }
+        Relationships: []
+      }
       cash_deposits: {
         Row: {
           amount: number
@@ -1722,6 +1767,7 @@ export type Database = {
       adjustment_type: "correction" | "refund"
       basic_payment_method: "cash" | "bank_transfer"
       calendar_view_type: "month" | "week" | "quick_select"
+      device_type: "mobile" | "tablet" | "desktop"
       employee_role:
         | "manager"
         | "barber"

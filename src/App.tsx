@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-route
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { useEffect, lazy, Suspense } from "react";
 import { trackClick } from "@/utils/clickTracking";
+import { trackCampaignVisit } from "@/utils/campaignTracking";
 import Customer from "./pages/Customer";
 import Menu from "./pages/Menu";
 import Offers from "./pages/Offers";
@@ -35,6 +36,15 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
 const App = () => {
   useEffect(() => {
+    // Track initial campaign visit
+    const trackVisit = async () => {
+      const visitId = await trackCampaignVisit();
+      if (visitId) {
+        localStorage.setItem('campaign_visit_id', visitId);
+      }
+    };
+    trackVisit();
+
     // Add click tracking
     window.addEventListener('click', trackClick);
     return () => window.removeEventListener('click', trackClick);

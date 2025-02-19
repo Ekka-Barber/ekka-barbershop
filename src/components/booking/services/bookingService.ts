@@ -1,7 +1,9 @@
+
 import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { BookingFormData } from "../types/booking";
 import { Json } from "@/integrations/supabase/types";
+import { updateCampaignConversion } from "@/utils/campaignTracking";
 
 export const saveBookingData = async (formData: BookingFormData) => {
   const { selectedDate, selectedTime, selectedServices, totalPrice, customerDetails, branch } = formData;
@@ -32,6 +34,13 @@ export const saveBookingData = async (formData: BookingFormData) => {
     .select();
 
   if (error) throw error;
+  
+  // Get campaign visit ID from localStorage
+  const campaignVisitId = localStorage.getItem('campaign_visit_id');
+  if (campaignVisitId && data[0]) {
+    await updateCampaignConversion(campaignVisitId, data[0].id);
+  }
+  
   return data;
 };
 
