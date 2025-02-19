@@ -1,0 +1,192 @@
+
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { supabase } from "@/integrations/supabase/client";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+} from "recharts";
+import { DateRangePicker } from "@/components/ui/date-range-picker";
+import { addDays } from "date-fns";
+
+const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
+
+export const AdsMetrics = () => {
+  const [dateRange, setDateRange] = useState({
+    from: addDays(new Date(), -30),
+    to: new Date(),
+  });
+
+  // Fetch campaign summary
+  const { data: summaryData, isLoading: isLoadingSummary } = useQuery({
+    queryKey: ['campaign-summary', dateRange],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('campaign_visits')
+        .select('*')
+        .gte('timestamp', dateRange.from.toISOString())
+        .lte('timestamp', dateRange.to.toISOString());
+
+      if (error) throw error;
+
+      const total_visits = data.length;
+      const conversions = data.filter(visit => visit.converted_to_booking).length;
+      const conversion_rate = (conversions / total_visits) * 100 || 0;
+
+      return {
+        total_visits,
+        conversions,
+        conversion_rate: conversion_rate.toFixed(1),
+      };
+    },
+  });
+
+  // Fetch campaign performance by day
+  const { data: timelineData } = useQuery({
+    queryKey: ['campaign-timeline', dateRange],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('campaign_visits')
+        .select('*')
+        .gte('timestamp', dateRange.from.toISOString())
+        .lte('timestamp', dateRange.to.toISOString());
+
+      if (error) throw error;
+
+      const dailyData = data.reduce((acc: any, visit) => {
+        const date = visit.timestamp.split('T')[0];
+        if (!acc[date]) {
+          acc[date] = { date, visits: 0, conversions: 0 };
+        }
+        acc[date].visits++;
+        if (visit.converted_to_booking) {
+          acc[date].conversions++;
+        }
+        return acc;
+      }, {});
+
+      return Object.values(dailyData);
+    },
+  });
+
+  // Fetch device distribution
+  const { data: deviceData } = useQuery({
+    queryKey: ['device-distribution', dateRange],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('campaign_visits')
+        .select('device_type')
+        .gte('timestamp', dateRange.from.toISOString())
+        .lte('timestamp', dateRange.to.toISOString());
+
+      if (error) throw error;
+
+      const distribution = data.reduce((acc: any, { device_type }) => {
+        acc[device_type] = (acc[device_type] || 0) + 1;
+        return acc;
+      }, {});
+
+      return Object.entries(distribution).map(([name, value]) => ({
+        name,
+        value,
+      }));
+    },
+  });
+
+  if (isLoadingSummary) {
+    return <div>Loading...</div>;
+  }
+
+  return (
+    <div className="space-y-8">
+      <div className="flex justify-between items-center">
+        <h2 className="text-3xl font-bold">Ads Metrics</h2>
+        <DateRangePicker date={dateRange} onDateChange={setDateRange} />
+      </div>
+
+      {/* Summary Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Visits</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{summaryData?.total_visits}</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Conversions</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{summaryData?.conversions}</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Conversion Rate</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{summaryData?.conversion_rate}%</div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Timeline Chart */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Campaign Performance Over Time</CardTitle>
+        </CardHeader>
+        <CardContent className="h-[300px]">
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={timelineData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="date" />
+              <YAxis />
+              <Tooltip />
+              <Line type="monotone" dataKey="visits" stroke="#8884d8" name="Visits" />
+              <Line type="monotone" dataKey="conversions" stroke="#82ca9d" name="Conversions" />
+            </LineChart>
+          </ResponsiveContainer>
+        </CardContent>
+      </Card>
+
+      {/* Device Distribution */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Device Distribution</CardTitle>
+        </CardHeader>
+        <CardContent className="h-[300px]">
+          <ResponsiveContainer width="100%" height="100%">
+            <PieChart>
+              <Pie
+                data={deviceData}
+                cx="50%"
+                cy="50%"
+                labelLine={false}
+                label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
+                outerRadius={80}
+                fill="#8884d8"
+                dataKey="value"
+              >
+                {deviceData?.map((_, index) => (
+                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                ))}
+              </Pie>
+              <Tooltip />
+            </PieChart>
+          </ResponsiveContainer>
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
