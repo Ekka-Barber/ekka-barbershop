@@ -7,13 +7,8 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
-// Configure PDF.js worker with a more reliable CDN and explicit versioning
+// Configure PDF.js worker with a more reliable CDN
 pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.js`;
-
-// Increase the maximum allowed content length for PDF processing
-pdfjs.maxImageSize = 1024 * 1024 * 50; // 50MB
-pdfjs.cMapUrl = 'https://unpkg.com/pdfjs-dist@${pdfjs.version}/cmaps/';
-pdfjs.cMapPacked = true;
 
 interface PDFViewerProps {
   pdfUrl: string;
@@ -101,10 +96,6 @@ const PDFViewer = ({ pdfUrl }: PDFViewerProps) => {
             </div>
           </div>
         }
-        options={{
-          cMapUrl: pdfjs.cMapUrl,
-          cMapPacked: pdfjs.cMapPacked,
-        }}
       >
         {isLoading ? null : (
           <Page 
