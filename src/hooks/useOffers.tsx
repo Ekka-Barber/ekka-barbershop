@@ -33,9 +33,13 @@ export const useOffers = () => {
       
       const filesWithUrls = await Promise.all(data.map(async (file) => {
         console.log('Processing file:', file);
-        // Use the complete path including the folder
-        const filePath = file.original_path || file.file_path;
-        console.log('Using complete file path:', filePath);
+        
+        // Handle PDFs and images differently
+        const filePath = file.file_type.includes('pdf')
+          ? file.file_name  // Use just the filename for PDFs (they're at root level)
+          : file.original_path || file.file_path;  // Use full path for images
+        
+        console.log('Using file path:', filePath);
         
         if (!filePath) {
           console.error('No file path found for file:', file);
