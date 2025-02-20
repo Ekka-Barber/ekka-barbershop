@@ -53,36 +53,51 @@ export const useOffers = () => {
           };
         }
         
-        // For images, construct optimized and original paths
-        const fileName = file.file_name;
-        const optimizedPath = `optimized/${fileName}`;
-        const originalPath = `original/${fileName}`;
-        
-        const { data: optimizedUrl } = supabase.storage
-          .from('marketing_files')
-          .getPublicUrl(optimizedPath);
-        
-        const { data: originalUrl } = supabase.storage
-          .from('marketing_files')
-          .getPublicUrl(originalPath);
-        
-        console.log('Generated URLs:', {
-          optimized: optimizedUrl.publicUrl,
-          original: originalUrl.publicUrl
-        });
-        
-        // Use optimized version for mobile and regular display
-        const displayUrl = isMobile ? optimizedUrl.publicUrl : originalUrl.publicUrl;
-        
-        return {
-          ...file,
-          url: displayUrl,
-          originalUrl: originalUrl.publicUrl,
-          optimizedUrl: optimizedUrl.publicUrl,
-          branchName: language === 'ar' ? file.branches?.name_ar : file.branches?.name,
-          isExpired: isOfferExpired(file.end_date),
-          isWithinThreeDays: isWithinThreeDays(file.end_date)
-        };
+        // For images with optimized versions
+        if (file.has_optimized_version) {
+          const optimizedPath = `optimized/${file.file_name}`;
+          const originalPath = `original/${file.file_name}`;
+          
+          const { data: optimizedUrl } = supabase.storage
+            .from('marketing_files')
+            .getPublicUrl(optimizedPath);
+          
+          const { data: originalUrl } = supabase.storage
+            .from('marketing_files')
+            .getPublicUrl(originalPath);
+          
+          console.log('Generated URLs:', {
+            optimized: optimizedUrl.publicUrl,
+            original: originalUrl.publicUrl
+          });
+          
+          // Use optimized version for mobile, original for desktop
+          const displayUrl = isMobile ? optimizedUrl.publicUrl : originalUrl.publicUrl;
+          
+          return {
+            ...file,
+            url: displayUrl,
+            originalUrl: originalUrl.publicUrl,
+            optimizedUrl: optimizedUrl.publicUrl,
+            branchName: language === 'ar' ? file.branches?.name_ar : file.branches?.name,
+            isExpired: isOfferExpired(file.end_date),
+            isWithinThreeDays: isWithinThreeDays(file.end_date)
+          };
+        } else {
+          // For images without optimized versions, use the direct file path
+          const { data: fileUrl } = supabase.storage
+            .from('marketing_files')
+            .getPublicUrl(file.file_path);
+          
+          return {
+            ...file,
+            url: fileUrl.publicUrl,
+            originalUrl: fileUrl.publicUrl,
+            branchName: language === 'ar' ? file.branches?.name_ar : file.branches?.name,
+            isExpired: isOfferExpired(file.end_date),
+            isWithinThreeDays: isWithinThreeDays(file.end_date)
+          };
+        }
       }));
       
       // Filter out any null entries and sort

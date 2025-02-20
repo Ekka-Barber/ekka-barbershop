@@ -946,6 +946,7 @@ export type Database = {
           file_name: string
           file_path: string
           file_type: string
+          has_optimized_version: boolean | null
           id: string
           is_active: boolean | null
           original_path: string | null
@@ -963,6 +964,7 @@ export type Database = {
           file_name: string
           file_path: string
           file_type: string
+          has_optimized_version?: boolean | null
           id?: string
           is_active?: boolean | null
           original_path?: string | null
@@ -980,6 +982,7 @@ export type Database = {
           file_name?: string
           file_path?: string
           file_type?: string
+          has_optimized_version?: boolean | null
           id?: string
           is_active?: boolean | null
           original_path?: string | null
