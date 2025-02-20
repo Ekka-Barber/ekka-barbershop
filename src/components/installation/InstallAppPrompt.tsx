@@ -94,7 +94,7 @@ export function InstallAppPrompt() {
               }}
             >
               <SheetHeader>
-                <SheetTitle>{language === 'ar' ? 'تثبيت التطبيق على الشاشة الرئيسية' : 'Add to Home Screen'}</SheetTitle>
+                <SheetTitle>{language === 'ar' ? 'لتثبيت التطبيق على الشاشة الرئيسية' : 'Add to Home Screen'}</SheetTitle>
                 <SheetDescription>
                   {language === 'ar' ? 'اتبع الخطوات التالية:' : 'Follow these steps:'}
                 </SheetDescription>
@@ -102,7 +102,7 @@ export function InstallAppPrompt() {
               <div className="space-y-6 mt-6">
                 <div className="flex items-center gap-4">
                   <div className="h-8 w-8 rounded-full bg-gray-100 flex items-center justify-center">1</div>
-                  <p>{language === 'ar' ? 'انقر على زر المشاركة' : 'Tap the share button'} <Share2 className="inline h-5 w-5" /></p>
+                  <p>{language === 'ar' ? 'انقر على زر المشاركة' : 'Tap the share button'} <Share className="inline h-5 w-5" /></p>
                 </div>
                 <div className="flex items-center gap-4">
                   <div className="h-8 w-8 rounded-full bg-gray-100 flex items-center justify-center">2</div>
