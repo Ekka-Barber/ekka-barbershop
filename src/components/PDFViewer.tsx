@@ -7,7 +7,10 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
-pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
+// Import the worker from the package directly
+import pdfWorker from 'pdfjs-dist/build/pdf.worker.entry';
+
+pdfjs.GlobalWorkerOptions.workerSrc = pdfWorker;
 
 interface PDFViewerProps {
   pdfUrl: string;
@@ -86,4 +89,3 @@ const PDFViewer = ({ pdfUrl }: PDFViewerProps) => {
 };
 
 export default PDFViewer;
-
