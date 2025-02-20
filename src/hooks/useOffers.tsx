@@ -33,13 +33,20 @@ export const useOffers = () => {
       
       const filesWithUrls = await Promise.all(data.map(async (file) => {
         console.log('Processing file:', file);
-        // Get the file path, stripping any folder prefixes if they exist
-        const filePath = (file.original_path || file.file_path || '').replace(/^(original\/|optimized\/)/g, '');
-        console.log('Using file path:', filePath);
+        // Use the complete path including the folder
+        const filePath = file.original_path || file.file_path;
+        console.log('Using complete file path:', filePath);
         
+        if (!filePath) {
+          console.error('No file path found for file:', file);
+          return null;
+        }
+
         const { data: fileUrl } = supabase.storage
           .from('marketing_files')
           .getPublicUrl(filePath);
+        
+        console.log('Generated public URL:', fileUrl.publicUrl);
         
         const now = new Date().getTime();
         const endDate = file.end_date ? new Date(file.end_date).getTime() : null;
@@ -56,12 +63,15 @@ export const useOffers = () => {
         };
       }));
       
-      return filesWithUrls.sort((a, b) => {
-        if (a.isExpired !== b.isExpired) {
-          return a.isExpired ? 1 : -1;
-        }
-        return (a.display_order || 0) - (b.display_order || 0);
-      });
+      // Filter out any null entries and sort
+      return filesWithUrls
+        .filter(Boolean)
+        .sort((a, b) => {
+          if (a.isExpired !== b.isExpired) {
+            return a.isExpired ? 1 : -1;
+          }
+          return (a.display_order || 0) - (b.display_order || 0);
+        });
     },
     retry: 1,
     staleTime: 1000 * 60 * 5, // 5 minutes

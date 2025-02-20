@@ -37,6 +37,13 @@ export const OfferCard = ({ file }: OfferCardProps) => {
     </div>
   );
 
+  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+    console.error('Image failed to load:', file.url);
+    toast.error(t('error.loading.offer'));
+    // Set a fallback image
+    e.currentTarget.src = '/placeholder.svg';
+  };
+
   // Track each offer view
   if (!file.isExpired) {
     trackViewContent('Offer');
@@ -74,11 +81,8 @@ export const OfferCard = ({ file }: OfferCardProps) => {
                 src={file.url} 
                 alt={file.isExpired ? `Expired Offer - ${file.file_name || 'Special Offer'}` : "Special Offer"}
                 className="w-full max-w-full h-auto rounded-lg transition-all duration-300"
-                onError={(e) => {
-                  console.error('Image failed to load:', file.url);
-                  toast.error(t('error.loading.offer'));
-                  e.currentTarget.src = '/placeholder.svg';
-                }}
+                onError={handleImageError}
+                loading="lazy"
               />
             </div>
           )}
