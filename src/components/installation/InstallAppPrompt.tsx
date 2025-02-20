@@ -7,6 +7,8 @@ import { getPlatformType, getInstallationStatus } from "@/services/platformDetec
 import { useLanguage } from "@/contexts/LanguageContext";
 import { AndroidIcon } from "@/components/icons/AndroidIcon";
 import { AppleIcon } from "@/components/icons/AppleIcon";
+import { NewBadge } from "@/components/ui/new-badge";
+import { trackButtonClick } from "@/utils/tiktokTracking";
 
 export function InstallAppPrompt() {
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
@@ -36,6 +38,7 @@ export function InstallAppPrompt() {
   }, [platform, installStatus]);
 
   const handleInstallClick = async () => {
+    trackButtonClick('Install App');
     if (platform === 'android' && deferredPrompt) {
       deferredPrompt.prompt();
       const { outcome } = await deferredPrompt.userChoice;
@@ -51,26 +54,34 @@ export function InstallAppPrompt() {
   const isRTL = language === 'ar';
 
   const renderInstallButton = () => (
-    <Button 
-      className="w-full h-14 text-lg font-medium bg-[#9b87f5] hover:bg-[#8B5CF6] text-white transition-all duration-300 shadow-lg hover:shadow-xl touch-target"
-      onClick={() => {
-        if (platform === 'ios') {
-          console.log('iOS install button clicked');
-          setIsSheetOpen(true);
-        } else {
-          handleInstallClick();
-        }
-      }}
-    >
-      <div className={`w-full flex items-center ${isRTL ? 'flex-row-reverse' : 'flex-row'} justify-center gap-2`}>
-        {platform === 'ios' ? <AppleIcon /> : <AndroidIcon />}
-        <span>{language === 'ar' ? "حمل تطبيق إكّه الآن" : 'Install App'}</span>
-      </div>
-    </Button>
+    <div className="relative">
+      <NewBadge />
+      <Button 
+        className="w-full h-14 text-lg font-medium bg-[#9b87f5] hover:bg-[#8B5CF6] text-white 
+                   transition-all duration-300 shadow-lg hover:shadow-xl touch-target
+                   hover:scale-[1.02] relative
+                   before:absolute before:inset-0 before:bg-gradient-to-r before:from-[#9b87f5]/20 before:to-[#8B5CF6]/20 
+                   before:animate-[shimmer_2s_infinite] before:rounded-md
+                   ring-2 ring-[#9b87f5]/20 hover:ring-[#8B5CF6]/30"
+        onClick={() => {
+          if (platform === 'ios') {
+            console.log('iOS install button clicked');
+            setIsSheetOpen(true);
+          } else {
+            handleInstallClick();
+          }
+        }}
+      >
+        <div className={`w-full flex items-center ${isRTL ? 'flex-row-reverse' : 'flex-row'} justify-center gap-2`}>
+          {platform === 'ios' ? <AppleIcon /> : <AndroidIcon />}
+          <span className="drop-shadow-sm">{language === 'ar' ? "حمل تطبيق إكّه الآن" : 'Install App'}</span>
+        </div>
+      </Button>
+    </div>
   );
 
   const renderDescription = () => (
-    <p className="text-sm text-muted-foreground text-center mt-2 px-2">
+    <p className="text-sm text-muted-foreground text-center mt-2 px-2 animate-fade-in">
       {language === 'ar' 
         ? "حجوزات أسرع، عروض حصرية، ومزايا إضافية بانتظارك"
         : "Faster bookings, exclusive offers, and more features await you"}
@@ -126,4 +137,3 @@ export function InstallAppPrompt() {
     </div>
   );
 }
-
