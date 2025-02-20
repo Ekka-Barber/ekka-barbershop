@@ -7,9 +7,13 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
-// Configure PDF.js worker
-// Using explicit https protocol and backup CDN
-pdfjs.GlobalWorkerOptions.workerSrc = `https://cdn.jsdelivr.net/npm/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.js`;
+// Configure PDF.js worker with a more reliable CDN and explicit versioning
+pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.js`;
+
+// Increase the maximum allowed content length for PDF processing
+pdfjs.maxImageSize = 1024 * 1024 * 50; // 50MB
+pdfjs.cMapUrl = 'https://unpkg.com/pdfjs-dist@${pdfjs.version}/cmaps/';
+pdfjs.cMapPacked = true;
 
 interface PDFViewerProps {
   pdfUrl: string;
@@ -21,6 +25,7 @@ const PDFViewer = ({ pdfUrl }: PDFViewerProps) => {
   const [pageWidth, setPageWidth] = useState(800);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
   const isMobile = useIsMobile();
   const { language } = useLanguage();
 
@@ -41,16 +46,31 @@ const PDFViewer = ({ pdfUrl }: PDFViewerProps) => {
     setLoadError(null);
     setPageNumber(1);
     setNumPages(null);
+    setRetryCount(0);
   }, [pdfUrl]);
 
+  useEffect(() => {
+    if (loadError && retryCount < 3) {
+      const timer = setTimeout(() => {
+        console.log(`Retrying PDF load attempt ${retryCount + 1}`);
+        setRetryCount(prev => prev + 1);
+        setLoadError(null);
+        setIsLoading(true);
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [loadError, retryCount]);
+
   function onDocumentLoadSuccess({ numPages }: { numPages: number }) {
+    console.log('PDF loaded successfully');
     setNumPages(numPages);
     setIsLoading(false);
     setLoadError(null);
+    setRetryCount(0);
   }
 
   function onDocumentLoadError(error: Error) {
-    console.error('PDF load error:', error);
+    console.error('PDF load error:', error, 'URL:', pdfUrl);
     setLoadError(error.message);
     setIsLoading(false);
   }
@@ -58,10 +78,11 @@ const PDFViewer = ({ pdfUrl }: PDFViewerProps) => {
   // Only show navigation if there's more than one page
   const showNavigation = numPages !== null && numPages > 1;
 
-  if (loadError) {
+  if (loadError && retryCount >= 3) {
     return (
-      <div className="text-center py-4 text-red-500">
-        Failed to load PDF. Please try again later.
+      <div className="text-center py-4">
+        <p className="text-red-500 mb-2">Failed to load PDF. Please try again later.</p>
+        <p className="text-sm text-gray-500">Error: {loadError}</p>
       </div>
     );
   }
@@ -75,22 +96,30 @@ const PDFViewer = ({ pdfUrl }: PDFViewerProps) => {
         className="flex flex-col items-center"
         loading={
           <div className="text-center py-4">
-            <div className="animate-pulse">Loading PDF...</div>
+            <div className="animate-pulse">
+              Loading PDF{retryCount > 0 ? ` (Attempt ${retryCount + 1}/3)` : ''}...
+            </div>
           </div>
         }
+        options={{
+          cMapUrl: pdfjs.cMapUrl,
+          cMapPacked: pdfjs.cMapPacked,
+        }}
       >
-        <Page 
-          pageNumber={pageNumber} 
-          width={pageWidth}
-          renderTextLayer={false}
-          renderAnnotationLayer={false}
-          className="max-w-full shadow-lg rounded-lg"
-          loading={
-            <div className="text-center py-4">
-              <div className="animate-pulse">Loading page...</div>
-            </div>
-          }
-        />
+        {isLoading ? null : (
+          <Page 
+            pageNumber={pageNumber} 
+            width={pageWidth}
+            renderTextLayer={false}
+            renderAnnotationLayer={false}
+            className="max-w-full shadow-lg rounded-lg"
+            loading={
+              <div className="text-center py-4">
+                <div className="animate-pulse">Loading page...</div>
+              </div>
+            }
+          />
+        )}
       </Document>
       {showNavigation && (
         <div className="flex items-center justify-between px-4 mt-6 max-w-[400px] mx-auto">
