@@ -33,7 +33,10 @@ export const useOffers = () => {
       
       const filesWithUrls = await Promise.all(data.map(async (file) => {
         console.log('Processing file:', file);
-        const filePath = file.original_path || file.file_path;
+        // Get the file path, stripping any folder prefixes if they exist
+        const filePath = (file.original_path || file.file_path || '').replace(/^(original\/|optimized\/)/g, '');
+        console.log('Using file path:', filePath);
+        
         const { data: fileUrl } = supabase.storage
           .from('marketing_files')
           .getPublicUrl(filePath);
@@ -47,7 +50,7 @@ export const useOffers = () => {
         return { 
           ...file, 
           url: fileUrl.publicUrl,
-          branchName: language === 'ar' ? file.branch_name_ar : file.branch_name,
+          branchName: language === 'ar' ? file.branches?.name_ar : file.branches?.name,
           isExpired,
           isWithinThreeDays
         };

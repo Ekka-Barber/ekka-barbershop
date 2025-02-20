@@ -19,7 +19,6 @@ const Menu = () => {
     trackViewContent('Menu');
   }, []);
 
-  // Separate the fetch function for better type inference
   const fetchMenu = async () => {
     const { data, error } = await supabase
       .from('marketing_files')
@@ -29,13 +28,16 @@ const Menu = () => {
       .maybeSingle();
     
     if (error) {
+      console.error('Error fetching menu:', error);
       toast.error(t('error.loading.menu'));
       throw error;
     }
     
     if (data) {
-      // Get public URL for the file using the complete path
-      const filePath = data.original_path || data.file_path;
+      // Get the file path, stripping any folder prefixes if they exist
+      const filePath = (data.original_path || data.file_path || '').replace(/^(original\/|optimized\/)/g, '');
+      console.log('Using menu file path:', filePath);
+      
       const { data: fileUrl } = supabase.storage
         .from('marketing_files')
         .getPublicUrl(filePath);
