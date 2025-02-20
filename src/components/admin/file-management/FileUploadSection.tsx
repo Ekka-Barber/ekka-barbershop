@@ -1,5 +1,4 @@
 
-import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -9,9 +8,10 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { Clock } from "lucide-react";
 import { format } from "date-fns";
+import { Branch } from "@/types/admin";
 
 interface FileUploadSectionProps {
-  branches: any[];
+  branches: Branch[];
   isAllBranches: boolean;
   setIsAllBranches: (value: boolean) => void;
   selectedBranch: string | null;

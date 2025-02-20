@@ -1,10 +1,12 @@
 
 import { DragDropContext, Droppable } from '@hello-pangea/dnd';
 import { FileListItem } from "./FileListItem";
+import { FileMetadata } from '@/types/admin';
+import { UseMutationResult } from '@tanstack/react-query';
 
 interface FileListSectionProps {
   category: string;
-  files: any[];
+  files: FileMetadata[];
   selectedStartDate: Date | undefined;
   setSelectedStartDate: (date: Date | undefined) => void;
   selectedStartTime: string;
@@ -13,10 +15,10 @@ interface FileListSectionProps {
   setSelectedEndDate: (date: Date | undefined) => void;
   selectedEndTime: string;
   setSelectedEndTime: (time: string) => void;
-  handleEndDateUpdate: (file: any) => void;
+  handleEndDateUpdate: (file: FileMetadata) => void;
   handleRemoveEndDate: (fileId: string) => void;
-  toggleActiveMutation: any;
-  deleteMutation: any;
+  toggleActiveMutation: UseMutationResult<any, Error, any>;
+  deleteMutation: UseMutationResult<any, Error, any>;
   handleDragEnd: (result: any) => void;
 }
 
@@ -43,7 +45,7 @@ export const FileListSection = ({
   return (
     <div>
       <h2 className="text-lg font-semibold mb-4">{category.charAt(0).toUpperCase() + category.slice(1)} Files</h2>
-      <DragDropContext onDragEnd={(result) => handleDragEnd(result)}>
+      <DragDropContext onDragEnd={handleDragEnd}>
         <Droppable droppableId={`${category}-list`}>
           {(provided) => (
             <div

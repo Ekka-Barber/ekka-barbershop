@@ -2,9 +2,11 @@
 import { Button } from "@/components/ui/button";
 import { FileEndDateManager } from "./FileEndDateManager";
 import { Draggable } from "@hello-pangea/dnd";
+import { FileMetadata } from "@/types/admin";
+import { UseMutationResult } from "@tanstack/react-query";
 
 interface FileListItemProps {
-  file: any;
+  file: FileMetadata;
   index: number;
   selectedStartDate: Date | undefined;
   setSelectedStartDate: (date: Date | undefined) => void;
@@ -14,10 +16,10 @@ interface FileListItemProps {
   setSelectedEndDate: (date: Date | undefined) => void;
   selectedEndTime: string;
   setSelectedEndTime: (time: string) => void;
-  handleEndDateUpdate: (file: any) => void;
+  handleEndDateUpdate: (file: FileMetadata) => void;
   handleRemoveEndDate: (fileId: string) => void;
-  toggleActiveMutation: any;
-  deleteMutation: any;
+  toggleActiveMutation: UseMutationResult<any, Error, any>;
+  deleteMutation: UseMutationResult<any, Error, any>;
 }
 
 export const FileListItem = ({
