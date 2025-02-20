@@ -15,8 +15,16 @@ export interface FileMetadata {
 export interface Branch {
   id: string;
   name: string;
+  name_ar: string;
+  address: string;
+  address_ar: string;
   location: string;
-  whatsapp_number: string | null;
+  whatsapp_number: string;
+  is_main: boolean;
+  google_maps_url: string;
+  working_hours: any;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface QRCode {
