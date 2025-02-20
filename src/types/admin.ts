@@ -18,7 +18,7 @@ export interface Branch {
   name_ar: string;
   address: string;
   address_ar: string;
-  location: string;
+  location?: string;
   whatsapp_number: string;
   is_main: boolean;
   google_maps_url: string;
