@@ -3,6 +3,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { format } from "date-fns";
 import { Slash, X, Tag } from "lucide-react";
 import { SelectedService } from "@/types/service";
+import RiyalIcon from "@/components/icons/RiyalIcon";
 
 interface BookingSummaryProps {
   selectedServices: SelectedService[];
@@ -39,7 +40,15 @@ export const BookingSummary = ({
 
   const formatPrice = (price: number) => {
     const roundedPrice = roundPrice(price);
-    return `${roundedPrice} ${language === 'ar' ? 'ريال' : 'SAR'}`;
+    if (language === 'ar') {
+      return (
+        <span className="inline-flex items-center gap-1 rtl:flex-row-reverse">
+          <span>{roundedPrice}</span>
+          <RiyalIcon />
+        </span>
+      );
+    }
+    return `${roundedPrice} SAR`;
   };
 
   const getArabicTimeUnit = (duration: number) => {

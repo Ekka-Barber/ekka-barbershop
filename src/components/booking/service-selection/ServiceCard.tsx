@@ -2,6 +2,7 @@
 import { Timer, Slash, Plus, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import RiyalIcon from "@/components/icons/RiyalIcon";
 
 interface Service {
   id: string;
@@ -30,7 +31,15 @@ export const ServiceCard = ({
 }: ServiceCardProps) => {
   const formatPrice = (price: number) => {
     const roundedPrice = Math.floor(price);
-    return `${roundedPrice} ${language === 'ar' ? 'ريال' : 'SAR'}`;
+    if (language === 'ar') {
+      return (
+        <span className="inline-flex items-center gap-1 rtl:flex-row-reverse">
+          <span>{roundedPrice}</span>
+          <RiyalIcon />
+        </span>
+      );
+    }
+    return `${roundedPrice} SAR`;
   };
 
   const getArabicTimeUnit = (duration: number) => {

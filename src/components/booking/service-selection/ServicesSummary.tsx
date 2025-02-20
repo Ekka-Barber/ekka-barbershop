@@ -1,6 +1,7 @@
 
 import { Timer } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import RiyalIcon from "@/components/icons/RiyalIcon";
 
 interface ServicesSummaryProps {
   selectedServices: Array<{
@@ -28,7 +29,15 @@ export const ServicesSummary = ({
 
   const formatPrice = (price: number) => {
     const roundedPrice = Math.floor(price);
-    return `${roundedPrice} ${language === 'ar' ? 'ريال' : 'SAR'}`;
+    if (language === 'ar') {
+      return (
+        <span className="inline-flex items-center gap-1 rtl:flex-row-reverse">
+          <span>{roundedPrice}</span>
+          <RiyalIcon />
+        </span>
+      );
+    }
+    return `${roundedPrice} SAR`;
   };
 
   if (selectedServices.length === 0) return null;
