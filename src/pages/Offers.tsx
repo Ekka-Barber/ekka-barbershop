@@ -51,9 +51,24 @@ const Offers = () => {
           .from('marketing_files')
           .getPublicUrl(file.file_path);
         
+        // Log URL generation details
+        console.log('Generated URL for file:', {
+          fileName: file.file_name,
+          filePath: file.file_path,
+          generatedUrl: publicUrlData?.publicUrl
+        });
+        
         // Verify URL is valid
         if (!publicUrlData?.publicUrl) {
           console.error('Failed to get public URL for file:', file.file_path);
+          return null;
+        }
+
+        // Validate URL format
+        try {
+          new URL(publicUrlData.publicUrl);
+        } catch (e) {
+          console.error('Invalid URL generated:', publicUrlData.publicUrl);
           return null;
         }
 
@@ -181,9 +196,19 @@ const Offers = () => {
                               src={file.url} 
                               alt={file.isExpired ? `Expired Offer - ${file.file_name || 'Special Offer'}` : "Special Offer"}
                               className="w-full max-w-full h-auto rounded-lg transition-all duration-300"
+                              onLoad={() => console.log('Image loaded successfully:', file.url)}
                               onError={(e) => {
                                 console.error('Image failed to load:', file.url);
+                                // Log detailed error information
+                                console.error('Image error details:', {
+                                  fileName: file.file_name,
+                                  filePath: file.file_path,
+                                  fileType: file.file_type,
+                                  generatedUrl: file.url
+                                });
                                 e.currentTarget.src = '/placeholder.svg';
+                                // Show toast for better user feedback
+                                toast.error('Failed to load offer image');
                               }}
                             />
                           </div>
