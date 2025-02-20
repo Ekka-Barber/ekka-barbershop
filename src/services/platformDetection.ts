@@ -7,25 +7,19 @@ interface DevOverrides {
   installed?: boolean;
 }
 
-// Development overrides - only active in development
-const DEV_MODE = import.meta.env.DEV;
 let devOverrides: DevOverrides = {};
 
 export const setDeviceOverride = (platform: PlatformType | null) => {
-  if (DEV_MODE) {
-    devOverrides.platform = platform || undefined;
-  }
+  devOverrides.platform = platform || undefined;
 };
 
 export const setInstalledOverride = (installed: boolean | null) => {
-  if (DEV_MODE) {
-    devOverrides.installed = installed === null ? undefined : installed;
-  }
+  devOverrides.installed = installed === null ? undefined : installed;
 };
 
 export const getPlatformType = (): PlatformType => {
   // If we have a development override, use it
-  if (DEV_MODE && devOverrides.platform) {
+  if (devOverrides.platform) {
     return devOverrides.platform;
   }
 
@@ -42,7 +36,7 @@ export const getPlatformType = (): PlatformType => {
 
 export const getInstallationStatus = (): InstallationStatus => {
   // If we have a development override, use it
-  if (DEV_MODE && devOverrides.installed !== undefined) {
+  if (devOverrides.installed !== undefined) {
     return devOverrides.installed ? 'installed' : 'not-installed';
   }
 

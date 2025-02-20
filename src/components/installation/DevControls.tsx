@@ -2,9 +2,15 @@
 import React from 'react';
 import { Button } from "@/components/ui/button";
 import { setDeviceOverride, setInstalledOverride } from "@/services/platformDetection";
+import { useLocation } from 'react-router-dom';
 
 export function DevControls() {
-  if (!import.meta.env.DEV) return null;
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  const access = searchParams.get('access');
+
+  // Only show controls if access=dev is in URL
+  if (access !== 'dev') return null;
 
   return (
     <div className="fixed top-0 right-0 p-2 bg-black/80 text-white rounded-bl-lg z-50 text-sm">
