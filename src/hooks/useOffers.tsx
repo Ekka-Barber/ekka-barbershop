@@ -33,15 +33,16 @@ export const useOffers = () => {
       
       const filesWithUrls = await Promise.all(data.map(async (file) => {
         console.log('Processing file:', file);
+        const filePath = file.original_path || file.file_path;
         const { data: fileUrl } = supabase.storage
           .from('marketing_files')
-          .getPublicUrl(file.file_path);
+          .getPublicUrl(filePath);
         
         const now = new Date().getTime();
         const endDate = file.end_date ? new Date(file.end_date).getTime() : null;
         const isExpired = endDate ? endDate < now : false;
         const isWithinThreeDays = endDate ? 
-          (now - endDate) < (3 * 24 * 60 * 60 * 1000) : false;
+          (endDate - now) < (3 * 24 * 60 * 60 * 1000) : false;
         
         return { 
           ...file, 

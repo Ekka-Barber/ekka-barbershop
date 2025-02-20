@@ -5,6 +5,7 @@ import PDFViewer from '@/components/PDFViewer';
 import CountdownTimer from '@/components/CountdownTimer';
 import { useLanguage } from "@/contexts/LanguageContext";
 import { trackViewContent } from "@/utils/tiktokTracking";
+import { toast } from "sonner";
 
 interface OfferCardProps {
   file: {
@@ -75,6 +76,7 @@ export const OfferCard = ({ file }: OfferCardProps) => {
                 className="w-full max-w-full h-auto rounded-lg transition-all duration-300"
                 onError={(e) => {
                   console.error('Image failed to load:', file.url);
+                  toast.error(t('error.loading.offer'));
                   e.currentTarget.src = '/placeholder.svg';
                 }}
               />
