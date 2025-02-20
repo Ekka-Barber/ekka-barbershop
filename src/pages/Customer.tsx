@@ -11,6 +11,7 @@ import { BranchDialog } from "@/components/customer/BranchDialog";
 import { LocationDialog } from "@/components/customer/LocationDialog";
 import { trackViewContent, trackButtonClick, trackLocationView } from "@/utils/tiktokTracking";
 import { InstallAppPrompt } from "@/components/installation/InstallAppPrompt";
+import { DevControls } from "@/components/installation/DevControls";
 
 const Customer = () => {
   const navigate = useNavigate();
@@ -51,6 +52,7 @@ const Customer = () => {
   };
 
   return <div dir={language === 'ar' ? 'rtl' : 'ltr'} className="min-h-screen flex flex-col">
+      <DevControls />
       <div className="app-header">
         <div className="language-switcher-container">
           <LanguageSwitcher />

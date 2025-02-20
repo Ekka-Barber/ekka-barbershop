@@ -2,7 +2,33 @@
 type PlatformType = 'ios' | 'android' | 'desktop' | 'unsupported';
 type InstallationStatus = 'not-installed' | 'installed' | 'installing' | 'unsupported';
 
+interface DevOverrides {
+  platform?: PlatformType;
+  installed?: boolean;
+}
+
+// Development overrides - only active in development
+const DEV_MODE = import.meta.env.DEV;
+let devOverrides: DevOverrides = {};
+
+export const setDeviceOverride = (platform: PlatformType | null) => {
+  if (DEV_MODE) {
+    devOverrides.platform = platform || undefined;
+  }
+};
+
+export const setInstalledOverride = (installed: boolean | null) => {
+  if (DEV_MODE) {
+    devOverrides.installed = installed === null ? undefined : installed;
+  }
+};
+
 export const getPlatformType = (): PlatformType => {
+  // If we have a development override, use it
+  if (DEV_MODE && devOverrides.platform) {
+    return devOverrides.platform;
+  }
+
   const userAgent = navigator.userAgent.toLowerCase();
   const standalone = (window.navigator as any).standalone;
   const isIOS = /iphone|ipad|ipod/.test(userAgent);
@@ -15,6 +41,11 @@ export const getPlatformType = (): PlatformType => {
 };
 
 export const getInstallationStatus = (): InstallationStatus => {
+  // If we have a development override, use it
+  if (DEV_MODE && devOverrides.installed !== undefined) {
+    return devOverrides.installed ? 'installed' : 'not-installed';
+  }
+
   const isStandalone = window.matchMedia('(display-mode: standalone)').matches ||
     (window.navigator as any).standalone ||
     document.referrer.includes('android-app://');
@@ -35,4 +66,3 @@ export const canInstallPWA = (): boolean => {
 export const isServiceWorkerSupported = (): boolean => {
   return 'serviceWorker' in navigator && 'PushManager' in window;
 };
-
