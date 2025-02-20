@@ -36,11 +36,11 @@ export const useOffers = () => {
       const filesWithUrls = await Promise.all(data.map(async (file) => {
         console.log('Processing file:', file);
         
-        // For PDFs, always use the original file
+        // For PDFs, use the direct file path
         if (file.file_type.includes('pdf')) {
           const { data: fileUrl } = supabase.storage
             .from('marketing_files')
-            .getPublicUrl(file.original_path);
+            .getPublicUrl(file.file_path);
           
           console.log('Generated PDF URL:', fileUrl.publicUrl);
           return {
@@ -53,14 +53,18 @@ export const useOffers = () => {
           };
         }
         
-        // For images, get both optimized and original URLs
+        // For images, construct optimized and original paths
+        const fileName = file.file_name;
+        const optimizedPath = `optimized/${fileName}`;
+        const originalPath = `original/${fileName}`;
+        
         const { data: optimizedUrl } = supabase.storage
           .from('marketing_files')
-          .getPublicUrl(`optimized/${file.file_name}`);
+          .getPublicUrl(optimizedPath);
         
         const { data: originalUrl } = supabase.storage
           .from('marketing_files')
-          .getPublicUrl(`original/${file.file_name}`);
+          .getPublicUrl(originalPath);
         
         console.log('Generated URLs:', {
           optimized: optimizedUrl.publicUrl,
@@ -82,14 +86,15 @@ export const useOffers = () => {
       }));
       
       // Filter out any null entries and sort
-      return filesWithUrls
-        .filter(Boolean)
-        .sort((a, b) => {
-          if (a.isExpired !== b.isExpired) {
-            return a.isExpired ? 1 : -1;
-          }
-          return (a.display_order || 0) - (b.display_order || 0);
-        });
+      const validFiles = filesWithUrls.filter(Boolean);
+      console.log('Valid files after processing:', validFiles);
+      
+      return validFiles.sort((a, b) => {
+        if (a.isExpired !== b.isExpired) {
+          return a.isExpired ? 1 : -1;
+        }
+        return (a.display_order || 0) - (b.display_order || 0);
+      });
     },
     retry: 1,
     staleTime: 1000 * 60 * 5, // 5 minutes

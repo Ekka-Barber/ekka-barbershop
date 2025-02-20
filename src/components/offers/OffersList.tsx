@@ -18,6 +18,8 @@ export const OffersList = ({ isLoading, offersFiles }: OffersListProps) => {
     return <div className="text-center py-8 text-[#222222]">{t('no.offers')}</div>;
   }
 
+  console.log('Rendering offers list with files:', offersFiles);
+
   return (
     <div className="space-y-8">
       {offersFiles.map((file) => (
