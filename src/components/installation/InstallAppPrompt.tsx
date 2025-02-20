@@ -76,7 +76,7 @@ export function InstallAppPrompt() {
           }
         }}
       >
-        <div className={`w-full flex items-center ${isRTL ? 'flex-row-reverse' : 'flex-row'} justify-center gap-2`}>
+        <div className={`w-full flex items-center ${isRTL ? 'flex-row-reverse' : 'flex-row'} justify-center gap-2 animate-heart-beat`}>
           {platform === 'ios' ? <AppleIcon /> : <AndroidIcon />}
           <span className="drop-shadow-sm">{language === 'ar' ? "حمل تطبيق إكّه الآن" : 'Install App'}</span>
         </div>
