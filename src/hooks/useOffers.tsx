@@ -4,9 +4,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { trackViewContent } from "@/utils/tiktokTracking";
+import { useIsMobile } from '@/hooks/use-mobile';
 
 export const useOffers = () => {
   const { t, language } = useLanguage();
+  const isMobile = useIsMobile();
 
   const { data: offersFiles, isLoading, error } = useQuery({
     queryKey: ['active-offers', language],
@@ -34,33 +36,48 @@ export const useOffers = () => {
       const filesWithUrls = await Promise.all(data.map(async (file) => {
         console.log('Processing file:', file);
         
-        // Simply use the file_name as the path since we've simplified the storage structure
-        const filePath = file.file_name;
-        console.log('Using file path:', filePath);
-        
-        if (!filePath) {
-          console.error('No file path found for file:', file);
-          return null;
+        // For PDFs, always use the original file
+        if (file.file_type.includes('pdf')) {
+          const { data: fileUrl } = supabase.storage
+            .from('marketing_files')
+            .getPublicUrl(file.original_path);
+          
+          console.log('Generated PDF URL:', fileUrl.publicUrl);
+          return {
+            ...file,
+            url: fileUrl.publicUrl,
+            originalUrl: fileUrl.publicUrl,
+            branchName: language === 'ar' ? file.branches?.name_ar : file.branches?.name,
+            isExpired: isOfferExpired(file.end_date),
+            isWithinThreeDays: isWithinThreeDays(file.end_date)
+          };
         }
-
-        const { data: fileUrl } = supabase.storage
+        
+        // For images, get both optimized and original URLs
+        const { data: optimizedUrl } = supabase.storage
           .from('marketing_files')
-          .getPublicUrl(filePath);
+          .getPublicUrl(`optimized/${file.file_name}`);
         
-        console.log('Generated public URL:', fileUrl.publicUrl);
+        const { data: originalUrl } = supabase.storage
+          .from('marketing_files')
+          .getPublicUrl(`original/${file.file_name}`);
         
-        const now = new Date().getTime();
-        const endDate = file.end_date ? new Date(file.end_date).getTime() : null;
-        const isExpired = endDate ? endDate < now : false;
-        const isWithinThreeDays = endDate ? 
-          (endDate - now) < (3 * 24 * 60 * 60 * 1000) : false;
+        console.log('Generated URLs:', {
+          optimized: optimizedUrl.publicUrl,
+          original: originalUrl.publicUrl
+        });
         
-        return { 
-          ...file, 
-          url: fileUrl.publicUrl,
+        // Use optimized version for mobile and regular display
+        const displayUrl = isMobile ? optimizedUrl.publicUrl : originalUrl.publicUrl;
+        
+        return {
+          ...file,
+          url: displayUrl,
+          originalUrl: originalUrl.publicUrl,
+          optimizedUrl: optimizedUrl.publicUrl,
           branchName: language === 'ar' ? file.branches?.name_ar : file.branches?.name,
-          isExpired,
-          isWithinThreeDays
+          isExpired: isOfferExpired(file.end_date),
+          isWithinThreeDays: isWithinThreeDays(file.end_date)
         };
       }));
       
@@ -77,6 +94,19 @@ export const useOffers = () => {
     retry: 1,
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
+
+  // Helper functions
+  const isOfferExpired = (endDate: string | null): boolean => {
+    if (!endDate) return false;
+    return new Date(endDate).getTime() < new Date().getTime();
+  };
+
+  const isWithinThreeDays = (endDate: string | null): boolean => {
+    if (!endDate) return false;
+    const threeDaysMs = 3 * 24 * 60 * 60 * 1000;
+    const timeUntilEnd = new Date(endDate).getTime() - new Date().getTime();
+    return timeUntilEnd > 0 && timeUntilEnd < threeDaysMs;
+  };
 
   return {
     offersFiles,

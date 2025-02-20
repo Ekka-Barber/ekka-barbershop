@@ -6,11 +6,14 @@ import CountdownTimer from '@/components/CountdownTimer';
 import { useLanguage } from "@/contexts/LanguageContext";
 import { trackViewContent } from "@/utils/tiktokTracking";
 import { toast } from "sonner";
+import { useState } from "react";
 
 interface OfferCardProps {
   file: {
     id: string;
     url: string;
+    originalUrl: string;
+    optimizedUrl?: string;
     file_type: string;
     file_name?: string;
     branchName?: string | null;
@@ -22,6 +25,7 @@ interface OfferCardProps {
 
 export const OfferCard = ({ file }: OfferCardProps) => {
   const { t, language } = useLanguage();
+  const [showOriginal, setShowOriginal] = useState(false);
 
   const getBadgeText = (branchName: string | null) => {
     if (!branchName) return '';
@@ -42,6 +46,12 @@ export const OfferCard = ({ file }: OfferCardProps) => {
     toast.error(t('error.loading.offer'));
     // Set a fallback image
     e.currentTarget.src = '/placeholder.svg';
+  };
+
+  const handleImageClick = () => {
+    if (!file.file_type.includes('pdf') && !file.isExpired) {
+      setShowOriginal(true);
+    }
   };
 
   // Track each offer view
@@ -76,14 +86,24 @@ export const OfferCard = ({ file }: OfferCardProps) => {
           {file.file_type.includes('pdf') ? (
             <PDFViewer pdfUrl={file.url} />
           ) : (
-            <div className={`relative ${file.isExpired ? 'filter grayscale blur-[2px]' : ''}`}>
+            <div 
+              className={`relative ${file.isExpired ? 'filter grayscale blur-[2px]' : ''}`}
+              onClick={handleImageClick}
+            >
               <img 
-                src={file.url} 
+                src={showOriginal ? file.originalUrl : file.url} 
                 alt={file.isExpired ? `Expired Offer - ${file.file_name || 'Special Offer'}` : "Special Offer"}
-                className="w-full max-w-full h-auto rounded-lg transition-all duration-300"
+                className="w-full max-w-full h-auto rounded-lg transition-all duration-300 cursor-pointer"
                 onError={handleImageError}
                 loading="lazy"
               />
+              {!file.isExpired && !showOriginal && (
+                <div className="absolute bottom-2 right-2">
+                  <Badge variant="secondary" className="bg-black/50 text-white text-xs">
+                    Click for HD
+                  </Badge>
+                </div>
+              )}
             </div>
           )}
         </div>
