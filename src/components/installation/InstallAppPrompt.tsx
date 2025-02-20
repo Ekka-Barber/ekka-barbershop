@@ -9,6 +9,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 export function InstallAppPrompt() {
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [showPrompt, setShowPrompt] = useState(false);
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [platform] = useState(getPlatformType());
   const [installStatus] = useState(getInstallationStatus());
   const { language } = useLanguage();
@@ -25,6 +26,7 @@ export function InstallAppPrompt() {
     // Check if should show prompt for iOS
     if (platform === 'ios' && installStatus === 'not-installed') {
       setShowPrompt(true);
+      console.log('iOS installation prompt should be shown');
     }
 
     return () => {
@@ -50,10 +52,14 @@ export function InstallAppPrompt() {
   return (
     <div className="mt-4">
       {platform === 'ios' ? (
-        <Sheet>
+        <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
           <SheetTrigger asChild>
             <Button 
               className="w-full h-14 text-lg font-medium bg-white hover:bg-gray-50 text-gray-800 transition-all duration-300 shadow-lg hover:shadow-xl border border-gray-200 touch-target"
+              onClick={() => {
+                console.log('iOS install button clicked');
+                setIsSheetOpen(true);
+              }}
             >
               <div className={`w-full flex items-center ${isRTL ? 'flex-row-reverse' : 'flex-row'} justify-center gap-2`}>
                 <Download className="h-5 w-5" />
@@ -61,7 +67,14 @@ export function InstallAppPrompt() {
               </div>
             </Button>
           </SheetTrigger>
-          <SheetContent side="bottom" className="h-[400px]">
+          <SheetContent 
+            side="bottom" 
+            className="h-[400px] rounded-t-xl"
+            onInteractOutside={(e) => {
+              e.preventDefault();
+              setIsSheetOpen(false);
+            }}
+          >
             <SheetHeader>
               <SheetTitle>{language === 'ar' ? 'تثبيت التطبيق على الشاشة الرئيسية' : 'Add to Home Screen'}</SheetTitle>
               <SheetDescription>
