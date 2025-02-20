@@ -942,11 +942,9 @@ export type Database = {
           created_at: string
           display_order: number | null
           end_date: string | null
-          file_hash: string | null
           file_name: string
           file_path: string
           file_type: string
-          has_optimized_version: boolean | null
           id: string
           is_active: boolean | null
           original_path: string | null
@@ -960,11 +958,9 @@ export type Database = {
           created_at?: string
           display_order?: number | null
           end_date?: string | null
-          file_hash?: string | null
           file_name: string
           file_path: string
           file_type: string
-          has_optimized_version?: boolean | null
           id?: string
           is_active?: boolean | null
           original_path?: string | null
@@ -978,11 +974,9 @@ export type Database = {
           created_at?: string
           display_order?: number | null
           end_date?: string | null
-          file_hash?: string | null
           file_name?: string
           file_path?: string
           file_type?: string
-          has_optimized_version?: boolean | null
           id?: string
           is_active?: boolean | null
           original_path?: string | null
@@ -999,21 +993,60 @@ export type Database = {
           },
         ]
       }
-      marketing_files_paths_backup: {
+      marketing_files_backup: {
         Row: {
+          branch_name: string | null
+          branch_name_ar: string | null
+          category: string | null
+          created_at: string | null
+          display_order: number | null
+          end_date: string | null
+          file_hash: string | null
+          file_name: string | null
           file_path: string | null
+          file_type: string | null
+          has_optimized_version: boolean | null
           id: string | null
+          is_active: boolean | null
           original_path: string | null
+          start_date: string | null
+          updated_at: string | null
         }
         Insert: {
+          branch_name?: string | null
+          branch_name_ar?: string | null
+          category?: string | null
+          created_at?: string | null
+          display_order?: number | null
+          end_date?: string | null
+          file_hash?: string | null
+          file_name?: string | null
           file_path?: string | null
+          file_type?: string | null
+          has_optimized_version?: boolean | null
           id?: string | null
+          is_active?: boolean | null
           original_path?: string | null
+          start_date?: string | null
+          updated_at?: string | null
         }
         Update: {
+          branch_name?: string | null
+          branch_name_ar?: string | null
+          category?: string | null
+          created_at?: string | null
+          display_order?: number | null
+          end_date?: string | null
+          file_hash?: string | null
+          file_name?: string | null
           file_path?: string | null
+          file_type?: string | null
+          has_optimized_version?: boolean | null
           id?: string | null
+          is_active?: boolean | null
           original_path?: string | null
+          start_date?: string | null
+          updated_at?: string | null
         }
         Relationships: []
       }
