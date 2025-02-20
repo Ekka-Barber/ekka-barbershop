@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -47,15 +46,16 @@ export const UpsellModal = ({
 
   const formatPrice = (price: number) => {
     const roundedPrice = Math.round(price);
-    if (language === 'ar') {
-      return (
-        <span className="inline-flex items-center" dir="ltr">
-          {roundedPrice}
-          <RiyalIcon />
-        </span>
-      );
-    }
-    return `${roundedPrice} SAR`;
+    const formattedNumber = language === 'ar' 
+      ? convertToArabic(roundedPrice.toString())
+      : roundedPrice.toString();
+    
+    return (
+      <span className="inline-flex items-center gap-0.5" dir={language === 'ar' ? 'rtl' : 'ltr'}>
+        {formattedNumber}
+        <RiyalIcon />
+      </span>
+    );
   };
 
   const useGridLayout = availableUpsells.length > 3;

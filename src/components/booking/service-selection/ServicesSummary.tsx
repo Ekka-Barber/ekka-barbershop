@@ -1,7 +1,7 @@
-
 import { Timer } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import RiyalIcon from "@/components/icons/RiyalIcon";
+import { convertToArabic } from "@/utils/arabicNumerals";
 
 interface ServicesSummaryProps {
   selectedServices: Array<{
@@ -29,15 +29,16 @@ export const ServicesSummary = ({
 
   const formatPrice = (price: number) => {
     const roundedPrice = Math.floor(price);
-    if (language === 'ar') {
-      return (
-        <span className="inline-flex items-center" dir="ltr">
-          {roundedPrice}
-          <RiyalIcon />
-        </span>
-      );
-    }
-    return `${roundedPrice} SAR`;
+    const formattedNumber = language === 'ar' 
+      ? convertToArabic(roundedPrice.toString())
+      : roundedPrice.toString();
+    
+    return (
+      <span className="inline-flex items-center gap-0.5" dir={language === 'ar' ? 'rtl' : 'ltr'}>
+        {formattedNumber}
+        <RiyalIcon />
+      </span>
+    );
   };
 
   if (selectedServices.length === 0) return null;
@@ -48,14 +49,16 @@ export const ServicesSummary = ({
         <div className="space-y-1">
           <div className="flex items-center gap-2">
             <span className="font-medium">
-              {selectedServices.length} {language === 'ar' ? 'خدمات' : 'services'}
+              {language === 'ar' 
+                ? `${convertToArabic(selectedServices.length.toString())} خدمات`
+                : `${selectedServices.length} services`}
             </span>
             <span className="text-gray-500">•</span>
             <span className="flex items-center gap-1">
               <Timer className="w-4 h-4" />
-              {totalDuration} {language === 'ar' 
-                ? getArabicTimeUnit(totalDuration)
-                : 'min'}
+              {language === 'ar'
+                ? `${convertToArabic(totalDuration.toString())} ${getArabicTimeUnit(totalDuration)}`
+                : `${totalDuration} min`}
             </span>
             <span className="text-gray-500">•</span>
             <span>{formatPrice(totalPrice)}</span>

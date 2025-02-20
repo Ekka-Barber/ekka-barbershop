@@ -2,6 +2,7 @@ import { Timer, Slash, Plus, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import RiyalIcon from "@/components/icons/RiyalIcon";
+import { convertToArabic } from "@/utils/arabicNumerals";
 
 interface Service {
   id: string;
@@ -30,15 +31,16 @@ export const ServiceCard = ({
 }: ServiceCardProps) => {
   const formatPrice = (price: number) => {
     const roundedPrice = Math.floor(price);
-    if (language === 'ar') {
-      return (
-        <span className="inline-flex items-center" dir="ltr">
-          {roundedPrice}
-          <RiyalIcon />
-        </span>
-      );
-    }
-    return `${roundedPrice} SAR`;
+    const formattedNumber = language === 'ar' 
+      ? convertToArabic(roundedPrice.toString())
+      : roundedPrice.toString();
+    
+    return (
+      <span className="inline-flex items-center gap-0.5" dir={language === 'ar' ? 'rtl' : 'ltr'}>
+        {formattedNumber}
+        <RiyalIcon />
+      </span>
+    );
   };
 
   const getArabicTimeUnit = (duration: number) => {
@@ -77,7 +79,7 @@ export const ServiceCard = ({
         {hasDiscount(service) && (
           <Badge variant="destructive" className="text-xs">
             {service.discount_type === 'percentage' 
-              ? `${service.discount_value}%` 
+              ? `${language === 'ar' ? convertToArabic(service.discount_value?.toString() || '0') : service.discount_value}%` 
               : formatPrice(service.discount_value || 0)}
           </Badge>
         )}
@@ -86,9 +88,9 @@ export const ServiceCard = ({
       <div className="flex items-center text-sm text-gray-500">
         <Timer className="w-4 h-4 mr-1" />
         <span>
-          {service.duration} {language === 'ar' 
-            ? getArabicTimeUnit(service.duration)
-            : 'min'}
+          {language === 'ar' 
+            ? `${convertToArabic(service.duration.toString())} ${getArabicTimeUnit(service.duration)}`
+            : `${service.duration} min`}
         </span>
       </div>
 
