@@ -1,6 +1,25 @@
 
 import { supabase } from "@/integrations/supabase/client";
 
+// List of domains to exclude from tracking
+const EXCLUDED_DOMAINS = [
+  'preview--ekka-barbershop.lovable.app',
+  'lovable.dev',
+  'localhost',
+  '127.0.0.1'
+];
+
+// Check if current domain should be excluded from tracking
+const shouldExcludeTracking = (): boolean => {
+  try {
+    const hostname = window.location.hostname;
+    return EXCLUDED_DOMAINS.some(domain => hostname.includes(domain));
+  } catch (error) {
+    console.error('Error checking domain:', error);
+    return true; // Exclude tracking if there's an error
+  }
+};
+
 // Get UTM parameters from URL
 const getUTMParameters = () => {
   const urlParams = new URLSearchParams(window.location.search);
@@ -22,6 +41,12 @@ const getDeviceType = (): 'mobile' | 'tablet' | 'desktop' => {
 
 // Track initial visit
 export const trackCampaignVisit = async () => {
+  // Skip tracking for development/preview domains
+  if (shouldExcludeTracking()) {
+    console.log('Skipping campaign tracking for development/preview domain');
+    return null;
+  }
+
   const utmParams = getUTMParameters();
   
   try {

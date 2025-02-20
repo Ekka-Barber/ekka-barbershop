@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -20,6 +21,23 @@ import { DateRange } from "react-day-picker";
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
 
+// List of domains to exclude from analytics
+const EXCLUDED_DOMAINS = [
+  'preview--ekka-barbershop.lovable.app',
+  'lovable.dev',
+  'localhost',
+  '127.0.0.1'
+];
+
+const isExcludedDomain = (url: string): boolean => {
+  try {
+    const hostname = new URL(url).hostname;
+    return EXCLUDED_DOMAINS.some(domain => hostname.includes(domain));
+  } catch {
+    return false;
+  }
+};
+
 export const AdsMetrics = () => {
   const [dateRange, setDateRange] = useState<DateRange>({
     from: addDays(new Date(), -30),
@@ -40,10 +58,16 @@ export const AdsMetrics = () => {
 
       if (error) throw error;
 
-      const total_visits = data.length;
-      const conversions = data.filter(visit => visit.converted_to_booking).length;
+      // Filter out development/preview domains
+      const filteredData = data.filter(visit => 
+        !isExcludedDomain(visit.page_url) && 
+        (!visit.referrer || !isExcludedDomain(visit.referrer))
+      );
+
+      const total_visits = filteredData.length;
+      const conversions = filteredData.filter(visit => visit.converted_to_booking).length;
       const conversion_rate = (conversions / total_visits) * 100 || 0;
-      const tiktok_visits = data.filter(visit => 
+      const tiktok_visits = filteredData.filter(visit => 
         visit.utm_source?.toLowerCase() === 'tiktok' || 
         visit.referrer?.includes('tiktok.com')
       ).length;
@@ -72,7 +96,13 @@ export const AdsMetrics = () => {
 
       if (error) throw error;
 
-      const dailyData = data.reduce((acc: any, visit) => {
+      // Filter out development/preview domains
+      const filteredData = data.filter(visit => 
+        !isExcludedDomain(visit.page_url) && 
+        (!visit.referrer || !isExcludedDomain(visit.referrer))
+      );
+
+      const dailyData = filteredData.reduce((acc: any, visit) => {
         const date = visit.timestamp.split('T')[0];
         const isTikTok = visit.utm_source?.toLowerCase() === 'tiktok' || 
                         visit.referrer?.includes('tiktok.com');
@@ -107,13 +137,19 @@ export const AdsMetrics = () => {
 
       const { data, error } = await supabase
         .from('campaign_visits')
-        .select('utm_source, referrer')
+        .select('utm_source, referrer, page_url')
         .gte('timestamp', dateRange.from.toISOString())
         .lte('timestamp', dateRange.to.toISOString());
 
       if (error) throw error;
 
-      const distribution = data.reduce((acc: any, visit) => {
+      // Filter out development/preview domains
+      const filteredData = data.filter(visit => 
+        !isExcludedDomain(visit.page_url) && 
+        (!visit.referrer || !isExcludedDomain(visit.referrer))
+      );
+
+      const distribution = filteredData.reduce((acc: any, visit) => {
         let source = 'Direct';
         if (visit.utm_source) {
           source = visit.utm_source;
