@@ -1,3 +1,4 @@
+
 export interface OptimizedFile {
   file: Blob;
   type: string;

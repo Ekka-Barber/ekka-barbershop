@@ -942,11 +942,13 @@ export type Database = {
           created_at: string
           display_order: number | null
           end_date: string | null
+          file_hash: string | null
           file_name: string
           file_path: string
           file_type: string
           id: string
           is_active: boolean | null
+          original_path: string | null
           updated_at: string
         }
         Insert: {
@@ -956,11 +958,13 @@ export type Database = {
           created_at?: string
           display_order?: number | null
           end_date?: string | null
+          file_hash?: string | null
           file_name: string
           file_path: string
           file_type: string
           id?: string
           is_active?: boolean | null
+          original_path?: string | null
           updated_at?: string
         }
         Update: {
@@ -970,11 +974,13 @@ export type Database = {
           created_at?: string
           display_order?: number | null
           end_date?: string | null
+          file_hash?: string | null
           file_name?: string
           file_path?: string
           file_type?: string
           id?: string
           is_active?: boolean | null
+          original_path?: string | null
           updated_at?: string
         }
         Relationships: [
