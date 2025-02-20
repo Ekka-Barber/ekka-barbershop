@@ -7,10 +7,17 @@ import { useNavigate, Link } from 'react-router-dom';
 import { Card } from "@/components/ui/card";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { useEffect } from 'react';
+import { trackViewContent, trackButtonClick } from "@/utils/tiktokTracking";
 
 const Menu = () => {
   const navigate = useNavigate();
   const { t, language } = useLanguage();
+  
+  useEffect(() => {
+    // Track page view after component mounts
+    trackViewContent('Menu');
+  }, []);
   
   const { data: menuFile, isLoading } = useQuery({
     queryKey: ['active-menu'],
@@ -32,6 +39,12 @@ const Menu = () => {
         return { ...data, url: fileUrl.publicUrl };
       }
       return null;
+    },
+    onSuccess: (data) => {
+      if (data) {
+        // Track menu view after successful load
+        trackViewContent('Menu File');
+      }
     }
   });
 
@@ -56,7 +69,10 @@ const Menu = () => {
             <h1 className="text-3xl font-bold text-[#222222] mb-2">{t('our.menu')}</h1>
             <div className="h-1 w-24 bg-[#C4A36F] mx-auto mb-6"></div>
             <Button 
-              onClick={() => navigate('/customer')}
+              onClick={() => {
+                trackButtonClick('Back Home');
+                navigate('/customer');
+              }}
               className="bg-[#4A4A4A] hover:bg-[#3A3A3A] text-white transition-all duration-300 touch-target"
             >
               {t('back.home')}

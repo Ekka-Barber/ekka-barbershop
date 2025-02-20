@@ -1,3 +1,4 @@
+
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from "@/integrations/supabase/client";
 import PDFViewer from '@/components/PDFViewer';
@@ -9,10 +10,17 @@ import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import CountdownTimer from '@/components/CountdownTimer';
+import { useEffect } from 'react';
+import { trackViewContent, trackButtonClick } from "@/utils/tiktokTracking";
 
 const Offers = () => {
   const navigate = useNavigate();
   const { t, language } = useLanguage();
+  
+  useEffect(() => {
+    // Track page view after component mounts
+    trackViewContent('Offers');
+  }, []);
   
   const { data: offersFiles, isLoading, error } = useQuery({
     queryKey: ['active-offers', language],
@@ -49,6 +57,11 @@ const Offers = () => {
         const isWithinThreeDays = endDate ? 
           (now - endDate) < (3 * 24 * 60 * 60 * 1000) : false;
         
+        // Track each offer view
+        if (!isExpired) {
+          trackViewContent('Offer');
+        }
+        
         return { 
           ...file, 
           url: fileUrl.publicUrl,
@@ -58,13 +71,10 @@ const Offers = () => {
         };
       }));
       
-      // Sort offers: active non-expired first, then recently expired (within 3 days)
       return filesWithUrls.sort((a, b) => {
-        // If one is expired and the other isn't, non-expired comes first
         if (a.isExpired !== b.isExpired) {
           return a.isExpired ? 1 : -1;
         }
-        // Both are either expired or not, sort by display_order
         return (a.display_order || 0) - (b.display_order || 0);
       });
     },
@@ -119,7 +129,10 @@ const Offers = () => {
               <h1 className="text-3xl font-bold text-[#222222] mb-2">{t('special.offers.title')}</h1>
               <div className="h-1 w-24 bg-[#C4A36F] mx-auto mb-6"></div>
               <Button 
-                onClick={() => navigate('/customer')}
+                onClick={() => {
+                  trackButtonClick('Back Home');
+                  navigate('/customer');
+                }}
                 className="bg-[#4A4A4A] hover:bg-[#3A3A3A] text-white transition-all duration-300"
               >
                 {t('back.home')}
