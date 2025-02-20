@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { Download, ShareAndroid, ChevronDown } from "lucide-react";
+import { Download, Share2 } from "lucide-react";
 import { getPlatformType, getInstallationStatus, canInstallPWA } from "@/services/platformDetection";
 import { useLanguage } from "@/contexts/LanguageContext";
 
@@ -71,7 +71,7 @@ export function InstallAppPrompt() {
             <div className="space-y-6 mt-6">
               <div className="flex items-center gap-4">
                 <div className="h-8 w-8 rounded-full bg-gray-100 flex items-center justify-center">1</div>
-                <p>{language === 'ar' ? 'انقر على زر المشاركة' : 'Tap the share button'} <ShareAndroid className="inline h-5 w-5" /></p>
+                <p>{language === 'ar' ? 'انقر على زر المشاركة' : 'Tap the share button'} <Share2 className="inline h-5 w-5" /></p>
               </div>
               <div className="flex items-center gap-4">
                 <div className="h-8 w-8 rounded-full bg-gray-100 flex items-center justify-center">2</div>
