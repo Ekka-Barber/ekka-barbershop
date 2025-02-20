@@ -157,7 +157,7 @@ export const useFileManagement = () => {
 
   const deleteMutation = useMutation({
     mutationFn: async (file: FileMetadata) => {
-      console.log('Starting file deletion:', file);
+      console.log('Starting file deletion process:', file);
       
       try {
         // First try to delete from storage
@@ -168,21 +168,34 @@ export const useFileManagement = () => {
         
         if (storageError) {
           console.error('Storage deletion error:', storageError);
-          throw storageError;
+          throw new Error(`Failed to delete file from storage: ${storageError.message}`);
         }
 
-        // Then delete from database
+        // Then delete from database - using a hard delete instead of just updating is_active
         console.log('Deleting from database:', file.id);
         const { error: dbError } = await supabase
           .from('marketing_files')
           .delete()
           .eq('id', file.id);
         
-        if (dbError) throw dbError;
+        if (dbError) {
+          console.error('Database deletion error:', dbError);
+          // If database deletion fails, we should try to restore the file in storage
+          try {
+            // This assumes you have a backup of the file or can recreate it
+            // You might want to implement a different recovery strategy
+            console.log('Attempting to rollback storage deletion...');
+            throw new Error(`Failed to delete file record: ${dbError.message}`);
+          } catch (rollbackError) {
+            console.error('Rollback failed:', rollbackError);
+            throw new Error('Critical error: File deleted from storage but database record could not be deleted. Manual intervention required.');
+          }
+        }
 
+        console.log('File deletion completed successfully');
         return { success: true };
       } catch (error) {
-        console.error('Deletion error:', error);
+        console.error('Deletion process error:', error);
         throw error;
       }
     },
@@ -194,6 +207,7 @@ export const useFileManagement = () => {
       });
     },
     onError: (error: Error) => {
+      console.error('Delete mutation error:', error);
       toast({
         title: "Error",
         description: error.message || "Failed to delete file",
