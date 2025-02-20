@@ -35,7 +35,7 @@ export const FileManagement = () => {
 
   const { handleDragEnd } = useDragAndDrop(files || []);
 
-  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>, category: string) => {
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>, category: 'menu' | 'offers') => {
     const file = event.target.files?.[0];
     if (!file) return;
     uploadMutation.mutate({ file, category });
