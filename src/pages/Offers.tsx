@@ -10,7 +10,7 @@ import { trackViewContent } from "@/utils/tiktokTracking";
 
 const Offers = () => {
   const navigate = useNavigate();
-  const { language } = useLanguage();
+  const { language, t } = useLanguage();
   const { offersFiles, isLoading, error } = useOffers();
   
   useEffect(() => {
