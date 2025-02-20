@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -6,6 +7,7 @@ import { Slash } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { SelectedService } from '@/types/service';
 import RiyalIcon from "@/components/icons/RiyalIcon";
+import { convertToArabic } from "@/utils/arabicNumerals";
 
 interface UpsellService {
   id: string;
