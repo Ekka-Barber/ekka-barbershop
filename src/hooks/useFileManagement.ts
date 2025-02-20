@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from "@/integrations/supabase/client";
@@ -88,7 +89,7 @@ export const useFileManagement = () => {
         const fileName = `${crypto.randomUUID()}.${fileExt}`;
         
         console.log('Uploading to storage:', fileName);
-        const { error: uploadError } = await supabase.storage
+        const { error: uploadError, data } = await supabase.storage
           .from('marketing_files')
           .upload(fileName, file);
         
@@ -161,8 +162,7 @@ export const useFileManagement = () => {
         
         if (storageError) {
           console.error('Storage deletion error:', storageError);
-          // Continue with DB deletion even if storage deletion fails
-          // The file might not exist in storage
+          throw storageError;
         }
 
         // Then delete from database
