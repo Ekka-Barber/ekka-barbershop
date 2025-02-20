@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -9,6 +10,7 @@ import { MapPin } from "lucide-react";
 import { BranchDialog } from "@/components/customer/BranchDialog";
 import { LocationDialog } from "@/components/customer/LocationDialog";
 import { trackViewContent, trackButtonClick, trackLocationView } from "@/utils/tiktokTracking";
+import { InstallAppPrompt } from "@/components/installation/InstallAppPrompt";
 
 const Customer = () => {
   const navigate = useNavigate();
@@ -125,6 +127,8 @@ const Customer = () => {
                 <img src="/lovable-uploads/ba9a65f1-bf31-4b9c-ab41-7c7228a2f1b7.png" alt="Rescale Logo" className="h-7 w-auto flex-shrink-0" />
               </div>
             </Button>
+
+            <InstallAppPrompt />
           </div>
         </div>
       </div>
