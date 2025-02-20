@@ -8,8 +8,8 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 // Configure PDF.js worker
-const pdfjsVersion = '3.11.174';
-pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjsVersion}/build/pdf.worker.min.js`;
+// Using explicit https protocol and backup CDN
+pdfjs.GlobalWorkerOptions.workerSrc = `https://cdn.jsdelivr.net/npm/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.js`;
 
 interface PDFViewerProps {
   pdfUrl: string;
@@ -19,6 +19,8 @@ const PDFViewer = ({ pdfUrl }: PDFViewerProps) => {
   const [numPages, setNumPages] = useState<number | null>(null);
   const [pageNumber, setPageNumber] = useState(1);
   const [pageWidth, setPageWidth] = useState(800);
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const isMobile = useIsMobile();
   const { language } = useLanguage();
 
@@ -33,21 +35,49 @@ const PDFViewer = ({ pdfUrl }: PDFViewerProps) => {
     return () => window.removeEventListener('resize', updatePageWidth);
   }, []);
 
+  useEffect(() => {
+    // Reset states when PDF URL changes
+    setIsLoading(true);
+    setLoadError(null);
+    setPageNumber(1);
+    setNumPages(null);
+  }, [pdfUrl]);
+
   function onDocumentLoadSuccess({ numPages }: { numPages: number }) {
     setNumPages(numPages);
+    setIsLoading(false);
+    setLoadError(null);
+  }
+
+  function onDocumentLoadError(error: Error) {
+    console.error('PDF load error:', error);
+    setLoadError(error.message);
+    setIsLoading(false);
   }
 
   // Only show navigation if there's more than one page
   const showNavigation = numPages !== null && numPages > 1;
+
+  if (loadError) {
+    return (
+      <div className="text-center py-4 text-red-500">
+        Failed to load PDF. Please try again later.
+      </div>
+    );
+  }
 
   return (
     <div className="pdf-viewer w-full mx-auto">
       <Document
         file={pdfUrl}
         onLoadSuccess={onDocumentLoadSuccess}
+        onLoadError={onDocumentLoadError}
         className="flex flex-col items-center"
-        loading={<div className="text-center py-4">Loading PDF...</div>}
-        error={<div className="text-center py-4 text-red-500">Failed to load PDF</div>}
+        loading={
+          <div className="text-center py-4">
+            <div className="animate-pulse">Loading PDF...</div>
+          </div>
+        }
       >
         <Page 
           pageNumber={pageNumber} 
@@ -55,7 +85,11 @@ const PDFViewer = ({ pdfUrl }: PDFViewerProps) => {
           renderTextLayer={false}
           renderAnnotationLayer={false}
           className="max-w-full shadow-lg rounded-lg"
-          loading={<div className="text-center py-4">Loading page...</div>}
+          loading={
+            <div className="text-center py-4">
+              <div className="animate-pulse">Loading page...</div>
+            </div>
+          }
         />
       </Document>
       {showNavigation && (
