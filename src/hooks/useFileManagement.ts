@@ -120,7 +120,13 @@ export const useFileManagement = () => {
             end_date: endDate
           });
 
-        if (dbError) throw dbError;
+        if (dbError) {
+          // If database insert fails, clean up the uploaded file
+          await supabase.storage
+            .from('marketing_files')
+            .remove([fileName]);
+          throw dbError;
+        }
       } catch (error) {
         console.error('Upload error:', error);
         throw error;
