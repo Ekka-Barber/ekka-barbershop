@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { Share2 } from "lucide-react";
+import { Share } from "lucide-react";
 import { getPlatformType, getInstallationStatus } from "@/services/platformDetection";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { AndroidIcon } from "@/components/icons/AndroidIcon";
