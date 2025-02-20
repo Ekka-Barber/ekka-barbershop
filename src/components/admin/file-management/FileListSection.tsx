@@ -5,10 +5,14 @@ import { FileListItem } from "./FileListItem";
 interface FileListSectionProps {
   category: string;
   files: any[];
-  selectedDate: Date | undefined;
-  setSelectedDate: (date: Date | undefined) => void;
-  selectedTime: string;
-  setSelectedTime: (time: string) => void;
+  selectedStartDate: Date | undefined;
+  setSelectedStartDate: (date: Date | undefined) => void;
+  selectedStartTime: string;
+  setSelectedStartTime: (time: string) => void;
+  selectedEndDate: Date | undefined;
+  setSelectedEndDate: (date: Date | undefined) => void;
+  selectedEndTime: string;
+  setSelectedEndTime: (time: string) => void;
   handleEndDateUpdate: (file: any) => void;
   handleRemoveEndDate: (fileId: string) => void;
   toggleActiveMutation: any;
@@ -19,10 +23,14 @@ interface FileListSectionProps {
 export const FileListSection = ({
   category,
   files,
-  selectedDate,
-  setSelectedDate,
-  selectedTime,
-  setSelectedTime,
+  selectedStartDate,
+  setSelectedStartDate,
+  selectedStartTime,
+  setSelectedStartTime,
+  selectedEndDate,
+  setSelectedEndDate,
+  selectedEndTime,
+  setSelectedEndTime,
   handleEndDateUpdate,
   handleRemoveEndDate,
   toggleActiveMutation,
@@ -47,10 +55,15 @@ export const FileListSection = ({
                 <FileListItem
                   key={file.id}
                   file={file}
-                  selectedDate={selectedDate}
-                  setSelectedDate={setSelectedDate}
-                  selectedTime={selectedTime}
-                  setSelectedTime={setSelectedTime}
+                  index={index}
+                  selectedStartDate={selectedStartDate}
+                  setSelectedStartDate={setSelectedStartDate}
+                  selectedStartTime={selectedStartTime}
+                  setSelectedStartTime={setSelectedStartTime}
+                  selectedEndDate={selectedEndDate}
+                  setSelectedEndDate={setSelectedEndDate}
+                  selectedEndTime={selectedEndTime}
+                  setSelectedEndTime={setSelectedEndTime}
                   handleEndDateUpdate={handleEndDateUpdate}
                   handleRemoveEndDate={handleRemoveEndDate}
                   toggleActiveMutation={toggleActiveMutation}
