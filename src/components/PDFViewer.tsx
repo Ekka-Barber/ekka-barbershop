@@ -7,7 +7,9 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
-pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
+// Configure PDF.js worker
+const pdfjsVersion = '3.11.174';
+pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjsVersion}/build/pdf.worker.min.js`;
 
 interface PDFViewerProps {
   pdfUrl: string;
@@ -44,6 +46,8 @@ const PDFViewer = ({ pdfUrl }: PDFViewerProps) => {
         file={pdfUrl}
         onLoadSuccess={onDocumentLoadSuccess}
         className="flex flex-col items-center"
+        loading={<div className="text-center py-4">Loading PDF...</div>}
+        error={<div className="text-center py-4 text-red-500">Failed to load PDF</div>}
       >
         <Page 
           pageNumber={pageNumber} 
@@ -51,6 +55,7 @@ const PDFViewer = ({ pdfUrl }: PDFViewerProps) => {
           renderTextLayer={false}
           renderAnnotationLayer={false}
           className="max-w-full shadow-lg rounded-lg"
+          loading={<div className="text-center py-4">Loading page...</div>}
         />
       </Document>
       {showNavigation && (
@@ -86,4 +91,3 @@ const PDFViewer = ({ pdfUrl }: PDFViewerProps) => {
 };
 
 export default PDFViewer;
-
