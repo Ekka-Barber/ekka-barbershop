@@ -9,6 +9,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { Clock } from "lucide-react";
 import { format } from "date-fns";
+import { FilePreview } from '@/types/admin';
 
 interface FileUploadSectionProps {
   branches: any[];
@@ -22,6 +23,7 @@ interface FileUploadSectionProps {
   setSelectedTime: (time: string) => void;
   handleFileUpload: (e: React.ChangeEvent<HTMLInputElement>, category: string) => void;
   uploading: boolean;
+  filePreview: FilePreview | null;
 }
 
 export const FileUploadSection = ({
@@ -35,12 +37,24 @@ export const FileUploadSection = ({
   selectedTime,
   setSelectedTime,
   handleFileUpload,
-  uploading
+  uploading,
+  filePreview
 }: FileUploadSectionProps) => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
       <div className="space-y-4">
         <h2 className="text-lg font-semibold">Upload Menu</h2>
+        {filePreview && filePreview.type === 'menu' && (
+          <div className="mb-4">
+            {filePreview.type === 'image' ? (
+              <img src={filePreview.url} alt="Preview" className="max-h-40 rounded-lg" />
+            ) : (
+              <div className="p-4 bg-gray-100 rounded-lg">
+                <p className="text-sm text-gray-600">PDF file selected</p>
+              </div>
+            )}
+          </div>
+        )}
         <input
           type="file"
           accept=".pdf,.png,.jpg,.jpeg"
@@ -53,6 +67,17 @@ export const FileUploadSection = ({
       <div className="space-y-4">
         <h2 className="text-lg font-semibold">Upload Offers</h2>
         <div className="space-y-4">
+          {filePreview && filePreview.type === 'offers' && (
+            <div className="mb-4">
+              {filePreview.type === 'image' ? (
+                <img src={filePreview.url} alt="Preview" className="max-h-40 rounded-lg" />
+              ) : (
+                <div className="p-4 bg-gray-100 rounded-lg">
+                  <p className="text-sm text-gray-600">PDF file selected</p>
+                </div>
+              )}
+            </div>
+          )}
           <div className="flex items-center space-x-2">
             <Checkbox 
               id="allBranches" 
