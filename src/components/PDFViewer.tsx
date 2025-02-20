@@ -6,13 +6,10 @@ import 'react-pdf/dist/esm/Page/TextLayer.css';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import PDFWorker from 'pdfjs-dist/build/pdf.worker.min.js?url';
 
-// Configure PDF.js worker with primary and fallback CDNs using https
-const PRIMARY_CDN = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
-const FALLBACK_CDN = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.js`;
-
-// Start with primary CDN
-pdfjs.GlobalWorkerOptions.workerSrc = PRIMARY_CDN;
+// Configure PDF.js to use the bundled worker
+pdfjs.GlobalWorkerOptions.workerSrc = PDFWorker;
 
 interface PDFViewerProps {
   pdfUrl: string;
@@ -24,9 +21,6 @@ const PDFViewer = ({ pdfUrl }: PDFViewerProps) => {
   const [pageWidth, setPageWidth] = useState(800);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
-  const [retryCount, setRetryCount] = useState(0);
-  const [usingFallbackCDN, setUsingFallbackCDN] = useState(false);
-  const isMobile = useIsMobile();
   const { language } = useLanguage();
 
   useEffect(() => {
@@ -46,8 +40,6 @@ const PDFViewer = ({ pdfUrl }: PDFViewerProps) => {
     setLoadError(null);
     setPageNumber(1);
     setNumPages(null);
-    setRetryCount(0);
-    setUsingFallbackCDN(false);
     
     // Validate URL
     if (!pdfUrl.startsWith('http')) {
@@ -57,50 +49,20 @@ const PDFViewer = ({ pdfUrl }: PDFViewerProps) => {
     }
   }, [pdfUrl]);
 
-  useEffect(() => {
-    if (loadError && retryCount < 3) {
-      const timer = setTimeout(() => {
-        console.log(`Retrying PDF load attempt ${retryCount + 1}`, { 
-          pdfUrl,
-          usingFallbackCDN,
-          currentWorkerSrc: pdfjs.GlobalWorkerOptions.workerSrc
-        });
-
-        // If primary CDN failed, try fallback CDN
-        if (!usingFallbackCDN) {
-          console.log('Switching to fallback CDN');
-          pdfjs.GlobalWorkerOptions.workerSrc = FALLBACK_CDN;
-          setUsingFallbackCDN(true);
-        }
-
-        setRetryCount(prev => prev + 1);
-        setLoadError(null);
-        setIsLoading(true);
-      }, 2000);
-      return () => clearTimeout(timer);
-    }
-  }, [loadError, retryCount, pdfUrl, usingFallbackCDN]);
-
   function onDocumentLoadSuccess({ numPages }: { numPages: number }) {
-    console.log('PDF loaded successfully', { 
-      pdfUrl, 
-      numPages,
-      usingFallbackCDN,
-      workerSrc: pdfjs.GlobalWorkerOptions.workerSrc
-    });
+    console.log('PDF loaded successfully', { pdfUrl, numPages });
     setNumPages(numPages);
     setIsLoading(false);
     setLoadError(null);
-    setRetryCount(0);
   }
 
   function onDocumentLoadError(error: Error) {
-    console.error('PDF load error:', error, 'URL:', pdfUrl, 'Using fallback CDN:', usingFallbackCDN);
+    console.error('PDF load error:', error, 'URL:', pdfUrl);
     setLoadError(error.message);
     setIsLoading(false);
   }
 
-  if (loadError && retryCount >= 3) {
+  if (loadError) {
     return (
       <div className="text-center py-4">
         <p className="text-red-500 mb-2">Failed to load PDF. Please try again later.</p>
@@ -126,9 +88,7 @@ const PDFViewer = ({ pdfUrl }: PDFViewerProps) => {
         className="flex flex-col items-center"
         loading={
           <div className="text-center py-4">
-            <div className="animate-pulse">
-              Loading PDF{retryCount > 0 ? ` (Attempt ${retryCount + 1}/3)` : ''}...
-            </div>
+            <div className="animate-pulse">Loading PDF...</div>
           </div>
         }
       >
