@@ -22,14 +22,14 @@ export function InstallAppPrompt() {
     const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault();
       setDeferredPrompt(e);
-      setShowPrompt(true);
     };
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
 
-    if (platform === 'ios' && installStatus === 'not-installed') {
+    // Show prompt for both iOS and Android when not installed
+    if ((platform === 'ios' || platform === 'android') && installStatus === 'not-installed') {
       setShowPrompt(true);
-      console.log('iOS installation prompt should be shown');
+      console.log(`${platform} installation prompt should be shown`);
     }
 
     return () => {
@@ -39,13 +39,18 @@ export function InstallAppPrompt() {
 
   const handleInstallClick = async () => {
     trackButtonClick('Install App');
-    if (platform === 'android' && deferredPrompt) {
-      deferredPrompt.prompt();
-      const { outcome } = await deferredPrompt.userChoice;
-      if (outcome === 'accepted') {
-        setShowPrompt(false);
+    if (platform === 'android') {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        if (outcome === 'accepted') {
+          setShowPrompt(false);
+        }
+        setDeferredPrompt(null);
+      } else {
+        // If no install prompt is available, show instructions
+        setIsSheetOpen(true);
       }
-      setDeferredPrompt(null);
     }
   };
 
@@ -65,7 +70,6 @@ export function InstallAppPrompt() {
                    ring-2 ring-[#9b87f5]/20 hover:ring-[#8B5CF6]/30"
         onClick={() => {
           if (platform === 'ios') {
-            console.log('iOS install button clicked');
             setIsSheetOpen(true);
           } else {
             handleInstallClick();
