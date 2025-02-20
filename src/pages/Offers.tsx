@@ -47,7 +47,7 @@ const Offers = () => {
       
       const filesWithUrls = await Promise.all(data.map(async (file) => {
         console.log('Processing file:', file);
-        const { data: fileUrl } = supabase.storage
+        const { data: publicUrlData } = supabase.storage
           .from('marketing_files')
           .getPublicUrl(file.file_path);
         
@@ -64,7 +64,7 @@ const Offers = () => {
         
         return { 
           ...file, 
-          url: fileUrl.publicUrl,
+          url: publicUrlData.publicUrl,
           branchName: language === 'ar' ? file.branch_name_ar : file.branch_name,
           isExpired,
           isWithinThreeDays

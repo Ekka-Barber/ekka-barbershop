@@ -26,16 +26,20 @@ const Menu = () => {
       .select('*')
       .eq('category', 'menu')
       .eq('is_active', true)
+      .order('display_order')
       .maybeSingle();
     
     if (error) throw error;
     
     if (data) {
-      const { data: fileUrl } = supabase.storage
+      // Get the public URL for the file
+      const { data: publicUrlData } = supabase.storage
         .from('marketing_files')
         .getPublicUrl(data.file_path);
       
-      const menuData = { ...data, url: fileUrl.publicUrl };
+      console.log('Menu file data:', { ...data, url: publicUrlData.publicUrl });
+      
+      const menuData = { ...data, url: publicUrlData.publicUrl };
       // Track menu view after successful load
       trackViewContent('Menu File');
       return menuData;
@@ -91,6 +95,10 @@ const Menu = () => {
                     src={menuFile.url} 
                     alt="Menu"
                     className="w-full max-w-full h-auto rounded-lg"
+                    onError={(e) => {
+                      console.error('Failed to load menu image:', menuFile.url);
+                      e.currentTarget.src = '/placeholder.svg';
+                    }}
                   />
                 )
               ) : (
