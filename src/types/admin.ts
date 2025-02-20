@@ -43,5 +43,6 @@ export interface FileOperationState {
 
 export interface FilePreview {
   url: string;
-  type: string;
+  type: 'menu' | 'offers';
+  fileType: 'image' | 'pdf';
 }

@@ -46,7 +46,7 @@ export const FileUploadSection = ({
         <h2 className="text-lg font-semibold">Upload Menu</h2>
         {filePreview && filePreview.type === 'menu' && (
           <div className="mb-4">
-            {filePreview.type === 'image' ? (
+            {filePreview.fileType === 'image' ? (
               <img src={filePreview.url} alt="Preview" className="max-h-40 rounded-lg" />
             ) : (
               <div className="p-4 bg-gray-100 rounded-lg">
@@ -69,7 +69,7 @@ export const FileUploadSection = ({
         <div className="space-y-4">
           {filePreview && filePreview.type === 'offers' && (
             <div className="mb-4">
-              {filePreview.type === 'image' ? (
+              {filePreview.fileType === 'image' ? (
                 <img src={filePreview.url} alt="Preview" className="max-h-40 rounded-lg" />
               ) : (
                 <div className="p-4 bg-gray-100 rounded-lg">
