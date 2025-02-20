@@ -3,11 +3,11 @@ const RiyalIcon = () => (
   <svg 
     version="1.0"
     xmlns="http://www.w3.org/2000/svg"
-    width="12.000000pt" 
-    height="12.000000pt" 
+    width="8.000000pt" 
+    height="8.000000pt" 
     viewBox="0 0 916.000000 1024.000000"
     preserveAspectRatio="xMidYMid meet"
-    className="inline-block align-middle mx-0.5 -mt-0.5" 
+    className="inline-block align-middle mx-0.5" 
     aria-label="ريال"
   >
     <g transform="translate(0.000000,1024.000000) scale(0.100000,-0.100000)"

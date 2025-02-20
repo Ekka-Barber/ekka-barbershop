@@ -49,8 +49,8 @@ export const UpsellModal = ({
     const roundedPrice = Math.round(price);
     if (language === 'ar') {
       return (
-        <span className="inline-flex items-center gap-0.5">
-          <span>{roundedPrice}</span>
+        <span className="inline-flex items-center" dir="ltr">
+          {roundedPrice}
           <RiyalIcon />
         </span>
       );

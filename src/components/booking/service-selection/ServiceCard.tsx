@@ -1,4 +1,3 @@
-
 import { Timer, Slash, Plus, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -33,8 +32,8 @@ export const ServiceCard = ({
     const roundedPrice = Math.floor(price);
     if (language === 'ar') {
       return (
-        <span className="inline-flex items-center gap-1 rtl:flex-row-reverse">
-          <span>{roundedPrice}</span>
+        <span className="inline-flex items-center" dir="ltr">
+          {roundedPrice}
           <RiyalIcon />
         </span>
       );
