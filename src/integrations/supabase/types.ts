@@ -996,6 +996,24 @@ export type Database = {
           },
         ]
       }
+      marketing_files_paths_backup: {
+        Row: {
+          file_path: string | null
+          id: string | null
+          original_path: string | null
+        }
+        Insert: {
+          file_path?: string | null
+          id?: string | null
+          original_path?: string | null
+        }
+        Update: {
+          file_path?: string | null
+          id?: string | null
+          original_path?: string | null
+        }
+        Relationships: []
+      }
       payment_method_fees: {
         Row: {
           created_at: string
