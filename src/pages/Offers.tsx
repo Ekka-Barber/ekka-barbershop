@@ -22,7 +22,7 @@ const Offers = () => {
     trackViewContent('Offers');
   }, []);
   
-  const { data: offersFiles, isLoading, error } = useQuery({
+  const { data: offersFiles, isLoading, error: fetchError } = useQuery({
     queryKey: ['active-offers', language],
     queryFn: async () => {
       console.log('Fetching offers...');
@@ -51,13 +51,18 @@ const Offers = () => {
           .from('marketing_files')
           .getPublicUrl(file.file_path);
         
+        // Verify URL is valid
+        if (!publicUrlData?.publicUrl) {
+          console.error('Failed to get public URL for file:', file.file_path);
+          return null;
+        }
+
         const now = new Date().getTime();
         const endDate = file.end_date ? new Date(file.end_date).getTime() : null;
         const isExpired = endDate ? endDate < now : false;
         const isWithinThreeDays = endDate ? 
           (now - endDate) < (3 * 24 * 60 * 60 * 1000) : false;
         
-        // Track each offer view
         if (!isExpired) {
           trackViewContent('Offer');
         }
@@ -71,7 +76,8 @@ const Offers = () => {
         };
       }));
       
-      return filesWithUrls.sort((a, b) => {
+      // Filter out null values from failed URL generations
+      return filesWithUrls.filter(Boolean).sort((a, b) => {
         if (a.isExpired !== b.isExpired) {
           return a.isExpired ? 1 : -1;
         }
@@ -82,8 +88,8 @@ const Offers = () => {
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
 
-  if (error) {
-    console.error('Query error:', error);
+  if (fetchError) {
+    console.error('Query error:', fetchError);
   }
 
   const getBadgeText = (branchName: string | null) => {

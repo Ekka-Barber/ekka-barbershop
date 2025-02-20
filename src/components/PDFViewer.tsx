@@ -47,6 +47,14 @@ const PDFViewer = ({ pdfUrl }: PDFViewerProps) => {
     setPageNumber(1);
     setNumPages(null);
     setRetryCount(0);
+    setUsingFallbackCDN(false);
+    
+    // Validate URL
+    if (!pdfUrl.startsWith('http')) {
+      setLoadError('Invalid PDF URL');
+      setIsLoading(false);
+      return;
+    }
   }, [pdfUrl]);
 
   useEffect(() => {
@@ -92,15 +100,11 @@ const PDFViewer = ({ pdfUrl }: PDFViewerProps) => {
     setIsLoading(false);
   }
 
-  // Only show navigation if there's more than one page
-  const showNavigation = numPages !== null && numPages > 1;
-
   if (loadError && retryCount >= 3) {
     return (
       <div className="text-center py-4">
         <p className="text-red-500 mb-2">Failed to load PDF. Please try again later.</p>
         <p className="text-sm text-gray-500">Error: {loadError}</p>
-        {/* Fallback to direct link */}
         <a 
           href={pdfUrl} 
           target="_blank" 
@@ -128,7 +132,7 @@ const PDFViewer = ({ pdfUrl }: PDFViewerProps) => {
           </div>
         }
       >
-        {isLoading ? null : (
+        {!isLoading && (
           <Page 
             pageNumber={pageNumber} 
             width={pageWidth}
@@ -143,7 +147,8 @@ const PDFViewer = ({ pdfUrl }: PDFViewerProps) => {
           />
         )}
       </Document>
-      {showNavigation && (
+      
+      {numPages && numPages > 1 && (
         <div className="flex items-center justify-between px-4 mt-6 max-w-[400px] mx-auto">
           <button
             onClick={() => setPageNumber(page => Math.max(1, page - 1))}
@@ -155,15 +160,12 @@ const PDFViewer = ({ pdfUrl }: PDFViewerProps) => {
           </button>
           
           <p className="text-center text-[#222222] font-medium min-w-[100px]">
-            {language === 'ar' 
-              ? `${pageNumber} / ${numPages}`
-              : `${pageNumber} / ${numPages}`
-            }
+            {`${pageNumber} / ${numPages}`}
           </p>
           
           <button
-            onClick={() => setPageNumber(page => Math.min(numPages || page, page + 1))}
-            disabled={pageNumber >= (numPages || 1)}
+            onClick={() => setPageNumber(page => Math.min(numPages, page + 1))}
+            disabled={pageNumber >= numPages}
             className="p-3 rounded-full bg-[#C4A36F] hover:bg-[#B39260] text-white transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg transform hover:-translate-y-0.5 flex items-center justify-center"
             aria-label="Next page"
           >
