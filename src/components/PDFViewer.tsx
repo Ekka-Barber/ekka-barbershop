@@ -7,8 +7,8 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
-// Configure PDF.js worker with a more reliable CDN
-pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
+// Configure PDF.js worker to use a specific version that matches our react-pdf version
+pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.js`;
 
 interface PDFViewerProps {
   pdfUrl: string;
@@ -47,17 +47,17 @@ const PDFViewer = ({ pdfUrl }: PDFViewerProps) => {
   useEffect(() => {
     if (loadError && retryCount < 3) {
       const timer = setTimeout(() => {
-        console.log(`Retrying PDF load attempt ${retryCount + 1}`);
+        console.log(`Retrying PDF load attempt ${retryCount + 1}`, { pdfUrl });
         setRetryCount(prev => prev + 1);
         setLoadError(null);
         setIsLoading(true);
       }, 2000);
       return () => clearTimeout(timer);
     }
-  }, [loadError, retryCount]);
+  }, [loadError, retryCount, pdfUrl]);
 
   function onDocumentLoadSuccess({ numPages }: { numPages: number }) {
-    console.log('PDF loaded successfully');
+    console.log('PDF loaded successfully', { pdfUrl, numPages });
     setNumPages(numPages);
     setIsLoading(false);
     setLoadError(null);
@@ -78,6 +78,15 @@ const PDFViewer = ({ pdfUrl }: PDFViewerProps) => {
       <div className="text-center py-4">
         <p className="text-red-500 mb-2">Failed to load PDF. Please try again later.</p>
         <p className="text-sm text-gray-500">Error: {loadError}</p>
+        {/* Fallback to direct link */}
+        <a 
+          href={pdfUrl} 
+          target="_blank" 
+          rel="noopener noreferrer"
+          className="mt-4 inline-block text-blue-500 hover:underline"
+        >
+          {language === 'ar' ? 'فتح PDF في نافذة جديدة' : 'Open PDF in new window'}
+        </a>
       </div>
     );
   }
@@ -120,7 +129,7 @@ const PDFViewer = ({ pdfUrl }: PDFViewerProps) => {
             className="p-3 rounded-full bg-[#C4A36F] hover:bg-[#B39260] text-white transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg transform hover:-translate-y-0.5 flex items-center justify-center"
             aria-label="Previous page"
           >
-            <ChevronRight className="w-6 h-6" />
+            <ChevronLeft className="w-6 h-6" />
           </button>
           
           <p className="text-center text-[#222222] font-medium min-w-[100px]">
@@ -136,7 +145,7 @@ const PDFViewer = ({ pdfUrl }: PDFViewerProps) => {
             className="p-3 rounded-full bg-[#C4A36F] hover:bg-[#B39260] text-white transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg transform hover:-translate-y-0.5 flex items-center justify-center"
             aria-label="Next page"
           >
-            <ChevronLeft className="w-6 h-6" />
+            <ChevronRight className="w-6 h-6" />
           </button>
         </div>
       )}
