@@ -1467,6 +1467,41 @@ export type Database = {
           },
         ]
       }
+      temp_file_migration_status: {
+        Row: {
+          created_at: string | null
+          id: string | null
+          migration_status: string | null
+          new_optimized_path: string | null
+          new_original_path: string | null
+          old_path: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string | null
+          migration_status?: string | null
+          new_optimized_path?: string | null
+          new_original_path?: string | null
+          old_path?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string | null
+          migration_status?: string | null
+          new_optimized_path?: string | null
+          new_original_path?: string | null
+          old_path?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "temp_file_migration_status_id_fkey"
+            columns: ["id"]
+            isOneToOne: false
+            referencedRelation: "marketing_files"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       transactions: {
         Row: {
           adjustment_type:
