@@ -1,4 +1,3 @@
-
 export interface FileMetadata {
   id: string;
   file_name: string;
@@ -24,4 +23,25 @@ export interface QRCode {
   url: string;
   created_at: string;
   updated_at: string;
+}
+
+export interface FileUploadResponse {
+  filePath: string;
+  error?: string;
+}
+
+export interface FileDeleteResponse {
+  success: boolean;
+  error?: string;
+}
+
+export interface FileOperationState {
+  isLoading: boolean;
+  error: string | null;
+  success: boolean;
+}
+
+export interface FilePreview {
+  url: string;
+  type: string;
 }

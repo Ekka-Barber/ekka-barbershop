@@ -4,6 +4,7 @@ import { useEndDateManager } from './file-management/useEndDateManager';
 import { useDragAndDrop } from './file-management/useDragAndDrop';
 import { FileUploadSection } from './file-management/FileUploadSection';
 import { FileListSection } from './file-management/FileListSection';
+import { Skeleton } from "@/components/ui/skeleton";
 
 export const FileManagement = () => {
   const {
@@ -16,6 +17,7 @@ export const FileManagement = () => {
     setSelectedDate,
     selectedTime,
     setSelectedTime,
+    filePreview,
     branches,
     files,
     isLoading,
@@ -40,7 +42,13 @@ export const FileManagement = () => {
   };
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="space-y-4">
+        {[1, 2, 3].map((i) => (
+          <Skeleton key={i} className="h-32 w-full" />
+        ))}
+      </div>
+    );
   }
 
   return (
@@ -57,6 +65,7 @@ export const FileManagement = () => {
         setSelectedTime={setSelectedTime}
         handleFileUpload={handleFileUpload}
         uploading={uploading}
+        filePreview={filePreview}
       />
 
       <div className="space-y-8">

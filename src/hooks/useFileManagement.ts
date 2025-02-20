@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
-import { FileMetadata } from '@/types/admin';
+import { FileMetadata, FilePreview } from '@/types/admin';
 
 export const useFileManagement = () => {
   const [uploading, setUploading] = useState(false);
@@ -11,8 +11,13 @@ export const useFileManagement = () => {
   const [isAllBranches, setIsAllBranches] = useState(true);
   const [selectedDate, setSelectedDate] = useState<Date>();
   const [selectedTime, setSelectedTime] = useState<string>("23:59");
+  const [filePreview, setFilePreview] = useState<FilePreview | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  // Maximum file size: 10MB
+  const MAX_FILE_SIZE = 10 * 1024 * 1024;
+  const ALLOWED_FILE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'];
 
   const { data: branches } = useQuery({
     queryKey: ['branches'],
@@ -30,6 +35,7 @@ export const useFileManagement = () => {
   const { data: files, isLoading } = useQuery({
     queryKey: ['marketing-files'],
     queryFn: async () => {
+      console.log('Fetching marketing files...');
       const { data, error } = await supabase
         .from('marketing_files')
         .select('*')
@@ -40,13 +46,47 @@ export const useFileManagement = () => {
     }
   });
 
+  const validateFile = (file: File) => {
+    if (file.size > MAX_FILE_SIZE) {
+      throw new Error(`File size must be less than ${MAX_FILE_SIZE / (1024 * 1024)}MB`);
+    }
+    if (!ALLOWED_FILE_TYPES.includes(file.type)) {
+      throw new Error(`File type ${file.type} is not supported. Allowed types: ${ALLOWED_FILE_TYPES.join(', ')}`);
+    }
+  };
+
+  const generatePreview = async (file: File): Promise<FilePreview> => {
+    if (file.type.startsWith('image/')) {
+      return {
+        url: URL.createObjectURL(file),
+        type: 'image'
+      };
+    } else if (file.type === 'application/pdf') {
+      return {
+        url: URL.createObjectURL(file),
+        type: 'pdf'
+      };
+    }
+    throw new Error('Unsupported file type for preview');
+  };
+
   const uploadMutation = useMutation({
     mutationFn: async ({ file, category }: { file: File, category: string }) => {
       setUploading(true);
+      console.log('Starting file upload:', { fileName: file.name, category });
+      
       try {
+        // Validate file
+        validateFile(file);
+
+        // Generate preview
+        const preview = await generatePreview(file);
+        setFilePreview(preview);
+
         const fileExt = file.name.split('.').pop();
         const fileName = `${crypto.randomUUID()}.${fileExt}`;
         
+        console.log('Uploading to storage:', fileName);
         const { error: uploadError } = await supabase.storage
           .from('marketing_files')
           .upload(fileName, file);
@@ -65,6 +105,7 @@ export const useFileManagement = () => {
           endDate = date.toISOString();
         }
 
+        console.log('Inserting file metadata into database');
         const { error: dbError } = await supabase
           .from('marketing_files')
           .insert({
@@ -78,8 +119,12 @@ export const useFileManagement = () => {
           });
 
         if (dbError) throw dbError;
+      } catch (error) {
+        console.error('Upload error:', error);
+        throw error;
       } finally {
         setUploading(false);
+        setFilePreview(null);
       }
     },
     onSuccess: () => {
@@ -93,18 +138,66 @@ export const useFileManagement = () => {
       setSelectedDate(undefined);
       setSelectedTime("23:59");
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       toast({
         title: "Error",
-        description: "Failed to upload file",
+        description: error.message || "Failed to upload file",
         variant: "destructive",
       });
-      console.error('Upload error:', error);
+    }
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (file: FileMetadata) => {
+      console.log('Starting file deletion:', file);
+      
+      try {
+        // First try to delete from storage
+        console.log('Deleting from storage:', file.file_path);
+        const { error: storageError } = await supabase.storage
+          .from('marketing_files')
+          .remove([file.file_path]);
+        
+        if (storageError) {
+          console.error('Storage deletion error:', storageError);
+          // Continue with DB deletion even if storage deletion fails
+          // The file might not exist in storage
+        }
+
+        // Then delete from database
+        console.log('Deleting from database:', file.id);
+        const { error: dbError } = await supabase
+          .from('marketing_files')
+          .delete()
+          .eq('id', file.id);
+        
+        if (dbError) throw dbError;
+
+        return { success: true };
+      } catch (error) {
+        console.error('Deletion error:', error);
+        throw error;
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['marketing-files'] });
+      toast({
+        title: "Success",
+        description: "File deleted successfully",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete file",
+        variant: "destructive",
+      });
     }
   });
 
   const toggleActiveMutation = useMutation({
     mutationFn: async ({ id, isActive }: { id: string, isActive: boolean }) => {
+      console.log('Toggling file status:', { id, isActive });
       const { error } = await supabase
         .from('marketing_files')
         .update({ is_active: isActive })
@@ -118,38 +211,19 @@ export const useFileManagement = () => {
         title: "Success",
         description: "File status updated",
       });
-    }
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: async (id: string) => {
-      const fileToDelete = files?.find(f => f.id === id);
-      if (!fileToDelete) return;
-
-      const { error: storageError } = await supabase.storage
-        .from('marketing_files')
-        .remove([fileToDelete.file_path]);
-      
-      if (storageError) throw storageError;
-
-      const { error: dbError } = await supabase
-        .from('marketing_files')
-        .delete()
-        .eq('id', id);
-      
-      if (dbError) throw dbError;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['marketing-files'] });
+    onError: (error: Error) => {
       toast({
-        title: "Success",
-        description: "File deleted successfully",
+        title: "Error",
+        description: error.message || "Failed to update file status",
+        variant: "destructive",
       });
     }
   });
 
   const updateEndDateMutation = useMutation({
     mutationFn: async ({ id, endDate }: { id: string, endDate: string | null }) => {
+      console.log('Updating end date:', { id, endDate });
       const { error } = await supabase
         .from('marketing_files')
         .update({ end_date: endDate })
@@ -164,13 +238,12 @@ export const useFileManagement = () => {
         description: "End date updated successfully",
       });
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       toast({
         title: "Error",
-        description: "Failed to update end date",
+        description: error.message || "Failed to update end date",
         variant: "destructive",
       });
-      console.error('Update error:', error);
     }
   });
 
@@ -184,6 +257,7 @@ export const useFileManagement = () => {
     setSelectedDate,
     selectedTime,
     setSelectedTime,
+    filePreview,
     branches,
     files,
     isLoading,
