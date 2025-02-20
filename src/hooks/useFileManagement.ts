@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from "@/integrations/supabase/client";
@@ -9,8 +8,10 @@ import { useFileUploader } from './useFileUploader';
 export const useFileManagement = () => {
   const [selectedBranch, setSelectedBranch] = useState<string | null>(null);
   const [isAllBranches, setIsAllBranches] = useState(true);
-  const [selectedDate, setSelectedDate] = useState<Date>();
-  const [selectedTime, setSelectedTime] = useState<string>("23:59");
+  const [selectedStartDate, setSelectedStartDate] = useState<Date>();
+  const [selectedStartTime, setSelectedStartTime] = useState<string>("00:00");
+  const [selectedEndDate, setSelectedEndDate] = useState<Date>();
+  const [selectedEndTime, setSelectedEndTime] = useState<string>("23:59");
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -44,13 +45,17 @@ export const useFileManagement = () => {
     branches,
     isAllBranches,
     selectedBranch,
-    selectedDate,
-    selectedTime,
+    selectedStartDate,
+    selectedStartTime,
+    selectedEndDate,
+    selectedEndTime,
     onUploadSuccess: () => {
       setSelectedBranch(null);
       setIsAllBranches(true);
-      setSelectedDate(undefined);
-      setSelectedTime("23:59");
+      setSelectedStartDate(undefined);
+      setSelectedStartTime("00:00");
+      setSelectedEndDate(undefined);
+      setSelectedEndTime("23:59");
     }
   });
 
@@ -99,11 +104,22 @@ export const useFileManagement = () => {
     }
   });
 
-  const updateEndDateMutation = useMutation({
-    mutationFn: async ({ id, endDate }: { id: string, endDate: string | null }) => {
+  const updateDatesMutation = useMutation({
+    mutationFn: async ({ 
+      id, 
+      startDate, 
+      endDate 
+    }: { 
+      id: string, 
+      startDate: string | null,
+      endDate: string | null 
+    }) => {
       const { error } = await supabase
         .from('marketing_files')
-        .update({ end_date: endDate })
+        .update({ 
+          start_date: startDate,
+          end_date: endDate 
+        })
         .eq('id', id);
       
       if (error) throw error;
@@ -112,13 +128,13 @@ export const useFileManagement = () => {
       queryClient.invalidateQueries({ queryKey: ['marketing-files'] });
       toast({
         title: "Success",
-        description: "End date updated successfully",
+        description: "Dates updated successfully",
       });
     },
     onError: (error) => {
       toast({
         title: "Error",
-        description: "Failed to update end date",
+        description: "Failed to update dates",
         variant: "destructive",
       });
       console.error('Update error:', error);
@@ -131,16 +147,20 @@ export const useFileManagement = () => {
     setSelectedBranch,
     isAllBranches,
     setIsAllBranches,
-    selectedDate,
-    setSelectedDate,
-    selectedTime,
-    setSelectedTime,
+    selectedStartDate,
+    setSelectedStartDate,
+    selectedStartTime,
+    setSelectedStartTime,
+    selectedEndDate,
+    setSelectedEndDate,
+    selectedEndTime,
+    setSelectedEndTime,
     branches,
     files,
     isLoading,
     uploadMutation,
     toggleActiveMutation,
     deleteMutation,
-    updateEndDateMutation,
+    updateDatesMutation,
   };
 };

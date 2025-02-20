@@ -10,8 +10,10 @@ interface UseFileUploaderProps {
   branches?: Array<{ id: string; name: string }>;
   isAllBranches: boolean;
   selectedBranch: string | null;
-  selectedDate?: Date;
-  selectedTime: string;
+  selectedStartDate?: Date;
+  selectedStartTime: string;
+  selectedEndDate?: Date;
+  selectedEndTime: string;
 }
 
 export const useFileUploader = ({
@@ -19,8 +21,10 @@ export const useFileUploader = ({
   branches,
   isAllBranches,
   selectedBranch,
-  selectedDate,
-  selectedTime,
+  selectedStartDate,
+  selectedStartTime,
+  selectedEndDate,
+  selectedEndTime,
 }: UseFileUploaderProps) => {
   const [uploading, setUploading] = useState(false);
   const { toast } = useToast();
@@ -57,10 +61,18 @@ export const useFileUploader = ({
           ? branches?.find(b => b.id === selectedBranch)?.name 
           : null;
 
+        let startDate = null;
+        if (selectedStartDate && selectedStartTime) {
+          const [hours, minutes] = selectedStartTime.split(':');
+          const date = new Date(selectedStartDate);
+          date.setHours(parseInt(hours), parseInt(minutes));
+          startDate = date.toISOString();
+        }
+
         let endDate = null;
-        if (selectedDate && selectedTime) {
-          const [hours, minutes] = selectedTime.split(':');
-          const date = new Date(selectedDate);
+        if (selectedEndDate && selectedEndTime) {
+          const [hours, minutes] = selectedEndTime.split(':');
+          const date = new Date(selectedEndDate);
           date.setHours(parseInt(hours), parseInt(minutes));
           endDate = date.toISOString();
         }
@@ -75,6 +87,7 @@ export const useFileUploader = ({
             category,
             is_active: true,
             branch_name: selectedBranchName,
+            start_date: startDate,
             end_date: endDate,
             file_hash: optimizedFile.originalHash
           });

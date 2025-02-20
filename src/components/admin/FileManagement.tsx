@@ -12,23 +12,29 @@ export const FileManagement = () => {
     setSelectedBranch,
     isAllBranches,
     setIsAllBranches,
-    selectedDate,
-    setSelectedDate,
-    selectedTime,
-    setSelectedTime,
+    selectedStartDate,
+    setSelectedStartDate,
+    selectedStartTime,
+    setSelectedStartTime,
+    selectedEndDate,
+    setSelectedEndDate,
+    selectedEndTime,
+    setSelectedEndTime,
     branches,
     files,
     isLoading,
     uploadMutation,
     toggleActiveMutation,
     deleteMutation,
-    updateEndDateMutation,
+    updateDatesMutation,
   } = useFileManagement();
 
   const { handleEndDateUpdate, handleRemoveEndDate } = useEndDateManager({
-    selectedDate,
-    selectedTime,
-    updateEndDateMutation
+    selectedStartDate,
+    selectedStartTime,
+    selectedEndDate,
+    selectedEndTime,
+    updateDatesMutation
   });
 
   const { handleDragEnd } = useDragAndDrop(files || []);
@@ -51,10 +57,14 @@ export const FileManagement = () => {
         setIsAllBranches={setIsAllBranches}
         selectedBranch={selectedBranch}
         setSelectedBranch={setSelectedBranch}
-        selectedDate={selectedDate}
-        setSelectedDate={setSelectedDate}
-        selectedTime={selectedTime}
-        setSelectedTime={setSelectedTime}
+        selectedStartDate={selectedStartDate}
+        setSelectedStartDate={setSelectedStartDate}
+        selectedStartTime={selectedStartTime}
+        setSelectedStartTime={setSelectedStartTime}
+        selectedEndDate={selectedEndDate}
+        setSelectedEndDate={setSelectedEndDate}
+        selectedEndTime={selectedEndTime}
+        setSelectedEndTime={setSelectedEndTime}
         handleFileUpload={handleFileUpload}
         uploading={uploading}
       />
@@ -63,10 +73,14 @@ export const FileManagement = () => {
         <FileListSection
           category="menu"
           files={files || []}
-          selectedDate={selectedDate}
-          setSelectedDate={setSelectedDate}
-          selectedTime={selectedTime}
-          setSelectedTime={setSelectedTime}
+          selectedStartDate={selectedStartDate}
+          setSelectedStartDate={setSelectedStartDate}
+          selectedStartTime={selectedStartTime}
+          setSelectedStartTime={setSelectedStartTime}
+          selectedEndDate={selectedEndDate}
+          setSelectedEndDate={setSelectedEndDate}
+          selectedEndTime={selectedEndTime}
+          setSelectedEndTime={setSelectedEndTime}
           handleEndDateUpdate={handleEndDateUpdate}
           handleRemoveEndDate={handleRemoveEndDate}
           toggleActiveMutation={toggleActiveMutation}
@@ -77,10 +91,14 @@ export const FileManagement = () => {
         <FileListSection
           category="offers"
           files={files || []}
-          selectedDate={selectedDate}
-          setSelectedDate={setSelectedDate}
-          selectedTime={selectedTime}
-          setSelectedTime={setSelectedTime}
+          selectedStartDate={selectedStartDate}
+          setSelectedStartDate={setSelectedStartDate}
+          selectedStartTime={selectedStartTime}
+          setSelectedStartTime={setSelectedStartTime}
+          selectedEndDate={selectedEndDate}
+          setSelectedEndDate={setSelectedEndDate}
+          selectedEndTime={selectedEndTime}
+          setSelectedEndTime={setSelectedEndTime}
           handleEndDateUpdate={handleEndDateUpdate}
           handleRemoveEndDate={handleRemoveEndDate}
           toggleActiveMutation={toggleActiveMutation}

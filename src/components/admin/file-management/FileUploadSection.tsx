@@ -16,10 +16,14 @@ interface FileUploadSectionProps {
   setIsAllBranches: (value: boolean) => void;
   selectedBranch: string | null;
   setSelectedBranch: (value: string | null) => void;
-  selectedDate: Date | undefined;
-  setSelectedDate: (date: Date | undefined) => void;
-  selectedTime: string;
-  setSelectedTime: (time: string) => void;
+  selectedStartDate: Date | undefined;
+  setSelectedStartDate: (date: Date | undefined) => void;
+  selectedStartTime: string;
+  setSelectedStartTime: (time: string) => void;
+  selectedEndDate: Date | undefined;
+  setSelectedEndDate: (date: Date | undefined) => void;
+  selectedEndTime: string;
+  setSelectedEndTime: (time: string) => void;
   handleFileUpload: (e: React.ChangeEvent<HTMLInputElement>, category: string) => void;
   uploading: boolean;
 }
@@ -30,10 +34,14 @@ export const FileUploadSection = ({
   setIsAllBranches,
   selectedBranch,
   setSelectedBranch,
-  selectedDate,
-  setSelectedDate,
-  selectedTime,
-  setSelectedTime,
+  selectedStartDate,
+  setSelectedStartDate,
+  selectedStartTime,
+  setSelectedStartTime,
+  selectedEndDate,
+  setSelectedEndDate,
+  selectedEndTime,
+  setSelectedEndTime,
   handleFileUpload,
   uploading
 }: FileUploadSectionProps) => {
@@ -81,31 +89,62 @@ export const FileUploadSection = ({
           )}
 
           <div className="flex flex-col space-y-2">
-            <Label>End Date & Time</Label>
+            <Label>Start Date & Time</Label>
             <div className="flex gap-2">
               <Popover>
                 <PopoverTrigger asChild>
                   <Button
                     variant="outline"
-                    className={`w-[240px] justify-start text-left font-normal ${!selectedDate && "text-muted-foreground"}`}
+                    className={`w-[240px] justify-start text-left font-normal ${!selectedStartDate && "text-muted-foreground"}`}
                   >
                     <Clock className="mr-2 h-4 w-4" />
-                    {selectedDate ? format(selectedDate, "PPP") : <span>Pick a date</span>}
+                    {selectedStartDate ? format(selectedStartDate, "PPP") : <span>Pick a start date</span>}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
                   <Calendar
                     mode="single"
-                    selected={selectedDate}
-                    onSelect={setSelectedDate}
+                    selected={selectedStartDate}
+                    onSelect={setSelectedStartDate}
                     initialFocus
                   />
                 </PopoverContent>
               </Popover>
               <Input
                 type="time"
-                value={selectedTime}
-                onChange={(e) => setSelectedTime(e.target.value)}
+                value={selectedStartTime}
+                onChange={(e) => setSelectedStartTime(e.target.value)}
+                className="w-[120px]"
+              />
+            </div>
+          </div>
+
+          <div className="flex flex-col space-y-2">
+            <Label>End Date & Time</Label>
+            <div className="flex gap-2">
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={`w-[240px] justify-start text-left font-normal ${!selectedEndDate && "text-muted-foreground"}`}
+                  >
+                    <Clock className="mr-2 h-4 w-4" />
+                    {selectedEndDate ? format(selectedEndDate, "PPP") : <span>Pick an end date</span>}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={selectedEndDate}
+                    onSelect={setSelectedEndDate}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
+              <Input
+                type="time"
+                value={selectedEndTime}
+                onChange={(e) => setSelectedEndTime(e.target.value)}
                 className="w-[120px]"
               />
             </div>
