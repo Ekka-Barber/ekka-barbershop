@@ -4,15 +4,13 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { FileMetadata } from '@/types/admin';
-import { useFileUploader } from './useFileUploader';
 
 export const useFileManagement = () => {
+  const [uploading, setUploading] = useState(false);
   const [selectedBranch, setSelectedBranch] = useState<string | null>(null);
   const [isAllBranches, setIsAllBranches] = useState(true);
-  const [selectedStartDate, setSelectedStartDate] = useState<Date>();
-  const [selectedStartTime, setSelectedStartTime] = useState<string>("00:00");
-  const [selectedEndDate, setSelectedEndDate] = useState<Date>();
-  const [selectedEndTime, setSelectedEndTime] = useState<string>("23:59");
+  const [selectedDate, setSelectedDate] = useState<Date>();
+  const [selectedTime, setSelectedTime] = useState<string>("23:59");
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -42,21 +40,66 @@ export const useFileManagement = () => {
     }
   });
 
-  const { uploading, uploadMutation } = useFileUploader({
-    branches,
-    isAllBranches,
-    selectedBranch,
-    selectedStartDate,
-    selectedStartTime,
-    selectedEndDate,
-    selectedEndTime,
-    onUploadSuccess: () => {
+  const uploadMutation = useMutation({
+    mutationFn: async ({ file, category }: { file: File, category: string }) => {
+      setUploading(true);
+      try {
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${crypto.randomUUID()}.${fileExt}`;
+        
+        const { error: uploadError } = await supabase.storage
+          .from('marketing_files')
+          .upload(fileName, file);
+        
+        if (uploadError) throw uploadError;
+
+        const selectedBranchName = !isAllBranches && selectedBranch 
+          ? branches?.find(b => b.id === selectedBranch)?.name 
+          : null;
+
+        let endDate = null;
+        if (selectedDate && selectedTime) {
+          const [hours, minutes] = selectedTime.split(':');
+          const date = new Date(selectedDate);
+          date.setHours(parseInt(hours), parseInt(minutes));
+          endDate = date.toISOString();
+        }
+
+        const { error: dbError } = await supabase
+          .from('marketing_files')
+          .insert({
+            file_name: file.name,
+            file_path: fileName,
+            file_type: file.type,
+            category,
+            is_active: true,
+            branch_name: selectedBranchName,
+            end_date: endDate
+          });
+
+        if (dbError) throw dbError;
+      } finally {
+        setUploading(false);
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['marketing-files'] });
+      toast({
+        title: "Success",
+        description: "File uploaded successfully",
+      });
       setSelectedBranch(null);
       setIsAllBranches(true);
-      setSelectedStartDate(undefined);
-      setSelectedStartTime("00:00");
-      setSelectedEndDate(undefined);
-      setSelectedEndTime("23:59");
+      setSelectedDate(undefined);
+      setSelectedTime("23:59");
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Failed to upload file",
+        variant: "destructive",
+      });
+      console.error('Upload error:', error);
     }
   });
 
@@ -105,22 +148,11 @@ export const useFileManagement = () => {
     }
   });
 
-  const updateDatesMutation = useMutation({
-    mutationFn: async ({ 
-      id, 
-      startDate, 
-      endDate 
-    }: { 
-      id: string, 
-      startDate: string | null,
-      endDate: string | null 
-    }) => {
+  const updateEndDateMutation = useMutation({
+    mutationFn: async ({ id, endDate }: { id: string, endDate: string | null }) => {
       const { error } = await supabase
         .from('marketing_files')
-        .update({ 
-          start_date: startDate,
-          end_date: endDate 
-        })
+        .update({ end_date: endDate })
         .eq('id', id);
       
       if (error) throw error;
@@ -129,13 +161,13 @@ export const useFileManagement = () => {
       queryClient.invalidateQueries({ queryKey: ['marketing-files'] });
       toast({
         title: "Success",
-        description: "Dates updated successfully",
+        description: "End date updated successfully",
       });
     },
     onError: (error) => {
       toast({
         title: "Error",
-        description: "Failed to update dates",
+        description: "Failed to update end date",
         variant: "destructive",
       });
       console.error('Update error:', error);
@@ -148,20 +180,16 @@ export const useFileManagement = () => {
     setSelectedBranch,
     isAllBranches,
     setIsAllBranches,
-    selectedStartDate,
-    setSelectedStartDate,
-    selectedStartTime,
-    setSelectedStartTime,
-    selectedEndDate,
-    setSelectedEndDate,
-    selectedEndTime,
-    setSelectedEndTime,
+    selectedDate,
+    setSelectedDate,
+    selectedTime,
+    setSelectedTime,
     branches,
     files,
     isLoading,
     uploadMutation,
     toggleActiveMutation,
     deleteMutation,
-    updateDatesMutation,
+    updateEndDateMutation,
   };
 };

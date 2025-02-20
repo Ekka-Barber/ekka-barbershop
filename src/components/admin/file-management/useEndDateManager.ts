@@ -3,43 +3,31 @@ import { useCallback } from 'react';
 import { FileMetadata } from '@/types/admin';
 
 interface UseEndDateManagerProps {
-  selectedStartDate: Date | undefined;
-  selectedStartTime: string;
-  selectedEndDate: Date | undefined;
-  selectedEndTime: string;
-  updateDatesMutation: any;
+  selectedDate: Date | undefined;
+  selectedTime: string;
+  updateEndDateMutation: any;
 }
 
 export const useEndDateManager = ({
-  selectedStartDate,
-  selectedStartTime,
-  selectedEndDate,
-  selectedEndTime,
-  updateDatesMutation
+  selectedDate,
+  selectedTime,
+  updateEndDateMutation
 }: UseEndDateManagerProps) => {
   const handleEndDateUpdate = useCallback((file: FileMetadata) => {
-    let startDate = null;
-    if (selectedStartDate && selectedStartTime) {
-      const [hours, minutes] = selectedStartTime.split(':');
-      const date = new Date(selectedStartDate);
-      date.setHours(parseInt(hours), parseInt(minutes));
-      startDate = date.toISOString();
-    }
-
     let endDate = null;
-    if (selectedEndDate && selectedEndTime) {
-      const [hours, minutes] = selectedEndTime.split(':');
-      const date = new Date(selectedEndDate);
+    if (selectedDate && selectedTime) {
+      const [hours, minutes] = selectedTime.split(':');
+      const date = new Date(selectedDate);
       date.setHours(parseInt(hours), parseInt(minutes));
       endDate = date.toISOString();
     }
     
-    updateDatesMutation.mutate({ id: file.id, startDate, endDate });
-  }, [selectedStartDate, selectedStartTime, selectedEndDate, selectedEndTime, updateDatesMutation]);
+    updateEndDateMutation.mutate({ id: file.id, endDate });
+  }, [selectedDate, selectedTime, updateEndDateMutation]);
 
   const handleRemoveEndDate = useCallback((fileId: string) => {
-    updateDatesMutation.mutate({ id: fileId, startDate: null, endDate: null });
-  }, [updateDatesMutation]);
+    updateEndDateMutation.mutate({ id: fileId, endDate: null });
+  }, [updateEndDateMutation]);
 
   return {
     handleEndDateUpdate,

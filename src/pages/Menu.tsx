@@ -9,16 +9,17 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { useEffect, useCallback } from 'react';
 import { trackViewContent, trackButtonClick } from "@/utils/tiktokTracking";
-import { toast } from "sonner";
 
 const Menu = () => {
   const navigate = useNavigate();
   const { t, language } = useLanguage();
   
   useEffect(() => {
+    // Track page view after component mounts
     trackViewContent('Menu');
   }, []);
 
+  // Separate the fetch function for better type inference
   const fetchMenu = async () => {
     const { data, error } = await supabase
       .from('marketing_files')
@@ -27,29 +28,22 @@ const Menu = () => {
       .eq('is_active', true)
       .maybeSingle();
     
-    if (error) {
-      console.error('Error fetching menu:', error);
-      toast.error(t('error.loading.menu'));
-      throw error;
-    }
+    if (error) throw error;
     
     if (data) {
-      // Get the file path, stripping any folder prefixes if they exist
-      const filePath = (data.original_path || data.file_path || '').replace(/^(original\/|optimized\/)/g, '');
-      console.log('Using menu file path:', filePath);
-      
       const { data: fileUrl } = supabase.storage
         .from('marketing_files')
-        .getPublicUrl(filePath);
+        .getPublicUrl(data.file_path);
       
       const menuData = { ...data, url: fileUrl.publicUrl };
+      // Track menu view after successful load
       trackViewContent('Menu File');
       return menuData;
     }
     return null;
   };
   
-  const { data: menuFile, isLoading, error } = useQuery({
+  const { data: menuFile, isLoading } = useQuery({
     queryKey: ['active-menu'],
     queryFn: fetchMenu
   });
@@ -89,8 +83,6 @@ const Menu = () => {
             <div className="p-6">
               {isLoading ? (
                 <div className="text-center py-8 text-[#222222]">{t('loading.menu')}</div>
-              ) : error ? (
-                <div className="text-center py-8 text-red-600">{t('error.loading.menu')}</div>
               ) : menuFile ? (
                 menuFile.file_type.includes('pdf') ? (
                   <PDFViewer pdfUrl={menuFile.url} />
@@ -99,10 +91,6 @@ const Menu = () => {
                     src={menuFile.url} 
                     alt="Menu"
                     className="w-full max-w-full h-auto rounded-lg"
-                    onError={(e) => {
-                      console.error('Image failed to load:', menuFile.url);
-                      toast.error(t('error.loading.menu'));
-                    }}
                   />
                 )
               ) : (

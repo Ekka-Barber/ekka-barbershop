@@ -1,4 +1,5 @@
 
+import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -8,22 +9,17 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { Clock } from "lucide-react";
 import { format } from "date-fns";
-import { Branch } from "@/types/admin";
 
 interface FileUploadSectionProps {
-  branches: Branch[];
+  branches: any[];
   isAllBranches: boolean;
   setIsAllBranches: (value: boolean) => void;
   selectedBranch: string | null;
   setSelectedBranch: (value: string | null) => void;
-  selectedStartDate: Date | undefined;
-  setSelectedStartDate: (date: Date | undefined) => void;
-  selectedStartTime: string;
-  setSelectedStartTime: (time: string) => void;
-  selectedEndDate: Date | undefined;
-  setSelectedEndDate: (date: Date | undefined) => void;
-  selectedEndTime: string;
-  setSelectedEndTime: (time: string) => void;
+  selectedDate: Date | undefined;
+  setSelectedDate: (date: Date | undefined) => void;
+  selectedTime: string;
+  setSelectedTime: (time: string) => void;
   handleFileUpload: (e: React.ChangeEvent<HTMLInputElement>, category: string) => void;
   uploading: boolean;
 }
@@ -34,14 +30,10 @@ export const FileUploadSection = ({
   setIsAllBranches,
   selectedBranch,
   setSelectedBranch,
-  selectedStartDate,
-  setSelectedStartDate,
-  selectedStartTime,
-  setSelectedStartTime,
-  selectedEndDate,
-  setSelectedEndDate,
-  selectedEndTime,
-  setSelectedEndTime,
+  selectedDate,
+  setSelectedDate,
+  selectedTime,
+  setSelectedTime,
   handleFileUpload,
   uploading
 }: FileUploadSectionProps) => {
@@ -89,62 +81,31 @@ export const FileUploadSection = ({
           )}
 
           <div className="flex flex-col space-y-2">
-            <Label>Start Date & Time</Label>
-            <div className="flex gap-2">
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={`w-[240px] justify-start text-left font-normal ${!selectedStartDate && "text-muted-foreground"}`}
-                  >
-                    <Clock className="mr-2 h-4 w-4" />
-                    {selectedStartDate ? format(selectedStartDate, "PPP") : <span>Pick a start date</span>}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={selectedStartDate}
-                    onSelect={setSelectedStartDate}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
-              <Input
-                type="time"
-                value={selectedStartTime}
-                onChange={(e) => setSelectedStartTime(e.target.value)}
-                className="w-[120px]"
-              />
-            </div>
-          </div>
-
-          <div className="flex flex-col space-y-2">
             <Label>End Date & Time</Label>
             <div className="flex gap-2">
               <Popover>
                 <PopoverTrigger asChild>
                   <Button
                     variant="outline"
-                    className={`w-[240px] justify-start text-left font-normal ${!selectedEndDate && "text-muted-foreground"}`}
+                    className={`w-[240px] justify-start text-left font-normal ${!selectedDate && "text-muted-foreground"}`}
                   >
                     <Clock className="mr-2 h-4 w-4" />
-                    {selectedEndDate ? format(selectedEndDate, "PPP") : <span>Pick an end date</span>}
+                    {selectedDate ? format(selectedDate, "PPP") : <span>Pick a date</span>}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
                   <Calendar
                     mode="single"
-                    selected={selectedEndDate}
-                    onSelect={setSelectedEndDate}
+                    selected={selectedDate}
+                    onSelect={setSelectedDate}
                     initialFocus
                   />
                 </PopoverContent>
               </Popover>
               <Input
                 type="time"
-                value={selectedEndTime}
-                onChange={(e) => setSelectedEndTime(e.target.value)}
+                value={selectedTime}
+                onChange={(e) => setSelectedTime(e.target.value)}
                 className="w-[120px]"
               />
             </div>

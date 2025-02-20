@@ -942,15 +942,11 @@ export type Database = {
           created_at: string
           display_order: number | null
           end_date: string | null
-          file_hash: string | null
           file_name: string
           file_path: string
           file_type: string
-          has_optimized_version: boolean | null
           id: string
           is_active: boolean | null
-          original_path: string | null
-          start_date: string | null
           updated_at: string
         }
         Insert: {
@@ -960,15 +956,11 @@ export type Database = {
           created_at?: string
           display_order?: number | null
           end_date?: string | null
-          file_hash?: string | null
           file_name: string
           file_path: string
           file_type: string
-          has_optimized_version?: boolean | null
           id?: string
           is_active?: boolean | null
-          original_path?: string | null
-          start_date?: string | null
           updated_at?: string
         }
         Update: {
@@ -978,15 +970,11 @@ export type Database = {
           created_at?: string
           display_order?: number | null
           end_date?: string | null
-          file_hash?: string | null
           file_name?: string
           file_path?: string
           file_type?: string
-          has_optimized_version?: boolean | null
           id?: string
           is_active?: boolean | null
-          original_path?: string | null
-          start_date?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -998,24 +986,6 @@ export type Database = {
             referencedColumns: ["name"]
           },
         ]
-      }
-      marketing_files_paths_backup: {
-        Row: {
-          file_path: string | null
-          id: string | null
-          original_path: string | null
-        }
-        Insert: {
-          file_path?: string | null
-          id?: string | null
-          original_path?: string | null
-        }
-        Update: {
-          file_path?: string | null
-          id?: string | null
-          original_path?: string | null
-        }
-        Relationships: []
       }
       payment_method_fees: {
         Row: {

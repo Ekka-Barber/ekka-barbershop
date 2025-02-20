@@ -8,28 +8,20 @@ import { format } from "date-fns";
 
 interface FileEndDateManagerProps {
   file: any;
-  selectedStartDate: Date | undefined;
-  setSelectedStartDate: (date: Date | undefined) => void;
-  selectedStartTime: string;
-  setSelectedStartTime: (time: string) => void;
-  selectedEndDate: Date | undefined;
-  setSelectedEndDate: (date: Date | undefined) => void;
-  selectedEndTime: string;
-  setSelectedEndTime: (time: string) => void;
+  selectedDate: Date | undefined;
+  setSelectedDate: (date: Date | undefined) => void;
+  selectedTime: string;
+  setSelectedTime: (time: string) => void;
   handleEndDateUpdate: (file: any) => void;
   handleRemoveEndDate: (fileId: string) => void;
 }
 
 export const FileEndDateManager = ({
   file,
-  selectedStartDate,
-  setSelectedStartDate,
-  selectedStartTime,
-  setSelectedStartTime,
-  selectedEndDate,
-  setSelectedEndDate,
-  selectedEndTime,
-  setSelectedEndTime,
+  selectedDate,
+  setSelectedDate,
+  selectedTime,
+  setSelectedTime,
   handleEndDateUpdate,
   handleRemoveEndDate
 }: FileEndDateManagerProps) => {
@@ -66,16 +58,16 @@ export const FileEndDateManager = ({
           <PopoverContent className="w-auto p-0" align="start">
             <Calendar
               mode="single"
-              selected={selectedEndDate}
-              onSelect={setSelectedEndDate}
+              selected={selectedDate}
+              onSelect={setSelectedDate}
               initialFocus
             />
           </PopoverContent>
         </Popover>
         <Input
           type="time"
-          value={selectedEndTime}
-          onChange={(e) => setSelectedEndTime(e.target.value)}
+          value={selectedTime}
+          onChange={(e) => setSelectedTime(e.target.value)}
           className="w-[120px] h-8"
         />
         <Button 
