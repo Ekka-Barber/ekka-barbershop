@@ -7,6 +7,7 @@ import { getPlatformType, getInstallationStatus } from "@/services/platformDetec
 import { useLanguage } from "@/contexts/LanguageContext";
 import { AndroidIcon } from "@/components/icons/AndroidIcon";
 import { AppleIcon } from "@/components/icons/AppleIcon";
+import { AddToHomeScreenIcon } from "@/components/icons/AddToHomeScreenIcon";
 import { NewBadge } from "@/components/ui/new-badge";
 import { trackButtonClick } from "@/utils/tiktokTracking";
 
@@ -121,7 +122,10 @@ export function InstallAppPrompt() {
                 </div>
                 <div className="flex items-center gap-4">
                   <div className="h-8 w-8 rounded-full bg-gray-100 flex items-center justify-center">2</div>
-                  <p>{language === 'ar' ? 'اختر "إضافة إلى الشاشة الرئيسية"' : 'Choose "Add to Home Screen"'}</p>
+                  <p>
+                    {language === 'ar' ? 'اختر "إضافة إلى الشاشة الرئيسية"' : 'Choose "Add to Home Screen"'} 
+                    <AddToHomeScreenIcon />
+                  </p>
                 </div>
                 <div className="flex items-center gap-4">
                   <div className="h-8 w-8 rounded-full bg-gray-100 flex items-center justify-center">3</div>
