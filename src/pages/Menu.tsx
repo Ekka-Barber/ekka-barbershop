@@ -7,7 +7,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { Card } from "@/components/ui/card";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
-import { useEffect } from 'react';
+import { useEffect, useCallback } from 'react';
 import { trackViewContent, trackButtonClick } from "@/utils/tiktokTracking";
 
 const Menu = () => {
@@ -18,34 +18,34 @@ const Menu = () => {
     // Track page view after component mounts
     trackViewContent('Menu');
   }, []);
+
+  // Separate the fetch function for better type inference
+  const fetchMenu = async () => {
+    const { data, error } = await supabase
+      .from('marketing_files')
+      .select('*')
+      .eq('category', 'menu')
+      .eq('is_active', true)
+      .maybeSingle();
+    
+    if (error) throw error;
+    
+    if (data) {
+      const { data: fileUrl } = supabase.storage
+        .from('marketing_files')
+        .getPublicUrl(data.file_path);
+      
+      const menuData = { ...data, url: fileUrl.publicUrl };
+      // Track menu view after successful load
+      trackViewContent('Menu File');
+      return menuData;
+    }
+    return null;
+  };
   
   const { data: menuFile, isLoading } = useQuery({
     queryKey: ['active-menu'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('marketing_files')
-        .select('*')
-        .eq('category', 'menu')
-        .eq('is_active', true)
-        .maybeSingle();
-      
-      if (error) throw error;
-      
-      if (data) {
-        const { data: fileUrl } = supabase.storage
-          .from('marketing_files')
-          .getPublicUrl(data.file_path);
-        
-        return { ...data, url: fileUrl.publicUrl };
-      }
-      return null;
-    },
-    onSuccess: (data) => {
-      if (data) {
-        // Track menu view after successful load
-        trackViewContent('Menu File');
-      }
-    }
+    queryFn: fetchMenu
   });
 
   return (
