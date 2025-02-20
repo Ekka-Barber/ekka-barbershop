@@ -4,10 +4,9 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { FileMetadata } from '@/types/admin';
-import { optimizeFile } from '@/utils/fileOptimization';
+import { useFileUploader } from './useFileUploader';
 
 export const useFileManagement = () => {
-  const [uploading, setUploading] = useState(false);
   const [selectedBranch, setSelectedBranch] = useState<string | null>(null);
   const [isAllBranches, setIsAllBranches] = useState(true);
   const [selectedDate, setSelectedDate] = useState<Date>();
@@ -41,85 +40,17 @@ export const useFileManagement = () => {
     }
   });
 
-  const uploadMutation = useMutation({
-    mutationFn: async ({ file, category }: { file: File, category: string }) => {
-      setUploading(true);
-      try {
-        // Optimize file while maintaining quality
-        const optimizedFile = await optimizeFile(file);
-        
-        if (!optimizedFile) {
-          throw new Error('File optimization failed');
-        }
-
-        const fileExt = optimizedFile.name.split('.').pop();
-        const fileName = `${crypto.randomUUID()}.${fileExt}`;
-        
-        // Upload original file for backup
-        const originalPath = `original/${fileName}`;
-        const { error: originalUploadError } = await supabase.storage
-          .from('marketing_files')
-          .upload(originalPath, file);
-        
-        if (originalUploadError) throw originalUploadError;
-
-        // Upload optimized file
-        const optimizedPath = `optimized/${fileName}`;
-        const { error: uploadError } = await supabase.storage
-          .from('marketing_files')
-          .upload(optimizedPath, optimizedFile.file);
-        
-        if (uploadError) throw uploadError;
-
-        const selectedBranchName = !isAllBranches && selectedBranch 
-          ? branches?.find(b => b.id === selectedBranch)?.name 
-          : null;
-
-        let endDate = null;
-        if (selectedDate && selectedTime) {
-          const [hours, minutes] = selectedTime.split(':');
-          const date = new Date(selectedDate);
-          date.setHours(parseInt(hours), parseInt(minutes));
-          endDate = date.toISOString();
-        }
-
-        const { error: dbError } = await supabase
-          .from('marketing_files')
-          .insert({
-            file_name: file.name,
-            file_path: optimizedPath,
-            original_path: originalPath,
-            file_type: optimizedFile.type,
-            category,
-            is_active: true,
-            branch_name: selectedBranchName,
-            end_date: endDate,
-            file_hash: optimizedFile.originalHash
-          });
-
-        if (dbError) throw dbError;
-      } finally {
-        setUploading(false);
-      }
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['marketing-files'] });
-      toast({
-        title: "Success",
-        description: "File uploaded and optimized successfully",
-      });
+  const { uploading, uploadMutation } = useFileUploader({
+    branches,
+    isAllBranches,
+    selectedBranch,
+    selectedDate,
+    selectedTime,
+    onUploadSuccess: () => {
       setSelectedBranch(null);
       setIsAllBranches(true);
       setSelectedDate(undefined);
       setSelectedTime("23:59");
-    },
-    onError: (error) => {
-      toast({
-        title: "Error",
-        description: "Failed to upload file",
-        variant: "destructive",
-      });
-      console.error('Upload error:', error);
     }
   });
 
