@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { FileMetadata } from '@/types/admin';
+import { optimizeFile } from '@/utils/fileOptimization';
 
 export const useFileManagement = () => {
   const [uploading, setUploading] = useState(false);
@@ -44,12 +45,29 @@ export const useFileManagement = () => {
     mutationFn: async ({ file, category }: { file: File, category: string }) => {
       setUploading(true);
       try {
-        const fileExt = file.name.split('.').pop();
+        // Optimize file while maintaining quality
+        const optimizedFile = await optimizeFile(file);
+        
+        if (!optimizedFile) {
+          throw new Error('File optimization failed');
+        }
+
+        const fileExt = optimizedFile.name.split('.').pop();
         const fileName = `${crypto.randomUUID()}.${fileExt}`;
         
+        // Upload original file for backup
+        const originalPath = `original/${fileName}`;
+        const { error: originalUploadError } = await supabase.storage
+          .from('marketing_files')
+          .upload(originalPath, file);
+        
+        if (originalUploadError) throw originalUploadError;
+
+        // Upload optimized file
+        const optimizedPath = `optimized/${fileName}`;
         const { error: uploadError } = await supabase.storage
           .from('marketing_files')
-          .upload(fileName, file);
+          .upload(optimizedPath, optimizedFile.file);
         
         if (uploadError) throw uploadError;
 
@@ -69,12 +87,14 @@ export const useFileManagement = () => {
           .from('marketing_files')
           .insert({
             file_name: file.name,
-            file_path: fileName,
-            file_type: file.type,
+            file_path: optimizedPath,
+            original_path: originalPath,
+            file_type: optimizedFile.type,
             category,
             is_active: true,
             branch_name: selectedBranchName,
-            end_date: endDate
+            end_date: endDate,
+            file_hash: optimizedFile.originalHash
           });
 
         if (dbError) throw dbError;
@@ -86,7 +106,7 @@ export const useFileManagement = () => {
       queryClient.invalidateQueries({ queryKey: ['marketing-files'] });
       toast({
         title: "Success",
-        description: "File uploaded successfully",
+        description: "File uploaded and optimized successfully",
       });
       setSelectedBranch(null);
       setIsAllBranches(true);
