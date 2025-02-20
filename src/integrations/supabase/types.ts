@@ -947,7 +947,6 @@ export type Database = {
           file_type: string
           id: string
           is_active: boolean | null
-          original_path: string | null
           start_date: string | null
           updated_at: string
         }
@@ -963,7 +962,6 @@ export type Database = {
           file_type: string
           id?: string
           is_active?: boolean | null
-          original_path?: string | null
           start_date?: string | null
           updated_at?: string
         }
@@ -979,7 +977,6 @@ export type Database = {
           file_type?: string
           id?: string
           is_active?: boolean | null
-          original_path?: string | null
           start_date?: string | null
           updated_at?: string
         }
@@ -1042,6 +1039,57 @@ export type Database = {
           file_path?: string | null
           file_type?: string | null
           has_optimized_version?: boolean | null
+          id?: string | null
+          is_active?: boolean | null
+          original_path?: string | null
+          start_date?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      marketing_files_backup_restore: {
+        Row: {
+          branch_name: string | null
+          branch_name_ar: string | null
+          category: string | null
+          created_at: string | null
+          display_order: number | null
+          end_date: string | null
+          file_name: string | null
+          file_path: string | null
+          file_type: string | null
+          id: string | null
+          is_active: boolean | null
+          original_path: string | null
+          start_date: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          branch_name?: string | null
+          branch_name_ar?: string | null
+          category?: string | null
+          created_at?: string | null
+          display_order?: number | null
+          end_date?: string | null
+          file_name?: string | null
+          file_path?: string | null
+          file_type?: string | null
+          id?: string | null
+          is_active?: boolean | null
+          original_path?: string | null
+          start_date?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          branch_name?: string | null
+          branch_name_ar?: string | null
+          category?: string | null
+          created_at?: string | null
+          display_order?: number | null
+          end_date?: string | null
+          file_name?: string | null
+          file_path?: string | null
+          file_type?: string | null
           id?: string | null
           is_active?: boolean | null
           original_path?: string | null
