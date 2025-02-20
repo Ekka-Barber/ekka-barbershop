@@ -7,8 +7,12 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
-// Configure PDF.js worker to use local file from public directory
-pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.js';
+// Configure PDF.js worker with primary and fallback CDNs
+const PRIMARY_CDN = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
+const FALLBACK_CDN = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.js`;
+
+// Start with primary CDN
+pdfjs.GlobalWorkerOptions.workerSrc = PRIMARY_CDN;
 
 interface PDFViewerProps {
   pdfUrl: string;
@@ -21,24 +25,9 @@ const PDFViewer = ({ pdfUrl }: PDFViewerProps) => {
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
-  const [workerInitialized, setWorkerInitialized] = useState(false);
+  const [usingFallbackCDN, setUsingFallbackCDN] = useState(false);
   const isMobile = useIsMobile();
   const { language } = useLanguage();
-
-  useEffect(() => {
-    // Initialize PDF worker
-    const initWorker = async () => {
-      try {
-        await pdfjs.getDocument(new Uint8Array(1)).promise.catch(() => {});
-        setWorkerInitialized(true);
-      } catch (error) {
-        console.error('Failed to initialize PDF worker:', error);
-        setLoadError('PDF viewer initialization failed');
-      }
-    };
-    
-    initWorker();
-  }, []);
 
   useEffect(() => {
     const updatePageWidth = () => {
@@ -61,19 +50,36 @@ const PDFViewer = ({ pdfUrl }: PDFViewerProps) => {
   }, [pdfUrl]);
 
   useEffect(() => {
-    if (loadError && retryCount < 3 && workerInitialized) {
+    if (loadError && retryCount < 3) {
       const timer = setTimeout(() => {
-        console.log(`Retrying PDF load attempt ${retryCount + 1}`, { pdfUrl });
+        console.log(`Retrying PDF load attempt ${retryCount + 1}`, { 
+          pdfUrl,
+          usingFallbackCDN,
+          currentWorkerSrc: pdfjs.GlobalWorkerOptions.workerSrc
+        });
+
+        // If primary CDN failed, try fallback CDN
+        if (!usingFallbackCDN && loadError.includes('Cannot load script')) {
+          console.log('Switching to fallback CDN');
+          pdfjs.GlobalWorkerOptions.workerSrc = FALLBACK_CDN;
+          setUsingFallbackCDN(true);
+        }
+
         setRetryCount(prev => prev + 1);
         setLoadError(null);
         setIsLoading(true);
       }, 2000);
       return () => clearTimeout(timer);
     }
-  }, [loadError, retryCount, pdfUrl, workerInitialized]);
+  }, [loadError, retryCount, pdfUrl, usingFallbackCDN]);
 
   function onDocumentLoadSuccess({ numPages }: { numPages: number }) {
-    console.log('PDF loaded successfully', { pdfUrl, numPages });
+    console.log('PDF loaded successfully', { 
+      pdfUrl, 
+      numPages,
+      usingFallbackCDN,
+      workerSrc: pdfjs.GlobalWorkerOptions.workerSrc
+    });
     setNumPages(numPages);
     setIsLoading(false);
     setLoadError(null);
@@ -81,21 +87,13 @@ const PDFViewer = ({ pdfUrl }: PDFViewerProps) => {
   }
 
   function onDocumentLoadError(error: Error) {
-    console.error('PDF load error:', error, 'URL:', pdfUrl);
+    console.error('PDF load error:', error, 'URL:', pdfUrl, 'Using fallback CDN:', usingFallbackCDN);
     setLoadError(error.message);
     setIsLoading(false);
   }
 
   // Only show navigation if there's more than one page
   const showNavigation = numPages !== null && numPages > 1;
-
-  if (!workerInitialized) {
-    return (
-      <div className="text-center py-4">
-        <div className="animate-pulse">Initializing PDF viewer...</div>
-      </div>
-    );
-  }
 
   if (loadError && retryCount >= 3) {
     return (
