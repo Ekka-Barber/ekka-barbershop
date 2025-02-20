@@ -12,9 +12,9 @@ const generateEventId = () => {
 };
 
 export const trackViewContent = (page: string) => {
-  if (typeof ttq === 'undefined') return;
+  if (typeof window === 'undefined' || !window.ttq) return;
   
-  ttq.track('ViewContent', {
+  window.ttq.track('ViewContent', {
     contents: [{
       content_type: "page",
       content_name: page
@@ -23,9 +23,9 @@ export const trackViewContent = (page: string) => {
 };
 
 export const trackServiceSelection = (service: any) => {
-  if (typeof ttq === 'undefined') return;
+  if (typeof window === 'undefined' || !window.ttq) return;
   
-  ttq.track('AddToCart', {
+  window.ttq.track('AddToCart', {
     contents: [{
       content_id: service.id,
       content_type: "service",
@@ -37,9 +37,9 @@ export const trackServiceSelection = (service: any) => {
 };
 
 export const trackLocationView = (branch: any) => {
-  if (typeof ttq === 'undefined') return;
+  if (typeof window === 'undefined' || !window.ttq) return;
   
-  ttq.track('FindLocation', {
+  window.ttq.track('FindLocation', {
     contents: [{
       content_id: branch.id,
       content_type: "branch",
@@ -49,9 +49,9 @@ export const trackLocationView = (branch: any) => {
 };
 
 export const trackButtonClick = (buttonName: string) => {
-  if (typeof ttq === 'undefined') return;
+  if (typeof window === 'undefined' || !window.ttq) return;
   
-  ttq.track('ClickButton', {
+  window.ttq.track('ClickButton', {
     contents: [{
       content_type: "button",
       content_name: buttonName
@@ -60,7 +60,7 @@ export const trackButtonClick = (buttonName: string) => {
 };
 
 export const trackBookingCompletion = (booking: any, customerDetails: any) => {
-  if (typeof ttq === 'undefined') return;
+  if (typeof window === 'undefined' || !window.ttq) return;
 
   // Hash sensitive data
   const hashedEmail = hashData(customerDetails.email);
@@ -68,14 +68,14 @@ export const trackBookingCompletion = (booking: any, customerDetails: any) => {
   const hashedBookingId = hashData(booking.id);
 
   // Identify customer
-  ttq.identify({
+  window.ttq.identify({
     email: hashedEmail,
     phone_number: hashedPhone,
     external_id: hashedBookingId
   });
 
   // Track completion
-  ttq.track('PlaceAnOrder', {
+  window.ttq.track('PlaceAnOrder', {
     contents: booking.services.map((service: any) => ({
       content_id: service.id,
       content_type: "service",
