@@ -24,17 +24,13 @@ const getDeviceType = (): 'mobile' | 'tablet' | 'desktop' => {
 export const trackCampaignVisit = async () => {
   const utmParams = getUTMParameters();
   
-  // Only track if there are UTM parameters
-  if (!utmParams.utm_source && !utmParams.utm_medium && !utmParams.utm_campaign) {
-    return null;
-  }
-
   try {
     const { data, error } = await supabase
       .from('campaign_visits')
       .insert({
         ...utmParams,
         page_url: window.location.pathname,
+        referrer: document.referrer,
         device_type: getDeviceType(),
         browser_info: {
           userAgent: navigator.userAgent,

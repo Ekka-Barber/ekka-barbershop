@@ -227,6 +227,7 @@ export type Database = {
           device_type: Database["public"]["Enums"]["device_type"] | null
           id: string
           page_url: string | null
+          referrer: string | null
           timestamp: string | null
           utm_campaign: string | null
           utm_campaign_id: string | null
@@ -241,6 +242,7 @@ export type Database = {
           device_type?: Database["public"]["Enums"]["device_type"] | null
           id?: string
           page_url?: string | null
+          referrer?: string | null
           timestamp?: string | null
           utm_campaign?: string | null
           utm_campaign_id?: string | null
@@ -255,6 +257,7 @@ export type Database = {
           device_type?: Database["public"]["Enums"]["device_type"] | null
           id?: string
           page_url?: string | null
+          referrer?: string | null
           timestamp?: string | null
           utm_campaign?: string | null
           utm_campaign_id?: string | null
