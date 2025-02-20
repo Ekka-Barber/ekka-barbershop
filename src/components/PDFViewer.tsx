@@ -7,8 +7,8 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
-// Configure PDF.js worker to use a specific version that matches our react-pdf version
-pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.js`;
+// Configure PDF.js worker to use local file from public directory
+pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.js';
 
 interface PDFViewerProps {
   pdfUrl: string;
@@ -21,8 +21,24 @@ const PDFViewer = ({ pdfUrl }: PDFViewerProps) => {
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
+  const [workerInitialized, setWorkerInitialized] = useState(false);
   const isMobile = useIsMobile();
   const { language } = useLanguage();
+
+  useEffect(() => {
+    // Initialize PDF worker
+    const initWorker = async () => {
+      try {
+        await pdfjs.getDocument(new Uint8Array(1)).promise.catch(() => {});
+        setWorkerInitialized(true);
+      } catch (error) {
+        console.error('Failed to initialize PDF worker:', error);
+        setLoadError('PDF viewer initialization failed');
+      }
+    };
+    
+    initWorker();
+  }, []);
 
   useEffect(() => {
     const updatePageWidth = () => {
@@ -45,7 +61,7 @@ const PDFViewer = ({ pdfUrl }: PDFViewerProps) => {
   }, [pdfUrl]);
 
   useEffect(() => {
-    if (loadError && retryCount < 3) {
+    if (loadError && retryCount < 3 && workerInitialized) {
       const timer = setTimeout(() => {
         console.log(`Retrying PDF load attempt ${retryCount + 1}`, { pdfUrl });
         setRetryCount(prev => prev + 1);
@@ -54,7 +70,7 @@ const PDFViewer = ({ pdfUrl }: PDFViewerProps) => {
       }, 2000);
       return () => clearTimeout(timer);
     }
-  }, [loadError, retryCount, pdfUrl]);
+  }, [loadError, retryCount, pdfUrl, workerInitialized]);
 
   function onDocumentLoadSuccess({ numPages }: { numPages: number }) {
     console.log('PDF loaded successfully', { pdfUrl, numPages });
@@ -72,6 +88,14 @@ const PDFViewer = ({ pdfUrl }: PDFViewerProps) => {
 
   // Only show navigation if there's more than one page
   const showNavigation = numPages !== null && numPages > 1;
+
+  if (!workerInitialized) {
+    return (
+      <div className="text-center py-4">
+        <div className="animate-pulse">Initializing PDF viewer...</div>
+      </div>
+    );
+  }
 
   if (loadError && retryCount >= 3) {
     return (
