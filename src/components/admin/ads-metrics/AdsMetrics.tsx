@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -64,20 +63,28 @@ export const AdsMetrics = () => {
         (!visit.referrer || !isExcludedDomain(visit.referrer))
       );
 
+      // Calculate overall metrics
       const total_visits = filteredData.length;
-      const conversions = filteredData.filter(visit => visit.converted_to_booking).length;
-      const conversion_rate = (conversions / total_visits) * 100 || 0;
+      const total_conversions = filteredData.filter(visit => visit.converted_to_booking).length;
+      const overall_conversion_rate = (total_conversions / total_visits) * 100 || 0;
+
+      // Calculate TikTok-specific metrics
       const tiktok_visits = filteredData.filter(visit => 
         visit.utm_source?.toLowerCase() === 'tiktok' || 
         visit.referrer?.includes('tiktok.com')
-      ).length;
+      );
+      const tiktok_total = tiktok_visits.length;
+      const tiktok_conversions = tiktok_visits.filter(visit => visit.converted_to_booking).length;
+      const tiktok_conversion_rate = (tiktok_conversions / tiktok_total) * 100 || 0;
 
       return {
         total_visits,
-        conversions,
-        conversion_rate: conversion_rate.toFixed(1),
-        tiktok_visits,
-        tiktok_percentage: ((tiktok_visits / total_visits) * 100).toFixed(1)
+        total_conversions,
+        overall_conversion_rate: overall_conversion_rate.toFixed(1),
+        tiktok_visits: tiktok_total,
+        tiktok_conversions,
+        tiktok_conversion_rate: tiktok_conversion_rate.toFixed(1),
+        tiktok_percentage: ((tiktok_total / total_visits) * 100).toFixed(1)
       };
     },
   });
@@ -181,7 +188,7 @@ export const AdsMetrics = () => {
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Visits</CardTitle>
@@ -192,18 +199,13 @@ export const AdsMetrics = () => {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Conversions</CardTitle>
+            <CardTitle className="text-sm font-medium">Overall Conversions</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{summaryData?.conversions || 0}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Conversion Rate</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{summaryData?.conversion_rate || 0}%</div>
+            <div className="text-2xl font-bold">{summaryData?.total_conversions || 0}</div>
+            <p className="text-xs text-muted-foreground">
+              Rate: {summaryData?.overall_conversion_rate || 0}%
+            </p>
           </CardContent>
         </Card>
         <Card>
@@ -215,6 +217,25 @@ export const AdsMetrics = () => {
             <p className="text-xs text-muted-foreground">
               ({summaryData?.tiktok_percentage || 0}% of total)
             </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">TikTok Conversions</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{summaryData?.tiktok_conversions || 0}</div>
+            <p className="text-xs text-muted-foreground">
+              Rate: {summaryData?.tiktok_conversion_rate || 0}%
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Best Source</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">TikTok</div>
           </CardContent>
         </Card>
       </div>
