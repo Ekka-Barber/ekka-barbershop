@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from "@/integrations/supabase/client";
@@ -55,23 +54,25 @@ export const useFileManagement = () => {
     }
   };
 
-  const generatePreview = async (file: File): Promise<FilePreview> => {
+  const generatePreview = async (file: File, category: 'menu' | 'offers'): Promise<FilePreview> => {
     if (file.type.startsWith('image/')) {
       return {
         url: URL.createObjectURL(file),
-        type: 'image'
+        type: category,
+        fileType: 'image'
       };
     } else if (file.type === 'application/pdf') {
       return {
         url: URL.createObjectURL(file),
-        type: 'pdf'
+        type: category,
+        fileType: 'pdf'
       };
     }
     throw new Error('Unsupported file type for preview');
   };
 
   const uploadMutation = useMutation({
-    mutationFn: async ({ file, category }: { file: File, category: string }) => {
+    mutationFn: async ({ file, category }: { file: File, category: 'menu' | 'offers' }) => {
       setUploading(true);
       console.log('Starting file upload:', { fileName: file.name, category });
       
@@ -80,7 +81,7 @@ export const useFileManagement = () => {
         validateFile(file);
 
         // Generate preview
-        const preview = await generatePreview(file);
+        const preview = await generatePreview(file, category);
         setFilePreview(preview);
 
         const fileExt = file.name.split('.').pop();
