@@ -7,9 +7,9 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
-// Configure PDF.js worker with primary and fallback CDNs
-const PRIMARY_CDN = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
-const FALLBACK_CDN = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.js`;
+// Configure PDF.js worker with primary and fallback CDNs using https
+const PRIMARY_CDN = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
+const FALLBACK_CDN = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.js`;
 
 // Start with primary CDN
 pdfjs.GlobalWorkerOptions.workerSrc = PRIMARY_CDN;
@@ -59,7 +59,7 @@ const PDFViewer = ({ pdfUrl }: PDFViewerProps) => {
         });
 
         // If primary CDN failed, try fallback CDN
-        if (!usingFallbackCDN && loadError.includes('Cannot load script')) {
+        if (!usingFallbackCDN) {
           console.log('Switching to fallback CDN');
           pdfjs.GlobalWorkerOptions.workerSrc = FALLBACK_CDN;
           setUsingFallbackCDN(true);

@@ -1,5 +1,5 @@
 
-import React, { useEffect, lazy, Suspense } from "react";
+import React from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -34,7 +34,8 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
-const App = () => {
+// Main App Component
+const AppContent = () => {
   useEffect(() => {
     // Track initial campaign visit
     const trackVisit = async () => {
@@ -51,37 +52,43 @@ const App = () => {
   }, []);
 
   return (
+    <Routes>
+      {/* Redirect root to customer page */}
+      <Route path="/" element={<Navigate to="/customer" replace />} />
+      
+      {/* Public routes */}
+      <Route path="/customer" element={<Customer />} />
+      <Route path="/menu" element={<Menu />} />
+      <Route path="/offers" element={<Offers />} />
+      <Route path="/bookings" element={<Bookings />} />
+      
+      {/* Protected routes */}
+      <Route 
+        path="/admin" 
+        element={
+          <ProtectedRoute>
+            <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
+              <Admin />
+            </Suspense>
+          </ProtectedRoute>
+        } 
+      />
+      
+      {/* Catch all other routes and redirect to customer page */}
+      <Route path="*" element={<Navigate to="/customer" replace />} />
+    </Routes>
+  );
+};
+
+const App = () => {
+  return (
     <QueryClientProvider client={queryClient}>
       <LanguageProvider>
         <TooltipProvider>
           <Toaster />
           <Sonner />
           <BrowserRouter>
-            <Routes>
-              {/* Redirect root to customer page */}
-              <Route path="/" element={<Navigate to="/customer" replace />} />
-              
-              {/* Public routes */}
-              <Route path="/customer" element={<Customer />} />
-              <Route path="/menu" element={<Menu />} />
-              <Route path="/offers" element={<Offers />} />
-              <Route path="/bookings" element={<Bookings />} />
-              
-              {/* Protected routes */}
-              <Route 
-                path="/admin" 
-                element={
-                  <ProtectedRoute>
-                    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
-                      <Admin />
-                    </Suspense>
-                  </ProtectedRoute>
-                } 
-              />
-              
-              {/* Catch all other routes and redirect to customer page */}
-              <Route path="*" element={<Navigate to="/customer" replace />} />
-            </Routes>
+            <AppContent />
           </BrowserRouter>
         </TooltipProvider>
       </LanguageProvider>
