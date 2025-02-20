@@ -6,6 +6,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { Slash } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { SelectedService } from '@/types/service';
+import RiyalIcon from "@/components/icons/RiyalIcon";
 
 interface UpsellService {
   id: string;
@@ -45,7 +46,16 @@ export const UpsellModal = ({
   };
 
   const formatPrice = (price: number) => {
-    return `${Math.round(price)} ${language === 'ar' ? 'ريال' : 'SAR'}`;
+    const roundedPrice = Math.round(price);
+    if (language === 'ar') {
+      return (
+        <span className="inline-flex items-center gap-0.5">
+          <span>{roundedPrice}</span>
+          <RiyalIcon />
+        </span>
+      );
+    }
+    return `${roundedPrice} SAR`;
   };
 
   const useGridLayout = availableUpsells.length > 3;
@@ -155,4 +165,3 @@ export const UpsellModal = ({
     </Dialog>
   );
 };
-
