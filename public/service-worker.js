@@ -1,40 +1,170 @@
 
+// Define constants
+const SW_VERSION = '1.0.0';
 const CACHE_NAME = 'ekka-v1';
+
+// Files to cache
 const STATIC_ASSETS = [
   '/',
   '/index.html',
-  '/manifest.json',
-  '/lovable-uploads/8289fb1d-c6e6-4528-980c-6b52313ca898.png'
+  '/manifest.json'
 ];
 
-// Install event - cache static assets
+// Cache bypass patterns
+const BYPASS_CACHE_PATTERNS = [
+  /\/rest\/v1\/rpc\//,  // Supabase RPC endpoints
+  /supabase\.co\/rest\//, // All Supabase REST endpoints
+  /\/auth\//, // Auth endpoints
+  /\/storage\//, // Storage endpoints
+];
+
+// Check if a request should bypass cache
+function shouldBypassCache(request) {
+  return BYPASS_CACHE_PATTERNS.some(pattern => pattern.test(request.url));
+}
+
+// Cache initialization
+async function initializeCache() {
+  try {
+    const cache = await caches.open(CACHE_NAME);
+    await cache.addAll(STATIC_ASSETS);
+  } catch (error) {
+    logError('Cache initialization failed:', error);
+  }
+}
+
+// Cache cleanup
+async function cleanupOldCaches() {
+  const cacheNames = await caches.keys();
+  return Promise.all(
+    cacheNames
+      .filter(cacheName => cacheName !== CACHE_NAME)
+      .map(cacheName => caches.delete(cacheName))
+  );
+}
+
+// Check if a request is a navigation request
+function isNavigationRequest(request) {
+  return request.mode === 'navigate' || 
+         (request.method === 'GET' && request.headers.get('accept')?.includes('text/html'));
+}
+
+// Fetch handler with improved response handling
+async function handleFetch(event) {
+  try {
+    const request = event.request;
+
+    // For API calls that should bypass cache
+    if (shouldBypassCache(request)) {
+      try {
+        const response = await fetch(request);
+        if (response.ok) return response;
+        throw new Error('API call failed');
+      } catch (error) {
+        return new Response(
+          JSON.stringify({ error: 'API call failed' }), 
+          { 
+            status: 500, 
+            headers: { 'Content-Type': 'application/json' }
+          }
+        );
+      }
+    }
+
+    // For navigation requests, respond with index.html from cache or network
+    if (isNavigationRequest(request)) {
+      const response = await fetch(request);
+      if (response.ok) return response;
+
+      // If network request fails, try cache
+      const cachedResponse = await caches.match('/index.html');
+      if (cachedResponse) return cachedResponse;
+
+      // If both fail, return a basic response with error message
+      return new Response('Navigation failed. Please check your connection.', {
+        status: 200,
+        headers: { 'Content-Type': 'text/html' }
+      });
+    }
+
+    // For regular static assets, try cache first
+    const cachedResponse = await caches.match(request);
+    if (cachedResponse) return cachedResponse;
+
+    // If not in cache, try network
+    try {
+      const response = await fetch(request);
+      if (response.ok) {
+        // Only cache successful GET requests for static assets
+        if (request.method === 'GET' && !shouldBypassCache(request)) {
+          const responseToCache = response.clone();
+          const cache = await caches.open(CACHE_NAME);
+          await cache.put(request, responseToCache);
+        }
+        return response;
+      }
+    } catch (error) {
+      // Network request failed
+      return new Response('Resource not available', {
+        status: 404,
+        headers: { 'Content-Type': 'text/plain' }
+      });
+    }
+
+    // If both cache and network fail, return error response
+    return new Response('Resource not available', {
+      status: 404,
+      headers: { 'Content-Type': 'text/plain' }
+    });
+  } catch (error) {
+    logError('Fetch handler error:', error);
+    return new Response('Service worker error', {
+      status: 500,
+      headers: { 'Content-Type': 'text/plain' }
+    });
+  }
+}
+
+// Logging utilities
+function log(message, data = {}) {
+  const timestamp = new Date().toISOString();
+  console.log(`[ServiceWorker ${SW_VERSION}] ${timestamp} - ${message}`, data);
+}
+
+function logError(message, error) {
+  const timestamp = new Date().toISOString();
+  console.error(`[ServiceWorker ${SW_VERSION}] ${timestamp} - ${message}`, error);
+}
+
+// Install event
 self.addEventListener('install', (event) => {
+  log('Installing service worker');
   self.skipWaiting();
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(STATIC_ASSETS);
-    })
-  );
+  event.waitUntil(initializeCache());
 });
 
-// Activate event - cleanup old caches
+// Activate event
 self.addEventListener('activate', (event) => {
+  log('Activating service worker');
   event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
-        cacheNames
-          .filter((cacheName) => cacheName !== CACHE_NAME)
-          .map((cacheName) => caches.delete(cacheName))
-      );
-    })
+    Promise.all([
+      self.clients.claim(),
+      cleanupOldCaches()
+    ])
   );
 });
 
-// Fetch event - serve from cache, fallback to network
+// Fetch event
 self.addEventListener('fetch', (event) => {
-  event.respondWith(
-    caches.match(event.request).then((response) => {
-      return response || fetch(event.request);
-    })
-  );
+  event.respondWith(handleFetch(event));
+});
+
+// Error handling
+self.addEventListener('error', (event) => {
+  logError('Service worker error:', event.error);
+});
+
+// Unhandled rejection handling
+self.addEventListener('unhandledrejection', (event) => {
+  logError('Unhandled promise rejection:', event.reason);
 });
