@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { DateRange } from "react-day-picker";
 import { isExcludedDomain } from "../utils/domainUtils";
-import type { SummaryMetrics, TimelineDataPoint, TrafficSource } from "../types";
+import type { SummaryMetrics, TimelineDataPoint, TrafficSource, DeviceMetrics } from "../types";
 
 export const useAdsMetrics = (dateRange: DateRange) => {
   // Fetch campaign summary including TikTok data
@@ -90,7 +90,7 @@ export const useAdsMetrics = (dateRange: DateRange) => {
         const dateStr = visit.timestamp.split('T')[0];
         const isTikTok = visit.utm_source?.toLowerCase() === 'tiktok' || 
                         visit.referrer?.includes('tiktok.com');
-        const deviceType = visit.device_type?.toLowerCase() || 'desktop';
+        const deviceType = (visit.device_type?.toLowerCase() || 'desktop') as keyof DeviceMetrics;
         
         if (!acc[dateStr]) {
           acc[dateStr] = {
@@ -114,7 +114,7 @@ export const useAdsMetrics = (dateRange: DateRange) => {
           acc[dateStr].tiktok_visits++;
         }
         if (deviceType in acc[dateStr].deviceBreakdown) {
-          acc[dateStr].deviceBreakdown[deviceType as keyof typeof acc[dateStr]['deviceBreakdown']]++;
+          acc[dateStr].deviceBreakdown[deviceType]++;
         }
         return acc;
       }, {});
