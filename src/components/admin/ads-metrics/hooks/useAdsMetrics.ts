@@ -86,15 +86,15 @@ export const useAdsMetrics = (dateRange: DateRange) => {
         (!visit.referrer || !isExcludedDomain(visit.referrer))
       );
 
-      const dailyData = filteredData.reduce((acc: { [key: string]: TimelineDataPoint }, visit) => {
-        const date = visit.timestamp.split('T')[0];
+      const dailyData: { [key: string]: TimelineDataPoint } = filteredData.reduce((acc, visit) => {
+        const dateStr = visit.timestamp.split('T')[0];
         const isTikTok = visit.utm_source?.toLowerCase() === 'tiktok' || 
                         visit.referrer?.includes('tiktok.com');
         const deviceType = visit.device_type?.toLowerCase() || 'desktop';
         
-        if (!acc[date]) {
-          acc[date] = {
-            date,
+        if (!acc[dateStr]) {
+          acc[dateStr] = {
+            date: dateStr,
             visits: 0,
             tiktok_visits: 0,
             conversions: 0,
@@ -105,14 +105,17 @@ export const useAdsMetrics = (dateRange: DateRange) => {
             }
           };
         }
-        acc[date].visits++;
+        
+        acc[dateStr].visits++;
         if (visit.converted_to_booking) {
-          acc[date].conversions++;
+          acc[dateStr].conversions++;
         }
         if (isTikTok) {
-          acc[date].tiktok_visits++;
+          acc[dateStr].tiktok_visits++;
         }
-        acc[date].deviceBreakdown[deviceType as keyof typeof acc[date]['deviceBreakdown']]++;
+        if (deviceType in acc[dateStr].deviceBreakdown) {
+          acc[dateStr].deviceBreakdown[deviceType as keyof typeof acc[dateStr]['deviceBreakdown']]++;
+        }
         return acc;
       }, {});
 
