@@ -5,7 +5,6 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { trackButtonClick } from "@/utils/tiktokTracking";
 import { getPlatformType } from "@/services/platformDetection";
 import { useToast } from "@/components/ui/use-toast";
-import { Apple } from 'lucide-react';
 import AndroidIcon from '@/components/icons/AndroidIcon';
 import AddToHomeScreenIcon from '@/components/icons/AddToHomeScreenIcon';
 import {
@@ -80,10 +79,10 @@ export const InstallAppPrompt = () => {
     }
   };
 
-  const PlatformIcon = platform === 'ios' ? Apple : AndroidIcon;
+  // Show for both iOS and Android
+  const shouldShowPrompt = platform === 'ios' || (platform === 'android' && install);
 
-  // If already installed or installation not supported, don't show the prompt
-  if (!install) {
+  if (!shouldShowPrompt) {
     return null;
   }
 
@@ -95,16 +94,22 @@ export const InstallAppPrompt = () => {
             className="w-full flex items-center justify-center gap-3 py-6 text-lg font-medium bg-[#9B87F5] hover:bg-[#8A74F2] text-white transition-all duration-300 group"
             onClick={handleInstallClick}
           >
-            <PlatformIcon className="h-8 w-8 animate-[heart-beat_2s_cubic-bezier(0.4,0,0.6,1)_infinite] group-hover:text-white" />
-            <span className="text-xl font-semibold animate-[heart-beat_2s_cubic-bezier(0.4,0,0.6,1)_infinite]">
-              {language === 'ar' ? 'حمل تطبيق إكّـه الآن' : 'Download Ekka App'}
-            </span>
+            <div className={`flex items-center justify-center gap-3 ${language === 'ar' ? 'flex-row-reverse' : 'flex-row'}`}>
+              {platform === 'ios' ? (
+                <AddToHomeScreenIcon />
+              ) : (
+                <AndroidIcon />
+              )}
+              <span className="font-changa text-xl font-semibold animate-[heart-beat_2s_cubic-bezier(0.4,0,0.6,1)_infinite]">
+                {language === 'ar' ? 'حمل تطبيق إكّـه الآن' : 'Download Ekka App'}
+              </span>
+            </div>
           </Button>
         </AlertDialogTrigger>
-        <AlertDialogContent className={`${language === 'ar' ? 'rtl' : 'ltr'} max-w-md`}>
+        <AlertDialogContent className={`${language === 'ar' ? 'rtl' : 'ltr'} max-w-md font-changa`}>
           <AlertDialogHeader>
             <AlertDialogTitle className="text-xl">
-              {platform === 'ios' ? t('install.guide.title') : t('install.guide.title')}
+              {t('install.guide.title')}
             </AlertDialogTitle>
             <AlertDialogDescription className="space-y-4">
               <p className="text-sm text-muted-foreground">
@@ -116,7 +121,7 @@ export const InstallAppPrompt = () => {
                 {getInstallDescription()}
               </div>
               {platform === 'ios' && (
-                <div className="flex items-center gap-2 text-sm text-muted-foreground mt-2">
+                <div className={`flex items-center gap-2 text-sm text-muted-foreground mt-2 ${language === 'ar' ? 'flex-row-reverse' : 'flex-row'}`}>
                   <AddToHomeScreenIcon />
                   <span>
                     {language === 'ar' 
@@ -128,12 +133,12 @@ export const InstallAppPrompt = () => {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className={language === 'ar' ? 'flex-row-reverse' : ''}>
-            <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
+            <AlertDialogCancel className="font-changa">{t('cancel')}</AlertDialogCancel>
             {platform === 'android' && (
               <AlertDialogAction
                 onClick={handleInstallation}
                 disabled={isInstalling}
-                className="gap-2"
+                className="gap-2 font-changa"
               >
                 {isInstalling && <Loader2 className="h-4 w-4 animate-spin" />}
                 {isInstalling ? t('installing') : t('install')}
