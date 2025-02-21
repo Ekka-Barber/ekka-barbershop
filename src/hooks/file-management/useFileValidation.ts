@@ -1,5 +1,6 @@
 
 import { FileValidationConfig } from './types';
+import { FilePreview } from '@/types/admin';
 
 export const useFileValidation = () => {
   const config: FileValidationConfig = {
