@@ -19,7 +19,10 @@ const Offers = () => {
   
   useEffect(() => {
     // Track page view after component mounts
-    trackViewContent('Offers');
+    trackViewContent({
+      pageId: 'offers',
+      pageName: 'Offers'
+    });
   }, []);
   
   const { data: offersFiles, isLoading, error: fetchError } = useQuery({
@@ -79,7 +82,10 @@ const Offers = () => {
           (now - endDate) < (3 * 24 * 60 * 60 * 1000) : false;
         
         if (!isExpired) {
-          trackViewContent('Offer');
+          trackViewContent({
+            pageId: `offer_${file.id}`,
+            pageName: 'Offer'
+          });
         }
         
         return { 
@@ -151,7 +157,10 @@ const Offers = () => {
               <div className="h-1 w-24 bg-[#C4A36F] mx-auto mb-6"></div>
               <Button 
                 onClick={() => {
-                  trackButtonClick('Back Home');
+                  trackButtonClick({
+                    buttonId: 'back_home',
+                    buttonName: 'Back Home'
+                  });
                   navigate('/customer');
                 }}
                 className="bg-[#4A4A4A] hover:bg-[#3A3A3A] text-white transition-all duration-300"

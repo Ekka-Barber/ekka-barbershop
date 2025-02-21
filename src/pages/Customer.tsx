@@ -20,7 +20,10 @@ const Customer = () => {
   const [locationDialogOpen, setLocationDialogOpen] = useState(false);
 
   useEffect(() => {
-    trackViewContent('Home');
+    trackViewContent({
+      pageId: 'home',
+      pageName: 'Home'
+    });
   }, []);
 
   const { data: branches } = useQuery({
@@ -33,7 +36,10 @@ const Customer = () => {
   });
 
   const handleBranchSelect = (branchId: string) => {
-    trackButtonClick('Book Now');
+    trackButtonClick({
+      buttonId: 'book_now',
+      buttonName: 'Book Now'
+    });
     setBranchDialogOpen(false);
     navigate(`/bookings?branch=${branchId}`);
   };
@@ -47,7 +53,11 @@ const Customer = () => {
   const handleLocationDialog = () => {
     setLocationDialogOpen(true);
     if (branches?.[0]) {
-      trackLocationView(branches[0]);
+      trackLocationView({
+        id: branches[0].id,
+        name_en: branches[0].name,  // Use the name field as name_en
+        value: undefined
+      });
     }
   };
 
@@ -78,7 +88,10 @@ const Customer = () => {
             <Button 
               className="w-full h-14 text-lg font-medium bg-[#C4A36F] hover:bg-[#B39260] text-white transition-all duration-300 shadow-lg hover:shadow-xl touch-target" 
               onClick={() => {
-                trackButtonClick('View Menu');
+                trackButtonClick({
+                  buttonId: 'view_menu',
+                  buttonName: 'View Menu'
+                });
                 navigate('/menu');
               }}
             >
@@ -88,7 +101,10 @@ const Customer = () => {
             <Button 
               className="w-full h-14 text-lg font-medium bg-[#4A4A4A] hover:bg-[#3A3A3A] text-white transition-all duration-300 shadow-lg hover:shadow-xl touch-target" 
               onClick={() => {
-                trackButtonClick('Special Offers');
+                trackButtonClick({
+                  buttonId: 'special_offers',
+                  buttonName: 'Special Offers'
+                });
                 navigate('/offers');
               }}
             >
@@ -98,7 +114,10 @@ const Customer = () => {
             <Button 
               className="w-full h-14 text-lg font-medium bg-[#C4A36F] hover:bg-[#B39260] text-white transition-all duration-300 shadow-lg hover:shadow-xl touch-target" 
               onClick={() => {
-                trackButtonClick('Book Now');
+                trackButtonClick({
+                  buttonId: 'book_now',
+                  buttonName: 'Book Now'
+                });
                 setBranchDialogOpen(true);
               }}
             >
@@ -118,7 +137,10 @@ const Customer = () => {
             <Button 
               className="w-full h-14 text-lg font-medium bg-white hover:bg-gray-50 text-gray-800 transition-all duration-300 shadow-lg hover:shadow-xl border border-gray-200 touch-target overflow-hidden" 
               onClick={() => {
-                trackButtonClick('Join Loyalty Program');
+                trackButtonClick({
+                  buttonId: 'join_loyalty',
+                  buttonName: 'Join Loyalty Program'
+                });
                 window.open('https://enroll.boonus.app/64b7c34953090f001de0fb6c/wallet/64b7efed53090f001de815b4', '_blank');
               }}
             >

@@ -7,7 +7,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { Card } from "@/components/ui/card";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
-import { useEffect, useCallback } from 'react';
+import { useEffect } from 'react';
 import { trackViewContent, trackButtonClick } from "@/utils/tiktokTracking";
 
 const Menu = () => {
@@ -16,7 +16,10 @@ const Menu = () => {
   
   useEffect(() => {
     // Track page view after component mounts
-    trackViewContent('Menu');
+    trackViewContent({
+      pageId: 'menu',
+      pageName: 'Menu'
+    });
   }, []);
 
   // Separate the fetch function for better type inference
@@ -41,7 +44,10 @@ const Menu = () => {
       
       const menuData = { ...data, url: publicUrlData.publicUrl };
       // Track menu view after successful load
-      trackViewContent('Menu File');
+      trackViewContent({
+        pageId: 'menu_file',
+        pageName: 'Menu File'
+      });
       return menuData;
     }
     return null;
@@ -74,7 +80,10 @@ const Menu = () => {
             <div className="h-1 w-24 bg-[#C4A36F] mx-auto mb-6"></div>
             <Button 
               onClick={() => {
-                trackButtonClick('Back Home');
+                trackButtonClick({
+                  buttonId: 'back_home',
+                  buttonName: 'Back Home'
+                });
                 navigate('/customer');
               }}
               className="bg-[#4A4A4A] hover:bg-[#3A3A3A] text-white transition-all duration-300 touch-target"
