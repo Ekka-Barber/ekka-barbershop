@@ -21,16 +21,7 @@ export const InstallAppPrompt = () => {
   const [showInstallGuide, setShowInstallGuide] = useState(false);
   const install = usePWAInstall();
 
-  useEffect(() => {
-    const checkInstallState = async () => {
-      if (install && await install()) {
-        setShowInstallGuide(false);
-      }
-    };
-    checkInstallState();
-  }, [install]);
-
-  const handleInstallClick = () => {
+  const handleInstallClick = async () => {
     trackButtonClick({
       buttonId: 'install_app',
       buttonName: 'Install App'
@@ -38,7 +29,18 @@ export const InstallAppPrompt = () => {
     setShowInstallGuide(true);
   };
 
-  // If already installed, don't show the prompt
+  const handleInstallConfirm = async () => {
+    if (install) {
+      try {
+        await install();
+        setShowInstallGuide(false);
+      } catch (error) {
+        console.error('Installation failed:', error);
+      }
+    }
+  };
+
+  // If already installed or not available, don't show the prompt
   if (!install) {
     return null;
   }
@@ -63,12 +65,9 @@ export const InstallAppPrompt = () => {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
-            <AlertDialogAction onClick={async () => {
-              if (install) {
-                await install();
-                setShowInstallGuide(false);
-              }
-            }}>{t('install')}</AlertDialogAction>
+            <AlertDialogAction onClick={handleInstallConfirm}>
+              {t('install')}
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
