@@ -5,33 +5,9 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { trackButtonClick } from "@/utils/tiktokTracking";
 import { getPlatformType } from "@/services/platformDetection";
 import { useToast } from "@/components/ui/use-toast";
-import { Share, Check } from 'lucide-react';
-import AndroidIcon from '@/components/icons/AndroidIcon';
-import AppleIcon from '@/components/icons/AppleIcon';
-import AddToHomeScreenIcon from '@/components/icons/AddToHomeScreenIcon';
-import { CustomBadge } from "@/components/ui/custom-badge";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetDescription,
-  SheetClose,
-  SheetTrigger,
-} from "@/components/ui/sheet";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
-import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
+import { InstallButton } from './InstallButton';
+import { IOSInstallGuide } from './IOSInstallGuide';
+import { AndroidInstallGuide } from './AndroidInstallGuide';
 
 export const InstallAppPrompt = () => {
   const { t, language } = useLanguage();
@@ -86,151 +62,32 @@ export const InstallAppPrompt = () => {
     return null;
   }
 
-  const renderIOSContent = () => (
-    <Sheet>
-      <SheetTrigger asChild>
-        <div className="relative space-y-2">
-          <div className="absolute -top-2 -right-2 z-10">
-            <CustomBadge variant="secondary" className="bg-[#C4A36F] text-white border-none">
-              {language === 'ar' ? 'جديد' : 'NEW'}
-            </CustomBadge>
-          </div>
-          <Button
-            className="w-full flex items-center justify-center gap-3 py-6 text-lg font-medium bg-[#9B87F5] hover:bg-[#8A74F2] text-white transition-all duration-300 group"
-            onClick={handleInstallClick}
-          >
-            <div className={`flex items-center justify-center gap-6 ${language === 'ar' ? 'flex-row-reverse' : 'flex-row'}`}>
-              <AppleIcon />
-              <span className="font-changa text-xl font-semibold animate-[heart-beat_2s_cubic-bezier(0.4,0,0.6,1)_infinite]">
-                {language === 'ar' ? 'حمل تطبيق إكّـه الآن' : 'Download Ekka App'}
-              </span>
-            </div>
-          </Button>
-          <p className="text-sm text-muted-foreground text-center font-changa">
-            حجوزات أسرع، عروض حصرية، ومزايا إضافية بانتظارك
-          </p>
-        </div>
-      </SheetTrigger>
-      <SheetContent 
-        side="bottom" 
-        className={`${language === 'ar' ? 'rtl' : 'ltr'} font-changa rounded-t-xl p-0`}
-      >
-        <div className="p-6 space-y-6">
-          <SheetHeader>
-            <SheetTitle className="text-2xl font-bold text-center">
-              {language === 'ar' ? 'لتثبيت التطبيق على الشاشة الرئيسية' : 'Add to Home Screen'}
-            </SheetTitle>
-            <SheetDescription className="text-center text-base font-medium">
-              {language === 'ar' ? 'اتبع الخطوات التالية:' : 'Follow these steps:'}
-            </SheetDescription>
-          </SheetHeader>
-          
-          <div className="space-y-6">
-            <div className={`flex items-center gap-4 ${language === 'ar' ? 'flex-row-reverse' : 'flex-row'}`}>
-              <div className="flex-shrink-0 w-10 h-10 rounded-full bg-[#9B87F5] text-white flex items-center justify-center font-bold">
-                1
-              </div>
-              <div className="flex items-center gap-3 flex-1">
-                <Share className="w-6 h-6 text-gray-600" />
-                <span className="text-base">
-                  {language === 'ar' ? 'انقر على زر المشاركة' : 'Tap the Share button'}
-                </span>
-              </div>
-            </div>
-
-            <div className={`flex items-center gap-4 ${language === 'ar' ? 'flex-row-reverse' : 'flex-row'}`}>
-              <div className="flex-shrink-0 w-10 h-10 rounded-full bg-[#9B87F5] text-white flex items-center justify-center font-bold">
-                2
-              </div>
-              <div className="flex items-center gap-3 flex-1">
-                <AddToHomeScreenIcon />
-                <span className="text-base">
-                  {language === 'ar' ? 'اختر "إضافة إلى الشاشة الرئيسية"' : 'Choose "Add to Home Screen"'}
-                </span>
-              </div>
-            </div>
-
-            <div className={`flex items-center gap-4 ${language === 'ar' ? 'flex-row-reverse' : 'flex-row'}`}>
-              <div className="flex-shrink-0 w-10 h-10 rounded-full bg-[#9B87F5] text-white flex items-center justify-center font-bold">
-                3
-              </div>
-              <div className="flex items-center gap-3 flex-1">
-                <Check className="w-6 h-6 text-gray-600" />
-                <span className="text-base">
-                  {language === 'ar' ? 'انقر على "إضافة" للتأكيد' : 'Tap "Add" to confirm'}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          <SheetClose asChild>
-            <Button 
-              variant="outline" 
-              className="w-full mt-4"
-            >
-              {t('cancel')}
-            </Button>
-          </SheetClose>
-        </div>
-      </SheetContent>
-    </Sheet>
+  const installButton = (
+    <InstallButton
+      platform={platform as 'ios' | 'android'}
+      language={language}
+      onClick={handleInstallClick}
+    />
   );
 
-  const renderAndroidContent = () => (
-    <AlertDialog open={showInstallGuide} onOpenChange={setShowInstallGuide}>
-      <AlertDialogTrigger asChild>
-        <div className="relative space-y-2">
-          <div className="absolute -top-2 -right-2 z-10">
-            <CustomBadge variant="secondary" className="bg-[#C4A36F] text-white border-none">
-              {language === 'ar' ? 'جديد' : 'NEW'}
-            </CustomBadge>
-          </div>
-          <Button
-            className="w-full flex items-center justify-center gap-3 py-6 text-lg font-medium bg-[#9B87F5] hover:bg-[#8A74F2] text-white transition-all duration-300 group"
-            onClick={handleInstallClick}
-          >
-            <div className={`flex items-center justify-center gap-6 ${language === 'ar' ? 'flex-row-reverse' : 'flex-row'}`}>
-              <AndroidIcon />
-              <span className="font-changa text-xl font-semibold animate-[heart-beat_2s_cubic-bezier(0.4,0,0.6,1)_infinite]">
-                {language === 'ar' ? 'حمل تطبيق إكّـه الآن' : 'Download Ekka App'}
-              </span>
-            </div>
-          </Button>
-          <p className="text-sm text-muted-foreground text-center font-changa">
-            حجوزات أسرع، عروض حصرية، ومزايا إضافية بانتظارك
-          </p>
-        </div>
-      </AlertDialogTrigger>
-      <AlertDialogContent className={`${language === 'ar' ? 'rtl' : 'ltr'} max-w-md font-changa`}>
-        <AlertDialogHeader>
-          <AlertDialogTitle className="text-xl">
-            {t('install.guide.title')}
-          </AlertDialogTitle>
-          <AlertDialogDescription className="space-y-4">
-            <p className="text-sm text-muted-foreground">
-              {language === 'ar' 
-                ? 'حجوزات أسرع، عروض حصرية، ومزايا إضافية بانتظارك'
-                : 'Faster bookings, exclusive offers, and extra benefits await you'}
-            </p>
-            <div className="mt-4 text-base whitespace-pre-line">
-              {t('install.guide.description.android')}
-            </div>
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter className={language === 'ar' ? 'flex-row-reverse' : ''}>
-          <AlertDialogCancel className="font-changa">{t('cancel')}</AlertDialogCancel>
-          <AlertDialogAction
-            onClick={handleInstallation}
-            disabled={isInstalling}
-            className="gap-2 font-changa"
-          >
-            {isInstalling && <Loader2 className="h-4 w-4 animate-spin" />}
-            {isInstalling ? t('installing') : t('install')}
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
-  );
+  if (platform === 'ios') {
+    return (
+      <IOSInstallGuide
+        language={language}
+        onCancel={() => setShowInstallGuide(false)}
+        trigger={installButton}
+      />
+    );
+  }
 
-  return platform === 'ios' ? renderIOSContent() : renderAndroidContent();
+  return (
+    <AndroidInstallGuide
+      language={language}
+      isOpen={showInstallGuide}
+      isInstalling={isInstalling}
+      onOpenChange={setShowInstallGuide}
+      onInstall={handleInstallation}
+      trigger={installButton}
+    />
+  );
 };
