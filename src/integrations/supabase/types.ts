@@ -1081,39 +1081,6 @@ export type Database = {
           },
         ]
       }
-      push_subscriptions: {
-        Row: {
-          auth: string
-          created_at: string
-          endpoint: string
-          id: string
-          last_active: string
-          p256dh: string
-          platform: string | null
-          status: Database["public"]["Enums"]["subscription_status"] | null
-        }
-        Insert: {
-          auth: string
-          created_at?: string
-          endpoint: string
-          id?: string
-          last_active?: string
-          p256dh: string
-          platform?: string | null
-          status?: Database["public"]["Enums"]["subscription_status"] | null
-        }
-        Update: {
-          auth?: string
-          created_at?: string
-          endpoint?: string
-          id?: string
-          last_active?: string
-          p256dh?: string
-          platform?: string | null
-          status?: Database["public"]["Enums"]["subscription_status"] | null
-        }
-        Relationships: []
-      }
       qr_codes: {
         Row: {
           created_at: string
@@ -1461,6 +1428,47 @@ export type Database = {
           },
         ]
       }
+      transaction_receipts: {
+        Row: {
+          content_type: string
+          created_at: string | null
+          file_path: string
+          filename: string
+          id: string
+          size: number
+          transaction_id: string
+          upload_order: number
+        }
+        Insert: {
+          content_type: string
+          created_at?: string | null
+          file_path: string
+          filename: string
+          id?: string
+          size: number
+          transaction_id: string
+          upload_order?: number
+        }
+        Update: {
+          content_type?: string
+          created_at?: string | null
+          file_path?: string
+          filename?: string
+          id?: string
+          size?: number
+          transaction_id?: string
+          upload_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transaction_receipts_transaction_id_fkey"
+            columns: ["transaction_id"]
+            isOneToOne: false
+            referencedRelation: "transactions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       transactions: {
         Row: {
           adjustment_type:
@@ -1484,6 +1492,9 @@ export type Database = {
             | Database["public"]["Enums"]["sales_payment_method"]
             | null
           processing_fee_details: Json | null
+          receipt_content_type: string | null
+          receipt_filename: string | null
+          receipt_size: number | null
           receipt_url: string | null
           recorded_at_branch_id: string | null
           recorded_by_manager_id: string | null
@@ -1520,6 +1531,9 @@ export type Database = {
             | Database["public"]["Enums"]["sales_payment_method"]
             | null
           processing_fee_details?: Json | null
+          receipt_content_type?: string | null
+          receipt_filename?: string | null
+          receipt_size?: number | null
           receipt_url?: string | null
           recorded_at_branch_id?: string | null
           recorded_by_manager_id?: string | null
@@ -1556,6 +1570,9 @@ export type Database = {
             | Database["public"]["Enums"]["sales_payment_method"]
             | null
           processing_fee_details?: Json | null
+          receipt_content_type?: string | null
+          receipt_filename?: string | null
+          receipt_size?: number | null
           receipt_url?: string | null
           recorded_at_branch_id?: string | null
           recorded_by_manager_id?: string | null
@@ -1692,7 +1709,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      cleanup_invalid_subscriptions: {
+      clean_orphaned_receipts: {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
@@ -1716,6 +1733,10 @@ export type Database = {
         Returns: undefined
       }
       get_branch_manager_code: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      get_owner_access: {
         Args: Record<PropertyKey, never>
         Returns: string
       }
@@ -1798,7 +1819,6 @@ export type Database = {
         | "fresha_online"
         | "bank_transfer"
         | "deposit"
-      subscription_status: "active" | "inactive"
       transaction_adjustment_type: "correction" | "refund"
       transaction_status:
         | "pending"
