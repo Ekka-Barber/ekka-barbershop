@@ -1,11 +1,10 @@
-
 import { useEffect, useState } from 'react';
 import { usePWAInstall } from 'react-use-pwa-install';
 import { useLanguage } from "@/contexts/LanguageContext";
 import { trackButtonClick } from "@/utils/tiktokTracking";
 import { getPlatformType } from "@/services/platformDetection";
 import { useToast } from "@/components/ui/use-toast";
-import { Share2, Check, ArrowBigDown } from 'lucide-react';
+import { Share2, Check } from 'lucide-react';
 import AndroidIcon from '@/components/icons/AndroidIcon';
 import AppleIcon from '@/components/icons/AppleIcon';
 import AddToHomeScreenIcon from '@/components/icons/AddToHomeScreenIcon';
@@ -92,14 +91,11 @@ export const InstallAppPrompt = () => {
           className="w-full flex items-center justify-center gap-3 py-6 text-lg font-medium bg-[#9B87F5] hover:bg-[#8A74F2] text-white transition-all duration-300 group"
           onClick={handleInstallClick}
         >
-          <div className={`flex items-center justify-center gap-6 ${language === 'ar' ? 'flex-row-reverse' : 'flex-row'}`}>
+          <div className={`flex items-center justify-center gap-3 ${language === 'ar' ? 'flex-row-reverse' : 'flex-row'}`}>
             <AppleIcon />
-            <div className="flex flex-col items-center gap-2">
-              <ArrowBigDown className="w-6 h-6 animate-bounce" />
-              <span className="font-changa text-xl font-semibold animate-[pulse_2s_cubic-bezier(0.4,0,0.6,1)_infinite]">
-                {language === 'ar' ? 'حمل تطبيق إكّـه الآن' : 'Download Ekka App'}
-              </span>
-            </div>
+            <span className="font-changa text-xl font-semibold animate-[heart-beat_2s_cubic-bezier(0.4,0,0.6,1)_infinite]">
+              {language === 'ar' ? 'حمل تطبيق إكّـه الآن' : 'Download Ekka App'}
+            </span>
           </div>
         </Button>
       </SheetTrigger>
@@ -175,14 +171,11 @@ export const InstallAppPrompt = () => {
           className="w-full flex items-center justify-center gap-3 py-6 text-lg font-medium bg-[#9B87F5] hover:bg-[#8A74F2] text-white transition-all duration-300 group"
           onClick={handleInstallClick}
         >
-          <div className={`flex items-center justify-center gap-6 ${language === 'ar' ? 'flex-row-reverse' : 'flex-row'}`}>
+          <div className={`flex items-center justify-center gap-3 ${language === 'ar' ? 'flex-row-reverse' : 'flex-row'}`}>
             <AndroidIcon />
-            <div className="flex flex-col items-center gap-2">
-              <ArrowBigDown className="w-6 h-6 animate-bounce" />
-              <span className="font-changa text-xl font-semibold animate-[pulse_2s_cubic-bezier(0.4,0,0.6,1)_infinite]">
-                {language === 'ar' ? 'حمل تطبيق إكّـه الآن' : 'Download Ekka App'}
-              </span>
-            </div>
+            <span className="font-changa text-xl font-semibold animate-[heart-beat_2s_cubic-bezier(0.4,0,0.6,1)_infinite]">
+              {language === 'ar' ? 'حمل تطبيق إكّـه الآن' : 'Download Ekka App'}
+            </span>
           </div>
         </Button>
       </AlertDialogTrigger>
