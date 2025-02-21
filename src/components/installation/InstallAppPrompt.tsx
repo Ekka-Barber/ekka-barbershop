@@ -5,10 +5,11 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { trackButtonClick } from "@/utils/tiktokTracking";
 import { getPlatformType } from "@/services/platformDetection";
 import { useToast } from "@/components/ui/use-toast";
-import { Share2, Check } from 'lucide-react';
+import { Share, Check } from 'lucide-react';
 import AndroidIcon from '@/components/icons/AndroidIcon';
 import AppleIcon from '@/components/icons/AppleIcon';
 import AddToHomeScreenIcon from '@/components/icons/AddToHomeScreenIcon';
+import { CustomBadge } from "@/components/ui/custom-badge";
 import {
   Sheet,
   SheetContent,
@@ -88,17 +89,27 @@ export const InstallAppPrompt = () => {
   const renderIOSContent = () => (
     <Sheet>
       <SheetTrigger asChild>
-        <Button
-          className="w-full flex items-center justify-center gap-3 py-6 text-lg font-medium bg-[#9B87F5] hover:bg-[#8A74F2] text-white transition-all duration-300 group"
-          onClick={handleInstallClick}
-        >
-          <div className={`flex items-center justify-center gap-6 ${language === 'ar' ? 'flex-row-reverse' : 'flex-row'}`}>
-            <AppleIcon />
-            <span className="font-changa text-xl font-semibold animate-[heart-beat_2s_cubic-bezier(0.4,0,0.6,1)_infinite]">
-              {language === 'ar' ? 'حمل تطبيق إكّـه الآن' : 'Download Ekka App'}
-            </span>
+        <div className="relative space-y-2">
+          <div className="absolute -top-2 -right-2 z-10">
+            <CustomBadge variant="secondary" className="bg-[#C4A36F] text-white border-none">
+              {language === 'ar' ? 'جديد' : 'NEW'}
+            </CustomBadge>
           </div>
-        </Button>
+          <Button
+            className="w-full flex items-center justify-center gap-3 py-6 text-lg font-medium bg-[#9B87F5] hover:bg-[#8A74F2] text-white transition-all duration-300 group"
+            onClick={handleInstallClick}
+          >
+            <div className={`flex items-center justify-center gap-6 ${language === 'ar' ? 'flex-row-reverse' : 'flex-row'}`}>
+              <AppleIcon />
+              <span className="font-changa text-xl font-semibold animate-[heart-beat_2s_cubic-bezier(0.4,0,0.6,1)_infinite]">
+                {language === 'ar' ? 'حمل تطبيق إكّـه الآن' : 'Download Ekka App'}
+              </span>
+            </div>
+          </Button>
+          <p className="text-sm text-muted-foreground text-center font-changa">
+            حجوزات أسرع، عروض حصرية، ومزايا إضافية بانتظارك
+          </p>
+        </div>
       </SheetTrigger>
       <SheetContent 
         side="bottom" 
@@ -107,7 +118,7 @@ export const InstallAppPrompt = () => {
         <div className="p-6 space-y-6">
           <SheetHeader>
             <SheetTitle className="text-2xl font-bold text-center">
-              {language === 'ar' ? 'تثبيت التطبيق على الشاشة الرئيسية' : 'Add to Home Screen'}
+              {language === 'ar' ? 'لتثبيت التطبيق على الشاشة الرئيسية' : 'Add to Home Screen'}
             </SheetTitle>
             <SheetDescription className="text-center text-base font-medium">
               {language === 'ar' ? 'اتبع الخطوات التالية:' : 'Follow these steps:'}
@@ -120,7 +131,7 @@ export const InstallAppPrompt = () => {
                 1
               </div>
               <div className="flex items-center gap-3 flex-1">
-                <Share2 className="w-6 h-6 text-gray-600" />
+                <Share className="w-6 h-6 text-gray-600" />
                 <span className="text-base">
                   {language === 'ar' ? 'انقر على زر المشاركة' : 'Tap the Share button'}
                 </span>
@@ -168,17 +179,27 @@ export const InstallAppPrompt = () => {
   const renderAndroidContent = () => (
     <AlertDialog open={showInstallGuide} onOpenChange={setShowInstallGuide}>
       <AlertDialogTrigger asChild>
-        <Button
-          className="w-full flex items-center justify-center gap-3 py-6 text-lg font-medium bg-[#9B87F5] hover:bg-[#8A74F2] text-white transition-all duration-300 group"
-          onClick={handleInstallClick}
-        >
-          <div className={`flex items-center justify-center gap-6 ${language === 'ar' ? 'flex-row-reverse' : 'flex-row'}`}>
-            <AndroidIcon />
-            <span className="font-changa text-xl font-semibold animate-[heart-beat_2s_cubic-bezier(0.4,0,0.6,1)_infinite]">
-              {language === 'ar' ? 'حمل تطبيق إكّـه الآن' : 'Download Ekka App'}
-            </span>
+        <div className="relative space-y-2">
+          <div className="absolute -top-2 -right-2 z-10">
+            <CustomBadge variant="secondary" className="bg-[#C4A36F] text-white border-none">
+              {language === 'ar' ? 'جديد' : 'NEW'}
+            </CustomBadge>
           </div>
-        </Button>
+          <Button
+            className="w-full flex items-center justify-center gap-3 py-6 text-lg font-medium bg-[#9B87F5] hover:bg-[#8A74F2] text-white transition-all duration-300 group"
+            onClick={handleInstallClick}
+          >
+            <div className={`flex items-center justify-center gap-6 ${language === 'ar' ? 'flex-row-reverse' : 'flex-row'}`}>
+              <AndroidIcon />
+              <span className="font-changa text-xl font-semibold animate-[heart-beat_2s_cubic-bezier(0.4,0,0.6,1)_infinite]">
+                {language === 'ar' ? 'حمل تطبيق إكّـه الآن' : 'Download Ekka App'}
+              </span>
+            </div>
+          </Button>
+          <p className="text-sm text-muted-foreground text-center font-changa">
+            حجوزات أسرع، عروض حصرية، ومزايا إضافية بانتظارك
+          </p>
+        </div>
       </AlertDialogTrigger>
       <AlertDialogContent className={`${language === 'ar' ? 'rtl' : 'ltr'} max-w-md font-changa`}>
         <AlertDialogHeader>
