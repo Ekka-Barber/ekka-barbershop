@@ -46,18 +46,19 @@ export function DateRangePicker({
                 format(date.from, "LLL dd, y")
               )
             ) : (
-              <span>Pick a date</span>
+              <span>Pick a date range</span>
             )}
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-auto p-0" align="start">
+        <PopoverContent className="w-auto p-0" align="center">
           <Calendar
             initialFocus
             mode="range"
-            defaultMonth={date?.from}
+            defaultMonth={date?.from || new Date()}
             selected={date}
             onSelect={onDateChange}
             numberOfMonths={2}
+            disabled={(date) => date > new Date() || date < addDays(new Date(), -90)}
           />
         </PopoverContent>
       </Popover>
