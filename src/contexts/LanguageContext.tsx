@@ -75,15 +75,17 @@ const translations = {
     'service.add': 'Add Service',
     'service.remove': 'Remove Service',
     'install.app': 'Install App',
-    'install.guide.title': 'Install Application',
-    'install.guide.description.ios': 'To install this app on your iPhone/iPad:\n1. Tap the Share button\n2. Scroll down and tap "Add to Home Screen"',
+    'install.app.download': 'Download Ekka App',
+    'install.app.benefits': 'Faster bookings, exclusive offers, and extra benefits await you',
+    'install.guide.description.ios': 'To install this app on your iPhone/iPad:\n1. Tap the Share button\n2. Scroll down and tap "Add to Home Screen"\n3. Confirm by tapping "Add"',
     'install.guide.description.android': 'Follow the browser prompts to install the app on your device',
     'install.guide.description.desktop': 'Click Install to add this app to your device',
     'install': 'Install',
     'cancel': 'Cancel',
     'installing': 'Installing...',
     'install.error': 'Installation failed. Please try again.',
-    'install.success': 'App installed successfully!'
+    'install.success': 'App installed successfully!',
+    'install.guide.title': 'Install Application'
   },
   ar: {
     'select.branch': 'اختر فرعاً',
@@ -151,15 +153,17 @@ const translations = {
     'service.add': 'إضافة الخدمة',
     'service.remove': 'إزالة الخدمة',
     'install.app': 'تثبيت التطبيق',
-    'install.guide.title': 'تثبيت التطبيق',
-    'install.guide.description.ios': 'لتثبيت التطبيق على الآيفون/الآيباد:\n١. اضغط على زر المشاركة\n٢. مرر لأسفل واضغط على "إضافة إلى الشاشة الرئيسية"',
+    'install.app.download': 'حمل تطبيق إكّـه الآن',
+    'install.app.benefits': 'حجوزات أسرع، عروض حصرية، ومزايا إضافية بانتظارك',
+    'install.guide.description.ios': 'لتثبيت التطبيق على الآيفون/الآيباد:\n١. اضغط على زر المشاركة\n٢. مرر لأسفل واضغط على "إضافة إلى الشاشة الرئيسية"\n٣. اضغط "إضافة" للتأكيد',
     'install.guide.description.android': 'اتبع تعليمات المتصفح لتثبيت التطبيق على جهازك',
     'install.guide.description.desktop': 'انقر على تثبيت لإضافة هذا التطبيق إلى جهازك',
     'install': 'تثبيت',
     'cancel': 'إلغاء',
     'installing': 'جاري التثبيت...',
     'install.error': 'فشل التثبيت. الرجاء المحاولة مرة أخرى.',
-    'install.success': 'تم تثبيت التطبيق بنجاح!'
+    'install.success': 'تم تثبيت التطبيق بنجاح!',
+    'install.guide.title': 'تثبيت التطبيق'
   }
 };
 

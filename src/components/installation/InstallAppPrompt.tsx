@@ -5,6 +5,9 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { trackButtonClick } from "@/utils/tiktokTracking";
 import { getPlatformType } from "@/services/platformDetection";
 import { useToast } from "@/components/ui/use-toast";
+import { Apple } from 'lucide-react';
+import AndroidIcon from '@/components/icons/AndroidIcon';
+import AddToHomeScreenIcon from '@/components/icons/AddToHomeScreenIcon';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -77,6 +80,8 @@ export const InstallAppPrompt = () => {
     }
   };
 
+  const PlatformIcon = platform === 'ios' ? Apple : AndroidIcon;
+
   // If already installed or installation not supported, don't show the prompt
   if (!install) {
     return null;
@@ -87,29 +92,53 @@ export const InstallAppPrompt = () => {
       <AlertDialog open={showInstallGuide} onOpenChange={setShowInstallGuide}>
         <AlertDialogTrigger asChild>
           <Button
-            className="w-full h-14 text-lg font-medium bg-white hover:bg-gray-50 text-gray-800 transition-all duration-300 shadow-lg hover:shadow-xl border border-gray-200 touch-target"
+            className="w-full flex items-center justify-center gap-3 py-6 text-lg font-medium bg-[#9B87F5] hover:bg-[#8A74F2] text-white transition-all duration-300 group"
             onClick={handleInstallClick}
           >
-            {t('install.app')}
+            <PlatformIcon className="h-8 w-8 animate-[heart-beat_2s_cubic-bezier(0.4,0,0.6,1)_infinite] group-hover:text-white" />
+            <span className="text-xl font-semibold animate-[heart-beat_2s_cubic-bezier(0.4,0,0.6,1)_infinite]">
+              {language === 'ar' ? 'حمل تطبيق إكّـه الآن' : 'Download Ekka App'}
+            </span>
           </Button>
         </AlertDialogTrigger>
-        <AlertDialogContent className={language === 'ar' ? 'rtl' : 'ltr'}>
+        <AlertDialogContent className={`${language === 'ar' ? 'rtl' : 'ltr'} max-w-md`}>
           <AlertDialogHeader>
-            <AlertDialogTitle>{t('install.guide.title')}</AlertDialogTitle>
-            <AlertDialogDescription className="whitespace-pre-line">
-              {getInstallDescription()}
+            <AlertDialogTitle className="text-xl">
+              {platform === 'ios' ? t('install.guide.title') : t('install.guide.title')}
+            </AlertDialogTitle>
+            <AlertDialogDescription className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                {language === 'ar' 
+                  ? 'حجوزات أسرع، عروض حصرية، ومزايا إضافية بانتظارك'
+                  : 'Faster bookings, exclusive offers, and extra benefits await you'}
+              </p>
+              <div className="mt-4 text-base whitespace-pre-line">
+                {getInstallDescription()}
+              </div>
+              {platform === 'ios' && (
+                <div className="flex items-center gap-2 text-sm text-muted-foreground mt-2">
+                  <AddToHomeScreenIcon />
+                  <span>
+                    {language === 'ar' 
+                      ? 'اختر "إضافة إلى الشاشة الرئيسية"'
+                      : 'Choose "Add to Home Screen"'}
+                  </span>
+                </div>
+              )}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className={language === 'ar' ? 'flex-row-reverse' : ''}>
             <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleInstallation}
-              disabled={isInstalling}
-              className="gap-2"
-            >
-              {isInstalling && <Loader2 className="h-4 w-4 animate-spin" />}
-              {isInstalling ? t('installing') : t('install')}
-            </AlertDialogAction>
+            {platform === 'android' && (
+              <AlertDialogAction
+                onClick={handleInstallation}
+                disabled={isInstalling}
+                className="gap-2"
+              >
+                {isInstalling && <Loader2 className="h-4 w-4 animate-spin" />}
+                {isInstalling ? t('installing') : t('install')}
+              </AlertDialogAction>
+            )}
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
