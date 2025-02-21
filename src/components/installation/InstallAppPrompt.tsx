@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from 'react';
 import { usePWAInstall } from 'react-use-pwa-install';
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -91,7 +92,7 @@ export const InstallAppPrompt = () => {
           className="w-full flex items-center justify-center gap-3 py-6 text-lg font-medium bg-[#9B87F5] hover:bg-[#8A74F2] text-white transition-all duration-300 group"
           onClick={handleInstallClick}
         >
-          <div className={`flex items-center justify-center gap-3 ${language === 'ar' ? 'flex-row-reverse' : 'flex-row'}`}>
+          <div className={`flex items-center justify-center gap-6 ${language === 'ar' ? 'flex-row-reverse' : 'flex-row'}`}>
             <AppleIcon />
             <span className="font-changa text-xl font-semibold animate-[heart-beat_2s_cubic-bezier(0.4,0,0.6,1)_infinite]">
               {language === 'ar' ? 'حمل تطبيق إكّـه الآن' : 'Download Ekka App'}
@@ -171,7 +172,7 @@ export const InstallAppPrompt = () => {
           className="w-full flex items-center justify-center gap-3 py-6 text-lg font-medium bg-[#9B87F5] hover:bg-[#8A74F2] text-white transition-all duration-300 group"
           onClick={handleInstallClick}
         >
-          <div className={`flex items-center justify-center gap-3 ${language === 'ar' ? 'flex-row-reverse' : 'flex-row'}`}>
+          <div className={`flex items-center justify-center gap-6 ${language === 'ar' ? 'flex-row-reverse' : 'flex-row'}`}>
             <AndroidIcon />
             <span className="font-changa text-xl font-semibold animate-[heart-beat_2s_cubic-bezier(0.4,0,0.6,1)_infinite]">
               {language === 'ar' ? 'حمل تطبيق إكّـه الآن' : 'Download Ekka App'}

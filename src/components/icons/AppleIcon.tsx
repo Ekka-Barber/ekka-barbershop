@@ -6,7 +6,7 @@ const AppleIcon = () => (
     height="32px"
     viewBox="0 0 22.773 22.773"
     fill="currentColor"
-    className="shrink-0 animate-bounce"
+    className="shrink-0 animate-[heart-beat_2s_cubic-bezier(0.4,0,0.6,1)_infinite]"
   >
     <g>
       <path d="M15.769,0c0.053,0,0.106,0,0.162,0c0.13,1.606-0.483,2.806-1.228,3.675c-0.731,0.863-1.732,1.7-3.351,1.573 c-0.108-1.583,0.506-2.694,1.25-3.561C13.292,0.879,14.557,0.16,15.769,0z" />
