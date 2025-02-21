@@ -1,4 +1,3 @@
-
 import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 
 type Language = 'en' | 'ar';
@@ -74,7 +73,17 @@ const translations = {
     'booking.unconfirmed.status': 'not confirmed',
     'notification.purpose': 'for appointment notifications',
     'service.add': 'Add Service',
-    'service.remove': 'Remove Service'
+    'service.remove': 'Remove Service',
+    'install.app': 'Install App',
+    'install.guide.title': 'Install Application',
+    'install.guide.description.ios': 'To install this app on your iPhone/iPad:\n1. Tap the Share button\n2. Scroll down and tap "Add to Home Screen"',
+    'install.guide.description.android': 'Follow the browser prompts to install the app on your device',
+    'install.guide.description.desktop': 'Click Install to add this app to your device',
+    'install': 'Install',
+    'cancel': 'Cancel',
+    'installing': 'Installing...',
+    'install.error': 'Installation failed. Please try again.',
+    'install.success': 'App installed successfully!'
   },
   ar: {
     'select.branch': 'اختر فرعاً',
@@ -140,7 +149,17 @@ const translations = {
     'booking.unconfirmed.status': 'غير مؤكد',
     'notification.purpose': 'لغرض تنبيهات الحجز',
     'service.add': 'إضافة الخدمة',
-    'service.remove': 'إزالة الخدمة'
+    'service.remove': 'إزالة الخدمة',
+    'install.app': 'تثبيت التطبيق',
+    'install.guide.title': 'تثبيت التطبيق',
+    'install.guide.description.ios': 'لتثبيت التطبيق على الآيفون/الآيباد:\n١. اضغط على زر المشاركة\n٢. مرر لأسفل واضغط على "إضافة إلى الشاشة الرئيسية"',
+    'install.guide.description.android': 'اتبع تعليمات المتصفح لتثبيت التطبيق على جهازك',
+    'install.guide.description.desktop': 'انقر على تثبيت لإضافة هذا التطبيق إلى جهازك',
+    'install': 'تثبيت',
+    'cancel': 'إلغاء',
+    'installing': 'جاري التثبيت...',
+    'install.error': 'فشل التثبيت. الرجاء المحاولة مرة أخرى.',
+    'install.success': 'تم تثبيت التطبيق بنجاح!'
   }
 };
 
