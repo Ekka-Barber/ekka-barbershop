@@ -16,7 +16,14 @@ interface TrafficSourcesChartProps {
   isLoading?: boolean;
 }
 
-const COLORS = ['#FE2C55', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
+// Using a softer, more professional color palette
+const COLORS = [
+  '#8B5CF6', // Vibrant Purple for TikTok
+  '#0EA5E9', // Ocean Blue
+  '#F97316', // Bright Orange
+  '#D946EF', // Magenta Pink
+  '#E5DEFF', // Soft Purple
+];
 
 export const TrafficSourcesChart = ({ sourceData, isLoading }: TrafficSourcesChartProps) => {
   if (isLoading) {
@@ -46,6 +53,9 @@ export const TrafficSourcesChart = ({ sourceData, isLoading }: TrafficSourcesCha
     return null;
   };
 
+  // Sort data by value to show largest segments first
+  const sortedData = [...sourceData].sort((a, b) => b.value - a.value);
+
   return (
     <Card>
       <CardHeader>
@@ -55,23 +65,25 @@ export const TrafficSourcesChart = ({ sourceData, isLoading }: TrafficSourcesCha
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
             <Pie
-              data={sourceData}
+              data={sortedData}
               cx="50%"
               cy="50%"
-              innerRadius={60}
-              outerRadius={80}
+              innerRadius={80}
+              outerRadius={120}
               fill="#8884d8"
-              paddingAngle={5}
+              paddingAngle={2}
               dataKey="value"
-              label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
-              labelLine={true}
+              label={({ name, percent }) => 
+                `${name} (${(percent).toFixed(1)}%)`
+              }
+              labelLine={{ strokeWidth: 1, stroke: '#666' }}
             >
-              {sourceData?.map((_, index) => (
+              {sortedData.map((_, index) => (
                 <Cell 
                   key={`cell-${index}`} 
                   fill={COLORS[index % COLORS.length]}
                   stroke="#fff"
-                  strokeWidth={2}
+                  strokeWidth={1}
                 />
               ))}
             </Pie>
@@ -80,6 +92,9 @@ export const TrafficSourcesChart = ({ sourceData, isLoading }: TrafficSourcesCha
               layout="vertical" 
               align="right"
               verticalAlign="middle"
+              formatter={(value: string) => (
+                <span className="text-sm text-gray-700">{value}</span>
+              )}
             />
           </PieChart>
         </ResponsiveContainer>
