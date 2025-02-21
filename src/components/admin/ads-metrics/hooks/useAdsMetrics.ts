@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { DateRange } from "react-day-picker";
 import { isExcludedDomain } from "../utils/domainUtils";
+import type { SummaryMetrics, TimelineDataPoint, TrafficSource } from "../types";
 
 export const useAdsMetrics = (dateRange: DateRange) => {
   // Fetch campaign summary including TikTok data
@@ -39,6 +40,20 @@ export const useAdsMetrics = (dateRange: DateRange) => {
       const tiktok_conversions = tiktok_visits.filter(visit => visit.converted_to_booking).length;
       const tiktok_conversion_rate = (tiktok_conversions / tiktok_total) * 100 || 0;
 
+      const metrics = {
+        visits: total_visits,
+        uniqueVisitors: new Set(filteredData.map(v => v.browser_info?.['user_agent'])).size,
+        conversions: total_conversions,
+        conversionRate: overall_conversion_rate,
+        revenue: 0, // To be implemented with actual revenue data
+        costs: 0, // To be implemented with actual cost data
+        roas: 0, // To be calculated when revenue and cost data are available
+        cpl: 0, // To be calculated when cost data is available
+        cac: 0, // To be calculated when cost data is available
+        bounceRate: 0, // To be implemented with session duration data
+        averageSessionDuration: 0, // To be implemented with session duration data
+      };
+
       return {
         total_visits,
         total_conversions,
@@ -46,8 +61,9 @@ export const useAdsMetrics = (dateRange: DateRange) => {
         tiktok_visits: tiktok_total,
         tiktok_conversions,
         tiktok_conversion_rate: tiktok_conversion_rate.toFixed(1),
-        tiktok_percentage: ((tiktok_total / total_visits) * 100).toFixed(1)
-      };
+        tiktok_percentage: ((tiktok_total / total_visits) * 100).toFixed(1),
+        metrics,
+      } as SummaryMetrics;
     },
   });
 
@@ -70,17 +86,23 @@ export const useAdsMetrics = (dateRange: DateRange) => {
         (!visit.referrer || !isExcludedDomain(visit.referrer))
       );
 
-      const dailyData = filteredData.reduce((acc: any, visit) => {
+      const dailyData = filteredData.reduce((acc: { [key: string]: TimelineDataPoint }, visit) => {
         const date = visit.timestamp.split('T')[0];
         const isTikTok = visit.utm_source?.toLowerCase() === 'tiktok' || 
                         visit.referrer?.includes('tiktok.com');
+        const deviceType = visit.device_type?.toLowerCase() || 'desktop';
         
         if (!acc[date]) {
-          acc[date] = { 
-            date, 
-            visits: 0, 
+          acc[date] = {
+            date,
+            visits: 0,
+            tiktok_visits: 0,
             conversions: 0,
-            tiktok_visits: 0 
+            deviceBreakdown: {
+              mobile: 0,
+              desktop: 0,
+              tablet: 0
+            }
           };
         }
         acc[date].visits++;
@@ -90,6 +112,7 @@ export const useAdsMetrics = (dateRange: DateRange) => {
         if (isTikTok) {
           acc[date].tiktok_visits++;
         }
+        acc[date].deviceBreakdown[deviceType as keyof typeof acc[date]['deviceBreakdown']]++;
         return acc;
       }, {});
 
@@ -116,7 +139,7 @@ export const useAdsMetrics = (dateRange: DateRange) => {
         (!visit.referrer || !isExcludedDomain(visit.referrer))
       );
 
-      const distribution = filteredData.reduce((acc: any, visit) => {
+      const distribution: { [key: string]: number } = filteredData.reduce((acc, visit) => {
         let source = 'Direct';
         if (visit.utm_source) {
           source = visit.utm_source;
@@ -127,19 +150,26 @@ export const useAdsMetrics = (dateRange: DateRange) => {
         }
         acc[source] = (acc[source] || 0) + 1;
         return acc;
-      }, {});
+      }, {} as { [key: string]: number });
+
+      const total = Object.values(distribution).reduce((sum, value) => sum + value, 0);
 
       return Object.entries(distribution).map(([name, value]) => ({
         name,
         value,
-      }));
+        percent: (value / total) * 100,
+        color: name.toLowerCase().includes('tiktok') ? '#FE2C55' : 
+               COLORS[Object.keys(distribution).indexOf(name) % COLORS.length]
+      })) as TrafficSource[];
     },
   });
 
   return {
     summaryData,
     isLoadingSummary,
-    timelineData,
-    sourceData
+    timelineData: timelineData || [],
+    sourceData: sourceData || []
   };
 };
+
+const COLORS = ['#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d'];
