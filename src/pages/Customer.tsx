@@ -11,7 +11,6 @@ import { BranchDialog } from "@/components/customer/BranchDialog";
 import { LocationDialog } from "@/components/customer/LocationDialog";
 import { trackViewContent, trackButtonClick, trackLocationView } from "@/utils/tiktokTracking";
 import { InstallAppPrompt } from "@/components/installation/InstallAppPrompt";
-import { DevControls } from "@/components/installation/DevControls";
 
 const Customer = () => {
   const navigate = useNavigate();
@@ -55,14 +54,13 @@ const Customer = () => {
     if (branches?.[0]) {
       trackLocationView({
         id: branches[0].id,
-        name_en: branches[0].name,  // Use the name field as name_en
+        name_en: branches[0].name,
         value: undefined
       });
     }
   };
 
   return <div dir={language === 'ar' ? 'rtl' : 'ltr'} className="min-h-screen flex flex-col">
-      <DevControls />
       <div className="app-header">
         <div className="language-switcher-container">
           <LanguageSwitcher />

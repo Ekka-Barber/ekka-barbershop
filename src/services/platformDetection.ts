@@ -2,27 +2,7 @@
 type PlatformType = 'ios' | 'android' | 'desktop' | 'unsupported';
 type InstallationStatus = 'not-installed' | 'installed' | 'installing' | 'unsupported';
 
-interface DevOverrides {
-  platform?: PlatformType;
-  installed?: boolean;
-}
-
-let devOverrides: DevOverrides = {};
-
-export const setDeviceOverride = (platform: PlatformType | null) => {
-  devOverrides.platform = platform || undefined;
-};
-
-export const setInstalledOverride = (installed: boolean | null) => {
-  devOverrides.installed = installed === null ? undefined : installed;
-};
-
 export const getPlatformType = (): PlatformType => {
-  // If we have a development override, use it
-  if (devOverrides.platform) {
-    return devOverrides.platform;
-  }
-
   const userAgent = navigator.userAgent.toLowerCase();
   const standalone = (window.navigator as any).standalone;
   const isIOS = /iphone|ipad|ipod/.test(userAgent);
@@ -35,11 +15,6 @@ export const getPlatformType = (): PlatformType => {
 };
 
 export const getInstallationStatus = (): InstallationStatus => {
-  // If we have a development override, use it
-  if (devOverrides.installed !== undefined) {
-    return devOverrides.installed ? 'installed' : 'not-installed';
-  }
-
   const isStandalone = window.matchMedia('(display-mode: standalone)').matches ||
     (window.navigator as any).standalone ||
     document.referrer.includes('android-app://');
