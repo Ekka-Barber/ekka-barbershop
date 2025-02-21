@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from 'react';
 import { usePWAInstall } from 'react-use-pwa-install';
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -18,13 +19,13 @@ import { Button } from "@/components/ui/button"
 export const InstallAppPrompt = () => {
   const { t } = useLanguage();
   const [showInstallGuide, setShowInstallGuide] = useState(false);
-  const { install, isInstallable, isInstalled } = usePWAInstall();
+  const install = usePWAInstall();
 
   useEffect(() => {
-    if (isInstalled()) {
+    if (install?.isInstalled()) {
       setShowInstallGuide(false);
     }
-  }, [isInstalled]);
+  }, [install]);
 
   const handleInstallClick = () => {
     trackButtonClick({
@@ -34,7 +35,7 @@ export const InstallAppPrompt = () => {
     setShowInstallGuide(true);
   };
 
-  if (isInstalled()) {
+  if (install?.isInstalled()) {
     return null;
   }
 
@@ -45,7 +46,7 @@ export const InstallAppPrompt = () => {
           <Button
             className="w-full h-14 text-lg font-medium bg-white hover:bg-gray-50 text-gray-800 transition-all duration-300 shadow-lg hover:shadow-xl border border-gray-200 touch-target"
             onClick={handleInstallClick}
-            disabled={!isInstallable()}
+            disabled={!install?.isInstallable()}
           >
             {t('install.app')}
           </Button>
@@ -60,8 +61,10 @@ export const InstallAppPrompt = () => {
           <AlertDialogFooter>
             <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
             <AlertDialogAction onClick={() => {
-              install();
-              setShowInstallGuide(false);
+              if (install) {
+                install();
+                setShowInstallGuide(false);
+              }
             }}>{t('install')}</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
