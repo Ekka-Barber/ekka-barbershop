@@ -1,4 +1,3 @@
-
 -- Add indexes for better performance
 CREATE INDEX IF NOT EXISTS idx_push_subscriptions_endpoint ON push_subscriptions(endpoint);
 CREATE INDEX IF NOT EXISTS idx_push_subscriptions_status ON push_subscriptions(status);
