@@ -2,15 +2,14 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
-  LineChart,
-  Line,
+  BarChart,
+  Bar,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
   Legend,
-  Brush,
 } from "recharts";
 import type { TimelineDataPoint } from "../types";
 
@@ -33,6 +32,12 @@ export const TimelineChart = ({ timelineData, isLoading }: TimelineChartProps) =
     );
   }
 
+  // Format data for better readability
+  const formattedData = timelineData.map(point => ({
+    ...point,
+    date: new Date(point.date).toLocaleDateString(),
+  }));
+
   return (
     <Card>
       <CardHeader>
@@ -40,18 +45,38 @@ export const TimelineChart = ({ timelineData, isLoading }: TimelineChartProps) =
       </CardHeader>
       <CardContent className="h-[400px]">
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart
-            data={timelineData}
-            margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+          <BarChart
+            data={formattedData}
+            margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
           >
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis 
-              dataKey="date" 
+              dataKey="date"
               tick={{ fontSize: 12 }}
-              tickFormatter={(value) => new Date(value).toLocaleDateString()}
+              interval={0}
+              angle={-45}
+              textAnchor="end"
             />
-            <YAxis yAxisId="left" />
-            <YAxis yAxisId="right" orientation="right" />
+            <YAxis 
+              yAxisId="left"
+              orientation="left"
+              label={{ 
+                value: 'Number of Visits',
+                angle: -90,
+                position: 'insideLeft',
+                style: { textAnchor: 'middle' }
+              }}
+            />
+            <YAxis 
+              yAxisId="right"
+              orientation="right"
+              label={{
+                value: 'Conversions',
+                angle: 90,
+                position: 'insideRight',
+                style: { textAnchor: 'middle' }
+              }}
+            />
             <Tooltip
               contentStyle={{ 
                 backgroundColor: 'white',
@@ -59,47 +84,31 @@ export const TimelineChart = ({ timelineData, isLoading }: TimelineChartProps) =
                 borderRadius: '4px',
                 padding: '10px'
               }}
-              formatter={(value: number) => [value.toLocaleString(), '']}
-              labelFormatter={(label) => new Date(label).toLocaleDateString()}
+              formatter={(value: number) => value.toLocaleString()}
             />
             <Legend />
-            <Line
+            <Bar
               yAxisId="left"
-              type="monotone"
               dataKey="visits"
-              stroke="#8884d8"
               name="Total Visits"
-              strokeWidth={2}
-              dot={false}
-              activeDot={{ r: 8 }}
+              fill="#8B5CF6"
+              radius={[4, 4, 0, 0]}
             />
-            <Line
+            <Bar
               yAxisId="left"
-              type="monotone"
               dataKey="tiktok_visits"
-              stroke="#FE2C55"
               name="TikTok Visits"
-              strokeWidth={2}
-              dot={false}
-              activeDot={{ r: 8 }}
+              fill="#F97316"
+              radius={[4, 4, 0, 0]}
             />
-            <Line
+            <Bar
               yAxisId="right"
-              type="monotone"
               dataKey="conversions"
-              stroke="#82ca9d"
               name="Conversions"
-              strokeWidth={2}
-              dot={false}
-              activeDot={{ r: 8 }}
+              fill="#10B981"
+              radius={[4, 4, 0, 0]}
             />
-            <Brush 
-              dataKey="date" 
-              height={30} 
-              stroke="#8884d8"
-              tickFormatter={(value) => new Date(value).toLocaleDateString()}
-            />
-          </LineChart>
+          </BarChart>
         </ResponsiveContainer>
       </CardContent>
     </Card>
