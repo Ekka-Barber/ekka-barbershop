@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useState, useEffect } from "react";
 import { CustomerDetails } from "@/types/booking";
+import { identifyCustomer } from "@/utils/tiktokTracking";
 
 interface CustomerFormProps {
   customerDetails: CustomerDetails;
@@ -43,7 +44,18 @@ export const CustomerForm = ({
     }
 
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    const isValid = Object.keys(newErrors).length === 0;
+    
+    // If form is valid, identify customer for TikTok tracking
+    if (isValid) {
+      identifyCustomer({
+        email: customerDetails.email,
+        phone: customerDetails.phone,
+        id: `${customerDetails.email}_${customerDetails.phone}` // Create a unique ID from email and phone
+      });
+    }
+    
+    return isValid;
   };
 
   useEffect(() => {
@@ -124,3 +136,4 @@ export const CustomerForm = ({
     </div>
   );
 };
+
