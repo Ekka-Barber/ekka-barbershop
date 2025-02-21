@@ -5,8 +5,19 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { trackButtonClick } from "@/utils/tiktokTracking";
 import { getPlatformType } from "@/services/platformDetection";
 import { useToast } from "@/components/ui/use-toast";
+import { Share2, Check } from 'lucide-react';
 import AndroidIcon from '@/components/icons/AndroidIcon';
+import AppleIcon from '@/components/icons/AppleIcon';
 import AddToHomeScreenIcon from '@/components/icons/AddToHomeScreenIcon';
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+  SheetClose,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -17,9 +28,9 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"
-import { Button } from "@/components/ui/button"
-import { Loader2 } from "lucide-react"
+} from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
+import { Loader2 } from "lucide-react";
 
 export const InstallAppPrompt = () => {
   const { t, language } = useLanguage();
@@ -46,17 +57,6 @@ export const InstallAppPrompt = () => {
     setShowInstallGuide(true);
   };
 
-  const getInstallDescription = () => {
-    switch (platform) {
-      case 'ios':
-        return t('install.guide.description.ios');
-      case 'android':
-        return t('install.guide.description.android');
-      default:
-        return t('install.guide.description.desktop');
-    }
-  };
-
   const handleInstallation = async () => {
     if (!install) return;
     
@@ -79,74 +79,137 @@ export const InstallAppPrompt = () => {
     }
   };
 
-  // Show for both iOS and Android
   const shouldShowPrompt = platform === 'ios' || (platform === 'android' && install);
 
   if (!shouldShowPrompt) {
     return null;
   }
 
-  return (
-    <>
-      <AlertDialog open={showInstallGuide} onOpenChange={setShowInstallGuide}>
-        <AlertDialogTrigger asChild>
-          <Button
-            className="w-full flex items-center justify-center gap-3 py-6 text-lg font-medium bg-[#9B87F5] hover:bg-[#8A74F2] text-white transition-all duration-300 group"
-            onClick={handleInstallClick}
-          >
-            <div className={`flex items-center justify-center gap-3 ${language === 'ar' ? 'flex-row-reverse' : 'flex-row'}`}>
-              {platform === 'ios' ? (
-                <AddToHomeScreenIcon />
-              ) : (
-                <AndroidIcon />
-              )}
-              <span className="font-changa text-xl font-semibold animate-[heart-beat_2s_cubic-bezier(0.4,0,0.6,1)_infinite]">
-                {language === 'ar' ? 'حمل تطبيق إكّـه الآن' : 'Download Ekka App'}
-              </span>
-            </div>
-          </Button>
-        </AlertDialogTrigger>
-        <AlertDialogContent className={`${language === 'ar' ? 'rtl' : 'ltr'} max-w-md font-changa`}>
-          <AlertDialogHeader>
-            <AlertDialogTitle className="text-xl">
-              {t('install.guide.title')}
-            </AlertDialogTitle>
-            <AlertDialogDescription className="space-y-4">
-              <p className="text-sm text-muted-foreground">
-                {language === 'ar' 
-                  ? 'حجوزات أسرع، عروض حصرية، ومزايا إضافية بانتظارك'
-                  : 'Faster bookings, exclusive offers, and extra benefits await you'}
-              </p>
-              <div className="mt-4 text-base whitespace-pre-line">
-                {getInstallDescription()}
+  const renderIOSContent = () => (
+    <Sheet>
+      <SheetTrigger asChild>
+        <Button
+          className="w-full flex items-center justify-center gap-3 py-6 text-lg font-medium bg-[#9B87F5] hover:bg-[#8A74F2] text-white transition-all duration-300 group"
+          onClick={handleInstallClick}
+        >
+          <div className={`flex items-center justify-center gap-3 ${language === 'ar' ? 'flex-row-reverse' : 'flex-row'}`}>
+            <AppleIcon />
+            <span className="font-changa text-xl font-semibold animate-[heart-beat_2s_cubic-bezier(0.4,0,0.6,1)_infinite]">
+              {language === 'ar' ? 'حمل تطبيق إكّـه الآن' : 'Download Ekka App'}
+            </span>
+          </div>
+        </Button>
+      </SheetTrigger>
+      <SheetContent 
+        side="bottom" 
+        className={`${language === 'ar' ? 'rtl' : 'ltr'} font-changa rounded-t-xl p-0`}
+      >
+        <div className="p-6 space-y-6">
+          <SheetHeader>
+            <SheetTitle className="text-2xl font-bold text-center">
+              {language === 'ar' ? 'تثبيت التطبيق على الشاشة الرئيسية' : 'Add to Home Screen'}
+            </SheetTitle>
+            <SheetDescription className="text-center text-base font-medium">
+              {language === 'ar' ? 'اتبع الخطوات التالية:' : 'Follow these steps:'}
+            </SheetDescription>
+          </SheetHeader>
+          
+          <div className="space-y-6">
+            <div className={`flex items-center gap-4 ${language === 'ar' ? 'flex-row-reverse' : 'flex-row'}`}>
+              <div className="flex-shrink-0 w-10 h-10 rounded-full bg-[#9B87F5] text-white flex items-center justify-center font-bold">
+                1
               </div>
-              {platform === 'ios' && (
-                <div className={`flex items-center gap-2 text-sm text-muted-foreground mt-2 ${language === 'ar' ? 'flex-row-reverse' : 'flex-row'}`}>
-                  <AddToHomeScreenIcon />
-                  <span>
-                    {language === 'ar' 
-                      ? 'اختر "إضافة إلى الشاشة الرئيسية"'
-                      : 'Choose "Add to Home Screen"'}
-                  </span>
-                </div>
-              )}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter className={language === 'ar' ? 'flex-row-reverse' : ''}>
-            <AlertDialogCancel className="font-changa">{t('cancel')}</AlertDialogCancel>
-            {platform === 'android' && (
-              <AlertDialogAction
-                onClick={handleInstallation}
-                disabled={isInstalling}
-                className="gap-2 font-changa"
-              >
-                {isInstalling && <Loader2 className="h-4 w-4 animate-spin" />}
-                {isInstalling ? t('installing') : t('install')}
-              </AlertDialogAction>
-            )}
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </>
+              <div className="flex items-center gap-3 flex-1">
+                <Share2 className="w-6 h-6 text-gray-600" />
+                <span className="text-base">
+                  {language === 'ar' ? 'انقر على زر المشاركة' : 'Tap the Share button'}
+                </span>
+              </div>
+            </div>
+
+            <div className={`flex items-center gap-4 ${language === 'ar' ? 'flex-row-reverse' : 'flex-row'}`}>
+              <div className="flex-shrink-0 w-10 h-10 rounded-full bg-[#9B87F5] text-white flex items-center justify-center font-bold">
+                2
+              </div>
+              <div className="flex items-center gap-3 flex-1">
+                <AddToHomeScreenIcon />
+                <span className="text-base">
+                  {language === 'ar' ? 'اختر "إضافة إلى الشاشة الرئيسية"' : 'Choose "Add to Home Screen"'}
+                </span>
+              </div>
+            </div>
+
+            <div className={`flex items-center gap-4 ${language === 'ar' ? 'flex-row-reverse' : 'flex-row'}`}>
+              <div className="flex-shrink-0 w-10 h-10 rounded-full bg-[#9B87F5] text-white flex items-center justify-center font-bold">
+                3
+              </div>
+              <div className="flex items-center gap-3 flex-1">
+                <Check className="w-6 h-6 text-gray-600" />
+                <span className="text-base">
+                  {language === 'ar' ? 'انقر على "إضافة" للتأكيد' : 'Tap "Add" to confirm'}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <SheetClose asChild>
+            <Button 
+              variant="outline" 
+              className="w-full mt-4"
+            >
+              {t('cancel')}
+            </Button>
+          </SheetClose>
+        </div>
+      </SheetContent>
+    </Sheet>
   );
+
+  const renderAndroidContent = () => (
+    <AlertDialog open={showInstallGuide} onOpenChange={setShowInstallGuide}>
+      <AlertDialogTrigger asChild>
+        <Button
+          className="w-full flex items-center justify-center gap-3 py-6 text-lg font-medium bg-[#9B87F5] hover:bg-[#8A74F2] text-white transition-all duration-300 group"
+          onClick={handleInstallClick}
+        >
+          <div className={`flex items-center justify-center gap-3 ${language === 'ar' ? 'flex-row-reverse' : 'flex-row'}`}>
+            <AndroidIcon />
+            <span className="font-changa text-xl font-semibold animate-[heart-beat_2s_cubic-bezier(0.4,0,0.6,1)_infinite]">
+              {language === 'ar' ? 'حمل تطبيق إكّـه الآن' : 'Download Ekka App'}
+            </span>
+          </div>
+        </Button>
+      </AlertDialogTrigger>
+      <AlertDialogContent className={`${language === 'ar' ? 'rtl' : 'ltr'} max-w-md font-changa`}>
+        <AlertDialogHeader>
+          <AlertDialogTitle className="text-xl">
+            {t('install.guide.title')}
+          </AlertDialogTitle>
+          <AlertDialogDescription className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              {language === 'ar' 
+                ? 'حجوزات أسرع، عروض حصرية، ومزايا إضافية بانتظارك'
+                : 'Faster bookings, exclusive offers, and extra benefits await you'}
+            </p>
+            <div className="mt-4 text-base whitespace-pre-line">
+              {t('install.guide.description.android')}
+            </div>
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter className={language === 'ar' ? 'flex-row-reverse' : ''}>
+          <AlertDialogCancel className="font-changa">{t('cancel')}</AlertDialogCancel>
+          <AlertDialogAction
+            onClick={handleInstallation}
+            disabled={isInstalling}
+            className="gap-2 font-changa"
+          >
+            {isInstalling && <Loader2 className="h-4 w-4 animate-spin" />}
+            {isInstalling ? t('installing') : t('install')}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
+
+  return platform === 'ios' ? renderIOSContent() : renderAndroidContent();
 };
