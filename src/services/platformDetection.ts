@@ -60,4 +60,3 @@ export const canInstallPWA = (): boolean => {
 export const isServiceWorkerSupported = (): boolean => {
   return 'serviceWorker' in navigator && 'PushManager' in window;
 };
-
