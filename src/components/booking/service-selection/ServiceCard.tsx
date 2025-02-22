@@ -32,7 +32,7 @@ export const ServiceCard = ({ service, isSelected, onSelect, className }: Servic
         <Card
           className={`relative overflow-hidden cursor-pointer transition-all ${
             isSelected ? 'border-[#C4A484] bg-[#C4A484]/5' : 'hover:border-[#C4A484]/50'
-          } ${className}`}
+          } ${className || ''}`}
         >
           <div className="p-4">
             <div className="flex justify-between items-start gap-4">
@@ -51,7 +51,7 @@ export const ServiceCard = ({ service, isSelected, onSelect, className }: Servic
         </Card>
       </SheetTrigger>
 
-      <SheetContent side="bottom" className="h-[85vh] sm:h-[75vh] overflow-y-auto">
+      <SheetContent side="bottom">
         <SheetHeader className="gap-6">
           <div className="space-y-2 text-center">
             <SheetTitle className="text-xl">{serviceName}</SheetTitle>
