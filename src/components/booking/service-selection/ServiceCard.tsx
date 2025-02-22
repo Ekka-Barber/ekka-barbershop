@@ -1,4 +1,5 @@
 
+import * as React from "react";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -69,10 +70,7 @@ export const ServiceCard = ({ service, isSelected, onSelect, className }: Servic
         </Card>
       </SheetTrigger>
 
-      <SheetContent
-        side="bottom"
-        onOpenAutoFocus={(e) => e.preventDefault()}
-      >
+      <SheetContent side="bottom">
         <div className="rounded-t-xl border-t-2 border-[#C4A484] bg-white max-h-[85vh] overflow-y-auto">
           <div className="p-6 space-y-6">
             <SheetHeader>
