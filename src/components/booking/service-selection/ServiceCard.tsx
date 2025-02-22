@@ -69,7 +69,7 @@ export const ServiceCard = ({ service, isSelected, onSelect, className }: Servic
           {hasDiscount && (
             <CustomBadge
               variant="discount"
-              className="absolute top-2 left-2 z-10"
+              className="absolute -top-2 -left-2 z-20"
             >
               -{discount.percentage}%
             </CustomBadge>
@@ -82,24 +82,26 @@ export const ServiceCard = ({ service, isSelected, onSelect, className }: Servic
               </div>
             </div>
             
-            <div className="mt-auto flex justify-between items-end pt-4">
-              {!isSelected && (
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  className="h-6 w-6 rounded-full hover:bg-[#C4A484]/10"
-                  onClick={handleSelect}
-                >
-                  <Plus className="h-4 w-4" />
-                </Button>
-              )}
-              <div className={cn("space-y-1 text-right", !isSelected && "ml-auto")}>
+            <div className="mt-auto flex items-end pt-4">
+              <div className="flex-1 flex items-end">
+                {!isSelected && (
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="h-6 w-6 rounded-full hover:bg-[#C4A484]/10"
+                    onClick={handleSelect}
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
+              <div className="space-y-1 text-right">
                 {hasDiscount && (
                   <PriceDisplay 
                     price={service.price}
                     language={language}
                     showDiscount={true}
-                    className="text-sm text-muted-foreground"
+                    className="text-sm text-muted-foreground decoration-[#ea384c] line-through"
                   />
                 )}
                 <PriceDisplay 
@@ -116,7 +118,7 @@ export const ServiceCard = ({ service, isSelected, onSelect, className }: Servic
         </Card>
       </SheetTrigger>
 
-      <SheetContent side="bottom">
+      <SheetContent side="bottom" className="p-0">
         <div className="rounded-t-xl border-t-2 border-[#C4A484] bg-white max-h-[85vh] overflow-y-auto">
           <div className="p-6 space-y-6">
             <div className="flex flex-col space-y-2 text-center sm:text-left">
@@ -139,7 +141,7 @@ export const ServiceCard = ({ service, isSelected, onSelect, className }: Servic
                       price={service.price}
                       language={language}
                       showDiscount={true}
-                      className="text-sm text-muted-foreground"
+                      className="text-sm text-muted-foreground decoration-[#ea384c] line-through"
                     />
                   )}
                   <PriceDisplay 
