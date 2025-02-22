@@ -112,10 +112,9 @@ export const ServiceSelection = ({
           <ServiceCard
             key={service.id}
             service={service}
-            language={language}
             isSelected={selectedServices.some(s => s.id === service.id)}
-            onServiceClick={handleServiceClick}
-            onServiceToggle={handleServiceToggleWrapper}
+            onSelect={handleServiceToggleWrapper}
+            className=""
           />
         ))}
       </div>

@@ -9,7 +9,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { Service } from "@/types/service";
-import { RiyalIcon } from "@/components/icons/RiyalIcon";
+import RiyalIcon from "@/components/icons/RiyalIcon";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { formatRiyal } from "@/utils/formatters";
 import { Card } from "@/components/ui/card";
