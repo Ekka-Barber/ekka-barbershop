@@ -36,19 +36,21 @@ export const PriceDisplay = ({
     <div 
       className={cn(
         "flex items-center gap-1",
-        language === 'ar' ? "flex-row-reverse" : "flex-row",
+        "flex-row", // Always left-to-right for currency symbol
         sizeClasses[size],
         className
       )}
+      dir="ltr" // Force LTR for price display
     >
-      <span>{formatNumber(price)}</span>
       <RiyalIcon className={cn(
         size === 'sm' && "w-3.5 h-3.5",
         size === 'base' && "w-4 h-4",
         size === 'lg' && "w-5 h-5"
       )} />
+      <span>{formatNumber(price)}</span>
       {showDiscount && originalPrice && originalPrice > price && (
         <span className="text-muted-foreground line-through text-sm ml-2">
+          <RiyalIcon className="w-3.5 h-3.5" />
           {formatNumber(originalPrice)}
         </span>
       )}

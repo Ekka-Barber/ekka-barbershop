@@ -33,21 +33,23 @@ export const ServicesSummary = ({
 
   return (
     <div className="fixed bottom-0 left-0 right-0 bg-white border-t p-2.5 shadow-lg">
-      <div className="flex justify-between items-center">
+      <div className={`flex justify-between items-center ${language === 'ar' ? 'flex-row-reverse' : 'flex-row'}`}>
         <div className="space-y-1">
-          <div className="flex items-center gap-2">
+          <div className={`flex items-center gap-2 ${language === 'ar' ? 'flex-row-reverse' : 'flex-row'}`}>
             <span className="font-medium">{servicesCount}</span>
             <span className="text-gray-500">•</span>
-            <span className="flex items-center gap-1">
+            <span className={`flex items-center gap-1 ${language === 'ar' ? 'flex-row-reverse' : 'flex-row'}`}>
               <Timer className="w-4 h-4" />
               {formatDuration(totalDuration, language as 'en' | 'ar')}
             </span>
             <span className="text-gray-500">•</span>
-            <PriceDisplay 
-              price={totalPrice}
-              language={language as 'en' | 'ar'}
-              size="base"
-            />
+            <div className={language === 'ar' ? 'rtl' : 'ltr'}>
+              <PriceDisplay 
+                price={totalPrice}
+                language={language as 'en' | 'ar'}
+                size="base"
+              />
+            </div>
           </div>
         </div>
         <Button 
