@@ -16,9 +16,6 @@ const Admin = lazy(() => import("./pages/Admin"));
 
 const queryClient = new QueryClient();
 
-// List of public routes that customers can access
-const PUBLIC_ROUTES = ['/customer', '/menu', '/offers', '/bookings'];
-
 // Protected route component
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const location = useLocation();
@@ -63,15 +60,16 @@ const AppRoutes = () => {
   );
 };
 
+// Root App Component with all necessary providers
 const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <LanguageProvider>
         <TooltipProvider>
           <BrowserRouter>
+            <AppRoutes />
             <Toaster />
             <Sonner />
-            <AppRoutes />
           </BrowserRouter>
         </TooltipProvider>
       </LanguageProvider>
