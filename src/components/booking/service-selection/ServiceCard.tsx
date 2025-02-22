@@ -4,8 +4,6 @@ import { Button } from "@/components/ui/button";
 import {
   Sheet,
   SheetContent,
-  SheetDescription,
-  SheetHeader,
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
@@ -70,19 +68,17 @@ export const ServiceCard = ({ service, isSelected, onSelect, className }: Servic
         </Card>
       </SheetTrigger>
 
-      <SheetContent side="bottom" onOpenAutoFocus={(e) => e.preventDefault()}>
+      <SheetContent side="bottom">
         <div className="rounded-t-xl border-t-2 border-[#C4A484] bg-white max-h-[85vh] overflow-y-auto">
           <div className="p-6 space-y-6">
-            <SheetHeader className="text-left">
+            <div className="flex flex-col space-y-2 text-center sm:text-left">
               <SheetTitle>{serviceName}</SheetTitle>
               {serviceDescription && (
-                <SheetDescription asChild>
-                  <div className="whitespace-pre-wrap text-base leading-relaxed">
-                    {serviceDescription}
-                  </div>
-                </SheetDescription>
+                <div className="text-sm text-muted-foreground whitespace-pre-wrap text-base leading-relaxed">
+                  {serviceDescription}
+                </div>
               )}
-            </SheetHeader>
+            </div>
 
             <div className="flex flex-col gap-4">
               <div className="flex justify-between items-center">
