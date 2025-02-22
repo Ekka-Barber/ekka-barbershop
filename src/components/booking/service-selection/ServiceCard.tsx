@@ -70,13 +70,13 @@ export const ServiceCard = ({ service, isSelected, onSelect, className }: Servic
         </Card>
       </SheetTrigger>
 
-      <SheetContent side="bottom">
+      <SheetContent side="bottom" onOpenAutoFocus={(e) => e.preventDefault()}>
         <div className="rounded-t-xl border-t-2 border-[#C4A484] bg-white max-h-[85vh] overflow-y-auto">
           <div className="p-6 space-y-6">
-            <SheetHeader>
+            <SheetHeader className="text-left">
               <SheetTitle>{serviceName}</SheetTitle>
               {serviceDescription && (
-                <SheetDescription>
+                <SheetDescription asChild>
                   <div className="whitespace-pre-wrap text-base leading-relaxed">
                     {serviceDescription}
                   </div>
