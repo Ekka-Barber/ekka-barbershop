@@ -15,7 +15,7 @@ export const ServiceDescriptions = ({ service, onChange }: ServiceDescriptionsPr
         <div className="space-y-2">
           <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">English Name</label>
           <Input
-            value={service.name_en}
+            value={service.name_en || ''}
             onChange={(e) => onChange({ ...service, name_en: e.target.value })}
             placeholder="Enter service name in English"
             className="w-full"
@@ -25,7 +25,7 @@ export const ServiceDescriptions = ({ service, onChange }: ServiceDescriptionsPr
         <div className="space-y-2">
           <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">Arabic Name</label>
           <Input
-            value={service.name_ar}
+            value={service.name_ar || ''}
             onChange={(e) => onChange({ ...service, name_ar: e.target.value })}
             placeholder="Enter service name in Arabic"
             className="w-full"
@@ -40,7 +40,7 @@ export const ServiceDescriptions = ({ service, onChange }: ServiceDescriptionsPr
           value={service.description_en || ''}
           onChange={(e) => onChange({ ...service, description_en: e.target.value })}
           placeholder="Enter service description in English"
-          className="min-h-[100px] resize-none"
+          className="min-h-[100px] resize-none whitespace-pre-wrap"
         />
       </div>
 
@@ -50,7 +50,7 @@ export const ServiceDescriptions = ({ service, onChange }: ServiceDescriptionsPr
           value={service.description_ar || ''}
           onChange={(e) => onChange({ ...service, description_ar: e.target.value })}
           placeholder="Enter service description in Arabic"
-          className="min-h-[100px] resize-none"
+          className="min-h-[100px] resize-none whitespace-pre-wrap"
           dir="rtl"
         />
       </div>
