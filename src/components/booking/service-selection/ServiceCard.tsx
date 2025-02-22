@@ -56,46 +56,46 @@ export const ServiceCard = ({ service, isSelected, onSelect, className }: Servic
 
       <SheetContent side="bottom">
         <div className="max-h-[85vh] overflow-y-auto">
-          <div className="gap-6">
-            <SheetHeader>
-              <div className="space-y-2 text-center">
-                <SheetTitle className="text-xl">{serviceName}</SheetTitle>
+          <div className="space-y-6">
+            <div>
+              <SheetHeader>
+                <SheetTitle>{serviceName}</SheetTitle>
                 {serviceDescription && (
-                  <SheetDescription className="whitespace-pre-wrap text-base leading-relaxed">
-                    {serviceDescription}
+                  <SheetDescription>
+                    <div className="whitespace-pre-wrap text-base leading-relaxed">
+                      {serviceDescription}
+                    </div>
                   </SheetDescription>
                 )}
-              </div>
-            </SheetHeader>
+              </SheetHeader>
+            </div>
 
-            <div className="mt-8">
-              <div className="flex flex-col gap-4">
-                <div className="flex justify-between items-center">
-                  <div className="space-y-1">
-                    <div className="text-sm text-muted-foreground">
-                      {service.duration} {language === 'ar' ? 'دقيقة' : 'mins'}
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-1 text-lg font-semibold">
-                    <RiyalIcon className="w-4 h-4" />
-                    <span>{formatRiyal(service.price)}</span>
+            <div className="flex flex-col gap-4">
+              <div className="flex justify-between items-center">
+                <div>
+                  <div className="text-sm text-muted-foreground">
+                    {service.duration} {language === 'ar' ? 'دقيقة' : 'mins'}
                   </div>
                 </div>
-
-                <Button
-                  onClick={() => onSelect(service)}
-                  variant={isSelected ? "outline" : "default"}
-                  className="w-full mt-4"
-                >
-                  {isSelected
-                    ? language === 'ar'
-                      ? 'إزالة'
-                      : 'Remove'
-                    : language === 'ar'
-                    ? 'إضافة'
-                    : 'Add'}
-                </Button>
+                <div className="flex items-center gap-1 text-lg font-semibold">
+                  <RiyalIcon className="w-4 h-4" />
+                  <span>{formatRiyal(service.price)}</span>
+                </div>
               </div>
+
+              <Button
+                onClick={() => onSelect(service)}
+                variant={isSelected ? "outline" : "default"}
+                className="w-full"
+              >
+                {isSelected
+                  ? language === 'ar'
+                    ? 'إزالة'
+                    : 'Remove'
+                  : language === 'ar'
+                  ? 'إضافة'
+                  : 'Add'}
+              </Button>
             </div>
           </div>
         </div>
