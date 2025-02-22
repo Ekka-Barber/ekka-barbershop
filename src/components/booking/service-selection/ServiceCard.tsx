@@ -74,9 +74,15 @@ export const ServiceCard = ({ service, isSelected, onSelect, className }: Servic
               -{discount.percentage}%
             </CustomBadge>
           )}
-          <div className="flex flex-col">
-            <div className="flex justify-between items-start mb-2">
-              <h3 className="font-medium text-base">{serviceName}</h3>
+          <div className="flex flex-col h-full">
+            <div>
+              <h3 className="font-medium text-base mb-2">{serviceName}</h3>
+              <div className="text-sm text-muted-foreground">
+                {formatDuration(service.duration, language)}
+              </div>
+            </div>
+            
+            <div className="mt-auto flex justify-between items-end pt-4">
               {!isSelected && (
                 <Button
                   size="icon"
@@ -87,27 +93,24 @@ export const ServiceCard = ({ service, isSelected, onSelect, className }: Servic
                   <Plus className="h-4 w-4" />
                 </Button>
               )}
-            </div>
-            <div className="text-sm text-muted-foreground mb-2">
-              {formatDuration(service.duration, language)}
-            </div>
-            <div className="space-y-1">
-              {hasDiscount && (
-                <PriceDisplay 
-                  price={service.price}
-                  language={language}
-                  showDiscount={true}
-                  className="text-sm text-muted-foreground"
-                />
-              )}
-              <PriceDisplay 
-                price={finalPrice}
-                language={language}
-                className={cn(
-                  "font-semibold",
-                  hasDiscount && "text-[#ea384c]"
+              <div className={cn("space-y-1 text-right", !isSelected && "ml-auto")}>
+                {hasDiscount && (
+                  <PriceDisplay 
+                    price={service.price}
+                    language={language}
+                    showDiscount={true}
+                    className="text-sm text-muted-foreground"
+                  />
                 )}
-              />
+                <PriceDisplay 
+                  price={finalPrice}
+                  language={language}
+                  className={cn(
+                    "font-semibold",
+                    hasDiscount && "text-[#ea384c]"
+                  )}
+                />
+              </div>
             </div>
           </div>
         </Card>
