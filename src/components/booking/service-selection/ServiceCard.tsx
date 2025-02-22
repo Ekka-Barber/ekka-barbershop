@@ -1,4 +1,3 @@
-
 import * as React from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -67,16 +66,14 @@ export const ServiceCard = ({ service, isSelected, onSelect, className }: Servic
           )}
         >
           {hasDiscount && (
-            <div className="absolute inset-0 z-0">
-              <CustomBadge
-                variant="discount"
-                className="absolute -top-2 -left-2 z-50"
-              >
-                -{discount.percentage}%
-              </CustomBadge>
-            </div>
+            <CustomBadge
+              variant="discount"
+              className="absolute -top-3 -left-3 z-[100]"
+            >
+              -{discount.percentage}%
+            </CustomBadge>
           )}
-          <div className="flex flex-col h-full relative z-10">
+          <div className="flex flex-col h-full">
             <div>
               <h3 className="font-medium text-base mb-2">{serviceName}</h3>
               <div className="text-sm text-muted-foreground">
