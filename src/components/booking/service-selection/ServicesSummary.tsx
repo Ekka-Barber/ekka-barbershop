@@ -31,27 +31,38 @@ export const ServicesSummary = ({
     ? `${convertToArabic(selectedServices.length.toString())} خدمات`
     : `${selectedServices.length} services`;
 
+  const MetricsGroup = () => (
+    <div className="flex items-center gap-2">
+      {language === 'ar' ? (
+        <>
+          <PriceDisplay price={totalPrice} language={language as 'en' | 'ar'} size="base" />
+          <span className="text-gray-500">•</span>
+          <span className="flex items-center gap-1">
+            <Timer className="w-4 h-4" />
+            {formatDuration(totalDuration, language as 'en' | 'ar')}
+          </span>
+          <span className="text-gray-500">•</span>
+          <span className="font-medium">{servicesCount}</span>
+        </>
+      ) : (
+        <>
+          <span className="font-medium">{servicesCount}</span>
+          <span className="text-gray-500">•</span>
+          <span className="flex items-center gap-1">
+            <Timer className="w-4 h-4" />
+            {formatDuration(totalDuration, language as 'en' | 'ar')}
+          </span>
+          <span className="text-gray-500">•</span>
+          <PriceDisplay price={totalPrice} language={language as 'en' | 'ar'} size="base" />
+        </>
+      )}
+    </div>
+  );
+
   return (
     <div className="fixed bottom-0 left-0 right-0 bg-white border-t p-2.5 shadow-lg">
       <div className={`flex justify-between items-center ${language === 'ar' ? 'flex-row-reverse' : 'flex-row'}`}>
-        <div className="space-y-1">
-          <div className={`flex items-center gap-2 ${language === 'ar' ? 'flex-row-reverse' : 'flex-row'}`}>
-            <span className="font-medium">{servicesCount}</span>
-            <span className="text-gray-500">•</span>
-            <span className={`flex items-center gap-1 ${language === 'ar' ? 'flex-row-reverse' : 'flex-row'}`}>
-              <Timer className="w-4 h-4" />
-              {formatDuration(totalDuration, language as 'en' | 'ar')}
-            </span>
-            <span className="text-gray-500">•</span>
-            <div className={language === 'ar' ? 'rtl' : 'ltr'}>
-              <PriceDisplay 
-                price={totalPrice}
-                language={language as 'en' | 'ar'}
-                size="base"
-              />
-            </div>
-          </div>
-        </div>
+        <MetricsGroup />
         <Button 
           className="bg-[#e7bd71] hover:bg-[#d4ad65]"
           onClick={onNextStep}
