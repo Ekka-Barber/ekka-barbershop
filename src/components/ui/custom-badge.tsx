@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 interface CustomBadgeProps extends React.HTMLAttributes<HTMLDivElement> {
-  variant?: "default" | "secondary" | "destructive" | "outline" | "success";
+  variant?: "default" | "secondary" | "destructive" | "outline" | "success" | "discount";
 }
 
 export function CustomBadge({ className, variant = "default", ...props }: CustomBadgeProps) {
@@ -17,6 +17,7 @@ export function CustomBadge({ className, variant = "default", ...props }: Custom
     destructive: "bg-[#FFDEE2] text-red-700 hover:bg-[#FFDEE2]/80",
     outline: "text-foreground",
     success: "bg-[#F2FCE2] text-green-700 font-bold hover:bg-[#F2FCE2]/80",
+    discount: "bg-[#FFDEE2] text-[#ea384c] font-bold hover:bg-[#FFDEE2]/80",
   };
 
   return (

@@ -14,6 +14,7 @@ import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { Plus } from "lucide-react";
 import { PriceDisplay } from "@/components/ui/price-display";
+import { CustomBadge } from "@/components/ui/custom-badge";
 
 interface ServiceCardProps {
   service: Service;
@@ -33,6 +34,28 @@ export const ServiceCard = ({ service, isSelected, onSelect, className }: Servic
     onSelect(service);
   };
 
+  const calculateDiscount = () => {
+    if (!service.discount_type || !service.discount_value) return null;
+    
+    if (service.discount_type === 'percentage') {
+      return {
+        percentage: service.discount_value,
+        finalPrice: service.price * (1 - service.discount_value/100)
+      };
+    }
+    
+    // If discount is amount-based, calculate percentage
+    const percentage = Math.round((service.discount_value / service.price) * 100);
+    return {
+      percentage,
+      finalPrice: service.price - service.discount_value
+    };
+  };
+
+  const discount = calculateDiscount();
+  const hasDiscount = !!discount;
+  const finalPrice = hasDiscount ? discount.finalPrice : service.price;
+
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
       <SheetTrigger asChild>
@@ -43,6 +66,14 @@ export const ServiceCard = ({ service, isSelected, onSelect, className }: Servic
             className
           )}
         >
+          {hasDiscount && (
+            <CustomBadge
+              variant="discount"
+              className="absolute top-2 left-2 z-10"
+            >
+              -{discount.percentage}%
+            </CustomBadge>
+          )}
           <div className="flex flex-col">
             <div className="flex justify-between items-start mb-2">
               <h3 className="font-medium text-base">{serviceName}</h3>
@@ -60,11 +91,24 @@ export const ServiceCard = ({ service, isSelected, onSelect, className }: Servic
             <div className="text-sm text-muted-foreground mb-2">
               {formatDuration(service.duration, language)}
             </div>
-            <PriceDisplay 
-              price={service.price}
-              language={language}
-              className="font-semibold"
-            />
+            <div className="space-y-1">
+              {hasDiscount && (
+                <PriceDisplay 
+                  price={service.price}
+                  language={language}
+                  showDiscount={true}
+                  className="text-sm text-muted-foreground"
+                />
+              )}
+              <PriceDisplay 
+                price={finalPrice}
+                language={language}
+                className={cn(
+                  "font-semibold",
+                  hasDiscount && "text-[#ea384c]"
+                )}
+              />
+            </div>
           </div>
         </Card>
       </SheetTrigger>
@@ -86,12 +130,25 @@ export const ServiceCard = ({ service, isSelected, onSelect, className }: Servic
                 <div className="text-sm text-muted-foreground">
                   {formatDuration(service.duration, language)}
                 </div>
-                <PriceDisplay 
-                  price={service.price}
-                  language={language}
-                  size="lg"
-                  className="font-semibold"
-                />
+                <div className="space-y-1 text-right">
+                  {hasDiscount && (
+                    <PriceDisplay 
+                      price={service.price}
+                      language={language}
+                      showDiscount={true}
+                      className="text-sm text-muted-foreground"
+                    />
+                  )}
+                  <PriceDisplay 
+                    price={finalPrice}
+                    language={language}
+                    size="lg"
+                    className={cn(
+                      "font-semibold",
+                      hasDiscount && "text-[#ea384c]"
+                    )}
+                  />
+                </div>
               </div>
 
               <Button
