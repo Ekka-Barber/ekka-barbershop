@@ -67,14 +67,16 @@ export const ServiceCard = ({ service, isSelected, onSelect, className }: Servic
           )}
         >
           {hasDiscount && (
-            <CustomBadge
-              variant="discount"
-              className="absolute -top-2 -left-2 z-20"
-            >
-              -{discount.percentage}%
-            </CustomBadge>
+            <div className="absolute inset-0 z-0">
+              <CustomBadge
+                variant="discount"
+                className="absolute -top-2 -left-2 z-50"
+              >
+                -{discount.percentage}%
+              </CustomBadge>
+            </div>
           )}
-          <div className="flex flex-col h-full">
+          <div className="flex flex-col h-full relative z-10">
             <div>
               <h3 className="font-medium text-base mb-2">{serviceName}</h3>
               <div className="text-sm text-muted-foreground">
