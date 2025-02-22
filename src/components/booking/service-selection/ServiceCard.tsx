@@ -8,12 +8,12 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { Service } from "@/types/service";
-import RiyalIcon from "@/components/icons/RiyalIcon";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { formatRiyal } from "@/utils/formatters";
+import { formatDuration } from "@/utils/formatters";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { Plus } from "lucide-react";
+import { PriceDisplay } from "@/components/ui/price-display";
 
 interface ServiceCardProps {
   service: Service;
@@ -58,12 +58,13 @@ export const ServiceCard = ({ service, isSelected, onSelect, className }: Servic
               )}
             </div>
             <div className="text-sm text-muted-foreground mb-2">
-              {service.duration} {language === 'ar' ? 'دقيقة' : 'mins'}
+              {formatDuration(service.duration, language)}
             </div>
-            <div className="flex items-center gap-1 text-base font-semibold">
-              <span>{formatRiyal(service.price)}</span>
-              <RiyalIcon className="w-3.5 h-3.5" />
-            </div>
+            <PriceDisplay 
+              price={service.price}
+              language={language}
+              className="font-semibold"
+            />
           </div>
         </Card>
       </SheetTrigger>
@@ -83,12 +84,14 @@ export const ServiceCard = ({ service, isSelected, onSelect, className }: Servic
             <div className="flex flex-col gap-4">
               <div className="flex justify-between items-center">
                 <div className="text-sm text-muted-foreground">
-                  {service.duration} {language === 'ar' ? 'دقيقة' : 'mins'}
+                  {formatDuration(service.duration, language)}
                 </div>
-                <div className="flex items-center gap-1 text-lg font-semibold">
-                  <span>{formatRiyal(service.price)}</span>
-                  <RiyalIcon className="w-4 h-4" />
-                </div>
+                <PriceDisplay 
+                  price={service.price}
+                  language={language}
+                  size="lg"
+                  className="font-semibold"
+                />
               </div>
 
               <Button
