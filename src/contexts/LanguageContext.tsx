@@ -175,12 +175,37 @@ const LanguageContext = createContext<LanguageContextType>({
   t: (key: string) => key,
 });
 
+// Helper function to detect system language
+const detectSystemLanguage = (): Language => {
+  const systemLanguages = navigator.languages || [navigator.language];
+  
+  // Check if any of the system languages start with 'ar'
+  const hasArabic = systemLanguages.some(lang => 
+    lang.toLowerCase().startsWith('ar')
+  );
+  
+  return hasArabic ? 'ar' : 'en';
+};
+
 export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [language, setLanguage] = useState<Language>('ar');
+  const [language, setLanguage] = useState<Language>(() => {
+    // Initialize with system language
+    return detectSystemLanguage();
+  });
 
   useEffect(() => {
     document.documentElement.dir = language === 'ar' ? 'rtl' : 'ltr';
     document.body.classList.toggle('rtl', language === 'ar');
+    
+    // Update manifest metadata based on language
+    const manifestLink = document.querySelector('link[rel="manifest"]');
+    if (manifestLink) {
+      const currentHref = manifestLink.getAttribute('href');
+      const newHref = currentHref?.includes('?') 
+        ? `${currentHref}&lang=${language}`
+        : `${currentHref}?lang=${language}`;
+      manifestLink.setAttribute('href', newHref);
+    }
   }, [language]);
 
   const t = (key: string): string => {
