@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Category } from '@/types/service';
 import { ServiceItem } from './ServiceItem';
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/components/ui/use-toast";
 
 type CategoryItemProps = {
   category: Category;
@@ -24,6 +26,7 @@ export const CategoryItem = ({
 }: CategoryItemProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editedCategory, setEditedCategory] = useState(category);
+  const { toast } = useToast();
 
   const handleEdit = () => {
     setIsEditing(true);
@@ -35,9 +38,64 @@ export const CategoryItem = ({
     setEditedCategory(category);
   };
 
-  const handleSave = () => {
-    // TODO: Implement save functionality
-    setIsEditing(false);
+  const handleSave = async () => {
+    try {
+      const { error } = await supabase
+        .from('service_categories')
+        .update({
+          name_en: editedCategory.name_en,
+          name_ar: editedCategory.name_ar
+        })
+        .eq('id', category.id);
+
+      if (error) throw error;
+
+      setIsEditing(false);
+      toast({
+        title: "Category Updated",
+        description: "Category has been updated successfully.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update category. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleServiceDragEnd = async (result: any) => {
+    if (!result.destination || !category.services) return;
+
+    try {
+      const newServices = Array.from(category.services);
+      const [removed] = newServices.splice(result.source.index, 1);
+      newServices.splice(result.destination.index, 0, removed);
+
+      const updates = newServices.map((service, index) => ({
+        id: service.id,
+        category_id: category.id,
+        display_order: index
+      }));
+
+      const { error } = await supabase
+        .from('services')
+        .upsert(updates, { onConflict: 'id' });
+
+      if (error) throw error;
+
+      toast({
+        title: "Order Updated",
+        description: "Service order has been updated successfully.",
+      });
+    } catch (error) {
+      console.error('Service reorder error:', error);
+      toast({
+        title: "Error",
+        description: "An error occurred while reordering services.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -144,7 +202,8 @@ export const CategoryItem = ({
                     <ServiceItem 
                       key={service.id} 
                       service={service} 
-                      index={index} 
+                      index={index}
+                      categoryId={category.id}
                     />
                   ))}
                   {provided.placeholder}

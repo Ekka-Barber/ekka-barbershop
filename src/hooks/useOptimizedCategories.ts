@@ -1,4 +1,3 @@
-
 import { useCallback, useMemo, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from "@/integrations/supabase/client";
@@ -35,6 +34,7 @@ export const useOptimizedCategories = () => {
           name_ar,
           price,
           duration,
+          category_id,
           display_order
         )
       `)
@@ -42,18 +42,22 @@ export const useOptimizedCategories = () => {
       .range(start, end);
 
     if (error) throw error;
-    return categories as Category[];
+
+    const categoriesWithSortedServices = categories?.map(category => ({
+      ...category,
+      services: category.services?.sort((a, b) => a.display_order - b.display_order)
+    }));
+
+    return categoriesWithSortedServices as Category[];
   };
 
-  // Optimized query with pagination and field selection
   const { data: categories, isLoading } = useQuery({
     queryKey: ['service-categories', page],
     queryFn: fetchCategories,
-    staleTime: 1000 * 60, // Consider data fresh for 1 minute
-    gcTime: 1000 * 60 * 5, // Keep in cache for 5 minutes
+    staleTime: 1000 * 60,
+    gcTime: 1000 * 60 * 5,
   });
 
-  // Memoized filtering
   const filteredCategories = useMemo(() => {
     if (!categories) return [];
     
@@ -78,7 +82,6 @@ export const useOptimizedCategories = () => {
     });
   }, [categories, searchQuery, filterBy]);
 
-  // Memoized sorting
   const sortedCategories = useMemo(() => {
     if (!filteredCategories.length) return [];
 
@@ -91,18 +94,16 @@ export const useOptimizedCategories = () => {
         case 'services':
           return (b.services?.length || 0) - (a.services?.length || 0);
         default:
-          return a.display_order - b.display_order; // Changed to use display_order for default sorting
+          return a.display_order - b.display_order;
       }
     });
   }, [filteredCategories, sortBy]);
 
-  // Memoized total services calculation
   const totalServices = useMemo(() => 
     categories?.reduce((acc, category) => acc + (category.services?.length || 0), 0) || 0,
     [categories]
   );
 
-  // Debounced search handler
   const debouncedSetSearch = useCallback(
     debounce((value: string) => setSearchQuery(value), 300),
     []
@@ -116,19 +117,27 @@ export const useOptimizedCategories = () => {
     setFilterBy(value as FilterType);
   }, []);
 
-  // Optimized real-time subscription setup
   const setupRealtimeSubscription = useCallback(() => {
     const channel = supabase
       .channel('schema-db-changes')
       .on('postgres_changes', 
         { 
-          event: '*', // Listen to all events
+          event: '*',
           schema: 'public',
           table: 'service_categories'
         },
         () => {
-          // Invalidate and refetch when any change occurs
-          queryClient.invalidateQueries(['service-categories']);
+          void queryClient.invalidateQueries({ queryKey: ['service-categories'] });
+        }
+      )
+      .on('postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'services'
+        },
+        () => {
+          void queryClient.invalidateQueries({ queryKey: ['service-categories'] });
         }
       )
       .subscribe();

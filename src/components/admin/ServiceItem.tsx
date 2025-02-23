@@ -4,13 +4,42 @@ import { Draggable } from '@hello-pangea/dnd';
 import { Button } from "@/components/ui/button";
 import { Service } from '@/types/service';
 import { ServiceDialog } from './ServiceDialog';
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/components/ui/use-toast";
 
 type ServiceItemProps = {
   service: Service;
   index: number;
+  categoryId: string;
 };
 
-export const ServiceItem = ({ service, index }: ServiceItemProps) => {
+export const ServiceItem = ({ service, index, categoryId }: ServiceItemProps) => {
+  const { toast } = useToast();
+
+  const handleDragEnd = async (newIndex: number) => {
+    try {
+      const { error } = await supabase
+        .from('services')
+        .update({ display_order: newIndex })
+        .eq('id', service.id)
+        .eq('category_id', categoryId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Order Updated",
+        description: "Service order has been updated successfully.",
+      });
+    } catch (error) {
+      console.error('Service reorder error:', error);
+      toast({
+        title: "Error",
+        description: "An error occurred while reordering services.",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <Draggable
       key={service.id}
@@ -23,6 +52,7 @@ export const ServiceItem = ({ service, index }: ServiceItemProps) => {
           {...provided.draggableProps}
           {...provided.dragHandleProps}
           className="flex items-center justify-between p-2 bg-gray-50 border rounded-lg"
+          onDragEnd={() => handleDragEnd(index)}
         >
           <div className="flex items-center gap-2">
             <GripVertical className="w-4 h-4 text-gray-400" />
@@ -41,7 +71,7 @@ export const ServiceItem = ({ service, index }: ServiceItemProps) => {
                 name_en: '', 
                 name_ar: '', 
                 display_order: 0,
-                created_at: new Date().toISOString(), // Add the created_at field
+                created_at: new Date().toISOString(),
                 services: []
               }]}
               editService={service}
