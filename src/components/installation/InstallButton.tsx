@@ -15,8 +15,11 @@ export const InstallButton = ({ platform, language, onClick }: InstallButtonProp
 
   return (
     <div className="relative space-y-2">
-      <div className="absolute -top-2 -right-2 z-10">
-        <CustomBadge variant="secondary" className="bg-gradient-to-r from-[#FFD700] to-[#FFA500] text-white border-none shadow-lg animate-pulse">
+      <div className="absolute -top-3 -right-3 z-10">
+        <CustomBadge 
+          variant="secondary" 
+          className="bg-gradient-to-r from-[#FFD700] to-[#FFA500] text-white border-none shadow-md px-3 py-1.5 rounded-full font-bold text-xs animate-[heart-beat_2s_cubic-bezier(0.4,0,0.6,1)_infinite]"
+        >
           {language === 'ar' ? 'جديد' : 'NEW'}
         </CustomBadge>
       </div>
@@ -26,7 +29,7 @@ export const InstallButton = ({ platform, language, onClick }: InstallButtonProp
       >
         <div className={`flex items-center justify-center gap-6 ${language === 'ar' ? 'flex-row-reverse' : 'flex-row'}`}>
           <Icon />
-          <span className="font-changa text-xl font-bold animate-[heart-beat_1.5s_cubic-bezier(0.4,0,0.6,1)_infinite]">
+          <span className="font-changa text-xl font-bold animate-[heart-beat_2s_cubic-bezier(0.4,0,0.6,1)_infinite]">
             {language === 'ar' ? 'حمل تطبيق إكّـه الآن' : 'Download Ekka App'}
           </span>
         </div>
