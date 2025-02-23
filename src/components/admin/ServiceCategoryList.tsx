@@ -78,10 +78,15 @@ const ServiceCategoryList = () => {
       const [removed] = newCategories.splice(source.index, 1);
       newCategories.splice(destination.index, 0, removed);
 
+      // Update display orders for all affected categories
+      const updates = newCategories.map((category, index) => ({
+        id: category.id,
+        display_order: index,
+      }));
+
       const { error } = await supabase
         .from('service_categories')
-        .update({ display_order: destination.index })
-        .eq('id', removed.id);
+        .upsert(updates, { onConflict: 'id' });
         
       if (error) throw error;
 
