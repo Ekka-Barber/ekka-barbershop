@@ -33,10 +33,14 @@ export const useOptimizedCategories = () => {
           id,
           name_en,
           name_ar,
+          description_en,
+          description_ar,
           price,
           duration,
           category_id,
-          display_order
+          display_order,
+          discount_type,
+          discount_value
         )
       `)
       .order('display_order')
