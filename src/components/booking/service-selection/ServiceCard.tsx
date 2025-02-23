@@ -1,3 +1,4 @@
+
 import * as React from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -68,7 +69,7 @@ export const ServiceCard = ({ service, isSelected, onSelect, className }: Servic
           {hasDiscount && (
             <CustomBadge
               variant="discount"
-              className="absolute -top-3 -left-3 z-[100]"
+              className="absolute -top-3 -left-3 z-10"
             >
               -{discount.percentage}%
             </CustomBadge>
@@ -117,7 +118,7 @@ export const ServiceCard = ({ service, isSelected, onSelect, className }: Servic
         </Card>
       </SheetTrigger>
 
-      <SheetContent side="bottom" className="p-0">
+      <SheetContent side="bottom" className="p-0 z-50">
         <div className="rounded-t-xl border-t-2 border-[#C4A484] bg-white max-h-[85vh] overflow-y-auto">
           <div className="p-6 space-y-6">
             <div className="flex flex-col space-y-2 text-center sm:text-left">

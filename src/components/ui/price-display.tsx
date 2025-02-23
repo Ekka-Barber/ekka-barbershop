@@ -42,16 +42,16 @@ export const PriceDisplay = ({
       )}
       dir="ltr" // Force LTR for price display
     >
+      <span>{formatNumber(price)}</span>
       <RiyalIcon className={cn(
         size === 'sm' && "w-3.5 h-3.5",
         size === 'base' && "w-4 h-4",
         size === 'lg' && "w-5 h-5"
       )} />
-      <span>{formatNumber(price)}</span>
       {showDiscount && originalPrice && originalPrice > price && (
         <span className="text-muted-foreground line-through text-sm ml-2">
+          <span>{formatNumber(originalPrice)}</span>
           <RiyalIcon className="w-3.5 h-3.5" />
-          {formatNumber(originalPrice)}
         </span>
       )}
     </div>
