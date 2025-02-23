@@ -18,7 +18,7 @@ export const InstallButton = ({ platform, language, onClick }: InstallButtonProp
       <div className="absolute -top-3 -right-3 z-10">
         <CustomBadge 
           variant="secondary" 
-          className="bg-gradient-to-r from-[#FFD700] to-[#FFA500] text-white border-none shadow-md px-3 py-1.5 rounded-full font-bold text-xs animate-[heart-beat_2s_cubic-bezier(0.4,0,0.6,1)_infinite]"
+          className="bg-[#FFD700] text-black border-none shadow-md px-3 py-1.5 rounded-full font-black text-xs animate-[heart-beat_2s_cubic-bezier(0.4,0,0.6,1)_infinite] [animation-timing-function:ease-in-out] [animation-fill-mode:both]"
         >
           {language === 'ar' ? 'جديد' : 'NEW'}
         </CustomBadge>
