@@ -47,7 +47,8 @@ export const ServicesSummary = ({
   return (
     <div className="fixed bottom-0 left-0 right-0 bg-white border-t shadow-lg">
       <div className="w-full max-w-screen-xl mx-auto px-4 py-3">
-        <div className={`flex items-center gap-4 ${language === 'ar' ? 'flex-row' : 'flex-row-reverse'}`}>
+        <div className="flex items-center justify-between">
+          <MetricsGroup />
           <Button 
             className="bg-[#e7bd71] hover:bg-[#d4ad65]"
             onClick={onNextStep}
@@ -55,7 +56,6 @@ export const ServicesSummary = ({
           >
             {language === 'ar' ? 'التالي' : 'Next'}
           </Button>
-          <MetricsGroup />
         </div>
       </div>
     </div>
