@@ -18,8 +18,24 @@ export const useTimeSlots = () => {
     return hours * 60 + minutes;
   };
 
-  const isSlotAvailable = (slotMinutes: number, unavailableSlots: UnavailableSlot[]) => {
+  const isSlotAvailable = (slotMinutes: number, unavailableSlots: UnavailableSlot[], selectedDate: Date) => {
     const slotEndMinutes = slotMinutes + 30; // 30-minute slots
+
+    // If it's today, check if the slot is within minimum booking time
+    if (isToday(selectedDate)) {
+      const now = new Date();
+      const minimumBookingTime = addMinutes(now, 30);
+      const slotTime = new Date(selectedDate);
+      slotTime.setHours(Math.floor(slotMinutes / 60), slotMinutes % 60, 0, 0);
+      
+      if (isBefore(slotTime, minimumBookingTime)) {
+        console.log('Slot not available due to minimum booking time:', {
+          slotTime: format(slotTime, 'HH:mm'),
+          minimumBookingTime: format(minimumBookingTime, 'HH:mm')
+        });
+        return false;
+      }
+    }
 
     console.log('Checking availability for slot:', {
       slotStart: slotMinutes,
@@ -109,7 +125,6 @@ export const useTimeSlots = () => {
       
       let currentSlot = startTime;
       
-      // Modified while condition to exclude 00:00 slot when it's the end time
       while (isBefore(currentSlot, endTime)) {
         const timeString = format(currentSlot, 'HH:mm');
         const slotMinutes = convertTimeToMinutes(timeString);
@@ -127,7 +142,8 @@ export const useTimeSlots = () => {
           endTime: format(endTime, 'HH:mm')
         });
         
-        const available = isSlotAvailable(slotMinutes, unavailableSlots || []);
+        // Check availability against both scheduling conflicts and minimum booking time
+        const available = isSlotAvailable(slotMinutes, unavailableSlots || [], selectedDate);
         
         slots.push({
           time: timeString,
@@ -136,36 +152,6 @@ export const useTimeSlots = () => {
         
         currentSlot = addMinutes(currentSlot, 30);
       }
-    }
-
-    // Only apply the minimum booking time filter for today's slots
-    if (isToday(selectedDate)) {
-      const now = new Date();
-      const minimumBookingTime = addMinutes(now, 30);
-
-      return slots
-        .filter(slot => {
-          const [hours, minutes] = slot.time.split(':').map(Number);
-          const slotTime = new Date(selectedDate);
-          slotTime.setHours(hours, minutes, 0, 0);
-          
-          // Handle slots after midnight
-          if (hours < 12 && hours >= 0) {
-            slotTime.setDate(slotTime.getDate() + 1);
-          }
-          
-          return !isBefore(slotTime, minimumBookingTime);
-        })
-        .sort((a, b) => {
-          const [aHours] = a.time.split(':').map(Number);
-          const [bHours] = b.time.split(':').map(Number);
-          
-          // Custom sorting to handle after-midnight times
-          const aValue = aHours < 12 ? aHours + 24 : aHours;
-          const bValue = bHours < 12 ? bHours + 24 : bHours;
-          
-          return aValue - bValue;
-        });
     }
 
     return slots.sort((a, b) => {
