@@ -74,8 +74,16 @@ export const CategoryItem = ({
 
       const updates = newServices.map((service, index) => ({
         id: service.id,
+        name_en: service.name_en,
+        name_ar: service.name_ar,
+        description_en: service.description_en,
+        description_ar: service.description_ar,
+        price: service.price,
+        duration: service.duration,
         category_id: category.id,
-        display_order: index
+        display_order: index,
+        discount_type: service.discount_type,
+        discount_value: service.discount_value
       }));
 
       const { error } = await supabase
