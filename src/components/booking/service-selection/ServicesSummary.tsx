@@ -32,7 +32,7 @@ export const ServicesSummary = ({
     : `${selectedServices.length} services`;
 
   const MetricsGroup = () => (
-    <div className="flex items-center gap-4" dir={language === 'ar' ? 'rtl' : 'ltr'}>
+    <div className="flex items-center gap-4">
       <span className="font-medium">{servicesCount}</span>
       <span className="text-gray-500">•</span>
       <span className="flex items-center gap-1">
@@ -47,8 +47,7 @@ export const ServicesSummary = ({
   return (
     <div className="fixed bottom-0 left-0 right-0 bg-white border-t shadow-lg">
       <div className="w-full max-w-screen-xl mx-auto px-4 py-3">
-        <div className="flex flex-row-reverse justify-between items-center gap-4">
-          <MetricsGroup />
+        <div className={`flex items-center gap-4 ${language === 'ar' ? 'flex-row' : 'flex-row-reverse'}`}>
           <Button 
             className="bg-[#e7bd71] hover:bg-[#d4ad65]"
             onClick={onNextStep}
@@ -56,6 +55,7 @@ export const ServicesSummary = ({
           >
             {language === 'ar' ? 'التالي' : 'Next'}
           </Button>
+          <MetricsGroup />
         </div>
       </div>
     </div>
