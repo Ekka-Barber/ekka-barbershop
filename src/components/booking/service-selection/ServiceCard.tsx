@@ -1,3 +1,4 @@
+
 import * as React from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -119,13 +120,16 @@ export const ServiceCard = ({ service, isSelected, onSelect, className }: Servic
         </Card>
       </SheetTrigger>
 
-      <SheetContent side="bottom" className="p-0 z-[200]">
+      <SheetContent 
+        side="bottom" 
+        className={`${language === 'ar' ? 'rtl' : 'ltr'} font-changa p-0`}
+      >
         <div className="rounded-t-xl border-t-2 border-[#C4A484] bg-white max-h-[85vh] overflow-y-auto">
           <div className="p-6 space-y-6">
-            <div className="flex flex-col space-y-2 text-center sm:text-left">
-              <SheetTitle>{serviceName}</SheetTitle>
+            <div className="flex flex-col space-y-2 text-center">
+              <SheetTitle className="text-2xl font-bold">{serviceName}</SheetTitle>
               {serviceDescription && (
-                <div className="text-sm text-muted-foreground whitespace-pre-wrap text-base leading-relaxed">
+                <div className="text-base text-muted-foreground whitespace-pre-wrap leading-relaxed">
                   {serviceDescription}
                 </div>
               )}
@@ -162,8 +166,8 @@ export const ServiceCard = ({ service, isSelected, onSelect, className }: Servic
                   onSelect(service);
                   setIsOpen(false);
                 }}
-                variant={isSelected ? "outline" : "default"}
-                className="w-full"
+                variant="outline"
+                className="w-full mt-4"
               >
                 {isSelected
                   ? language === 'ar'
