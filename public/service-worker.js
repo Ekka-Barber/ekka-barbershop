@@ -1,170 +1,76 @@
 
-// Define constants
-const SW_VERSION = '1.0.0';
-const CACHE_NAME = 'ekka-v1';
+const SW_VERSION = '1.0.1'; // Increment this version
+const CACHE_NAME = `ekka-v${SW_VERSION}`;
 
-// Files to cache
-const STATIC_ASSETS = [
+const INITIAL_CACHED_RESOURCES = [
   '/',
   '/index.html',
   '/manifest.json'
 ];
 
-// Cache bypass patterns
 const BYPASS_CACHE_PATTERNS = [
-  /\/rest\/v1\/rpc\//,  // Supabase RPC endpoints
-  /supabase\.co\/rest\//, // All Supabase REST endpoints
-  /\/auth\//, // Auth endpoints
-  /\/storage\//, // Storage endpoints
+  /\/api\//,
+  /supabase/
 ];
 
-// Check if a request should bypass cache
-function shouldBypassCache(request) {
-  return BYPASS_CACHE_PATTERNS.some(pattern => pattern.test(request.url));
-}
-
-// Cache initialization
-async function initializeCache() {
-  try {
-    const cache = await caches.open(CACHE_NAME);
-    await cache.addAll(STATIC_ASSETS);
-  } catch (error) {
-    logError('Cache initialization failed:', error);
-  }
-}
-
-// Cache cleanup
-async function cleanupOldCaches() {
-  const cacheNames = await caches.keys();
-  return Promise.all(
-    cacheNames
-      .filter(cacheName => cacheName !== CACHE_NAME)
-      .map(cacheName => caches.delete(cacheName))
-  );
-}
-
-// Check if a request is a navigation request
-function isNavigationRequest(request) {
-  return request.mode === 'navigate' || 
-         (request.method === 'GET' && request.headers.get('accept')?.includes('text/html'));
-}
-
-// Fetch handler with improved response handling
-async function handleFetch(event) {
-  try {
-    const request = event.request;
-
-    // For API calls that should bypass cache
-    if (shouldBypassCache(request)) {
-      try {
-        const response = await fetch(request);
-        if (response.ok) return response;
-        throw new Error('API call failed');
-      } catch (error) {
-        return new Response(
-          JSON.stringify({ error: 'API call failed' }), 
-          { 
-            status: 500, 
-            headers: { 'Content-Type': 'application/json' }
-          }
-        );
-      }
-    }
-
-    // For navigation requests, respond with index.html from cache or network
-    if (isNavigationRequest(request)) {
-      const response = await fetch(request);
-      if (response.ok) return response;
-
-      // If network request fails, try cache
-      const cachedResponse = await caches.match('/index.html');
-      if (cachedResponse) return cachedResponse;
-
-      // If both fail, return a basic response with error message
-      return new Response('Navigation failed. Please check your connection.', {
-        status: 200,
-        headers: { 'Content-Type': 'text/html' }
-      });
-    }
-
-    // For regular static assets, try cache first
-    const cachedResponse = await caches.match(request);
-    if (cachedResponse) return cachedResponse;
-
-    // If not in cache, try network
-    try {
-      const response = await fetch(request);
-      if (response.ok) {
-        // Only cache successful GET requests for static assets
-        if (request.method === 'GET' && !shouldBypassCache(request)) {
-          const responseToCache = response.clone();
-          const cache = await caches.open(CACHE_NAME);
-          await cache.put(request, responseToCache);
-        }
-        return response;
-      }
-    } catch (error) {
-      // Network request failed
-      return new Response('Resource not available', {
-        status: 404,
-        headers: { 'Content-Type': 'text/plain' }
-      });
-    }
-
-    // If both cache and network fail, return error response
-    return new Response('Resource not available', {
-      status: 404,
-      headers: { 'Content-Type': 'text/plain' }
-    });
-  } catch (error) {
-    logError('Fetch handler error:', error);
-    return new Response('Service worker error', {
-      status: 500,
-      headers: { 'Content-Type': 'text/plain' }
-    });
-  }
-}
-
-// Logging utilities
-function log(message, data = {}) {
-  const timestamp = new Date().toISOString();
-  console.log(`[ServiceWorker ${SW_VERSION}] ${timestamp} - ${message}`, data);
-}
-
-function logError(message, error) {
-  const timestamp = new Date().toISOString();
-  console.error(`[ServiceWorker ${SW_VERSION}] ${timestamp} - ${message}`, error);
-}
-
-// Install event
 self.addEventListener('install', (event) => {
-  log('Installing service worker');
-  self.skipWaiting();
-  event.waitUntil(initializeCache());
-});
-
-// Activate event
-self.addEventListener('activate', (event) => {
-  log('Activating service worker');
   event.waitUntil(
     Promise.all([
-      self.clients.claim(),
-      cleanupOldCaches()
+      initializeCache(),
+      self.skipWaiting() // Force activation
     ])
   );
 });
 
-// Fetch event
+self.addEventListener('activate', (event) => {
+  event.waitUntil(
+    Promise.all([
+      cleanupOldCaches(),
+      self.clients.claim() // Take control of all pages immediately
+    ])
+  );
+});
+
 self.addEventListener('fetch', (event) => {
   event.respondWith(handleFetch(event));
 });
 
-// Error handling
-self.addEventListener('error', (event) => {
-  logError('Service worker error:', event.error);
-});
+async function initializeCache() {
+  const cache = await caches.open(CACHE_NAME);
+  return cache.addAll(INITIAL_CACHED_RESOURCES);
+}
 
-// Unhandled rejection handling
-self.addEventListener('unhandledrejection', (event) => {
-  logError('Unhandled promise rejection:', event.reason);
-});
+async function cleanupOldCaches() {
+  const cacheNames = await caches.keys();
+  return Promise.all(
+    cacheNames
+      .filter(name => name !== CACHE_NAME)
+      .map(name => caches.delete(name))
+  );
+}
+
+async function handleFetch(event) {
+  const request = event.request;
+
+  // Skip cache for specific patterns
+  if (BYPASS_CACHE_PATTERNS.some(pattern => pattern.test(request.url))) {
+    return fetch(request);
+  }
+
+  try {
+    // Try network first
+    const response = await fetch(request);
+    const cache = await caches.open(CACHE_NAME);
+    cache.put(request, response.clone());
+    return response;
+  } catch (error) {
+    // Fallback to cache
+    const cachedResponse = await caches.match(request);
+    return cachedResponse || new Response('Offline');
+  }
+}
+
+// Force update check every few minutes
+setInterval(() => {
+  self.registration.update();
+}, 5 * 60 * 1000); // Check every 5 minutes
