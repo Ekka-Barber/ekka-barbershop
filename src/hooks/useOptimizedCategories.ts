@@ -1,3 +1,4 @@
+
 import { useCallback, useMemo, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from "@/integrations/supabase/client";
@@ -127,7 +128,9 @@ export const useOptimizedCategories = () => {
           table: 'service_categories'
         },
         () => {
-          void queryClient.invalidateQueries({ queryKey: ['service-categories'] });
+          void queryClient.invalidateQueries({
+            queryKey: ['service-categories']
+          });
         }
       )
       .on('postgres_changes',
@@ -137,7 +140,9 @@ export const useOptimizedCategories = () => {
           table: 'services'
         },
         () => {
-          void queryClient.invalidateQueries({ queryKey: ['service-categories'] });
+          void queryClient.invalidateQueries({
+            queryKey: ['service-categories']
+          });
         }
       )
       .subscribe();
