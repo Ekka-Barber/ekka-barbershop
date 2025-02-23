@@ -3,7 +3,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { format } from "date-fns";
 import { Slash, X, Tag } from "lucide-react";
 import { SelectedService } from "@/types/service";
-import RiyalIcon from "@/components/icons/RiyalIcon";
+import { PriceDisplay } from "@/components/ui/price-display";
 
 interface BookingSummaryProps {
   selectedServices: SelectedService[];
@@ -38,19 +38,6 @@ export const BookingSummary = ({
   const totalOriginalPrice = selectedServices.reduce((sum, service) => sum + (service.originalPrice || service.price), 0);
   const totalDiscount = totalOriginalPrice - totalPrice;
 
-  const formatPrice = (price: number) => {
-    const roundedPrice = roundPrice(price);
-    if (language === 'ar') {
-      return (
-        <span className="inline-flex items-center gap-1 rtl:flex-row-reverse">
-          <span>{roundedPrice}</span>
-          <RiyalIcon />
-        </span>
-      );
-    }
-    return `${roundedPrice} SAR`;
-  };
-
   const getArabicTimeUnit = (duration: number) => {
     return duration >= 5 && duration <= 10 ? 'دقائق' : 'دقيقة';
   };
@@ -77,12 +64,14 @@ export const BookingSummary = ({
                   )}
                 </div>
                 <div className="flex items-center gap-2">
-                  {service.originalPrice && (
+                  {service.originalPrice && service.originalPrice > service.price && (
                     <div className="flex items-center gap-1">
-                      <span className="flex items-center relative">
-                        <Slash className="w-4 h-4 text-destructive absolute -translate-y-[2px]" />
-                        <span className="text-muted-foreground">{formatPrice(service.originalPrice)}</span>
-                      </span>
+                      <PriceDisplay 
+                        price={service.originalPrice} 
+                        language={language as 'en' | 'ar'} 
+                        size="sm"
+                        className="text-muted-foreground relative"
+                      />
                       <div className="flex items-center gap-1">
                         <Tag className="w-4 h-4 text-destructive" />
                         {service.discountPercentage && (
@@ -91,7 +80,11 @@ export const BookingSummary = ({
                       </div>
                     </div>
                   )}
-                  <span>{formatPrice(service.price)}</span>
+                  <PriceDisplay 
+                    price={service.price} 
+                    language={language as 'en' | 'ar'} 
+                    size="sm"
+                  />
                 </div>
               </div>
             ))}
@@ -131,13 +124,22 @@ export const BookingSummary = ({
               <Tag className="w-4 h-4" />
               <span>{language === 'ar' ? 'الخصم' : t('discount')}</span>
             </div>
-            <span>- {formatPrice(totalDiscount)}</span>
+            <PriceDisplay 
+              price={totalDiscount} 
+              language={language as 'en' | 'ar'}
+              size="sm"
+              className="text-destructive"
+            />
           </div>
         )}
         
         <div className="border-t pt-2 font-medium flex justify-between">
           <span>{language === 'ar' ? 'المجموع' : t('total')}</span>
-          <span>{formatPrice(totalPrice)}</span>
+          <PriceDisplay 
+            price={totalPrice} 
+            language={language as 'en' | 'ar'}
+            size="base"
+          />
         </div>
       </div>
     </div>
