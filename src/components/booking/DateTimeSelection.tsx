@@ -1,3 +1,4 @@
+
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
@@ -5,6 +6,7 @@ import { format, addDays, isBefore, startOfDay } from "date-fns";
 import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
 import { ar } from 'date-fns/locale';
+import { DateTimeSelectionSkeleton } from "./DateTimeSelectionSkeleton";
 
 interface DateTimeSelectionProps {
   selectedDate: Date | undefined;
@@ -98,33 +100,6 @@ export const DateTimeSelection = ({
           </button>
         </div>
       )}
-    </div>
-  );
-};
-
-// Define DateTimeSelectionSkeleton component
-const DateTimeSelectionSkeleton = () => {
-  return (
-    <div className="space-y-6">
-      <div className="space-y-4">
-        <div className="grid grid-cols-3 gap-3">
-          <div className="flex flex-col items-center justify-center h-20 p-2 opacity-50 cursor-not-allowed">
-            <span className="text-sm font-medium">Loading...</span>
-          </div>
-          <div className="flex flex-col items-center justify-center h-20 p-2 opacity-50 cursor-not-allowed">
-            <span className="text-sm font-medium">Loading...</span>
-          </div>
-          <div className="flex flex-col items-center justify-center h-20 p-2 opacity-50 cursor-not-allowed">
-            <span className="text-sm font-medium">Loading...</span>
-          </div>
-        </div>
-        <button
-          onClick={() => setShowFullCalendar(true)}
-          className="text-sm text-primary hover:underline w-full text-center"
-        >
-          {language === 'ar' ? 'المزيد من التواريخ' : 'More dates'}
-        </button>
-      </div>
     </div>
   );
 };
