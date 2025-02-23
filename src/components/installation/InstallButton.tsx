@@ -16,22 +16,22 @@ export const InstallButton = ({ platform, language, onClick }: InstallButtonProp
   return (
     <div className="relative space-y-2">
       <div className="absolute -top-2 -right-2 z-10">
-        <CustomBadge variant="secondary" className="bg-[#C4A36F] text-white border-none">
+        <CustomBadge variant="secondary" className="bg-gradient-to-r from-[#FFD700] to-[#FFA500] text-white border-none shadow-lg animate-pulse">
           {language === 'ar' ? 'جديد' : 'NEW'}
         </CustomBadge>
       </div>
       <Button
-        className="w-full flex items-center justify-center gap-3 py-6 text-lg font-medium bg-[#9B87F5] hover:bg-[#8A74F2] text-white transition-all duration-300 group"
+        className="w-full flex items-center justify-center gap-3 py-6 text-lg font-medium bg-gradient-to-r from-[#8B5CF6] via-[#D946EF] to-[#F97316] hover:opacity-90 text-white transition-all duration-300 group shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
         onClick={onClick}
       >
         <div className={`flex items-center justify-center gap-6 ${language === 'ar' ? 'flex-row-reverse' : 'flex-row'}`}>
           <Icon />
-          <span className="font-changa text-xl font-semibold animate-[heart-beat_2s_cubic-bezier(0.4,0,0.6,1)_infinite]">
+          <span className="font-changa text-xl font-bold animate-[heart-beat_1.5s_cubic-bezier(0.4,0,0.6,1)_infinite]">
             {language === 'ar' ? 'حمل تطبيق إكّـه الآن' : 'Download Ekka App'}
           </span>
         </div>
       </Button>
-      <p className="text-sm text-muted-foreground text-center font-changa">
+      <p className="text-sm text-muted-foreground text-center font-changa font-semibold">
         حجوزات أسرع، عروض حصرية، ومزايا إضافية بانتظارك
       </p>
     </div>
