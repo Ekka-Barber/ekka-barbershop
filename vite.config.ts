@@ -20,7 +20,20 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  build: {
+    sourcemap: false,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+          'ui-vendor': ['@radix-ui/react-dialog', '@radix-ui/react-slot', '@radix-ui/react-toast'],
+          'utils-vendor': ['date-fns', 'class-variance-authority', 'clsx', 'tailwind-merge'],
+        },
+      },
+    },
+  },
   optimizeDeps: {
     include: ['pdfjs-dist/build/pdf.worker.min.js'],
   },
 }));
+

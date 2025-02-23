@@ -3,6 +3,7 @@ import React from 'react';
 import { Button } from "@/components/ui/button";
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from "@/contexts/LanguageContext";
+import { AlertTriangle } from "lucide-react";
 
 interface Props {
   children: React.ReactNode;
@@ -24,6 +25,7 @@ export class ErrorBoundary extends React.Component<Props, State> {
 
   public componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     console.error('Uncaught error:', error, errorInfo);
+    // Here we could add error reporting service integration
   }
 
   public render() {
@@ -37,11 +39,18 @@ export class ErrorBoundary extends React.Component<Props, State> {
 
 const ErrorFallback = ({ error }: { error?: Error }) => {
   const navigate = useNavigate();
-  const { t, language } = useLanguage();
+  const { language } = useLanguage();
+
+  const handleRetry = () => {
+    navigate(0); // This will refresh the current route
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 flex flex-col items-center justify-center p-4">
       <div className="text-center space-y-4 max-w-md">
+        <div className="mx-auto w-12 h-12 rounded-full bg-red-50 flex items-center justify-center mb-4">
+          <AlertTriangle className="h-6 w-6 text-red-600" />
+        </div>
         <h1 className="text-2xl font-bold text-gray-900">
           {language === 'ar' ? 'عذراً! حدث خطأ ما' : 'Oops! Something went wrong'}
         </h1>
@@ -55,17 +64,21 @@ const ErrorFallback = ({ error }: { error?: Error }) => {
             {error.message}
           </pre>
         )}
-        <div className="pt-4">
+        <div className="pt-4 space-x-3 rtl:space-x-reverse">
           <Button 
-            onClick={() => {
-              navigate('/');
-              window.location.reload();
-            }}
+            variant="outline"
+            onClick={() => navigate('/')}
           >
-            {language === 'ar' ? 'العودة للصفحة الرئيسية' : 'Return to Home'}
+            {language === 'ar' ? 'العودة للصفحة الرئيسية' : 'Go to Home'}
+          </Button>
+          <Button 
+            onClick={handleRetry}
+          >
+            {language === 'ar' ? 'حاول مرة أخرى' : 'Try Again'}
           </Button>
         </div>
       </div>
     </div>
   );
 };
+
