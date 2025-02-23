@@ -78,10 +78,12 @@ const ServiceCategoryList = () => {
       const [removed] = newCategories.splice(source.index, 1);
       newCategories.splice(destination.index, 0, removed);
 
-      // Update display orders for all affected categories
+      // Create updates while preserving all required fields
       const updates = newCategories.map((category, index) => ({
         id: category.id,
-        display_order: index,
+        name_en: category.name_en,
+        name_ar: category.name_ar,
+        display_order: index
       }));
 
       const { error } = await supabase
