@@ -1,10 +1,9 @@
-
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
 import { format, addDays, isBefore, startOfDay } from "date-fns";
 import { cn } from "@/lib/utils";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ar } from 'date-fns/locale';
 
 interface DateTimeSelectionProps {
@@ -18,8 +17,20 @@ export const DateTimeSelection = ({
 }: DateTimeSelectionProps) => {
   const { t, language } = useLanguage();
   const [showFullCalendar, setShowFullCalendar] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Get current date and next two days
+  useEffect(() => {
+    // Simulate loading state for calendar data
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (isLoading) {
+    return <DateTimeSelectionSkeleton />;
+  }
+
   const today = startOfDay(new Date());
   const threeDays = [
     today,
@@ -87,6 +98,33 @@ export const DateTimeSelection = ({
           </button>
         </div>
       )}
+    </div>
+  );
+};
+
+// Define DateTimeSelectionSkeleton component
+const DateTimeSelectionSkeleton = () => {
+  return (
+    <div className="space-y-6">
+      <div className="space-y-4">
+        <div className="grid grid-cols-3 gap-3">
+          <div className="flex flex-col items-center justify-center h-20 p-2 opacity-50 cursor-not-allowed">
+            <span className="text-sm font-medium">Loading...</span>
+          </div>
+          <div className="flex flex-col items-center justify-center h-20 p-2 opacity-50 cursor-not-allowed">
+            <span className="text-sm font-medium">Loading...</span>
+          </div>
+          <div className="flex flex-col items-center justify-center h-20 p-2 opacity-50 cursor-not-allowed">
+            <span className="text-sm font-medium">Loading...</span>
+          </div>
+        </div>
+        <button
+          onClick={() => setShowFullCalendar(true)}
+          className="text-sm text-primary hover:underline w-full text-center"
+        >
+          {language === 'ar' ? 'المزيد من التواريخ' : 'More dates'}
+        </button>
+      </div>
     </div>
   );
 };

@@ -1,4 +1,3 @@
-
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useState, useEffect } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -27,6 +26,16 @@ interface BarberSelectionProps {
   onTimeSelect: (time: string) => void;
 }
 
+const BarberSelectionSkeleton = () => {
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
+      {Array(4).fill(0).map((_, i) => (
+        <Skeleton key={i} className="h-[200px] w-full rounded-lg" />
+      ))}
+    </div>
+  );
+};
+
 export const BarberSelection = ({
   employees,
   isLoading,
@@ -41,7 +50,6 @@ export const BarberSelection = ({
   const { getAvailableTimeSlots, isEmployeeAvailable } = useTimeSlots();
   const [employeeTimeSlots, setEmployeeTimeSlots] = useState<{ time: string; isAvailable: boolean; }[]>([]);
 
-  // Update time slots when employee or date changes
   const updateTimeSlots = async () => {
     if (selectedBarber && selectedDate) {
       const selectedEmployee = employees?.find(emp => emp.id === selectedBarber);
@@ -56,19 +64,12 @@ export const BarberSelection = ({
     }
   };
 
-  // Effect to update time slots
   useEffect(() => {
     updateTimeSlots();
   }, [selectedBarber, selectedDate]);
 
   if (isLoading) {
-    return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
-        {Array(4).fill(0).map((_, i) => (
-          <Skeleton key={i} className="h-[200px] w-full rounded-lg" />
-        ))}
-      </div>
-    );
+    return <BarberSelectionSkeleton />;
   }
 
   const filteredEmployees = employees?.filter(
