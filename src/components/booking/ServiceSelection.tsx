@@ -120,32 +120,34 @@ export const ServiceSelection = ({
       </div>
 
       <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-        <SheetContent side="bottom" className="h-fit">
+        <SheetContent side="bottom" className="bg-transparent p-0">
           {selectedService && (
-            <>
-              <SheetHeader>
-                <SheetTitle>
-                  {language === 'ar' ? selectedService.name_ar : selectedService.name_en}
-                </SheetTitle>
-              </SheetHeader>
-              <div className="mt-6 space-y-4">
-                <p className="text-gray-600">
-                  {language === 'ar' ? selectedService.description_ar : selectedService.description_en}
-                </p>
-                
-                <Button
-                  className="w-full mt-4"
-                  onClick={() => {
-                    handleServiceToggleWrapper(selectedService);
-                    setIsSheetOpen(false);
-                  }}
-                >
-                  {selectedServices.some(s => s.id === selectedService.id)
-                    ? language === 'ar' ? 'إزالة الخدمة' : 'Remove Service'
-                    : language === 'ar' ? 'إضافة الخدمة' : 'Add Service'}
-                </Button>
+            <div className="rounded-t-xl border-t-2 border-[#C4A484] bg-white">
+              <div className="p-6 space-y-6">
+                <SheetHeader>
+                  <SheetTitle>
+                    {language === 'ar' ? selectedService.name_ar : selectedService.name_en}
+                  </SheetTitle>
+                </SheetHeader>
+                <div className="mt-6 space-y-4">
+                  <p className="text-gray-600">
+                    {language === 'ar' ? selectedService.description_ar : selectedService.description_en}
+                  </p>
+                  
+                  <Button
+                    className="w-full mt-4"
+                    onClick={() => {
+                      handleServiceToggleWrapper(selectedService);
+                      setIsSheetOpen(false);
+                    }}
+                  >
+                    {selectedServices.some(s => s.id === selectedService.id)
+                      ? language === 'ar' ? 'إزالة الخدمة' : 'Remove Service'
+                      : language === 'ar' ? 'إضافة الخدمة' : 'Add Service'}
+                  </Button>
+                </div>
               </div>
-            </>
+            </div>
           )}
         </SheetContent>
       </Sheet>
