@@ -1,3 +1,4 @@
+
 import { useCallback, useMemo, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from "@/integrations/supabase/client";
@@ -16,36 +17,38 @@ export const useOptimizedCategories = () => {
   const [filterBy, setFilterBy] = useState<FilterType>('all');
   const queryClient = useQueryClient();
 
-  // Optimized query with pagination and field selection
-  const { data: categories, isLoading } = useQuery({
-    queryKey: ['service-categories', page],
-    queryFn: async () => {
-      const start = (page - 1) * CATEGORIES_PER_PAGE;
-      const end = start + CATEGORIES_PER_PAGE - 1;
+  const fetchCategories = async () => {
+    const start = (page - 1) * CATEGORIES_PER_PAGE;
+    const end = start + CATEGORIES_PER_PAGE - 1;
 
-      const { data: categories, error } = await supabase
-        .from('service_categories')
-        .select(`
+    const { data: categories, error } = await supabase
+      .from('service_categories')
+      .select(`
+        id,
+        name_en,
+        name_ar,
+        display_order,
+        created_at,
+        services (
           id,
           name_en,
           name_ar,
-          display_order,
-          created_at,
-          services (
-            id,
-            name_en,
-            name_ar,
-            price,
-            duration,
-            display_order
-          )
-        `)
-        .order('display_order')
-        .range(start, end);
+          price,
+          duration,
+          display_order
+        )
+      `)
+      .order('display_order')
+      .range(start, end);
 
-      if (error) throw error;
-      return categories as Category[];
-    },
+    if (error) throw error;
+    return categories as Category[];
+  };
+
+  // Optimized query with pagination and field selection
+  const { data: categories, isLoading } = useQuery({
+    queryKey: ['service-categories', page],
+    queryFn: fetchCategories,
     staleTime: 1000 * 60, // Consider data fresh for 1 minute
     gcTime: 1000 * 60 * 5, // Keep in cache for 5 minutes
   });
@@ -88,7 +91,7 @@ export const useOptimizedCategories = () => {
         case 'services':
           return (b.services?.length || 0) - (a.services?.length || 0);
         default:
-          return a.name_en.localeCompare(b.name_en);
+          return a.display_order - b.display_order; // Changed to use display_order for default sorting
       }
     });
   }, [filteredCategories, sortBy]);
@@ -119,30 +122,13 @@ export const useOptimizedCategories = () => {
       .channel('schema-db-changes')
       .on('postgres_changes', 
         { 
-          event: 'INSERT',
+          event: '*', // Listen to all events
           schema: 'public',
           table: 'service_categories'
         },
-        (payload) => {
-          queryClient.setQueryData(['service-categories', page], (old: Category[] | undefined) => {
-            if (!old) return [payload.new as Category];
-            return [...old, payload.new as Category];
-          });
-        }
-      )
-      .on('postgres_changes',
-        { 
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'service_categories'
-        },
-        (payload) => {
-          queryClient.setQueryData(['service-categories', page], (old: Category[] | undefined) => {
-            if (!old) return [];
-            return old.map(category => 
-              category.id === payload.new.id ? { ...category, ...payload.new } : category
-            );
-          });
+        () => {
+          // Invalidate and refetch when any change occurs
+          queryClient.invalidateQueries(['service-categories']);
         }
       )
       .subscribe();
@@ -150,7 +136,7 @@ export const useOptimizedCategories = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [page, queryClient]);
+  }, [queryClient]);
 
   return {
     categories: sortedCategories,
