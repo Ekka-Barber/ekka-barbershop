@@ -1433,6 +1433,7 @@ export type Database = {
           content_type: string
           created_at: string | null
           file_path: string
+          file_size: number | null
           filename: string
           id: string
           size: number
@@ -1443,6 +1444,7 @@ export type Database = {
           content_type: string
           created_at?: string | null
           file_path: string
+          file_size?: number | null
           filename: string
           id?: string
           size: number
@@ -1453,6 +1455,7 @@ export type Database = {
           content_type?: string
           created_at?: string | null
           file_path?: string
+          file_size?: number | null
           filename?: string
           id?: string
           size?: number
@@ -1727,6 +1730,15 @@ export type Database = {
           p_cash_deposit_id: string
         }
         Returns: string
+      }
+      generate_15min_slots: {
+        Args: {
+          start_time: string
+          end_time: string
+        }
+        Returns: {
+          slot_start: number
+        }[]
       }
       generate_recurring_expenses: {
         Args: Record<PropertyKey, never>
