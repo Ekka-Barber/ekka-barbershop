@@ -24,7 +24,7 @@ export const useTimeSlots = () => {
     // If it's today, check if the slot is within minimum booking time
     if (isToday(selectedDate)) {
       const now = new Date();
-      const minimumBookingTime = addMinutes(now, 30);
+      const minimumBookingTime = addMinutes(now, 15); // Changed from 30 to 15 minutes
       const slotTime = new Date(selectedDate);
       slotTime.setHours(Math.floor(slotMinutes / 60), slotMinutes % 60, 0, 0);
       

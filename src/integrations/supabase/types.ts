@@ -480,6 +480,47 @@ export type Database = {
           },
         ]
       }
+      employee_calendar_sources: {
+        Row: {
+          calendar_url: string
+          created_at: string
+          employee_id: string
+          id: string
+          is_active: boolean | null
+          last_synced_at: string | null
+          source_type: string
+          updated_at: string
+        }
+        Insert: {
+          calendar_url: string
+          created_at?: string
+          employee_id: string
+          id?: string
+          is_active?: boolean | null
+          last_synced_at?: string | null
+          source_type: string
+          updated_at?: string
+        }
+        Update: {
+          calendar_url?: string
+          created_at?: string
+          employee_id?: string
+          id?: string
+          is_active?: boolean | null
+          last_synced_at?: string | null
+          source_type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_calendar_sources_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       employee_deductions: {
         Row: {
           amount: number
@@ -621,6 +662,9 @@ export type Database = {
           day_of_week: number
           employee_id: string
           end_time: number
+          external_booking_id: string | null
+          external_metadata: Json | null
+          external_source: string | null
           id: string
           is_available: boolean | null
           is_recurring: boolean | null
@@ -640,6 +684,9 @@ export type Database = {
           day_of_week: number
           employee_id: string
           end_time: number
+          external_booking_id?: string | null
+          external_metadata?: Json | null
+          external_source?: string | null
           id?: string
           is_available?: boolean | null
           is_recurring?: boolean | null
@@ -659,6 +706,9 @@ export type Database = {
           day_of_week?: number
           employee_id?: string
           end_time?: number
+          external_booking_id?: string | null
+          external_metadata?: Json | null
+          external_source?: string | null
           id?: string
           is_available?: boolean | null
           is_recurring?: boolean | null
@@ -897,6 +947,65 @@ export type Database = {
             columns: ["category_id"]
             isOneToOne: false
             referencedRelation: "expense_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      fresha_raw_events: {
+        Row: {
+          calendar_url: string | null
+          created_at: string | null
+          description: string | null
+          employee_id: string | null
+          end_time: string
+          event_date: string
+          fresha_event_id: string | null
+          id: string
+          is_processed: boolean | null
+          metadata: Json | null
+          start_time: string
+          status: string | null
+          summary: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          calendar_url?: string | null
+          created_at?: string | null
+          description?: string | null
+          employee_id?: string | null
+          end_time: string
+          event_date: string
+          fresha_event_id?: string | null
+          id?: string
+          is_processed?: boolean | null
+          metadata?: Json | null
+          start_time: string
+          status?: string | null
+          summary?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          calendar_url?: string | null
+          created_at?: string | null
+          description?: string | null
+          employee_id?: string | null
+          end_time?: string
+          event_date?: string
+          fresha_event_id?: string | null
+          id?: string
+          is_processed?: boolean | null
+          metadata?: Json | null
+          start_time?: string
+          status?: string | null
+          summary?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fresha_raw_events_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
             referencedColumns: ["id"]
           },
         ]
@@ -1433,7 +1542,6 @@ export type Database = {
           content_type: string
           created_at: string | null
           file_path: string
-          file_size: number | null
           filename: string
           id: string
           size: number
@@ -1444,7 +1552,6 @@ export type Database = {
           content_type: string
           created_at?: string | null
           file_path: string
-          file_size?: number | null
           filename: string
           id?: string
           size: number
@@ -1455,7 +1562,6 @@ export type Database = {
           content_type?: string
           created_at?: string | null
           file_path?: string
-          file_size?: number | null
           filename?: string
           id?: string
           size?: number
