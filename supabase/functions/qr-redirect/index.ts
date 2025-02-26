@@ -2,11 +2,12 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { corsHeaders } from '../_shared/cors.ts'
 
+// Use service role key for internal operations
 const supabaseUrl = 'https://jfnjvphxhzxojxgptmtu.supabase.co'
-const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Impmbmp2cGh4aHp4b2p4Z3B0bXR1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzY3MjgyMDksImV4cCI6MjA1MjMwNDIwOX0.D7fqEZPOOvqVnrtLPwAJ4tqGyTPY8uXjBejgU8Vshd4'
+const supabaseServiceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || ''
 
 Deno.serve(async (req) => {
-  // Handle CORS
+  // Handle CORS preflight
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
@@ -15,12 +16,10 @@ Deno.serve(async (req) => {
     const url = new URL(req.url)
     const id = url.searchParams.get('id')
 
-    console.log('🔍 Step 1: Received request for QR code ID:', id)
-    console.log('ID type:', typeof id)
-    console.log('ID value:', id)
+    console.log('🔍 Processing QR redirect for ID:', id)
 
     if (!id) {
-      console.error('❌ Error: Missing QR code ID')
+      console.error('Missing QR code ID')
       return new Response(
         JSON.stringify({ error: 'Missing QR code ID' }),
         { 
@@ -30,46 +29,20 @@ Deno.serve(async (req) => {
       )
     }
 
-    // Initialize Supabase client
-    console.log('🔄 Step 2: Initializing Supabase client...')
-    const supabase = createClient(supabaseUrl, supabaseAnonKey)
-
-    // Set owner access before querying
-    console.log('🔑 Step 3: Setting owner access...')
-    const { error: accessError } = await supabase.rpc('set_owner_access', { value: 'owner123' })
-    if (accessError) {
-      console.error('❌ Error setting owner access:', accessError)
-      return new Response(
-        JSON.stringify({ error: 'Error setting owner access', details: accessError.message }),
-        { 
-          status: 500,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        }
-      )
-    }
-    console.log('✅ Owner access set successfully')
-
-    // Query the QR code with detailed logging
-    console.log('🔍 Step 4: Querying QR code with ID:', id)
+    // Initialize Supabase client with service role key
+    const supabase = createClient(supabaseUrl, supabaseServiceRoleKey)
     
-    // First, let's get all QR codes to debug
-    const { data: allQrCodes, error: listError } = await supabase
-      .from('qr_codes')
-      .select('*')
-    
-    console.log('📊 All QR codes in database:', allQrCodes)
-    
-    // Now query for our specific QR code
-    const { data: qrCodeExists, error: existsError } = await supabase
+    console.log('Querying QR code:', id)
+    const { data: qrCode, error } = await supabase
       .from('qr_codes')
       .select('*')
       .eq('id', id.trim())
       .maybeSingle()
 
-    if (existsError) {
-      console.error('❌ Database error checking QR existence:', existsError)
+    if (error) {
+      console.error('Database error:', error)
       return new Response(
-        JSON.stringify({ error: 'Error fetching QR code', details: existsError.message }),
+        JSON.stringify({ error: 'Error fetching QR code' }),
         { 
           status: 500,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -77,15 +50,8 @@ Deno.serve(async (req) => {
       )
     }
 
-    console.log('📊 Raw database response:', qrCodeExists)
-    console.log('🔍 QR code lookup result:', { 
-      exists: !!qrCodeExists,
-      isActive: qrCodeExists?.is_active,
-      url: qrCodeExists?.url 
-    })
-
-    if (!qrCodeExists) {
-      console.log('❌ QR code not found')
+    if (!qrCode) {
+      console.error('QR code not found:', id)
       return new Response(
         JSON.stringify({ error: 'QR code not found' }),
         { 
@@ -95,8 +61,8 @@ Deno.serve(async (req) => {
       )
     }
 
-    if (!qrCodeExists.is_active) {
-      console.log('❌ QR code is inactive')
+    if (!qrCode.is_active) {
+      console.error('QR code is inactive:', id)
       return new Response(
         JSON.stringify({ error: 'QR code is inactive' }),
         { 
@@ -106,21 +72,22 @@ Deno.serve(async (req) => {
       )
     }
 
-    console.log('✅ Success! Redirecting to:', qrCodeExists.url)
+    console.log('✅ Redirecting to:', qrCode.url)
 
-    // Redirect to the URL
+    // Return redirect response with proper headers
     return new Response(null, {
       status: 302,
       headers: {
         ...corsHeaders,
-        'Location': qrCodeExists.url
+        'Location': qrCode.url,
+        'Cache-Control': 'no-cache'
       }
     })
 
   } catch (error) {
-    console.error('❌ Error in QR redirect:', error)
+    console.error('Error processing request:', error)
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: 'Internal server error' }),
       { 
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
