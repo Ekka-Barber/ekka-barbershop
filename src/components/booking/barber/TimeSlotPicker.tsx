@@ -5,11 +5,7 @@ import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Clock12 } from "lucide-react";
 import { formatTime } from "@/utils/timeFormatting";
-
-interface TimeSlot {
-  time: string;
-  isAvailable: boolean;
-}
+import { TimeSlot } from "@/utils/timeSlotUtils";
 
 interface TimeSlotPickerProps {
   timeSlots: TimeSlot[];

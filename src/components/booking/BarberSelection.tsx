@@ -1,9 +1,11 @@
+
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useState, useEffect } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { BarberCard } from "./barber/BarberCard";
 import { TimeSlotPicker } from "./barber/TimeSlotPicker";
 import { useTimeSlots } from "@/hooks/useTimeSlots";
+import { TimeSlot } from "@/utils/timeSlotUtils";
 
 interface Employee {
   id: string;
@@ -48,7 +50,7 @@ export const BarberSelection = ({
   const { language } = useLanguage();
   const [showAllSlots, setShowAllSlots] = useState(false);
   const { getAvailableTimeSlots, isEmployeeAvailable } = useTimeSlots();
-  const [employeeTimeSlots, setEmployeeTimeSlots] = useState<{ time: string; isAvailable: boolean; }[]>([]);
+  const [employeeTimeSlots, setEmployeeTimeSlots] = useState<TimeSlot[]>([]);
 
   const updateTimeSlots = async () => {
     if (selectedBarber && selectedDate) {
