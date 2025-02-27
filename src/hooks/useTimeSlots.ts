@@ -18,13 +18,46 @@ export const useTimeSlots = () => {
     return hours * 60 + minutes;
   };
 
-  const isSlotAvailable = (slotMinutes: number, unavailableSlots: UnavailableSlot[], selectedDate: Date) => {
-    const slotEndMinutes = slotMinutes + 30; // 30-minute slots
+  const hasEnoughConsecutiveTime = (
+    slotStartMinutes: number,
+    serviceDuration: number,
+    unavailableSlots: UnavailableSlot[]
+  ) => {
+    const slotEndMinutes = slotStartMinutes + serviceDuration;
 
+    // Check if any unavailable slot overlaps with our required duration
+    for (const slot of unavailableSlots) {
+      const slotStart = typeof slot.start_time === 'number' ? slot.start_time : convertTimeToMinutes(slot.start_time as unknown as string);
+      const slotEnd = typeof slot.end_time === 'number' ? slot.end_time : convertTimeToMinutes(slot.end_time as unknown as string);
+
+      // Check for any overlap
+      if (
+        (slotStartMinutes < slotEnd && slotEndMinutes > slotStart) || // Overlaps with unavailable period
+        (slotStartMinutes === slotStart && slotEndMinutes === slotEnd) // Exactly matches unavailable period
+      ) {
+        console.log('Not enough consecutive time due to overlap:', {
+          serviceStart: slotStartMinutes,
+          serviceEnd: slotEndMinutes,
+          unavailableStart: slotStart,
+          unavailableEnd: slotEnd
+        });
+        return false;
+      }
+    }
+    
+    return true;
+  };
+
+  const isSlotAvailable = (
+    slotMinutes: number,
+    unavailableSlots: UnavailableSlot[],
+    selectedDate: Date,
+    serviceDuration: number = 30 // Default to 30 minutes if not specified
+  ) => {
     // If it's today, check if the slot is within minimum booking time
     if (isToday(selectedDate)) {
       const now = new Date();
-      const minimumBookingTime = addMinutes(now, 15); // Changed from 30 to 15 minutes
+      const minimumBookingTime = addMinutes(now, 15);
       const slotTime = new Date(selectedDate);
       slotTime.setHours(Math.floor(slotMinutes / 60), slotMinutes % 60, 0, 0);
       
@@ -37,37 +70,13 @@ export const useTimeSlots = () => {
       }
     }
 
-    console.log('Checking availability for slot:', {
-      slotStart: slotMinutes,
-      slotEnd: slotEndMinutes,
-      unavailableSlots: unavailableSlots.map(slot => ({
-        start: slot.start_time,
-        end: slot.end_time,
-      }))
-    });
-    
-    // Check if the slot overlaps with any unavailable period
-    for (const slot of unavailableSlots) {
-      // Convert slot times to minutes if they're not already
-      const slotStart = typeof slot.start_time === 'number' ? slot.start_time : convertTimeToMinutes(slot.start_time as unknown as string);
-      const slotEnd = typeof slot.end_time === 'number' ? slot.end_time : convertTimeToMinutes(slot.end_time as unknown as string);
-
-      // Check for any overlap
-      const hasOverlap = (
-        (slotMinutes >= slotStart && slotMinutes < slotEnd) || // Slot start overlaps
-        (slotEndMinutes > slotStart && slotEndMinutes <= slotEnd) || // Slot end overlaps
-        (slotMinutes <= slotStart && slotEndMinutes >= slotEnd) // Slot completely contains unavailable period
-      );
-
-      if (hasOverlap) {
-        console.log('Found overlap:', {
-          slotStart: slotMinutes,
-          slotEnd: slotEndMinutes,
-          unavailableStart: slotStart,
-          unavailableEnd: slotEnd
-        });
-        return false;
-      }
+    // Check if there's enough consecutive time for the service
+    if (!hasEnoughConsecutiveTime(slotMinutes, serviceDuration, unavailableSlots)) {
+      console.log('Slot not available due to insufficient consecutive time:', {
+        startTime: slotMinutes,
+        requiredDuration: serviceDuration
+      });
+      return false;
     }
     
     return true;
@@ -76,7 +85,8 @@ export const useTimeSlots = () => {
   const generateTimeSlots = async (
     workingHoursRanges: string[] = [],
     selectedDate?: Date,
-    employeeId?: string
+    employeeId?: string,
+    serviceDuration: number = 30 // Add service duration parameter
   ): Promise<TimeSlot[]> => {
     const slots: TimeSlot[] = [];
     
@@ -85,7 +95,8 @@ export const useTimeSlots = () => {
     console.log('Generating time slots for:', {
       date: selectedDate,
       employeeId,
-      ranges: workingHoursRanges
+      ranges: workingHoursRanges,
+      serviceDuration
     });
 
     // Get all unavailable slots for the day in one query
@@ -135,15 +146,13 @@ export const useTimeSlots = () => {
           continue;
         }
         
-        console.log('Processing slot:', {
-          timeString,
+        // Check availability considering service duration
+        const available = isSlotAvailable(
           slotMinutes,
-          currentTime: format(currentSlot, 'HH:mm'),
-          endTime: format(endTime, 'HH:mm')
-        });
-        
-        // Check availability against both scheduling conflicts and minimum booking time
-        const available = isSlotAvailable(slotMinutes, unavailableSlots || [], selectedDate);
+          unavailableSlots || [],
+          selectedDate,
+          serviceDuration
+        );
         
         slots.push({
           time: timeString,
@@ -166,7 +175,11 @@ export const useTimeSlots = () => {
     });
   };
 
-  const getAvailableTimeSlots = async (employee: any, selectedDate: Date | undefined) => {
+  const getAvailableTimeSlots = async (
+    employee: any,
+    selectedDate: Date | undefined,
+    serviceDuration: number = 30
+  ) => {
     if (!selectedDate || !employee?.working_hours) return [];
     
     const dayName = format(selectedDate, 'EEEE').toLowerCase();
@@ -176,7 +189,7 @@ export const useTimeSlots = () => {
       return [];
     }
     
-    return generateTimeSlots(workingHours, selectedDate, employee.id);
+    return generateTimeSlots(workingHours, selectedDate, employee.id, serviceDuration);
   };
 
   const isEmployeeAvailable = (employee: any, selectedDate: Date | undefined): boolean => {
