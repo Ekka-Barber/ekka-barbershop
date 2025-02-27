@@ -29,7 +29,7 @@ export const BookingConfirmDialog = ({
                 <p className="text-base">
                   حجزك هذا <span className="font-bold text-[#ea384c]">غير مؤكد</span>
                 </p>
-                <p className="text-sm text-gray-600">سيتم بالرد عليك بالتأكيد عن طريق الواتساب</p>
+                <p className="text-sm text-gray-600">سيتم التأكيد بالرد عليك عن طريق الواتساب</p>
               </> : <>
                 <p className="text-base">
                   This booking is <span className="font-bold text-[#ea384c]">unconfirmed</span>
