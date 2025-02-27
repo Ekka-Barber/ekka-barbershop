@@ -86,7 +86,7 @@ export const useTimeSlots = () => {
     workingHoursRanges: string[] = [],
     selectedDate?: Date,
     employeeId?: string,
-    serviceDuration: number = 30 // Add service duration parameter
+    serviceDuration: number = 30
   ): Promise<TimeSlot[]> => {
     const slots: TimeSlot[] = [];
     
@@ -114,6 +114,9 @@ export const useTimeSlots = () => {
       console.error('Error fetching unavailable slots:', error);
       return slots;
     }
+
+    const now = new Date();
+    const minimumBookingTime = addMinutes(now, 15);
 
     for (const range of workingHoursRanges) {
       const [start, end] = range.split('-');
@@ -144,6 +147,17 @@ export const useTimeSlots = () => {
         if (timeString === '00:00' && !crossesMidnight) {
           currentSlot = addMinutes(currentSlot, 30);
           continue;
+        }
+
+        // Skip slots that have already passed for today
+        if (isToday(selectedDate)) {
+          const slotTime = new Date(selectedDate);
+          slotTime.setHours(Math.floor(slotMinutes / 60), slotMinutes % 60, 0, 0);
+          
+          if (isBefore(slotTime, minimumBookingTime)) {
+            currentSlot = addMinutes(currentSlot, 30);
+            continue;
+          }
         }
         
         // Check availability considering service duration
