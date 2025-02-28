@@ -5,7 +5,7 @@ import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ServiceManagementHeader } from '@/components/admin/service-management/ServiceManagementHeader';
 import ServiceCategoryList from '@/components/admin/ServiceCategoryList';
-import FileManagement from '@/components/admin/FileManagement';
+import { FileManagement } from '@/components/admin/FileManagement';
 import URLManager from '@/components/admin/URLManager';
 import QRCodeManager from '@/components/admin/QRCodeManager';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
@@ -16,6 +16,18 @@ import { useLanguage } from '@/contexts/LanguageContext';
 const Admin = () => {
   const { language } = useLanguage();
   const [activeTab, setActiveTab] = useState('services');
+  const [newUrl, setNewUrl] = useState('');
+  const [isUpdating, setIsUpdating] = useState(false);
+
+  const handleSubmitUrl = (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsUpdating(true);
+    // Simulating URL update
+    setTimeout(() => {
+      setIsUpdating(false);
+      setNewUrl('');
+    }, 1000);
+  };
 
   return (
     <div dir={language === 'ar' ? 'rtl' : 'ltr'} className="min-h-screen bg-background">
@@ -84,7 +96,13 @@ const Admin = () => {
             </h2>
             <Separator />
             <ErrorBoundary>
-              <URLManager />
+              <URLManager 
+                currentUrl="https://example.com"
+                newUrl={newUrl}
+                setNewUrl={setNewUrl}
+                handleSubmit={handleSubmitUrl}
+                isUpdating={isUpdating}
+              />
             </ErrorBoundary>
           </TabsContent>
 
