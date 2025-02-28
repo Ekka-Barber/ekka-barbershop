@@ -38,7 +38,7 @@ export const ServicesList = ({
             service={service}
             isSelected={isSelected}
             isAvailable={isAvailable}
-            onClick={() => isAvailable && onServiceToggle(service)}
+            onSelect={() => isAvailable && onServiceToggle(service)}
             language={language}
           />
         );

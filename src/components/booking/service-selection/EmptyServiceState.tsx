@@ -1,7 +1,7 @@
 
 import { AlertTriangle } from "lucide-react";
 
-interface EmptyServiceStateProps {
+export interface EmptyServiceStateProps {
   message: string;
   description: string;
 }

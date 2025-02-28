@@ -51,7 +51,10 @@ export const ServiceSelectionContainer = ({
   };
 
   if (!categories || categories.length === 0) {
-    return <EmptyServiceState />;
+    return <EmptyServiceState 
+      message={language === 'ar' ? 'لا توجد خدمات متاحة' : 'No services available'} 
+      description={language === 'ar' ? 'لا توجد خدمات متاحة حاليًا. يرجى المحاولة مرة أخرى لاحقًا.' : 'There are no services available at the moment. Please try again later.'} 
+    />;
   }
 
   return (
