@@ -9,6 +9,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { BookingTimeSettings } from './BookingTimeSettings';
 import { CustomerFieldSettings } from './CustomerFieldSettings';
 import { TermsAndConditionsSettings } from './TermsAndConditionsSettings';
+import { ServiceAvailabilitySettings } from './ServiceAvailabilitySettings';
 
 export interface BookingSettingsProps {
   initialTab?: string;
@@ -103,7 +104,7 @@ const BookingSettings = ({ initialTab = 'time-settings' }: BookingSettingsProps)
       </div>
       
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4">
           <TabsTrigger value="time-settings">
             {language === 'ar' ? 'إعدادات الوقت' : 'Time Settings'}
           </TabsTrigger>
@@ -112,6 +113,9 @@ const BookingSettings = ({ initialTab = 'time-settings' }: BookingSettingsProps)
           </TabsTrigger>
           <TabsTrigger value="terms-conditions">
             {language === 'ar' ? 'الشروط والأحكام' : 'Terms & Conditions'}
+          </TabsTrigger>
+          <TabsTrigger value="service-availability">
+            {language === 'ar' ? 'توفر الخدمات' : 'Service Availability'}
           </TabsTrigger>
         </TabsList>
         
@@ -169,6 +173,24 @@ const BookingSettings = ({ initialTab = 'time-settings' }: BookingSettingsProps)
             </CardHeader>
             <CardContent>
               <TermsAndConditionsSettings isLoading={isLoading} />
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="service-availability" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>
+                {language === 'ar' ? 'توفر الخدمات حسب الفرع' : 'Service Availability by Branch'}
+              </CardTitle>
+              <CardDescription>
+                {language === 'ar' 
+                  ? 'تحديد الخدمات المتوفرة في كل فرع'
+                  : 'Configure which services are offered at each branch'}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ServiceAvailabilitySettings isLoading={isLoading} />
             </CardContent>
           </Card>
         </TabsContent>
