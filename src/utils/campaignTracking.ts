@@ -39,6 +39,9 @@ const getDeviceType = (): 'mobile' | 'tablet' | 'desktop' => {
   return 'desktop';
 };
 
+// Session start timestamp for duration calculation
+let sessionStartTime: Date | null = null;
+
 // Track initial visit
 export const trackCampaignVisit = async () => {
   // Skip tracking for development/preview domains
@@ -46,6 +49,9 @@ export const trackCampaignVisit = async () => {
     console.log('Skipping campaign tracking for development/preview domain');
     return null;
   }
+
+  // Set session start time
+  sessionStartTime = new Date();
 
   const utmParams = getUTMParameters();
   
@@ -67,6 +73,15 @@ export const trackCampaignVisit = async () => {
       .single();
 
     if (error) throw error;
+    
+    // Store visit ID in localStorage
+    if (data?.id) {
+      localStorage.setItem('campaign_visit_id', data.id);
+      
+      // Set up bounce detection
+      setupBounceDetection(data.id);
+    }
+    
     return data.id;
   } catch (error) {
     console.error('Error tracking campaign visit:', error);
@@ -74,21 +89,83 @@ export const trackCampaignVisit = async () => {
   }
 };
 
+// Setup bounce detection
+const setupBounceDetection = (visitId: string) => {
+  // Track page navigation and interactions
+  let hasInteracted = false;
+  const interactionEvents = ['click', 'scroll', 'keypress'];
+  
+  // Track user interactions
+  const handleInteraction = () => {
+    hasInteracted = true;
+    // Remove event listeners once interaction is detected
+    interactionEvents.forEach(event => 
+      document.removeEventListener(event, handleInteraction)
+    );
+  };
+  
+  // Add event listeners for interactions
+  interactionEvents.forEach(event => 
+    document.addEventListener(event, handleInteraction)
+  );
+  
+  // Update bounce status when user leaves page
+  window.addEventListener('beforeunload', async () => {
+    const isBounce = !hasInteracted;
+    let sessionDuration = null;
+    
+    if (sessionStartTime) {
+      const endTime = new Date();
+      sessionDuration = (endTime.getTime() - sessionStartTime.getTime()) / 1000; // in seconds
+    }
+    
+    // Only update if we have a valid visitId
+    if (visitId) {
+      try {
+        await supabase
+          .from('campaign_visits')
+          .update({
+            bounce: isBounce,
+            session_duration: sessionDuration ? `${Math.floor(sessionDuration)} seconds` : null
+          })
+          .eq('id', visitId);
+      } catch (error) {
+        console.error('Error updating bounce status:', error);
+      }
+    }
+  });
+};
+
 // Update visit when booking is made
 export const updateCampaignConversion = async (visitId: string | null, bookingId: string) => {
   if (!visitId) return;
 
   try {
+    // Get booking details for revenue calculation
+    const { data: bookingData, error: bookingError } = await supabase
+      .from('bookings')
+      .select('total_price')
+      .eq('id', bookingId)
+      .single();
+      
+    if (bookingError) throw bookingError;
+    
+    const revenue = bookingData?.total_price || 0;
+
     const { error } = await supabase
       .from('campaign_visits')
       .update({
         converted_to_booking: true,
         conversion_date: new Date().toISOString(),
-        booking_id: bookingId
+        booking_id: bookingId,
+        revenue: revenue
       })
       .eq('id', visitId);
 
     if (error) throw error;
+    
+    // Refresh the materialized view
+    await supabase.rpc('refresh_campaign_metrics');
   } catch (error) {
     console.error('Error updating campaign conversion:', error);
   }

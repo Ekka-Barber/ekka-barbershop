@@ -33,30 +33,6 @@ export type Database = {
         }
         Relationships: []
       }
-      booking_behavior: {
-        Row: {
-          created_at: string
-          id: string
-          step: string
-          timestamp: string
-          user_id: string | null
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          step: string
-          timestamp?: string
-          user_id?: string | null
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          step?: string
-          timestamp?: string
-          user_id?: string | null
-        }
-        Relationships: []
-      }
       bookings: {
         Row: {
           appointment_date: string
@@ -218,16 +194,62 @@ export type Database = {
         }
         Relationships: []
       }
+      campaign_costs: {
+        Row: {
+          campaign_id: string
+          campaign_name: string
+          created_at: string | null
+          currency: string | null
+          daily_budget: number | null
+          end_date: string
+          id: string
+          platform: string
+          start_date: string
+          total_spent: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          campaign_id: string
+          campaign_name: string
+          created_at?: string | null
+          currency?: string | null
+          daily_budget?: number | null
+          end_date: string
+          id?: string
+          platform: string
+          start_date: string
+          total_spent?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          campaign_id?: string
+          campaign_name?: string
+          created_at?: string | null
+          currency?: string | null
+          daily_budget?: number | null
+          end_date?: string
+          id?: string
+          platform?: string
+          start_date?: string
+          total_spent?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       campaign_visits: {
         Row: {
           booking_id: string | null
+          bounce: boolean | null
           browser_info: Json | null
+          campaign_cost: number | null
           conversion_date: string | null
           converted_to_booking: boolean | null
           device_type: Database["public"]["Enums"]["device_type"] | null
           id: string
           page_url: string | null
           referrer: string | null
+          revenue: number | null
+          session_duration: unknown | null
           timestamp: string | null
           utm_campaign: string | null
           utm_campaign_id: string | null
@@ -236,13 +258,17 @@ export type Database = {
         }
         Insert: {
           booking_id?: string | null
+          bounce?: boolean | null
           browser_info?: Json | null
+          campaign_cost?: number | null
           conversion_date?: string | null
           converted_to_booking?: boolean | null
           device_type?: Database["public"]["Enums"]["device_type"] | null
           id?: string
           page_url?: string | null
           referrer?: string | null
+          revenue?: number | null
+          session_duration?: unknown | null
           timestamp?: string | null
           utm_campaign?: string | null
           utm_campaign_id?: string | null
@@ -251,13 +277,17 @@ export type Database = {
         }
         Update: {
           booking_id?: string | null
+          bounce?: boolean | null
           browser_info?: Json | null
+          campaign_cost?: number | null
           conversion_date?: string | null
           converted_to_booking?: boolean | null
           device_type?: Database["public"]["Enums"]["device_type"] | null
           id?: string
           page_url?: string | null
           referrer?: string | null
+          revenue?: number | null
+          session_duration?: unknown | null
           timestamp?: string | null
           utm_campaign?: string | null
           utm_campaign_id?: string | null
@@ -1709,7 +1739,20 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      campaign_metrics_daily: {
+        Row: {
+          avg_session_duration: number | null
+          bounce_rate: number | null
+          conversions: number | null
+          cost: number | null
+          day: string | null
+          revenue: number | null
+          unique_visitors: number | null
+          utm_source: string | null
+          visits: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       clean_orphaned_receipts: {
@@ -1774,6 +1817,10 @@ export type Database = {
         Returns: boolean
       }
       manage_expired_offers: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      refresh_campaign_metrics: {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }

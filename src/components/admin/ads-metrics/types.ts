@@ -19,6 +19,10 @@ export interface TimelineDataPoint {
   tiktok_visits: number;
   conversions: number;
   deviceBreakdown: DeviceMetrics;
+  costs?: number;
+  revenue?: number;
+  bounceRate?: number;
+  avgSessionDuration?: number;
 }
 
 export interface DeviceMetrics {
@@ -43,4 +47,16 @@ export interface SummaryMetrics {
   tiktok_conversion_rate: string;
   tiktok_percentage: string;
   metrics: CampaignMetrics;
+}
+
+export interface AggregatedMetrics {
+  day: string;
+  utm_source: string | null;
+  visits: number;
+  unique_visitors: number;
+  conversions: number;
+  cost: number;
+  revenue: number;
+  avg_session_duration: number;
+  bounce_rate: number;
 }
