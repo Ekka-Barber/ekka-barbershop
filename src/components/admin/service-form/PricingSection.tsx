@@ -20,7 +20,7 @@ export const PricingSection = ({ service, onChange, language, isMobile = false }
   const handleDiscountTypeChange = (value: string) => {
     onChange({ 
       ...service, 
-      discount_type: value as 'percentage' | 'fixed' | null,
+      discount_type: value === "none" ? null : value as 'percentage' | 'fixed',
       discount_value: null
     });
   };
@@ -46,14 +46,14 @@ export const PricingSection = ({ service, onChange, language, isMobile = false }
         <div className={`space-y-${isMobile ? '1' : '2'}`}>
           <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">Discount Type</label>
           <Select
-            value={service.discount_type || ''}
+            value={service.discount_type || 'none'}
             onValueChange={handleDiscountTypeChange}
           >
             <SelectTrigger className={`w-full ${isMobile ? 'h-8 text-sm' : ''}`}>
               <SelectValue placeholder="No discount" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">No discount</SelectItem>
+              <SelectItem value="none">No discount</SelectItem>
               <SelectItem value="percentage">Percentage (%)</SelectItem>
               <SelectItem value="fixed">Fixed Amount</SelectItem>
             </SelectContent>

@@ -4,10 +4,10 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ServiceManagementHeader } from '@/components/admin/service-management/ServiceManagementHeader';
-import { ServiceCategoryList } from '@/components/admin/ServiceCategoryList';
-import { FileManagement } from '@/components/admin/FileManagement';
-import { URLManager } from '@/components/admin/URLManager';
-import { QRCodeManager } from '@/components/admin/QRCodeManager';
+import ServiceCategoryList from '@/components/admin/ServiceCategoryList';
+import FileManagement from '@/components/admin/FileManagement';
+import URLManager from '@/components/admin/URLManager';
+import QRCodeManager from '@/components/admin/QRCodeManager';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { ErrorBoundary } from '@/components/common/ErrorBoundary';
 import { AdsMetrics } from '@/components/admin/ads-metrics/AdsMetrics';
@@ -55,7 +55,13 @@ const Admin = () => {
           </TabsList>
 
           <TabsContent value="services" className="space-y-4">
-            <ServiceManagementHeader />
+            <ServiceManagementHeader 
+              totalCategories={0}
+              totalServices={0}
+              onSearch={() => {}}
+              onSort={() => {}}
+              onFilter={() => {}}
+            />
             <Separator />
             <ErrorBoundary>
               <ServiceCategoryList />

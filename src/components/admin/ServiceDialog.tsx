@@ -32,6 +32,7 @@ export const ServiceDialog = ({ categories, editService, onSuccess, trigger }: S
   const queryClient = useQueryClient();
   const isMobile = useIsMobile();
   const [selectedUpsells, setSelectedUpsells] = useState<Array<{ serviceId: string; discountPercentage: number }>>([]);
+  const descriptionId = "service-dialog-description";
 
   const { data: services } = useQuery({
     queryKey: ['services'],
@@ -169,18 +170,19 @@ export const ServiceDialog = ({ categories, editService, onSuccess, trigger }: S
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className={`${isMobile ? 'p-3' : 'p-6'} max-w-[95vw] sm:max-w-lg md:max-w-xl lg:max-w-2xl mx-auto h-[80vh] sm:h-auto overflow-auto`}>
+      <DialogContent 
+        className={`${isMobile ? 'p-3' : 'p-6'} max-w-[95vw] sm:max-w-lg md:max-w-xl lg:max-w-2xl mx-auto h-[80vh] sm:h-auto overflow-auto`}
+        aria-describedby={descriptionId}
+      >
         <DialogHeader className={`${isMobile ? 'pb-2 space-y-1' : 'pb-4 space-y-2'}`}>
           <DialogTitle className={`${isMobile ? 'text-lg' : 'text-xl'}`}>
             {editService ? 'Edit Service' : 'Add New Service'}
           </DialogTitle>
-          {!isMobile && (
-            <DialogDescription>
-              {editService 
-                ? 'Update the service details below.' 
-                : 'Fill in the details below to add a new service.'}
-            </DialogDescription>
-          )}
+          <DialogDescription id={descriptionId} className={isMobile ? "sr-only" : ""}>
+            {editService 
+              ? 'Update the service details below.' 
+              : 'Fill in the details below to add a new service.'}
+          </DialogDescription>
         </DialogHeader>
         <div className={`${isMobile ? 'py-2' : 'py-4'}`}>
           <ServiceForm
