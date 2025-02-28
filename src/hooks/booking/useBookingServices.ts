@@ -97,13 +97,13 @@ export const useBookingServices = (
       return processedCategories;
     },
     enabled: branchId !== undefined && branchId !== null,
-    staleTime: 5 * 60 * 1000,
-    onSettled: (data, error) => {
-      if (error) {
-        console.error('Error in categories query:', error);
-      }
-    }
+    staleTime: 5 * 60 * 1000
   });
+
+  // Handle error logging separately
+  if (categoriesError) {
+    console.error('Error in categories query:', categoriesError);
+  }
 
   const validateService = (service: any): Service | null => {
     try {
