@@ -64,7 +64,17 @@ export const WhatsAppIntegration = (props: BookingFormData) => {
     try {
       setIsLoading(true);
       
-      await saveBookingData(props);
+      try {
+        await saveBookingData(props);
+      } catch (error: any) {
+        if (error.message === 'A booking already exists with this phone number') {
+          showError(props.language === 'ar' 
+            ? 'يوجد حجز مسبق بهذا الرقم. يرجى استخدام رقم هاتف آخر.'
+            : 'A booking already exists with this phone number. Please use a different phone number.');
+          return;
+        }
+        throw error; // Re-throw if it's a different error
+      }
 
       const formattedNumber = formatWhatsAppNumber(props.branch.whatsapp_number);
       if (!formattedNumber) {
