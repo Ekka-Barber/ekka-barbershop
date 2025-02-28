@@ -1,4 +1,3 @@
-
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from "@/integrations/supabase/client";
 import { Service, SelectedService, Category } from '@/types/service';
@@ -13,10 +12,13 @@ export const useBookingServices = (
   const { toast } = useToast();
   const { language } = useLanguage();
 
-  const { data: categories, isLoading: categoriesLoading } = useQuery({
+  console.log('useBookingServices called with branchId:', branchId);
+
+  const { data: categories, isLoading: categoriesLoading, error: categoriesError } = useQuery({
     queryKey: ['service_categories', branchId],
     queryFn: async () => {
       console.log('Fetching categories with branchId:', branchId);
+      
       const { data: categories, error: categoriesError } = await supabase
         .from('service_categories')
         .select(`
@@ -46,51 +48,62 @@ export const useBookingServices = (
         throw categoriesError;
       }
       
-      // Fetch service availability if branchId is provided
+      console.log('Raw categories data:', categories);
+      
       let serviceAvailability = {};
       if (branchId) {
         const { data: availabilityData, error: availabilityError } = await supabase
           .from('service_branch_availability')
-          .select('*')
+          .select('service_id, is_available')
           .eq('branch_id', branchId);
           
         if (availabilityError) {
           console.error('Error fetching service availability:', availabilityError);
         } else if (availabilityData) {
-          // Create a lookup map for quick service availability checks
           serviceAvailability = availabilityData.reduce((acc, item) => {
             acc[item.service_id] = item.is_available;
             return acc;
           }, {});
+          
+          console.log('Service availability data:', serviceAvailability);
         }
       }
       
-      // Process and filter services based on availability
-      return categories?.map(category => ({
-        ...category,
-        services: category.services
+      const processedCategories = categories?.map(category => {
+        const filteredServices = (category.services || [])
           .map(service => ({
             ...service,
-            category_id: category.id // Ensure category_id is set
+            category_id: category.id
           }))
           .map(validateService)
-          .filter(Boolean) // Remove null values from invalid services
+          .filter(Boolean)
           .filter(service => {
-            // If branchId provided, check availability (default to available if no record)
             if (branchId) {
               return serviceAvailability[service.id] !== false;
             }
-            return true; // Include all services if no branchId
+            return true;
           })
-          .sort((a, b) => (a?.display_order || 0) - (b?.display_order || 0))
-      })) as Category[];
+          .sort((a, b) => (a?.display_order || 0) - (b?.display_order || 0));
+
+        return {
+          ...category,
+          services: filteredServices
+        };
+      }) as Category[];
+
+      console.log('Processed categories:', processedCategories);
+      
+      return processedCategories;
     },
-    enabled: true, // Always enable the query, we'll handle empty branchId inside
+    enabled: branchId !== undefined && branchId !== null,
+    staleTime: 5 * 60 * 1000,
+    onError: (error) => {
+      console.error('Error in categories query:', error);
+    }
   });
 
   const validateService = (service: any): Service | null => {
     try {
-      // Check if all required fields are present and of correct type
       if (!service?.id || !service?.name_en || !service?.name_ar || 
           typeof service?.price !== 'number' || typeof service?.duration !== 'number' ||
           typeof service?.display_order !== 'number') {
@@ -106,7 +119,7 @@ export const useBookingServices = (
         description_ar: service.description_ar || null,
         price: service.price,
         duration: service.duration,
-        category_id: service.category_id || '', // Use the parent category's ID if not provided
+        category_id: service.category_id || '',
         display_order: service.display_order,
         discount_type: service.discount_type || undefined,
         discount_value: service.discount_value || undefined
@@ -173,6 +186,7 @@ export const useBookingServices = (
   return {
     categories,
     categoriesLoading,
+    categoriesError,
     handleServiceToggle,
     calculateDiscountedPrice,
     roundPrice

@@ -19,9 +19,19 @@ export const ServicesList = ({
   language
 }: ServicesListProps) => {
   // Log for debugging
-  console.log('ServicesList category:', category);
+  console.log('ServicesList rendering with category:', category?.name_en);
   
-  if (!category || !category.services || category.services.length === 0) {
+  if (!category) {
+    console.log('ServicesList received undefined category');
+    return (
+      <div className="p-4 text-center text-gray-500">
+        {language === 'ar' ? 'لم يتم تحديد فئة' : 'No category selected'}
+      </div>
+    );
+  }
+  
+  if (!category.services || category.services.length === 0) {
+    console.log('ServicesList: No services in category', category.name_en);
     return (
       <div className="p-4 text-center text-gray-500">
         {language === 'ar' ? 'لا توجد خدمات متاحة في هذه الفئة' : 'No services available in this category'}
@@ -29,12 +39,14 @@ export const ServicesList = ({
     );
   }
 
+  console.log('ServicesList: Rendering', category.services.length, 'services for category', category.name_en);
+
   return (
     <div className="space-y-4 px-4">
       {category.services.map((service) => {
         const isSelected = selectedServices.some(s => s.id === service.id);
         // Services are pre-filtered for availability in useBookingServices
-        const isAvailable = true;
+        const isAvailable = isServiceAvailable(service.id);
         
         return (
           <ServiceCard

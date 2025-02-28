@@ -11,6 +11,11 @@ import { BookingStep } from '@/components/booking/BookingProgress';
 export type { CustomerDetails } from './booking/useBookingState';
 
 export const useBooking = (branch?: any) => {
+  // Extract branch ID explicitly 
+  const branchId = branch?.id;
+  
+  console.log('useBooking initialized with branchId:', branchId);
+
   const {
     currentStep,
     setCurrentStep,
@@ -31,11 +36,12 @@ export const useBooking = (branch?: any) => {
   const {
     categories,
     categoriesLoading,
+    categoriesError,
     handleServiceToggle
   } = useBookingServices(
     selectedServices, 
     setSelectedServices,
-    branch?.id // Pass branch ID to useBookingServices
+    branchId // Pass explicit branch ID to useBookingServices
   );
 
   const {
@@ -94,6 +100,7 @@ export const useBooking = (branch?: any) => {
     setTermsAccepted,
     categories,
     categoriesLoading,
+    categoriesError,
     employees,
     employeesLoading,
     selectedEmployee,
