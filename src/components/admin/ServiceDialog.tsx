@@ -17,6 +17,7 @@ import { useServiceForm } from '@/hooks/useServiceForm';
 import { useToast } from '@/components/ui/use-toast';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from "@/integrations/supabase/client";
+import { useIsMobile } from '@/hooks/use-mobile';
 
 type ServiceDialogProps = {
   categories: Category[] | undefined;
@@ -29,6 +30,7 @@ export const ServiceDialog = ({ categories, editService, onSuccess, trigger }: S
   const [isOpen, setIsOpen] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const isMobile = useIsMobile();
   const [selectedUpsells, setSelectedUpsells] = useState<Array<{ serviceId: string; discountPercentage: number }>>([]);
 
   const { data: services } = useQuery({
@@ -167,16 +169,20 @@ export const ServiceDialog = ({ categories, editService, onSuccess, trigger }: S
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="max-w-2xl">
-        <DialogHeader>
-          <DialogTitle>{editService ? 'Edit Service' : 'Add New Service'}</DialogTitle>
-          <DialogDescription>
-            {editService 
-              ? 'Update the service details below.' 
-              : 'Fill in the details below to add a new service.'}
-          </DialogDescription>
+      <DialogContent className={`${isMobile ? 'p-3' : 'p-6'} max-w-[95vw] sm:max-w-lg md:max-w-xl lg:max-w-2xl mx-auto h-[80vh] sm:h-auto overflow-auto`}>
+        <DialogHeader className={`${isMobile ? 'pb-2 space-y-1' : 'pb-4 space-y-2'}`}>
+          <DialogTitle className={`${isMobile ? 'text-lg' : 'text-xl'}`}>
+            {editService ? 'Edit Service' : 'Add New Service'}
+          </DialogTitle>
+          {!isMobile && (
+            <DialogDescription>
+              {editService 
+                ? 'Update the service details below.' 
+                : 'Fill in the details below to add a new service.'}
+            </DialogDescription>
+          )}
         </DialogHeader>
-        <div className="py-4">
+        <div className={`${isMobile ? 'py-2' : 'py-4'}`}>
           <ServiceForm
             categories={categories}
             service={newService}
@@ -186,18 +192,20 @@ export const ServiceDialog = ({ categories, editService, onSuccess, trigger }: S
             onUpsellsChange={setSelectedUpsells}
           />
         </div>
-        <DialogFooter className="gap-2 sm:gap-0">
+        <DialogFooter className={`${isMobile ? 'mt-2' : 'mt-4'} gap-2 sm:gap-0`}>
           <Button
             variant="outline"
             onClick={() => setIsOpen(false)}
+            className={`${isMobile ? 'text-sm py-1.5 px-3' : ''}`}
           >
             Cancel
           </Button>
           <Button 
             onClick={handleSubmit}
             disabled={isLoading || !newService.category_id || !newService.name_en || !newService.name_ar || !newService.duration || !newService.price}
+            className={`${isMobile ? 'text-sm py-1.5 px-3' : ''}`}
           >
-            {isLoading ? 'Saving...' : editService ? 'Update Service' : 'Add Service'}
+            {isLoading ? 'Saving...' : editService ? 'Update' : 'Add'}
           </Button>
         </DialogFooter>
       </DialogContent>

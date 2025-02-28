@@ -7,6 +7,7 @@ import { BasicServiceInfo } from './service-form/BasicServiceInfo';
 import { ServiceDescriptions } from './service-form/ServiceDescriptions';
 import { PricingSection } from './service-form/PricingSection';
 import { UpsellSection } from './service-form/UpsellSection';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 type ServiceFormProps = {
   categories: Category[] | undefined;
@@ -26,25 +27,29 @@ export const ServiceForm = ({
   onUpsellsChange
 }: ServiceFormProps) => {
   const { language } = useLanguage();
+  const isMobile = useIsMobile();
   
   return (
     <Card className="border-none shadow-none">
-      <CardContent className="space-y-6 p-0">
+      <CardContent className={`space-y-${isMobile ? '4' : '6'} p-0`}>
         <BasicServiceInfo
           service={service}
           categories={categories}
           onChange={onChange}
+          isMobile={isMobile}
         />
         
         <ServiceDescriptions
           service={service}
           onChange={onChange}
+          isMobile={isMobile}
         />
         
         <PricingSection
           service={service}
           onChange={onChange}
           language={language}
+          isMobile={isMobile}
         />
         
         <UpsellSection
@@ -53,6 +58,7 @@ export const ServiceForm = ({
           selectedUpsells={selectedUpsells}
           onUpsellsChange={onUpsellsChange}
           language={language}
+          isMobile={isMobile}
         />
       </CardContent>
     </Card>

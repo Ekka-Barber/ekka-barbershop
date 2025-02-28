@@ -15,9 +15,10 @@ interface BasicServiceInfoProps {
   service: Partial<Service>;
   categories: Category[] | undefined;
   onChange: (service: Partial<Service>) => void;
+  isMobile?: boolean;
 }
 
-export const BasicServiceInfo = ({ service, categories, onChange }: BasicServiceInfoProps) => {
+export const BasicServiceInfo = ({ service, categories, onChange, isMobile = false }: BasicServiceInfoProps) => {
   // Important: Initialize with the service's category_id if it exists
   const [selectedCategory, setSelectedCategory] = useState<string>(service.category_id || '');
 
@@ -36,15 +37,15 @@ export const BasicServiceInfo = ({ service, categories, onChange }: BasicService
   };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <div className="space-y-2">
+    <div className={`grid grid-cols-1 ${isMobile ? 'gap-3' : 'md:grid-cols-2 gap-6'}`}>
+      <div className={`space-y-${isMobile ? '1' : '2'}`}>
         <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">Category</label>
         <Select
           value={selectedCategory}
           onValueChange={handleCategoryChange}
           defaultValue={service.category_id}
         >
-          <SelectTrigger className="w-full">
+          <SelectTrigger className={`w-full ${isMobile ? 'h-8 text-sm' : ''}`}>
             <SelectValue placeholder="Select category" />
           </SelectTrigger>
           <SelectContent>
@@ -57,14 +58,37 @@ export const BasicServiceInfo = ({ service, categories, onChange }: BasicService
         </Select>
       </div>
 
-      <div className="space-y-2">
+      <div className={`space-y-${isMobile ? '1' : '2'}`}>
         <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">Duration (minutes)</label>
         <Input
           type="number"
           value={service.duration || ''}
           onChange={(e) => onChange({ ...service, duration: parseInt(e.target.value) || 0 })}
           placeholder="Enter duration"
-          className="w-full"
+          className={`w-full ${isMobile ? 'h-8 text-sm' : ''}`}
+        />
+      </div>
+
+      <div className={`space-y-${isMobile ? '1' : '2'}`}>
+        <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">Name (English)</label>
+        <Input
+          type="text"
+          value={service.name_en || ''}
+          onChange={(e) => onChange({ ...service, name_en: e.target.value })}
+          placeholder="Service name in English"
+          className={`w-full ${isMobile ? 'h-8 text-sm' : ''}`}
+        />
+      </div>
+
+      <div className={`space-y-${isMobile ? '1' : '2'}`}>
+        <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">Name (Arabic)</label>
+        <Input
+          type="text"
+          dir="rtl"
+          value={service.name_ar || ''}
+          onChange={(e) => onChange({ ...service, name_ar: e.target.value })}
+          placeholder="اسم الخدمة بالعربية"
+          className={`w-full ${isMobile ? 'h-8 text-sm' : ''}`}
         />
       </div>
     </div>
