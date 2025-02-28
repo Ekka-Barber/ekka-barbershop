@@ -17,6 +17,7 @@ interface UpsellService {
   duration: number;
   discountPercentage: number;
   discountedPrice: number;
+  mainServiceId?: string;
 }
 
 interface UpsellModalProps {
@@ -24,6 +25,7 @@ interface UpsellModalProps {
   onClose: () => void;
   onConfirm: (selectedUpsells: UpsellService[]) => void;
   availableUpsells: UpsellService[];
+  selectedServices: SelectedService[];
 }
 
 export const UpsellModal = ({
@@ -31,9 +33,16 @@ export const UpsellModal = ({
   onClose,
   onConfirm,
   availableUpsells,
+  selectedServices,
 }: UpsellModalProps) => {
   const { language } = useLanguage();
   const [selectedUpsells, setSelectedUpsells] = React.useState<UpsellService[]>([]);
+
+  React.useEffect(() => {
+    if (isOpen) {
+      setSelectedUpsells([]);
+    }
+  }, [isOpen]);
 
   const handleToggleUpsell = (upsell: UpsellService) => {
     setSelectedUpsells(prev => {
@@ -60,7 +69,11 @@ export const UpsellModal = ({
     );
   };
 
-  const useGridLayout = availableUpsells.length > 3;
+  const useGridLayout = availableUpsells?.length > 3;
+
+  if (!availableUpsells || availableUpsells.length === 0) {
+    return null;
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={() => onClose()}>

@@ -1,24 +1,32 @@
+
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useIsMobile } from "@/hooks/use-mobile";
 
-export type BookingStep = 'services' | 'datetime' | 'barber' | 'details';
+export type BookingStep = 'services' | 'datetime' | 'barber' | 'customer' | 'summary';
 
 interface BookingProgressProps {
   currentStep: BookingStep;
-  steps: BookingStep[];
-  onStepClick: (step: BookingStep) => void;
-  currentStepIndex: number;
 }
 
-export const BookingProgress = ({ 
-  currentStep, 
-  steps, 
-  onStepClick, 
-  currentStepIndex 
-}: BookingProgressProps) => {
+export const BookingProgress = ({ currentStep }: BookingProgressProps) => {
   const { t } = useLanguage();
   const isMobile = useIsMobile();
+  
+  const steps: BookingStep[] = ['services', 'datetime', 'barber', 'customer', 'summary'];
+  const currentStepIndex = steps.indexOf(currentStep);
   const progress = ((currentStepIndex + 1) / steps.length) * 100;
+
+  // Step titles based on language
+  const getStepTitle = (step: BookingStep) => {
+    switch (step) {
+      case 'services': return t('step.services');
+      case 'datetime': return t('step.datetime');
+      case 'barber': return t('step.barber');
+      case 'customer': return t('step.customer');
+      case 'summary': return t('step.summary');
+      default: return '';
+    }
+  };
 
   return (
     <div className="mb-8">
@@ -41,17 +49,12 @@ export const BookingProgress = ({
                 isCurrent ? 'text-[#222222] font-medium' : 
                 'text-gray-400'
               }`}
-              onClick={() => {
-                if (index <= currentStepIndex) {
-                  onStepClick(step);
-                }
-              }}
             >
               <span className="w-6 h-6 flex items-center justify-center border rounded-full mb-1">
                 {isCompleted ? '✓' : index + 1}
               </span>
               <span className="text-xs text-center">
-                {t(`step.${step}`)}
+                {getStepTitle(step)}
               </span>
             </div>
           );

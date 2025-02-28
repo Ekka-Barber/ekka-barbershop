@@ -4,6 +4,7 @@ import { format } from "date-fns";
 import { Slash, X, Tag } from "lucide-react";
 import { SelectedService } from "@/types/service";
 import { PriceDisplay } from "@/components/ui/price-display";
+import { CustomerDetails } from "@/types/booking";
 
 interface BookingSummaryProps {
   selectedServices: SelectedService[];
@@ -11,6 +12,8 @@ interface BookingSummaryProps {
   selectedDate?: Date;
   selectedTime?: string;
   selectedBarberName?: string;
+  customerDetails?: CustomerDetails;
+  branch?: any;
   onRemoveService?: (serviceId: string) => void;
 }
 
@@ -30,6 +33,8 @@ export const BookingSummary = ({
   selectedDate,
   selectedTime,
   selectedBarberName,
+  customerDetails,
+  branch,
   onRemoveService
 }: BookingSummaryProps) => {
   const { t, language } = useLanguage();

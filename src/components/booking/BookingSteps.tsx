@@ -61,13 +61,37 @@ export const BookingSteps = ({
   branchId
 }: BookingStepsProps) => {
   const { language } = useLanguage();
-  const { upsellServices, showUpsell, hideUpsell, addUpsellServices } =
-    useBookingUpsells(selectedServices);
+  const { data: upsellData, isLoading: upsellLoading } = useBookingUpsells(selectedServices, language as 'en' | 'ar');
   const [isUpsellShown, setIsUpsellShown] = useState(false);
+  const [currentUpsells, setCurrentUpsells] = useState<any[]>([]);
 
-  useEffect(() => {
-    setIsUpsellShown(upsellServices.length > 0);
-  }, [upsellServices]);
+  // Handle showing/hiding upsell modal
+  const showUpsell = (service: any) => {
+    if (upsellData && upsellData.length > 0) {
+      setCurrentUpsells(upsellData);
+      setIsUpsellShown(true);
+    }
+  };
+
+  const hideUpsell = () => {
+    setIsUpsellShown(false);
+    setCurrentUpsells([]);
+  };
+
+  const addUpsellServices = (selectedUpsells: any[]) => {
+    // Add the selected upsell services
+    selectedUpsells.forEach(upsell => {
+      if (!selectedServices.some(s => s.id === upsell.id)) {
+        onServiceToggle({
+          ...upsell,
+          isUpsellItem: true,
+          originalPrice: upsell.price,
+          price: upsell.discountedPrice,
+          discountPercentage: upsell.discountPercentage
+        });
+      }
+    });
+  };
 
   const onMainServiceSelect = (service: any) => {
     onServiceToggle(service);
@@ -87,10 +111,10 @@ export const BookingSteps = ({
         />
         <UpsellModal
           isOpen={isUpsellShown}
-          upsellServices={upsellServices}
+          availableUpsells={currentUpsells}
           selectedServices={selectedServices}
           onClose={hideUpsell}
-          onAddUpsells={addUpsellServices}
+          onConfirm={addUpsellServices}
         />
       </>
     );
@@ -114,7 +138,7 @@ export const BookingSteps = ({
         isLoading={employeesLoading}
         selectedDate={selectedDate}
         selectedTime={selectedTime}
-        services={selectedServices}
+        onTimeSelect={setSelectedTime}
       />
     );
   }
@@ -123,7 +147,7 @@ export const BookingSteps = ({
     return (
       <CustomerForm
         customerDetails={customerDetails}
-        onInputChange={handleCustomerDetailsChange}
+        onCustomerDetailsChange={handleCustomerDetailsChange}
         branch={branch}
       />
     );
@@ -134,7 +158,7 @@ export const BookingSteps = ({
       selectedServices={selectedServices}
       selectedDate={selectedDate}
       selectedTime={selectedTime}
-      selectedBarber={selectedBarber}
+      selectedBarberName={employees?.find(emp => emp.id === selectedBarber)?.name}
       customerDetails={customerDetails}
       totalPrice={totalPrice}
       branch={branch}

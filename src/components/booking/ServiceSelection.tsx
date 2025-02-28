@@ -12,13 +12,14 @@ import { useToast } from "@/hooks/use-toast";
 import { AlertTriangle } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { BookingStep } from "./BookingProgress";
 
 interface ServiceSelectionProps {
   categories: any[] | undefined;
   isLoading: boolean;
   selectedServices: any[];
   onServiceToggle: (service: any) => void;
-  onStepChange?: (step: string) => void;
+  onStepChange?: (step: BookingStep) => void;
   branchId?: string;
 }
 

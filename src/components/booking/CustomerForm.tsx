@@ -9,12 +9,14 @@ import { identifyCustomer } from "@/utils/tiktokTracking";
 interface CustomerFormProps {
   customerDetails: CustomerDetails;
   onCustomerDetailsChange: (field: keyof CustomerDetails, value: string) => void;
+  branch: any;
   onValidationChange?: (isValid: boolean) => void;
 }
 
 export const CustomerForm = ({
   customerDetails,
   onCustomerDetailsChange,
+  branch,
   onValidationChange
 }: CustomerFormProps) => {
   const { t, language } = useLanguage();
@@ -136,4 +138,3 @@ export const CustomerForm = ({
     </div>
   );
 };
-
