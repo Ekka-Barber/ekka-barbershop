@@ -1,7 +1,9 @@
 
 import { BookingSummary } from "../BookingSummary";
-import { CustomerDetails } from "@/hooks/booking/useBookingState";
 import { SelectedService } from "@/types/service";
+import { CustomerDetails } from "@/types/booking";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { format } from "date-fns";
 
 interface SummaryStepProps {
   selectedServices: SelectedService[];
@@ -10,11 +12,11 @@ interface SummaryStepProps {
   selectedBarber?: string;
   customerDetails: CustomerDetails;
   totalPrice: number;
-  branch?: any;
-  employees?: any[];
+  branch: any;
+  employees: any[];
 }
 
-export const SummaryStep = ({
+const SummaryStep: React.FC<SummaryStepProps> = ({
   selectedServices,
   selectedDate,
   selectedTime,
@@ -23,24 +25,36 @@ export const SummaryStep = ({
   totalPrice,
   branch,
   employees
-}: SummaryStepProps) => {
-  // Find the selected employee
-  const selectedEmployee = employees?.find(
-    (employee) => employee.id === selectedBarber
-  );
+}) => {
+  const { language } = useLanguage();
+  
+  // Calculate total duration
+  const totalDuration = selectedServices.reduce((total, service) => total + service.duration, 0);
+  
+  // Find selected barber details
+  const selectedBarberDetails = employees.find(emp => emp.id === selectedBarber);
 
+  // Create the booking details object
+  const bookingDetails = {
+    selectedServices,
+    selectedDate,
+    selectedTime,
+    selectedBarber: selectedBarberDetails,
+    totalPrice,
+    totalDuration
+  };
+  
   return (
     <BookingSummary
-      bookingDetails={{
-        selectedServices,
-        selectedDate,
-        selectedTime,
-        selectedBarber: selectedEmployee,
-        totalPrice,
-        totalDuration: selectedServices.reduce((sum, service) => sum + service.duration, 0)
-      }}
+      selectedServices={selectedServices}
+      selectedDate={selectedDate}
+      selectedTime={selectedTime}
+      selectedBarber={selectedBarberDetails}
       customerDetails={customerDetails}
+      totalPrice={totalPrice}
+      totalDuration={totalDuration}
       branch={branch}
+      language={language}
     />
   );
 };

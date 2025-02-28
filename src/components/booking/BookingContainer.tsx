@@ -153,7 +153,7 @@ export const BookingContainer = () => {
         <StepRenderer
           currentStep={currentStep}
           // Services step props
-          categories={categories || []}
+          categories={categories}
           categoriesLoading={categoriesLoading}
           selectedServices={selectedServices}
           onServiceToggle={handleServiceToggle}
@@ -162,12 +162,12 @@ export const BookingContainer = () => {
           // DateTime step props
           selectedDate={selectedDate}
           setSelectedDate={setSelectedDate}
-          selectedTime={selectedTime}
           // Barber step props
           selectedBarber={selectedBarber}
           onBarberSelect={setSelectedBarber}
-          employees={employees || []}
+          employees={employees}
           employeesLoading={employeesLoading}
+          selectedTime={selectedTime}
           setSelectedTime={setSelectedTime}
           // Customer step props
           customerDetails={customerDetails}

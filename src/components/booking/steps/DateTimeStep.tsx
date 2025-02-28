@@ -1,17 +1,26 @@
 
 import { DateTimeSelection } from "../DateTimeSelection";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface DateTimeStepProps {
   selectedDate?: Date;
   setSelectedDate: (date: Date) => void;
-  branch?: any;
+  branch: any;
 }
 
-export const DateTimeStep = ({
+const DateTimeStep: React.FC<DateTimeStepProps> = ({
   selectedDate,
   setSelectedDate,
   branch
-}: DateTimeStepProps) => {
+}) => {
+  if (!selectedDate) {
+    return (
+      <div className="space-y-6">
+        <Skeleton className="h-60 w-full rounded-lg" />
+      </div>
+    );
+  }
+
   return (
     <DateTimeSelection
       selectedDate={selectedDate}

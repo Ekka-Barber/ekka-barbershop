@@ -2,7 +2,10 @@
 import { Suspense, lazy } from "react";
 import { BookingStep } from "../BookingProgress";
 import { Skeleton } from "@/components/ui/skeleton";
-import { CustomerDetails } from "@/hooks/booking/useBookingState";
+import { CustomerDetails } from "@/types/booking";
+import { SelectedService } from "@/types/service";
+import { Category } from "@/types/service";
+import { Language } from "@/types/language";
 
 // Lazy load step components
 const ServiceStep = lazy(() => import("./ServiceStep"));
@@ -14,9 +17,9 @@ const SummaryStep = lazy(() => import("./SummaryStep"));
 interface StepRendererProps {
   currentStep: BookingStep;
   // Service step props
-  categories?: any[];
+  categories?: Category[];
   categoriesLoading?: boolean;
-  selectedServices: any[];
+  selectedServices: SelectedService[];
   onServiceToggle: (service: any) => void;
   onStepChange: (step: BookingStep) => void;
   branchId?: string;
@@ -32,7 +35,7 @@ interface StepRendererProps {
   setSelectedTime: (time: string) => void;
   // Customer step props
   customerDetails: CustomerDetails;
-  onCustomerDetailsChange: (field: string, value: string) => void;
+  onCustomerDetailsChange: (field: keyof CustomerDetails, value: string) => void;
   // Shared props
   branch?: any;
   totalPrice: number;

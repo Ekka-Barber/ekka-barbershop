@@ -1,84 +1,69 @@
 
-import { UpsellModal } from "../UpsellModal";
-import { ServiceSelection } from "../ServiceSelection";
 import { useState } from "react";
-import { useBookingUpsells } from "@/hooks/useBookingUpsells";
-import { useLanguage } from "@/contexts/LanguageContext";
+import { ServiceSelectionContainer } from "../service-selection/ServiceSelectionContainer";
+import { useServiceAvailability } from "@/hooks/useServiceAvailability";
 import { BookingStep } from "../BookingProgress";
+import { SelectedService, Category, Service } from "@/types/service";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface ServiceStepProps {
-  categories: any[] | undefined;
+  categories: Category[];
   categoriesLoading: boolean;
-  selectedServices: any[];
-  onServiceToggle: (service: any) => void;
+  selectedServices: SelectedService[];
+  onServiceToggle: (service: Service) => void;
   onStepChange: (step: BookingStep) => void;
-  branchId: string | null;
+  branchId?: string;
 }
 
-export const ServiceStep = ({
+const ServiceStep: React.FC<ServiceStepProps> = ({
   categories,
   categoriesLoading,
   selectedServices,
   onServiceToggle,
   onStepChange,
   branchId
-}: ServiceStepProps) => {
+}) => {
   const { language } = useLanguage();
-  const { data: upsellData, isLoading: upsellLoading } = useBookingUpsells(selectedServices, language as 'en' | 'ar');
-  const [isUpsellShown, setIsUpsellShown] = useState(false);
-  const [currentUpsells, setCurrentUpsells] = useState<any[]>([]);
+  const { getServiceAvailability } = useServiceAvailability(branchId);
+  const [totalDuration, setTotalDuration] = useState(
+    selectedServices.reduce((sum, service) => sum + service.duration, 0)
+  );
+  const [totalPrice, setTotalPrice] = useState(
+    selectedServices.reduce((sum, service) => sum + service.price, 0)
+  );
 
-  // Handle showing/hiding upsell modal
-  const showUpsell = (service: any) => {
-    if (upsellData && upsellData.length > 0) {
-      setCurrentUpsells(upsellData);
-      setIsUpsellShown(true);
-    }
+  // Update totals when services change
+  useState(() => {
+    setTotalDuration(selectedServices.reduce((sum, service) => sum + service.duration, 0));
+    setTotalPrice(selectedServices.reduce((sum, service) => sum + service.price, 0));
+  });
+
+  const isServiceAvailable = (serviceId: string): boolean => {
+    return getServiceAvailability(serviceId);
   };
 
-  const hideUpsell = () => {
-    setIsUpsellShown(false);
-    setCurrentUpsells([]);
-  };
-
-  const addUpsellServices = (selectedUpsells: any[]) => {
-    // Add the selected upsell services
-    selectedUpsells.forEach(upsell => {
-      if (!selectedServices.some(s => s.id === upsell.id)) {
-        onServiceToggle({
-          ...upsell,
-          isUpsellItem: true,
-          originalPrice: upsell.price,
-          price: upsell.discountedPrice,
-          discountPercentage: upsell.discountPercentage
-        });
-      }
-    });
-  };
-
-  const onMainServiceSelect = (service: any) => {
-    onServiceToggle(service);
-    showUpsell(service);
-  };
+  if (categoriesLoading) {
+    return (
+      <div className="space-y-6">
+        <Skeleton className="h-24 w-full" />
+        <Skeleton className="h-24 w-full" />
+        <Skeleton className="h-24 w-full" />
+      </div>
+    );
+  }
 
   return (
-    <>
-      <ServiceSelection
-        categories={categories}
-        isLoading={categoriesLoading}
-        selectedServices={selectedServices}
-        onServiceToggle={onMainServiceSelect}
-        onStepChange={onStepChange}
-        branchId={branchId || undefined}
-      />
-      <UpsellModal
-        isOpen={isUpsellShown}
-        availableUpsells={currentUpsells}
-        selectedServices={selectedServices}
-        onClose={hideUpsell}
-        onConfirm={addUpsellServices}
-      />
-    </>
+    <ServiceSelectionContainer
+      categories={categories}
+      selectedServices={selectedServices}
+      onServiceToggle={onServiceToggle}
+      onNextStep={onStepChange}
+      isServiceAvailable={isServiceAvailable}
+      language={language}
+      totalDuration={totalDuration}
+      totalPrice={totalPrice}
+    />
   );
 };
 

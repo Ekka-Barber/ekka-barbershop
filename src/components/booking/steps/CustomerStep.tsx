@@ -1,10 +1,10 @@
 
 import { CustomerForm } from "../CustomerForm";
-import { CustomerDetails } from "@/hooks/booking/useBookingState";
+import { CustomerDetails } from "@/types/booking";
 
 interface CustomerStepProps {
   customerDetails: CustomerDetails;
-  onCustomerDetailsChange: (field: string, value: string) => void;
+  onCustomerDetailsChange: (field: keyof CustomerDetails, value: string) => void;
   branch: any;
 }
 
