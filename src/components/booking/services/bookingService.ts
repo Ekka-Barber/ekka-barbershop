@@ -12,18 +12,6 @@ export const saveBookingData = async (formData: BookingFormData) => {
     throw new Error('Date and time are required');
   }
 
-  // Check if there's already a booking with this phone number
-  const { data: existingBooking } = await supabase
-    .from('bookings')
-    .select('id')
-    .eq('customer_phone', customerDetails.phone)
-    .maybeSingle();
-
-  // If a booking already exists with this phone number, throw an error
-  if (existingBooking) {
-    throw new Error('A booking already exists with this phone number');
-  }
-
   const { data, error } = await supabase
     .from('bookings')
     .insert({
