@@ -13,6 +13,8 @@ import { ErrorBoundary } from '@/components/common/ErrorBoundary';
 import { AdsMetrics } from '@/components/admin/ads-metrics/AdsMetrics';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useOptimizedCategories } from '@/hooks/useOptimizedCategories';
+import { Link } from 'react-router-dom';
+import { Settings } from 'lucide-react';
 
 const Admin = () => {
   const { language } = useLanguage();
@@ -44,6 +46,12 @@ const Admin = () => {
         <div className="container mx-auto flex justify-between items-center">
           <h1 className="text-xl font-bold">Admin Dashboard</h1>
           <div className="flex items-center gap-4">
+            <Link to="/booking-settings">
+              <Button variant="outline" className="flex items-center gap-2">
+                <Settings className="h-4 w-4" />
+                {language === 'ar' ? 'إعدادات الحجز' : 'Booking Settings'}
+              </Button>
+            </Link>
             <LanguageSwitcher />
             <Button
               variant="outline"
