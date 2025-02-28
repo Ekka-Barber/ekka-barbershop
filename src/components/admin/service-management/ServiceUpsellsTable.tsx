@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from "@/integrations/supabase/client";
-import { Edit, Trash2, Plus } from 'lucide-react';
+import { Edit, Trash2, Plus, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -23,6 +23,12 @@ import {
 } from "@/components/ui/select";
 import { Input } from '@/components/ui/input';
 import { Service } from '@/types/service';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 interface ServiceUpsell {
   id: string;
@@ -31,6 +37,14 @@ interface ServiceUpsell {
   discount_percentage: number;
   main_service?: Service;
   upsell_service?: Service;
+}
+
+// Group upsells by main service
+interface GroupedUpsells {
+  [mainServiceId: string]: {
+    mainService: Service;
+    upsells: ServiceUpsell[];
+  }
 }
 
 export const ServiceUpsellsTable = () => {
@@ -86,6 +100,21 @@ export const ServiceUpsellsTable = () => {
       return data as ServiceUpsell[];
     }
   });
+
+  // Group upsells by main service
+  const groupedUpsells: GroupedUpsells = upsells.reduce((acc: GroupedUpsells, upsell) => {
+    if (!upsell.main_service) return acc;
+    
+    if (!acc[upsell.main_service_id]) {
+      acc[upsell.main_service_id] = {
+        mainService: upsell.main_service,
+        upsells: []
+      };
+    }
+    
+    acc[upsell.main_service_id].upsells.push(upsell);
+    return acc;
+  }, {});
 
   // Add new upsell
   const addUpsellMutation = useMutation({
@@ -288,53 +317,62 @@ export const ServiceUpsellsTable = () => {
 
       {isLoadingUpsells ? (
         <div className="text-center py-8">Loading upsells...</div>
-      ) : upsells.length === 0 ? (
+      ) : Object.keys(groupedUpsells).length === 0 ? (
         <div className="text-center py-8 text-muted-foreground">
           No upsell relationships found. Add some using the button above.
         </div>
       ) : (
         <div className="rounded-md border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Main Service</TableHead>
-                <TableHead>Upsell Service</TableHead>
-                <TableHead className="w-[120px] text-center">Discount %</TableHead>
-                <TableHead className="w-[100px] text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {upsells.map((upsell) => (
-                <TableRow key={upsell.id}>
-                  <TableCell className="font-medium">
-                    {upsell.main_service?.name_en || 'Unknown service'}
-                  </TableCell>
-                  <TableCell>
-                    {upsell.upsell_service?.name_en || 'Unknown service'}
-                  </TableCell>
-                  <TableCell className="text-center">
-                    {upsell.discount_percentage}%
-                  </TableCell>
-                  <TableCell className="text-right space-x-2">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleEditUpsell(upsell)}
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleDeleteUpsell(upsell.id)}
-                    >
-                      <Trash2 className="h-4 w-4 text-red-500" />
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+          <Accordion type="multiple" className="w-full">
+            {Object.entries(groupedUpsells).map(([mainServiceId, { mainService, upsells }]) => (
+              <AccordionItem key={mainServiceId} value={mainServiceId} className="border-b">
+                <AccordionTrigger className="px-4 py-2 hover:bg-gray-50">
+                  <div className="flex-1 text-left font-semibold">
+                    {mainService.name_en}
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Upsell Service</TableHead>
+                        <TableHead className="w-[120px] text-center">Discount %</TableHead>
+                        <TableHead className="w-[100px] text-right">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {upsells.map((upsell) => (
+                        <TableRow key={upsell.id}>
+                          <TableCell>
+                            {upsell.upsell_service?.name_en || 'Unknown service'}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            {upsell.discount_percentage}%
+                          </TableCell>
+                          <TableCell className="text-right space-x-2">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleEditUpsell(upsell)}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleDeleteUpsell(upsell.id)}
+                            >
+                              <Trash2 className="h-4 w-4 text-red-500" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </AccordionContent>
+              </AccordionItem>
+            ))}
+          </Accordion>
         </div>
       )}
 
