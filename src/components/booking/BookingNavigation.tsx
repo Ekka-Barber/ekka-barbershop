@@ -60,7 +60,7 @@ export const BookingNavigation = ({
   const errorMessage = getErrorMessage();
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-10 bg-white border-t border-gray-200 p-4 shadow-md">
+    <div className={`fixed bottom-0 left-0 right-0 z-10 bg-white border-t border-gray-200 p-4 shadow-md ${language === 'ar' ? 'rtl' : 'ltr'}`}>
       <div className="container mx-auto">
         <div className="flex justify-between items-center">
           <Button
@@ -79,7 +79,7 @@ export const BookingNavigation = ({
           <Button
             onClick={goToNextStep}
             disabled={!canProceed || typeof canProceed === "string"}
-            className="px-4"
+            className="px-4 bg-[#C4A484] hover:bg-[#b3957b]"
           >
             {isLastStep ? (
               <>

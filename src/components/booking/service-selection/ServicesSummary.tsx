@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { SelectedService } from "@/types/service";
 import { formatDuration, formatNumber } from "@/utils/formatters";
 import { Language } from "@/types/language";
+import { PriceDisplay } from "@/components/ui/price-display";
 
 interface ServicesSummaryProps {
   selectedServices: SelectedService[];
@@ -20,16 +21,23 @@ export const ServicesSummary = ({
   language
 }: ServicesSummaryProps) => {
   return (
-    <div className="border-t mt-auto pt-4 px-4 bg-white">
+    <div className={`border-t mt-auto pt-4 px-4 bg-white ${language === 'ar' ? 'rtl' : 'ltr'}`}>
       <div className="mb-4">
         <div className="text-sm font-medium mb-2">
           {language === 'ar' ? 'الخدمات المختارة' : 'Selected Services'}
+          <span className="text-muted-foreground ml-1">
+            ({selectedServices.length} {language === 'ar' ? 'خدمات' : 'services'})
+          </span>
         </div>
-        <div className="max-h-20 overflow-y-auto">
+        <div className="max-h-20 overflow-y-auto hide-scrollbar">
           {selectedServices.map((service) => (
             <div key={service.id} className="flex justify-between text-sm py-1">
               <span>{language === 'ar' ? service.name_ar : service.name_en}</span>
-              <span>{formatNumber(service.price, language)} SAR</span>
+              <PriceDisplay 
+                price={service.price}
+                language={language}
+                size="sm"
+              />
             </div>
           ))}
         </div>
@@ -45,13 +53,17 @@ export const ServicesSummary = ({
           </div>
         </div>
         <div className="text-xl font-semibold">
-          {formatNumber(totalPrice, language)} SAR
+          <PriceDisplay 
+            price={totalPrice}
+            language={language}
+            size="lg"
+          />
         </div>
       </div>
       
       <Button 
         onClick={onNextStep} 
-        className="w-full"
+        className="w-full bg-[#C4A484] hover:bg-[#b3957b]"
       >
         {language === 'ar' ? 'متابعة' : 'Continue'}
       </Button>

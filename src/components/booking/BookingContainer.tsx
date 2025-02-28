@@ -79,7 +79,7 @@ export const BookingContainer = () => {
   };
 
   return (
-    <div className="container mx-auto py-4 px-4 mb-24">
+    <div className={`container mx-auto py-4 px-4 mb-24 ${language === 'ar' ? 'rtl' : 'ltr'}`}>
       <BookingHeader 
         branchName={branch?.name}
         branchAddress={branch?.address}

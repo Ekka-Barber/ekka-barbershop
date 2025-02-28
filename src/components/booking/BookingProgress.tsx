@@ -13,16 +13,15 @@ export const BookingProgress: React.FC<BookingProgressProps> = ({ currentStep })
   
   const steps: { key: BookingStep; label: string }[] = [
     { key: 'services', label: language === 'ar' ? 'الخدمات' : 'Services' },
-    { key: 'datetime', label: language === 'ar' ? 'التاريخ والوقت' : 'Date & Time' },
-    { key: 'barber', label: language === 'ar' ? 'الحلاق' : 'Barber' },
+    { key: 'datetime', label: language === 'ar' ? 'التاريخ' : 'Date' },
+    { key: 'barber', label: language === 'ar' ? 'الحلاق والوقت' : 'Barber & Time' },
     { key: 'customer', label: language === 'ar' ? 'التفاصيل' : 'Details' },
-    { key: 'summary', label: language === 'ar' ? 'الملخص' : 'Summary' }
   ];
 
   const currentIndex = steps.findIndex(step => step.key === currentStep);
 
   return (
-    <div className="w-full">
+    <div className={`w-full ${language === 'ar' ? 'rtl' : 'ltr'}`}>
       <div className="flex justify-between mb-2">
         {steps.map((step, index) => (
           <div 

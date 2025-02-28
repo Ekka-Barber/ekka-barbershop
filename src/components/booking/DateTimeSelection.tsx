@@ -67,7 +67,7 @@ const QuickDateCard: React.FC<{
     <Card
       className={`cursor-pointer p-4 text-center transition-all ${
         isSelected
-          ? 'bg-[#D3E4FD] border-[#8B5CF6] border-2'
+          ? 'bg-[#D3E4FD] border-[#C4A484] border-2'
           : 'bg-[#F1F1F1] hover:bg-[#E5E5E5]'
       } ${language === 'ar' ? 'rtl' : 'ltr'}`}
       onClick={() => onSelect(date)}
@@ -109,7 +109,7 @@ export const DateTimeSelection: React.FC<DateTimeSelectionProps> = ({
   };
 
   return (
-    <div className="space-y-6 pt-4">
+    <div className={`space-y-6 pt-4 ${language === 'ar' ? 'rtl' : 'ltr'}`}>
       <h3 className="text-lg font-medium">{t('select.date')}</h3>
       
       {/* Quick 3-day selection */}
@@ -129,7 +129,7 @@ export const DateTimeSelection: React.FC<DateTimeSelectionProps> = ({
       <div className="text-center mt-4">
         <Button
           variant="outline"
-          className="bg-[#33C3F0] text-white hover:bg-[#1EAEDB]"
+          className="bg-[#C4A484] text-white hover:bg-[#b3957b]"
           onClick={() => setShowFullCalendar(!showFullCalendar)}
         >
           {showFullCalendar 

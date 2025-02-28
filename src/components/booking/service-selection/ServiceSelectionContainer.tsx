@@ -7,6 +7,7 @@ import { EmptyServiceState } from './EmptyServiceState';
 import { SelectedService, Category, Service } from '@/types/service';
 import { BookingStep } from '../BookingProgress';
 import { Language } from '@/types/language';
+import "../ServiceSelection.css";
 
 interface ServiceSelectionContainerProps {
   categories: Category[];
@@ -58,7 +59,7 @@ export const ServiceSelectionContainer = ({
   }
 
   return (
-    <div className="flex flex-col h-full">
+    <div className={`flex flex-col h-full ${language === 'ar' ? 'rtl' : 'ltr'}`}>
       {categories?.length > 0 && (
         <CategoryTabs
           categories={categories}
@@ -70,7 +71,7 @@ export const ServiceSelectionContainer = ({
 
       <div 
         ref={servicesListRef}
-        className="flex-1 overflow-y-auto pt-6 pb-4"
+        className="flex-1 overflow-y-auto pt-6 pb-4 hide-scrollbar"
       >
         {activeCategory && (
           <ServicesList

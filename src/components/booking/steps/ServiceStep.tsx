@@ -1,76 +1,113 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ServiceSelectionContainer } from "../service-selection/ServiceSelectionContainer";
 import { useServiceAvailability } from "@/hooks/useServiceAvailability";
 import { BookingStep } from "../BookingProgress";
 import { SelectedService, Service } from "@/types/service";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 interface ServiceStepProps {
   selectedServices: SelectedService[];
   onServiceToggle: (service: any) => void;
+  onStepChange?: (step: BookingStep) => void;
+  branchId?: string;
+  categories?: any[];
+  categoriesLoading?: boolean;
+  totalPrice?: number;
+  totalDuration?: number;
 }
 
 const ServiceStep: React.FC<ServiceStepProps> = ({
   selectedServices,
-  onServiceToggle
+  onServiceToggle,
+  onStepChange,
+  branchId,
+  categories: propCategories,
+  categoriesLoading: propCategoriesLoading,
+  totalPrice: propTotalPrice,
+  totalDuration: propTotalDuration
 }) => {
   const { language } = useLanguage();
-  const [totalDuration, setTotalDuration] = useState(
-    selectedServices.reduce((sum, service) => sum + service.duration, 0)
-  );
-  const [totalPrice, setTotalPrice] = useState(
-    selectedServices.reduce((sum, service) => sum + service.price, 0)
-  );
-
-  // Update totals when services change
-  useState(() => {
-    setTotalDuration(selectedServices.reduce((sum, service) => sum + service.duration, 0));
-    setTotalPrice(selectedServices.reduce((sum, service) => sum + service.price, 0));
+  const { isServiceAvailableAtBranch } = useServiceAvailability();
+  
+  // Use props if provided, otherwise fetch categories
+  const { data: categories, isLoading: categoriesLoading } = useQuery({
+    queryKey: ['service_categories', branchId],
+    queryFn: async () => {
+      if (propCategories) return propCategories;
+      
+      const { data: categories, error: categoriesError } = await supabase
+        .from('service_categories')
+        .select(`
+          id,
+          name_en,
+          name_ar,
+          display_order,
+          created_at,
+          services (
+            id,
+            name_en,
+            name_ar,
+            description_en,
+            description_ar,
+            price,
+            duration,
+            category_id,
+            display_order,
+            discount_type,
+            discount_value
+          )
+        `)
+        .order('display_order', { ascending: true });
+      
+      if (categoriesError) {
+        console.error('Error fetching categories:', categoriesError);
+        throw categoriesError;
+      }
+      
+      return categories?.map(category => ({
+        ...category,
+        services: category.services
+          .sort((a: any, b: any) => (a?.display_order || 0) - (b?.display_order || 0))
+      }));
+    },
+    enabled: !propCategories && !!branchId,
   });
 
+  const isServiceAvailable = async (serviceId: string) => {
+    if (!branchId) return true;
+    return await isServiceAvailableAtBranch(serviceId, branchId);
+  };
+
+  const totalDuration = propTotalDuration || selectedServices.reduce((sum, service) => sum + service.duration, 0);
+  const totalPrice = propTotalPrice || selectedServices.reduce((sum, service) => sum + service.price, 0);
+
+  if (propCategoriesLoading || (!propCategories && categoriesLoading)) {
+    return (
+      <div className="space-y-4">
+        <Skeleton className="h-12 w-full rounded-lg" />
+        <Skeleton className="h-24 w-full rounded-lg" />
+        <Skeleton className="h-24 w-full rounded-lg" />
+        <Skeleton className="h-24 w-full rounded-lg" />
+      </div>
+    );
+  }
+
   return (
-    <div className="space-y-6">
-      {selectedServices.length === 0 ? (
-        <div className="text-center p-6 bg-gray-50 rounded-lg">
-          <h3 className="font-medium text-lg mb-2">
-            {language === 'ar' ? 'لم يتم اختيار خدمات' : 'No services selected'}
-          </h3>
-          <p className="text-gray-500">
-            {language === 'ar' 
-              ? 'يرجى اختيار خدمة واحدة على الأقل للمتابعة' 
-              : 'Please select at least one service to continue'}
-          </p>
-        </div>
-      ) : (
-        <div className="space-y-4">
-          <h3 className="font-medium text-lg">
-            {language === 'ar' ? 'الخدمات المختارة' : 'Selected Services'}
-          </h3>
-          <ul className="space-y-2">
-            {selectedServices.map(service => (
-              <li 
-                key={service.id}
-                className="flex justify-between p-3 bg-white border rounded-md shadow-sm"
-              >
-                <span>{language === 'ar' ? service.name_ar : service.name_en}</span>
-                <span className="font-medium">{service.price} SAR</span>
-              </li>
-            ))}
-          </ul>
-          <div className="p-3 bg-gray-50 rounded-md">
-            <div className="flex justify-between font-medium">
-              <span>{language === 'ar' ? 'المجموع' : 'Total'}</span>
-              <span>{totalPrice} SAR</span>
-            </div>
-            <div className="flex justify-between text-sm text-gray-500 mt-1">
-              <span>{language === 'ar' ? 'المدة الإجمالية' : 'Total Duration'}</span>
-              <span>{totalDuration} {language === 'ar' ? 'دقيقة' : 'min'}</span>
-            </div>
-          </div>
-        </div>
-      )}
+    <div className="h-[calc(100vh-16rem)]">
+      <ServiceSelectionContainer
+        categories={propCategories || categories || []}
+        selectedServices={selectedServices}
+        onServiceToggle={onServiceToggle}
+        onNextStep={(step) => onStepChange?.(step)}
+        isServiceAvailable={isServiceAvailable}
+        language={language}
+        totalDuration={totalDuration}
+        totalPrice={totalPrice}
+      />
     </div>
   );
 };

@@ -19,7 +19,7 @@ export const CategoryTabs = ({
   language
 }: CategoryTabsProps) => {
   return (
-    <div className="w-full sticky top-0 z-10">
+    <div className={`w-full sticky top-0 z-10 ${language === 'ar' ? 'rtl' : 'ltr'}`}>
       <div className="bg-gradient-to-b from-white to-gray-50 shadow-sm border-b border-gray-100">
         <div className="max-w-full overflow-x-auto hide-scrollbar px-4 py-3 mx-auto">
           <div className="flex gap-2 min-w-max">
@@ -29,8 +29,8 @@ export const CategoryTabs = ({
                 onClick={() => onCategoryChange(category.id)}
                 className={`shrink-0 px-4 py-2 rounded-full transition-all duration-200 ${
                   activeCategory === category.id
-                    ? 'bg-primary text-primary-foreground shadow-md'
-                    : 'bg-secondary/50 text-gray-600 hover:bg-secondary hover:text-gray-700'
+                    ? 'bg-[#C4A484] text-white shadow-md'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-gray-700'
                 }`}
               >
                 {language === 'ar' ? category.name_ar : category.name_en}
