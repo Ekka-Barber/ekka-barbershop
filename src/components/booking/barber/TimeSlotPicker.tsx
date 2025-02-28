@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { cn } from "@/lib/utils";
@@ -7,7 +6,6 @@ import { Clock12 } from "lucide-react";
 import { formatTime } from "@/utils/timeFormatting";
 import { TimeSlot } from "@/utils/timeSlotUtils";
 import { useBookingSettings } from "@/hooks/useBookingSettings";
-
 export interface TimeSlotPickerProps {
   timeSlots: TimeSlot[];
   selectedTime: string | undefined;
@@ -15,7 +13,6 @@ export interface TimeSlotPickerProps {
   showAllSlots: boolean;
   onToggleShowAll: () => void;
 }
-
 export const TimeSlotPicker = ({
   timeSlots,
   selectedTime,
@@ -23,18 +20,20 @@ export const TimeSlotPicker = ({
   showAllSlots,
   onToggleShowAll
 }: TimeSlotPickerProps) => {
-  const { language } = useLanguage();
-  const { data: bookingSettings, isLoading: isSettingsLoading } = useBookingSettings();
+  const {
+    language
+  } = useLanguage();
+  const {
+    data: bookingSettings,
+    isLoading: isSettingsLoading
+  } = useBookingSettings();
   const displayedTimeSlots = showAllSlots ? timeSlots : timeSlots.slice(0, 6);
-
   const isAfterMidnight = (time: string) => {
     const [hours] = time.split(':').map(Number);
     return hours < 12 && hours >= 0; // 00:00 to 11:59
   };
-
   if (timeSlots.length === 0 || isSettingsLoading) {
-    return (
-      <div className="space-y-4">
+    return <div className="space-y-4">
         <h3 className="text-lg font-medium text-center">
           {language === 'ar' ? 'جاري تحميل المواعيد...' : 'Loading time slots...'}
         </h3>
@@ -42,25 +41,18 @@ export const TimeSlotPicker = ({
           <div className="bg-gradient-to-b from-white to-gray-50 shadow-sm border border-gray-100 rounded-lg">
             <div className="overflow-x-auto scrollbar-hide px-4 py-4">
               <div className="flex space-x-3 rtl:space-x-reverse">
-                {[1, 2, 3, 4, 5, 6].map((i) => (
-                  <Skeleton key={i} className="h-10 w-20" />
-                ))}
+                {[1, 2, 3, 4, 5, 6].map(i => <Skeleton key={i} className="h-10 w-20" />)}
               </div>
             </div>
           </div>
         </div>
-      </div>
-    );
+      </div>;
   }
-
   const needsSeparator = (currentTime: string, prevTime: string) => {
     return prevTime === "23:30" && currentTime === "00:00";
   };
-  
   const slotDuration = bookingSettings?.slot_duration_minutes || 30;
-
-  return (
-    <div className="space-y-4">
+  return <div className="space-y-4">
       <h3 className="text-lg font-medium text-center">
         {language === 'ar' ? 'اختر الوقت المناسب' : 'Select Available Time'}
       </h3>
@@ -69,53 +61,27 @@ export const TimeSlotPicker = ({
           <div className="overflow-x-auto scrollbar-hide px-4 py-4">
             <div className="flex space-x-3 rtl:space-x-reverse">
               {displayedTimeSlots.map((slot, index) => {
-                const showSeparator = index > 0 && needsSeparator(slot.time, displayedTimeSlots[index - 1].time);
-
-                return (
-                  <>
-                    {showSeparator && (
-                      <div className="flex items-center mx-2" key={`separator-${index}`}>
+              const showSeparator = index > 0 && needsSeparator(slot.time, displayedTimeSlots[index - 1].time);
+              return <>
+                    {showSeparator && <div className="flex items-center mx-2" key={`separator-${index}`}>
                         <Clock12 className="h-6 w-6 text-red-500" />
-                      </div>
-                    )}
+                      </div>}
                     <div key={slot.time}>
-                      <Button
-                        variant={selectedTime === slot.time ? "default" : "outline"}
-                        onClick={() => slot.isAvailable && onTimeSelect(slot.time)}
-                        disabled={!slot.isAvailable}
-                        className={cn(
-                          "flex-shrink-0",
-                          !slot.isAvailable && "bg-red-50 hover:bg-red-50 cursor-not-allowed text-gray-400 border-red-100"
-                        )}
-                      >
+                      <Button variant={selectedTime === slot.time ? "default" : "outline"} onClick={() => slot.isAvailable && onTimeSelect(slot.time)} disabled={!slot.isAvailable} className={cn("flex-shrink-0", !slot.isAvailable && "bg-red-50 hover:bg-red-50 cursor-not-allowed text-gray-400 border-red-100")}>
                         {formatTime(slot.time, language === 'ar')}
                       </Button>
                     </div>
-                  </>
-                );
-              })}
+                  </>;
+            })}
             </div>
           </div>
         </div>
       </div>
       
-      {timeSlots.length > 6 && (
-        <Button
-          variant="ghost"
-          onClick={onToggleShowAll}
-          className="w-full mt-2"
-        >
-          {showAllSlots 
-            ? (language === 'ar' ? 'عرض أقل' : 'Show Less')
-            : (language === 'ar' ? 'للمزيد' : 'Show More')}
-        </Button>
-      )}
+      {timeSlots.length > 6 && <Button variant="ghost" onClick={onToggleShowAll} className="w-full mt-2">
+          {showAllSlots ? language === 'ar' ? 'عرض أقل' : 'Show Less' : language === 'ar' ? 'للمزيد' : 'Show More'}
+        </Button>}
 
-      <div className="text-sm text-muted-foreground text-center">
-        {language === 'ar'
-          ? `الفترات الزمنية كل ${slotDuration} دقيقة`
-          : `Time slots every ${slotDuration} minutes`}
-      </div>
-    </div>
-  );
+      
+    </div>;
 };
