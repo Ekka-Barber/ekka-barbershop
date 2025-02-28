@@ -12,12 +12,21 @@ import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { ErrorBoundary } from '@/components/common/ErrorBoundary';
 import { AdsMetrics } from '@/components/admin/ads-metrics/AdsMetrics';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useOptimizedCategories } from '@/hooks/useOptimizedCategories';
 
 const Admin = () => {
   const { language } = useLanguage();
   const [activeTab, setActiveTab] = useState('services');
   const [newUrl, setNewUrl] = useState('');
   const [isUpdating, setIsUpdating] = useState(false);
+  
+  const {
+    categories,
+    totalServices,
+    setSearchQuery,
+    setSortBy,
+    setFilterBy
+  } = useOptimizedCategories();
 
   const handleSubmitUrl = (e: React.FormEvent) => {
     e.preventDefault();
@@ -68,11 +77,11 @@ const Admin = () => {
 
           <TabsContent value="services" className="space-y-4">
             <ServiceManagementHeader 
-              totalCategories={0}
-              totalServices={0}
-              onSearch={() => {}}
-              onSort={() => {}}
-              onFilter={() => {}}
+              totalCategories={categories?.length || 0}
+              totalServices={totalServices}
+              onSearch={setSearchQuery}
+              onSort={setSortBy}
+              onFilter={setFilterBy}
             />
             <Separator />
             <ErrorBoundary>

@@ -4,7 +4,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { useOptimizedCategories } from '@/hooks/useOptimizedCategories';
 import { CategoryList } from './category-management/CategoryList';
 import { CategoryActions } from './category-management/CategoryActions';
-import { ServiceManagementHeader } from './service-management/ServiceManagementHeader';
 import { ServiceCategorySkeleton } from './service-management/ServiceCategorySkeleton';
 import { EmptyServiceState } from './service-management/EmptyServiceState';
 import { useToast } from "@/components/ui/use-toast";
@@ -107,18 +106,7 @@ const ServiceCategoryList = () => {
   }, [categories, toast]);
 
   if (isLoading) {
-    return (
-      <div className="space-y-6">
-        <ServiceManagementHeader
-          totalCategories={0}
-          totalServices={0}
-          onSearch={setSearchQuery}
-          onSort={setSortBy}
-          onFilter={setFilterBy}
-        />
-        <ServiceCategorySkeleton />
-      </div>
-    );
+    return <ServiceCategorySkeleton />;
   }
 
   if (!categories?.length) {
@@ -127,14 +115,6 @@ const ServiceCategoryList = () => {
 
   return (
     <div className="space-y-6">
-      <ServiceManagementHeader
-        totalCategories={categories.length}
-        totalServices={totalServices}
-        onSearch={setSearchQuery}
-        onSort={setSortBy}
-        onFilter={setFilterBy}
-      />
-
       <CategoryList
         categories={categories}
         expandedCategories={expandedCategories}

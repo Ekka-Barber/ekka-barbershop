@@ -1,6 +1,4 @@
 
-import { Search } from "lucide-react";
-import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -8,6 +6,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface ServiceManagementHeaderProps {
   totalCategories: number;
@@ -20,52 +19,46 @@ interface ServiceManagementHeaderProps {
 export const ServiceManagementHeader = ({
   totalCategories,
   totalServices,
-  onSearch,
   onSort,
   onFilter,
 }: ServiceManagementHeaderProps) => {
+  const { language } = useLanguage();
+  
   return (
     <div className="space-y-4 mb-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h2 className="text-2xl font-semibold">Service Management</h2>
+          <h2 className="text-2xl font-semibold">
+            {language === 'ar' ? 'إدارة الخدمات' : 'Service Management'}
+          </h2>
           <p className="text-sm text-muted-foreground">
-            {totalCategories} categories • {totalServices} services
+            {totalCategories} {language === 'ar' ? 'فئة' : 'categories'} • {totalServices} {language === 'ar' ? 'خدمة' : 'services'}
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <Select onValueChange={onSort} defaultValue="name">
             <SelectTrigger className="w-[140px]">
-              <SelectValue placeholder="Sort by" />
+              <SelectValue placeholder={language === 'ar' ? 'ترتيب حسب' : 'Sort by'} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="name">Name</SelectItem>
-              <SelectItem value="newest">Newest</SelectItem>
-              <SelectItem value="oldest">Oldest</SelectItem>
-              <SelectItem value="services">Most Services</SelectItem>
+              <SelectItem value="name">{language === 'ar' ? 'الاسم' : 'Name'}</SelectItem>
+              <SelectItem value="newest">{language === 'ar' ? 'الأحدث' : 'Newest'}</SelectItem>
+              <SelectItem value="oldest">{language === 'ar' ? 'الأقدم' : 'Oldest'}</SelectItem>
+              <SelectItem value="services">{language === 'ar' ? 'الأكثر خدمات' : 'Most Services'}</SelectItem>
             </SelectContent>
           </Select>
 
           <Select onValueChange={onFilter} defaultValue="all">
             <SelectTrigger className="w-[140px]">
-              <SelectValue placeholder="Filter" />
+              <SelectValue placeholder={language === 'ar' ? 'تصفية' : 'Filter'} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Categories</SelectItem>
-              <SelectItem value="active">Active</SelectItem>
-              <SelectItem value="empty">Empty Categories</SelectItem>
+              <SelectItem value="all">{language === 'ar' ? 'كل الفئات' : 'All Categories'}</SelectItem>
+              <SelectItem value="active">{language === 'ar' ? 'النشطة' : 'Active'}</SelectItem>
+              <SelectItem value="empty">{language === 'ar' ? 'الفئات الفارغة' : 'Empty Categories'}</SelectItem>
             </SelectContent>
           </Select>
         </div>
-      </div>
-
-      <div className="relative">
-        <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-        <Input
-          placeholder="Search categories and services..."
-          className="pl-8"
-          onChange={(e) => onSearch(e.target.value)}
-        />
       </div>
     </div>
   );
