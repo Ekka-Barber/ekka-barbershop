@@ -1,148 +1,117 @@
 
-import { Suspense, lazy } from "react";
 import { BookingStep } from "../BookingProgress";
-import { Skeleton } from "@/components/ui/skeleton";
-import { CustomerDetails } from "@/types/booking";
+import ServiceStep from "./ServiceStep";
+import DateTimeStep from "./DateTimeStep";
+import BarberStep from "./BarberStep";
+import CustomerStep from "./CustomerStep";
+import SummaryStep from "./SummaryStep";
+import { CustomerDetails } from "@/hooks/booking/useBookingState";
 import { SelectedService } from "@/types/service";
-import { Category } from "@/types/service";
-import { Language } from "@/types/language";
-
-// Lazy load step components
-const ServiceStep = lazy(() => import("./ServiceStep"));
-const DateTimeStep = lazy(() => import("./DateTimeStep"));
-const BarberStep = lazy(() => import("./BarberStep"));
-const CustomerStep = lazy(() => import("./CustomerStep"));
-const SummaryStep = lazy(() => import("./SummaryStep"));
 
 interface StepRendererProps {
   currentStep: BookingStep;
-  // Service step props
-  categories?: Category[];
-  categoriesLoading?: boolean;
   selectedServices: SelectedService[];
-  onServiceToggle: (service: any) => void;
-  onStepChange: (step: BookingStep) => void;
-  branchId?: string;
-  // DateTime step props
+  toggleService: (service: any) => void;
   selectedDate?: Date;
   setSelectedDate: (date: Date) => void;
-  // Barber step props
-  selectedBarber?: string;
-  onBarberSelect: (barber: string) => void;
-  employees?: any[];
-  employeesLoading?: boolean;
-  selectedTime?: string;
+  branch: any;
+  selectedBarber: string | undefined;
+  setSelectedBarber: (barber: string) => void;
+  employees: any[];
+  employeesLoading: boolean;
+  selectedTime: string | undefined;
   setSelectedTime: (time: string) => void;
-  // Customer step props
   customerDetails: CustomerDetails;
-  onCustomerDetailsChange: (field: keyof CustomerDetails, value: string) => void;
-  termsAccepted?: boolean;
-  onTermsAcceptanceChange?: (accepted: boolean) => void;
-  // Shared props
-  branch?: any;
+  setCustomerDetails: (details: CustomerDetails) => void;
+  termsAccepted: boolean;
+  setTermsAccepted: (accepted: boolean) => void;
+  handleSubmitBooking: () => void;
   totalPrice: number;
+  totalDuration: number;
+  submitting: boolean;
+  buttonText?: string;
 }
 
-const StepRenderer: React.FC<StepRendererProps> = (props) => {
-  const {
-    currentStep,
-    categories,
-    categoriesLoading,
-    selectedServices,
-    onServiceToggle,
-    onStepChange,
-    branchId,
-    selectedDate,
-    setSelectedDate,
-    selectedBarber,
-    onBarberSelect,
-    employees,
-    employeesLoading,
-    selectedTime,
-    setSelectedTime,
-    customerDetails,
-    onCustomerDetailsChange,
-    termsAccepted,
-    onTermsAcceptanceChange,
-    branch,
-    totalPrice
-  } = props;
-
-  // Fallback loading component
-  const LoadingSkeleton = () => (
-    <div className="space-y-4">
-      <Skeleton className="h-12 w-full" />
-      <Skeleton className="h-32 w-full" />
-      <Skeleton className="h-12 w-full" />
-    </div>
-  );
-
-  const renderCurrentStep = () => {
-    switch (currentStep) {
-      case "services":
-        return (
-          <ServiceStep
-            categories={categories || []}
-            categoriesLoading={categoriesLoading || false}
-            selectedServices={selectedServices}
-            onServiceToggle={onServiceToggle}
-            onStepChange={onStepChange}
-            branchId={branchId}
-          />
-        );
-      case "datetime":
-        return (
-          <DateTimeStep
-            selectedDate={selectedDate}
-            setSelectedDate={setSelectedDate}
-            branch={branch}
-          />
-        );
-      case "barber":
-        return (
-          <BarberStep
-            selectedBarber={selectedBarber}
-            onBarberSelect={onBarberSelect}
-            employees={employees || []}
-            employeesLoading={employeesLoading || false}
-            selectedDate={selectedDate}
-            selectedTime={selectedTime}
-            setSelectedTime={setSelectedTime}
-          />
-        );
-      case "customer":
-        return (
-          <CustomerStep
-            customerDetails={customerDetails}
-            onCustomerDetailsChange={onCustomerDetailsChange}
-            branch={branch}
-            termsAccepted={termsAccepted}
-            onTermsAcceptanceChange={onTermsAcceptanceChange}
-          />
-        );
-      case "summary":
-        return (
-          <SummaryStep
-            selectedServices={selectedServices}
-            selectedDate={selectedDate}
-            selectedTime={selectedTime}
-            selectedBarber={selectedBarber}
-            customerDetails={customerDetails}
-            totalPrice={totalPrice}
-            branch={branch}
-            employees={employees || []}
-          />
-        );
-      default:
-        return <div>Invalid step</div>;
-    }
-  };
-
-  return (
-    <Suspense fallback={<LoadingSkeleton />}>
-      {renderCurrentStep()}
-    </Suspense>
-  );
+const StepRenderer: React.FC<StepRendererProps> = ({
+  currentStep,
+  selectedServices,
+  toggleService,
+  selectedDate,
+  setSelectedDate,
+  branch,
+  selectedBarber,
+  setSelectedBarber,
+  employees,
+  employeesLoading,
+  selectedTime,
+  setSelectedTime,
+  customerDetails,
+  setCustomerDetails,
+  termsAccepted,
+  setTermsAccepted,
+  handleSubmitBooking,
+  totalPrice,
+  totalDuration,
+  submitting,
+  buttonText
+}) => {
+  switch (currentStep) {
+    case "services":
+      return (
+        <ServiceStep
+          selectedServices={selectedServices}
+          toggleService={toggleService}
+        />
+      );
+    case "datetime":
+      return (
+        <DateTimeStep
+          selectedDate={selectedDate}
+          setSelectedDate={setSelectedDate}
+          branch={branch}
+        />
+      );
+    case "barber":
+      return (
+        <BarberStep
+          selectedBarber={selectedBarber}
+          onBarberSelect={setSelectedBarber}
+          employees={employees}
+          employeesLoading={employeesLoading}
+          selectedDate={selectedDate}
+          selectedTime={selectedTime}
+          setSelectedTime={setSelectedTime}
+          selectedServices={selectedServices}
+        />
+      );
+    case "customer":
+      return (
+        <CustomerStep
+          customerDetails={customerDetails}
+          setCustomerDetails={setCustomerDetails}
+          termsAccepted={termsAccepted}
+          setTermsAccepted={setTermsAccepted}
+        />
+      );
+    case "summary":
+      return (
+        <SummaryStep
+          selectedServices={selectedServices}
+          selectedDate={selectedDate}
+          selectedTime={selectedTime}
+          selectedBarber={employees?.find(emp => emp.id === selectedBarber)}
+          customerDetails={customerDetails}
+          branch={branch}
+          totalPrice={totalPrice}
+          totalDuration={totalDuration}
+          handleSubmitBooking={handleSubmitBooking}
+          submitting={submitting}
+          buttonText={buttonText}
+        />
+      );
+    default:
+      return null;
+  }
 };
 
 export default StepRenderer;

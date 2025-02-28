@@ -2,6 +2,7 @@
 import { BarberSelection } from "../BarberSelection";
 import { Skeleton } from "@/components/ui/skeleton";
 import { BarberSelectionSkeleton } from "../BarberSelectionSkeleton";
+import { SelectedService } from "@/types/service";
 
 interface BarberStepProps {
   selectedBarber: string | undefined;
@@ -11,6 +12,7 @@ interface BarberStepProps {
   selectedDate: Date | undefined;
   selectedTime: string | undefined;
   setSelectedTime: (time: string) => void;
+  selectedServices: SelectedService[];
 }
 
 const BarberStep: React.FC<BarberStepProps> = ({
@@ -20,7 +22,8 @@ const BarberStep: React.FC<BarberStepProps> = ({
   employeesLoading,
   selectedDate,
   selectedTime,
-  setSelectedTime
+  setSelectedTime,
+  selectedServices
 }) => {
   if (employeesLoading) {
     return <BarberSelectionSkeleton />;
@@ -36,6 +39,7 @@ const BarberStep: React.FC<BarberStepProps> = ({
         selectedDate={selectedDate}
         selectedTime={selectedTime}
         onTimeSelect={setSelectedTime}
+        selectedServices={selectedServices}
       />
     </div>
   );

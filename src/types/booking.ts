@@ -20,6 +20,8 @@ export interface CustomerDetails {
 export interface TimeSlot {
   time: string;
   isAvailable: boolean;
+  hasEnoughTime?: boolean;
+  unavailabilityReason?: string;
 }
 
 export interface EmployeeSchedule {
