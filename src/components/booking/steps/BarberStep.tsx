@@ -1,9 +1,9 @@
 
-import { useTimeSlots } from "@/hooks/useTimeSlots";
 import { useEffect, useState } from "react";
 import { BarberSelection } from "../BarberSelection";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SelectedService } from "@/types/service";
+import { useQuery } from "@tanstack/react-query";
 
 interface BarberStepProps {
   selectedBarber: string | undefined;
@@ -32,16 +32,12 @@ const BarberStep: React.FC<BarberStepProps> = ({
     0
   );
 
-  // Get time slots for the selected date and barber
-  const { timeSlots, isLoading: timeSlotsLoading } = useTimeSlots(
-    selectedDate,
-    selectedBarber,
-    serviceDuration
-  );
+  // Get the selected employee object
+  const selectedEmployeeObj = employees?.find(emp => emp.id === selectedBarber);
 
-  // Reset selected time if barber changes
+  // Reset selected time when changing barber
   useEffect(() => {
-    setSelectedTime(undefined);
+    setSelectedTime('');
   }, [selectedBarber, setSelectedTime]);
 
   return (
@@ -58,10 +54,9 @@ const BarberStep: React.FC<BarberStepProps> = ({
           selectedBarber={selectedBarber}
           onBarberSelect={onBarberSelect}
           selectedDate={selectedDate}
-          timeSlots={timeSlots}
           selectedTime={selectedTime}
-          setSelectedTime={setSelectedTime}
-          isLoading={timeSlotsLoading}
+          onTimeSelect={setSelectedTime}
+          isLoading={false}
           selectedServices={selectedServices}
         />
       )}

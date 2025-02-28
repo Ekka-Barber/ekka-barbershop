@@ -8,12 +8,12 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { useQuery } from "@tanstack/react-query";
 import { SelectedService } from "@/types/service";
 
-interface BarberSelectionProps {
+export interface BarberSelectionProps {
   selectedBarber: string | undefined;
   onBarberSelect: (barber: string) => void;
   employees: any[] | undefined;
   isLoading: boolean;
-  selectedDate: Date | undefined;
+  selectedDate?: Date;
   selectedTime: string | undefined;
   onTimeSelect: (time: string) => void;
   selectedServices?: SelectedService[];
@@ -33,6 +33,12 @@ export const BarberSelection = ({
   const [availableTimeSlots, setAvailableTimeSlots] = useState<TimeSlot[]>([]);
   const [showAllSlots, setShowAllSlots] = useState(false);
   const timeSlotUtils = useTimeSlots();
+  
+  // Calculate total duration for all selected services
+  const serviceDuration = selectedServices.reduce(
+    (total, service) => total + service.duration,
+    0
+  );
 
   // Get the selected employee object
   const selectedEmployeeObj = employees?.find(emp => emp.id === selectedBarber);
@@ -42,8 +48,11 @@ export const BarberSelection = ({
     data: timeSlots,
     isLoading: timeSlotsLoading
   } = useQuery({
-    queryKey: ['timeSlots', selectedBarber, selectedDate?.toISOString()],
-    queryFn: () => selectedEmployeeObj && selectedDate ? timeSlotUtils.getAvailableTimeSlots(selectedEmployeeObj, selectedDate) : Promise.resolve([]),
+    queryKey: ['timeSlots', selectedBarber, selectedDate?.toISOString(), serviceDuration],
+    queryFn: async () => {
+      if (!selectedEmployeeObj || !selectedDate) return [];
+      return timeSlotUtils.getAvailableTimeSlots(selectedEmployeeObj, selectedDate, serviceDuration);
+    },
     enabled: !!selectedBarber && !!selectedDate && !!selectedEmployeeObj
   });
   
@@ -52,11 +61,6 @@ export const BarberSelection = ({
       setAvailableTimeSlots(timeSlots);
     }
   }, [timeSlots]);
-  
-  useEffect(() => {
-    // Reset selected time when changing barber
-    onTimeSelect('');
-  }, [selectedBarber, onTimeSelect]);
   
   const handleToggleShowAll = () => {
     setShowAllSlots(prev => !prev);
