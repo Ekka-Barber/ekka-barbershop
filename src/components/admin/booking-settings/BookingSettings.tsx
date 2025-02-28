@@ -50,7 +50,8 @@ const BookingSettings = ({ initialTab = 'time-settings' }: BookingSettingsProps)
         }
         
         if (data) {
-          setBookingSettings(data as BookingSettingsType);
+          // Use a type assertion with an intermediate 'unknown' type
+          setBookingSettings(data as unknown as BookingSettingsType);
         }
       } catch (error) {
         console.error('Unexpected error:', error);

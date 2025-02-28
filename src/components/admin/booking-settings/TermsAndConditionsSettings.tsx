@@ -64,8 +64,13 @@ export const TermsAndConditionsSettings = ({ isLoading }: TermsAndConditionsSett
           return;
         }
         
-        if (settingsData && typeof settingsData.require_terms_acceptance !== 'undefined') {
-          setRequireAcceptance(!!settingsData.require_terms_acceptance);
+        // Check if settingsData is a valid object with the right property
+        if (settingsData && typeof settingsData === 'object') {
+          // Type assertion to any to access the property safely
+          const settingsObj = settingsData as any;
+          if ('require_terms_acceptance' in settingsObj) {
+            setRequireAcceptance(!!settingsObj.require_terms_acceptance);
+          }
         }
       } catch (error) {
         console.error('Unexpected error:', error);
