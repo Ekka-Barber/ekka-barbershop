@@ -22,6 +22,7 @@ export const useBookingState = () => {
     email: '',
     notes: ''
   });
+  const [termsAccepted, setTermsAccepted] = useState(false);
 
   const handleCustomerDetailsChange = (field: keyof CustomerDetails, value: string) => {
     setCustomerDetails(prev => ({
@@ -42,6 +43,8 @@ export const useBookingState = () => {
     selectedBarber,
     setSelectedBarber,
     customerDetails,
-    handleCustomerDetailsChange
+    handleCustomerDetailsChange,
+    termsAccepted,
+    setTermsAccepted
   };
 };

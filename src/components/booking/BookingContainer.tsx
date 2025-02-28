@@ -63,7 +63,9 @@ export const BookingContainer = () => {
     clearBookingData,
     setSelectedDate,
     setSelectedTime,
-    setSelectedBarber
+    setSelectedBarber,
+    termsAccepted,
+    setTermsAccepted
   } = useBooking(branch);
 
   // Load cached services on mount
@@ -172,6 +174,8 @@ export const BookingContainer = () => {
           // Customer step props
           customerDetails={customerDetails}
           onCustomerDetailsChange={handleCustomerDetailsChange}
+          termsAccepted={termsAccepted}
+          onTermsAcceptanceChange={setTermsAccepted}
           // Shared props
           branch={branch}
           totalPrice={totalPrice()}

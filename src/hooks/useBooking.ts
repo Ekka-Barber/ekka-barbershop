@@ -23,7 +23,9 @@ export const useBooking = (branch?: any) => {
     selectedBarber,
     setSelectedBarber,
     customerDetails,
-    handleCustomerDetailsChange
+    handleCustomerDetailsChange,
+    termsAccepted,
+    setTermsAccepted
   } = useBookingState();
 
   const {
@@ -44,7 +46,7 @@ export const useBooking = (branch?: any) => {
 
   const {
     canProceedToNextStep
-  } = useBookingValidation(selectedServices, selectedDate, selectedTime, selectedBarber, customerDetails);
+  } = useBookingValidation(selectedServices, selectedDate, selectedTime, selectedBarber, customerDetails, termsAccepted);
 
   const {
     createBooking,
@@ -60,7 +62,8 @@ export const useBooking = (branch?: any) => {
     setSelectedDate,
     setSelectedTime,
     setSelectedBarber,
-    setCustomerDetailsState
+    setCustomerDetailsState,
+    termsAccepted
   );
 
   // Helper function to update customer details state for the actions hook
@@ -83,6 +86,8 @@ export const useBooking = (branch?: any) => {
     setSelectedBarber,
     customerDetails,
     handleCustomerDetailsChange,
+    termsAccepted,
+    setTermsAccepted,
     categories,
     categoriesLoading,
     employees,

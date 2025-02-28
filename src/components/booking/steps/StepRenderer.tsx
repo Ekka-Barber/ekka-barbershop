@@ -36,6 +36,8 @@ interface StepRendererProps {
   // Customer step props
   customerDetails: CustomerDetails;
   onCustomerDetailsChange: (field: keyof CustomerDetails, value: string) => void;
+  termsAccepted?: boolean;
+  onTermsAcceptanceChange?: (accepted: boolean) => void;
   // Shared props
   branch?: any;
   totalPrice: number;
@@ -60,6 +62,8 @@ const StepRenderer: React.FC<StepRendererProps> = (props) => {
     setSelectedTime,
     customerDetails,
     onCustomerDetailsChange,
+    termsAccepted,
+    onTermsAcceptanceChange,
     branch,
     totalPrice
   } = props;
@@ -112,6 +116,8 @@ const StepRenderer: React.FC<StepRendererProps> = (props) => {
             customerDetails={customerDetails}
             onCustomerDetailsChange={onCustomerDetailsChange}
             branch={branch}
+            termsAccepted={termsAccepted}
+            onTermsAcceptanceChange={onTermsAcceptanceChange}
           />
         );
       case "summary":

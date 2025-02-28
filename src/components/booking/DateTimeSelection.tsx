@@ -5,6 +5,7 @@ import { format, isBefore, startOfToday, addDays } from "date-fns";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Language } from "@/types/language";
 import { Branch } from "@/types/booking";
+import { useBookingSettings } from "@/hooks/useBookingSettings";
 
 export interface DateTimeSelectionProps {
   selectedDate: Date;
@@ -19,9 +20,13 @@ export const DateTimeSelection: React.FC<DateTimeSelectionProps> = ({
 }) => {
   const { t, language } = useLanguage();
   const today = startOfToday();
+  const { data: bookingSettings, isLoading } = useBookingSettings();
   
-  // Maximum date allowed for booking (e.g., 30 days from today)
-  const maxDate = addDays(today, 30);
+  // Use max_advance_days from settings or default to 30 days if not available
+  const maxAdvanceDays = bookingSettings?.max_advance_days || 30;
+  
+  // Maximum date allowed for booking based on settings
+  const maxDate = addDays(today, maxAdvanceDays);
 
   const handleDateSelect = (date: Date | undefined) => {
     if (date) {

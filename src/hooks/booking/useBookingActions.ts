@@ -4,6 +4,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { supabase } from "@/integrations/supabase/client";
 import { CustomerDetails } from './useBookingState';
 import { SelectedService } from '@/types/service';
+import { useQuery } from "@tanstack/react-query";
 
 interface CreateBookingParams {
   branchId: string;
@@ -20,10 +21,32 @@ export const useBookingActions = (
   setSelectedDate: React.Dispatch<React.SetStateAction<Date | undefined>>,
   setSelectedTime: React.Dispatch<React.SetStateAction<string | undefined>>,
   setSelectedBarber: React.Dispatch<React.SetStateAction<string | undefined>>,
-  setCustomerDetails: React.Dispatch<React.SetStateAction<CustomerDetails>>
+  setCustomerDetails: React.Dispatch<React.SetStateAction<CustomerDetails>>,
+  termsAccepted?: boolean
 ) => {
   const { toast } = useToast();
   const { language } = useLanguage();
+
+  // Get the active terms version
+  const { data: termsData } = useQuery({
+    queryKey: ["active_terms"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("terms_and_conditions")
+        .select("id, version")
+        .eq("is_active", true)
+        .order("version", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+        
+      if (error) {
+        console.error('Error fetching terms:', error);
+        return null;
+      }
+      
+      return data;
+    },
+  });
 
   const createBooking = async ({ branchId, employeeId }: CreateBookingParams) => {
     if (!selectedDate || !selectedTime) {
@@ -57,7 +80,9 @@ export const useBookingActions = (
       total_price: totalPrice(),
       duration_minutes: totalDurationMinutes,
       status: 'pending',
-      created_at: new Date().toISOString()
+      created_at: new Date().toISOString(),
+      terms_accepted: termsAccepted || false,
+      terms_version: termsData?.version
     };
 
     const { data, error } = await supabase
