@@ -1,7 +1,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from "@/integrations/supabase/client";
-import { Service, SelectedService } from '@/types/service';
+import { Service, SelectedService, Category } from '@/types/service';
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
 
@@ -19,6 +19,7 @@ export const useBookingServices = (selectedServices: SelectedService[], setSelec
           name_en,
           name_ar,
           display_order,
+          created_at,
           services (
             id,
             name_en,
@@ -50,7 +51,7 @@ export const useBookingServices = (selectedServices: SelectedService[], setSelec
           .map(validateService)
           .filter(Boolean) // Remove null values from invalid services
           .sort((a, b) => (a?.display_order || 0) - (b?.display_order || 0))
-      }));
+      })) as Category[];
     },
   });
 

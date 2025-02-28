@@ -1,42 +1,48 @@
 
-import { ServiceCard } from "./ServiceCard";
-import { Language } from "@/types/language";
+import { ServiceCard } from './ServiceCard';
+import { Service, SelectedService, Category } from '@/types/service';
+import { Language } from '@/types/language';
 
 interface ServicesListProps {
-  services: any[];
-  selectedServices: { id: string; name: string; price: number; duration: number; }[];
-  onServiceToggle: (service: any) => void;
+  category?: Category;
+  selectedServices: SelectedService[];
+  onServiceToggle: (service: Service) => void;
   isServiceAvailable: (serviceId: string) => boolean;
   language: Language;
 }
 
 export const ServicesList = ({
-  services,
+  category,
   selectedServices,
   onServiceToggle,
   isServiceAvailable,
   language
 }: ServicesListProps) => {
-  // Check if service is selected
-  const isServiceSelected = (serviceId: string) => {
-    return selectedServices.some((service) => service.id === serviceId);
-  };
-
-  // Sort services by display order
-  const sortedServices = [...services].sort((a, b) => a.display_order - b.display_order);
+  if (!category || !category.services || category.services.length === 0) {
+    return (
+      <div className="p-4 text-center text-gray-500">
+        {language === 'ar' ? 'لا توجد خدمات متاحة في هذه الفئة' : 'No services available in this category'}
+      </div>
+    );
+  }
 
   return (
-    <div className="space-y-4">
-      {sortedServices.map((service) => (
-        <ServiceCard
-          key={service.id}
-          service={service}
-          isSelected={isServiceSelected(service.id)}
-          onSelect={() => onServiceToggle(service)}
-          isAvailable={isServiceAvailable(service.id)}
-          language={language}
-        />
-      ))}
+    <div className="space-y-4 px-4">
+      {category.services.map((service) => {
+        const isSelected = selectedServices.some(s => s.id === service.id);
+        const isAvailable = isServiceAvailable(service.id);
+        
+        return (
+          <ServiceCard
+            key={service.id}
+            service={service}
+            isSelected={isSelected}
+            isAvailable={isAvailable}
+            onClick={() => isAvailable && onServiceToggle(service)}
+            language={language}
+          />
+        );
+      })}
     </div>
   );
 };
