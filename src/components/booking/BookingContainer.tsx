@@ -9,12 +9,17 @@ import { WhatsAppIntegration } from "./WhatsAppIntegration";
 import { useBookingState } from "./hooks/useBookingState";
 import { useBookingActions } from "./hooks/useBookingActions";
 import { useBookingData } from "./hooks/useBookingData";
+import { useBookingNavigation } from "./hooks/useBookingNavigation";
+import { NoBranchMessage } from "./components/NoBranchMessage";
+import { createBookingWithFeedback } from "./utils/bookingUtils";
 import StepRenderer from "./steps/StepRenderer";
 import { trackPageView } from "@/utils/clickTracking";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export const BookingContainer = () => {
   const { navigate, location, branchId } = useBookingNavigation();
   const { branch, branchLoading } = useBookingData(branchId);
+  const { language } = useLanguage();
   const { 
     bookingStatus, 
     isConfirmDialogOpen, 
@@ -136,6 +141,7 @@ export const BookingContainer = () => {
         selectedTime={selectedTime}
         customerDetails={customerDetails}
         totalPrice={totalPrice()}
+        language={language}
       />
     </div>
   );
