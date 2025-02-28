@@ -15,13 +15,14 @@ import { cn } from "@/lib/utils";
 import { Plus } from "lucide-react";
 import { PriceDisplay } from "@/components/ui/price-display";
 import { CustomBadge } from "@/components/ui/custom-badge";
+import { Language } from "@/types/language";
 
 interface ServiceCardProps {
   service: Service;
   isSelected: boolean;
   onSelect: (service: Service) => void;
   isAvailable?: boolean;
-  language: string;
+  language: Language;
   className?: string;
 }
 
@@ -83,7 +84,7 @@ export const ServiceCard = ({ service, isSelected, onSelect, isAvailable = true,
             <div>
               <h3 className="font-medium text-base mb-2">{serviceName}</h3>
               <div className="text-sm text-muted-foreground">
-                {formatDuration(service.duration, language)}
+                {formatDuration(service.duration, language as Language)}
               </div>
             </div>
             
@@ -105,14 +106,14 @@ export const ServiceCard = ({ service, isSelected, onSelect, isAvailable = true,
                 {hasDiscount && (
                   <PriceDisplay 
                     price={service.price}
-                    language={language}
+                    language={language as Language}
                     showDiscount={true}
                     className="text-sm text-muted-foreground decoration-[#ea384c] line-through"
                   />
                 )}
                 <PriceDisplay 
                   price={finalPrice}
-                  language={language}
+                  language={language as Language}
                   className={cn(
                     "font-semibold",
                     hasDiscount && "text-[#ea384c]"
@@ -142,20 +143,20 @@ export const ServiceCard = ({ service, isSelected, onSelect, isAvailable = true,
             <div className="flex flex-col gap-4">
               <div className="flex justify-between items-center">
                 <div className="text-sm text-muted-foreground">
-                  {formatDuration(service.duration, language)}
+                  {formatDuration(service.duration, language as Language)}
                 </div>
                 <div className="space-y-1 text-right">
                   {hasDiscount && (
                     <PriceDisplay 
                       price={service.price}
-                      language={language}
+                      language={language as Language}
                       showDiscount={true}
                       className="text-sm text-muted-foreground decoration-[#ea384c] line-through"
                     />
                   )}
                   <PriceDisplay 
                     price={finalPrice}
-                    language={language}
+                    language={language as Language}
                     size="lg"
                     className={cn(
                       "font-semibold",

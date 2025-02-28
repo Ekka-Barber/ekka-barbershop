@@ -12,11 +12,13 @@ import { useBookingSettings } from "@/hooks/useBookingSettings";
 interface DateTimeSelectionProps {
   selectedDate: Date | undefined;
   onDateSelect: (date: Date | undefined) => void;
+  branch?: any;
 }
 
 export const DateTimeSelection = ({
   selectedDate,
   onDateSelect,
+  branch
 }: DateTimeSelectionProps) => {
   const { t, language } = useLanguage();
   const [showFullCalendar, setShowFullCalendar] = useState(false);

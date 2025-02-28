@@ -2,32 +2,29 @@
 import { useLanguage } from "@/contexts/LanguageContext";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
+import { CustomerDetails } from "@/hooks/booking/useBookingState";
+import { SelectedService } from "@/types/service";
 
 interface BookingSummaryProps {
-  selectedServices: any[];
-  selectedDate: Date | undefined;
-  selectedTime: string | undefined;
-  selectedBarberName: string | undefined;
-  customerDetails: {
-    name: string;
-    phone: string;
-    email: string;
-    notes: string;
+  bookingDetails: {
+    selectedServices: SelectedService[];
+    selectedDate?: Date;
+    selectedTime?: string;
+    selectedBarber?: any;
+    totalPrice: number;
+    totalDuration: number;
   };
-  totalPrice: number;
-  branch: any;
+  customerDetails: CustomerDetails;
+  branch?: any;
 }
 
 export const BookingSummary = ({
-  selectedServices,
-  selectedDate,
-  selectedTime,
-  selectedBarberName,
+  bookingDetails,
   customerDetails,
-  totalPrice,
   branch
 }: BookingSummaryProps) => {
   const { language, t } = useLanguage();
+  const { selectedServices, selectedDate, selectedTime, selectedBarber, totalPrice } = bookingDetails;
   
   const formatDateForDisplay = (date: Date) => {
     if (!date) return '';
@@ -36,6 +33,9 @@ export const BookingSummary = ({
       locale: language === 'ar' ? ar : undefined
     });
   };
+
+  const selectedBarberName = selectedBarber ? 
+    (language === 'ar' && selectedBarber.name_ar ? selectedBarber.name_ar : selectedBarber.name) : '';
 
   return (
     <div className="space-y-6">
