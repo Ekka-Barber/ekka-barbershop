@@ -18,6 +18,9 @@ export const ServicesList = ({
   isServiceAvailable,
   language
 }: ServicesListProps) => {
+  // Log for debugging
+  console.log('ServicesList category:', category);
+  
   if (!category || !category.services || category.services.length === 0) {
     return (
       <div className="p-4 text-center text-gray-500">
@@ -30,7 +33,8 @@ export const ServicesList = ({
     <div className="space-y-4 px-4">
       {category.services.map((service) => {
         const isSelected = selectedServices.some(s => s.id === service.id);
-        const isAvailable = isServiceAvailable(service.id);
+        // Services are pre-filtered for availability in useBookingServices
+        const isAvailable = true;
         
         return (
           <ServiceCard
@@ -38,7 +42,7 @@ export const ServicesList = ({
             service={service}
             isSelected={isSelected}
             isAvailable={isAvailable}
-            onSelect={() => isAvailable && onServiceToggle(service)}
+            onSelect={() => onServiceToggle(service)}
             language={language}
           />
         );

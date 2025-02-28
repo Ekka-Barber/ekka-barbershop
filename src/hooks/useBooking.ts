@@ -32,7 +32,11 @@ export const useBooking = (branch?: any) => {
     categories,
     categoriesLoading,
     handleServiceToggle
-  } = useBookingServices(selectedServices, setSelectedServices);
+  } = useBookingServices(
+    selectedServices, 
+    setSelectedServices,
+    branch?.id // Pass branch ID to useBookingServices
+  );
 
   const {
     handleUpsellServiceAdd

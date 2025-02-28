@@ -33,6 +33,11 @@ export const ServiceSelectionContainer = ({
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const servicesListRef = useRef<HTMLDivElement>(null);
 
+  // Log categories for debugging
+  useEffect(() => {
+    console.log('ServiceSelectionContainer received categories:', categories);
+  }, [categories]);
+
   // Set first category as active on initial load
   useEffect(() => {
     if (categories?.length > 0 && !activeCategory) {
@@ -58,6 +63,10 @@ export const ServiceSelectionContainer = ({
     />;
   }
 
+  // Get the current active category
+  const activeServiceCategory = categories.find(cat => cat.id === activeCategory);
+  console.log('Active category:', activeServiceCategory);
+
   return (
     <div className={`flex flex-col h-full ${language === 'ar' ? 'rtl' : 'ltr'}`}>
       {categories?.length > 0 && (
@@ -75,7 +84,7 @@ export const ServiceSelectionContainer = ({
       >
         {activeCategory && (
           <ServicesList
-            category={categories.find(cat => cat.id === activeCategory)}
+            category={activeServiceCategory}
             selectedServices={selectedServices}
             onServiceToggle={onServiceToggle}
             isServiceAvailable={isServiceAvailable}

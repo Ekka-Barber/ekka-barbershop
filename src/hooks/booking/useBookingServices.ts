@@ -5,13 +5,18 @@ import { Service, SelectedService, Category } from '@/types/service';
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
 
-export const useBookingServices = (selectedServices: SelectedService[], setSelectedServices: React.Dispatch<React.SetStateAction<SelectedService[]>>) => {
+export const useBookingServices = (
+  selectedServices: SelectedService[], 
+  setSelectedServices: React.Dispatch<React.SetStateAction<SelectedService[]>>,
+  branchId?: string | null
+) => {
   const { toast } = useToast();
   const { language } = useLanguage();
 
   const { data: categories, isLoading: categoriesLoading } = useQuery({
-    queryKey: ['service_categories'],
+    queryKey: ['service_categories', branchId],
     queryFn: async () => {
+      console.log('Fetching categories with branchId:', branchId);
       const { data: categories, error: categoriesError } = await supabase
         .from('service_categories')
         .select(`
@@ -41,6 +46,26 @@ export const useBookingServices = (selectedServices: SelectedService[], setSelec
         throw categoriesError;
       }
       
+      // Fetch service availability if branchId is provided
+      let serviceAvailability = {};
+      if (branchId) {
+        const { data: availabilityData, error: availabilityError } = await supabase
+          .from('service_branch_availability')
+          .select('*')
+          .eq('branch_id', branchId);
+          
+        if (availabilityError) {
+          console.error('Error fetching service availability:', availabilityError);
+        } else if (availabilityData) {
+          // Create a lookup map for quick service availability checks
+          serviceAvailability = availabilityData.reduce((acc, item) => {
+            acc[item.service_id] = item.is_available;
+            return acc;
+          }, {});
+        }
+      }
+      
+      // Process and filter services based on availability
       return categories?.map(category => ({
         ...category,
         services: category.services
@@ -50,9 +75,17 @@ export const useBookingServices = (selectedServices: SelectedService[], setSelec
           }))
           .map(validateService)
           .filter(Boolean) // Remove null values from invalid services
+          .filter(service => {
+            // If branchId provided, check availability (default to available if no record)
+            if (branchId) {
+              return serviceAvailability[service.id] !== false;
+            }
+            return true; // Include all services if no branchId
+          })
           .sort((a, b) => (a?.display_order || 0) - (b?.display_order || 0))
       })) as Category[];
     },
+    enabled: true, // Always enable the query, we'll handle empty branchId inside
   });
 
   const validateService = (service: any): Service | null => {
