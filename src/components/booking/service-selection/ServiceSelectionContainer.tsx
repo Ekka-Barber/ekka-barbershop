@@ -8,6 +8,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { EmptyServiceState } from "./EmptyServiceState";
 import { BookingStep } from "../BookingProgress";
 import { Service, SelectedService } from "@/types/service";
+import { Language } from "@/types/language";
 
 interface ServiceSelectionContainerProps {
   categories: any[];
@@ -15,7 +16,7 @@ interface ServiceSelectionContainerProps {
   onServiceToggle: (service: Service) => void;
   onNextStep?: (step: BookingStep) => void;
   isServiceAvailable: (serviceId: string) => boolean;
-  language: string;
+  language: Language;
   totalDuration: number;
   totalPrice: number;
 }

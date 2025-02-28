@@ -1,4 +1,6 @@
 
+import { Language } from "@/types/language";
+
 interface CategoryTabsProps {
   categories: Array<{
     id: string;
@@ -7,7 +9,7 @@ interface CategoryTabsProps {
   }>;
   activeCategory: string | null;
   onCategoryChange: (categoryId: string) => void;
-  language: string;
+  language: Language;
 }
 
 export const CategoryTabs = ({

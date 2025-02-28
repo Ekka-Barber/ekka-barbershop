@@ -1,13 +1,13 @@
 
 import { ServiceCard } from "./ServiceCard";
-import { Service } from "@/types/service";
+import { Language } from "@/types/language";
 
 interface ServicesListProps {
   services: any[];
   selectedServices: { id: string; name: string; price: number; duration: number; }[];
   onServiceToggle: (service: any) => void;
   isServiceAvailable: (serviceId: string) => boolean;
-  language: string;
+  language: Language;
 }
 
 export const ServicesList = ({
