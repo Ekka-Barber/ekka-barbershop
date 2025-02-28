@@ -1,50 +1,38 @@
 
-import React from 'react';
+import { Fragment, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { Slash } from "lucide-react";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { SelectedService } from '@/types/service';
-import RiyalIcon from "@/components/icons/RiyalIcon";
-import { convertToArabic } from "@/utils/arabicNumerals";
-
-interface UpsellService {
-  id: string;
-  name_en: string;
-  name_ar: string;
-  price: number;
-  duration: number;
-  discountPercentage: number;
-  discountedPrice: number;
-  mainServiceId?: string;
-}
+import { Check, X } from "lucide-react";
 
 interface UpsellModalProps {
   isOpen: boolean;
+  availableUpsells: any[];
+  selectedServices: any[];
   onClose: () => void;
-  onConfirm: (selectedUpsells: UpsellService[]) => void;
-  availableUpsells: UpsellService[];
-  selectedServices: SelectedService[];
+  onConfirm: (selectedUpsells: any[]) => void;
 }
 
 export const UpsellModal = ({
   isOpen,
-  onClose,
-  onConfirm,
   availableUpsells,
   selectedServices,
+  onClose,
+  onConfirm
 }: UpsellModalProps) => {
-  const { language } = useLanguage();
-  const [selectedUpsells, setSelectedUpsells] = React.useState<UpsellService[]>([]);
+  const { language, t } = useLanguage();
+  const [selectedUpsells, setSelectedUpsells] = useState<any[]>([]);
 
-  React.useEffect(() => {
-    if (isOpen) {
+  // Reset selected upsells when modal opens
+  const handleOpenChange = (open: boolean) => {
+    if (!open) {
+      onClose();
+    } else {
       setSelectedUpsells([]);
     }
-  }, [isOpen]);
+  };
 
-  const handleToggleUpsell = (upsell: UpsellService) => {
+  const toggleUpsell = (upsell: any) => {
     setSelectedUpsells(prev => {
       const isSelected = prev.some(s => s.id === upsell.id);
       if (isSelected) {
@@ -55,126 +43,87 @@ export const UpsellModal = ({
     });
   };
 
-  const formatPrice = (price: number) => {
-    const roundedPrice = Math.round(price);
-    const formattedNumber = language === 'ar' 
-      ? convertToArabic(roundedPrice.toString())
-      : roundedPrice.toString();
-    
-    return (
-      <span className="inline-flex items-center gap-0.5" dir={language === 'ar' ? 'rtl' : 'ltr'}>
-        {formattedNumber}
-        <RiyalIcon />
-      </span>
-    );
+  const isUpsellAlreadyInCart = (upsellId: string) => {
+    return selectedServices.some(service => service.id === upsellId);
   };
 
-  const useGridLayout = availableUpsells?.length > 3;
+  const handleConfirm = () => {
+    onConfirm(selectedUpsells);
+    onClose();
+  };
 
-  if (!availableUpsells || availableUpsells.length === 0) {
+  if (!availableUpsells?.length) {
     return null;
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={() => onClose()}>
-      <DialogContent className="sm:max-w-[500px] flex flex-col h-[85vh] sm:h-auto max-h-[85vh] gap-0 p-0">
-        <DialogHeader className="px-6 pt-6 pb-2 sticky top-0 bg-background z-10">
-          <DialogTitle className="text-center space-y-2">
-            <div className="flex items-center justify-center gap-2 text-xl font-bold">
-              {language === 'ar' ? (
-                <>
-                  <span>🚀</span>
-                  <span>عروض حصرية لك</span>
-                  <span>🚀</span>
-                </>
-              ) : (
-                'Special Offers Available!'
-              )}
-            </div>
-            {language === 'ar' && (
-              <div className="flex items-center justify-center gap-2 text-base font-bold">
-                <span>🔥</span>
-                <span>اجعل تجربتك أفضل بأقل سعر</span>
-                <span>🔥</span>
-              </div>
-            )}
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle className="text-center text-xl mb-4">
+            {language === 'ar' ? 'خدمات إضافية بخصم خاص' : 'Special Discounted Add-ons'}
           </DialogTitle>
         </DialogHeader>
 
-        <div className="px-6 py-2">
-          <p className="text-center text-muted-foreground text-sm">
-            {language === 'ar'
-              ? 'اختر من الخدمات الإضافية التالية ما تحب بسعر مخفض'
-              : 'Select from the following additional services at discounted prices'}
-          </p>
+        <div className="space-y-4">
+          {availableUpsells.map(upsell => {
+            const alreadyInCart = isUpsellAlreadyInCart(upsell.id);
+            const isSelected = selectedUpsells.some(s => s.id === upsell.id) || alreadyInCart;
+            
+            return (
+              <div 
+                key={upsell.id}
+                className={`border rounded-lg p-4 ${isSelected ? 'border-green-500 bg-green-50' : 'border-gray-200'} cursor-pointer transition-colors`}
+                onClick={() => !alreadyInCart && toggleUpsell(upsell)}
+              >
+                <div className="flex justify-between items-start">
+                  <div className="flex-1">
+                    <h3 className="font-medium">
+                      {language === 'ar' ? upsell.name_ar : upsell.name_en}
+                    </h3>
+                    <div className="flex items-center mt-1 text-sm">
+                      <span className="line-through text-gray-500 mr-2">
+                        {upsell.price} SAR
+                      </span>
+                      <span className="text-green-600 font-medium">
+                        {upsell.discountedPrice} SAR
+                      </span>
+                      <span className="ml-2 bg-green-100 text-green-800 text-xs font-medium px-2 py-0.5 rounded-full">
+                        {upsell.discountPercentage}% {language === 'ar' ? 'خصم' : 'OFF'}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex-shrink-0">
+                    {isSelected ? (
+                      <div className="h-6 w-6 rounded-full bg-green-500 flex items-center justify-center">
+                        <Check className="h-4 w-4 text-white" />
+                      </div>
+                    ) : (
+                      <div className="h-6 w-6 rounded-full border-2 border-gray-300"></div>
+                    )}
+                  </div>
+                </div>
+                {alreadyInCart && (
+                  <p className="text-xs text-gray-500 mt-2">
+                    {language === 'ar' ? 'تمت إضافتها بالفعل' : 'Already added'}
+                  </p>
+                )}
+              </div>
+            );
+          })}
         </div>
 
-        <div className="flex-1 overflow-hidden flex flex-col">
-          <ScrollArea className="flex-1">
-            <div className="h-full flex items-center justify-center px-6 py-4 min-h-[200px]">
-              <div 
-                className={`${useGridLayout ? 'grid grid-cols-2 gap-2.5 w-full max-w-[450px]' : 'flex flex-col gap-2.5 w-full max-w-[400px]'}`}
-                dir={language === 'ar' ? 'rtl' : 'ltr'}
-              >
-                {availableUpsells.map((upsell) => {
-                  const isSelected = selectedUpsells.some(s => s.id === upsell.id);
-
-                  return (
-                    <div
-                      key={upsell.id}
-                      className={`p-3 border rounded-lg cursor-pointer transition-all ${
-                        isSelected 
-                          ? 'border-primary bg-primary/5 shadow-sm' 
-                          : 'hover:border-primary/50 hover:shadow-sm'
-                      }`}
-                      onClick={() => handleToggleUpsell(upsell)}
-                    >
-                      <div className="flex flex-col gap-1.5">
-                        <div>
-                          <h3 className={`font-medium ${useGridLayout ? 'text-sm' : 'text-base'} line-clamp-2`}>
-                            {language === 'ar' ? upsell.name_ar : upsell.name_en}
-                          </h3>
-                          <p className="text-xs text-muted-foreground">
-                            {upsell.duration} {language === 'ar' ? 'دقيقة' : 'min'}
-                          </p>
-                        </div>
-                        <div className={`text-${language === 'ar' ? 'left' : 'right'}`}>
-                          <div className="flex items-center gap-1.5 justify-end">
-                            <span className="flex items-center relative">
-                              <Slash className="w-3.5 h-3.5 text-destructive absolute -translate-y-[2px]" />
-                              <span className="text-sm text-muted-foreground">{formatPrice(upsell.price)}</span>
-                            </span>
-                            <span className="text-sm font-medium">{formatPrice(upsell.discountedPrice)}</span>
-                          </div>
-                          <p className="text-xs text-destructive font-medium">
-                            -{upsell.discountPercentage}%
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          </ScrollArea>
-
-          <div className="flex flex-col gap-3 p-4 border-t bg-background">
-            <Button
-              className="bg-[#C4A36F] hover:bg-[#B39260] h-11 text-base font-medium"
-              onClick={() => {
-                onConfirm(selectedUpsells);
-                onClose();
-              }}
-            >
-              {language === 'ar' ? 'تأكيد' : 'Confirm'}
-            </Button>
-            <button
-              onClick={onClose}
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-            >
-              {language === 'ar' ? 'تخطي' : 'Skip'}
-            </button>
-          </div>
+        <div className="flex space-x-2 justify-end mt-4 rtl:space-x-reverse">
+          <Button variant="outline" onClick={onClose}>
+            {language === 'ar' ? 'إغلاق' : 'Close'}
+          </Button>
+          <Button 
+            className="bg-[#C4A36F] hover:bg-[#B39260]"
+            onClick={handleConfirm}
+            disabled={selectedUpsells.length === 0}
+          >
+            {language === 'ar' ? 'إضافة' : 'Add Selected'}
+          </Button>
         </div>
       </DialogContent>
     </Dialog>

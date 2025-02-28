@@ -1,3 +1,4 @@
+
 import { useNavigate } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
@@ -39,31 +40,43 @@ export const BookingNavigation = ({
   };
 
   return (
-    <div className="space-y-4">
-      <div className="flex justify-between gap-4">
-        <Button
-          variant="outline"
-          onClick={() => {
-            if (currentStepIndex > 0) {
-              setCurrentStep(steps[currentStepIndex - 1]);
-            } else {
-              navigate('/customer');
-            }
-          }}
-          className="flex-1"
-        >
-          {currentStepIndex === 0 ? t('back.home') : t('previous')}
-        </Button>
-        
-        {currentStepIndex < steps.length - 1 && (
+    <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 shadow-lg z-10">
+      <div className="space-y-4">
+        <div className="flex justify-between gap-4">
           <Button
-            onClick={handleNext}
-            className="flex-1 bg-[#C4A36F] hover:bg-[#B39260]"
-            disabled={isNextDisabled}
+            variant="outline"
+            onClick={() => {
+              if (currentStepIndex > 0) {
+                setCurrentStep(steps[currentStepIndex - 1]);
+              } else {
+                navigate('/customer');
+              }
+            }}
+            className="flex-1"
           >
-            {t('next')}
+            {currentStepIndex === 0 ? t('back.home') : t('previous')}
           </Button>
-        )}
+          
+          {currentStepIndex < steps.length - 1 && (
+            <Button
+              onClick={handleNext}
+              className="flex-1 bg-[#C4A36F] hover:bg-[#B39260]"
+              disabled={isNextDisabled}
+            >
+              {t('next')}
+            </Button>
+          )}
+
+          {currentStepIndex === steps.length - 1 && (
+            <Button
+              onClick={handleNext}
+              className="flex-1 bg-[#C4A36F] hover:bg-[#B39260]"
+              disabled={isNextDisabled}
+            >
+              {t('confirm.booking')}
+            </Button>
+          )}
+        </div>
       </div>
     </div>
   );

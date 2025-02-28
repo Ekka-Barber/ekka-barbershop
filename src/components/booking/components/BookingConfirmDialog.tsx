@@ -1,6 +1,8 @@
+
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertTriangle } from "lucide-react";
+
 interface BookingConfirmDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
@@ -8,6 +10,7 @@ interface BookingConfirmDialogProps {
   isLoading: boolean;
   language: string;
 }
+
 export const BookingConfirmDialog = ({
   isOpen,
   onOpenChange,
@@ -15,7 +18,8 @@ export const BookingConfirmDialog = ({
   isLoading,
   language
 }: BookingConfirmDialogProps) => {
-  return <Dialog open={isOpen} onOpenChange={onOpenChange}>
+  return (
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md" aria-describedby="booking-confirm-description">
         <DialogHeader className="space-y-4">
           <div className="mx-auto w-12 h-12 rounded-full bg-yellow-50 flex items-center justify-center">
@@ -25,19 +29,23 @@ export const BookingConfirmDialog = ({
             {language === 'ar' ? 'تأكيد الحجز' : 'Confirm Booking'}
           </DialogTitle>
           <DialogDescription id="booking-confirm-description" className="text-center space-y-2">
-            {language === 'ar' ? <>
+            {language === 'ar' ? (
+              <>
                 <p className="text-base">
                   حجزك هذا <span className="font-bold text-[#ea384c]">غير مؤكد</span>
                 </p>
-                <p className="text-sm text-gray-600">سيتم التأكيد بالرد عليك عن طريق الواتساب</p>
-              </> : <>
+                <p className="text-sm text-gray-600">سيتم التأكيد بالرد عليك عن طريق الواتساب</p>
+              </>
+            ) : (
+              <>
                 <p className="text-base">
                   This booking is <span className="font-bold text-[#ea384c]">unconfirmed</span>
                 </p>
                 <p className="text-sm text-gray-500">
                   Booking confirmation will be through WhatsApp
                 </p>
-              </>}
+              </>
+            )}
           </DialogDescription>
         </DialogHeader>
         <div className="flex flex-col gap-2 sm:flex-row sm:justify-center mt-2">
@@ -49,5 +57,6 @@ export const BookingConfirmDialog = ({
           </Button>
         </div>
       </DialogContent>
-    </Dialog>;
+    </Dialog>
+  );
 };

@@ -11,7 +11,6 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { useBooking } from "@/hooks/useBooking";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { trackPageView } from "@/utils/clickTracking";
 import { BookingConfirmDialog } from "./components/BookingConfirmDialog";
 
 export const BookingContainer = () => {
@@ -90,10 +89,10 @@ export const BookingContainer = () => {
 
   // Track page view
   useEffect(() => {
-    trackPageView({
+    // Using console.log instead of trackPageView
+    console.log('Booking page viewed', {
       pageName: 'Booking',
-      pageUrl: window.location.href,
-      updateHistory: false
+      pageUrl: window.location.href
     });
   }, []);
 
@@ -127,7 +126,11 @@ export const BookingContainer = () => {
 
       <div className="app-container">
         <div className="content-area pb-24">
-          <BookingHeader />
+          <BookingHeader 
+            branchName={branch?.name || branch?.name_ar} 
+            branchAddress={branch?.address || branch?.address_ar}
+            isLoading={branchLoading}
+          />
 
           <BookingProgress currentStep={currentStep} />
 
@@ -156,23 +159,31 @@ export const BookingContainer = () => {
       </div>
 
       <BookingNavigation
+        currentStepIndex={steps.indexOf(currentStep)}
+        steps={steps}
         currentStep={currentStep}
-        onStepChange={setCurrentStep}
-        onConfirm={() => setIsConfirmDialogOpen(true)}
-        canProceed={
-          (currentStep === 'services' && selectedServices.length > 0) ||
-          (currentStep === 'datetime' && selectedDate && selectedTime) ||
-          (currentStep === 'barber' && selectedBarber) ||
-          (currentStep === 'summary')
+        setCurrentStep={setCurrentStep}
+        isNextDisabled={
+          (currentStep === 'services' && selectedServices.length === 0) ||
+          (currentStep === 'datetime' && (!selectedDate || !selectedTime)) ||
+          (currentStep === 'barber' && !selectedBarber) ||
+          (currentStep === 'customer' && (!customerDetails.name || !customerDetails.phone || !customerDetails.email))
         }
+        customerDetails={customerDetails}
+        branch={branch}
+        onNextClick={currentStep === 'summary' ? () => setIsConfirmDialogOpen(true) : undefined}
       />
 
       <BookingConfirmDialog
-        open={isConfirmDialogOpen}
+        isOpen={isConfirmDialogOpen}
         onOpenChange={setIsConfirmDialogOpen}
         onConfirm={handleBookingSubmit}
         isLoading={isBookingInProgress}
+        language={language}
       />
     </div>
   );
 };
+
+// Define steps array
+const steps: BookingStep[] = ['services', 'datetime', 'barber', 'customer', 'summary'];
