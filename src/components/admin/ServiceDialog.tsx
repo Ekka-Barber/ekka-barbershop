@@ -1,12 +1,16 @@
+
 import { useState, useEffect } from 'react';
-import { Plus } from 'lucide-react';
+import { Plus, Pencil } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Category, Service } from '@/types/service';
 import { ServiceForm } from './ServiceForm';
 import { useServiceForm } from '@/hooks/useServiceForm';
@@ -22,7 +26,7 @@ type ServiceDialogProps = {
 };
 
 export const ServiceDialog = ({ categories, editService, onSuccess, trigger }: ServiceDialogProps) => {
-  const [isExpanded, setIsExpanded] = useState<string>('');
+  const [isOpen, setIsOpen] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [selectedUpsells, setSelectedUpsells] = useState<Array<{ serviceId: string; discountPercentage: number }>>([]);
@@ -98,7 +102,7 @@ export const ServiceDialog = ({ categories, editService, onSuccess, trigger }: S
         upsells: selectedUpsells
       });
     }
-    setIsExpanded('');
+    setIsOpen(false);
     onSuccess?.();
     toast({
       title: "Success",
@@ -109,10 +113,32 @@ export const ServiceDialog = ({ categories, editService, onSuccess, trigger }: S
   });
 
   useEffect(() => {
-    if (editService) {
+    if (editService && isOpen) {
       setNewService(editService);
     }
-  }, [editService]);
+  }, [editService, isOpen, setNewService]);
+
+  useEffect(() => {
+    // Reset the form data when the dialog closes
+    if (!isOpen) {
+      if (!editService) {
+        setNewService({
+          category_id: '',
+          name_en: '',
+          name_ar: '',
+          description_en: null,
+          description_ar: null,
+          duration: 0,
+          price: 0,
+          discount_type: null,
+          discount_value: null,
+        });
+      }
+      if (!editService?.id) {
+        setSelectedUpsells([]);
+      }
+    }
+  }, [isOpen, editService, setNewService]);
 
   const handleSubmit = async () => {
     if (editService) {
@@ -125,76 +151,50 @@ export const ServiceDialog = ({ categories, editService, onSuccess, trigger }: S
   if (editService && !trigger) return null;
 
   return (
-    <Accordion
-      type="single"
-      collapsible
-      value={isExpanded}
-      onValueChange={setIsExpanded}
-      className="w-full"
-    >
-      <AccordionItem value={editService ? 'edit-service' : 'add-service'} className="border-none">
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <DialogTrigger asChild>
         {editService ? (
-          <>
-            <div className="w-full">
-              <AccordionTrigger>
-                <div className="w-full">
-                  {trigger}
-                </div>
-              </AccordionTrigger>
-            </div>
-            <AccordionContent className="pt-4">
-              <div className="space-y-4 bg-card rounded-lg border shadow-sm p-6">
-                <ServiceForm
-                  categories={categories}
-                  service={newService}
-                  onChange={setNewService}
-                  availableServices={services}
-                  selectedUpsells={selectedUpsells}
-                  onUpsellsChange={setSelectedUpsells}
-                />
-                <Button 
-                  className="w-full"
-                  onClick={handleSubmit}
-                  disabled={isLoading || !newService.category_id || !newService.name_en || !newService.name_ar || !newService.duration || !newService.price}
-                >
-                  {isLoading ? 'Saving...' : 'Update Service'}
-                </Button>
-              </div>
-            </AccordionContent>
-          </>
+          trigger
         ) : (
-          <>
-            <AccordionTrigger className="hover:no-underline py-0">
-              <Button 
-                variant="outline"
-                size="icon" 
-                className="w-[200px] bg-[#C4A484] hover:bg-[#B8997C] text-white"
-              >
-                Service <Plus className="w-4 h-4 ml-2" />
-              </Button>
-            </AccordionTrigger>
-            <AccordionContent className="pt-4">
-              <div className="space-y-4 bg-card rounded-lg border shadow-sm p-6">
-                <ServiceForm
-                  categories={categories}
-                  service={newService}
-                  onChange={setNewService}
-                  availableServices={services}
-                  selectedUpsells={selectedUpsells}
-                  onUpsellsChange={setSelectedUpsells}
-                />
-                <Button 
-                  className="w-full"
-                  onClick={handleSubmit}
-                  disabled={isLoading || !newService.category_id || !newService.name_en || !newService.name_ar || !newService.duration || !newService.price}
-                >
-                  {isLoading ? 'Saving...' : 'Add Service'}
-                </Button>
-              </div>
-            </AccordionContent>
-          </>
+          <Button variant="outline" size="icon" className="w-[200px] bg-[#C4A484] hover:bg-[#B8997C] text-white">
+            Service <Plus className="w-4 h-4 ml-2" />
+          </Button>
         )}
-      </AccordionItem>
-    </Accordion>
+      </DialogTrigger>
+      <DialogContent className="max-w-2xl">
+        <DialogHeader>
+          <DialogTitle>{editService ? 'Edit Service' : 'Add New Service'}</DialogTitle>
+          <DialogDescription>
+            {editService 
+              ? 'Update the service details below.' 
+              : 'Fill in the details below to add a new service.'}
+          </DialogDescription>
+        </DialogHeader>
+        <div className="py-4">
+          <ServiceForm
+            categories={categories}
+            service={newService}
+            onChange={setNewService}
+            availableServices={services}
+            selectedUpsells={selectedUpsells}
+            onUpsellsChange={setSelectedUpsells}
+          />
+        </div>
+        <DialogFooter className="gap-2 sm:gap-0">
+          <Button
+            variant="outline"
+            onClick={() => setIsOpen(false)}
+          >
+            Cancel
+          </Button>
+          <Button 
+            onClick={handleSubmit}
+            disabled={isLoading || !newService.category_id || !newService.name_en || !newService.name_ar || !newService.duration || !newService.price}
+          >
+            {isLoading ? 'Saving...' : editService ? 'Update Service' : 'Add Service'}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 };
