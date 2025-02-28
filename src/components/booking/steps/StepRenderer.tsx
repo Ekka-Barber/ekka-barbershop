@@ -38,6 +38,8 @@ interface StepRendererProps {
   onServiceToggle?: (service: any, skipDiscountCalculation?: boolean) => void;
   // Add the onStepChange prop
   onStepChange?: (step: BookingStep) => void;
+  // Add the branchId prop
+  branchId?: string;
 }
 
 const StepRenderer: React.FC<StepRendererProps> = ({
