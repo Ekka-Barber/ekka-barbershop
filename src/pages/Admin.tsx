@@ -20,7 +20,6 @@ const Admin = () => {
   const {
     categories,
     totalServices,
-    setSearchQuery,
     setSortBy
   } = useOptimizedCategories();
 
@@ -64,7 +63,6 @@ const Admin = () => {
             <ServiceManagementHeader 
               totalCategories={categories?.length || 0}
               totalServices={totalServices}
-              onSearch={setSearchQuery}
               onSort={setSortBy}
             />
             <Separator />

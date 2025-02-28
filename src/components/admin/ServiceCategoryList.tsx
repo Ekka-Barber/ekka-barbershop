@@ -18,8 +18,6 @@ const ServiceCategoryList = () => {
     categories,
     isLoading,
     totalServices,
-    setSearchQuery,
-    setSortBy,
     setupRealtimeSubscription
   } = useOptimizedCategories();
 

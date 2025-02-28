@@ -11,7 +11,6 @@ import { useLanguage } from '@/contexts/LanguageContext';
 interface ServiceManagementHeaderProps {
   totalCategories: number;
   totalServices: number;
-  onSearch: (query: string) => void;
   onSort: (value: string) => void;
 }
 
