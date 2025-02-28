@@ -13,7 +13,7 @@ const DateTimeStep: React.FC<DateTimeStepProps> = ({
   setSelectedDate,
   branch
 }) => {
-  if (!selectedDate) {
+  if (!branch) {
     return (
       <div className="space-y-6">
         <Skeleton className="h-60 w-full rounded-lg" />
