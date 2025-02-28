@@ -36,6 +36,8 @@ interface StepRendererProps {
   categoriesLoading?: boolean;
   // Add the onServiceToggle prop to match BookingContainer
   onServiceToggle?: (service: any, skipDiscountCalculation?: boolean) => void;
+  // Add the onStepChange prop
+  onStepChange?: (step: BookingStep) => void;
 }
 
 const StepRenderer: React.FC<StepRendererProps> = ({
