@@ -2,11 +2,12 @@
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
-import { format, addDays, isBefore, startOfDay } from "date-fns";
+import { format, addDays, isBefore, startOfDay, isAfter } from "date-fns";
 import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
 import { ar } from 'date-fns/locale';
 import { DateTimeSelectionSkeleton } from "./DateTimeSelectionSkeleton";
+import { useBookingSettings } from "@/hooks/useBookingSettings";
 
 interface DateTimeSelectionProps {
   selectedDate: Date | undefined;
@@ -20,6 +21,7 @@ export const DateTimeSelection = ({
   const { t, language } = useLanguage();
   const [showFullCalendar, setShowFullCalendar] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const { data: bookingSettings, isLoading: isSettingsLoading } = useBookingSettings();
 
   useEffect(() => {
     // Simulate loading state for calendar data
@@ -29,16 +31,21 @@ export const DateTimeSelection = ({
     return () => clearTimeout(timer);
   }, []);
 
-  if (isLoading) {
+  if (isLoading || isSettingsLoading) {
     return <DateTimeSelectionSkeleton />;
   }
 
   const today = startOfDay(new Date());
+  // Use the booking settings to calculate the maximum allowed date
+  const maxAdvanceDays = bookingSettings?.max_advance_days || 14;
+  const maxDate = addDays(today, maxAdvanceDays);
+  
+  // Show only valid days in the quick selection
   const threeDays = [
     today,
     addDays(today, 1),
     addDays(today, 2)
-  ];
+  ].filter(date => !isAfter(date, maxDate));
 
   const formatDate = (date: Date) => {
     return language === 'ar' 
@@ -51,6 +58,13 @@ export const DateTimeSelection = ({
       ? format(date, 'EEEE', { locale: ar })
       : format(date, 'EEE');
   };
+
+  // If selected date is beyond max allowed date, reset it
+  useEffect(() => {
+    if (selectedDate && isAfter(selectedDate, maxDate)) {
+      onDateSelect(undefined);
+    }
+  }, [maxAdvanceDays, selectedDate, onDateSelect]);
 
   return (
     <div className="space-y-6">
@@ -89,7 +103,7 @@ export const DateTimeSelection = ({
             selected={selectedDate}
             onSelect={onDateSelect}
             className="rounded-md border mx-auto"
-            disabled={(date) => isBefore(date, startOfDay(new Date()))}
+            disabled={(date) => isBefore(date, startOfDay(new Date())) || isAfter(date, maxDate)}
             locale={language === 'ar' ? ar : undefined}
           />
           <button
@@ -98,6 +112,11 @@ export const DateTimeSelection = ({
           >
             {language === 'ar' ? 'عرض أقل' : 'Show less'}
           </button>
+          <div className="text-sm text-muted-foreground text-center">
+            {language === 'ar' 
+              ? `يمكنك الحجز حتى ${maxAdvanceDays} يوم من اليوم`
+              : `You can book up to ${maxAdvanceDays} days in advance`}
+          </div>
         </div>
       )}
     </div>

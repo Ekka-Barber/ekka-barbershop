@@ -6,6 +6,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Clock12 } from "lucide-react";
 import { formatTime } from "@/utils/timeFormatting";
 import { TimeSlot } from "@/utils/timeSlotUtils";
+import { useBookingSettings } from "@/hooks/useBookingSettings";
 
 interface TimeSlotPickerProps {
   timeSlots: TimeSlot[];
@@ -23,6 +24,7 @@ export const TimeSlotPicker = ({
   onToggleShowAll
 }: TimeSlotPickerProps) => {
   const { language } = useLanguage();
+  const { data: bookingSettings, isLoading: isSettingsLoading } = useBookingSettings();
   const displayedTimeSlots = showAllSlots ? timeSlots : timeSlots.slice(0, 6);
 
   const isAfterMidnight = (time: string) => {
@@ -30,7 +32,7 @@ export const TimeSlotPicker = ({
     return hours < 12 && hours >= 0; // 00:00 to 11:59
   };
 
-  if (timeSlots.length === 0) {
+  if (timeSlots.length === 0 || isSettingsLoading) {
     return (
       <div className="space-y-4">
         <h3 className="text-lg font-medium text-center">
@@ -54,6 +56,8 @@ export const TimeSlotPicker = ({
   const needsSeparator = (currentTime: string, prevTime: string) => {
     return prevTime === "23:30" && currentTime === "00:00";
   };
+  
+  const slotDuration = bookingSettings?.slot_duration_minutes || 30;
 
   return (
     <div className="space-y-4">
@@ -106,6 +110,12 @@ export const TimeSlotPicker = ({
             : (language === 'ar' ? 'للمزيد' : 'Show More')}
         </Button>
       )}
+
+      <div className="text-sm text-muted-foreground text-center">
+        {language === 'ar'
+          ? `الفترات الزمنية كل ${slotDuration} دقيقة`
+          : `Time slots every ${slotDuration} minutes`}
+      </div>
     </div>
   );
 };

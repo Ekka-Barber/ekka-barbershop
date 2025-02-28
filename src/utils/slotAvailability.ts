@@ -1,6 +1,7 @@
 
 import { isToday, isBefore, addMinutes, format } from "date-fns";
 import { UnavailableSlot, hasEnoughConsecutiveTime, convertTimeToMinutes } from "./timeSlotUtils";
+import { BookingSettings } from "@/hooks/useBookingSettings";
 
 /**
  * Checks if a time slot is available based on date, time, and unavailable periods
@@ -9,19 +10,22 @@ export const isSlotAvailable = (
   slotMinutes: number,
   unavailableSlots: UnavailableSlot[],
   selectedDate: Date,
-  serviceDuration: number = 30 // Default to 30 minutes if not specified
+  serviceDuration: number = 30, // Default to 30 minutes if not specified
+  bookingSettings?: BookingSettings
 ): boolean => {
   // If it's today, check if the slot is within minimum booking time
   if (isToday(selectedDate)) {
     const now = new Date();
-    const minimumBookingTime = addMinutes(now, 15);
+    const minAdvanceMinutes = bookingSettings?.min_advance_time_minutes || 15;
+    const minimumBookingTime = addMinutes(now, minAdvanceMinutes);
     const slotTime = new Date(selectedDate);
     slotTime.setHours(Math.floor(slotMinutes / 60), slotMinutes % 60, 0, 0);
     
     if (isBefore(slotTime, minimumBookingTime)) {
       console.log('Slot not available due to minimum booking time:', {
         slotTime: format(slotTime, 'HH:mm'),
-        minimumBookingTime: format(minimumBookingTime, 'HH:mm')
+        minimumBookingTime: format(minimumBookingTime, 'HH:mm'),
+        minAdvanceMinutes
       });
       return false;
     }
