@@ -18,14 +18,17 @@ interface BasicServiceInfoProps {
 }
 
 export const BasicServiceInfo = ({ service, categories, onChange }: BasicServiceInfoProps) => {
+  // Important: Initialize with the service's category_id if it exists
   const [selectedCategory, setSelectedCategory] = useState<string>(service.category_id || '');
 
-  // Ensure the category is correctly set when the service changes
+  // When service changes (e.g., when a different service is loaded for editing),
+  // update the selectedCategory state
   useEffect(() => {
-    if (service.category_id && service.category_id !== selectedCategory) {
+    if (service.category_id) {
       setSelectedCategory(service.category_id);
+      console.log("Category ID set:", service.category_id);
     }
-  }, [service.category_id, selectedCategory]);
+  }, [service]);
 
   const handleCategoryChange = (value: string) => {
     setSelectedCategory(value);
@@ -39,6 +42,7 @@ export const BasicServiceInfo = ({ service, categories, onChange }: BasicService
         <Select
           value={selectedCategory}
           onValueChange={handleCategoryChange}
+          defaultValue={service.category_id}
         >
           <SelectTrigger className="w-full">
             <SelectValue placeholder="Select category" />

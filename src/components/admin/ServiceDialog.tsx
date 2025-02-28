@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { Plus, Pencil } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -112,9 +112,15 @@ export const ServiceDialog = ({ categories, editService, onSuccess, trigger }: S
     });
   });
 
+  // This effect is critical - it ensures we properly set the service data including category
+  // when we're editing a service and the dialog opens
   useEffect(() => {
     if (editService && isOpen) {
-      setNewService(editService);
+      console.log("Setting service data for editing:", editService);
+      setNewService({
+        ...editService,
+        category_id: editService.category_id // Ensure category_id is explicitly set
+      });
     }
   }, [editService, isOpen, setNewService]);
 
