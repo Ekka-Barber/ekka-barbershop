@@ -40,6 +40,8 @@ interface StepRendererProps {
   onStepChange?: (step: BookingStep) => void;
   // Add the branchId prop
   branchId?: string;
+  // Add the onBarberSelect prop to match BookingContainer
+  onBarberSelect?: (barber: string) => void;
 }
 
 const StepRenderer: React.FC<StepRendererProps> = ({
