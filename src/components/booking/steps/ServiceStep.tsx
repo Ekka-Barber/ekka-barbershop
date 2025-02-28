@@ -81,3 +81,5 @@ export const ServiceStep = ({
     </>
   );
 };
+
+export default ServiceStep;

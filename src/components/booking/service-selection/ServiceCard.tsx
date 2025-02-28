@@ -20,11 +20,13 @@ interface ServiceCardProps {
   service: Service;
   isSelected: boolean;
   onSelect: (service: Service) => void;
+  isAvailable?: boolean;
+  language: string;
   className?: string;
 }
 
-export const ServiceCard = ({ service, isSelected, onSelect, className }: ServiceCardProps) => {
-  const { language } = useLanguage();
+export const ServiceCard = ({ service, isSelected, onSelect, isAvailable = true, language, className }: ServiceCardProps) => {
+  const { language: contextLanguage } = useLanguage();
   const serviceName = language === 'ar' ? service.name_ar : service.name_en;
   const serviceDescription = language === 'ar' ? service.description_ar : service.description_en;
   const [isOpen, setIsOpen] = React.useState(false);
@@ -63,6 +65,7 @@ export const ServiceCard = ({ service, isSelected, onSelect, className }: Servic
           className={cn(
             "relative overflow-visible cursor-pointer transition-all p-4",
             isSelected ? "border-[#C4A484] bg-[#C4A484]/5" : "hover:border-[#C4A484]/50",
+            !isAvailable && "opacity-50 cursor-not-allowed",
             className
           )}
         >
@@ -92,6 +95,7 @@ export const ServiceCard = ({ service, isSelected, onSelect, className }: Servic
                     variant="ghost"
                     className="h-6 w-6 rounded-full hover:bg-[#C4A484]/10"
                     onClick={handleSelect}
+                    disabled={!isAvailable}
                   >
                     <Plus className="h-4 w-4" />
                   </Button>
@@ -168,6 +172,7 @@ export const ServiceCard = ({ service, isSelected, onSelect, className }: Servic
                 }}
                 variant="outline"
                 className="w-full mt-4"
+                disabled={!isAvailable}
               >
                 {isSelected
                   ? language === 'ar'

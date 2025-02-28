@@ -45,7 +45,12 @@ export const ServiceSelectionContainer = ({
 
   const renderServiceList = () => {
     if (categories.length === 0) {
-      return <EmptyServiceState />;
+      return (
+        <EmptyServiceState 
+          message={language === "ar" ? "لا توجد خدمات متاحة" : "No services available"} 
+          description={language === "ar" ? "لا توجد خدمات متاحة حاليا" : "There are no services available at the moment"} 
+        />
+      );
     }
 
     const currentCategory = getActiveCategory();
@@ -65,6 +70,12 @@ export const ServiceSelectionContainer = ({
         language={language}
       />
     );
+  };
+
+  const handleNextStep = () => {
+    if (onNextStep) {
+      onNextStep("datetime");
+    }
   };
 
   return (
@@ -93,20 +104,12 @@ export const ServiceSelectionContainer = ({
           }))}
           totalDuration={totalDuration}
           totalPrice={totalPrice}
+          language={language}
+          onNextStep={handleNextStep}
         />
       )}
 
-      {/* Continue Button */}
-      {selectedServices.length > 0 && onNextStep && (
-        <div className="flex justify-center mt-6">
-          <Button
-            onClick={() => onNextStep("datetime")}
-            className="bg-[#C4A484] hover:bg-[#B8997C] text-white px-8 py-2 rounded"
-          >
-            {language === "ar" ? "التالي" : "Continue"}
-          </Button>
-        </div>
-      )}
+      {/* Continue Button - removed in favor of the one in ServicesSummary */}
     </div>
   );
 };

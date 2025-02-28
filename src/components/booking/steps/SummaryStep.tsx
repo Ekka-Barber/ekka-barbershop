@@ -1,39 +1,48 @@
 
 import { BookingSummary } from "../BookingSummary";
+import { CustomerDetails } from "@/hooks/booking/useBookingState";
+import { SelectedService } from "@/types/service";
 
 interface SummaryStepProps {
-  selectedServices: any[];
-  selectedDate: Date | undefined;
-  selectedTime: string;
-  selectedBarberName: string;
-  customerDetails: {
-    name: string;
-    phone: string;
-    email: string;
-    notes: string;
-  };
+  selectedServices: SelectedService[];
+  selectedDate?: Date;
+  selectedTime?: string;
+  selectedBarber?: string;
+  customerDetails: CustomerDetails;
   totalPrice: number;
-  branch: any;
+  branch?: any;
+  employees?: any[];
 }
 
 export const SummaryStep = ({
   selectedServices,
   selectedDate,
   selectedTime,
-  selectedBarberName,
+  selectedBarber,
   customerDetails,
   totalPrice,
-  branch
+  branch,
+  employees
 }: SummaryStepProps) => {
+  // Find the selected employee
+  const selectedEmployee = employees?.find(
+    (employee) => employee.id === selectedBarber
+  );
+
   return (
     <BookingSummary
-      selectedServices={selectedServices}
-      selectedDate={selectedDate}
-      selectedTime={selectedTime}
-      selectedBarberName={selectedBarberName}
+      bookingDetails={{
+        selectedServices,
+        selectedDate,
+        selectedTime,
+        selectedBarber: selectedEmployee,
+        totalPrice,
+        totalDuration: selectedServices.reduce((sum, service) => sum + service.duration, 0)
+      }}
       customerDetails={customerDetails}
-      totalPrice={totalPrice}
       branch={branch}
     />
   );
 };
+
+export default SummaryStep;

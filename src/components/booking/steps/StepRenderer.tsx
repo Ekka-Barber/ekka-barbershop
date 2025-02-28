@@ -5,11 +5,11 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { CustomerDetails } from "@/hooks/booking/useBookingState";
 
 // Lazy load step components
-const ServiceStep = lazy(() => import("./ServiceStep"));
-const DateTimeStep = lazy(() => import("./DateTimeStep"));
+const ServiceStep = lazy(() => import("./ServiceStep").then(module => ({ default: module.ServiceStep })));
+const DateTimeStep = lazy(() => import("./DateTimeStep").then(module => ({ default: module.DateTimeStep })));
 const BarberStep = lazy(() => import("./BarberStep"));
 const CustomerStep = lazy(() => import("./CustomerStep"));
-const SummaryStep = lazy(() => import("./SummaryStep"));
+const SummaryStep = lazy(() => import("./SummaryStep").then(module => ({ default: module.SummaryStep })));
 
 interface StepRendererProps {
   currentStep: BookingStep;

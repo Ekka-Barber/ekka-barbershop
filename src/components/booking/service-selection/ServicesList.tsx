@@ -32,7 +32,7 @@ export const ServicesList = ({
           key={service.id}
           service={service}
           isSelected={isServiceSelected(service.id)}
-          onServiceToggle={() => onServiceToggle(service)}
+          onSelect={() => onServiceToggle(service)}
           isAvailable={isServiceAvailable(service.id)}
           language={language}
         />
