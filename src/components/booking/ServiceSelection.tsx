@@ -10,6 +10,8 @@ import { cacheServices, getCachedServices, cacheActiveCategory, getCachedActiveC
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useToast } from "@/hooks/use-toast";
 import { AlertTriangle } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 interface ServiceSelectionProps {
   categories: any[] | undefined;
@@ -17,6 +19,7 @@ interface ServiceSelectionProps {
   selectedServices: any[];
   onServiceToggle: (service: any) => void;
   onStepChange?: (step: string) => void;
+  branchId?: string;
 }
 
 export const ServiceSelection = ({
@@ -24,7 +27,8 @@ export const ServiceSelection = ({
   isLoading,
   selectedServices,
   onServiceToggle,
-  onStepChange
+  onStepChange,
+  branchId
 }: ServiceSelectionProps) => {
   const { language } = useLanguage();
   const { toast } = useToast();
@@ -33,6 +37,39 @@ export const ServiceSelection = ({
   );
   const [selectedService, setSelectedService] = useState<any | null>(null);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
+
+  // Fetch service availability data for the current branch
+  const { data: serviceAvailability, isLoading: availabilityLoading } = useQuery({
+    queryKey: ['service-availability', branchId],
+    queryFn: async () => {
+      if (!branchId) return [];
+      
+      const { data, error } = await supabase
+        .from('service_branch_availability')
+        .select('*')
+        .eq('branch_id', branchId);
+        
+      if (error) {
+        console.error('Error fetching service availability:', error);
+        return [];
+      }
+      
+      return data || [];
+    },
+    enabled: !!branchId,
+  });
+
+  // Check if a service is available at the current branch
+  const isServiceAvailable = (serviceId: string): boolean => {
+    if (!serviceAvailability || !branchId) return true; // Default to available
+    
+    const record = serviceAvailability.find(
+      item => item.service_id === serviceId && item.branch_id === branchId
+    );
+    
+    // If no record exists, default to available
+    return record ? record.is_available : true;
+  };
 
   useEffect(() => {
     if (activeCategory) {
@@ -71,14 +108,20 @@ export const ServiceSelection = ({
   };
 
   const sortedCategories = categories?.slice().sort((a, b) => a.display_order - b.display_order);
-  const activeCategoryServices = sortedCategories?.find(
+  
+  // Filter services in the active category based on their availability
+  const activeServices = sortedCategories?.find(
     cat => cat.id === activeCategory
-  )?.services.sort((a, b) => a.display_order - b.display_order);
+  )?.services
+    .filter(service => isServiceAvailable(service.id))
+    .sort((a, b) => a.display_order - b.display_order);
 
   const totalDuration = selectedServices.reduce((total, service) => total + service.duration, 0);
   const totalPrice = selectedServices.reduce((total, service) => total + service.price, 0);
 
-  if (isLoading) {
+  const isComponentLoading = isLoading || availabilityLoading;
+
+  if (isComponentLoading) {
     return <ServicesSkeleton />;
   }
 
@@ -98,6 +141,40 @@ export const ServiceSelection = ({
     );
   }
 
+  // If no services are available in the active category
+  if (activeServices?.length === 0) {
+    return (
+      <div className="space-y-6 pb-8">
+        <CategoryTabs
+          categories={sortedCategories || []}
+          activeCategory={activeCategory}
+          onCategoryChange={setActiveCategory}
+          language={language}
+        />
+        
+        <div className="flex flex-col items-center justify-center p-8 text-center space-y-4">
+          <AlertTriangle className="w-12 h-12 text-yellow-500" />
+          <h3 className="text-lg font-semibold">
+            {language === 'ar' ? 'لا توجد خدمات متاحة في هذه الفئة' : 'No Services Available in this Category'}
+          </h3>
+          <p className="text-gray-500">
+            {language === 'ar' 
+              ? 'نعتذر، لا توجد خدمات متاحة حالياً في هذه الفئة. يرجى تحديد فئة أخرى.'
+              : 'Sorry, there are no services available in this category. Please select another category.'}
+          </p>
+        </div>
+        
+        <ServicesSummary
+          selectedServices={selectedServices}
+          totalDuration={totalDuration}
+          totalPrice={totalPrice}
+          language={language}
+          onNextStep={() => onStepChange?.('datetime')}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6 pb-8">
       <CategoryTabs
@@ -108,7 +185,7 @@ export const ServiceSelection = ({
       />
 
       <div className="grid grid-cols-2 gap-4">
-        {activeCategoryServices?.map((service: any) => (
+        {activeServices?.map((service: any) => (
           <ServiceCard
             key={service.id}
             service={service}

@@ -12,12 +12,7 @@ import { Category, Service } from '@/types/service';
 import { Branch } from '@/types/booking';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-
-interface ServiceBranchAvailability {
-  service_id: string;
-  branch_id: string;
-  is_available: boolean;
-}
+import { useServiceAvailability } from '@/hooks/useServiceAvailability';
 
 interface ServiceAvailabilitySettingsProps {
   isLoading: boolean;
@@ -27,11 +22,18 @@ export const ServiceAvailabilitySettings = ({ isLoading }: ServiceAvailabilitySe
   const { language, t } = useLanguage();
   const [branches, setBranches] = useState<Branch[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
-  const [serviceAvailability, setServiceAvailability] = useState<ServiceBranchAvailability[]>([]);
-  const [savingBranchId, setSavingBranchId] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedBranch, setSelectedBranch] = useState<string | null>(null);
   const [dataLoading, setDataLoading] = useState(true);
+  
+  // Use our custom hook for service availability management
+  const {
+    availabilityData,
+    isLoading: availabilityLoading,
+    updatingServiceIds,
+    toggleServiceAvailability,
+    getServiceAvailability
+  } = useServiceAvailability(selectedBranch);
 
   // Fetch data on component mount
   useEffect(() => {
@@ -61,7 +63,8 @@ export const ServiceAvailabilitySettings = ({ isLoading }: ServiceAvailabilitySe
             name_en,
             name_ar,
             display_order,
-            services:services(
+            created_at,
+            services(
               id, 
               name_en, 
               name_ar, 
@@ -88,13 +91,6 @@ export const ServiceAvailabilitySettings = ({ isLoading }: ServiceAvailabilitySe
           setSelectedCategory(categoriesWithSortedServices[0].id);
         }
         
-        // Fetch service-branch availability
-        // Note: We're assuming a service_branch_availability table exists or we'll create it
-        // For now, we'll initialize an empty array and simulate fetching
-        // In a real implementation, this would be fetched from the database
-        const mockServiceAvailability: ServiceBranchAvailability[] = [];
-        setServiceAvailability(mockServiceAvailability);
-        
       } catch (error) {
         console.error('Error fetching data:', error);
         toast.error(language === 'ar' ? 'فشل في تحميل البيانات' : 'Failed to load data');
@@ -114,75 +110,57 @@ export const ServiceAvailabilitySettings = ({ isLoading }: ServiceAvailabilitySe
     return category?.services || [];
   };
 
-  // Check if a service is available at a branch
-  const isServiceAvailableAtBranch = (serviceId: string, branchId: string): boolean => {
-    // If we don't find an entry, we'll assume the service is available by default
-    const entry = serviceAvailability.find(
-      sa => sa.service_id === serviceId && sa.branch_id === branchId
-    );
+  // Handle toggling a service's availability
+  const handleToggleAvailability = async (serviceId: string) => {
+    if (!selectedBranch) return;
     
-    return entry ? entry.is_available : true;
-  };
-
-  // Toggle service availability
-  const toggleServiceAvailability = (serviceId: string, branchId: string) => {
-    setServiceAvailability(prev => {
-      // Find if there's an existing entry
-      const existingEntryIndex = prev.findIndex(
-        sa => sa.service_id === serviceId && sa.branch_id === branchId
-      );
-      
-      // Create a copy of the array
-      const updated = [...prev];
-      
-      if (existingEntryIndex >= 0) {
-        // Update existing entry
-        updated[existingEntryIndex] = {
-          ...updated[existingEntryIndex],
-          is_available: !updated[existingEntryIndex].is_available
-        };
-      } else {
-        // Add new entry (assuming default is 'available')
-        updated.push({
-          service_id: serviceId,
-          branch_id: branchId,
-          is_available: false
-        });
-      }
-      
-      return updated;
-    });
-  };
-
-  // Save availability settings
-  const saveAvailabilitySettings = async (branchId: string) => {
+    const isCurrentlyAvailable = getServiceAvailability(serviceId);
+    
     try {
-      setSavingBranchId(branchId);
-      
-      // Here you would update the database with the current availability settings
-      // For now, we'll just simulate a successful update
-      
-      // In a real implementation, this would be an upsert operation to the service_branch_availability table
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API call
+      await toggleServiceAvailability(serviceId, !isCurrentlyAvailable);
       
       toast.success(
         language === 'ar' 
-          ? 'تم حفظ إعدادات توفر الخدمة بنجاح' 
-          : 'Service availability settings saved successfully'
+          ? 'تم تحديث توفر الخدمة بنجاح' 
+          : 'Service availability updated successfully'
       );
     } catch (error) {
-      console.error('Error saving service availability settings:', error);
+      console.error('Error updating service availability:', error);
       toast.error(
         language === 'ar' 
-          ? 'فشل في حفظ إعدادات توفر الخدمة' 
-          : 'Failed to save service availability settings'
+          ? 'فشل في تحديث توفر الخدمة' 
+          : 'Failed to update service availability'
       );
-    } finally {
-      setSavingBranchId(null);
     }
   };
 
-  if (isLoading || dataLoading) {
+  // Bulk actions: enable or disable all services in a category
+  const handleBulkAction = async (enable: boolean) => {
+    if (!selectedBranch || !selectedCategory) return;
+    
+    try {
+      const services = getServicesForCategory(selectedCategory);
+      
+      for (const service of services) {
+        await toggleServiceAvailability(service.id, enable);
+      }
+      
+      toast.success(
+        language === 'ar' 
+          ? 'تم تحديث توفر الخدمات بنجاح' 
+          : 'Services availability updated successfully'
+      );
+    } catch (error) {
+      console.error('Error updating services availability:', error);
+      toast.error(
+        language === 'ar' 
+          ? 'فشل في تحديث توفر الخدمات' 
+          : 'Failed to update services availability'
+      );
+    }
+  };
+
+  if (isLoading || dataLoading || availabilityLoading) {
     return (
       <div className="space-y-4">
         <Skeleton className="h-10 w-full" />
@@ -239,11 +217,32 @@ export const ServiceAvailabilitySettings = ({ isLoading }: ServiceAvailabilitySe
       
       {selectedBranch && (
         <div className="mt-8">
-          <h3 className="text-lg font-medium mb-4">
-            {language === 'ar' 
-              ? 'الخدمات المتوفرة في هذا الفرع' 
-              : 'Services Available at this Branch'}
-          </h3>
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-lg font-medium">
+              {language === 'ar' 
+                ? 'الخدمات المتوفرة في هذا الفرع' 
+                : 'Services Available at this Branch'}
+            </h3>
+            
+            <div className="flex space-x-2 rtl:space-x-reverse">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handleBulkAction(true)}
+                className="text-sm"
+              >
+                {language === 'ar' ? 'تمكين الكل' : 'Enable All'}
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handleBulkAction(false)}
+                className="text-sm"
+              >
+                {language === 'ar' ? 'تعطيل الكل' : 'Disable All'}
+              </Button>
+            </div>
+          </div>
           
           <div className="border rounded-md">
             {getServicesForCategory(selectedCategory).length === 0 ? (
@@ -262,8 +261,9 @@ export const ServiceAvailabilitySettings = ({ isLoading }: ServiceAvailabilitySe
                     <div className="flex items-center space-x-3 rtl:space-x-reverse">
                       <Checkbox 
                         id={`service-${service.id}`}
-                        checked={isServiceAvailableAtBranch(service.id, selectedBranch)}
-                        onCheckedChange={() => toggleServiceAvailability(service.id, selectedBranch)}
+                        checked={getServiceAvailability(service.id)}
+                        onCheckedChange={() => handleToggleAvailability(service.id)}
+                        disabled={updatingServiceIds.includes(service.id)}
                       />
                       <Label 
                         htmlFor={`service-${service.id}`}
@@ -279,17 +279,6 @@ export const ServiceAvailabilitySettings = ({ isLoading }: ServiceAvailabilitySe
                 ))}
               </div>
             )}
-          </div>
-          
-          <div className="mt-6 flex justify-end">
-            <Button
-              onClick={() => saveAvailabilitySettings(selectedBranch)}
-              disabled={savingBranchId === selectedBranch}
-            >
-              {savingBranchId === selectedBranch
-                ? (language === 'ar' ? 'جاري الحفظ...' : 'Saving...')
-                : (language === 'ar' ? 'حفظ التغييرات' : 'Save Changes')}
-            </Button>
           </div>
         </div>
       )}

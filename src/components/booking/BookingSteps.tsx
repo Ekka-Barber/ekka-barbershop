@@ -1,133 +1,143 @@
 
-import { useState } from "react";
-import { BookingProgress, BookingStep } from "@/components/booking/BookingProgress";
-import { BookingNavigation } from "@/components/booking/BookingNavigation";
-import { UpsellModal } from "@/components/booking/UpsellModal";
-import { useBooking } from "@/hooks/useBooking";
+import { ServiceSelection } from "./ServiceSelection";
+import { DateTimeSelection } from "./DateTimeSelection";
+import { BarberSelection } from "./BarberSelection";
+import { BookingSummary } from "./BookingSummary";
+import { CustomerForm } from "./CustomerForm";
+import { UpsellModal } from "./UpsellModal";
+import { BookingStep } from "./BookingProgress";
+import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useBookingUpsells } from "@/hooks/useBookingUpsells";
-import { transformWorkingHours } from "@/utils/workingHoursUtils";
-import { StepRenderer } from "./steps/StepRenderer";
-
-const STEPS: BookingStep[] = ['services', 'datetime', 'barber', 'details'];
 
 interface BookingStepsProps {
+  currentStep: BookingStep;
+  onStepChange: (step: BookingStep) => void;
+  selectedServices: any[];
+  selectedDate: Date | undefined;
+  setSelectedDate: (date: Date | undefined) => void;
+  selectedTime: string | undefined;
+  setSelectedTime: (time: string) => void;
+  selectedBarber: string | undefined;
+  setSelectedBarber: (barber: string) => void;
+  customerDetails: {
+    name: string;
+    phone: string;
+    email: string;
+    notes: string;
+  };
+  handleCustomerDetailsChange: (field: string, value: string) => void;
+  categories: any[] | undefined;
+  categoriesLoading: boolean;
+  employees: any[] | undefined;
+  employeesLoading: boolean;
+  onServiceToggle: (service: any) => void;
+  totalPrice: number;
   branch: any;
+  branchId: string | null;
 }
 
-export const BookingSteps = ({ branch }: BookingStepsProps) => {
+export const BookingSteps = ({
+  currentStep,
+  onStepChange,
+  selectedServices,
+  selectedDate,
+  setSelectedDate,
+  selectedTime,
+  setSelectedTime,
+  selectedBarber,
+  setSelectedBarber,
+  customerDetails,
+  handleCustomerDetailsChange,
+  categories,
+  categoriesLoading,
+  employees,
+  employeesLoading,
+  onServiceToggle,
+  totalPrice,
+  branch,
+  branchId
+}: BookingStepsProps) => {
   const { language } = useLanguage();
-  const [showUpsellModal, setShowUpsellModal] = useState(false);
-  const [pendingStep, setPendingStep] = useState<BookingStep | null>(null);
-  const {
-    currentStep,
-    setCurrentStep,
-    selectedServices,
-    selectedDate,
-    setSelectedDate,
-    selectedTime,
-    setSelectedTime,
-    selectedBarber,
-    setSelectedBarber,
-    customerDetails,
-    handleCustomerDetailsChange,
-    categories,
-    categoriesLoading,
-    employees,
-    employeesLoading,
-    selectedEmployee,
-    handleServiceToggle,
-    handleUpsellServiceAdd,
-    totalPrice
-  } = useBooking(branch);
+  const { upsellServices, showUpsell, hideUpsell, addUpsellServices } =
+    useBookingUpsells(selectedServices);
+  const [isUpsellShown, setIsUpsellShown] = useState(false);
 
-  const { data: availableUpsells } = useBookingUpsells(selectedServices, language);
+  useEffect(() => {
+    setIsUpsellShown(upsellServices.length > 0);
+  }, [upsellServices]);
 
-  const handleStepChange = (step: string) => {
-    if (currentStep === 'services' && step === 'datetime' && availableUpsells?.length) {
-      setShowUpsellModal(true);
-      setPendingStep('datetime');
-    } else {
-      setCurrentStep(step as BookingStep);
-    }
+  const onMainServiceSelect = (service: any) => {
+    onServiceToggle(service);
+    showUpsell(service);
   };
 
-  const handleUpsellModalClose = () => {
-    setShowUpsellModal(false);
-    if (pendingStep) {
-      setCurrentStep(pendingStep);
-      setPendingStep(null);
-    }
-  };
+  if (currentStep === "services") {
+    return (
+      <>
+        <ServiceSelection
+          categories={categories}
+          isLoading={categoriesLoading}
+          selectedServices={selectedServices}
+          onServiceToggle={onMainServiceSelect}
+          onStepChange={onStepChange}
+          branchId={branchId || undefined}
+        />
+        <UpsellModal
+          isOpen={isUpsellShown}
+          upsellServices={upsellServices}
+          selectedServices={selectedServices}
+          onClose={hideUpsell}
+          onAddUpsells={addUpsellServices}
+        />
+      </>
+    );
+  }
 
-  const handleUpsellConfirm = (selectedUpsells: any[]) => {
-    handleUpsellServiceAdd(selectedUpsells);
-    handleUpsellModalClose();
-  };
+  if (currentStep === "datetime") {
+    return (
+      <DateTimeSelection
+        selectedDate={selectedDate}
+        onDateSelect={setSelectedDate}
+      />
+    );
+  }
 
-  const currentStepIndex = STEPS.indexOf(currentStep);
-  const isNextDisabled = currentStep === 'services' ? selectedServices.length === 0 : 
-                        currentStep === 'datetime' ? !selectedDate :
-                        currentStep === 'barber' ? !selectedBarber || !selectedTime :
-                        currentStep === 'details' ? !customerDetails.name || !customerDetails.phone :
-                        false;
+  if (currentStep === "barber") {
+    return (
+      <BarberSelection
+        selectedBarber={selectedBarber}
+        onBarberSelect={setSelectedBarber}
+        employees={employees}
+        isLoading={employeesLoading}
+        selectedDate={selectedDate}
+        selectedTime={selectedTime}
+        services={selectedServices}
+      />
+    );
+  }
 
-  const employeeWorkingHours = selectedEmployee?.working_hours 
-    ? transformWorkingHours(selectedEmployee.working_hours)
-    : null;
+  if (currentStep === "customer") {
+    return (
+      <CustomerForm
+        customerDetails={customerDetails}
+        onInputChange={handleCustomerDetailsChange}
+        branch={branch}
+      />
+    );
+  }
 
   return (
-    <>
-      <BookingProgress
-        currentStep={currentStep}
-        steps={STEPS}
-        onStepClick={setCurrentStep}
-        currentStepIndex={currentStepIndex}
-      />
-
-      <div className="mb-8">
-        <StepRenderer
-          currentStep={currentStep}
-          categories={categories}
-          categoriesLoading={categoriesLoading}
-          selectedServices={selectedServices}
-          handleServiceToggle={handleServiceToggle}
-          handleStepChange={handleStepChange}
-          employees={employees}
-          employeesLoading={employeesLoading}
-          selectedBarber={selectedBarber}
-          setSelectedBarber={setSelectedBarber}
-          selectedDate={selectedDate}
-          selectedTime={selectedTime}
-          setSelectedDate={setSelectedDate}
-          setSelectedTime={setSelectedTime}
-          employeeWorkingHours={employeeWorkingHours}
-          customerDetails={customerDetails}
-          handleCustomerDetailsChange={handleCustomerDetailsChange}
-          totalPrice={totalPrice}
-          language={language}
-          branch={branch}
-        />
-      </div>
-
-      {currentStep !== 'services' && (
-        <BookingNavigation
-          currentStepIndex={currentStepIndex}
-          steps={STEPS}
-          currentStep={currentStep}
-          setCurrentStep={setCurrentStep}
-          isNextDisabled={isNextDisabled}
-          customerDetails={customerDetails}
-          branch={branch}
-        />
-      )}
-
-      <UpsellModal
-        isOpen={showUpsellModal}
-        onClose={handleUpsellModalClose}
-        onConfirm={handleUpsellConfirm}
-        availableUpsells={availableUpsells || []}
-      />
-    </>
+    <BookingSummary
+      selectedServices={selectedServices}
+      selectedDate={selectedDate}
+      selectedTime={selectedTime}
+      selectedBarber={selectedBarber}
+      customerDetails={customerDetails}
+      totalPrice={totalPrice}
+      branch={branch}
+    />
   );
 };

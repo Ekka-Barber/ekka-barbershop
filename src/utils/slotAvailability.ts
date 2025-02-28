@@ -2,6 +2,7 @@
 import { isToday, isBefore, addMinutes, format } from "date-fns";
 import { UnavailableSlot, hasEnoughConsecutiveTime, convertTimeToMinutes } from "./timeSlotUtils";
 import { BookingSettings } from "@/hooks/useBookingSettings";
+import { supabase } from "@/integrations/supabase/client";
 
 /**
  * Checks if a time slot is available based on date, time, and unavailable periods
@@ -57,4 +58,60 @@ export const isEmployeeAvailable = (employee: any, selectedDate: Date | undefine
   }
   
   return workingHours.length > 0;
+};
+
+/**
+ * Checks if a service is available at a specific branch
+ */
+export const isServiceAvailableAtBranch = async (
+  serviceId: string,
+  branchId: string
+): Promise<boolean> => {
+  try {
+    // Query the service_branch_availability table
+    const { data, error } = await supabase
+      .from('service_branch_availability')
+      .select('is_available')
+      .eq('service_id', serviceId)
+      .eq('branch_id', branchId)
+      .maybeSingle();
+      
+    if (error) {
+      console.error('Error checking service availability:', error);
+      return true; // Default to available in case of error
+    }
+    
+    // If no record exists, assume service is available (default behavior)
+    if (!data) return true;
+    
+    return data.is_available;
+  } catch (error) {
+    console.error('Exception checking service availability:', error);
+    return true; // Default to available in case of error
+  }
+};
+
+/**
+ * Fetches all services available at a specific branch
+ */
+export const getAvailableServicesForBranch = async (
+  branchId: string
+): Promise<string[]> => {
+  try {
+    const { data, error } = await supabase
+      .from('service_branch_availability')
+      .select('service_id')
+      .eq('branch_id', branchId)
+      .eq('is_available', true);
+      
+    if (error) {
+      console.error('Error fetching available services:', error);
+      return [];
+    }
+    
+    return data.map(item => item.service_id);
+  } catch (error) {
+    console.error('Exception fetching available services:', error);
+    return [];
+  }
 };
