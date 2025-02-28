@@ -29,7 +29,7 @@ export const useAdsMetrics = (dateRange: DateRange) => {
       if (error) throw error;
       return data as AggregatedMetrics[];
     },
-    enabled: isValidRange,
+    enabled: !!isValidRange,
   });
 
   // Fetch campaign costs for the date range
@@ -39,7 +39,7 @@ export const useAdsMetrics = (dateRange: DateRange) => {
       if (!isValidRange) return [];
       return fetchCampaignCostsByDateRange(dateRange.from!, dateRange.to!);
     },
-    enabled: isValidRange,
+    enabled: !!isValidRange,
   });
 
   // Fetch raw visit data for detailed analysis
@@ -62,7 +62,7 @@ export const useAdsMetrics = (dateRange: DateRange) => {
         (!visit.referrer || !isExcludedDomain(visit.referrer))
       );
     },
-    enabled: isValidRange,
+    enabled: !!isValidRange,
   });
 
   // Calculate summary metrics
