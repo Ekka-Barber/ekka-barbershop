@@ -1393,6 +1393,48 @@ export type Database = {
           },
         ]
       }
+      service_branch_availability: {
+        Row: {
+          branch_id: string
+          created_at: string | null
+          id: string
+          is_available: boolean
+          service_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          branch_id: string
+          created_at?: string | null
+          id?: string
+          is_available?: boolean
+          service_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          branch_id?: string
+          created_at?: string | null
+          id?: string
+          is_available?: boolean
+          service_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_branch_availability_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_branch_availability_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       service_categories: {
         Row: {
           created_at: string

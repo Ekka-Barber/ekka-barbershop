@@ -54,7 +54,7 @@ export interface BarberDetails {
 }
 
 export interface ServiceBranchAvailability {
-  id?: string;
+  id: string;
   service_id: string;
   branch_id: string;
   is_available: boolean;
