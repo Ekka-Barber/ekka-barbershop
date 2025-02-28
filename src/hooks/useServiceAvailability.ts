@@ -81,6 +81,11 @@ export const useServiceAvailability = (branchId: string | null | undefined) => {
     return record ? record.is_available : true; // Default to available if no record
   };
 
+  // Check service availability (returns a boolean, not a Promise)
+  const isServiceAvailable = (serviceId: string): boolean => {
+    return getServiceAvailability(serviceId);
+  };
+
   return {
     availabilityData,
     isLoading,
@@ -88,6 +93,7 @@ export const useServiceAvailability = (branchId: string | null | undefined) => {
     updatingServiceIds,
     toggleServiceAvailability,
     getServiceAvailability,
+    isServiceAvailable, // Add this function to the return object
     refetch
   };
 };

@@ -31,7 +31,7 @@ const ServiceStep: React.FC<ServiceStepProps> = ({
   totalDuration: propTotalDuration
 }) => {
   const { language } = useLanguage();
-  const { isServiceAvailableAtBranch } = useServiceAvailability();
+  const { isServiceAvailable } = useServiceAvailability(branchId);
   
   // Use props if provided, otherwise fetch categories
   const { data: categories, isLoading: categoriesLoading } = useQuery({
@@ -76,11 +76,6 @@ const ServiceStep: React.FC<ServiceStepProps> = ({
     },
     enabled: !propCategories && !!branchId,
   });
-
-  const isServiceAvailable = async (serviceId: string) => {
-    if (!branchId) return true;
-    return await isServiceAvailableAtBranch(serviceId, branchId);
-  };
 
   const totalDuration = propTotalDuration || selectedServices.reduce((sum, service) => sum + service.duration, 0);
   const totalPrice = propTotalPrice || selectedServices.reduce((sum, service) => sum + service.price, 0);
