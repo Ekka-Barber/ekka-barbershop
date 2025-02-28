@@ -1,3 +1,4 @@
+
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from "@/integrations/supabase/client";
 import { Service, SelectedService, Category } from '@/types/service';
@@ -97,8 +98,10 @@ export const useBookingServices = (
     },
     enabled: branchId !== undefined && branchId !== null,
     staleTime: 5 * 60 * 1000,
-    onError: (error) => {
-      console.error('Error in categories query:', error);
+    onSettled: (data, error) => {
+      if (error) {
+        console.error('Error in categories query:', error);
+      }
     }
   });
 
