@@ -1,5 +1,5 @@
 
-import { GripVertical, Pencil } from 'lucide-react';
+import { GripVertical, Pencil, Trash } from 'lucide-react';
 import { Draggable } from '@hello-pangea/dnd';
 import { Button } from "@/components/ui/button";
 import { Service } from '@/types/service';
@@ -40,6 +40,28 @@ export const ServiceItem = ({ service, index, categoryId }: ServiceItemProps) =>
     }
   };
 
+  const handleDeleteService = async () => {
+    try {
+      const { error } = await supabase
+        .from('services')
+        .delete()
+        .eq('id', service.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Service Deleted",
+        description: "Service has been deleted successfully.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "An error occurred while deleting the service.",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <Draggable
       key={service.id}
@@ -51,7 +73,7 @@ export const ServiceItem = ({ service, index, categoryId }: ServiceItemProps) =>
           ref={provided.innerRef}
           {...provided.draggableProps}
           {...provided.dragHandleProps}
-          className="flex items-center justify-between p-2 bg-gray-50 border rounded-lg"
+          className="flex items-center justify-between p-3 bg-white border border-gray-200 rounded-lg"
           onDragEnd={() => handleDragEnd(index)}
         >
           <div className="flex items-center gap-2">
@@ -62,7 +84,7 @@ export const ServiceItem = ({ service, index, categoryId }: ServiceItemProps) =>
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <div className="text-sm text-gray-500">
+            <div className="text-sm text-gray-500 mr-2">
               {service.duration} mins • ${service.price}
             </div>
             <ServiceDialog
@@ -78,13 +100,21 @@ export const ServiceItem = ({ service, index, categoryId }: ServiceItemProps) =>
               trigger={
                 <Button
                   variant="ghost"
-                  size="sm"
-                  className="text-blue-500 hover:text-blue-600"
+                  size="icon"
+                  className="h-8 w-8 text-blue-500 hover:text-blue-600"
                 >
                   <Pencil className="w-4 h-4" />
                 </Button>
               }
             />
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleDeleteService}
+              className="h-8 w-8 text-red-500 hover:text-red-600"
+            >
+              <Trash className="w-4 h-4" />
+            </Button>
           </div>
         </div>
       )}
