@@ -5,7 +5,7 @@ import DateTimeStep from "./DateTimeStep";
 import BarberStep from "./BarberStep";
 import CustomerStep from "./CustomerStep";
 import SummaryStep from "./SummaryStep";
-import { CustomerDetails } from "@/hooks/booking/useBookingState";
+import { CustomerDetails } from "@/types/booking";
 import { SelectedService } from "@/types/service";
 
 interface StepRendererProps {
@@ -60,7 +60,7 @@ const StepRenderer: React.FC<StepRendererProps> = ({
       return (
         <ServiceStep
           selectedServices={selectedServices}
-          toggleService={toggleService}
+          onServiceToggle={toggleService}
         />
       );
     case "datetime":
@@ -88,9 +88,10 @@ const StepRenderer: React.FC<StepRendererProps> = ({
       return (
         <CustomerStep
           customerDetails={customerDetails}
-          setCustomerDetails={setCustomerDetails}
+          onCustomerDetailsChange={setCustomerDetails}
+          branch={branch}
+          onTermsAcceptanceChange={setTermsAccepted}
           termsAccepted={termsAccepted}
-          setTermsAccepted={setTermsAccepted}
         />
       );
     case "summary":
@@ -104,9 +105,7 @@ const StepRenderer: React.FC<StepRendererProps> = ({
           branch={branch}
           totalPrice={totalPrice}
           totalDuration={totalDuration}
-          handleSubmitBooking={handleSubmitBooking}
-          submitting={submitting}
-          buttonText={buttonText}
+          employees={employees}
         />
       );
     default:

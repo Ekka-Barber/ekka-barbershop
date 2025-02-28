@@ -9,11 +9,15 @@ interface SummaryStepProps {
   selectedServices: SelectedService[];
   selectedDate?: Date;
   selectedTime?: string;
-  selectedBarber?: string;
+  selectedBarber?: any;
   customerDetails: CustomerDetails;
   totalPrice: number;
+  totalDuration: number;
   branch: any;
   employees: any[];
+  handleSubmitBooking?: () => void;
+  submitting?: boolean;
+  buttonText?: string;
 }
 
 const SummaryStep: React.FC<SummaryStepProps> = ({
@@ -23,33 +27,21 @@ const SummaryStep: React.FC<SummaryStepProps> = ({
   selectedBarber,
   customerDetails,
   totalPrice,
+  totalDuration,
   branch,
-  employees
+  employees,
+  handleSubmitBooking,
+  submitting,
+  buttonText
 }) => {
   const { language } = useLanguage();
-  
-  // Calculate total duration
-  const totalDuration = selectedServices.reduce((total, service) => total + service.duration, 0);
-  
-  // Find selected barber details
-  const selectedBarberDetails = employees.find(emp => emp.id === selectedBarber);
-
-  // Create the booking details object
-  const bookingDetails = {
-    selectedServices,
-    selectedDate,
-    selectedTime,
-    selectedBarber: selectedBarberDetails,
-    totalPrice,
-    totalDuration
-  };
   
   return (
     <BookingSummary
       selectedServices={selectedServices}
       selectedDate={selectedDate}
       selectedTime={selectedTime}
-      selectedBarber={selectedBarberDetails}
+      selectedBarber={selectedBarber}
       customerDetails={customerDetails}
       totalPrice={totalPrice}
       totalDuration={totalDuration}
