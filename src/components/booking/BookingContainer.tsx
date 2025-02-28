@@ -167,6 +167,7 @@ export const BookingContainer = () => {
           // Barber step props
           selectedBarber={selectedBarber}
           onBarberSelect={setSelectedBarber}
+          setSelectedBarber={setSelectedBarber}
           employees={employees}
           employeesLoading={employeesLoading}
           selectedTime={selectedTime}
@@ -175,10 +176,12 @@ export const BookingContainer = () => {
           customerDetails={customerDetails}
           onCustomerDetailsChange={handleCustomerDetailsChange}
           termsAccepted={termsAccepted}
+          setTermsAccepted={setTermsAccepted}
           onTermsAcceptanceChange={setTermsAccepted}
           // Shared props
           branch={branch}
           totalPrice={totalPrice()}
+          totalDuration={selectedServices.reduce((sum, service) => sum + service.duration, 0)}
         />
       </div>
       

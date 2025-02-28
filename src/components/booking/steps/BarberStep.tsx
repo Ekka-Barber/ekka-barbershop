@@ -1,7 +1,8 @@
 
+import { useTimeSlots } from "@/hooks/useTimeSlots";
+import { useEffect, useState } from "react";
 import { BarberSelection } from "../BarberSelection";
 import { Skeleton } from "@/components/ui/skeleton";
-import { BarberSelectionSkeleton } from "../BarberSelectionSkeleton";
 import { SelectedService } from "@/types/service";
 
 interface BarberStepProps {
@@ -9,7 +10,7 @@ interface BarberStepProps {
   onBarberSelect: (barber: string) => void;
   employees: any[];
   employeesLoading: boolean;
-  selectedDate: Date | undefined;
+  selectedDate?: Date;
   selectedTime: string | undefined;
   setSelectedTime: (time: string) => void;
   selectedServices: SelectedService[];
@@ -25,22 +26,45 @@ const BarberStep: React.FC<BarberStepProps> = ({
   setSelectedTime,
   selectedServices
 }) => {
-  if (employeesLoading) {
-    return <BarberSelectionSkeleton />;
-  }
+  // Calculate total duration for all selected services
+  const serviceDuration = selectedServices.reduce(
+    (total, service) => total + service.duration,
+    0
+  );
+
+  // Get time slots for the selected date and barber
+  const { timeSlots, isLoading: timeSlotsLoading } = useTimeSlots(
+    selectedDate,
+    selectedBarber,
+    serviceDuration
+  );
+
+  // Reset selected time if barber changes
+  useEffect(() => {
+    setSelectedTime(undefined);
+  }, [selectedBarber, setSelectedTime]);
 
   return (
     <div className="space-y-6">
-      <BarberSelection
-        selectedBarber={selectedBarber}
-        onBarberSelect={onBarberSelect}
-        employees={employees}
-        isLoading={employeesLoading}
-        selectedDate={selectedDate}
-        selectedTime={selectedTime}
-        onTimeSelect={setSelectedTime}
-        selectedServices={selectedServices}
-      />
+      {employeesLoading ? (
+        <div className="space-y-6">
+          <Skeleton className="h-12 w-full" />
+          <Skeleton className="h-24 w-full" />
+          <Skeleton className="h-24 w-full" />
+        </div>
+      ) : (
+        <BarberSelection
+          employees={employees}
+          selectedBarber={selectedBarber}
+          onBarberSelect={onBarberSelect}
+          selectedDate={selectedDate}
+          timeSlots={timeSlots}
+          selectedTime={selectedTime}
+          setSelectedTime={setSelectedTime}
+          isLoading={timeSlotsLoading}
+          selectedServices={selectedServices}
+        />
+      )}
     </div>
   );
 };
