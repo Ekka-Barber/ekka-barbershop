@@ -34,6 +34,8 @@ interface StepRendererProps {
   // Add the missing categories props
   categories?: Category[];
   categoriesLoading?: boolean;
+  // Add the onServiceToggle prop to match BookingContainer
+  onServiceToggle?: (service: any, skipDiscountCalculation?: boolean) => void;
 }
 
 const StepRenderer: React.FC<StepRendererProps> = ({
@@ -57,14 +59,15 @@ const StepRenderer: React.FC<StepRendererProps> = ({
   totalPrice,
   totalDuration,
   submitting,
-  buttonText
+  buttonText,
+  onServiceToggle
 }) => {
   switch (currentStep) {
     case "services":
       return (
         <ServiceStep
           selectedServices={selectedServices}
-          onServiceToggle={toggleService}
+          onServiceToggle={onServiceToggle || toggleService} // Use onServiceToggle if provided, otherwise fallback to toggleService
         />
       );
     case "datetime":
