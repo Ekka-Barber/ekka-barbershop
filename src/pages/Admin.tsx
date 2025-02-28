@@ -27,7 +27,7 @@ const Admin = () => {
   } = useOptimizedCategories();
 
   return (
-    <div dir={language === 'ar' ? 'rtl' : 'ltr'} className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background">
       <header className="border-b p-4 bg-white">
         <div className="container mx-auto flex justify-between items-center">
           <h1 className="text-xl font-bold">Admin Dashboard</h1>
@@ -37,7 +37,7 @@ const Admin = () => {
               variant="outline"
               onClick={() => window.location.href = '/customer'}
             >
-              {language === 'ar' ? 'العودة للموقع' : 'Back to Site'}
+              Back to Site
             </Button>
           </div>
         </div>
@@ -47,19 +47,19 @@ const Admin = () => {
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
           <TabsList className="w-full sm:w-auto grid grid-cols-2 sm:inline-flex lg:grid-cols-5">
             <TabsTrigger value="services">
-              {language === 'ar' ? 'الخدمات' : 'Services'}
+              Services
             </TabsTrigger>
             <TabsTrigger value="files">
-              {language === 'ar' ? 'الملفات' : 'Files'}
+              Files
             </TabsTrigger>
             <TabsTrigger value="qrcodes">
-              {language === 'ar' ? 'رموز QR' : 'QR Codes'}
+              QR Codes
             </TabsTrigger>
             <TabsTrigger value="analytics">
-              {language === 'ar' ? 'التحليلات' : 'Analytics'}
+              Analytics
             </TabsTrigger>
             <TabsTrigger value="booking-settings">
-              {language === 'ar' ? 'إعدادات الحجز' : 'Booking Settings'}
+              Booking Settings
             </TabsTrigger>
           </TabsList>
 
@@ -79,7 +79,7 @@ const Admin = () => {
 
           <TabsContent value="files" className="space-y-4">
             <h2 className="text-2xl font-bold">
-              {language === 'ar' ? 'إدارة الملفات' : 'File Management'}
+              File Management
             </h2>
             <Separator />
             <ErrorBoundary>
@@ -89,7 +89,7 @@ const Admin = () => {
 
           <TabsContent value="qrcodes" className="space-y-4">
             <h2 className="text-2xl font-bold">
-              {language === 'ar' ? 'إدارة رموز QR' : 'QR Code Management'}
+              QR Code Management
             </h2>
             <Separator />
             <ErrorBoundary>
@@ -99,7 +99,7 @@ const Admin = () => {
 
           <TabsContent value="analytics" className="space-y-4">
             <h2 className="text-2xl font-bold">
-              {language === 'ar' ? 'تحليلات الإعلانات' : 'Ads Analytics'}
+              Ads Analytics
             </h2>
             <Separator />
             <ErrorBoundary>
