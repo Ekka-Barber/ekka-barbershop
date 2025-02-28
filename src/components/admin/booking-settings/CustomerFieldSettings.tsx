@@ -54,7 +54,7 @@ export const CustomerFieldSettings = ({ isLoading }: CustomerFieldSettingsProps)
         }
         
         if (data && data.length > 0) {
-          setFields(data as CustomerField[]);
+          setFields(data as unknown as CustomerField[]);
         } else {
           // Use default fields if none exist
           setFields(defaultFields);

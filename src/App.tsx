@@ -14,7 +14,6 @@ import Menu from './pages/Menu';
 import Bookings from './pages/Bookings';
 import Admin from './pages/Admin';
 import Offers from './pages/Offers';
-import BookingSettings from './pages/BookingSettings';
 import { LanguageProvider } from './contexts/LanguageContext';
 
 const queryClient = new QueryClient();
@@ -30,7 +29,6 @@ function App() {
             <Route path="/menu" element={<Menu />} />
             <Route path="/bookings" element={<Bookings />} />
             <Route path="/admin" element={<Admin />} />
-            <Route path="/booking-settings" element={<BookingSettings />} />
             <Route path="/offers" element={<Offers />} />
           </Routes>
           <Toaster position="top-center" richColors closeButton />

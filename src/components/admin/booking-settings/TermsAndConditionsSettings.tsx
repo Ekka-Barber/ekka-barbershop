@@ -49,7 +49,7 @@ export const TermsAndConditionsSettings = ({ isLoading }: TermsAndConditionsSett
         }
         
         if (data) {
-          setTerms(data as TermsAndConditions);
+          setTerms(data as unknown as TermsAndConditions);
         }
         
         // Fetch the setting for requiring acceptance
@@ -64,7 +64,7 @@ export const TermsAndConditionsSettings = ({ isLoading }: TermsAndConditionsSett
           return;
         }
         
-        if (settingsData && settingsData.require_terms_acceptance !== undefined) {
+        if (settingsData && typeof settingsData.require_terms_acceptance !== 'undefined') {
           setRequireAcceptance(!!settingsData.require_terms_acceptance);
         }
       } catch (error) {

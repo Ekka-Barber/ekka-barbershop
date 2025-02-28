@@ -11,10 +11,9 @@ import QRCodeManager from '@/components/admin/QRCodeManager';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { ErrorBoundary } from '@/components/common/ErrorBoundary';
 import { AdsMetrics } from '@/components/admin/ads-metrics/AdsMetrics';
+import BookingSettings from '@/components/admin/booking-settings/BookingSettings';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useOptimizedCategories } from '@/hooks/useOptimizedCategories';
-import { Link } from 'react-router-dom';
-import { Settings } from 'lucide-react';
 
 const Admin = () => {
   const { language } = useLanguage();
@@ -46,12 +45,6 @@ const Admin = () => {
         <div className="container mx-auto flex justify-between items-center">
           <h1 className="text-xl font-bold">Admin Dashboard</h1>
           <div className="flex items-center gap-4">
-            <Link to="/booking-settings">
-              <Button variant="outline" className="flex items-center gap-2">
-                <Settings className="h-4 w-4" />
-                {language === 'ar' ? 'إعدادات الحجز' : 'Booking Settings'}
-              </Button>
-            </Link>
             <LanguageSwitcher />
             <Button
               variant="outline"
@@ -65,7 +58,7 @@ const Admin = () => {
 
       <div className="container mx-auto px-4 py-6">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-          <TabsList className="w-full sm:w-auto grid grid-cols-3 sm:inline-flex lg:grid-cols-6">
+          <TabsList className="w-full sm:w-auto grid grid-cols-2 sm:inline-flex lg:grid-cols-6">
             <TabsTrigger value="services">
               {language === 'ar' ? 'الخدمات' : 'Services'}
             </TabsTrigger>
@@ -80,6 +73,9 @@ const Admin = () => {
             </TabsTrigger>
             <TabsTrigger value="analytics">
               {language === 'ar' ? 'التحليلات' : 'Analytics'}
+            </TabsTrigger>
+            <TabsTrigger value="booking-settings">
+              {language === 'ar' ? 'إعدادات الحجز' : 'Booking Settings'}
             </TabsTrigger>
           </TabsList>
 
@@ -140,6 +136,12 @@ const Admin = () => {
             <Separator />
             <ErrorBoundary>
               <AdsMetrics />
+            </ErrorBoundary>
+          </TabsContent>
+          
+          <TabsContent value="booking-settings" className="space-y-4">
+            <ErrorBoundary>
+              <BookingSettings />
             </ErrorBoundary>
           </TabsContent>
         </Tabs>
