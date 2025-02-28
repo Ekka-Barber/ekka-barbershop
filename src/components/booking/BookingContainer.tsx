@@ -12,6 +12,7 @@ import { useBooking } from "@/hooks/useBooking";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { BookingConfirmDialog } from "./components/BookingConfirmDialog";
+import { trackPageView } from "@/utils/clickTracking";
 
 export const BookingContainer = () => {
   const { language, t } = useLanguage();
@@ -89,8 +90,8 @@ export const BookingContainer = () => {
 
   // Track page view
   useEffect(() => {
-    // Using console.log instead of trackPageView
-    console.log('Booking page viewed', {
+    // Using trackPageView utility
+    trackPageView({
       pageName: 'Booking',
       pageUrl: window.location.href
     });

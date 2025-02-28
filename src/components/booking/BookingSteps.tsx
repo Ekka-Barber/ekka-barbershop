@@ -1,16 +1,10 @@
 
-import { ServiceSelection } from "./ServiceSelection";
-import { DateTimeSelection } from "./DateTimeSelection";
-import { BarberSelection } from "./BarberSelection";
-import { BookingSummary } from "./BookingSummary";
-import { CustomerForm } from "./CustomerForm";
-import { UpsellModal } from "./UpsellModal";
 import { BookingStep } from "./BookingProgress";
-import { useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { useLanguage } from "@/contexts/LanguageContext";
-import { useBookingUpsells } from "@/hooks/useBookingUpsells";
+import { ServiceStep } from "./steps/ServiceStep";
+import { DateTimeStep } from "./steps/DateTimeStep";
+import { BarberStep } from "./steps/BarberStep";
+import { CustomerStep } from "./steps/CustomerStep";
+import { SummaryStep } from "./steps/SummaryStep";
 
 interface BookingStepsProps {
   currentStep: BookingStep;
@@ -60,101 +54,56 @@ export const BookingSteps = ({
   branch,
   branchId
 }: BookingStepsProps) => {
-  const { language } = useLanguage();
-  const { data: upsellData, isLoading: upsellLoading } = useBookingUpsells(selectedServices, language as 'en' | 'ar');
-  const [isUpsellShown, setIsUpsellShown] = useState(false);
-  const [currentUpsells, setCurrentUpsells] = useState<any[]>([]);
-
-  // Handle showing/hiding upsell modal
-  const showUpsell = (service: any) => {
-    if (upsellData && upsellData.length > 0) {
-      setCurrentUpsells(upsellData);
-      setIsUpsellShown(true);
-    }
-  };
-
-  const hideUpsell = () => {
-    setIsUpsellShown(false);
-    setCurrentUpsells([]);
-  };
-
-  const addUpsellServices = (selectedUpsells: any[]) => {
-    // Add the selected upsell services
-    selectedUpsells.forEach(upsell => {
-      if (!selectedServices.some(s => s.id === upsell.id)) {
-        onServiceToggle({
-          ...upsell,
-          isUpsellItem: true,
-          originalPrice: upsell.price,
-          price: upsell.discountedPrice,
-          discountPercentage: upsell.discountPercentage
-        });
-      }
-    });
-  };
-
-  const onMainServiceSelect = (service: any) => {
-    onServiceToggle(service);
-    showUpsell(service);
-  };
-
+  // Render different components based on the current step
   if (currentStep === "services") {
     return (
-      <>
-        <ServiceSelection
-          categories={categories}
-          isLoading={categoriesLoading}
-          selectedServices={selectedServices}
-          onServiceToggle={onMainServiceSelect}
-          onStepChange={onStepChange}
-          branchId={branchId || undefined}
-        />
-        <UpsellModal
-          isOpen={isUpsellShown}
-          availableUpsells={currentUpsells}
-          selectedServices={selectedServices}
-          onClose={hideUpsell}
-          onConfirm={addUpsellServices}
-        />
-      </>
+      <ServiceStep
+        categories={categories}
+        categoriesLoading={categoriesLoading}
+        selectedServices={selectedServices}
+        onServiceToggle={onServiceToggle}
+        onStepChange={onStepChange}
+        branchId={branchId}
+      />
     );
   }
 
   if (currentStep === "datetime") {
     return (
-      <DateTimeSelection
+      <DateTimeStep
         selectedDate={selectedDate}
-        onDateSelect={setSelectedDate}
+        setSelectedDate={setSelectedDate}
       />
     );
   }
 
   if (currentStep === "barber") {
     return (
-      <BarberSelection
+      <BarberStep
         selectedBarber={selectedBarber}
-        onBarberSelect={setSelectedBarber}
+        setSelectedBarber={setSelectedBarber}
         employees={employees}
-        isLoading={employeesLoading}
+        employeesLoading={employeesLoading}
         selectedDate={selectedDate}
         selectedTime={selectedTime}
-        onTimeSelect={setSelectedTime}
+        setSelectedTime={setSelectedTime}
       />
     );
   }
 
   if (currentStep === "customer") {
     return (
-      <CustomerForm
+      <CustomerStep
         customerDetails={customerDetails}
-        onCustomerDetailsChange={handleCustomerDetailsChange}
+        handleCustomerDetailsChange={handleCustomerDetailsChange}
         branch={branch}
       />
     );
   }
 
+  // Default to summary step
   return (
-    <BookingSummary
+    <SummaryStep
       selectedServices={selectedServices}
       selectedDate={selectedDate}
       selectedTime={selectedTime}
