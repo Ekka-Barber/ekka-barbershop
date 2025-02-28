@@ -7,7 +7,6 @@ import { ServiceManagementHeader } from '@/components/admin/service-management/S
 import ServiceCategoryList from '@/components/admin/ServiceCategoryList';
 import { FileManagement } from '@/components/admin/FileManagement';
 import QRCodeManager from '@/components/admin/QRCodeManager';
-import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { ErrorBoundary } from '@/components/common/ErrorBoundary';
 import { AdsMetrics } from '@/components/admin/ads-metrics/AdsMetrics';
 import BookingSettings from '@/components/admin/booking-settings/BookingSettings';
@@ -31,7 +30,6 @@ const Admin = () => {
         <div className="container mx-auto flex justify-between items-center">
           <h1 className="text-xl font-bold">Admin Dashboard</h1>
           <div className="flex items-center gap-4">
-            <LanguageSwitcher />
             <Button
               variant="outline"
               onClick={() => window.location.href = '/customer'}
