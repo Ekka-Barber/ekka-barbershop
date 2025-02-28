@@ -20,7 +20,6 @@ const ServiceCategoryList = () => {
     totalServices,
     setSearchQuery,
     setSortBy,
-    setFilterBy,
     setupRealtimeSubscription
   } = useOptimizedCategories();
 
@@ -126,7 +125,6 @@ const ServiceCategoryList = () => {
 
       <CategoryActions categories={categories} />
       
-      {/* Add the ServiceUpsellsTable component here */}
       <ServiceUpsellsTable />
     </div>
   );

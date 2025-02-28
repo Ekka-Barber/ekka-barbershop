@@ -22,8 +22,7 @@ const Admin = () => {
     categories,
     totalServices,
     setSearchQuery,
-    setSortBy,
-    setFilterBy
+    setSortBy
   } = useOptimizedCategories();
 
   return (
@@ -69,7 +68,6 @@ const Admin = () => {
               totalServices={totalServices}
               onSearch={setSearchQuery}
               onSort={setSortBy}
-              onFilter={setFilterBy}
             />
             <Separator />
             <ErrorBoundary>

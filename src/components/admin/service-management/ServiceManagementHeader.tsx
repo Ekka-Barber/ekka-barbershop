@@ -13,14 +13,12 @@ interface ServiceManagementHeaderProps {
   totalServices: number;
   onSearch: (query: string) => void;
   onSort: (value: string) => void;
-  onFilter: (value: string) => void;
 }
 
 export const ServiceManagementHeader = ({
   totalCategories,
   totalServices,
   onSort,
-  onFilter,
 }: ServiceManagementHeaderProps) => {
   const { language } = useLanguage();
   
@@ -45,17 +43,6 @@ export const ServiceManagementHeader = ({
               <SelectItem value="newest">{language === 'ar' ? 'الأحدث' : 'Newest'}</SelectItem>
               <SelectItem value="oldest">{language === 'ar' ? 'الأقدم' : 'Oldest'}</SelectItem>
               <SelectItem value="services">{language === 'ar' ? 'الأكثر خدمات' : 'Most Services'}</SelectItem>
-            </SelectContent>
-          </Select>
-
-          <Select onValueChange={onFilter} defaultValue="all">
-            <SelectTrigger className="w-[140px]">
-              <SelectValue placeholder={language === 'ar' ? 'كل الفئات' : 'All Categories'} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">{language === 'ar' ? 'كل الفئات' : 'All Categories'}</SelectItem>
-              <SelectItem value="active">{language === 'ar' ? 'النشطة' : 'Active'}</SelectItem>
-              <SelectItem value="empty">{language === 'ar' ? 'الفئات الفارغة' : 'Empty Categories'}</SelectItem>
             </SelectContent>
           </Select>
         </div>
