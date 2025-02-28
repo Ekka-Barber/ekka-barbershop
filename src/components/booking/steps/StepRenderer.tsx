@@ -7,6 +7,7 @@ import CustomerStep from "./CustomerStep";
 import SummaryStep from "./SummaryStep";
 import { CustomerDetails } from "@/types/booking";
 import { SelectedService } from "@/types/service";
+import { Category } from "@/types/service";
 
 interface StepRendererProps {
   currentStep: BookingStep;
@@ -30,6 +31,9 @@ interface StepRendererProps {
   totalDuration: number;
   submitting: boolean;
   buttonText?: string;
+  // Add the missing categories props
+  categories?: Category[];
+  categoriesLoading?: boolean;
 }
 
 const StepRenderer: React.FC<StepRendererProps> = ({
@@ -88,7 +92,10 @@ const StepRenderer: React.FC<StepRendererProps> = ({
       return (
         <CustomerStep
           customerDetails={customerDetails}
-          onCustomerDetailsChange={setCustomerDetails}
+          onCustomerDetailsChange={(field, value) => {
+            const updatedDetails = { ...customerDetails, [field]: value };
+            setCustomerDetails(updatedDetails);
+          }}
           branch={branch}
           onTermsAcceptanceChange={setTermsAccepted}
           termsAccepted={termsAccepted}

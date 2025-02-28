@@ -9,7 +9,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 
 interface ServiceStepProps {
   selectedServices: SelectedService[];
-  onServiceToggle: (service: Service) => void;
+  onServiceToggle: (service: any) => void;
 }
 
 const ServiceStep: React.FC<ServiceStepProps> = ({
