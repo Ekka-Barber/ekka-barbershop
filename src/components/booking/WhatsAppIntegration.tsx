@@ -3,11 +3,22 @@ import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { BookingFormData } from "./types/booking";
 import { BookingConfirmDialog } from "./components/BookingConfirmDialog";
 import { generateWhatsAppMessage, saveBookingData } from "./services/bookingService";
 import { formatWhatsAppNumber, isValidWhatsAppNumber } from "@/utils/phoneUtils";
 import { openExternalLink } from "@/utils/deepLinking";
+import { CustomerDetails } from "@/hooks/booking/useBookingState";
+import { SelectedService } from "@/types/service";
+
+export interface BookingFormData {
+  branch?: any;
+  selectedServices: SelectedService[];
+  selectedDate?: Date;
+  selectedTime?: string;
+  customerDetails: CustomerDetails;
+  totalPrice: number;
+  language: string;
+}
 
 export const WhatsAppIntegration = (props: BookingFormData) => {
   const { toast } = useToast();
@@ -112,7 +123,6 @@ export const WhatsAppIntegration = (props: BookingFormData) => {
         onOpenChange={setIsConfirmDialogOpen}
         onConfirm={handleBookingConfirmation}
         isLoading={isLoading}
-        language={props.language}
       />
     </div>
   );

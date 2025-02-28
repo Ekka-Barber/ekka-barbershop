@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { BookingHeader } from "./BookingHeader";
 import { BookingNavigation } from "./BookingNavigation";
-import { BookingProgress } from "./BookingProgress";
+import { BookingProgress, BookingStep } from "./BookingProgress";
 import { BookingConfirmDialog } from "./components/BookingConfirmDialog";
 import { WhatsAppIntegration } from "./WhatsAppIntegration";
 import { useToast } from "@/hooks/use-toast";
@@ -14,7 +14,6 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import StepRenderer from "./steps/StepRenderer";
 import { trackPageView } from "@/utils/clickTracking";
-import { BookingStep } from "./BookingProgress";
 
 export const BookingContainer = () => {
   const { t, language } = useLanguage();
@@ -27,23 +26,6 @@ export const BookingContainer = () => {
   const [bookingStatus, setBookingStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>("idle");
   const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false);
   const [currentStep, setCurrentStep] = useState<BookingStep>("services");
-
-  const {
-    selectedServices,
-    selectedDate,
-    selectedTime,
-    selectedBarber,
-    canProceedToNextStep,
-    customerDetails,
-    totalPrice,
-    handleServiceToggle,
-    setSelectedDate,
-    setSelectedTime,
-    setSelectedBarber,
-    handleCustomerDetailsChange,
-    createBooking,
-    clearBookingData,
-  } = useBooking();
 
   // Fetch branch information
   const { data: branch, isLoading: branchLoading } = useQuery({
@@ -63,53 +45,26 @@ export const BookingContainer = () => {
     enabled: !!branchId,
   });
 
-  // Fetch service categories with their services
-  const { data: categories, isLoading: categoriesLoading } = useQuery({
-    queryKey: ["service-categories"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("service_categories")
-        .select(`
-          id,
-          name_en,
-          name_ar,
-          display_order,
-          services (
-            id,
-            name_en,
-            name_ar,
-            description_en,
-            description_ar,
-            price,
-            duration,
-            category_id,
-            display_order,
-            discount_type,
-            discount_value
-          )
-        `)
-        .order("display_order");
-        
-      if (error) throw new Error(error.message);
-      return data;
-    },
-  });
-
-  // Fetch employees/barbers
-  const { data: employees, isLoading: employeesLoading } = useQuery({
-    queryKey: ["employees", branchId],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("employees")
-        .select("*")
-        .eq("branch_id", branchId)
-        .eq("role", "barber");
-        
-      if (error) throw new Error(error.message);
-      return data;
-    },
-    enabled: !!branchId,
-  });
+  const {
+    selectedServices,
+    selectedDate,
+    selectedTime,
+    selectedBarber,
+    customerDetails,
+    handleCustomerDetailsChange,
+    categories,
+    categoriesLoading,
+    employees,
+    employeesLoading,
+    handleServiceToggle,
+    totalPrice,
+    canProceedToNextStep,
+    createBooking,
+    clearBookingData,
+    setSelectedDate,
+    setSelectedTime,
+    setSelectedBarber
+  } = useBooking(branch);
 
   // Load cached services on mount
   useEffect(() => {
@@ -207,12 +162,13 @@ export const BookingContainer = () => {
           // DateTime step props
           selectedDate={selectedDate}
           setSelectedDate={setSelectedDate}
+          selectedTime={selectedTime}
           // Barber step props
           selectedBarber={selectedBarber}
           onBarberSelect={setSelectedBarber}
           employees={employees || []}
           employeesLoading={employeesLoading}
-          selectedTime={selectedTime}
+          setSelectedTime={setSelectedTime}
           // Customer step props
           customerDetails={customerDetails}
           onCustomerDetailsChange={handleCustomerDetailsChange}
@@ -224,7 +180,7 @@ export const BookingContainer = () => {
       
       <BookingNavigation 
         currentStep={currentStep} 
-        onStepChange={setCurrentStep}
+        setCurrentStep={setCurrentStep}
         onConfirm={() => setIsConfirmDialogOpen(true)} 
         canProceed={canProceedToNextStep(currentStep)}
       />
@@ -236,7 +192,15 @@ export const BookingContainer = () => {
         isLoading={bookingStatus === "submitting"}
       />
       
-      <WhatsAppIntegration branch={branch} />
+      <WhatsAppIntegration 
+        branch={branch} 
+        selectedServices={selectedServices}
+        selectedDate={selectedDate}
+        selectedTime={selectedTime}
+        customerDetails={customerDetails}
+        totalPrice={totalPrice}
+        language={language}
+      />
     </div>
   );
 };

@@ -1,23 +1,27 @@
 
 import { CustomerForm } from "../CustomerForm";
-import { CustomerDetails } from "@/types/booking";
+import { CustomerDetails } from "@/hooks/booking/useBookingState";
 
 interface CustomerStepProps {
   customerDetails: CustomerDetails;
-  handleCustomerDetailsChange: (field: string, value: string) => void;
+  onCustomerDetailsChange: (field: string, value: string) => void;
   branch: any;
 }
 
-export const CustomerStep = ({
+const CustomerStep: React.FC<CustomerStepProps> = ({
   customerDetails,
-  handleCustomerDetailsChange,
+  onCustomerDetailsChange,
   branch
-}: CustomerStepProps) => {
+}) => {
   return (
-    <CustomerForm
-      customerDetails={customerDetails}
-      onCustomerDetailsChange={handleCustomerDetailsChange}
-      branch={branch}
-    />
+    <div className="space-y-6">
+      <CustomerForm
+        customerDetails={customerDetails}
+        onCustomerDetailsChange={onCustomerDetailsChange}
+        branch={branch}
+      />
+    </div>
   );
 };
+
+export default CustomerStep;

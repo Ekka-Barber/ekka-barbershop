@@ -1,34 +1,44 @@
 
 import { BarberSelection } from "../BarberSelection";
+import { Skeleton } from "@/components/ui/skeleton";
+import { BarberSelectionSkeleton } from "../BarberSelectionSkeleton";
 
 interface BarberStepProps {
-  selectedBarber: string;
+  selectedBarber: string | undefined;
   onBarberSelect: (barber: string) => void;
   employees: any[];
-  isLoading: boolean;
+  employeesLoading: boolean;
   selectedDate: Date | undefined;
-  selectedTime: string;
-  services: any[];
+  selectedTime: string | undefined;
+  setSelectedTime: (time: string) => void;
 }
 
-export const BarberStep = ({
+const BarberStep: React.FC<BarberStepProps> = ({
   selectedBarber,
   onBarberSelect,
   employees,
-  isLoading,
+  employeesLoading,
   selectedDate,
   selectedTime,
-  services
-}: BarberStepProps) => {
+  setSelectedTime
+}) => {
+  if (employeesLoading) {
+    return <BarberSelectionSkeleton />;
+  }
+
   return (
-    <BarberSelection
-      selectedBarber={selectedBarber}
-      onBarberSelect={onBarberSelect}
-      employees={employees}
-      isLoading={isLoading}
-      selectedDate={selectedDate}
-      selectedTime={selectedTime}
-      services={services}
-    />
+    <div className="space-y-6">
+      <BarberSelection
+        selectedBarber={selectedBarber}
+        onBarberSelect={onBarberSelect}
+        employees={employees}
+        isLoading={employeesLoading}
+        selectedDate={selectedDate}
+        selectedTime={selectedTime}
+        onTimeSelect={setSelectedTime}
+      />
+    </div>
   );
 };
+
+export default BarberStep;

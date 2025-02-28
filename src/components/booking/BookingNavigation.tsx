@@ -6,14 +6,14 @@ import { BookingStep } from "./BookingProgress";
 
 export interface BookingNavigationProps {
   currentStep: BookingStep;
-  onStepChange: (step: BookingStep) => void;
+  setCurrentStep: (step: BookingStep) => void;
   onConfirm: () => void;
   canProceed: boolean | string;
 }
 
 export const BookingNavigation = ({
   currentStep,
-  onStepChange,
+  setCurrentStep,
   onConfirm,
   canProceed,
 }: BookingNavigationProps) => {
@@ -40,14 +40,14 @@ export const BookingNavigation = ({
       onConfirm();
     } else {
       const nextStep = steps[currentStepIndex + 1];
-      onStepChange(nextStep);
+      setCurrentStep(nextStep);
     }
   };
 
   const goToPreviousStep = () => {
     if (isFirstStep) return;
     const previousStep = steps[currentStepIndex - 1];
-    onStepChange(previousStep);
+    setCurrentStep(previousStep);
   };
 
   const getErrorMessage = () => {
