@@ -34,21 +34,28 @@ export const useBookingActions = (
     const [hours, minutes] = selectedTime.split(':').map(Number);
     bookingDateTime.setHours(hours, minutes, 0, 0);
 
+    // Calculate total duration in minutes for all services
+    const totalDurationMinutes = calculateTotalDuration();
+
+    // Format date for database (YYYY-MM-DD)
+    const formattedDate = selectedDate.toISOString().split('T')[0];
+
     const bookingData = {
       branch_id: branchId,
-      employee_id: employeeId,
+      barber_id: employeeId,
       customer_name: customerDetails.name,
       customer_email: customerDetails.email,
       customer_phone: customerDetails.phone,
       customer_notes: customerDetails.notes,
-      booking_date: bookingDateTime.toISOString(),
+      appointment_date: formattedDate,
+      appointment_time: selectedTime,
       services: selectedServices.map(service => ({
         service_id: service.id,
         price: service.price,
         name: language === 'ar' ? service.name_ar : service.name_en
       })),
       total_price: totalPrice(),
-      total_duration: calculateTotalDuration(),
+      duration_minutes: totalDurationMinutes,
       status: 'pending',
       created_at: new Date().toISOString()
     };

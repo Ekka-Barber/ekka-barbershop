@@ -5,6 +5,7 @@ import { TimeSlotPicker } from "./barber/TimeSlotPicker";
 import { useTimeSlots } from "@/hooks/useTimeSlots";
 import { TimeSlot } from "@/types/booking";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useQuery } from "@tanstack/react-query";
 
 interface BarberSelectionProps {
   selectedBarber: string | undefined;
@@ -27,11 +28,19 @@ export const BarberSelection = ({
 }: BarberSelectionProps) => {
   const { t, language } = useLanguage();
   const [availableTimeSlots, setAvailableTimeSlots] = useState<TimeSlot[]>([]);
+  const [showAllSlots, setShowAllSlots] = useState(false);
+  const timeSlotUtils = useTimeSlots();
+
+  // Get the selected employee object
+  const selectedEmployeeObj = employees?.find(emp => emp.id === selectedBarber);
 
   // Get available time slots for the selected employee on the selected date
-  const { timeSlots, timeSlotsLoading } = useTimeSlots({
-    employeeId: selectedBarber,
-    date: selectedDate
+  const { data: timeSlots, isLoading: timeSlotsLoading } = useQuery({
+    queryKey: ['timeSlots', selectedBarber, selectedDate?.toISOString()],
+    queryFn: () => selectedEmployeeObj && selectedDate ? 
+      timeSlotUtils.getAvailableTimeSlots(selectedEmployeeObj, selectedDate) : 
+      Promise.resolve([]),
+    enabled: !!selectedBarber && !!selectedDate && !!selectedEmployeeObj,
   });
 
   useEffect(() => {
@@ -44,6 +53,10 @@ export const BarberSelection = ({
     // Reset selected time when changing barber
     onTimeSelect('');
   }, [selectedBarber, onTimeSelect]);
+
+  const handleToggleShowAll = () => {
+    setShowAllSlots(prev => !prev);
+  };
 
   return (
     <div className="space-y-6">
@@ -61,7 +74,12 @@ export const BarberSelection = ({
             {employees.map(employee => (
               <BarberCard
                 key={employee.id}
-                barber={employee}
+                id={employee.id}
+                name={employee.name}
+                name_ar={employee.name_ar}
+                photo_url={employee.photo_url}
+                nationality={employee.nationality}
+                isAvailable={timeSlotUtils.isEmployeeAvailable(employee, selectedDate)}
                 isSelected={selectedBarber === employee.id}
                 onSelect={() => onBarberSelect(employee.id)}
               />
@@ -92,6 +110,8 @@ export const BarberSelection = ({
               timeSlots={availableTimeSlots}
               selectedTime={selectedTime}
               onTimeSelect={onTimeSelect}
+              showAllSlots={showAllSlots}
+              onToggleShowAll={handleToggleShowAll}
             />
           ) : (
             <div className="text-center py-6 text-gray-500 bg-gray-50 rounded-lg">

@@ -8,7 +8,7 @@ import { formatTime } from "@/utils/timeFormatting";
 import { TimeSlot } from "@/utils/timeSlotUtils";
 import { useBookingSettings } from "@/hooks/useBookingSettings";
 
-interface TimeSlotPickerProps {
+export interface TimeSlotPickerProps {
   timeSlots: TimeSlot[];
   selectedTime: string | undefined;
   onTimeSelect: (time: string) => void;

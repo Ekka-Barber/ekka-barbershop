@@ -1,5 +1,5 @@
 
-import { useBookingState, CustomerDetails } from './booking/useBookingState';
+import { useBookingState } from './booking/useBookingState';
 import { useBookingServices } from './booking/useBookingServices';
 import { useBookingUpsells } from './booking/useBookingUpsells';
 import { useBookingEmployees } from './booking/useBookingEmployees';
@@ -8,7 +8,7 @@ import { useBookingActions } from './booking/useBookingActions';
 import { Service } from '@/types/service';
 import { BookingStep } from '@/components/booking/BookingProgress';
 
-export { CustomerDetails } from './booking/useBookingState';
+export type { CustomerDetails } from './booking/useBookingState';
 
 export const useBooking = (branch?: any) => {
   const {
@@ -64,9 +64,9 @@ export const useBooking = (branch?: any) => {
   );
 
   // Helper function to update customer details state for the actions hook
-  function setCustomerDetailsState(details: CustomerDetails) {
+  function setCustomerDetailsState(details: typeof customerDetails) {
     Object.keys(details).forEach(key => {
-      const field = key as keyof CustomerDetails;
+      const field = key as keyof typeof customerDetails;
       handleCustomerDetailsChange(field, details[field]);
     });
   }

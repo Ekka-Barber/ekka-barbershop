@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 import { AvailabilityBadge } from "./AvailabilityBadge";
 import { useLanguage } from "@/contexts/LanguageContext";
 
-interface BarberCardProps {
+export interface BarberCardProps {
   id: string;
   name: string;
   name_ar: string | null;

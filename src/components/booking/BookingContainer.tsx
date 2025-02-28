@@ -174,7 +174,7 @@ export const BookingContainer = () => {
           onCustomerDetailsChange={handleCustomerDetailsChange}
           // Shared props
           branch={branch}
-          totalPrice={totalPrice}
+          totalPrice={totalPrice()}
         />
       </div>
       
@@ -198,7 +198,7 @@ export const BookingContainer = () => {
         selectedDate={selectedDate}
         selectedTime={selectedTime}
         customerDetails={customerDetails}
-        totalPrice={totalPrice}
+        totalPrice={totalPrice()}
         language={language}
       />
     </div>
