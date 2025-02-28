@@ -33,6 +33,36 @@ export type Database = {
         }
         Relationships: []
       }
+      booking_settings: {
+        Row: {
+          created_at: string | null
+          id: string
+          max_advance_days: number
+          min_advance_time_minutes: number
+          require_terms_acceptance: boolean | null
+          slot_duration_minutes: number
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          max_advance_days?: number
+          min_advance_time_minutes?: number
+          require_terms_acceptance?: boolean | null
+          slot_duration_minutes?: number
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          max_advance_days?: number
+          min_advance_time_minutes?: number
+          require_terms_acceptance?: boolean | null
+          slot_duration_minutes?: number
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       bookings: {
         Row: {
           appointment_date: string
@@ -346,6 +376,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      customer_field_settings: {
+        Row: {
+          created_at: string | null
+          display_order: number | null
+          field_name: string
+          field_type: string
+          id: string
+          is_required: boolean | null
+          is_visible: boolean | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          display_order?: number | null
+          field_name: string
+          field_type: string
+          id?: string
+          is_required?: boolean | null
+          is_visible?: boolean | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          display_order?: number | null
+          field_name?: string
+          field_type?: string
+          id?: string
+          is_required?: boolean | null
+          is_visible?: boolean | null
+          updated_at?: string | null
+        }
+        Relationships: []
       }
       daily_sales: {
         Row: {
@@ -1457,6 +1520,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      terms_and_conditions: {
+        Row: {
+          content_ar: string
+          content_en: string
+          created_at: string | null
+          effective_from: string | null
+          id: string
+          is_active: boolean | null
+          version: number
+        }
+        Insert: {
+          content_ar: string
+          content_en: string
+          created_at?: string | null
+          effective_from?: string | null
+          id?: string
+          is_active?: boolean | null
+          version: number
+        }
+        Update: {
+          content_ar?: string
+          content_en?: string
+          created_at?: string | null
+          effective_from?: string | null
+          id?: string
+          is_active?: boolean | null
+          version?: number
+        }
+        Relationships: []
       }
       transaction_receipts: {
         Row: {

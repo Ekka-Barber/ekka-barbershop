@@ -42,7 +42,7 @@ export const CustomerFieldSettings = ({ isLoading }: CustomerFieldSettingsProps)
       try {
         setDataLoading(true);
         const { data, error } = await supabase
-          .from('customer_field_settings')
+          .from('customer_field_settings' as any)
           .select('*')
           .order('display_order', { ascending: true });
           
@@ -54,7 +54,7 @@ export const CustomerFieldSettings = ({ isLoading }: CustomerFieldSettingsProps)
         }
         
         if (data && data.length > 0) {
-          setFields(data);
+          setFields(data as CustomerField[]);
         } else {
           // Use default fields if none exist
           setFields(defaultFields);
@@ -159,7 +159,7 @@ export const CustomerFieldSettings = ({ isLoading }: CustomerFieldSettingsProps)
     try {
       // Delete all existing fields and insert new ones
       const { error: deleteError } = await supabase
-        .from('customer_field_settings')
+        .from('customer_field_settings' as any)
         .delete()
         .not('id', 'is', null);
         
@@ -169,7 +169,7 @@ export const CustomerFieldSettings = ({ isLoading }: CustomerFieldSettingsProps)
       
       // Insert new fields
       const { error: insertError } = await supabase
-        .from('customer_field_settings')
+        .from('customer_field_settings' as any)
         .insert(fields.map((field, index) => ({
           ...field,
           display_order: index

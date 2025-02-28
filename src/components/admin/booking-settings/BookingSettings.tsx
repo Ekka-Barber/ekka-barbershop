@@ -14,11 +14,19 @@ export interface BookingSettingsProps {
   initialTab?: string;
 }
 
+interface BookingSettingsType {
+  id?: string;
+  min_advance_time_minutes: number;
+  max_advance_days: number;
+  slot_duration_minutes: number;
+  require_terms_acceptance?: boolean;
+}
+
 const BookingSettings = ({ initialTab = 'time-settings' }: BookingSettingsProps) => {
   const { language } = useLanguage();
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState(initialTab);
-  const [bookingSettings, setBookingSettings] = useState({
+  const [bookingSettings, setBookingSettings] = useState<BookingSettingsType>({
     min_advance_time_minutes: 15,
     max_advance_days: 60,
     slot_duration_minutes: 30,
@@ -28,12 +36,13 @@ const BookingSettings = ({ initialTab = 'time-settings' }: BookingSettingsProps)
     const fetchSettings = async () => {
       try {
         setIsLoading(true);
+        // We need to use the any type here because the database type definitions haven't been updated yet
         const { data, error } = await supabase
-          .from('booking_settings')
+          .from('booking_settings' as any)
           .select('*')
           .order('created_at', { ascending: false })
           .limit(1)
-          .single();
+          .maybeSingle();
           
         if (error) {
           console.error('Error fetching booking settings:', error);
@@ -41,7 +50,7 @@ const BookingSettings = ({ initialTab = 'time-settings' }: BookingSettingsProps)
         }
         
         if (data) {
-          setBookingSettings(data);
+          setBookingSettings(data as BookingSettingsType);
         }
       } catch (error) {
         console.error('Unexpected error:', error);
@@ -56,7 +65,7 @@ const BookingSettings = ({ initialTab = 'time-settings' }: BookingSettingsProps)
   const handleSaveTimeSettings = async (timeSettings: any) => {
     try {
       const { error } = await supabase
-        .from('booking_settings')
+        .from('booking_settings' as any)
         .upsert({
           ...bookingSettings,
           ...timeSettings,

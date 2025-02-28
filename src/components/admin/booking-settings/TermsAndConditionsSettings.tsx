@@ -37,11 +37,11 @@ export const TermsAndConditionsSettings = ({ isLoading }: TermsAndConditionsSett
       try {
         setDataLoading(true);
         const { data, error } = await supabase
-          .from('terms_and_conditions')
+          .from('terms_and_conditions' as any)
           .select('*')
           .order('version', { ascending: false })
           .limit(1)
-          .single();
+          .maybeSingle();
           
         if (error && error.code !== 'PGRST116') { // PGRST116 is the error code for no rows returned
           console.error('Error fetching terms and conditions:', error);
@@ -49,23 +49,23 @@ export const TermsAndConditionsSettings = ({ isLoading }: TermsAndConditionsSett
         }
         
         if (data) {
-          setTerms(data);
+          setTerms(data as TermsAndConditions);
         }
         
         // Fetch the setting for requiring acceptance
         const { data: settingsData, error: settingsError } = await supabase
-          .from('booking_settings')
+          .from('booking_settings' as any)
           .select('require_terms_acceptance')
           .limit(1)
-          .single();
+          .maybeSingle();
           
         if (settingsError && settingsError.code !== 'PGRST116') {
           console.error('Error fetching terms acceptance setting:', settingsError);
           return;
         }
         
-        if (settingsData && settingsData.require_terms_acceptance !== null) {
-          setRequireAcceptance(settingsData.require_terms_acceptance);
+        if (settingsData && settingsData.require_terms_acceptance !== undefined) {
+          setRequireAcceptance(!!settingsData.require_terms_acceptance);
         }
       } catch (error) {
         console.error('Unexpected error:', error);
@@ -111,7 +111,7 @@ export const TermsAndConditionsSettings = ({ isLoading }: TermsAndConditionsSett
       
       // Insert new terms version
       const { error: termsError } = await supabase
-        .from('terms_and_conditions')
+        .from('terms_and_conditions' as any)
         .insert({
           content_en: terms.content_en,
           content_ar: terms.content_ar,
@@ -127,7 +127,7 @@ export const TermsAndConditionsSettings = ({ isLoading }: TermsAndConditionsSett
       // If this is a new version, set all other versions to inactive
       if (hasId) {
         const { error: updateError } = await supabase
-          .from('terms_and_conditions')
+          .from('terms_and_conditions' as any)
           .update({ is_active: false })
           .neq('version', newVersion);
           
@@ -138,7 +138,7 @@ export const TermsAndConditionsSettings = ({ isLoading }: TermsAndConditionsSett
       
       // Update the require acceptance setting
       const { error: settingsError } = await supabase
-        .from('booking_settings')
+        .from('booking_settings' as any)
         .upsert({
           require_terms_acceptance: requireAcceptance,
           updated_at: new Date().toISOString()
