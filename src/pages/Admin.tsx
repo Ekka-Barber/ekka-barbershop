@@ -19,8 +19,7 @@ const Admin = () => {
   
   const {
     categories,
-    totalServices,
-    setSortBy
+    totalServices
   } = useOptimizedCategories();
 
   return (
@@ -63,7 +62,6 @@ const Admin = () => {
             <ServiceManagementHeader 
               totalCategories={categories?.length || 0}
               totalServices={totalServices}
-              onSort={setSortBy}
             />
             <Separator />
             <ErrorBoundary>
