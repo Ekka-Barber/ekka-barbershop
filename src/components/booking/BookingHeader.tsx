@@ -1,43 +1,45 @@
 
+import React from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { Link } from "react-router-dom";
+import { Skeleton } from "@/components/ui/skeleton";
+import { MapPin } from "lucide-react";
 
-interface BookingHeaderProps {
-  branchName: string | undefined;
-  branchAddress: string | undefined;
+export interface BookingHeaderProps {
+  branchName?: string;
+  branchAddress?: string;
   isLoading: boolean;
 }
 
-export const BookingHeader = ({ branchName, branchAddress, isLoading }: BookingHeaderProps) => {
-  const { t, language } = useLanguage();
-  
+export const BookingHeader: React.FC<BookingHeaderProps> = ({
+  branchName,
+  branchAddress,
+  isLoading
+}) => {
+  const { language } = useLanguage();
+
   return (
-    <div className="text-center mb-8">
-      <Link to="/customer" className="transition-opacity hover:opacity-80 block">
-        <img 
-          src="/lovable-uploads/8289fb1d-c6e6-4528-980c-6b52313ca898.png"
-          alt="Ekka Barbershop Logo" 
-          className="h-24 mb-6 object-contain mx-auto"
-        />
-      </Link>
-      <h1 className="text-3xl font-bold text-[#222222] mb-2">
-        {t('book.appointment')}
+    <div className="mb-8">
+      <h1 className="text-3xl font-bold text-center mb-2">
+        {language === "ar" ? "احجز موعدًا" : "Book an Appointment"}
       </h1>
-      <div className="h-1 w-24 bg-[#C4A36F] mx-auto mb-4"></div>
       
       {isLoading ? (
-        <div className="animate-pulse">
-          <div className="h-4 bg-gray-200 rounded w-3/4 mx-auto mb-2"></div>
-          <div className="h-3 bg-gray-200 rounded w-1/2 mx-auto"></div>
+        <div className="flex flex-col items-center">
+          <Skeleton className="h-6 w-40 mb-1" />
+          <Skeleton className="h-5 w-60" />
         </div>
-      ) : branchName && (
-        <div className="text-lg text-gray-600 mb-6">
-          {language === 'ar' ? branchName : branchName}
-          <br />
-          <span className="text-sm text-gray-500">
-            {language === 'ar' ? branchAddress : branchAddress}
-          </span>
-        </div>
+      ) : (
+        branchName && (
+          <div className="text-center">
+            <h2 className="text-xl font-medium">{branchName}</h2>
+            {branchAddress && (
+              <p className="text-gray-600 flex items-center justify-center mt-1">
+                <MapPin className="h-4 w-4 mr-1" />
+                {branchAddress}
+              </p>
+            )}
+          </div>
+        )
       )}
     </div>
   );

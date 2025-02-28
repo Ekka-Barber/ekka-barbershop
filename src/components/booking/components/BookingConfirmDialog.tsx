@@ -1,62 +1,64 @@
 
+import * as React from "react";
+import { Check, Loader2 } from "lucide-react";
+import { 
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { AlertTriangle } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
-interface BookingConfirmDialogProps {
+export interface BookingConfirmDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
-  onConfirm: () => void;
+  onConfirm: () => Promise<void>;
   isLoading: boolean;
-  language: string;
 }
 
 export const BookingConfirmDialog = ({
   isOpen,
   onOpenChange,
   onConfirm,
-  isLoading,
-  language
+  isLoading
 }: BookingConfirmDialogProps) => {
+  const { language } = useLanguage();
+
   return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md" aria-describedby="booking-confirm-description">
-        <DialogHeader className="space-y-4">
-          <div className="mx-auto w-12 h-12 rounded-full bg-yellow-50 flex items-center justify-center">
-            <AlertTriangle className="h-6 w-6 text-yellow-600" />
-          </div>
-          <DialogTitle className="text-center text-xl">
+    <AlertDialog open={isOpen} onOpenChange={onOpenChange}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>
             {language === 'ar' ? 'تأكيد الحجز' : 'Confirm Booking'}
-          </DialogTitle>
-          <DialogDescription id="booking-confirm-description" className="text-center space-y-2">
-            {language === 'ar' ? (
+          </AlertDialogTitle>
+          <AlertDialogDescription>
+            {language === 'ar'
+              ? 'هل أنت متأكد من أنك تريد تأكيد هذا الحجز؟'
+              : 'Are you sure you want to confirm this booking?'}
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isLoading}>
+            {language === 'ar' ? 'إلغاء' : 'Cancel'}
+          </Button>
+          <Button onClick={onConfirm} disabled={isLoading}>
+            {isLoading ? (
               <>
-                <p className="text-base">
-                  حجزك هذا <span className="font-bold text-[#ea384c]">غير مؤكد</span>
-                </p>
-                <p className="text-sm text-gray-600">سيتم التأكيد بالرد عليك عن طريق الواتساب</p>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                {language === 'ar' ? 'جاري التأكيد...' : 'Confirming...'}
               </>
             ) : (
               <>
-                <p className="text-base">
-                  This booking is <span className="font-bold text-[#ea384c]">unconfirmed</span>
-                </p>
-                <p className="text-sm text-gray-500">
-                  Booking confirmation will be through WhatsApp
-                </p>
+                <Check className="mr-2 h-4 w-4" />
+                {language === 'ar' ? 'تأكيد' : 'Confirm'}
               </>
             )}
-          </DialogDescription>
-        </DialogHeader>
-        <div className="flex flex-col gap-2 sm:flex-row sm:justify-center mt-2">
-          <Button variant="outline" onClick={() => onOpenChange(false)} className="sm:order-1">
-            {language === 'ar' ? 'إلغاء' : 'Cancel'}
           </Button>
-          <Button onClick={onConfirm} disabled={isLoading} className="bg-[#C4A36F] hover:bg-[#B39260] sm:order-2">
-            {isLoading ? language === 'ar' ? 'جاري التأكيد...' : 'Confirming...' : language === 'ar' ? 'تأكيد' : 'Confirm'}
-          </Button>
-        </div>
-      </DialogContent>
-    </Dialog>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   );
 };

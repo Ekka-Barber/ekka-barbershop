@@ -4,8 +4,8 @@ import { BookingSummary } from "../BookingSummary";
 interface SummaryStepProps {
   selectedServices: any[];
   selectedDate: Date | undefined;
-  selectedTime: string | undefined;
-  selectedBarberName: string | undefined;
+  selectedTime: string;
+  selectedBarberName: string;
   customerDetails: {
     name: string;
     phone: string;

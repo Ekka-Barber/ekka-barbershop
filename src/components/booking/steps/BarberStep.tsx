@@ -2,33 +2,33 @@
 import { BarberSelection } from "../BarberSelection";
 
 interface BarberStepProps {
-  selectedBarber: string | undefined;
-  setSelectedBarber: (barber: string) => void;
-  employees: any[] | undefined;
-  employeesLoading: boolean;
+  selectedBarber: string;
+  onBarberSelect: (barber: string) => void;
+  employees: any[];
+  isLoading: boolean;
   selectedDate: Date | undefined;
-  selectedTime: string | undefined;
-  setSelectedTime: (time: string) => void;
+  selectedTime: string;
+  services: any[];
 }
 
 export const BarberStep = ({
   selectedBarber,
-  setSelectedBarber,
+  onBarberSelect,
   employees,
-  employeesLoading,
+  isLoading,
   selectedDate,
   selectedTime,
-  setSelectedTime
+  services
 }: BarberStepProps) => {
   return (
     <BarberSelection
       selectedBarber={selectedBarber}
-      onBarberSelect={setSelectedBarber}
+      onBarberSelect={onBarberSelect}
       employees={employees}
-      isLoading={employeesLoading}
+      isLoading={isLoading}
       selectedDate={selectedDate}
       selectedTime={selectedTime}
-      onTimeSelect={setSelectedTime}
+      services={services}
     />
   );
 };

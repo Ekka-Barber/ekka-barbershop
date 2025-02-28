@@ -1,137 +1,122 @@
 
-import { BookingStep } from "@/components/booking/BookingProgress";
-import { ServiceSelection } from "@/components/booking/ServiceSelection";
-import { DateTimeSelection } from "@/components/booking/DateTimeSelection";
-import { BarberSelection } from "@/components/booking/BarberSelection";
-import { CustomerForm } from "@/components/booking/CustomerForm";
-import { BookingSummary } from "@/components/booking/BookingSummary";
-import { WhatsAppIntegration } from "@/components/booking/WhatsAppIntegration";
-import { Service, SelectedService, WorkingHours } from "@/types/service";
+import React from "react";
+import { ServiceStep } from "./ServiceStep";
+import { DateTimeStep } from "./DateTimeStep";
+import { BarberStep } from "./BarberStep";
+import { CustomerStep } from "./CustomerStep";
+import { SummaryStep } from "./SummaryStep";
+import { BookingStep } from "../BookingProgress";
 
 interface StepRendererProps {
   currentStep: BookingStep;
+  // Services step
   categories: any[];
   categoriesLoading: boolean;
-  selectedServices: SelectedService[];
-  handleServiceToggle: (service: Service) => void;
-  handleStepChange: (step: string) => void;
+  selectedServices: any[];
+  onServiceToggle: (service: any) => void;
+  onStepChange: (step: BookingStep) => void;
+  branchId: string | null;
+  // DateTime step
+  selectedDate: Date | undefined;
+  setSelectedDate: (date: Date | undefined) => void;
+  // Barber step
+  selectedBarber: string;
+  onBarberSelect: (barberId: string) => void;
   employees: any[];
   employeesLoading: boolean;
-  selectedBarber: string | undefined;
-  setSelectedBarber: (id: string) => void;
-  selectedDate: Date | undefined;
-  selectedTime: string | undefined;
-  setSelectedDate: (date: Date | undefined) => void;
-  setSelectedTime: (time: string | undefined) => void;
-  employeeWorkingHours: WorkingHours | null;
-  customerDetails: any;
-  handleCustomerDetailsChange: (field: string, value: string) => void;
-  totalPrice: number;
-  language: string;
+  selectedTime: string;
+  // Customer step
+  customerDetails: {
+    name: string;
+    phone: string;
+    email: string;
+    notes: string;
+  };
+  onCustomerDetailsChange: (field: string, value: string) => void;
+  // Summary and other shared props
   branch: any;
+  totalPrice: number;
 }
 
-export const StepRenderer = ({
+const StepRenderer: React.FC<StepRendererProps> = ({
   currentStep,
+  // Services step props
   categories,
   categoriesLoading,
   selectedServices,
-  handleServiceToggle,
-  handleStepChange,
+  onServiceToggle,
+  onStepChange,
+  branchId,
+  // DateTime step props
+  selectedDate,
+  setSelectedDate,
+  // Barber step props
+  selectedBarber,
+  onBarberSelect,
   employees,
   employeesLoading,
-  selectedBarber,
-  setSelectedBarber,
-  selectedDate,
   selectedTime,
-  setSelectedDate,
-  setSelectedTime,
+  // Customer step props
   customerDetails,
-  handleCustomerDetailsChange,
-  totalPrice,
-  language,
-  branch
-}: StepRendererProps) => {
-  if (currentStep === 'services') {
-    return (
-      <ServiceSelection
-        categories={categories}
-        isLoading={categoriesLoading}
-        selectedServices={selectedServices}
-        onServiceToggle={handleServiceToggle}
-        onStepChange={handleStepChange}
-      />
-    );
-  }
-
-  if (currentStep === 'datetime') {
-    return (
-      <DateTimeSelection
-        selectedDate={selectedDate}
-        onDateSelect={setSelectedDate}
-      />
-    );
-  }
-
-  if (currentStep === 'barber') {
-    return (
-      <BarberSelection
-        employees={employees}
-        isLoading={employeesLoading}
-        selectedBarber={selectedBarber}
-        onBarberSelect={setSelectedBarber}
-        selectedDate={selectedDate}
-        selectedTime={selectedTime}
-        onTimeSelect={setSelectedTime}
-      />
-    );
-  }
-
-  if (currentStep === 'details') {
-    return (
-      <div className="space-y-6">
-        <CustomerForm
-          customerDetails={customerDetails}
-          onCustomerDetailsChange={handleCustomerDetailsChange}
-        />
-        <BookingSummary
+  onCustomerDetailsChange,
+  // Shared props
+  branch,
+  totalPrice
+}) => {
+  switch (currentStep) {
+    case "services":
+      return (
+        <ServiceStep
+          categories={categories}
+          categoriesLoading={categoriesLoading}
           selectedServices={selectedServices}
-          totalPrice={totalPrice}
+          onServiceToggle={onServiceToggle}
+          onStepChange={onStepChange}
+          branchId={branchId}
+        />
+      );
+    case "datetime":
+      return (
+        <DateTimeStep
+          selectedDate={selectedDate}
+          setSelectedDate={setSelectedDate}
+        />
+      );
+    case "barber":
+      return (
+        <BarberStep
+          selectedBarber={selectedBarber}
+          onBarberSelect={onBarberSelect}
+          employees={employees}
+          isLoading={employeesLoading}
           selectedDate={selectedDate}
           selectedTime={selectedTime}
-          selectedBarberName={selectedBarber ? employees?.find(emp => emp.id === selectedBarber)?.[language === 'ar' ? 'name_ar' : 'name_en'] : undefined}
-          onRemoveService={(serviceId) => {
-            const service = selectedServices.find(s => s.id === serviceId);
-            if (service) {
-              handleServiceToggle({
-                id: service.id,
-                category_id: '',
-                name_en: service.name_en,
-                name_ar: service.name_ar,
-                description_en: null,
-                description_ar: null,
-                price: service.price,
-                duration: service.duration,
-                display_order: 0,
-                discount_type: null,
-                discount_value: null
-              });
-            }
-          }}
+          services={selectedServices}
         />
-        <WhatsAppIntegration
-          selectedServices={selectedServices}
-          totalPrice={totalPrice}
-          selectedDate={selectedDate}
-          selectedTime={selectedTime}
-          selectedBarberName={selectedBarber ? employees?.find(emp => emp.id === selectedBarber)?.[language === 'ar' ? 'name_ar' : 'name_en'] : undefined}
+      );
+    case "customer":
+      return (
+        <CustomerStep
           customerDetails={customerDetails}
-          language={language}
+          handleCustomerDetailsChange={onCustomerDetailsChange}
           branch={branch}
         />
-      </div>
-    );
+      );
+    case "summary":
+      return (
+        <SummaryStep
+          selectedServices={selectedServices}
+          selectedDate={selectedDate}
+          selectedTime={selectedTime}
+          selectedBarberName={employees.find(e => e.id === selectedBarber)?.name || ""}
+          customerDetails={customerDetails}
+          totalPrice={totalPrice}
+          branch={branch}
+        />
+      );
+    default:
+      return null;
   }
-
-  return null;
 };
+
+export default StepRenderer;

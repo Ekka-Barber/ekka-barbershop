@@ -1,190 +1,242 @@
 
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { LanguageSwitcher } from "@/components/LanguageSwitcher";
-import { BookingSteps } from "./BookingSteps";
-import { BookingProgress } from "./BookingProgress";
-import { BookingNavigation } from "./BookingNavigation";
 import { BookingHeader } from "./BookingHeader";
-import { toast } from "sonner";
-import { useLanguage } from "@/contexts/LanguageContext";
+import { BookingNavigation } from "./BookingNavigation";
+import { BookingProgress } from "./BookingProgress";
+import { BookingConfirmDialog } from "./components/BookingConfirmDialog";
+import { WhatsAppIntegration } from "./WhatsAppIntegration";
+import { useToast } from "@/hooks/use-toast";
 import { useBooking } from "@/hooks/useBooking";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { getCachedServices } from "@/utils/serviceCache";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { BookingConfirmDialog } from "./components/BookingConfirmDialog";
+import StepRenderer from "./steps/StepRenderer";
 import { trackPageView } from "@/utils/clickTracking";
+import { BookingStep } from "./BookingProgress";
 
 export const BookingContainer = () => {
-  const { language, t } = useLanguage();
-  const location = useLocation();
+  const { t, language } = useLanguage();
   const navigate = useNavigate();
+  const location = useLocation();
+  const { toast } = useToast();
+  const queryParams = new URLSearchParams(location.search);
+  const branchId = queryParams.get("branch") || localStorage.getItem("selectedBranch");
+
+  const [bookingStatus, setBookingStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>("idle");
   const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false);
-  const [isBookingInProgress, setIsBookingInProgress] = useState(false);
-  const [selectedBranchId, setSelectedBranchId] = useState<string | null>(null);
-
-  // Get branch from URL query parameter
-  useEffect(() => {
-    const searchParams = new URLSearchParams(location.search);
-    const branchId = searchParams.get('branch');
-    if (branchId) {
-      setSelectedBranchId(branchId);
-    } else {
-      // If no branch provided, fetch the first branch
-      const fetchFirstBranch = async () => {
-        try {
-          const { data } = await supabase
-            .from('branches')
-            .select('id')
-            .limit(1)
-            .single();
-          
-          if (data) {
-            setSelectedBranchId(data.id);
-          }
-        } catch (error) {
-          console.error('Error fetching first branch:', error);
-        }
-      };
-      
-      fetchFirstBranch();
-    }
-  }, [location.search]);
-
-  // Query branch data
-  const { data: branch, isLoading: branchLoading } = useQuery({
-    queryKey: ['branch', selectedBranchId],
-    queryFn: async () => {
-      if (!selectedBranchId) return null;
-      
-      const { data, error } = await supabase
-        .from('branches')
-        .select('*')
-        .eq('id', selectedBranchId)
-        .single();
-        
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!selectedBranchId,
-  });
+  const [currentStep, setCurrentStep] = useState<BookingStep>("services");
 
   const {
-    currentStep,
-    setCurrentStep,
     selectedServices,
     selectedDate,
-    setSelectedDate,
     selectedTime,
-    setSelectedTime,
     selectedBarber,
-    setSelectedBarber,
+    canProceedToNextStep,
     customerDetails,
-    handleCustomerDetailsChange,
-    categories,
-    categoriesLoading,
-    employees,
-    employeesLoading,
+    totalPrice,
     handleServiceToggle,
-    totalPrice
-  } = useBooking(branch);
+    setSelectedDate,
+    setSelectedTime,
+    setSelectedBarber,
+    handleCustomerDetailsChange,
+    createBooking,
+    clearBookingData,
+  } = useBooking();
 
-  // Track page view
+  // Fetch branch information
+  const { data: branch, isLoading: branchLoading } = useQuery({
+    queryKey: ["branch", branchId],
+    queryFn: async () => {
+      if (!branchId) return null;
+      
+      const { data, error } = await supabase
+        .from("branches")
+        .select("*")
+        .eq("id", branchId)
+        .single();
+        
+      if (error) throw new Error(error.message);
+      return data;
+    },
+    enabled: !!branchId,
+  });
+
+  // Fetch service categories with their services
+  const { data: categories, isLoading: categoriesLoading } = useQuery({
+    queryKey: ["service-categories"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("service_categories")
+        .select(`
+          id,
+          name_en,
+          name_ar,
+          display_order,
+          services (
+            id,
+            name_en,
+            name_ar,
+            description_en,
+            description_ar,
+            price,
+            duration,
+            category_id,
+            display_order,
+            discount_type,
+            discount_value
+          )
+        `)
+        .order("display_order");
+        
+      if (error) throw new Error(error.message);
+      return data;
+    },
+  });
+
+  // Fetch employees/barbers
+  const { data: employees, isLoading: employeesLoading } = useQuery({
+    queryKey: ["employees", branchId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("employees")
+        .select("*")
+        .eq("branch_id", branchId)
+        .eq("role", "barber");
+        
+      if (error) throw new Error(error.message);
+      return data;
+    },
+    enabled: !!branchId,
+  });
+
+  // Load cached services on mount
   useEffect(() => {
-    // Using trackPageView utility
+    const cachedServices = getCachedServices();
+    if (cachedServices && cachedServices.length > 0) {
+      cachedServices.forEach(service => {
+        handleServiceToggle(service);
+      });
+    }
+    
+    // Track page view for analytics
     trackPageView({
-      pageName: 'Booking',
-      pageUrl: window.location.href
+      page: "booking",
+      source: document.referrer,
+      branch: branchId,
     });
   }, []);
 
-  const handleBookingSubmit = async () => {
-    setIsBookingInProgress(true);
+  // Handle booking confirmation
+  const handleConfirmBooking = async () => {
+    setBookingStatus("submitting");
     try {
-      // Booking logic...
-      toast.success(language === 'ar' ? 'تم الحجز بنجاح!' : 'Booking confirmed!');
-      navigate('/booking-success');
+      await createBooking({
+        branchId: branchId || "",
+        employeeId: selectedBarber,
+      });
+      setBookingStatus("success");
+      setIsConfirmDialogOpen(false);
+      
+      toast({
+        title: language === "ar" ? "تم تأكيد الحجز بنجاح" : "Booking Confirmed",
+        description: language === "ar" 
+          ? "سنتواصل معك قريباً لتأكيد موعدك" 
+          : "We'll contact you soon to confirm your appointment",
+      });
+      
+      // Navigate back to home after successful booking
+      setTimeout(() => {
+        clearBookingData();
+        navigate("/");
+      }, 3000);
+      
     } catch (error) {
-      console.error('Booking error:', error);
-      toast.error(
-        language === 'ar'
-          ? 'حدث خطأ أثناء الحجز. يرجى المحاولة مرة أخرى.'
-          : 'There was an error with your booking. Please try again.'
-      );
-      setIsBookingInProgress(false);
+      console.error("Booking error:", error);
+      setBookingStatus("error");
+      
+      toast({
+        variant: "destructive",
+        title: language === "ar" ? "خطأ في الحجز" : "Booking Error",
+        description: language === "ar"
+          ? "حدث خطأ أثناء تأكيد الحجز. يرجى المحاولة مرة أخرى."
+          : "There was an error confirming your booking. Please try again.",
+      });
     }
   };
 
+  if (!branchId) {
+    return (
+      <div className="container mx-auto py-8 px-4">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold mb-4">
+            {language === "ar" ? "يرجى اختيار فرع أولاً" : "Please select a branch first"}
+          </h2>
+          <button
+            onClick={() => navigate("/")}
+            className="px-4 py-2 bg-[#C4A484] text-white rounded-md"
+          >
+            {language === "ar" ? "العودة للصفحة الرئيسية" : "Return to Home"}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div
-      dir={language === 'ar' ? 'rtl' : 'ltr'}
-      className="min-h-screen flex flex-col"
-    >
-      <div className="app-header">
-        <div className="language-switcher-container">
-          <LanguageSwitcher />
-        </div>
-      </div>
-
-      <div className="app-container">
-        <div className="content-area pb-24">
-          <BookingHeader 
-            branchName={branch?.name || branch?.name_ar} 
-            branchAddress={branch?.address || branch?.address_ar}
-            isLoading={branchLoading}
-          />
-
-          <BookingProgress currentStep={currentStep} />
-
-          <BookingSteps
-            currentStep={currentStep}
-            onStepChange={setCurrentStep}
-            selectedServices={selectedServices}
-            selectedDate={selectedDate}
-            setSelectedDate={setSelectedDate}
-            selectedTime={selectedTime}
-            setSelectedTime={setSelectedTime}
-            selectedBarber={selectedBarber}
-            setSelectedBarber={setSelectedBarber}
-            customerDetails={customerDetails}
-            handleCustomerDetailsChange={handleCustomerDetailsChange}
-            categories={categories}
-            categoriesLoading={categoriesLoading}
-            employees={employees}
-            employeesLoading={employeesLoading}
-            onServiceToggle={handleServiceToggle}
-            totalPrice={totalPrice}
-            branch={branch}
-            branchId={selectedBranchId}
-          />
-        </div>
-      </div>
-
-      <BookingNavigation
-        currentStepIndex={steps.indexOf(currentStep)}
-        steps={steps}
-        currentStep={currentStep}
-        setCurrentStep={setCurrentStep}
-        isNextDisabled={
-          (currentStep === 'services' && selectedServices.length === 0) ||
-          (currentStep === 'datetime' && (!selectedDate || !selectedTime)) ||
-          (currentStep === 'barber' && !selectedBarber) ||
-          (currentStep === 'customer' && (!customerDetails.name || !customerDetails.phone || !customerDetails.email))
-        }
-        customerDetails={customerDetails}
-        branch={branch}
-        onNextClick={currentStep === 'summary' ? () => setIsConfirmDialogOpen(true) : undefined}
+    <div className="container mx-auto py-4 px-4 mb-24">
+      <BookingHeader 
+        branchName={branch?.name}
+        branchAddress={branch?.address}
+        isLoading={branchLoading}
       />
-
+      
+      <BookingProgress currentStep={currentStep} />
+      
+      <div className="mt-6">
+        <StepRenderer
+          currentStep={currentStep}
+          // Services step props
+          categories={categories || []}
+          categoriesLoading={categoriesLoading}
+          selectedServices={selectedServices}
+          onServiceToggle={handleServiceToggle}
+          onStepChange={setCurrentStep}
+          branchId={branchId}
+          // DateTime step props
+          selectedDate={selectedDate}
+          setSelectedDate={setSelectedDate}
+          // Barber step props
+          selectedBarber={selectedBarber}
+          onBarberSelect={setSelectedBarber}
+          employees={employees || []}
+          employeesLoading={employeesLoading}
+          selectedTime={selectedTime}
+          // Customer step props
+          customerDetails={customerDetails}
+          onCustomerDetailsChange={handleCustomerDetailsChange}
+          // Shared props
+          branch={branch}
+          totalPrice={totalPrice}
+        />
+      </div>
+      
+      <BookingNavigation 
+        currentStep={currentStep} 
+        onStepChange={setCurrentStep}
+        onConfirm={() => setIsConfirmDialogOpen(true)} 
+        canProceed={canProceedToNextStep(currentStep)}
+      />
+      
       <BookingConfirmDialog
         isOpen={isConfirmDialogOpen}
         onOpenChange={setIsConfirmDialogOpen}
-        onConfirm={handleBookingSubmit}
-        isLoading={isBookingInProgress}
-        language={language}
+        onConfirm={handleConfirmBooking}
+        isLoading={bookingStatus === "submitting"}
       />
+      
+      <WhatsAppIntegration branch={branch} />
     </div>
   );
 };
-
-// Define steps array
-const steps: BookingStep[] = ['services', 'datetime', 'barber', 'customer', 'summary'];
