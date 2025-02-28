@@ -3,12 +3,8 @@ import { format, parse, isToday, isBefore, addMinutes, isAfter, addDays } from "
 import { supabase } from "@/integrations/supabase/client";
 import { TimeSlot, UnavailableSlot, convertTimeToMinutes, sortTimeSlots } from "@/utils/timeSlotUtils";
 import { isSlotAvailable, isEmployeeAvailable } from "@/utils/slotAvailability";
-import { useBookingSettings } from "@/hooks/useBookingSettings";
-import { useQuery } from "@tanstack/react-query";
 
 export const useTimeSlots = () => {
-  const { data: bookingSettings } = useBookingSettings();
-
   /**
    * Generates time slots for a specific date and employee
    */
@@ -29,10 +25,6 @@ export const useTimeSlots = () => {
       serviceDuration
     });
 
-    // Get booking settings or use defaults
-    const minAdvanceTimeMinutes = bookingSettings?.min_advance_time_minutes || 15;
-    const slotDurationMinutes = bookingSettings?.slot_duration_minutes || 30;
-
     // Get all unavailable slots for the day in one query
     const formattedDate = format(selectedDate, 'yyyy-MM-dd');
     console.log('Fetching unavailable slots for date:', formattedDate);
@@ -50,7 +42,7 @@ export const useTimeSlots = () => {
     }
 
     const now = new Date();
-    const minimumBookingTime = addMinutes(now, minAdvanceTimeMinutes);
+    const minimumBookingTime = addMinutes(now, 15);
 
     for (const range of workingHoursRanges) {
       const [start, end] = range.split('-');
@@ -68,8 +60,7 @@ export const useTimeSlots = () => {
       console.log('Processing time range:', {
         start: format(startTime, 'HH:mm'),
         end: format(endTime, 'HH:mm'),
-        crossesMidnight,
-        slotDurationMinutes
+        crossesMidnight
       });
       
       let currentSlot = startTime;
@@ -80,17 +71,17 @@ export const useTimeSlots = () => {
         
         // Skip adding the 00:00 slot unless we're handling a shift that crosses midnight
         if (timeString === '00:00' && !crossesMidnight) {
-          currentSlot = addMinutes(currentSlot, slotDurationMinutes);
+          currentSlot = addMinutes(currentSlot, 30);
           continue;
         }
 
-        // Skip slots that have already passed for today or are within minimum advance time
+        // Skip slots that have already passed for today
         if (isToday(selectedDate)) {
           const slotTime = new Date(selectedDate);
           slotTime.setHours(Math.floor(slotMinutes / 60), slotMinutes % 60, 0, 0);
           
           if (isBefore(slotTime, minimumBookingTime)) {
-            currentSlot = addMinutes(currentSlot, slotDurationMinutes);
+            currentSlot = addMinutes(currentSlot, 30);
             continue;
           }
         }
@@ -108,8 +99,7 @@ export const useTimeSlots = () => {
           isAvailable: available
         });
         
-        // Use the configured slot duration from settings
-        currentSlot = addMinutes(currentSlot, slotDurationMinutes);
+        currentSlot = addMinutes(currentSlot, 30);
       }
     }
 
@@ -136,21 +126,8 @@ export const useTimeSlots = () => {
     return generateTimeSlots(workingHours, selectedDate, employee.id, serviceDuration);
   };
 
-  const useAvailableTimeSlots = (
-    employee: any,
-    selectedDate: Date | undefined,
-    serviceDuration: number = 30
-  ) => {
-    return useQuery({
-      queryKey: ['timeSlots', employee?.id, selectedDate?.toISOString(), serviceDuration],
-      queryFn: () => getAvailableTimeSlots(employee, selectedDate, serviceDuration),
-      enabled: !!employee && !!selectedDate,
-    });
-  };
-
   return {
     getAvailableTimeSlots,
-    useAvailableTimeSlots,
     isEmployeeAvailable
   };
 };

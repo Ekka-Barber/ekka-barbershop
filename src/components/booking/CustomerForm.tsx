@@ -2,34 +2,23 @@
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
 import { useState, useEffect } from "react";
 import { CustomerDetails } from "@/types/booking";
 import { identifyCustomer } from "@/utils/tiktokTracking";
-import { TermsAndConditionsDisplay } from "./terms/TermsAndConditionsDisplay";
-import { useBookingSettings } from "@/hooks/useBookingSettings";
 
 interface CustomerFormProps {
   customerDetails: CustomerDetails;
   onCustomerDetailsChange: (field: keyof CustomerDetails, value: string) => void;
-  branch: any;
   onValidationChange?: (isValid: boolean) => void;
-  onTermsAcceptanceChange?: (accepted: boolean) => void;
-  termsAccepted?: boolean;
 }
 
 export const CustomerForm = ({
   customerDetails,
   onCustomerDetailsChange,
-  branch,
-  onValidationChange,
-  onTermsAcceptanceChange,
-  termsAccepted = false
+  onValidationChange
 }: CustomerFormProps) => {
   const { t, language } = useLanguage();
   const [errors, setErrors] = useState<Partial<Record<keyof CustomerDetails, string>>>({});
-  const { data: bookingSettings } = useBookingSettings();
-  const requireTermsAcceptance = bookingSettings?.require_terms_acceptance ?? true;
 
   const validateForm = () => {
     const newErrors: Partial<Record<keyof CustomerDetails, string>> = {};
@@ -71,16 +60,12 @@ export const CustomerForm = ({
 
   useEffect(() => {
     const isValid = validateForm();
-    onValidationChange?.(isValid && (!requireTermsAcceptance || termsAccepted));
-  }, [customerDetails, termsAccepted, requireTermsAcceptance]);
+    onValidationChange?.(isValid);
+  }, [customerDetails]);
 
   const handlePhoneChange = (value: string) => {
     const numbersOnly = value.replace(/[^0-9]/g, '');
     onCustomerDetailsChange('phone', numbersOnly);
-  };
-
-  const handleTermsChange = (checked: boolean) => {
-    onTermsAcceptanceChange?.(checked);
   };
 
   return (
@@ -147,29 +132,8 @@ export const CustomerForm = ({
             onChange={(e) => onCustomerDetailsChange('notes', e.target.value)}
           />
         </div>
-
-        {/* Terms and Conditions Section */}
-        {requireTermsAcceptance && (
-          <>
-            <TermsAndConditionsDisplay />
-            
-            <div className="flex items-center space-x-2 mt-4">
-              <Checkbox 
-                id="terms" 
-                checked={termsAccepted}
-                onCheckedChange={handleTermsChange}
-                required
-              />
-              <Label htmlFor="terms" className="text-sm cursor-pointer">
-                {language === 'ar' 
-                  ? 'أوافق على الشروط والأحكام' 
-                  : 'I agree to the Terms and Conditions'}
-                <span className="text-destructive"> *</span>
-              </Label>
-            </div>
-          </>
-        )}
       </div>
     </div>
   );
 };
+

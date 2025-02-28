@@ -1,157 +1,103 @@
 
-import React, { useState } from "react";
-import { Calendar } from "@/components/ui/calendar";
-import { format, isBefore, startOfToday, addDays, isToday, isTomorrow } from "date-fns";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { Language } from "@/types/language";
-import { Branch } from "@/types/booking";
-import { useBookingSettings } from "@/hooks/useBookingSettings";
+import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { ChevronRight } from "lucide-react";
-import { convertToArabic } from "@/utils/arabicNumerals";
+import { format, addDays, isBefore, startOfDay } from "date-fns";
+import { cn } from "@/lib/utils";
+import { useState, useEffect } from "react";
+import { ar } from 'date-fns/locale';
+import { DateTimeSelectionSkeleton } from "./DateTimeSelectionSkeleton";
 
-export interface DateTimeSelectionProps {
+interface DateTimeSelectionProps {
   selectedDate: Date | undefined;
-  onDateSelect: (date: Date) => void;
-  branch: Branch;
+  onDateSelect: (date: Date | undefined) => void;
 }
 
-// QuickDate component for the 3-day selection view
-const QuickDateCard: React.FC<{
-  date: Date;
-  isSelected: boolean;
-  onSelect: (date: Date) => void;
-  language: Language;
-}> = ({ date, isSelected, onSelect, language }) => {
-  // Day label (Today, Tomorrow, or day name)
-  const getDayLabel = () => {
-    if (isToday(date)) return language === 'ar' ? 'اليوم' : 'Today';
-    if (isTomorrow(date)) return language === 'ar' ? 'غداً' : 'Tomorrow';
-    
-    // Format day name
-    const dayName = format(date, 'EEEE');
-    return language === 'ar' 
-      ? {
-          'Monday': 'الاثنين',
-          'Tuesday': 'الثلاثاء',
-          'Wednesday': 'الأربعاء',
-          'Thursday': 'الخميس',
-          'Friday': 'الجمعة',
-          'Saturday': 'السبت',
-          'Sunday': 'الأحد'
-        }[dayName] || dayName
-      : dayName;
-  };
-
-  // Format date (Sep 12)
-  const formattedDate = language === 'ar'
-    ? convertToArabic(format(date, 'd')) + ' ' + 
-      {
-        'January': 'يناير',
-        'February': 'فبراير',
-        'March': 'مارس',
-        'April': 'أبريل',
-        'May': 'مايو',
-        'June': 'يونيو',
-        'July': 'يوليو',
-        'August': 'أغسطس',
-        'September': 'سبتمبر',
-        'October': 'أكتوبر',
-        'November': 'نوفمبر',
-        'December': 'ديسمبر'
-      }[format(date, 'MMMM')]
-    : format(date, 'MMM d');
-
-  return (
-    <Card
-      className={`cursor-pointer p-4 text-center transition-all ${
-        isSelected
-          ? 'bg-[#D3E4FD] border-[#C4A484] border-2'
-          : 'bg-[#F1F1F1] hover:bg-[#E5E5E5]'
-      } ${language === 'ar' ? 'rtl' : 'ltr'}`}
-      onClick={() => onSelect(date)}
-    >
-      <div className="font-semibold text-lg">{getDayLabel()}</div>
-      <div className="text-[#8E9196]">{formattedDate}</div>
-    </Card>
-  );
-};
-
-export const DateTimeSelection: React.FC<DateTimeSelectionProps> = ({
+export const DateTimeSelection = ({
   selectedDate,
   onDateSelect,
-  branch
-}) => {
+}: DateTimeSelectionProps) => {
   const { t, language } = useLanguage();
-  const today = startOfToday();
-  const { data: bookingSettings, isLoading } = useBookingSettings();
   const [showFullCalendar, setShowFullCalendar] = useState(false);
-  
-  // Use max_advance_days from settings or default to 30 days if not available
-  const maxAdvanceDays = bookingSettings?.max_advance_days || 30;
-  
-  // Maximum date allowed for booking based on settings
-  const maxDate = addDays(today, maxAdvanceDays);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Generate next 3 available days
-  const quickDates = [today, addDays(today, 1), addDays(today, 2)];
+  useEffect(() => {
+    // Simulate loading state for calendar data
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, []);
 
-  const handleDateSelect = (date: Date | undefined) => {
-    if (date) {
-      onDateSelect(date);
-    }
+  if (isLoading) {
+    return <DateTimeSelectionSkeleton />;
+  }
+
+  const today = startOfDay(new Date());
+  const threeDays = [
+    today,
+    addDays(today, 1),
+    addDays(today, 2)
+  ];
+
+  const formatDate = (date: Date) => {
+    return language === 'ar' 
+      ? format(date, 'dd/MM')
+      : format(date, 'MMM dd');
   };
 
-  const isDateSelected = (date: Date) => {
-    if (!selectedDate) return false;
-    return format(date, 'yyyy-MM-dd') === format(selectedDate, 'yyyy-MM-dd');
+  const formatDay = (date: Date) => {
+    return language === 'ar'
+      ? format(date, 'EEEE', { locale: ar })
+      : format(date, 'EEE');
   };
 
   return (
-    <div className={`space-y-6 pt-4 ${language === 'ar' ? 'rtl' : 'ltr'}`}>
-      <h3 className="text-lg font-medium">{t('select.date')}</h3>
-      
-      {/* Quick 3-day selection */}
-      <div className="grid grid-cols-3 gap-3">
-        {quickDates.map((date, index) => (
-          <QuickDateCard
-            key={index}
-            date={date}
-            isSelected={isDateSelected(date)}
-            onSelect={handleDateSelect}
-            language={language}
-          />
-        ))}
-      </div>
-      
-      {/* Show more button */}
-      <div className="text-center mt-4">
-        <Button
-          variant="outline"
-          className="bg-[#C4A484] text-white hover:bg-[#b3957b]"
-          onClick={() => setShowFullCalendar(!showFullCalendar)}
-        >
-          {showFullCalendar 
-            ? t('show.less') 
-            : <>
-                {t('show.more')} 
-                <ChevronRight className="ml-1 h-4 w-4" />
-              </>
-          }
-        </Button>
-      </div>
-      
-      {/* Full calendar view (conditionally rendered) */}
-      {showFullCalendar && (
-        <div className="mx-auto p-4 bg-white rounded-lg shadow-sm border border-gray-100 max-w-md">
+    <div className="space-y-6">
+      {!showFullCalendar ? (
+        <div className="space-y-4">
+          <div className="grid grid-cols-3 gap-3">
+            {threeDays.map((date) => (
+              <Button
+                key={date.toISOString()}
+                variant={selectedDate?.toDateString() === date.toDateString() ? "default" : "outline"}
+                onClick={() => onDateSelect(date)}
+                className={cn(
+                  "flex flex-col items-center justify-center h-20 p-2",
+                  isBefore(date, startOfDay(new Date())) && "opacity-50 cursor-not-allowed"
+                )}
+                disabled={isBefore(date, startOfDay(new Date()))}
+              >
+                <span className="text-sm font-medium">
+                  {formatDay(date)}
+                </span>
+                <span className="text-lg font-bold">{formatDate(date)}</span>
+              </Button>
+            ))}
+          </div>
+          <button
+            onClick={() => setShowFullCalendar(true)}
+            className="text-sm text-primary hover:underline w-full text-center"
+          >
+            {language === 'ar' ? 'المزيد من التواريخ' : 'More dates'}
+          </button>
+        </div>
+      ) : (
+        <div className="space-y-4">
           <Calendar
             mode="single"
             selected={selectedDate}
-            onSelect={handleDateSelect}
-            disabled={(date) => isBefore(date, today) || isBefore(maxDate, date)}
-            className={language === 'ar' ? 'rtl' : 'ltr'}
+            onSelect={onDateSelect}
+            className="rounded-md border mx-auto"
+            disabled={(date) => isBefore(date, startOfDay(new Date()))}
+            locale={language === 'ar' ? ar : undefined}
           />
+          <button
+            onClick={() => setShowFullCalendar(false)}
+            className="text-sm text-primary hover:underline w-full text-center"
+          >
+            {language === 'ar' ? 'عرض أقل' : 'Show less'}
+          </button>
         </div>
       )}
     </div>

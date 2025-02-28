@@ -20,8 +20,6 @@ export interface CustomerDetails {
 export interface TimeSlot {
   time: string;
   isAvailable: boolean;
-  hasEnoughTime?: boolean;
-  unavailabilityReason?: string;
 }
 
 export interface EmployeeSchedule {
@@ -53,13 +51,4 @@ export interface BarberDetails {
   nationality: string | null;
   working_hours?: Record<string, string[]>;
   off_days?: string[];
-}
-
-export interface ServiceBranchAvailability {
-  id: string;
-  service_id: string;
-  branch_id: string;
-  is_available: boolean;
-  created_at?: string;
-  updated_at?: string;
 }

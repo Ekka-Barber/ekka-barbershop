@@ -15,19 +15,16 @@ import { cn } from "@/lib/utils";
 import { Plus } from "lucide-react";
 import { PriceDisplay } from "@/components/ui/price-display";
 import { CustomBadge } from "@/components/ui/custom-badge";
-import { Language } from "@/types/language";
 
 interface ServiceCardProps {
   service: Service;
   isSelected: boolean;
   onSelect: (service: Service) => void;
-  isAvailable?: boolean;
-  language: Language;
   className?: string;
 }
 
-export const ServiceCard = ({ service, isSelected, onSelect, isAvailable = true, language, className }: ServiceCardProps) => {
-  const { language: contextLanguage } = useLanguage();
+export const ServiceCard = ({ service, isSelected, onSelect, className }: ServiceCardProps) => {
+  const { language } = useLanguage();
   const serviceName = language === 'ar' ? service.name_ar : service.name_en;
   const serviceDescription = language === 'ar' ? service.description_ar : service.description_en;
   const [isOpen, setIsOpen] = React.useState(false);
@@ -66,7 +63,6 @@ export const ServiceCard = ({ service, isSelected, onSelect, isAvailable = true,
           className={cn(
             "relative overflow-visible cursor-pointer transition-all p-4",
             isSelected ? "border-[#C4A484] bg-[#C4A484]/5" : "hover:border-[#C4A484]/50",
-            !isAvailable && "opacity-50 cursor-not-allowed",
             className
           )}
         >
@@ -84,7 +80,7 @@ export const ServiceCard = ({ service, isSelected, onSelect, isAvailable = true,
             <div>
               <h3 className="font-medium text-base mb-2">{serviceName}</h3>
               <div className="text-sm text-muted-foreground">
-                {formatDuration(service.duration, language as Language)}
+                {formatDuration(service.duration, language)}
               </div>
             </div>
             
@@ -96,7 +92,6 @@ export const ServiceCard = ({ service, isSelected, onSelect, isAvailable = true,
                     variant="ghost"
                     className="h-6 w-6 rounded-full hover:bg-[#C4A484]/10"
                     onClick={handleSelect}
-                    disabled={!isAvailable}
                   >
                     <Plus className="h-4 w-4" />
                   </Button>
@@ -106,14 +101,14 @@ export const ServiceCard = ({ service, isSelected, onSelect, isAvailable = true,
                 {hasDiscount && (
                   <PriceDisplay 
                     price={service.price}
-                    language={language as Language}
+                    language={language}
                     showDiscount={true}
                     className="text-sm text-muted-foreground decoration-[#ea384c] line-through"
                   />
                 )}
                 <PriceDisplay 
                   price={finalPrice}
-                  language={language as Language}
+                  language={language}
                   className={cn(
                     "font-semibold",
                     hasDiscount && "text-[#ea384c]"
@@ -143,20 +138,20 @@ export const ServiceCard = ({ service, isSelected, onSelect, isAvailable = true,
             <div className="flex flex-col gap-4">
               <div className="flex justify-between items-center">
                 <div className="text-sm text-muted-foreground">
-                  {formatDuration(service.duration, language as Language)}
+                  {formatDuration(service.duration, language)}
                 </div>
                 <div className="space-y-1 text-right">
                   {hasDiscount && (
                     <PriceDisplay 
                       price={service.price}
-                      language={language as Language}
+                      language={language}
                       showDiscount={true}
                       className="text-sm text-muted-foreground decoration-[#ea384c] line-through"
                     />
                   )}
                   <PriceDisplay 
                     price={finalPrice}
-                    language={language as Language}
+                    language={language}
                     size="lg"
                     className={cn(
                       "font-semibold",
@@ -173,7 +168,6 @@ export const ServiceCard = ({ service, isSelected, onSelect, isAvailable = true,
                 }}
                 variant="outline"
                 className="w-full mt-4"
-                disabled={!isAvailable}
               >
                 {isSelected
                   ? language === 'ar'

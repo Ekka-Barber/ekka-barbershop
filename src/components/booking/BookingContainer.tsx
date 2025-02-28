@@ -1,148 +1,151 @@
 
-import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { BookingHeader } from "./BookingHeader";
-import { BookingNavigation } from "./BookingNavigation";
-import { BookingProgress, BookingStep } from "./BookingProgress";
-import { BookingConfirmDialog } from "./components/BookingConfirmDialog";
-import { WhatsAppIntegration } from "./WhatsAppIntegration";
-import { useBookingState } from "./hooks/useBookingState";
-import { useBookingActions } from "./hooks/useBookingActions";
-import { useBookingData } from "./hooks/useBookingData";
-import { useBookingNavigation } from "./hooks/useBookingNavigation";
-import { NoBranchMessage } from "./components/NoBranchMessage";
-import { createBookingWithFeedback } from "./utils/bookingUtils";
-import StepRenderer from "./steps/StepRenderer";
-import { trackPageView } from "@/utils/clickTracking";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { BookingHeader } from "@/components/booking/BookingHeader";
+import { BookingSteps } from "@/components/booking/BookingSteps";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { Branch } from "@/types/booking";
+import { ErrorBoundary } from "@/components/common/ErrorBoundary";
+import { Loader2 } from "lucide-react";
+import { Card } from "@/components/ui/card";
 
 export const BookingContainer = () => {
-  const { navigate, location, branchId } = useBookingNavigation();
-  const { branch, branchLoading } = useBookingData(branchId);
-  const { language } = useLanguage();
-  const { 
-    bookingStatus, 
-    isConfirmDialogOpen, 
-    setIsConfirmDialogOpen, 
-    currentStep, 
-    setCurrentStep 
-  } = useBookingState();
+  const navigate = useNavigate();
+  const { t, language } = useLanguage();
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  const branchId = searchParams.get('branch');
 
-  const {
-    selectedServices,
-    selectedDate,
-    selectedTime,
-    selectedBarber,
-    customerDetails,
-    handleCustomerDetailsChange,
-    categories,
-    categoriesLoading,
-    employees,
-    employeesLoading,
-    handleServiceToggle,
-    totalPrice,
-    canProceedToNextStep,
-    createBooking,
-    clearBookingData,
-    setSelectedDate,
-    setSelectedTime,
-    setSelectedBarber,
-    termsAccepted,
-    setTermsAccepted
-  } = useBookingActions(branch);
+  const { data: branch, isLoading: branchLoading, error: branchError } = useQuery({
+    queryKey: ['branch', branchId],
+    queryFn: async () => {
+      if (!branchId) return null;
+      const { data, error } = await supabase
+        .from('branches')
+        .select('*')
+        .eq('id', branchId)
+        .maybeSingle();
+      
+      if (error) throw error;
+      return data as Branch;
+    },
+    enabled: !!branchId,
+    retry: 2,
+    retryDelay: 1000,
+  });
 
-  // Track page view for analytics
-  useEffect(() => {
-    trackPageView({
-      page: "booking",
-      source: document.referrer,
-      branch: branchId,
-    });
-  }, [branchId]);
-
-  // Render no-branch message if no branch is selected
   if (!branchId) {
-    return <NoBranchMessage navigate={navigate} />;
+    return (
+      <div className="min-h-screen flex flex-col">
+        <div className="app-header">
+          <div className="language-switcher-container">
+            <LanguageSwitcher />
+          </div>
+        </div>
+        <div className="flex-grow max-w-4xl mx-auto p-4 sm:p-6 lg:p-8 w-full">
+          <div className="content-area flex flex-col items-center justify-center">
+            <div className="text-center w-full max-w-2xl mx-auto">
+              <h1 className="text-2xl font-bold text-gray-800 mb-4">
+                {t('select.branch')}
+              </h1>
+              <Button 
+                className="touch-target bg-[#C4A36F] hover:bg-[#B39260] text-white shadow-md hover:shadow-lg"
+                onClick={() => navigate('/customer')}
+              >
+                {t('go.back')}
+              </Button>
+            </div>
+          </div>
+        </div>
+        <footer className="page-footer" />
+      </div>
+    );
   }
 
-  // Handle booking confirmation
-  const handleConfirmBooking = async () => {
-    await createBookingWithFeedback({
-      createBooking,
-      branchId,
-      selectedBarber,
-      clearBookingData,
-      navigate,
-      setBookingStatus: (status) => {},
-      setIsConfirmDialogOpen
-    });
-  };
+  if (branchError) {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <div className="app-header">
+          <div className="language-switcher-container">
+            <LanguageSwitcher />
+          </div>
+        </div>
+        <div className="flex-grow max-w-4xl mx-auto p-4 sm:p-6 lg:p-8 w-full">
+          <div className="content-area flex flex-col items-center justify-center">
+            <div className="text-center w-full max-w-2xl mx-auto space-y-4">
+              <h1 className="text-2xl font-bold text-red-600">
+                {language === 'ar' ? 'عذراً! حدث خطأ ما' : 'Error Loading Branch'}
+              </h1>
+              <p className="text-gray-600">
+                {language === 'ar' 
+                  ? 'لم نتمكن من تحميل معلومات الفرع. يرجى المحاولة مرة أخرى.'
+                  : 'We could not load the branch information. Please try again.'}
+              </p>
+              <Button 
+                onClick={() => navigate('/customer')}
+                variant="outline"
+                className="touch-target"
+              >
+                {t('go.back')}
+              </Button>
+            </div>
+          </div>
+        </div>
+        <footer className="page-footer" />
+      </div>
+    );
+  }
+
+  if (branchLoading) {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <div className="app-header">
+          <div className="language-switcher-container">
+            <LanguageSwitcher />
+          </div>
+        </div>
+        <div className="flex-grow max-w-4xl mx-auto p-4 sm:p-6 lg:p-8 w-full">
+          <div className="content-area flex flex-col items-center justify-center">
+            <Loader2 className="h-8 w-8 animate-spin text-[#C4A36F]" />
+          </div>
+        </div>
+        <footer className="page-footer" />
+      </div>
+    );
+  }
 
   return (
-    <div className={`container mx-auto py-4 px-4 mb-24 ${language === 'ar' ? 'rtl' : 'ltr'}`}>
-      <BookingHeader 
-        branchName={branch?.name}
-        branchAddress={branch?.address}
-        isLoading={branchLoading}
-      />
-      
-      <BookingProgress currentStep={currentStep} />
-      
-      <div className="mt-6">
-        <StepRenderer
-          currentStep={currentStep}
-          // Services step props
-          categories={categories}
-          categoriesLoading={categoriesLoading}
-          selectedServices={selectedServices}
-          onServiceToggle={handleServiceToggle}
-          onStepChange={setCurrentStep}
-          branchId={branchId}
-          // DateTime step props
-          selectedDate={selectedDate}
-          setSelectedDate={setSelectedDate}
-          // Barber step props
-          selectedBarber={selectedBarber}
-          onBarberSelect={setSelectedBarber}
-          employees={employees}
-          employeesLoading={employeesLoading}
-          selectedTime={selectedTime}
-          setSelectedTime={setSelectedTime}
-          // Customer step props
-          customerDetails={customerDetails}
-          onCustomerDetailsChange={handleCustomerDetailsChange}
-          termsAccepted={termsAccepted}
-          setTermsAccepted={setTermsAccepted}
-          // Shared props
-          branch={branch}
-          totalPrice={totalPrice()}
-          totalDuration={selectedServices.reduce((sum, service) => sum + service.duration, 0)}
-        />
+    <ErrorBoundary>
+      <div dir={language === 'ar' ? 'rtl' : 'ltr'} className="min-h-screen flex flex-col">
+        <div className="app-header">
+          <div className="language-switcher-container">
+            <LanguageSwitcher />
+          </div>
+        </div>
+        
+        <div className="flex-grow max-w-4xl mx-auto p-4 sm:p-6 lg:p-8 w-full">
+          <div className="content-area flex flex-col items-center justify-center">
+            <div className="text-center w-full max-w-2xl mx-auto">
+              <BookingHeader
+                branchName={language === 'ar' ? branch?.name_ar : branch?.name}
+                branchAddress={language === 'ar' ? branch?.address_ar : branch?.address}
+                isLoading={branchLoading}
+              />
+            </div>
+            
+            <Card className="overflow-hidden bg-white shadow-xl rounded-xl border-[#C4A36F]/20 w-full mt-8">
+              <div className="p-6">
+                <BookingSteps branch={branch} />
+              </div>
+            </Card>
+          </div>
+        </div>
+        
+        <footer className="page-footer" />
       </div>
-      
-      <BookingNavigation 
-        currentStep={currentStep} 
-        setCurrentStep={setCurrentStep}
-        onConfirm={() => setIsConfirmDialogOpen(true)} 
-        canProceed={canProceedToNextStep(currentStep)}
-      />
-      
-      <BookingConfirmDialog
-        isOpen={isConfirmDialogOpen}
-        onOpenChange={setIsConfirmDialogOpen}
-        onConfirm={handleConfirmBooking}
-        isLoading={bookingStatus === "submitting"}
-      />
-      
-      <WhatsAppIntegration 
-        branch={branch} 
-        selectedServices={selectedServices}
-        selectedDate={selectedDate}
-        selectedTime={selectedTime}
-        customerDetails={customerDetails}
-        totalPrice={totalPrice()}
-        language={language}
-      />
-    </div>
+    </ErrorBoundary>
   );
 };

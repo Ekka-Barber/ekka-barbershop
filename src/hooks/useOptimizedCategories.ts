@@ -8,11 +8,13 @@ import debounce from 'lodash/debounce';
 const CATEGORIES_PER_PAGE = 10;
 
 export type SortType = 'name' | 'newest' | 'oldest' | 'services';
+export type FilterType = 'all' | 'empty';
 
 export const useOptimizedCategories = () => {
   const [page, setPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<SortType>('name');
+  const [filterBy, setFilterBy] = useState<FilterType>('all');
   const queryClient = useQueryClient();
 
   const fetchCategories = async () => {
@@ -77,9 +79,13 @@ export const useOptimizedCategories = () => {
         return matchCategory || matchServices;
       }
       
+      if (filterBy === 'empty') {
+        return !category.services?.length;
+      }
+      
       return true;
     });
-  }, [categories, searchQuery]);
+  }, [categories, searchQuery, filterBy]);
 
   const sortedCategories = useMemo(() => {
     if (!filteredCategories.length) return [];
@@ -110,6 +116,10 @@ export const useOptimizedCategories = () => {
 
   const handleSortChange = useCallback((value: string) => {
     setSortBy(value as SortType);
+  }, []);
+
+  const handleFilterChange = useCallback((value: string) => {
+    setFilterBy(value as FilterType);
   }, []);
 
   const setupRealtimeSubscription = useCallback(() => {
@@ -154,6 +164,7 @@ export const useOptimizedCategories = () => {
     setPage,
     setSearchQuery: debouncedSetSearch,
     setSortBy: handleSortChange,
+    setFilterBy: handleFilterChange,
     setupRealtimeSubscription
   };
 };

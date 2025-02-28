@@ -1,72 +1,63 @@
 
+import { Timer } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { SelectedService } from "@/types/service";
-import { formatDuration, formatNumber } from "@/utils/formatters";
-import { Language } from "@/types/language";
+import { convertToArabic } from "@/utils/arabicNumerals";
+import { formatDuration } from "@/utils/formatters";
 import { PriceDisplay } from "@/components/ui/price-display";
 
 interface ServicesSummaryProps {
-  selectedServices: SelectedService[];
-  totalPrice: number;
+  selectedServices: Array<{
+    id: string;
+    name: string;
+    price: number;
+    duration: number;
+  }>;
   totalDuration: number;
+  totalPrice: number;
+  language: string;
   onNextStep: () => void;
-  language: Language;
 }
 
 export const ServicesSummary = ({
   selectedServices,
-  totalPrice,
   totalDuration,
-  onNextStep,
-  language
+  totalPrice,
+  language,
+  onNextStep
 }: ServicesSummaryProps) => {
+  if (selectedServices.length === 0) return null;
+
+  const servicesCount = language === 'ar' 
+    ? `${convertToArabic(selectedServices.length.toString())} خدمات`
+    : `${selectedServices.length} services`;
+
+  const MetricsGroup = () => (
+    <div className="flex items-center gap-4">
+      <span className="font-medium">{servicesCount}</span>
+      <span className="text-gray-500">•</span>
+      <span className="flex items-center gap-1">
+        <Timer className="w-4 h-4" />
+        {formatDuration(totalDuration, language as 'en' | 'ar')}
+      </span>
+      <span className="text-gray-500">•</span>
+      <PriceDisplay price={totalPrice} language={language as 'en' | 'ar'} size="base" />
+    </div>
+  );
+
   return (
-    <div className={`border-t mt-auto pt-4 px-4 bg-white ${language === 'ar' ? 'rtl' : 'ltr'}`}>
-      <div className="mb-4">
-        <div className="text-sm font-medium mb-2">
-          {language === 'ar' ? 'الخدمات المختارة' : 'Selected Services'}
-          <span className="text-muted-foreground ml-1">
-            ({selectedServices.length} {language === 'ar' ? 'خدمات' : 'services'})
-          </span>
-        </div>
-        <div className="max-h-20 overflow-y-auto hide-scrollbar">
-          {selectedServices.map((service) => (
-            <div key={service.id} className="flex justify-between text-sm py-1">
-              <span>{language === 'ar' ? service.name_ar : service.name_en}</span>
-              <PriceDisplay 
-                price={service.price}
-                language={language}
-                size="sm"
-              />
-            </div>
-          ))}
+    <div className="fixed bottom-0 left-0 right-0 bg-white border-t shadow-lg">
+      <div className="w-full max-w-screen-xl mx-auto px-4 py-3">
+        <div className="flex items-center justify-between">
+          <MetricsGroup />
+          <Button 
+            className="bg-[#e7bd71] hover:bg-[#d4ad65]"
+            onClick={onNextStep}
+            disabled={selectedServices.length === 0}
+          >
+            {language === 'ar' ? 'التالي' : 'Next'}
+          </Button>
         </div>
       </div>
-      
-      <div className="flex justify-between items-center mb-4">
-        <div>
-          <div className="font-semibold">
-            {language === 'ar' ? 'المجموع' : 'Total'}
-          </div>
-          <div className="text-sm text-muted-foreground">
-            {formatDuration(totalDuration, language)}
-          </div>
-        </div>
-        <div className="text-xl font-semibold">
-          <PriceDisplay 
-            price={totalPrice}
-            language={language}
-            size="lg"
-          />
-        </div>
-      </div>
-      
-      <Button 
-        onClick={onNextStep} 
-        className="w-full bg-[#C4A484] hover:bg-[#b3957b]"
-      >
-        {language === 'ar' ? 'متابعة' : 'Continue'}
-      </Button>
     </div>
   );
 };

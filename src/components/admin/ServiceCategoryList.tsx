@@ -6,7 +6,6 @@ import { CategoryList } from './category-management/CategoryList';
 import { CategoryActions } from './category-management/CategoryActions';
 import { ServiceCategorySkeleton } from './service-management/ServiceCategorySkeleton';
 import { EmptyServiceState } from './service-management/EmptyServiceState';
-import { ServiceUpsellsTable } from './service-management/ServiceUpsellsTable';
 import { useToast } from "@/components/ui/use-toast";
 import { DropResult } from '@hello-pangea/dnd';
 
@@ -18,6 +17,9 @@ const ServiceCategoryList = () => {
     categories,
     isLoading,
     totalServices,
+    setSearchQuery,
+    setSortBy,
+    setFilterBy,
     setupRealtimeSubscription
   } = useOptimizedCategories();
 
@@ -122,8 +124,6 @@ const ServiceCategoryList = () => {
       />
 
       <CategoryActions categories={categories} />
-      
-      <ServiceUpsellsTable />
     </div>
   );
 };

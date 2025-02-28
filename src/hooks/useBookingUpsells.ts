@@ -11,7 +11,7 @@ export interface UpsellService {
   duration: number;
   discountPercentage: number;
   discountedPrice: number;
-  mainServiceId: string; // Track the main service
+  mainServiceId: string; // Add this to track the main service
 }
 
 export const useBookingUpsells = (selectedServices: SelectedService[], language: 'en' | 'ar') => {

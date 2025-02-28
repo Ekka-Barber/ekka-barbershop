@@ -1,146 +1,119 @@
 
 import { useToast } from "@/hooks/use-toast";
+import { Button } from "@/components/ui/button";
+import { useState } from "react";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { BookingFormData } from "./types/booking";
-import { Language } from "@/types/language";
+import { BookingConfirmDialog } from "./components/BookingConfirmDialog";
+import { generateWhatsAppMessage, saveBookingData } from "./services/bookingService";
+import { formatWhatsAppNumber, isValidWhatsAppNumber } from "@/utils/phoneUtils";
+import { openExternalLink } from "@/utils/deepLinking";
 
-interface WhatsAppIntegrationProps {
-  branch?: any;
-  selectedServices: any[];
-  selectedDate?: Date;
-  selectedTime?: string;
-  customerDetails: {
-    name: string;
-    phone: string;
-    email: string;
-    notes: string;
-  };
-  totalPrice: number;
-  language: Language;
-}
-
-export const WhatsAppIntegration = ({
-  branch,
-  selectedServices,
-  selectedDate,
-  selectedTime,
-  customerDetails,
-  totalPrice,
-  language
-}: WhatsAppIntegrationProps) => {
+export const WhatsAppIntegration = (props: BookingFormData) => {
   const { toast } = useToast();
+  const { t } = useLanguage();
+  const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
-  // Format booking details for WhatsApp message
-  const formatBookingMessage = (data: BookingFormData): string => {
-    const {
-      selectedServices,
-      totalPrice,
-      selectedDate,
-      selectedTime,
-      selectedBarberName,
-      customerDetails
-    } = data;
-
-    // Format date if available
-    const formattedDate = selectedDate
-      ? new Intl.DateTimeFormat(language === "ar" ? "ar-SA" : "en-US", {
-          weekday: "long",
-          year: "numeric",
-          month: "long",
-          day: "numeric"
-        }).format(selectedDate)
-      : "";
-
-    // Format services list
-    const servicesList = selectedServices
-      .map(
-        service =>
-          `- ${language === "ar" ? service.name_ar : service.name_en}: ${service.price} SAR`
-      )
-      .join("\n");
-
-    // Construct message based on language
-    if (language === "ar") {
-      return `*طلب حجز جديد*\n\n`
-        + `*الخدمات:*\n${servicesList}\n\n`
-        + `*المجموع:* ${totalPrice} ريال\n\n`
-        + (formattedDate && selectedTime ? `*التاريخ والوقت:* ${formattedDate} - ${selectedTime}\n\n` : "")
-        + (selectedBarberName ? `*الحلاق:* ${selectedBarberName}\n\n` : "")
-        + `*معلومات العميل:*\n`
-        + `- الاسم: ${customerDetails.name}\n`
-        + `- الجوال: ${customerDetails.phone}\n`
-        + `- البريد الإلكتروني: ${customerDetails.email}\n`
-        + (customerDetails.notes ? `- ملاحظات: ${customerDetails.notes}\n` : "");
-    } else {
-      return `*New Booking Request*\n\n`
-        + `*Services:*\n${servicesList}\n\n`
-        + `*Total:* ${totalPrice} SAR\n\n`
-        + (formattedDate && selectedTime ? `*Date & Time:* ${formattedDate} - ${selectedTime}\n\n` : "")
-        + (selectedBarberName ? `*Barber:* ${selectedBarberName}\n\n` : "")
-        + `*Customer Details:*\n`
-        + `- Name: ${customerDetails.name}\n`
-        + `- Phone: ${customerDetails.phone}\n`
-        + `- Email: ${customerDetails.email}\n`
-        + (customerDetails.notes ? `- Notes: ${customerDetails.notes}\n` : "");
+  const isFormValid = () => {
+    if (!props.customerDetails.name.trim()) {
+      showError(t('enter.name'));
+      return false;
     }
+    if (!props.customerDetails.phone.trim() || props.customerDetails.phone.length !== 10) {
+      showError(t('enter.valid.phone'));
+      return false;
+    }
+    if (!props.customerDetails.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(props.customerDetails.email)) {
+      showError(t('enter.valid.email'));
+      return false;
+    }
+    if (!props.selectedDate || !props.selectedTime) {
+      showError(t('select.date.time'));
+      return false;
+    }
+
+    if (!props.branch?.whatsapp_number || !isValidWhatsAppNumber(props.branch.whatsapp_number)) {
+      console.error('Invalid WhatsApp number:', props.branch?.whatsapp_number);
+      showError(t('whatsapp.missing'));
+      return false;
+    }
+
+    return true;
   };
 
-  // Open WhatsApp with formatted booking details
-  const openWhatsApp = () => {
+  const showError = (message: string) => {
+    toast({
+      title: t('booking.alert'),
+      description: message,
+      variant: "destructive"
+    });
+  };
+
+  const handleBookingRequest = () => {
+    if (!isFormValid()) return;
+    setIsConfirmDialogOpen(true);
+  };
+
+  const handleBookingConfirmation = async () => {
+    if (!props.branch?.whatsapp_number) {
+      showError(t('whatsapp.missing'));
+      return;
+    }
+
     try {
-      if (!branch?.whatsapp_number) {
-        toast({
-          title: language === "ar" ? "خطأ" : "Error",
-          description: language === "ar" ? "رقم الواتساب غير متوفر" : "WhatsApp number is missing",
-          variant: "destructive"
-        });
+      setIsLoading(true);
+      
+      try {
+        await saveBookingData(props);
+      } catch (error: any) {
+        // Handle database errors generically
+        console.error('Booking error:', error);
+        showError(props.language === 'ar' 
+          ? 'حدث خطأ أثناء حفظ الحجز. يرجى المحاولة مرة أخرى.'
+          : 'Error saving booking. Please try again.');
         return;
       }
 
-      // Prepare booking data
-      const bookingData: BookingFormData = {
-        selectedServices,
-        totalPrice,
-        selectedDate,
-        selectedTime,
-        selectedBarberName: undefined, // This should be replaced with actual barber name
-        customerDetails,
-        language,
-        branch
-      };
+      const formattedNumber = formatWhatsAppNumber(props.branch.whatsapp_number);
+      if (!formattedNumber) {
+        throw new Error('Invalid WhatsApp number format');
+      }
 
-      // Format the message
-      const message = formatBookingMessage(bookingData);
-
-      // Format WhatsApp number (remove + if present)
-      const whatsappNumber = branch.whatsapp_number.startsWith("+")
-        ? branch.whatsapp_number.substring(1)
-        : branch.whatsapp_number;
-
-      // Encode the message for URL
-      const encodedMessage = encodeURIComponent(message);
-
-      // Open WhatsApp link
-      window.open(`https://wa.me/${whatsappNumber}?text=${encodedMessage}`, "_blank");
-
+      const whatsappURL = `https://wa.me/${formattedNumber}?text=${generateWhatsAppMessage(props)}`;
+      openExternalLink(whatsappURL);
+      
+      setIsConfirmDialogOpen(false);
       toast({
-        title: language === "ar" ? "تم فتح الواتساب" : "WhatsApp Opened",
-        description:
-          language === "ar"
-            ? "تم فتح الواتساب لتأكيد حجزك"
-            : "WhatsApp opened to confirm your booking"
+        description: t('whatsapp.opened'),
       });
     } catch (error) {
-      console.error("Error opening WhatsApp:", error);
-      toast({
-        title: language === "ar" ? "خطأ" : "Error",
-        description:
-          language === "ar"
-            ? "حدث خطأ أثناء فتح الواتساب"
-            : "Error opening WhatsApp",
-        variant: "destructive"
-      });
+      console.error('Booking error:', error);
+      showError(props.language === 'ar' 
+        ? 'حدث خطأ أثناء حفظ الحجز. يرجى المحاولة مرة أخرى.'
+        : 'Error saving booking. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  return null; // This component doesn't render anything, it just provides the openWhatsApp function
+  return (
+    <div className="space-y-4">
+      <Button 
+        onClick={handleBookingRequest}
+        className="w-full h-14 text-lg font-medium bg-[#C4A36F] hover:bg-[#B39260] text-white transition-all duration-300 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+        disabled={isLoading}
+      >
+        {isLoading ? t('processing') : t('confirm.details')}
+      </Button>
+
+      <BookingConfirmDialog
+        isOpen={isConfirmDialogOpen}
+        onOpenChange={setIsConfirmDialogOpen}
+        onConfirm={handleBookingConfirmation}
+        isLoading={isLoading}
+        language={props.language}
+      />
+    </div>
+  );
 };

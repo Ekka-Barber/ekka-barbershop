@@ -1,118 +1,130 @@
 
+import { useLanguage } from "@/contexts/LanguageContext";
 import { useState, useEffect } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
 import { BarberCard } from "./barber/BarberCard";
 import { TimeSlotPicker } from "./barber/TimeSlotPicker";
 import { useTimeSlots } from "@/hooks/useTimeSlots";
-import { TimeSlot } from "@/types/booking";
-import { useLanguage } from "@/contexts/LanguageContext";
-import { useQuery } from "@tanstack/react-query";
-import { SelectedService } from "@/types/service";
+import { TimeSlot } from "@/utils/timeSlotUtils";
 
-export interface BarberSelectionProps {
-  selectedBarber: string | undefined;
-  onBarberSelect: (barber: string) => void;
-  employees: any[] | undefined;
-  isLoading: boolean;
-  selectedDate?: Date;
-  selectedTime: string | undefined;
-  onTimeSelect: (time: string) => void;
-  selectedServices?: SelectedService[];
+interface Employee {
+  id: string;
+  name: string;
+  name_ar: string | null;
+  role: string;
+  photo_url: string | null;
+  nationality: string | null;
+  working_hours?: Record<string, string[]>;
+  off_days?: string[];
 }
 
+interface BarberSelectionProps {
+  employees: Employee[] | undefined;
+  isLoading: boolean;
+  selectedBarber: string | undefined;
+  onBarberSelect: (barberId: string) => void;
+  selectedDate?: Date;
+  selectedTime?: string;
+  onTimeSelect: (time: string) => void;
+}
+
+const BarberSelectionSkeleton = () => {
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
+      {Array(4).fill(0).map((_, i) => (
+        <Skeleton key={i} className="h-[200px] w-full rounded-lg" />
+      ))}
+    </div>
+  );
+};
+
 export const BarberSelection = ({
-  selectedBarber,
-  onBarberSelect,
   employees,
   isLoading,
+  selectedBarber,
+  onBarberSelect,
   selectedDate,
   selectedTime,
-  onTimeSelect,
-  selectedServices = []
+  onTimeSelect
 }: BarberSelectionProps) => {
-  const { t, language } = useLanguage();
-  const [availableTimeSlots, setAvailableTimeSlots] = useState<TimeSlot[]>([]);
+  const { language } = useLanguage();
   const [showAllSlots, setShowAllSlots] = useState(false);
-  const timeSlotUtils = useTimeSlots();
-  
-  // Calculate total duration for all selected services
-  const serviceDuration = selectedServices.reduce(
-    (total, service) => total + service.duration,
-    0
+  const { getAvailableTimeSlots, isEmployeeAvailable } = useTimeSlots();
+  const [employeeTimeSlots, setEmployeeTimeSlots] = useState<TimeSlot[]>([]);
+
+  const updateTimeSlots = async () => {
+    if (selectedBarber && selectedDate) {
+      const selectedEmployee = employees?.find(emp => emp.id === selectedBarber);
+      if (selectedEmployee && isEmployeeAvailable(selectedEmployee, selectedDate)) {
+        const slots = await getAvailableTimeSlots(selectedEmployee, selectedDate);
+        setEmployeeTimeSlots(slots);
+      } else {
+        setEmployeeTimeSlots([]);
+      }
+    } else {
+      setEmployeeTimeSlots([]);
+    }
+  };
+
+  useEffect(() => {
+    updateTimeSlots();
+  }, [selectedBarber, selectedDate]);
+
+  if (isLoading) {
+    return <BarberSelectionSkeleton />;
+  }
+
+  const filteredEmployees = employees?.filter(
+    employee => employee.role === 'barber' || employee.role === 'manager'
   );
 
-  // Get the selected employee object
-  const selectedEmployeeObj = employees?.find(emp => emp.id === selectedBarber);
+  if (filteredEmployees?.length === 0) {
+    return (
+      <div className="text-center p-8">
+        <p className="text-gray-500">{language === 'ar' ? 'لا يوجد حلاقين متاحين' : 'No barbers available'}</p>
+      </div>
+    );
+  }
 
-  // Get available time slots for the selected employee on the selected date
-  const {
-    data: timeSlots,
-    isLoading: timeSlotsLoading
-  } = useQuery({
-    queryKey: ['timeSlots', selectedBarber, selectedDate?.toISOString(), serviceDuration],
-    queryFn: async () => {
-      if (!selectedEmployeeObj || !selectedDate) return [];
-      return timeSlotUtils.getAvailableTimeSlots(selectedEmployeeObj, selectedDate, serviceDuration);
-    },
-    enabled: !!selectedBarber && !!selectedDate && !!selectedEmployeeObj
-  });
-  
-  useEffect(() => {
-    if (timeSlots) {
-      setAvailableTimeSlots(timeSlots);
-    }
-  }, [timeSlots]);
-  
-  const handleToggleShowAll = () => {
-    setShowAllSlots(prev => !prev);
-  };
-  
-  return <div className="space-y-6">
-      <h2 className="text-xl font-semibold mb-4">{t('select.barber')}</h2>
-      
-      {isLoading ? <div className="animate-pulse space-y-4">
-          {[1, 2, 3].map(i => <div key={i} className="h-20 bg-gray-200 rounded"></div>)}
-        </div> : employees && employees.length > 0 ? <div className="space-y-4">
-          {employees.map(employee => <div key={employee.id} className="space-y-4">
-              <BarberCard 
-                id={employee.id} 
-                name={employee.name} 
-                name_ar={employee.name_ar} 
-                photo_url={employee.photo_url} 
-                nationality={employee.nationality} 
-                isAvailable={timeSlotUtils.isEmployeeAvailable(employee, selectedDate)} 
-                isSelected={selectedBarber === employee.id} 
-                onSelect={() => onBarberSelect(employee.id)} 
+  return (
+    <div className="space-y-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {filteredEmployees?.map((employee) => {
+          const isAvailable = isEmployeeAvailable(employee, selectedDate);
+          const isSelected = selectedBarber === employee.id;
+          
+          return (
+            <div key={employee.id} className="space-y-4">
+              <BarberCard
+                id={employee.id}
+                name={employee.name}
+                name_ar={employee.name_ar}
+                photo_url={employee.photo_url}
+                nationality={employee.nationality}
+                isAvailable={isAvailable}
+                isSelected={isSelected}
+                onSelect={() => {
+                  if (isAvailable) {
+                    onBarberSelect(employee.id);
+                    onTimeSelect('');
+                    setShowAllSlots(false);
+                  }
+                }}
               />
-              
-              {/* Show time slots directly under the selected barber */}
-              {selectedBarber === employee.id && selectedDate && (
-                <div className="pt-4 border-t border-gray-200 ml-4 pl-4 border-l">
-                  {timeSlotsLoading ? (
-                    <div className="animate-pulse">
-                      <div className="h-12 bg-gray-200 rounded mb-2"></div>
-                      <div className="flex flex-wrap gap-2">
-                        {[1, 2, 3, 4, 5, 6].map(i => <div key={i} className="h-10 w-20 bg-gray-200 rounded"></div>)}
-                      </div>
-                    </div>
-                  ) : availableTimeSlots.length > 0 ? (
-                    <TimeSlotPicker 
-                      timeSlots={availableTimeSlots} 
-                      selectedTime={selectedTime} 
-                      onTimeSelect={onTimeSelect} 
-                      showAllSlots={showAllSlots} 
-                      onToggleShowAll={handleToggleShowAll}
-                      selectedServices={selectedServices}
-                    />
-                  ) : (
-                    <div className="text-center py-6 text-gray-500 bg-gray-50 rounded-lg">
-                      {t('no.slots.available')}
-                    </div>
-                  )}
-                </div>
+
+              {isSelected && isAvailable && (
+                <TimeSlotPicker
+                  timeSlots={employeeTimeSlots}
+                  selectedTime={selectedTime}
+                  onTimeSelect={onTimeSelect}
+                  showAllSlots={showAllSlots}
+                  onToggleShowAll={() => setShowAllSlots(!showAllSlots)}
+                />
               )}
-            </div>)}
-        </div> : <div className="text-center py-8 text-gray-500">
-          {t('no.barbers.available')}
-        </div>}
-    </div>;
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
 };
