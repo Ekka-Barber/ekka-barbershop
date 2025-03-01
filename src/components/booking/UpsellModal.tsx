@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -11,7 +10,6 @@ import { convertToArabic } from "@/utils/arabicNumerals";
 import { CustomBadge } from "@/components/ui/custom-badge";
 import { motion, AnimatePresence } from "framer-motion";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-
 interface UpsellService {
   id: string;
   name_en: string;
@@ -21,24 +19,23 @@ interface UpsellService {
   discountPercentage: number;
   discountedPrice: number;
 }
-
 interface UpsellModalProps {
   isOpen: boolean;
   onClose: () => void;
   onConfirm: (selectedUpsells: UpsellService[]) => void;
   availableUpsells: UpsellService[];
 }
-
 export const UpsellModal = ({
   isOpen,
   onClose,
   onConfirm,
-  availableUpsells,
+  availableUpsells
 }: UpsellModalProps) => {
-  const { language } = useLanguage();
+  const {
+    language
+  } = useLanguage();
   const [selectedUpsells, setSelectedUpsells] = useState<UpsellService[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-
   const handleToggleUpsell = (upsell: UpsellService) => {
     setSelectedUpsells(prev => {
       const isSelected = prev.some(s => s.id === upsell.id);
@@ -49,7 +46,6 @@ export const UpsellModal = ({
       }
     });
   };
-
   const handleConfirm = () => {
     setIsLoading(true);
     // Simulate a small delay for the loading animation
@@ -59,25 +55,19 @@ export const UpsellModal = ({
       onClose();
     }, 600);
   };
-
   const formatPrice = (price: number) => {
     const roundedPrice = Math.round(price);
-    const formattedNumber = language === 'ar' 
-      ? convertToArabic(roundedPrice.toString())
-      : roundedPrice.toString();
-    
-    return (
-      <span className="inline-flex items-center gap-0.5" dir={language === 'ar' ? 'rtl' : 'ltr'}>
+    const formattedNumber = language === 'ar' ? convertToArabic(roundedPrice.toString()) : roundedPrice.toString();
+    return <span className="inline-flex items-center gap-0.5" dir={language === 'ar' ? 'rtl' : 'ltr'}>
         {formattedNumber}
         <RiyalIcon />
-      </span>
-    );
+      </span>;
   };
-
   const useGridLayout = availableUpsells.length > 3;
-
   const containerVariants = {
-    hidden: { opacity: 0 },
+    hidden: {
+      opacity: 0
+    },
     visible: {
       opacity: 1,
       transition: {
@@ -85,11 +75,13 @@ export const UpsellModal = ({
       }
     }
   };
-
   const itemVariants = {
-    hidden: { y: 20, opacity: 0 },
-    visible: { 
-      y: 0, 
+    hidden: {
+      y: 20,
+      opacity: 0
+    },
+    visible: {
+      y: 0,
       opacity: 1,
       transition: {
         type: "spring",
@@ -98,71 +90,46 @@ export const UpsellModal = ({
       }
     }
   };
-
-  return (
-    <Dialog open={isOpen} onOpenChange={() => onClose()}>
+  return <Dialog open={isOpen} onOpenChange={() => onClose()}>
       <DialogContent className="sm:max-w-[500px] flex flex-col h-[85vh] sm:h-auto max-h-[85vh] gap-0 p-0 rounded-xl overflow-hidden">
         <DialogHeader className="px-6 pt-6 pb-2 sticky top-0 bg-background z-10 border-b border-border/30">
           <DialogTitle className="text-center space-y-2">
             <div className="flex items-center justify-center gap-2 text-xl font-bold">
-              {language === 'ar' ? (
-                <>
+              {language === 'ar' ? <>
                   <Gift className="text-[#e7bd71] animate-pulse" />
                   <span>عروض حصرية لك</span>
                   <Gift className="text-[#e7bd71] animate-pulse" />
-                </>
-              ) : (
-                <>
+                </> : <>
                   <Gift className="text-[#e7bd71] animate-pulse" />
                   <span>Special Offers Available!</span>
                   <Gift className="text-[#e7bd71] animate-pulse" />
-                </>
-              )}
+                </>}
             </div>
-            {language === 'ar' && (
-              <div className="flex items-center justify-center gap-2 text-base font-bold">
+            {language === 'ar' && <div className="flex items-center justify-center gap-2 text-base font-bold">
                 <span className="text-[#e7bd71]">🔥</span>
                 <span>اجعل تجربتك أفضل بأقل سعر</span>
                 <span className="text-[#e7bd71]">🔥</span>
-              </div>
-            )}
+              </div>}
           </DialogTitle>
         </DialogHeader>
 
         <div className="px-6 py-2">
           <p className="text-center text-muted-foreground text-sm">
-            {language === 'ar'
-              ? 'اختر من الخدمات الإضافية التالية ما تحب بسعر مخفض'
-              : 'Select from the following additional services at discounted prices'}
+            {language === 'ar' ? 'اختر من الخدمات الإضافية التالية ما تحب بسعر مخفض' : 'Select from the following additional services at discounted prices'}
           </p>
         </div>
 
         <div className="flex-1 overflow-hidden flex flex-col">
           <ScrollArea className="flex-1">
             <div className="h-full flex items-center justify-center px-6 py-4 min-h-[200px]">
-              <motion.div 
-                variants={containerVariants}
-                initial="hidden"
-                animate="visible"
-                className={`${useGridLayout ? 'grid grid-cols-2 gap-3 w-full max-w-[450px]' : 'flex flex-col gap-3 w-full max-w-[400px]'}`}
-                dir={language === 'ar' ? 'rtl' : 'ltr'}
-              >
+              <motion.div variants={containerVariants} initial="hidden" animate="visible" className={`${useGridLayout ? 'grid grid-cols-2 gap-3 w-full max-w-[450px]' : 'flex flex-col gap-3 w-full max-w-[400px]'}`} dir={language === 'ar' ? 'rtl' : 'ltr'}>
                 {availableUpsells.map((upsell, index) => {
-                  const isSelected = selectedUpsells.some(s => s.id === upsell.id);
-
-                  return (
-                    <motion.div
-                      key={upsell.id}
-                      variants={itemVariants}
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      className={`p-3 border rounded-lg cursor-pointer transition-all relative overflow-hidden ${
-                        isSelected 
-                          ? 'border-[#e7bd71] bg-[#e7bd71]/5 shadow-md' 
-                          : 'hover:border-[#e7bd71]/50 hover:shadow-sm'
-                      }`}
-                      onClick={() => handleToggleUpsell(upsell)}
-                    >
+                const isSelected = selectedUpsells.some(s => s.id === upsell.id);
+                return <motion.div key={upsell.id} variants={itemVariants} whileHover={{
+                  scale: 1.02
+                }} whileTap={{
+                  scale: 0.98
+                }} className={`p-3 border rounded-lg cursor-pointer transition-all relative overflow-hidden ${isSelected ? 'border-[#e7bd71] bg-[#e7bd71]/5 shadow-md' : 'hover:border-[#e7bd71]/50 hover:shadow-sm'}`} onClick={() => handleToggleUpsell(upsell)}>
                       <div className="flex flex-col gap-1.5 relative">
                         <div>
                           <h3 className={`font-medium ${useGridLayout ? 'text-sm' : 'text-base'} line-clamp-2`}>
@@ -179,11 +146,11 @@ export const UpsellModal = ({
                               <Slash className="w-3.5 h-3.5 text-destructive absolute -translate-y-[2px]" />
                               <span className="text-sm text-muted-foreground line-through">{formatPrice(upsell.price)}</span>
                             </span>
-                            <motion.span 
-                              className="text-sm font-medium"
-                              animate={isSelected ? { scale: [1, 1.1, 1] } : {}}
-                              transition={{ duration: 0.3 }}
-                            >
+                            <motion.span className="text-sm font-medium" animate={isSelected ? {
+                          scale: [1, 1.1, 1]
+                        } : {}} transition={{
+                          duration: 0.3
+                        }}>
                               {formatPrice(upsell.discountedPrice)}
                             </motion.span>
                           </div>
@@ -195,54 +162,45 @@ export const UpsellModal = ({
                         </div>
                         
                         <AnimatePresence>
-                          {isSelected && (
-                            <motion.div 
-                              className="absolute -top-1 -right-1"
-                              initial={{ scale: 0, opacity: 0 }}
-                              animate={{ scale: 1, opacity: 1 }}
-                              exit={{ scale: 0, opacity: 0 }}
-                              transition={{ duration: 0.2 }}
-                            >
-                              <div className="bg-[#e7bd71] rounded-full p-1">
+                          {isSelected && <motion.div className="absolute -top-1 -right-1" initial={{
+                        scale: 0,
+                        opacity: 0
+                      }} animate={{
+                        scale: 1,
+                        opacity: 1
+                      }} exit={{
+                        scale: 0,
+                        opacity: 0
+                      }} transition={{
+                        duration: 0.2
+                      }}>
+                              <div className="bg-[#e7bd71] rounded-full p-1 px-[4px]">
                                 <CheckCircle2 className="h-4 w-4 text-white" />
                               </div>
-                            </motion.div>
-                          )}
+                            </motion.div>}
                         </AnimatePresence>
                       </div>
-                    </motion.div>
-                  );
-                })}
+                    </motion.div>;
+              })}
               </motion.div>
             </div>
           </ScrollArea>
 
           <div className="flex flex-col gap-3 p-5 border-t bg-background/95 backdrop-blur-sm">
-            <Button
-              className="bg-[#e7bd71] hover:bg-[#c4a36f] h-11 text-base font-medium shadow-sm group"
-              onClick={handleConfirm}
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <span className="flex items-center gap-2">
+            <Button className="bg-[#e7bd71] hover:bg-[#c4a36f] h-11 text-base font-medium shadow-sm group" onClick={handleConfirm} disabled={isLoading}>
+              {isLoading ? <span className="flex items-center gap-2">
                   <span className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                   {language === 'ar' ? 'جاري التأكيد...' : 'Confirming...'}
-                </span>
-              ) : (
-                <span className="flex items-center gap-2">
+                </span> : <span className="flex items-center gap-2">
                   {language === 'ar' ? 'تأكيد' : 'Confirm'}
                   <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-                </span>
-              )}
+                </span>}
             </Button>
             
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <button
-                    onClick={onClose}
-                    className="text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center justify-center gap-1.5"
-                  >
+                  <button onClick={onClose} className="text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center justify-center gap-1.5">
                     <X className="h-3.5 w-3.5" />
                     {language === 'ar' ? 'تخطي' : 'Skip'}
                   </button>
@@ -255,6 +213,5 @@ export const UpsellModal = ({
           </div>
         </div>
       </DialogContent>
-    </Dialog>
-  );
+    </Dialog>;
 };
