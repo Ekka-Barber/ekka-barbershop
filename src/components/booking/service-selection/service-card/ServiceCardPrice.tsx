@@ -57,7 +57,7 @@ export const ServiceCardPrice = ({
               price={calculatedFinalPrice}
               language={language as 'en' | 'ar'}
               size={size}
-              className="text-emerald-600"
+              className="text-black" // Changed from text-emerald-600 to text-black
             />
           </motion.div>
           <motion.div
