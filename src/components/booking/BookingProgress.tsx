@@ -1,4 +1,5 @@
 
+import React, { useMemo } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Check, CalendarDays, Clock, User, ClipboardList } from "lucide-react";
@@ -12,7 +13,7 @@ interface BookingProgressProps {
   currentStepIndex: number;
 }
 
-export const BookingProgress = ({ 
+export const BookingProgress = React.memo(({ 
   currentStep, 
   steps, 
   onStepClick, 
@@ -20,7 +21,11 @@ export const BookingProgress = ({
 }: BookingProgressProps) => {
   const { t } = useLanguage();
   const isMobile = useIsMobile();
-  const progress = ((currentStepIndex + 1) / steps.length) * 100;
+  
+  const progress = useMemo(() => 
+    ((currentStepIndex + 1) / steps.length) * 100,
+    [currentStepIndex, steps.length]
+  );
 
   const getStepIcon = (step: BookingStep) => {
     switch(step) {
@@ -80,4 +85,6 @@ export const BookingProgress = ({
       </div>
     </div>
   );
-};
+});
+
+BookingProgress.displayName = 'BookingProgress';

@@ -2,6 +2,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from "@/integrations/supabase/client";
 import { SelectedService } from '@/types/service';
+import { useMemo } from 'react';
 
 export interface UpsellService {
   id: string;
@@ -11,22 +12,21 @@ export interface UpsellService {
   duration: number;
   discountPercentage: number;
   discountedPrice: number;
-  mainServiceId: string; // Add this to track the main service
+  mainServiceId: string;
 }
 
 export const useBookingUpsells = (selectedServices: SelectedService[], language: 'en' | 'ar') => {
+  // Get only the IDs for the query key to prevent unnecessary refetches
+  const selectedServiceIds = useMemo(() => 
+    selectedServices.filter(s => !s.isUpsellItem).map(s => s.id),
+    [selectedServices]
+  );
+
   return useQuery({
-    queryKey: ['upsells', selectedServices.map(s => s.id)],
+    queryKey: ['upsells', selectedServiceIds],
     queryFn: async () => {
-      if (selectedServices.length === 0) return [];
+      if (selectedServiceIds.length === 0) return [];
       
-      // Only get upsells for main services (non-upsell items)
-      const mainServiceIds = selectedServices
-        .filter(s => !s.isUpsellItem)
-        .map(s => s.id);
-
-      if (mainServiceIds.length === 0) return [];
-
       const { data, error } = await supabase
         .from('service_upsells')
         .select(`
@@ -41,7 +41,7 @@ export const useBookingUpsells = (selectedServices: SelectedService[], language:
             duration
           )
         `)
-        .in('main_service_id', mainServiceIds);
+        .in('main_service_id', selectedServiceIds);
 
       if (error) throw error;
 
@@ -62,13 +62,14 @@ export const useBookingUpsells = (selectedServices: SelectedService[], language:
             duration: upsell.upsell.duration,
             discountPercentage: upsell.discount_percentage,
             discountedPrice: discountedPrice,
-            mainServiceId: upsell.main_service_id // Store the main service ID
+            mainServiceId: upsell.main_service_id
           });
         }
       });
 
       return Array.from(upsellMap.values());
     },
-    enabled: selectedServices.length > 0
+    enabled: selectedServiceIds.length > 0,
+    staleTime: 5 * 60 * 1000, // 5 minutes cache
   });
 };

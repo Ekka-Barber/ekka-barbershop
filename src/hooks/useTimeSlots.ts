@@ -3,12 +3,13 @@ import { format, parse, isToday, isBefore, addMinutes, isAfter, addDays } from "
 import { supabase } from "@/integrations/supabase/client";
 import { TimeSlot, UnavailableSlot, convertTimeToMinutes, sortTimeSlots } from "@/utils/timeSlotUtils";
 import { isSlotAvailable, isEmployeeAvailable } from "@/utils/slotAvailability";
+import { useCallback } from "react";
 
 export const useTimeSlots = () => {
   /**
    * Generates time slots for a specific date and employee
    */
-  const generateTimeSlots = async (
+  const generateTimeSlots = useCallback(async (
     workingHoursRanges: string[] = [],
     selectedDate?: Date,
     employeeId?: string,
@@ -104,12 +105,12 @@ export const useTimeSlots = () => {
     }
 
     return sortTimeSlots(slots);
-  };
+  }, []);
 
   /**
    * Gets available time slots for a specific employee and date
    */
-  const getAvailableTimeSlots = async (
+  const getAvailableTimeSlots = useCallback(async (
     employee: any,
     selectedDate: Date | undefined,
     serviceDuration: number = 30
@@ -124,7 +125,7 @@ export const useTimeSlots = () => {
     }
     
     return generateTimeSlots(workingHours, selectedDate, employee.id, serviceDuration);
-  };
+  }, [generateTimeSlots]);
 
   return {
     getAvailableTimeSlots,
