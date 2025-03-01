@@ -139,7 +139,7 @@ export const UpsellModal = ({
                   scale: 1.02
                 }} whileTap={{
                   scale: 0.98
-                }} className={`p-3 border rounded-lg cursor-pointer transition-all relative ${isSelected ? 'border-[#e7bd71] bg-[#F2FCE2]/30 shadow-md ring-2 ring-[#b4d98b]/50' : 'hover:border-[#e7bd71]/50 hover:shadow-sm'}`} onClick={() => handleToggleUpsell(upsell)}>
+                }} className={`p-3 border rounded-lg cursor-pointer transition-all relative ${isSelected ? 'border-[#b4d98b] bg-[#F2FCE2]/30 shadow-md ring-2 ring-[#b4d98b]' : 'hover:border-[#e7bd71]/50 hover:shadow-sm'}`} onClick={() => handleToggleUpsell(upsell)}>
                     <AnimatePresence>
                       {isSelected && <motion.div 
                         className="absolute top-1 right-1" 
