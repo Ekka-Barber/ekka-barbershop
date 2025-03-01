@@ -1,9 +1,11 @@
 
 import { useLanguage } from "@/contexts/LanguageContext";
 import { format } from "date-fns";
-import { Slash, X, Tag } from "lucide-react";
+import { Slash, X, Tag, Timer, Calendar, User } from "lucide-react";
 import { SelectedService } from "@/types/service";
 import { PriceDisplay } from "@/components/ui/price-display";
+import { motion, AnimatePresence } from "framer-motion";
+import { cn } from "@/lib/utils";
 
 interface BookingSummaryProps {
   selectedServices: SelectedService[];
@@ -42,84 +44,127 @@ export const BookingSummary = ({
     return duration >= 5 && duration <= 10 ? 'دقائق' : 'دقيقة';
   };
 
-  return (
-    <div className="rounded-lg border p-4 space-y-3">
-      <h3 className="font-medium">{language === 'ar' ? 'ملخص الحجز' : t('booking.summary')}</h3>
-      
-      <div className="space-y-2 text-sm">
-        {selectedServices.length > 0 ? (
-          <div className="space-y-2">
-            {selectedServices.map((service) => (
-              <div key={service.id} className="flex justify-between items-center">
-                <div className="flex items-center gap-2">
-                  <span>{language === 'ar' ? service.name_ar : service.name_en}</span>
-                  {onRemoveService && service.isUpsellItem && (
-                    <button
-                      onClick={() => onRemoveService(service.id)}
-                      className="p-1 hover:bg-gray-100 rounded-full transition-colors"
-                      aria-label="Remove service"
-                    >
-                      <X className="w-4 h-4 text-gray-500" />
-                    </button>
-                  )}
-                </div>
-                <div className="flex items-center gap-2">
-                  {service.originalPrice && service.originalPrice > service.price && (
-                    <div className="flex items-center gap-1">
-                      <PriceDisplay 
-                        price={service.originalPrice} 
-                        language={language as 'en' | 'ar'} 
-                        size="sm"
-                        className="text-muted-foreground relative"
-                      />
-                      <div className="flex items-center gap-1">
-                        <Tag className="w-4 h-4 text-destructive" />
-                        {service.discountPercentage && (
-                          <span className="text-xs text-destructive">-{service.discountPercentage}%</span>
-                        )}
-                      </div>
-                    </div>
-                  )}
-                  <PriceDisplay 
-                    price={service.price} 
-                    language={language as 'en' | 'ar'} 
-                    size="sm"
-                  />
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="text-muted-foreground text-center py-2">
-            {language === 'ar' ? 'لم يتم اختيار أي خدمات' : 'No services selected'}
+  const serviceItem = (service: SelectedService) => (
+    <motion.div 
+      key={service.id} 
+      className="flex justify-between items-center py-2 group"
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, x: -20 }}
+      transition={{ duration: 0.2 }}
+    >
+      <div className="flex items-center gap-2">
+        <span>{language === 'ar' ? service.name_ar : service.name_en}</span>
+        {onRemoveService && service.isUpsellItem && (
+          <motion.button
+            onClick={() => onRemoveService(service.id)}
+            className="p-1 hover:bg-gray-100 rounded-full transition-colors opacity-0 group-hover:opacity-100"
+            aria-label="Remove service"
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+          >
+            <X className="w-4 h-4 text-red-500" />
+          </motion.button>
+        )}
+      </div>
+      <div className="flex items-center gap-2">
+        {service.originalPrice && service.originalPrice > service.price && (
+          <div className="flex items-center gap-1">
+            <PriceDisplay 
+              price={service.originalPrice} 
+              language={language as 'en' | 'ar'} 
+              size="sm"
+              className="text-muted-foreground relative"
+            />
+            <div className="flex items-center gap-1">
+              <Tag className="w-4 h-4 text-destructive" />
+              {service.discountPercentage && (
+                <span className="text-xs text-destructive">-{service.discountPercentage}%</span>
+              )}
+            </div>
           </div>
         )}
+        <PriceDisplay 
+          price={service.price} 
+          language={language as 'en' | 'ar'} 
+          size="sm"
+        />
+      </div>
+    </motion.div>
+  );
+
+  return (
+    <motion.div 
+      className="rounded-lg border p-4 space-y-3"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.3 }}
+    >
+      <h3 className="font-medium">{language === 'ar' ? 'ملخص الحجز' : t('booking.summary')}</h3>
+      
+      <div className="space-y-2 text-sm divide-y">
+        <div className="pb-2">
+          <AnimatePresence>
+            {selectedServices.length > 0 ? (
+              selectedServices.map(service => serviceItem(service))
+            ) : (
+              <motion.div 
+                className="text-muted-foreground text-center py-2"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+              >
+                {language === 'ar' ? 'لم يتم اختيار أي خدمات' : 'No services selected'}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
 
         {totalDuration > 0 && (
-          <div className="pt-2 flex justify-between text-muted-foreground">
-            <span>{language === 'ar' ? 'المدة الإجمالية' : t('total.duration')}</span>
-            <span>{totalDuration} {language === 'ar' 
-              ? getArabicTimeUnit(totalDuration)
-              : t('minutes')}</span>
+          <div className="pt-2 flex justify-between text-muted-foreground items-center">
+            <span className="flex items-center gap-2">
+              <Timer className="w-4 h-4" />
+              {language === 'ar' ? 'المدة الإجمالية' : t('total.duration')}
+            </span>
+            <motion.span
+              key={totalDuration}
+              initial={{ scale: 1.1 }}
+              animate={{ scale: 1 }}
+              transition={{ duration: 0.2 }}
+            >
+              {totalDuration} {language === 'ar' 
+                ? getArabicTimeUnit(totalDuration)
+                : t('minutes')}
+            </motion.span>
           </div>
         )}
         
         {selectedDate && selectedTime && (
-          <div className="pt-2 flex justify-between text-muted-foreground">
-            <span>{language === 'ar' ? 'التاريخ والوقت' : t('date.time')}</span>
+          <div className="pt-2 flex justify-between text-muted-foreground items-center">
+            <span className="flex items-center gap-2">
+              <Calendar className="w-4 h-4" />
+              {language === 'ar' ? 'التاريخ والوقت' : t('date.time')}
+            </span>
             <span>{format(selectedDate, 'dd/MM/yyyy')} - {selectedTime}</span>
           </div>
         )}
 
         {selectedBarberName && (
-          <div className="pt-2 flex justify-between text-muted-foreground">
-            <span>{language === 'ar' ? 'الحلاق' : t('barber')}</span>
+          <div className="pt-2 flex justify-between text-muted-foreground items-center">
+            <span className="flex items-center gap-2">
+              <User className="w-4 h-4" />
+              {language === 'ar' ? 'الحلاق' : t('barber')}
+            </span>
             <span>{selectedBarberName}</span>
           </div>
         )}
 
         {totalDiscount > 0 && (
-          <div className="pt-2 flex justify-between text-destructive items-center">
+          <motion.div 
+            className="pt-2 flex justify-between text-destructive items-center"
+            initial={{ backgroundColor: "rgba(254, 226, 226, 0.3)" }}
+            animate={{ backgroundColor: "transparent" }}
+            transition={{ duration: 1 }}
+          >
             <div className="flex items-center gap-2">
               <Tag className="w-4 h-4" />
               <span>{language === 'ar' ? 'الخصم' : t('discount')}</span>
@@ -130,18 +175,25 @@ export const BookingSummary = ({
               size="sm"
               className="text-destructive"
             />
-          </div>
+          </motion.div>
         )}
         
-        <div className="border-t pt-2 font-medium flex justify-between">
+        <div className="border-t pt-3 font-medium flex justify-between">
           <span>{language === 'ar' ? 'المجموع' : t('total')}</span>
-          <PriceDisplay 
-            price={totalPrice} 
-            language={language as 'en' | 'ar'}
-            size="base"
-          />
+          <motion.div
+            key={totalPrice}
+            initial={{ scale: 1.1 }}
+            animate={{ scale: 1 }}
+            transition={{ duration: 0.2 }}
+          >
+            <PriceDisplay 
+              price={totalPrice} 
+              language={language as 'en' | 'ar'}
+              size="base"
+            />
+          </motion.div>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 };
