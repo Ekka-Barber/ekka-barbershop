@@ -1,80 +1,44 @@
-
-import { lazy, Suspense } from "react";
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
-import { LanguageProvider } from "@/contexts/LanguageContext";
-import Customer from "./pages/Customer";
-import Menu from "./pages/Menu";
+import {
+  createBrowserRouter,
+  RouterProvider,
+  Route,
+  createRoutesFromElements,
+  Routes,
+} from "react-router-dom";
+import Root from "./pages/Root";
+import Home from "./pages/Home";
+import Services from "./pages/Services";
 import Offers from "./pages/Offers";
-import Bookings from "./pages/Bookings";
+import About from "./pages/About";
+import Contact from "./pages/Contact";
+import Booking from "./pages/Booking";
+import CustomerDetails from "./pages/CustomerDetails";
+import Confirmation from "./pages/Confirmation";
+import NotFound from "./pages/NotFound";
+import "./App.css";
+import { LanguageProvider } from "./contexts/LanguageContext";
+import Admin from './pages/Admin';
 
-// Lazy load Admin component
-const Admin = lazy(() => import("./pages/Admin"));
-
-const queryClient = new QueryClient();
-
-// Protected route component
-const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const location = useLocation();
-  const searchParams = new URLSearchParams(location.search);
-  const access = searchParams.get('access');
-
-  if (access !== 'owner123') {
-    return <Navigate to="/customer" replace />;
-  }
-
-  return <>{children}</>;
-};
-
-// Main App Component
-const AppRoutes = () => {
+function App() {
   return (
-    <Routes>
-      {/* Redirect root to customer page */}
-      <Route path="/" element={<Navigate to="/customer" replace />} />
-      
-      {/* Public routes */}
-      <Route path="/customer" element={<Customer />} />
-      <Route path="/menu" element={<Menu />} />
-      <Route path="/offers" element={<Offers />} />
-      <Route path="/bookings" element={<Bookings />} />
-      
-      {/* Protected routes */}
-      <Route 
-        path="/admin" 
-        element={
-          <ProtectedRoute>
-            <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
-              <Admin />
-            </Suspense>
-          </ProtectedRoute>
-        } 
-      />
-      
-      {/* Catch all other routes and redirect to customer page */}
-      <Route path="*" element={<Navigate to="/customer" replace />} />
-    </Routes>
+    <LanguageProvider>
+      <Routes>
+        <Route path="/" element={<Root />}>
+          <Route index element={<Home />} />
+          <Route path="/services" element={<Services />} />
+          <Route path="/offers" element={<Offers />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/contact" element={<Contact />} />
+        </Route>
+        <Route path="/booking" element={<Booking />} />
+        <Route path="/customer-details" element={<CustomerDetails />} />
+        <Route path="/confirmation" element={<Confirmation />} />
+        <Route path="*" element={<NotFound />} />
+        <Route path="/admin" element={<Admin />} />
+        <Route path="/admin/:page" element={<Admin />} />
+      </Routes>
+    </LanguageProvider>
   );
-};
-
-// Root App Component with all necessary providers
-const App = () => {
-  return (
-    <QueryClientProvider client={queryClient}>
-      <LanguageProvider>
-        <TooltipProvider>
-          <BrowserRouter>
-            <AppRoutes />
-            <Toaster />
-            <Sonner />
-          </BrowserRouter>
-        </TooltipProvider>
-      </LanguageProvider>
-    </QueryClientProvider>
-  );
-};
+}
 
 export default App;
