@@ -46,19 +46,20 @@ export const PriceDisplay = ({
         "flex items-center gap-1.5",
         isRTL ? "flex-row-reverse" : "flex-row",
         sizeClasses[size],
+        "text-black", // Changed to black text color
         className
       )}
     >
-      <RiyalIcon className={cn(iconClasses, "text-emerald-600")} />
+      <RiyalIcon className={cn(iconClasses, "text-black")} /> {/* Changed icon to black */}
       <span>{formatNumber(price)}</span>
       {showDiscount && originalPrice && originalPrice > price && (
         <span className={cn(
-          "text-muted-foreground line-through text-sm",
+          "text-red-500 line-through text-sm", // Changed to red color
           isRTL ? "mr-3" : "ml-3",
           "flex items-center gap-1",
           isRTL ? "flex-row-reverse" : "flex-row"
         )}>
-          <RiyalIcon className="w-3.5 h-3.5 opacity-70" />
+          <RiyalIcon className="w-3.5 h-3.5 opacity-70 text-red-500" /> {/* Matching icon to red */}
           <span>{formatNumber(originalPrice)}</span>
         </span>
       )}
