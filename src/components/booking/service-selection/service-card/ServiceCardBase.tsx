@@ -1,10 +1,10 @@
 
 import * as React from "react";
 import { cn } from "@/lib/utils";
-import { motion } from "framer-motion";
+import { motion, HTMLMotionProps } from "framer-motion";
 import { Tag } from "lucide-react";
 
-interface ServiceCardBaseProps extends React.HTMLAttributes<HTMLDivElement> {
+interface ServiceCardBaseProps extends Omit<HTMLMotionProps<"div">, "isSelected" | "isSelecting" | "hasDiscount" | "discountPercentage"> {
   isSelected: boolean;
   isSelecting?: boolean;
   hasDiscount?: boolean;
