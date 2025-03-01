@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { BookingFormData } from "../types/booking";
 import { Json } from "@/integrations/supabase/types";
 import { updateCampaignConversion } from "@/utils/campaignTracking";
+import { convertToArabic } from "@/utils/arabicNumerals";
 
 export const saveBookingData = async (formData: BookingFormData) => {
   const { selectedDate, selectedTime, selectedServices, totalPrice, customerDetails, branch } = formData;
@@ -46,39 +47,47 @@ export const saveBookingData = async (formData: BookingFormData) => {
 
 // Creates the raw message text (not encoded)
 export const createWhatsAppMessage = (formData: BookingFormData) => {
-  const { selectedServices, totalPrice, selectedDate, selectedTime, selectedBarberName, customerDetails, language } = formData;
+  const { selectedServices, totalPrice, selectedDate, selectedTime, selectedBarberName, customerDetails } = formData;
 
   const formatPrice = (price: number) => {
     const roundedPrice = Math.round(price);
-    return `${roundedPrice} ${language === 'ar' ? 'ريال' : 'SAR'}`;
+    return `${convertToArabic(roundedPrice.toString())} ريال`;
   };
 
   // Format services as bullet points
   const serviceSummary = selectedServices
-    .map(service => `• ${language === 'ar' ? service.name_ar : service.name_en}: ${formatPrice(service.price)}${service.originalPrice ? ` (${language === 'ar' ? 'السعر الأصلي' : 'Original price'}: ${formatPrice(service.originalPrice)})` : ''}`)
+    .map(service => `• ${service.name_ar || service.name_en}: ${formatPrice(service.price)}${service.originalPrice ? ` (السعر الأصلي: ${formatPrice(service.originalPrice)})` : ''}`)
     .join('\n');
 
   const totalOriginalPrice = selectedServices.reduce((sum, service) => sum + (service.originalPrice || service.price), 0);
   const totalDiscount = totalOriginalPrice - totalPrice;
 
+  const formatDate = (date: Date) => {
+    // Format date in Arabic style (day/month/year)
+    const day = date.getDate();
+    const month = date.getMonth() + 1;
+    const year = date.getFullYear();
+    return convertToArabic(`${day < 10 ? '0' + day : day}/${month < 10 ? '0' + month : month}/${year}`);
+  };
+
   const message = `
-✨ ${language === 'ar' ? 'طلب حجز جديد' : 'New Booking Request'}
+✨ طلب حجز جديد
 
-👤 ${language === 'ar' ? 'معلومات العميل:' : 'Customer Information:'}
-${language === 'ar' ? 'الاسم' : 'Name'}: ${customerDetails.name}
-${language === 'ar' ? 'رقم الجوال' : 'Phone'}: ${customerDetails.phone}
-${language === 'ar' ? 'البريد الإلكتروني' : 'Email'}: ${customerDetails.email}
-${customerDetails.notes ? `${language === 'ar' ? 'ملاحظات' : 'Notes'}: ${customerDetails.notes}` : ''}
+👤 معلومات العميل:
+• الاسم: ${customerDetails.name}
+• رقم الجوال: ${customerDetails.phone}
+• البريد الإلكتروني: ${customerDetails.email}
+${customerDetails.notes ? `• ملاحظات: ${customerDetails.notes}` : ''}
 
-✂️ ${language === 'ar' ? 'تفاصيل الحجز:' : 'Booking Details:'}
+✂️ تفاصيل الحجز:
 ${serviceSummary}
 
-⏰ ${language === 'ar' ? 'المدة الإجمالية' : 'Total Duration'}: ${selectedServices.reduce((sum, service) => sum + service.duration, 0)} ${language === 'ar' ? 'دقيقة' : 'minutes'}
-${selectedDate && selectedTime ? `📅 ${language === 'ar' ? 'التاريخ والوقت' : 'Date & Time'}: ${format(selectedDate, 'dd/MM/yyyy')} - ${selectedTime}` : ''}
-${selectedBarberName ? `💈 ${language === 'ar' ? 'الحلاق' : 'Barber'}: ${selectedBarberName}` : ''}
-${totalDiscount > 0 ? `💰 ${language === 'ar' ? 'الخصم' : 'Discount'}: ${formatPrice(totalDiscount)}` : ''}
+⏰ المدة الإجمالية: ${convertToArabic(selectedServices.reduce((sum, service) => sum + service.duration, 0).toString())} دقيقة
+${selectedDate && selectedTime ? `📅 التاريخ والوقت: ${formatDate(selectedDate)} - ${selectedTime}` : ''}
+${selectedBarberName ? `💈 الحلاق: ${selectedBarberName}` : ''}
+${totalDiscount > 0 ? `💰 الخصم: ${formatPrice(totalDiscount)}` : ''}
 
-💵 ${language === 'ar' ? 'المبلغ الإجمالي' : 'Total Amount'}: ${formatPrice(totalPrice)}
+💵 المبلغ الإجمالي: ${formatPrice(totalPrice)}
   `.trim();
 
   return message;

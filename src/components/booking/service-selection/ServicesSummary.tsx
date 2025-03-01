@@ -2,6 +2,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { MetricsGroup } from "./summary/MetricsGroup";
 import { ActionButton } from "./summary/ActionButton";
+import { useMemo } from "react";
 
 interface ServicesSummaryProps {
   selectedServices: Array<{
@@ -27,7 +28,10 @@ export const ServicesSummary = ({
   onPrevStep,
   isFirstStep
 }: ServicesSummaryProps) => {
-  if (selectedServices.length === 0) return null;
+  // Use memoization to prevent unnecessary recalculations
+  const shouldDisplay = useMemo(() => selectedServices.length > 0, [selectedServices.length]);
+  
+  if (!shouldDisplay) return null;
 
   return (
     <AnimatePresence>
