@@ -38,7 +38,7 @@ export const ServiceCardBase = ({
       )}
     >
       {hasDiscount && discountPercentage && (
-        <div className="absolute -top-2 -right-2 z-10">
+        <div className="absolute -top-2 left-2 z-10">
           <CustomBadge variant="discount" className="rounded-full shadow-sm animate-pulse-once">
             -{Math.round(discountPercentage)}%
           </CustomBadge>
@@ -62,3 +62,4 @@ export const ServiceCardBase = ({
     </motion.div>
   );
 };
+
