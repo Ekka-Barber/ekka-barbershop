@@ -10,6 +10,7 @@ import { transformWorkingHours } from "@/utils/workingHoursUtils";
 import { StepRenderer } from "./steps/StepRenderer";
 import { ServicesSummary } from "./service-selection/ServicesSummary";
 import { useNavigate } from "react-router-dom";
+import { useToast } from "@/hooks/use-toast";
 
 const STEPS: BookingStep[] = ['services', 'datetime', 'barber', 'details'];
 
@@ -20,6 +21,7 @@ interface BookingStepsProps {
 export const BookingSteps = ({ branch }: BookingStepsProps) => {
   const navigate = useNavigate();
   const { language } = useLanguage();
+  const { toast } = useToast();
   const [showUpsellModal, setShowUpsellModal] = useState(false);
   const [pendingStep, setPendingStep] = useState<BookingStep | null>(null);
   const {
@@ -56,10 +58,54 @@ export const BookingSteps = ({ branch }: BookingStepsProps) => {
     }
   };
 
+  const validateStep = (): boolean => {
+    if (currentStep === 'services') {
+      return selectedServices.length > 0;
+    }
+    
+    if (currentStep === 'datetime') {
+      if (!selectedDate) {
+        toast({
+          title: language === 'ar' ? 'يرجى اختيار تاريخ' : 'Please select a date',
+          description: language === 'ar' ? 'يجب عليك اختيار تاريخ للمتابعة' : 'You must select a date to continue',
+          variant: "destructive"
+        });
+        return false;
+      }
+      return true;
+    }
+    
+    if (currentStep === 'barber') {
+      if (!selectedBarber) {
+        toast({
+          title: language === 'ar' ? 'يرجى اختيار حلاق' : 'Please select a barber',
+          description: language === 'ar' ? 'يجب عليك اختيار حلاق للمتابعة' : 'You must select a barber to continue',
+          variant: "destructive"
+        });
+        return false;
+      }
+      
+      if (!selectedTime) {
+        toast({
+          title: language === 'ar' ? 'يرجى اختيار وقت' : 'Please select a time',
+          description: language === 'ar' ? 'يجب عليك اختيار وقت للمتابعة' : 'You must select a time slot to continue',
+          variant: "destructive"
+        });
+        return false;
+      }
+      
+      return true;
+    }
+    
+    return true;
+  };
+
   const handleNextStep = () => {
     const currentIndex = STEPS.indexOf(currentStep);
     if (currentIndex < STEPS.length - 1) {
-      handleStepChange(STEPS[currentIndex + 1]);
+      if (validateStep()) {
+        handleStepChange(STEPS[currentIndex + 1]);
+      }
     }
   };
 

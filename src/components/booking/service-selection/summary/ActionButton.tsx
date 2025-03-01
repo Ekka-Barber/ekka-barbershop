@@ -33,7 +33,7 @@ export const ActionButton = ({
       className={cn(
         "rounded-full w-9 h-9 p-0 flex items-center justify-center",
         "bg-[#e7bd71] hover:bg-[#d4ad65]", // Same golden color for both buttons
-        "transition-all duration-300 group"
+        isDisabled ? "opacity-50 cursor-not-allowed" : "transition-all duration-300 group"
       )}
       onClick={onClick}
       disabled={isDisabled}
