@@ -2,7 +2,7 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { Language, LanguageContextType } from '@/types/language';
 import { translations } from '@/i18n/translations';
-import { detectSystemLanguage, updateManifestLanguage } from '@/utils/languageUtils';
+import { detectSystemLanguage, updateManifestLanguage, storeLanguagePreference } from '@/utils/languageUtils';
 
 // Create the context with a default value
 const LanguageContext = createContext<LanguageContextType>({
@@ -20,6 +20,7 @@ export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }
     document.documentElement.dir = language === 'ar' ? 'rtl' : 'ltr';
     document.body.classList.toggle('rtl', language === 'ar');
     updateManifestLanguage(language);
+    storeLanguagePreference(language);
   }, [language]);
 
   const t = (key: string): string => {
