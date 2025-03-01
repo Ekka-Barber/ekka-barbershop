@@ -1,7 +1,6 @@
-
 import { useLanguage } from "@/contexts/LanguageContext";
 import { format } from "date-fns";
-import { Slash, X, Tag, Timer, Calendar, User } from "lucide-react";
+import { Slash, X, Timer, Calendar, User } from "lucide-react";
 import { SelectedService } from "@/types/service";
 import { PriceDisplay } from "@/components/ui/price-display";
 import { motion, AnimatePresence } from "framer-motion";
@@ -69,20 +68,12 @@ export const BookingSummary = ({
       </div>
       <div className="flex items-center gap-2">
         {service.originalPrice && service.originalPrice > service.price && (
-          <div className="flex items-center gap-1">
-            <PriceDisplay 
-              price={service.originalPrice} 
-              language={language as 'en' | 'ar'} 
-              size="sm"
-              className="text-muted-foreground relative"
-            />
-            <div className="flex items-center gap-1">
-              <Tag className="w-4 h-4 text-destructive" />
-              {service.discountPercentage && (
-                <span className="text-xs text-destructive">-{service.discountPercentage}%</span>
-              )}
-            </div>
-          </div>
+          <PriceDisplay 
+            price={service.originalPrice} 
+            language={language as 'en' | 'ar'} 
+            size="sm"
+            className="text-[#ea384c] line-through"
+          />
         )}
         <PriceDisplay 
           price={service.price} 
@@ -166,7 +157,7 @@ export const BookingSummary = ({
             transition={{ duration: 1 }}
           >
             <div className="flex items-center gap-2">
-              <Tag className="w-4 h-4" />
+              <Slash className="w-4 h-4" />
               <span>{language === 'ar' ? 'الخصم' : t('discount')}</span>
             </div>
             <PriceDisplay 

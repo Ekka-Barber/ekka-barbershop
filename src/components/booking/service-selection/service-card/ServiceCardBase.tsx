@@ -1,51 +1,50 @@
 
 import * as React from "react";
-import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import { CustomBadge } from "@/components/ui/custom-badge";
+import { motion } from "framer-motion";
+import { Tag } from "lucide-react";
 
-interface ServiceCardBaseProps {
-  children: React.ReactNode;
+interface ServiceCardBaseProps extends React.HTMLAttributes<HTMLDivElement> {
   isSelected: boolean;
-  isSelecting: boolean;
-  hasDiscount: boolean;
+  isSelecting?: boolean;
+  hasDiscount?: boolean;
   discountPercentage?: number;
-  onClick: () => void;
-  className?: string;
+  children: React.ReactNode;
 }
 
 export const ServiceCardBase = ({
-  children,
   isSelected,
-  isSelecting,
+  isSelecting = false,
   hasDiscount,
   discountPercentage,
-  onClick,
-  className
+  children,
+  className,
+  ...props
 }: ServiceCardBaseProps) => {
   return (
-    <Card
+    <motion.div
       className={cn(
-        "relative overflow-visible cursor-pointer transition-all p-4",
-        isSelected 
-          ? "border-[#C4A484] bg-[#C4A484]/5 animate-pulse-once" 
-          : "hover:border-[#C4A484]/50 hover:scale-[1.01] transition-transform duration-200",
-        isSelecting && "scale-95 opacity-80 transition-all duration-150",
+        "border rounded-lg p-4 relative cursor-pointer",
+        "transition-all duration-150",
+        isSelected ? "border-[#e7bd71] bg-[#FDF9EF]" : "border-border hover:border-[#e7bd71]",
         className
       )}
-      onClick={onClick}
+      initial={{ scale: 1 }}
+      whileHover={{ scale: 1.01 }}
+      whileTap={{ scale: 0.99 }}
+      animate={isSelecting ? { scale: [1, 1.02, 1] } : { scale: 1 }}
+      transition={{ duration: 0.15 }}
+      {...props}
     >
       {hasDiscount && discountPercentage && (
-        <div className="absolute -top-3 -left-3 animate-fade-in">
-          <CustomBadge
-            variant="discount"
-            className="z-20"
-          >
-            -{discountPercentage}%
-          </CustomBadge>
+        <div className="absolute top-0 right-0 transform translate-x-1/4 -translate-y-1/3 z-10">
+          <div className="bg-[#e7bd71] text-white text-xs font-bold px-2 py-1 rounded-full flex items-center shadow-md">
+            <Tag className="w-3 h-3 mr-1" />
+            <span>-{discountPercentage}%</span>
+          </div>
         </div>
       )}
       {children}
-    </Card>
+    </motion.div>
   );
 };
