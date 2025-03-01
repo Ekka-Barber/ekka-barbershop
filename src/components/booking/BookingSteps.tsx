@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { BookingProgress, BookingStep } from "@/components/booking/BookingProgress";
 import { BookingNavigation } from "@/components/booking/BookingNavigation";
 import { UpsellModal } from "@/components/booking/UpsellModal";
@@ -8,6 +8,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { useBookingUpsells } from "@/hooks/useBookingUpsells";
 import { transformWorkingHours } from "@/utils/workingHoursUtils";
 import { StepRenderer } from "./steps/StepRenderer";
+import { ServicesSummary } from "./service-selection/ServicesSummary";
 
 const STEPS: BookingStep[] = ['services', 'datetime', 'barber', 'details'];
 
@@ -38,7 +39,8 @@ export const BookingSteps = ({ branch }: BookingStepsProps) => {
     selectedEmployee,
     handleServiceToggle,
     handleUpsellServiceAdd,
-    totalPrice
+    totalPrice,
+    totalDuration
   } = useBooking(branch);
 
   const { data: availableUpsells } = useBookingUpsells(selectedServices, language);
@@ -75,6 +77,9 @@ export const BookingSteps = ({ branch }: BookingStepsProps) => {
   const employeeWorkingHours = selectedEmployee?.working_hours 
     ? transformWorkingHours(selectedEmployee.working_hours)
     : null;
+
+  // Show the summary bar for all steps except the details step
+  const shouldShowSummaryBar = currentStep !== 'details' && selectedServices.length > 0;
 
   return (
     <>
@@ -119,6 +124,16 @@ export const BookingSteps = ({ branch }: BookingStepsProps) => {
           isNextDisabled={isNextDisabled}
           customerDetails={customerDetails}
           branch={branch}
+        />
+      )}
+
+      {shouldShowSummaryBar && (
+        <ServicesSummary
+          selectedServices={selectedServices}
+          totalDuration={totalDuration}
+          totalPrice={totalPrice}
+          language={language}
+          onNextStep={() => handleStepChange(STEPS[currentStepIndex + 1])}
         />
       )}
 

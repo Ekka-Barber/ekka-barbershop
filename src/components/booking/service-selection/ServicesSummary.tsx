@@ -28,13 +28,13 @@ export const ServicesSummary = ({
   return (
     <AnimatePresence>
       <motion.div 
-        className="fixed bottom-0 left-0 right-0 bg-white border-t shadow-lg"
+        className="fixed bottom-0 left-0 right-0 bg-white border-t shadow-lg z-40"
         initial={{ y: 100, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         exit={{ y: 100, opacity: 0 }}
         transition={{ duration: 0.3 }}
       >
-        <div className="w-full max-w-screen-xl mx-auto px-4 py-3">
+        <div className="w-full max-w-screen-xl mx-auto px-4 py-2.5">
           <div className="flex items-center justify-between">
             <MetricsGroup 
               selectedServices={selectedServices}
