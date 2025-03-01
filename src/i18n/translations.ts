@@ -1,4 +1,3 @@
-
 import { Translations } from "@/types/language";
 
 export const translations: Translations = {
@@ -143,7 +142,7 @@ export const translations: Translations = {
     'booking.unconfirmed': 'حجزك هذا',
     'booking.unconfirmed.status': 'غير مؤكد',
     'notification.purpose': 'لغرض تنبيهات الحجز',
-    'service.add': 'إضافة الخدمة',
+    'service.add': 'اضف الخدمة',
     'service.remove': 'إزالة الخدمة',
     'install.app': 'تثبيت التطبيق',
     'install.app.download': 'حمل تطبيق إكّـه الآن',

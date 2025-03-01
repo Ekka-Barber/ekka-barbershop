@@ -92,12 +92,12 @@ export const ServiceDetailsSheet = ({
             className="pt-1"
           >
             <button 
-              className="w-full font-medium text-white py-4 px-5 rounded-xl bg-[#C4A484] hover:bg-[#B8997C] transition-all duration-300" 
+              className="w-auto mx-auto block font-medium text-white py-2 px-4 rounded-lg bg-[#C4A484] hover:bg-[#B8997C] transition-all duration-300 text-sm" 
               onClick={handleSelect}
             >
               {isSelected
                 ? language === 'ar' ? 'إزالة الخدمة' : 'Remove Service'
-                : language === 'ar' ? 'إضافة الخدمة' : 'Add Service'}
+                : language === 'ar' ? 'اضف الخدمة' : 'Add Service'}
             </button>
           </motion.div>
         </div>
