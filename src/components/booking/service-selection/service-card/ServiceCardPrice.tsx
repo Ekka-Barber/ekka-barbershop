@@ -10,7 +10,7 @@ interface ServiceCardPriceProps {
   language: string;
   discountType?: string;
   discountValue?: number;
-  size?: 'sm' | 'base' | 'lg';  // Added size prop
+  size?: 'sm' | 'base' | 'lg';
 }
 
 export const ServiceCardPrice = ({ 
@@ -55,12 +55,13 @@ export const ServiceCardPrice = ({
               price={calculatedFinalPrice}
               language={language as 'en' | 'ar'}
               size={size}
+              className="text-green-700"
             />
           </motion.div>
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="line-through text-[#ea384c] text-xs mt-0.5"
+            className="line-through text-rose-500 text-xs mt-1"
           >
             <PriceDisplay 
               price={price}

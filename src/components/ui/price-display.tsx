@@ -29,7 +29,7 @@ export const PriceDisplay = ({
   const sizeClasses = {
     sm: "text-sm",
     base: "text-base",
-    lg: "text-lg font-semibold"
+    lg: "text-xl font-semibold"
   };
 
   const iconClasses = cn(
@@ -41,22 +41,22 @@ export const PriceDisplay = ({
   return (
     <div 
       className={cn(
-        "flex items-center gap-1",
+        "flex items-center gap-1.5",
         language === 'ar' ? "flex-row-reverse" : "flex-row",
         sizeClasses[size],
         className
       )}
     >
-      <RiyalIcon className={iconClasses} />
+      <RiyalIcon className={cn(iconClasses, "text-green-700")} />
       <span>{formatNumber(price)}</span>
       {showDiscount && originalPrice && originalPrice > price && (
         <span className={cn(
           "text-muted-foreground line-through text-sm",
-          language === 'ar' ? "mr-2" : "ml-2",
+          language === 'ar' ? "mr-3" : "ml-3",
           "flex items-center gap-1",
           language === 'ar' ? "flex-row-reverse" : "flex-row"
         )}>
-          <RiyalIcon className="w-3.5 h-3.5" />
+          <RiyalIcon className="w-3.5 h-3.5 opacity-70" />
           <span>{formatNumber(originalPrice)}</span>
         </span>
       )}
