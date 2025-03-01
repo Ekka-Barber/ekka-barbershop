@@ -14,6 +14,8 @@ interface ServicesSummaryProps {
   totalPrice: number;
   language: 'en' | 'ar';
   onNextStep: () => void;
+  onPrevStep: () => void;
+  isFirstStep: boolean;
 }
 
 export const ServicesSummary = ({
@@ -21,7 +23,9 @@ export const ServicesSummary = ({
   totalDuration,
   totalPrice,
   language,
-  onNextStep
+  onNextStep,
+  onPrevStep,
+  isFirstStep
 }: ServicesSummaryProps) => {
   if (selectedServices.length === 0) return null;
 
@@ -42,11 +46,20 @@ export const ServicesSummary = ({
               totalPrice={totalPrice}
               language={language}
             />
-            <ActionButton 
-              onNextStep={onNextStep}
-              isDisabled={selectedServices.length === 0}
-              language={language}
-            />
+            <div className="flex items-center gap-3">
+              <ActionButton 
+                onClick={onPrevStep}
+                direction="prev"
+                language={language}
+                isDisabled={isFirstStep}
+              />
+              <ActionButton 
+                onClick={onNextStep}
+                direction="next"
+                language={language}
+                isDisabled={selectedServices.length === 0}
+              />
+            </div>
           </div>
         </div>
       </motion.div>

@@ -9,6 +9,7 @@ import { useBookingUpsells } from "@/hooks/useBookingUpsells";
 import { transformWorkingHours } from "@/utils/workingHoursUtils";
 import { StepRenderer } from "./steps/StepRenderer";
 import { ServicesSummary } from "./service-selection/ServicesSummary";
+import { useNavigate } from "react-router-dom";
 
 const STEPS: BookingStep[] = ['services', 'datetime', 'barber', 'details'];
 
@@ -17,6 +18,7 @@ interface BookingStepsProps {
 }
 
 export const BookingSteps = ({ branch }: BookingStepsProps) => {
+  const navigate = useNavigate();
   const { language } = useLanguage();
   const [showUpsellModal, setShowUpsellModal] = useState(false);
   const [pendingStep, setPendingStep] = useState<BookingStep | null>(null);
@@ -54,6 +56,22 @@ export const BookingSteps = ({ branch }: BookingStepsProps) => {
     }
   };
 
+  const handleNextStep = () => {
+    const currentIndex = STEPS.indexOf(currentStep);
+    if (currentIndex < STEPS.length - 1) {
+      handleStepChange(STEPS[currentIndex + 1]);
+    }
+  };
+
+  const handlePrevStep = () => {
+    const currentIndex = STEPS.indexOf(currentStep);
+    if (currentIndex > 0) {
+      setCurrentStep(STEPS[currentIndex - 1]);
+    } else {
+      navigate('/customer');
+    }
+  };
+
   const handleUpsellModalClose = () => {
     setShowUpsellModal(false);
     if (pendingStep) {
@@ -78,6 +96,9 @@ export const BookingSteps = ({ branch }: BookingStepsProps) => {
     ? transformWorkingHours(selectedEmployee.working_hours)
     : null;
 
+  // Only show the BookingNavigation in the details step
+  const shouldShowNavigation = currentStep === 'details';
+  
   // Show the summary bar for all steps except the details step
   const shouldShowSummaryBar = currentStep !== 'details' && selectedServices.length > 0;
 
@@ -123,7 +144,7 @@ export const BookingSteps = ({ branch }: BookingStepsProps) => {
         />
       </div>
 
-      {currentStep !== 'services' && (
+      {shouldShowNavigation && (
         <BookingNavigation
           currentStepIndex={currentStepIndex}
           steps={STEPS}
@@ -141,7 +162,9 @@ export const BookingSteps = ({ branch }: BookingStepsProps) => {
           totalDuration={totalDuration}
           totalPrice={totalPrice}
           language={language}
-          onNextStep={() => handleStepChange(STEPS[currentStepIndex + 1])}
+          onNextStep={handleNextStep}
+          onPrevStep={handlePrevStep}
+          isFirstStep={currentStepIndex === 0}
         />
       )}
 
