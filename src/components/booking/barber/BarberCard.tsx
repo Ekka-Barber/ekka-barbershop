@@ -31,15 +31,15 @@ export const BarberCard = ({
 
   return (
     <Button
-      variant={isSelected ? "default" : "outline"}
+      variant="outline"
       onClick={onSelect}
       disabled={!isAvailable}
       className={cn(
         "relative flex flex-col items-center justify-start h-auto min-h-[200px] p-4 rounded-lg overflow-hidden w-full",
-        "space-y-2 border transition-all duration-200",
+        "space-y-2 border transition-all duration-200 hover:bg-transparent",
         isSelected 
-          ? "bg-[#FDF9EF] border-[#e7bd71]" 
-          : "",
+          ? "bg-[#FDF9EF] border-[#e7bd71] hover:bg-[#FDF9EF]" 
+          : "bg-background hover:bg-background",
         !isAvailable && "opacity-50 cursor-not-allowed"
       )}
     >
