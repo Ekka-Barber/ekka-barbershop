@@ -11,11 +11,8 @@ export const formatDuration = (duration: number, language: 'en' | 'ar' = 'en'): 
   const formattedNumber = language === 'ar' ? convertToArabic(rounded.toString()) : rounded.toString();
   
   if (language === 'ar') {
-    // Arabic plural rules
-    if (rounded === 1) return `${formattedNumber} دقيقة`;
-    if (rounded === 2) return `${formattedNumber} دقيقتان`;
-    if (rounded >= 3 && rounded <= 10) return `${formattedNumber} دقائق`;
-    return `${formattedNumber} دقيقة`;
+    // Arabic plural rules with abbreviation د instead of دقيقة
+    return `${formattedNumber} د`;
   }
   
   return `${formattedNumber} mins`;

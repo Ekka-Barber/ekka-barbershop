@@ -97,7 +97,7 @@ export const translations: Translations = {
     'select.time': 'اختر الوقت',
     'select.barber': 'اختر الحلاق',
     'total.duration': 'المدة الإجمالية',
-    'minutes': 'دقائق',
+    'minutes': 'د',
     'date.time': 'التاريخ والوقت',
     'barber': 'الحلاق',
     'book.appointment': 'احجز موعد',

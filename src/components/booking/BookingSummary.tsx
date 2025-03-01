@@ -39,10 +39,6 @@ export const BookingSummary = ({
   const totalOriginalPrice = selectedServices.reduce((sum, service) => sum + (service.originalPrice || service.price), 0);
   const totalDiscount = totalOriginalPrice - totalPrice;
 
-  const getArabicTimeUnit = (duration: number) => {
-    return duration >= 5 && duration <= 10 ? 'دقائق' : 'دقيقة';
-  };
-
   const serviceItem = (service: SelectedService) => (
     <motion.div 
       key={service.id} 
@@ -123,7 +119,7 @@ export const BookingSummary = ({
               transition={{ duration: 0.2 }}
             >
               {totalDuration} {language === 'ar' 
-                ? getArabicTimeUnit(totalDuration)
+                ? 'د'
                 : t('minutes')}
             </motion.span>
           </div>
