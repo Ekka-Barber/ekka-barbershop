@@ -7,6 +7,8 @@ import { FileManagement } from '@/components/admin/FileManagement';
 import URLManager from '@/components/admin/URLManager';
 import QRCodeManager from '@/components/admin/QRCodeManager';
 import { AdsMetrics } from '@/components/admin/ads-metrics/AdsMetrics';
+import { BookingManagement } from '@/components/admin/bookings/BookingManagement';
+import { CustomerManagement } from '@/components/admin/customers/CustomerManagement';
 import { useOptimizedCategories } from '@/hooks/useOptimizedCategories';
 import { ErrorBoundary } from '@/components/common/ErrorBoundary';
 import { useLocation } from 'react-router-dom';
@@ -121,17 +123,17 @@ const Admin = () => {
       case 'bookings':
         return (
           <div className="space-y-4">
-            <h2 className="text-2xl font-bold">Booking Management</h2>
-            <Separator />
-            <p>Booking management interface coming soon.</p>
+            <ErrorBoundary>
+              <BookingManagement />
+            </ErrorBoundary>
           </div>
         );
       case 'customers':
         return (
           <div className="space-y-4">
-            <h2 className="text-2xl font-bold">Customer Management</h2>
-            <Separator />
-            <p>Customer management interface coming soon.</p>
+            <ErrorBoundary>
+              <CustomerManagement />
+            </ErrorBoundary>
           </div>
         );
       case 'settings':
