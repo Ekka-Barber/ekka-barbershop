@@ -32,7 +32,7 @@ export const ActionButton = ({
     <Button 
       className={cn(
         "rounded-full w-9 h-9 p-0 flex items-center justify-center",
-        isNext ? "bg-[#e7bd71] hover:bg-[#d4ad65]" : "bg-gray-200 hover:bg-gray-300",
+        "bg-[#e7bd71] hover:bg-[#d4ad65]", // Same golden color for both buttons
         "transition-all duration-300 group"
       )}
       onClick={onClick}

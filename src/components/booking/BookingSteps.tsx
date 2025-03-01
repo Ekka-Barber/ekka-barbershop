@@ -86,11 +86,15 @@ export const BookingSteps = ({ branch }: BookingStepsProps) => {
   };
 
   const currentStepIndex = STEPS.indexOf(currentStep);
-  const isNextDisabled = currentStep === 'services' ? selectedServices.length === 0 : 
-                        currentStep === 'datetime' ? !selectedDate :
-                        currentStep === 'barber' ? !selectedBarber || !selectedTime :
-                        currentStep === 'details' ? !customerDetails.name || !customerDetails.phone :
-                        false;
+  
+  // Calculate if the next button should be disabled based on step
+  const isNextDisabled = () => {
+    if (currentStep === 'services') return selectedServices.length === 0;
+    if (currentStep === 'datetime') return !selectedDate;
+    if (currentStep === 'barber') return !selectedBarber || !selectedTime;
+    if (currentStep === 'details') return !customerDetails.name || !customerDetails.phone;
+    return false;
+  };
 
   const employeeWorkingHours = selectedEmployee?.working_hours 
     ? transformWorkingHours(selectedEmployee.working_hours)
@@ -150,7 +154,7 @@ export const BookingSteps = ({ branch }: BookingStepsProps) => {
           steps={STEPS}
           currentStep={currentStep}
           setCurrentStep={setCurrentStep}
-          isNextDisabled={isNextDisabled}
+          isNextDisabled={isNextDisabled()}
           customerDetails={customerDetails}
           branch={branch}
         />

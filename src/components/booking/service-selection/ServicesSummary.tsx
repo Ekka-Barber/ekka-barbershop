@@ -40,26 +40,29 @@ export const ServicesSummary = ({
       >
         <div className="w-full max-w-screen-xl mx-auto px-4 py-2.5">
           <div className="flex items-center justify-between">
+            {/* Previous button on the left */}
+            <ActionButton 
+              onClick={onPrevStep}
+              direction="prev"
+              language={language}
+              isDisabled={isFirstStep}
+            />
+            
+            {/* Metrics in the center */}
             <MetricsGroup 
               selectedServices={selectedServices}
               totalDuration={totalDuration}
               totalPrice={totalPrice}
               language={language}
             />
-            <div className="flex items-center gap-3">
-              <ActionButton 
-                onClick={onPrevStep}
-                direction="prev"
-                language={language}
-                isDisabled={isFirstStep}
-              />
-              <ActionButton 
-                onClick={onNextStep}
-                direction="next"
-                language={language}
-                isDisabled={selectedServices.length === 0}
-              />
-            </div>
+            
+            {/* Next button on the right */}
+            <ActionButton 
+              onClick={onNextStep}
+              direction="next"
+              language={language}
+              isDisabled={selectedServices.length === 0}
+            />
           </div>
         </div>
       </motion.div>
