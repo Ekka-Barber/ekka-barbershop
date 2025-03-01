@@ -44,7 +44,8 @@ export const saveBookingData = async (formData: BookingFormData) => {
   return data;
 };
 
-export const generateWhatsAppMessage = (formData: BookingFormData) => {
+// Creates the raw message text (not encoded)
+export const createWhatsAppMessage = (formData: BookingFormData) => {
   const { selectedServices, totalPrice, selectedDate, selectedTime, selectedBarberName, customerDetails, language } = formData;
 
   const formatPrice = (price: number) => {
@@ -53,45 +54,39 @@ export const generateWhatsAppMessage = (formData: BookingFormData) => {
   };
 
   const serviceSummary = selectedServices
-    .map(service => `${language === 'ar' ? service.name_ar : service.name_en}: ${formatPrice(service.price)}${service.originalPrice ? ` (السعر الأصلي: ${formatPrice(service.originalPrice)})` : ''}`)
+    .map(service => `${language === 'ar' ? service.name_ar : service.name_en}: ${formatPrice(service.price)}${service.originalPrice ? ` (${language === 'ar' ? 'السعر الأصلي' : 'Original price'}: ${formatPrice(service.originalPrice)})` : ''}`)
     .join('\n');
 
   const totalOriginalPrice = selectedServices.reduce((sum, service) => sum + (service.originalPrice || service.price), 0);
   const totalDiscount = totalOriginalPrice - totalPrice;
 
   const message = `
-✨ *طلب حجز جديد*
+✨ ${language === 'ar' ? 'طلب حجز جديد' : 'New Booking Request'}
 
-👤 *معلومات العميل:*
-الاسم: ${customerDetails.name}
-رقم الجوال: ${customerDetails.phone}
-البريد الإلكتروني: ${customerDetails.email}
-${customerDetails.notes ? `ملاحظات: ${customerDetails.notes}` : ''}
+👤 ${language === 'ar' ? 'معلومات العميل:' : 'Customer Information:'}
+${language === 'ar' ? 'الاسم' : 'Name'}: ${customerDetails.name}
+${language === 'ar' ? 'رقم الجوال' : 'Phone'}: ${customerDetails.phone}
+${language === 'ar' ? 'البريد الإلكتروني' : 'Email'}: ${customerDetails.email}
+${customerDetails.notes ? `${language === 'ar' ? 'ملاحظات' : 'Notes'}: ${customerDetails.notes}` : ''}
 
-✂️ *تفاصيل الحجز:*
+✂️ ${language === 'ar' ? 'تفاصيل الحجز:' : 'Booking Details:'}
 ${serviceSummary}
 
-⏰ المدة الإجمالية: ${selectedServices.reduce((sum, service) => sum + service.duration, 0)} دقيقة
-${selectedDate && selectedTime ? `📅 التاريخ والوقت: ${format(selectedDate, 'dd/MM/yyyy')} - ${selectedTime}` : ''}
-${selectedBarberName ? `💈 الحلاق: ${selectedBarberName}` : ''}
-${totalDiscount > 0 ? `💰 الخصم: ${formatPrice(totalDiscount)}` : ''}
+⏰ ${language === 'ar' ? 'المدة الإجمالية' : 'Total Duration'}: ${selectedServices.reduce((sum, service) => sum + service.duration, 0)} ${language === 'ar' ? 'دقيقة' : 'minutes'}
+${selectedDate && selectedTime ? `📅 ${language === 'ar' ? 'التاريخ والوقت' : 'Date & Time'}: ${format(selectedDate, 'dd/MM/yyyy')} - ${selectedTime}` : ''}
+${selectedBarberName ? `💈 ${language === 'ar' ? 'الحلاق' : 'Barber'}: ${selectedBarberName}` : ''}
+${totalDiscount > 0 ? `💰 ${language === 'ar' ? 'الخصم' : 'Discount'}: ${formatPrice(totalDiscount)}` : ''}
 
-💵 *المبلغ الإجمالي: ${formatPrice(totalPrice)}*
+💵 ${language === 'ar' ? 'المبلغ الإجمالي' : 'Total Amount'}: ${formatPrice(totalPrice)}
   `.trim();
 
-  // First encode the whole message
-  let encodedMessage = encodeURIComponent(message);
-  
-  // Replace any problematic emoji encodings
-  // This ensures emojis are properly encoded for WhatsApp
-  encodedMessage = encodedMessage.replace(/%E2%9C%A8/g, '✨')
-    .replace(/%F0%9F%91%A4/g, '👤')
-    .replace(/%E2%9C%82/g, '✂️')
-    .replace(/%E2%8F%B0/g, '⏰')
-    .replace(/%F0%9F%93%85/g, '📅')
-    .replace(/%F0%9F%92%88/g, '💈')
-    .replace(/%F0%9F%92%B0/g, '💰')
-    .replace(/%F0%9F%92%B5/g, '💵');
+  return message;
+};
 
-  return encodedMessage;
+// Creates an encoded message for WhatsApp URL
+export const generateWhatsAppMessage = (formData: BookingFormData) => {
+  const message = createWhatsAppMessage(formData);
+  
+  // Encode the message for URL
+  return encodeURIComponent(message);
 };

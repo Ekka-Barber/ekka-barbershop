@@ -5,10 +5,10 @@ import { useState } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { BookingFormData } from "./types/booking";
 import { BookingConfirmDialog } from "./components/BookingConfirmDialog";
-import { generateWhatsAppMessage, saveBookingData } from "./services/bookingService";
+import { createWhatsAppMessage, generateWhatsAppMessage, saveBookingData } from "./services/bookingService";
 import { formatWhatsAppNumber, isValidWhatsAppNumber } from "@/utils/phoneUtils";
 import { openExternalLink } from "@/utils/deepLinking";
-import { MessageSquare } from "lucide-react";
+import { MessageSquare, ChevronDown, ChevronUp } from "lucide-react";
 
 export const WhatsAppIntegration = (props: BookingFormData) => {
   const { toast } = useToast();
@@ -98,9 +98,13 @@ export const WhatsAppIntegration = (props: BookingFormData) => {
     }
   };
 
-  const previewMessage = () => {
+  const toggleMessagePreview = () => {
     setShowMessagePreview(!showMessagePreview);
   };
+
+  // Get the raw message text (not URL encoded)
+  const messageText = createWhatsAppMessage(props);
+  const isRtl = props.language === 'ar';
 
   return (
     <div className="space-y-4">
@@ -111,27 +115,56 @@ export const WhatsAppIntegration = (props: BookingFormData) => {
           disabled={isLoading}
         >
           <MessageSquare className="h-5 w-5" />
-          {isLoading ? t('processing') : props.language === 'ar' ? 'تأكيد الحجز عبر واتساب' : 'Confirm via WhatsApp'}
+          {isLoading ? t('processing') : isRtl ? 'تأكيد الحجز عبر واتساب' : 'Confirm via WhatsApp'}
         </Button>
         
         <button 
-          onClick={previewMessage} 
-          className="text-sm text-[#C4A484] hover:text-[#B39260] text-center transition-colors duration-200"
+          onClick={toggleMessagePreview} 
+          className="text-sm text-[#128C7E] hover:text-[#075E54] text-center transition-colors duration-200 flex items-center justify-center gap-1"
         >
-          {showMessagePreview 
-            ? (props.language === 'ar' ? 'إخفاء معاينة الرسالة' : 'Hide message preview') 
-            : (props.language === 'ar' ? 'معاينة رسالة الواتساب' : 'Preview WhatsApp message')}
+          {showMessagePreview ? (
+            <>
+              {isRtl ? 'إخفاء معاينة الرسالة' : 'Hide message preview'} 
+              <ChevronUp className="h-4 w-4" />
+            </>
+          ) : (
+            <>
+              {isRtl ? 'معاينة رسالة الواتساب' : 'Preview WhatsApp message'}
+              <ChevronDown className="h-4 w-4" />
+            </>
+          )}
         </button>
         
         {showMessagePreview && (
-          <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 text-sm text-gray-600 max-h-40 overflow-y-auto">
-            <div className="flex items-start space-x-2 rtl:space-x-reverse">
-              <div className="h-8 w-8 rounded-full bg-[#25D366] flex items-center justify-center flex-shrink-0">
-                <MessageSquare className="h-4 w-4 text-white" />
+          <div className={`rounded-lg overflow-hidden border border-gray-200 shadow-sm`}>
+            {/* WhatsApp-like header */}
+            <div className="bg-[#128C7E] text-white p-3 flex items-center">
+              <div className="h-8 w-8 rounded-full bg-white flex items-center justify-center flex-shrink-0 mr-3">
+                <MessageSquare className="h-5 w-5 text-[#128C7E]" />
               </div>
               <div>
-                <p className="font-medium text-gray-700 mb-1">{props.language === 'ar' ? 'معاينة الرسالة' : 'Message Preview'}</p>
-                <p className="whitespace-pre-line">{generateWhatsAppMessage(props)}</p>
+                <p className="font-medium">{isRtl ? 'واتساب' : 'WhatsApp'}</p>
+                <p className="text-xs opacity-80">{isRtl ? 'معاينة الرسالة' : 'Message Preview'}</p>
+              </div>
+            </div>
+            
+            {/* Message content */}
+            <div className={`bg-[#ECE5DD] p-3 max-h-80 overflow-y-auto ${isRtl ? 'rtl' : 'ltr'}`}>
+              <div className="flex flex-col">
+                <div className="bg-white rounded-lg p-3 mb-1 shadow-sm self-start max-w-[85%] border-l-4 border-[#25D366]">
+                  <p className="text-xs text-[#128C7E] font-medium mb-1">{isRtl ? 'الحجز' : 'Booking'}</p>
+                  <pre className={`whitespace-pre-wrap text-sm text-gray-800 font-sans leading-relaxed ${isRtl ? 'text-right' : 'text-left'}`}>
+                    {messageText}
+                  </pre>
+                  <div className="text-right mt-1">
+                    <span className="text-xs text-gray-500">
+                      {new Date().toLocaleTimeString(isRtl ? 'ar-SA' : 'en-US', {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })}
+                    </span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>

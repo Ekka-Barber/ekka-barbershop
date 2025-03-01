@@ -18,6 +18,8 @@ export const BookingConfirmDialog = ({
   isLoading,
   language
 }: BookingConfirmDialogProps) => {
+  const isRtl = language === 'ar';
+  
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md bg-gradient-to-b from-[#f8f8f8] to-white" aria-describedby="booking-confirm-description">
@@ -26,10 +28,10 @@ export const BookingConfirmDialog = ({
             <AlertTriangle className="h-6 w-6 text-yellow-600" />
           </div>
           <DialogTitle className="text-center text-xl">
-            {language === 'ar' ? 'تأكيد الحجز' : 'Confirm Booking'}
+            {isRtl ? 'تأكيد الحجز' : 'Confirm Booking'}
           </DialogTitle>
-          <DialogDescription id="booking-confirm-description" className="text-center space-y-2">
-            {language === 'ar' ? (
+          <DialogDescription id="booking-confirm-description" className={`text-center space-y-2 ${isRtl ? 'rtl' : 'ltr'}`}>
+            {isRtl ? (
               <>
                 <p className="text-base">
                   حجزك هذا <span className="font-bold text-[#ea384c]">غير مؤكد</span>
@@ -49,18 +51,18 @@ export const BookingConfirmDialog = ({
           </DialogDescription>
         </DialogHeader>
         <div className="flex flex-col gap-2 sm:flex-row sm:justify-center mt-2">
-          <Button variant="outline" onClick={() => onOpenChange(false)} className="sm:order-1">
-            {language === 'ar' ? 'إلغاء' : 'Cancel'}
+          <Button variant="outline" onClick={() => onOpenChange(false)} className={`sm:order-${isRtl ? '2' : '1'}`}>
+            {isRtl ? 'إلغاء' : 'Cancel'}
           </Button>
           <Button 
             onClick={onConfirm} 
             disabled={isLoading} 
-            className="bg-[#25D366] hover:bg-[#128C7E] sm:order-2 flex items-center gap-2"
+            className={`bg-[#25D366] hover:bg-[#128C7E] sm:order-${isRtl ? '1' : '2'} flex items-center gap-2`}
           >
             <MessageSquare className="h-4 w-4" />
             {isLoading 
-              ? language === 'ar' ? 'جاري التأكيد...' : 'Confirming...' 
-              : language === 'ar' ? 'تأكيد' : 'Confirm'}
+              ? isRtl ? 'جاري التأكيد...' : 'Confirming...' 
+              : isRtl ? 'تأكيد' : 'Confirm'}
           </Button>
         </div>
       </DialogContent>
