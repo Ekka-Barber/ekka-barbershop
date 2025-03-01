@@ -7,9 +7,10 @@ import { Toaster } from '@/components/ui/toaster';
 
 interface AdminLayoutProps {
   onSearch?: (searchTerm: string) => void;
+  children?: React.ReactNode; // Add children prop
 }
 
-export const AdminLayout = ({ onSearch }: AdminLayoutProps) => {
+export const AdminLayout = ({ onSearch, children }: AdminLayoutProps) => {
   const { language } = useLanguage();
 
   return (
@@ -23,7 +24,7 @@ export const AdminLayout = ({ onSearch }: AdminLayoutProps) => {
         <AdminHeader onSearch={onSearch} />
         
         <main className="flex-1 overflow-auto p-6">
-          <Outlet />
+          {children || <Outlet />}
         </main>
       </div>
       

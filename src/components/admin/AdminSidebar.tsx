@@ -16,7 +16,6 @@ import {
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useEffect, useState } from 'react';
-import { useLanguage } from '@/contexts/LanguageContext';
 
 interface SidebarItemProps {
   icon: React.ElementType;
@@ -27,8 +26,6 @@ interface SidebarItemProps {
 }
 
 const SidebarItem = ({ icon: Icon, label, isActive, onClick, isSidebarOpen }: SidebarItemProps) => {
-  const { language } = useLanguage();
-  
   return (
     <TooltipProvider delayDuration={300}>
       <Tooltip>
@@ -43,7 +40,6 @@ const SidebarItem = ({ icon: Icon, label, isActive, onClick, isSidebarOpen }: Si
               isSidebarOpen ? "text-left" : "justify-center px-3"
             )}
             onClick={onClick}
-            dir={language === 'ar' ? 'rtl' : 'ltr'}
           >
             <Icon className="h-5 w-5 shrink-0" />
             {isSidebarOpen && <span>{label}</span>}
@@ -60,7 +56,6 @@ const SidebarItem = ({ icon: Icon, label, isActive, onClick, isSidebarOpen }: Si
 };
 
 export const AdminSidebar = () => {
-  const { language } = useLanguage();
   const navigate = useNavigate();
   const location = useLocation();
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -77,14 +72,14 @@ export const AdminSidebar = () => {
   }, [location]);
 
   const navigationItems = [
-    { id: 'services', label: language === 'ar' ? 'الخدمات' : 'Services', icon: Scissors },
-    { id: 'files', label: language === 'ar' ? 'الملفات' : 'Files', icon: FileText },
-    { id: 'urls', label: language === 'ar' ? 'الروابط' : 'URLs', icon: Link2 },
-    { id: 'qrcodes', label: language === 'ar' ? 'رموز QR' : 'QR Codes', icon: QrCode },
-    { id: 'analytics', label: language === 'ar' ? 'التحليلات' : 'Analytics', icon: BarChart2 },
-    { id: 'bookings', label: language === 'ar' ? 'الحجوزات' : 'Bookings', icon: Calendar },
-    { id: 'customers', label: language === 'ar' ? 'العملاء' : 'Customers', icon: Users },
-    { id: 'settings', label: language === 'ar' ? 'الإعدادات' : 'Settings', icon: Settings },
+    { id: 'services', label: 'Services', icon: Scissors },
+    { id: 'files', label: 'Files', icon: FileText },
+    { id: 'urls', label: 'URLs', icon: Link2 },
+    { id: 'qrcodes', label: 'QR Codes', icon: QrCode },
+    { id: 'analytics', label: 'Analytics', icon: BarChart2 },
+    { id: 'bookings', label: 'Bookings', icon: Calendar },
+    { id: 'customers', label: 'Customers', icon: Users },
+    { id: 'settings', label: 'Settings', icon: Settings },
   ];
 
   const handleNavigate = (tabId: string) => {
@@ -98,12 +93,11 @@ export const AdminSidebar = () => {
         "h-screen bg-background flex flex-col border-r transition-all duration-300 pb-4",
         isSidebarOpen ? "w-64" : "w-16"
       )}
-      dir={language === 'ar' ? 'rtl' : 'ltr'}
     >
       <div className="flex items-center h-16 px-3 border-b">
         {isSidebarOpen ? (
           <h1 className="text-lg font-semibold">
-            {language === 'ar' ? 'لوحة التحكم' : 'Admin Dashboard'}
+            Admin Dashboard
           </h1>
         ) : (
           <LayoutDashboard className="h-5 w-5 mx-auto" />
@@ -132,8 +126,7 @@ export const AdminSidebar = () => {
         >
           <ChevronRight className={cn(
             "h-5 w-5 transition-transform",
-            isSidebarOpen ? "rotate-180" : "",
-            language === 'ar' ? "rotate-180" : ""
+            isSidebarOpen ? "rotate-180" : ""
           )} />
         </Button>
       </div>

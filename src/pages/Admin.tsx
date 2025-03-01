@@ -153,7 +153,11 @@ const Admin = () => {
     }
   };
 
-  return <AdminLayout onSearch={handleSearch}>{renderContent()}</AdminLayout>;
+  return (
+    <AdminLayout onSearch={handleSearch}>
+      {renderContent()}
+    </AdminLayout>
+  );
 };
 
 export default Admin;
