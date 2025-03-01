@@ -10,7 +10,6 @@ import { convertToArabic } from "@/utils/arabicNumerals";
 import { CustomBadge } from "@/components/ui/custom-badge";
 import { motion, AnimatePresence } from "framer-motion";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-
 interface UpsellService {
   id: string;
   name_en: string;
@@ -20,14 +19,12 @@ interface UpsellService {
   discountPercentage: number;
   discountedPrice: number;
 }
-
 interface UpsellModalProps {
   isOpen: boolean;
   onClose: () => void;
   onConfirm: (selectedUpsells: UpsellService[]) => void;
   availableUpsells: UpsellService[];
 }
-
 export const UpsellModal = ({
   isOpen,
   onClose,
@@ -39,7 +36,6 @@ export const UpsellModal = ({
   } = useLanguage();
   const [selectedUpsells, setSelectedUpsells] = useState<UpsellService[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-
   const handleToggleUpsell = (upsell: UpsellService) => {
     setSelectedUpsells(prev => {
       const isSelected = prev.some(s => s.id === upsell.id);
@@ -50,7 +46,6 @@ export const UpsellModal = ({
       }
     });
   };
-
   const handleConfirm = () => {
     setIsLoading(true);
     setTimeout(() => {
@@ -59,7 +54,6 @@ export const UpsellModal = ({
       onClose();
     }, 600);
   };
-
   const formatPrice = (price: number) => {
     const roundedPrice = Math.round(price);
     const formattedNumber = language === 'ar' ? convertToArabic(roundedPrice.toString()) : roundedPrice.toString();
@@ -68,9 +62,7 @@ export const UpsellModal = ({
         <RiyalIcon />
       </span>;
   };
-
   const useGridLayout = availableUpsells.length > 3;
-
   const containerVariants = {
     hidden: {
       opacity: 0
@@ -82,7 +74,6 @@ export const UpsellModal = ({
       }
     }
   };
-
   const itemVariants = {
     hidden: {
       y: 20,
@@ -98,7 +89,6 @@ export const UpsellModal = ({
       }
     }
   };
-
   return <Dialog open={isOpen} onOpenChange={() => onClose()}>
       <DialogContent className="sm:max-w-[500px] flex flex-col h-[85vh] sm:h-auto max-h-[85vh] gap-0 p-0 rounded-xl overflow-hidden">
         <DialogHeader className="px-6 pt-6 pb-2 sticky top-0 bg-background z-10 border-b border-border/30">
@@ -134,27 +124,26 @@ export const UpsellModal = ({
               <motion.div variants={containerVariants} initial="hidden" animate="visible" className={`${useGridLayout ? 'grid grid-cols-2 gap-3 w-full max-w-[450px]' : 'flex flex-col gap-3 w-full max-w-[400px]'}`} dir={language === 'ar' ? 'rtl' : 'ltr'}>
                 {availableUpsells.map((upsell, index) => {
                 const isSelected = selectedUpsells.some(s => s.id === upsell.id);
-                return (
-                  <motion.div 
-                    key={upsell.id} 
-                    variants={itemVariants} 
-                    whileHover={{ scale: 1.02 }} 
-                    whileTap={{ scale: 0.98 }} 
-                    className={`p-3 border rounded-lg cursor-pointer transition-all relative ${isSelected ? 'border-[#e7bd71] bg-[#F2FCE2]/30 shadow-md' : 'hover:border-[#e7bd71]/50 hover:shadow-sm'}`} 
-                    onClick={() => handleToggleUpsell(upsell)}
-                  >
+                return <motion.div key={upsell.id} variants={itemVariants} whileHover={{
+                  scale: 1.02
+                }} whileTap={{
+                  scale: 0.98
+                }} className={`p-3 border rounded-lg cursor-pointer transition-all relative ${isSelected ? 'border-[#e7bd71] bg-[#F2FCE2]/30 shadow-md' : 'hover:border-[#e7bd71]/50 hover:shadow-sm'}`} onClick={() => handleToggleUpsell(upsell)}>
                     <AnimatePresence>
-                      {isSelected && (
-                        <motion.div 
-                          className="absolute -left-3 top-0 bottom-0 m-auto h-full" 
-                          initial={{ x: 10, opacity: 0 }}
-                          animate={{ x: 0, opacity: 1 }}
-                          exit={{ x: 10, opacity: 0 }}
-                          transition={{ duration: 0.2 }}
-                        >
-                          <div className="bg-[#b4d98b] h-full w-2 rounded-full shadow-[0_0_5px_rgba(180,217,139,0.5)]" />
-                        </motion.div>
-                      )}
+                      {isSelected && <motion.div className="absolute -left-3 top-0 bottom-0 m-auto h-full" initial={{
+                      x: 10,
+                      opacity: 0
+                    }} animate={{
+                      x: 0,
+                      opacity: 1
+                    }} exit={{
+                      x: 10,
+                      opacity: 0
+                    }} transition={{
+                      duration: 0.2
+                    }}>
+                          <div className="bg-[#b4d98b] h-full w-2 rounded-full shadow-[0_0_5px_rgba(180,217,139,0.5)] px-[5px] my-0 py-0" />
+                        </motion.div>}
                     </AnimatePresence>
                       
                     <div className="flex flex-col gap-1.5 relative">
@@ -173,11 +162,11 @@ export const UpsellModal = ({
                             <Slash className="w-3.5 h-3.5 text-destructive absolute -translate-y-[2px]" />
                             <span className="text-sm text-muted-foreground line-through">{formatPrice(upsell.price)}</span>
                           </span>
-                          <motion.span 
-                            className="text-sm font-medium" 
-                            animate={isSelected ? { scale: [1, 1.1, 1] } : {}} 
-                            transition={{ duration: 0.3 }}
-                          >
+                          <motion.span className="text-sm font-medium" animate={isSelected ? {
+                          scale: [1, 1.1, 1]
+                        } : {}} transition={{
+                          duration: 0.3
+                        }}>
                             {formatPrice(upsell.discountedPrice)}
                           </motion.span>
                         </div>
@@ -188,8 +177,7 @@ export const UpsellModal = ({
                         </div>
                       </div>
                     </div>
-                  </motion.div>
-                );
+                  </motion.div>;
               })}
               </motion.div>
             </div>
