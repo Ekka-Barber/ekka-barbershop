@@ -158,6 +158,8 @@ export const ServiceSelection = ({
         totalPrice={totalPrice}
         language={language}
         onNextStep={() => onStepChange?.('datetime')}
+        onPrevStep={() => {}} // Adding the missing onPrevStep prop
+        isFirstStep={true} // Adding the missing isFirstStep prop - set to true since this is the first step
       />
     </div>
   );
