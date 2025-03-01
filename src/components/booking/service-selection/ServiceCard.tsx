@@ -12,7 +12,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { formatDuration } from "@/utils/formatters";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import { Plus } from "lucide-react";
+import { Plus, Minus } from "lucide-react";
 import { PriceDisplay } from "@/components/ui/price-display";
 import { CustomBadge } from "@/components/ui/custom-badge";
 
@@ -86,16 +86,25 @@ export const ServiceCard = ({ service, isSelected, onSelect, className }: Servic
             
             <div className="mt-auto flex items-end pt-4">
               <div className="flex-1 flex items-end">
-                {!isSelected && (
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    className="h-6 w-6 rounded-full hover:bg-[#C4A484]/10"
-                    onClick={handleSelect}
-                  >
-                    <Plus className="h-4 w-4" />
-                  </Button>
-                )}
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className={cn(
+                    "h-6 w-6 rounded-full transition-all duration-300",
+                    isSelected 
+                      ? "hover:bg-red-100 text-red-500" 
+                      : "hover:bg-green-100 text-green-500"
+                  )}
+                  onClick={handleSelect}
+                >
+                  <div className="transition-transform duration-300">
+                    {isSelected ? (
+                      <Minus className="h-4 w-4" />
+                    ) : (
+                      <Plus className="h-4 w-4" />
+                    )}
+                  </div>
+                </Button>
               </div>
               <div className="space-y-1 text-right">
                 {hasDiscount && (
@@ -167,8 +176,16 @@ export const ServiceCard = ({ service, isSelected, onSelect, className }: Servic
                   setIsOpen(false);
                 }}
                 variant="outline"
-                className="w-full mt-4"
+                className={cn(
+                  "w-full mt-4 transition-colors duration-300",
+                  isSelected ? "border-red-500 text-red-500 hover:bg-red-50" : "border-green-500 text-green-500 hover:bg-green-50"
+                )}
               >
+                {isSelected ? (
+                  <Minus className="h-4 w-4 mr-2" />
+                ) : (
+                  <Plus className="h-4 w-4 mr-2" />
+                )}
                 {isSelected
                   ? language === 'ar'
                     ? 'إزالة'
