@@ -1,11 +1,7 @@
 
-import { Timer } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { convertToArabic } from "@/utils/arabicNumerals";
-import { formatDuration } from "@/utils/formatters";
-import { PriceDisplay } from "@/components/ui/price-display";
 import { motion, AnimatePresence } from "framer-motion";
-import { cn } from "@/lib/utils";
+import { MetricsGroup } from "./summary/MetricsGroup";
+import { ActionButton } from "./summary/ActionButton";
 
 interface ServicesSummaryProps {
   selectedServices: Array<{
@@ -16,7 +12,7 @@ interface ServicesSummaryProps {
   }>;
   totalDuration: number;
   totalPrice: number;
-  language: string;
+  language: 'en' | 'ar';
   onNextStep: () => void;
 }
 
@@ -29,45 +25,6 @@ export const ServicesSummary = ({
 }: ServicesSummaryProps) => {
   if (selectedServices.length === 0) return null;
 
-  const servicesCount = language === 'ar' 
-    ? `${convertToArabic(selectedServices.length.toString())} خدمات`
-    : `${selectedServices.length} services`;
-
-  const MetricsGroup = () => (
-    <div className="flex items-center gap-4">
-      <motion.span 
-        className="font-medium"
-        key={selectedServices.length}
-        initial={{ scale: 1.2, opacity: 0.7 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ duration: 0.3 }}
-      >
-        {servicesCount}
-      </motion.span>
-      <span className="text-gray-500">•</span>
-      <span className="flex items-center gap-1">
-        <Timer className="w-4 h-4" />
-        <motion.span
-          key={totalDuration}
-          initial={{ y: -5, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: 0.3 }}
-        >
-          {formatDuration(totalDuration, language as 'en' | 'ar')}
-        </motion.span>
-      </span>
-      <span className="text-gray-500">•</span>
-      <motion.div
-        key={totalPrice}
-        initial={{ scale: 0.9, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ duration: 0.3 }}
-      >
-        <PriceDisplay price={totalPrice} language={language as 'en' | 'ar'} size="base" />
-      </motion.div>
-    </div>
-  );
-
   return (
     <AnimatePresence>
       <motion.div 
@@ -79,17 +36,17 @@ export const ServicesSummary = ({
       >
         <div className="w-full max-w-screen-xl mx-auto px-4 py-3">
           <div className="flex items-center justify-between">
-            <MetricsGroup />
-            <Button 
-              className={cn(
-                "bg-[#e7bd71] hover:bg-[#d4ad65] transition-all duration-300",
-                selectedServices.length > 0 && "animate-pulse-once"
-              )}
-              onClick={onNextStep}
-              disabled={selectedServices.length === 0}
-            >
-              {language === 'ar' ? 'التالي' : 'Next'}
-            </Button>
+            <MetricsGroup 
+              selectedServices={selectedServices}
+              totalDuration={totalDuration}
+              totalPrice={totalPrice}
+              language={language}
+            />
+            <ActionButton 
+              onNextStep={onNextStep}
+              isDisabled={selectedServices.length === 0}
+              language={language}
+            />
           </div>
         </div>
       </motion.div>

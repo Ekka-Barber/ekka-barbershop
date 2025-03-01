@@ -1,39 +1,52 @@
 
 import * as React from "react";
+import { Tag } from "lucide-react";
 import { PriceDisplay } from "@/components/ui/price-display";
-import { cn } from "@/lib/utils";
+import { calculateDiscount } from "./calculateDiscount";
+import { Language } from "@/types/language";
 
 interface ServiceCardPriceProps {
   price: number;
-  finalPrice: number;
-  hasDiscount: boolean;
-  language: string;
+  discountType?: string;
+  discountValue?: number;
+  language: Language;
 }
 
-export const ServiceCardPrice = ({ 
-  price, 
-  finalPrice, 
-  hasDiscount, 
-  language 
+export const ServiceCardPrice = ({
+  price,
+  discountType,
+  discountValue,
+  language
 }: ServiceCardPriceProps) => {
+  const discount = calculateDiscount(price, discountType, discountValue);
+  
   return (
-    <div className="space-y-1 text-right">
-      {hasDiscount && (
+    <div className="text-end mt-1">
+      {discount ? (
+        <div className="flex flex-col items-end">
+          <div className="flex items-center gap-1">
+            <PriceDisplay 
+              price={price} 
+              language={language as 'en' | 'ar'} 
+              size="sm" 
+              className="text-muted-foreground line-through"
+            />
+            <Tag className="w-3.5 h-3.5 text-destructive" />
+            <span className="text-xs text-destructive">-{discount.percentage}%</span>
+          </div>
+          <PriceDisplay 
+            price={discount.finalPrice} 
+            language={language as 'en' | 'ar'} 
+            size="sm"
+          />
+        </div>
+      ) : (
         <PriceDisplay 
-          price={price}
-          language={language}
-          showDiscount={true}
-          className="text-sm text-muted-foreground decoration-[#ea384c] line-through"
+          price={price} 
+          language={language as 'en' | 'ar'} 
+          size="sm"
         />
       )}
-      <PriceDisplay 
-        price={finalPrice}
-        language={language}
-        className={cn(
-          "font-semibold",
-          hasDiscount && "text-[#ea384c]"
-        )}
-      />
     </div>
   );
 };
