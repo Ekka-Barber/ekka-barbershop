@@ -118,7 +118,7 @@ export const CategoryItem = ({
           {...provided.draggableProps}
           className="space-y-2"
         >
-          <div className="flex items-center justify-between p-3 bg-white border border-gray-200 rounded-lg">
+          <div className="flex items-center justify-between p-3 bg-white border rounded-lg shadow-sm">
             <div className="flex items-center gap-3">
               <div
                 {...provided.dragHandleProps}
@@ -145,7 +145,7 @@ export const CategoryItem = ({
               ) : (
                 <button
                   onClick={onToggle}
-                  className="flex items-center gap-2 text-left"
+                  className="flex items-center gap-2"
                 >
                   {isExpanded ? (
                     <ChevronDown className="w-4 h-4" />
@@ -180,19 +180,18 @@ export const CategoryItem = ({
                 <>
                   <Button
                     variant="ghost"
-                    size="icon"
+                    size="sm"
                     onClick={handleEdit}
-                    className="text-blue-500 hover:text-blue-600 h-8 w-8"
+                    className="text-blue-500 hover:text-blue-600"
                   >
                     <Pencil className="w-4 h-4" />
                   </Button>
                   <Button
                     variant="ghost"
-                    size="icon"
+                    size="sm"
                     onClick={onDelete}
-                    className="text-red-500 hover:text-red-600 h-8 w-8"
                   >
-                    <Trash className="w-4 h-4" />
+                    <Trash className="w-4 h-4 text-red-500" />
                   </Button>
                 </>
               )}

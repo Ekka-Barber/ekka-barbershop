@@ -114,7 +114,7 @@ const ServiceCategoryList = () => {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <CategoryList
         categories={categories}
         expandedCategories={expandedCategories}

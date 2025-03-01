@@ -1,50 +1,32 @@
 
-import { useState, useEffect } from 'react';
-import { AdminLayout } from '@/components/admin/AdminLayout';
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Separator } from '@/components/ui/separator';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ServiceManagementHeader } from '@/components/admin/service-management/ServiceManagementHeader';
 import ServiceCategoryList from '@/components/admin/ServiceCategoryList';
 import { FileManagement } from '@/components/admin/FileManagement';
 import URLManager from '@/components/admin/URLManager';
 import QRCodeManager from '@/components/admin/QRCodeManager';
-import { AdsMetrics } from '@/components/admin/ads-metrics/AdsMetrics';
-import { BookingManagement } from '@/components/admin/bookings/BookingManagement';
-import { CustomerManagement } from '@/components/admin/customers/CustomerManagement';
-import { useOptimizedCategories } from '@/hooks/useOptimizedCategories';
+import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { ErrorBoundary } from '@/components/common/ErrorBoundary';
-import { useLocation } from 'react-router-dom';
-import { Separator } from '@/components/ui/separator';
+import { AdsMetrics } from '@/components/admin/ads-metrics/AdsMetrics';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { useOptimizedCategories } from '@/hooks/useOptimizedCategories';
 
 const Admin = () => {
-  const location = useLocation();
-  const [activePage, setActivePage] = useState('services');
-  const [searchQuery, setSearchQuery] = useState('');
+  const { language } = useLanguage();
+  const [activeTab, setActiveTab] = useState('services');
   const [newUrl, setNewUrl] = useState('');
   const [isUpdating, setIsUpdating] = useState(false);
   
   const {
     categories,
     totalServices,
-    setSearchQuery: setCategorySearchQuery,
+    setSearchQuery,
     setSortBy,
     setFilterBy
   } = useOptimizedCategories();
-
-  useEffect(() => {
-    const path = location.pathname.split('/').pop();
-    if (path && path !== 'admin') {
-      setActivePage(path);
-    } else {
-      setActivePage('services');
-    }
-  }, [location]);
-
-  const handleSearch = (query: string) => {
-    setSearchQuery(query);
-    if (activePage === 'services') {
-      setCategorySearchQuery(query);
-    }
-    // Handle search for other sections as they're implemented
-  };
 
   const handleSubmitUrl = (e: React.FormEvent) => {
     e.preventDefault();
@@ -56,15 +38,48 @@ const Admin = () => {
     }, 1000);
   };
 
-  const renderContent = () => {
-    switch (activePage) {
-      case 'services':
-        return (
-          <div className="space-y-4">
+  return (
+    <div dir={language === 'ar' ? 'rtl' : 'ltr'} className="min-h-screen bg-background">
+      <header className="border-b p-4 bg-white">
+        <div className="container mx-auto flex justify-between items-center">
+          <h1 className="text-xl font-bold">Admin Dashboard</h1>
+          <div className="flex items-center gap-4">
+            <LanguageSwitcher />
+            <Button
+              variant="outline"
+              onClick={() => window.location.href = '/customer'}
+            >
+              {language === 'ar' ? 'العودة للموقع' : 'Back to Site'}
+            </Button>
+          </div>
+        </div>
+      </header>
+
+      <div className="container mx-auto px-4 py-6">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+          <TabsList className="w-full sm:w-auto grid grid-cols-3 sm:inline-flex lg:grid-cols-6">
+            <TabsTrigger value="services">
+              {language === 'ar' ? 'الخدمات' : 'Services'}
+            </TabsTrigger>
+            <TabsTrigger value="files">
+              {language === 'ar' ? 'الملفات' : 'Files'}
+            </TabsTrigger>
+            <TabsTrigger value="urls">
+              {language === 'ar' ? 'الروابط' : 'URLs'}
+            </TabsTrigger>
+            <TabsTrigger value="qrcodes">
+              {language === 'ar' ? 'رموز QR' : 'QR Codes'}
+            </TabsTrigger>
+            <TabsTrigger value="analytics">
+              {language === 'ar' ? 'التحليلات' : 'Analytics'}
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="services" className="space-y-4">
             <ServiceManagementHeader 
               totalCategories={categories?.length || 0}
               totalServices={totalServices}
-              onSearch={setCategorySearchQuery}
+              onSearch={setSearchQuery}
               onSort={setSortBy}
               onFilter={setFilterBy}
             />
@@ -72,22 +87,22 @@ const Admin = () => {
             <ErrorBoundary>
               <ServiceCategoryList />
             </ErrorBoundary>
-          </div>
-        );
-      case 'files':
-        return (
-          <div className="space-y-4">
-            <h2 className="text-2xl font-bold">File Management</h2>
+          </TabsContent>
+
+          <TabsContent value="files" className="space-y-4">
+            <h2 className="text-2xl font-bold">
+              {language === 'ar' ? 'إدارة الملفات' : 'File Management'}
+            </h2>
             <Separator />
             <ErrorBoundary>
               <FileManagement />
             </ErrorBoundary>
-          </div>
-        );
-      case 'urls':
-        return (
-          <div className="space-y-4">
-            <h2 className="text-2xl font-bold">URL Management</h2>
+          </TabsContent>
+
+          <TabsContent value="urls" className="space-y-4">
+            <h2 className="text-2xl font-bold">
+              {language === 'ar' ? 'إدارة الروابط' : 'URL Management'}
+            </h2>
             <Separator />
             <ErrorBoundary>
               <URLManager 
@@ -98,67 +113,30 @@ const Admin = () => {
                 isUpdating={isUpdating}
               />
             </ErrorBoundary>
-          </div>
-        );
-      case 'qrcodes':
-        return (
-          <div className="space-y-4">
-            <h2 className="text-2xl font-bold">QR Code Management</h2>
+          </TabsContent>
+
+          <TabsContent value="qrcodes" className="space-y-4">
+            <h2 className="text-2xl font-bold">
+              {language === 'ar' ? 'إدارة رموز QR' : 'QR Code Management'}
+            </h2>
             <Separator />
             <ErrorBoundary>
               <QRCodeManager />
             </ErrorBoundary>
-          </div>
-        );
-      case 'analytics':
-        return (
-          <div className="space-y-4">
-            <h2 className="text-2xl font-bold">Analytics</h2>
+          </TabsContent>
+
+          <TabsContent value="analytics" className="space-y-4">
+            <h2 className="text-2xl font-bold">
+              {language === 'ar' ? 'تحليلات الإعلانات' : 'Ads Analytics'}
+            </h2>
             <Separator />
             <ErrorBoundary>
               <AdsMetrics />
             </ErrorBoundary>
-          </div>
-        );
-      case 'bookings':
-        return (
-          <div className="space-y-4">
-            <ErrorBoundary>
-              <BookingManagement />
-            </ErrorBoundary>
-          </div>
-        );
-      case 'customers':
-        return (
-          <div className="space-y-4">
-            <ErrorBoundary>
-              <CustomerManagement />
-            </ErrorBoundary>
-          </div>
-        );
-      case 'settings':
-        return (
-          <div className="space-y-4">
-            <h2 className="text-2xl font-bold">Settings</h2>
-            <Separator />
-            <p>Settings interface coming soon.</p>
-          </div>
-        );
-      default:
-        return (
-          <div className="space-y-4">
-            <h2 className="text-2xl font-bold">Dashboard</h2>
-            <Separator />
-            <p>Select an option from the sidebar to manage your salon.</p>
-          </div>
-        );
-    }
-  };
-
-  return (
-    <AdminLayout onSearch={handleSearch}>
-      {renderContent()}
-    </AdminLayout>
+          </TabsContent>
+        </Tabs>
+      </div>
+    </div>
   );
 };
 
