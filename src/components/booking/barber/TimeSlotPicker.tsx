@@ -76,12 +76,14 @@ export const TimeSlotPicker = ({
                     )}
                     <div key={slot.time}>
                       <Button
-                        variant={selectedTime === slot.time ? "default" : "outline"}
+                        variant="outline"
                         onClick={() => slot.isAvailable && onTimeSelect(slot.time)}
                         disabled={!slot.isAvailable}
                         className={cn(
-                          "flex-shrink-0 transition-all duration-150",
-                          selectedTime === slot.time ? "bg-[#FDF9EF] border-[#e7bd71] text-black" : "border-border",
+                          "flex-shrink-0 transition-all duration-150 hover:bg-transparent",
+                          selectedTime === slot.time 
+                            ? "bg-[#FDF9EF] border-[#e7bd71] text-black hover:bg-[#FDF9EF]" 
+                            : "border-border bg-background hover:bg-background",
                           !slot.isAvailable && "bg-red-50 cursor-not-allowed text-gray-400 border-red-100"
                         )}
                       >
