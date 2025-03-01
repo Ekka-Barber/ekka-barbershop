@@ -1,10 +1,8 @@
 
 import * as React from "react";
-import { Timer, X } from "lucide-react";
+import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { ServiceCardPrice } from "./ServiceCardPrice";
-import { formatDuration } from "@/utils/formatters";
 import { Service } from "@/types/service";
 import { Language } from "@/types/language";
 
@@ -15,7 +13,6 @@ interface ServiceDetailsSheetProps {
   isOpen: boolean;
   setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
   onSelect: (service: Service) => void;
-  // Add these new props
   serviceName?: string;
   serviceDescription?: string | null;
   finalPrice?: number;
@@ -30,9 +27,7 @@ export const ServiceDetailsSheet = ({
   setIsOpen,
   onSelect,
   serviceName,
-  serviceDescription,
-  finalPrice,
-  hasDiscount
+  serviceDescription
 }: ServiceDetailsSheetProps) => {
   if (!isOpen) return null;
 
@@ -51,20 +46,11 @@ export const ServiceDetailsSheet = ({
   return (
     <SheetContent
       side="bottom"
-      className="p-0 rounded-t-2xl border-t-0 max-h-[85vh] sm:max-w-full"
+      className="p-0 rounded-t-2xl border-t-0 max-h-[85vh] sm:max-w-full bg-gradient-to-b from-[#f8f8f8] to-white"
       onCloseAutoFocus={(e) => e.preventDefault()}
     >
       <div className="p-6 space-y-6">
         <div className="flex justify-between items-start">
-          <SheetHeader className="text-left space-y-1">
-            <SheetTitle className="text-xl font-semibold pr-8">
-              {displayName}
-            </SheetTitle>
-            <div className="flex items-center gap-1 text-muted-foreground">
-              <Timer className="h-4 w-4" />
-              <span>{formatDuration(service.duration, language as 'en' | 'ar')}</span>
-            </div>
-          </SheetHeader>
           <Button
             size="icon"
             variant="ghost"
@@ -74,45 +60,33 @@ export const ServiceDetailsSheet = ({
             <X className="h-4 w-4" />
             <span className="sr-only">Close</span>
           </Button>
-        </div>
-
-        <div className="flex justify-between items-center">
-          <div className="text-sm text-muted-foreground">
-            {language === 'ar' ? 'السعر' : 'Price'}
-          </div>
-          {finalPrice !== undefined && hasDiscount !== undefined ? (
-            <ServiceCardPrice
-              price={service.price}
-              finalPrice={finalPrice}
-              hasDiscount={hasDiscount}
-              language={language}
-            />
-          ) : (
-            <ServiceCardPrice
-              price={service.price}
-              discountType={service.discount_type}
-              discountValue={service.discount_value}
-              language={language}
-            />
-          )}
+          
+          <SheetHeader className="text-center space-y-1">
+            <SheetTitle className="text-xl font-semibold">
+              {displayName}
+            </SheetTitle>
+          </SheetHeader>
+          
+          <div className="w-8 h-8"></div> {/* Empty div for balance */}
         </div>
 
         {displayDescription && (
-          <div className="space-y-2">
-            <div className="text-sm font-medium">
+          <div className="space-y-2 mt-4">
+            <div className="text-sm font-medium text-right">
               {language === 'ar' ? 'وصف الخدمة' : 'Description'}
             </div>
-            <p className="text-sm text-muted-foreground">{displayDescription}</p>
+            <p className="text-sm text-muted-foreground text-right leading-relaxed">{displayDescription}</p>
           </div>
         )}
 
         <Button 
-          className="w-full mt-4" 
+          className="w-full mt-6 bg-[#C4A484] hover:bg-[#B8997C] text-white font-medium py-2 px-4 rounded-lg shadow-md transform transition-transform hover:scale-[1.02] active:scale-[0.98]" 
           onClick={handleSelect}
+          size="sm"
         >
           {isSelected
             ? language === 'ar' ? 'إزالة الخدمة' : 'Remove Service'
-            : language === 'ar' ? 'إضافة الخدمة' : 'Add Service'}
+            : language === 'ar' ? 'اضف الخدمة' : 'Add Service'}
         </Button>
       </div>
     </SheetContent>
