@@ -1,7 +1,9 @@
+
 import * as React from "react";
 import { cn } from "@/lib/utils";
 import { motion, HTMLMotionProps } from "framer-motion";
 import { Tag } from "lucide-react";
+
 interface ServiceCardBaseProps extends Omit<HTMLMotionProps<"div">, "isSelected" | "isSelecting" | "hasDiscount" | "discountPercentage"> {
   isSelected: boolean;
   isSelecting?: boolean;
@@ -9,6 +11,7 @@ interface ServiceCardBaseProps extends Omit<HTMLMotionProps<"div">, "isSelected"
   discountPercentage?: number;
   children: React.ReactNode;
 }
+
 export const ServiceCardBase = ({
   isSelected,
   isSelecting = false,
@@ -34,7 +37,7 @@ export const ServiceCardBase = ({
       {hasDiscount && discountPercentage && <div className="absolute top-0 right-0 transform translate-x-1/4 -translate-y-1/3 z-10">
           <div className="text-white text-xs font-bold flex items-center shadow-md px-[4px] py-[3px] mx-[208px] bg-red-500 rounded-full">
             <Tag className="w-3 h-3 mr-1" />
-            <span>-{discountPercentage}%</span>
+            <span>{discountPercentage}%</span>
           </div>
         </div>}
       {children}
