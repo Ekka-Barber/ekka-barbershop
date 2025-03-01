@@ -10,30 +10,43 @@ import { Language } from "@/types/language";
 
 interface ServiceDetailsSheetProps {
   service: Service;
-  isOpen: boolean;
-  onClose: () => void;
-  onSelect: (service: Service) => void;
   isSelected: boolean;
   language: Language;
+  isOpen: boolean;
+  setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  onSelect: (service: Service) => void;
+  // Add these new props
+  serviceName?: string;
+  serviceDescription?: string | null;
+  finalPrice?: number;
+  hasDiscount?: boolean;
 }
 
 export const ServiceDetailsSheet = ({
   service,
-  isOpen,
-  onClose,
-  onSelect,
   isSelected,
-  language
+  language,
+  isOpen,
+  setIsOpen,
+  onSelect,
+  serviceName,
+  serviceDescription,
+  finalPrice,
+  hasDiscount
 }: ServiceDetailsSheetProps) => {
   if (!isOpen) return null;
 
   const handleSelect = () => {
     onSelect(service);
-    onClose();
+    setIsOpen(false);
   };
 
-  const serviceName = language === 'ar' ? service.name_ar : service.name_en;
-  const serviceDescription = language === 'ar' ? service.description_ar : service.description_en;
+  const onClose = () => setIsOpen(false);
+  
+  // Use the provided serviceName or derive it from the service
+  const displayName = serviceName || (language === 'ar' ? service.name_ar : service.name_en);
+  // Use the provided serviceDescription or derive it from the service
+  const displayDescription = serviceDescription || (language === 'ar' ? service.description_ar : service.description_en);
   
   return (
     <SheetContent
@@ -45,7 +58,7 @@ export const ServiceDetailsSheet = ({
         <div className="flex justify-between items-start">
           <SheetHeader className="text-left space-y-1">
             <SheetTitle className="text-xl font-semibold pr-8">
-              {serviceName}
+              {displayName}
             </SheetTitle>
             <div className="flex items-center gap-1 text-muted-foreground">
               <Timer className="h-4 w-4" />
@@ -67,20 +80,29 @@ export const ServiceDetailsSheet = ({
           <div className="text-sm text-muted-foreground">
             {language === 'ar' ? 'السعر' : 'Price'}
           </div>
-          <ServiceCardPrice
-            price={service.price}
-            discountType={service.discount_type}
-            discountValue={service.discount_value}
-            language={language as 'en' | 'ar'}
-          />
+          {finalPrice !== undefined && hasDiscount !== undefined ? (
+            <ServiceCardPrice
+              price={service.price}
+              finalPrice={finalPrice}
+              hasDiscount={hasDiscount}
+              language={language}
+            />
+          ) : (
+            <ServiceCardPrice
+              price={service.price}
+              discountType={service.discount_type}
+              discountValue={service.discount_value}
+              language={language}
+            />
+          )}
         </div>
 
-        {serviceDescription && (
+        {displayDescription && (
           <div className="space-y-2">
             <div className="text-sm font-medium">
               {language === 'ar' ? 'وصف الخدمة' : 'Description'}
             </div>
-            <p className="text-sm text-muted-foreground">{serviceDescription}</p>
+            <p className="text-sm text-muted-foreground">{displayDescription}</p>
           </div>
         )}
 

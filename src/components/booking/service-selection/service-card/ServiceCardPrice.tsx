@@ -1,4 +1,3 @@
-
 import * as React from "react";
 import { Tag } from "lucide-react";
 import { PriceDisplay } from "@/components/ui/price-display";
@@ -10,15 +9,21 @@ interface ServiceCardPriceProps {
   discountType?: string;
   discountValue?: number;
   language: Language;
+  finalPrice?: number;
+  hasDiscount?: boolean;
 }
 
 export const ServiceCardPrice = ({
   price,
   discountType,
   discountValue,
-  language
+  language,
+  finalPrice,
+  hasDiscount
 }: ServiceCardPriceProps) => {
-  const discount = calculateDiscount(price, discountType, discountValue);
+  const discount = hasDiscount !== undefined 
+    ? (hasDiscount ? { finalPrice: finalPrice || 0, percentage: Math.round((1 - (finalPrice || 0) / price) * 100) } : null)
+    : calculateDiscount(price, discountType, discountValue);
   
   return (
     <div className="text-end mt-1">
