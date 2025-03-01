@@ -10,6 +10,7 @@ interface ServiceCardPriceProps {
   language: string;
   discountType?: string;
   discountValue?: number;
+  size?: 'sm' | 'base' | 'lg';  // Added size prop
 }
 
 export const ServiceCardPrice = ({ 
@@ -18,7 +19,8 @@ export const ServiceCardPrice = ({
   hasDiscount, 
   language,
   discountType,
-  discountValue
+  discountValue,
+  size = 'base'
 }: ServiceCardPriceProps) => {
   // Apply discount if finalPrice is not provided but discountType and discountValue are
   let calculatedFinalPrice = finalPrice;
@@ -52,7 +54,7 @@ export const ServiceCardPrice = ({
             <PriceDisplay 
               price={calculatedFinalPrice}
               language={language as 'en' | 'ar'}
-              size="base"
+              size={size}
             />
           </motion.div>
           <motion.div
@@ -77,7 +79,7 @@ export const ServiceCardPrice = ({
           <PriceDisplay 
             price={price}
             language={language as 'en' | 'ar'}
-            size="base"
+            size={size}
           />
         </motion.div>
       )}

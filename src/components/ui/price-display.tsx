@@ -29,7 +29,7 @@ export const PriceDisplay = ({
   const sizeClasses = {
     sm: "text-sm",
     base: "text-base",
-    lg: "text-lg"
+    lg: "text-lg font-semibold"
   };
 
   const iconClasses = cn(
