@@ -41,10 +41,12 @@ export const ServiceCardPrice = ({
     calculatedHasDiscount = false;
   }
 
+  const isRTL = language === 'ar';
+
   return (
-    <div className="ml-auto text-right">
+    <div className={isRTL ? "mr-auto text-right" : "ml-auto text-right"}>
       {calculatedHasDiscount ? (
-        <div className="flex flex-col items-end">
+        <div className={`flex flex-col items-${isRTL ? 'start' : 'end'}`}>
           <motion.div
             key={calculatedFinalPrice}
             initial={{ opacity: 0, y: -5 }}
@@ -55,7 +57,7 @@ export const ServiceCardPrice = ({
               price={calculatedFinalPrice}
               language={language as 'en' | 'ar'}
               size={size}
-              className="text-green-700"
+              className="text-emerald-600"
             />
           </motion.div>
           <motion.div

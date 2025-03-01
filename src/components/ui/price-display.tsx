@@ -38,23 +38,25 @@ export const PriceDisplay = ({
     size === 'lg' && "w-5 h-5"
   );
 
+  const isRTL = language === 'ar';
+
   return (
     <div 
       className={cn(
         "flex items-center gap-1.5",
-        language === 'ar' ? "flex-row-reverse" : "flex-row",
+        isRTL ? "flex-row-reverse" : "flex-row",
         sizeClasses[size],
         className
       )}
     >
-      <RiyalIcon className={cn(iconClasses, "text-green-700")} />
+      <RiyalIcon className={cn(iconClasses, "text-emerald-600")} />
       <span>{formatNumber(price)}</span>
       {showDiscount && originalPrice && originalPrice > price && (
         <span className={cn(
           "text-muted-foreground line-through text-sm",
-          language === 'ar' ? "mr-3" : "ml-3",
+          isRTL ? "mr-3" : "ml-3",
           "flex items-center gap-1",
-          language === 'ar' ? "flex-row-reverse" : "flex-row"
+          isRTL ? "flex-row-reverse" : "flex-row"
         )}>
           <RiyalIcon className="w-3.5 h-3.5 opacity-70" />
           <span>{formatNumber(originalPrice)}</span>

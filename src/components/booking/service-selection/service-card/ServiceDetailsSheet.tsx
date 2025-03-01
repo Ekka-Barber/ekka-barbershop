@@ -9,7 +9,6 @@ import { formatDuration } from "@/utils/formatters";
 import { Service } from "@/types/service";
 import { Language } from "@/types/language";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Separator } from "@/components/ui/separator";
 
 interface ServiceDetailsSheetProps {
   service: Service;
@@ -51,54 +50,56 @@ export const ServiceDetailsSheet = ({
   // Use the provided serviceDescription or derive it from the service
   const displayDescription = serviceDescription || (language === 'ar' ? service.description_ar : service.description_en);
   
+  const isRTL = language === 'ar';
+  
   return (
     <SheetContent
       side="bottom"
-      className="p-0 rounded-t-3xl border-t-0 max-h-[85vh] sm:max-w-full bg-white overflow-hidden"
+      className="p-0 rounded-t-3xl border-t-0 max-h-[85vh] sm:max-w-full overflow-hidden"
       onCloseAutoFocus={(e) => e.preventDefault()}
     >
-      {/* Decorative header element with gradient */}
-      <div className="absolute inset-x-0 top-0 h-2 bg-gradient-to-r from-green-300 via-green-400 to-green-300 rounded-t-3xl" />
+      {/* Decorative header element with subtle mint gradient */}
+      <div className="absolute inset-x-0 top-0 h-1 bg-mint-50" />
       
-      <div className="relative">
-        {/* Main content with improved spacing and gradients */}
-        <div className="px-7 pt-8 pb-8 space-y-7">
+      <div className="relative bg-white">
+        {/* Main content with improved spacing */}
+        <div className="px-5 pt-6 pb-5 space-y-5">
           <div className="flex justify-between items-start">
-            <SheetHeader className="text-left space-y-3">
-              <SheetTitle className="text-2xl font-semibold pr-10 leading-tight">
+            <SheetHeader className={`text-${isRTL ? 'right' : 'left'} space-y-2`}>
+              <SheetTitle className={`text-xl font-semibold pr-8 leading-tight ${isRTL ? 'text-right' : 'text-left'}`}>
                 {displayName}
               </SheetTitle>
               <motion.div 
-                initial={{ opacity: 0, y: 10 }}
+                initial={{ opacity: 0, y: 5 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.1 }}
-                className="flex items-center gap-1.5 text-muted-foreground bg-green-50 px-3 py-1.5 rounded-full w-fit"
+                className={`flex items-center gap-1.5 text-muted-foreground bg-mint-50 px-3 py-1.5 rounded-full w-fit ${isRTL ? 'mr-0 ml-auto' : ''}`}
               >
-                <Timer className="h-4 w-4 text-green-600" />
-                <span className="text-green-700 font-medium">{formatDuration(service.duration, language as 'en' | 'ar')}</span>
+                <Timer className="h-4 w-4 text-emerald-600" />
+                <span className="text-emerald-700 font-medium">{formatDuration(service.duration, language as 'en' | 'ar')}</span>
               </motion.div>
             </SheetHeader>
             <Button
               size="icon"
               variant="ghost"
-              className="rounded-full h-10 w-10 absolute right-5 top-4 hover:bg-gray-100 transition-all duration-200"
+              className="rounded-full h-8 w-8 absolute right-4 top-4 hover:bg-gray-100 transition-all duration-200"
               onClick={onClose}
             >
-              <X className="h-5 w-5" />
+              <X className="h-4 w-4" />
               <span className="sr-only">Close</span>
             </Button>
           </div>
 
           <motion.div 
-            initial={{ opacity: 0, y: 10 }}
+            initial={{ opacity: 0, y: 5 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.15 }}
-            className="bg-gradient-to-r from-green-50 via-green-50 to-emerald-50 rounded-2xl p-5 shadow-sm"
+            className="bg-mint-50 rounded-xl p-4"
           >
-            <div className="text-sm font-medium mb-2 text-green-800">
+            <div className={`text-sm font-medium mb-1 text-emerald-800 ${isRTL ? 'text-right' : 'text-left'}`}>
               {language === 'ar' ? 'السعر' : 'Price'}
             </div>
-            <div className="flex justify-between items-center">
+            <div className={`flex ${isRTL ? 'justify-start' : 'justify-end'} items-center`}>
               {finalPrice !== undefined && hasDiscount !== undefined ? (
                 <ServiceCardPrice
                   price={service.price}
@@ -121,17 +122,16 @@ export const ServiceDetailsSheet = ({
 
           {displayDescription && (
             <motion.div 
-              initial={{ opacity: 0, y: 10 }}
+              initial={{ opacity: 0, y: 5 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className="space-y-3"
+              className="space-y-2"
             >
-              <div className="text-sm font-medium text-gray-700">
+              <div className={`text-sm font-medium text-gray-700 ${isRTL ? 'text-right' : 'text-left'}`}>
                 {language === 'ar' ? 'وصف الخدمة' : 'Description'}
               </div>
-              <Separator className="bg-gray-100" />
-              <ScrollArea className="max-h-[150px] pr-4">
-                <p className="text-sm text-gray-600 leading-relaxed">
+              <ScrollArea className="max-h-[80px] pr-4" dir={isRTL ? 'rtl' : 'ltr'}>
+                <p className={`text-sm text-gray-600 leading-relaxed ${isRTL ? 'text-right' : 'text-left'}`}>
                   {displayDescription}
                 </p>
               </ScrollArea>
@@ -139,14 +139,14 @@ export const ServiceDetailsSheet = ({
           )}
 
           <motion.div
-            initial={{ opacity: 0, y: 10 }}
+            initial={{ opacity: 0, y: 5 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
             whileTap={{ scale: 0.98 }}
-            className="pt-2"
+            className="pt-1"
           >
             <Button 
-              className="w-full font-medium text-white py-6 rounded-xl shadow-md bg-gradient-to-r from-[#B8997C] via-[#C4A484] to-[#B8997C] hover:opacity-90 transition-all duration-300" 
+              className="w-full font-medium text-white py-5 rounded-xl bg-[#C4A484] hover:bg-[#B8997C] transition-all duration-300" 
               onClick={handleSelect}
             >
               {isSelected
