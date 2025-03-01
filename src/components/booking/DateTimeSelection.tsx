@@ -60,24 +60,35 @@ export const DateTimeSelection = ({
             {threeDays.map((date) => (
               <Button
                 key={date.toISOString()}
-                variant={selectedDate?.toDateString() === date.toDateString() ? "default" : "outline"}
+                variant="outline"
                 onClick={() => onDateSelect(date)}
                 className={cn(
-                  "flex flex-col items-center justify-center h-20 p-2",
+                  "flex flex-col items-center justify-center h-20 p-2 border transition-all duration-200",
+                  selectedDate?.toDateString() === date.toDateString() 
+                    ? "bg-gradient-to-b from-[#f8f8f8] to-white border-[#C4A484] shadow-md transform scale-[1.02]" 
+                    : "hover:border-[#C4A484] hover:bg-[#f8f8f8]/50",
                   isBefore(date, startOfDay(new Date())) && "opacity-50 cursor-not-allowed"
                 )}
                 disabled={isBefore(date, startOfDay(new Date()))}
               >
-                <span className="text-sm font-medium">
+                <span className={cn(
+                  "text-sm font-medium",
+                  selectedDate?.toDateString() === date.toDateString() && "text-[#C4A484]"
+                )}>
                   {formatDay(date)}
                 </span>
-                <span className="text-lg font-bold">{formatDate(date)}</span>
+                <span className={cn(
+                  "text-lg font-bold",
+                  selectedDate?.toDateString() === date.toDateString() && "text-[#C4A484]"
+                )}>
+                  {formatDate(date)}
+                </span>
               </Button>
             ))}
           </div>
           <button
             onClick={() => setShowFullCalendar(true)}
-            className="text-sm text-primary hover:underline w-full text-center"
+            className="text-sm text-[#C4A484] hover:underline w-full text-center transition-colors duration-200"
           >
             {language === 'ar' ? 'المزيد من التواريخ' : 'More dates'}
           </button>
@@ -88,13 +99,13 @@ export const DateTimeSelection = ({
             mode="single"
             selected={selectedDate}
             onSelect={onDateSelect}
-            className="rounded-md border mx-auto"
+            className="rounded-md border mx-auto shadow-sm"
             disabled={(date) => isBefore(date, startOfDay(new Date()))}
             locale={language === 'ar' ? ar : undefined}
           />
           <button
             onClick={() => setShowFullCalendar(false)}
-            className="text-sm text-primary hover:underline w-full text-center"
+            className="text-sm text-[#C4A484] hover:underline w-full text-center transition-colors duration-200"
           >
             {language === 'ar' ? 'عرض أقل' : 'Show less'}
           </button>
