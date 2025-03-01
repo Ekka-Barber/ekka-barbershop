@@ -1,10 +1,12 @@
 
 import * as React from "react";
-import { motion } from "framer-motion";
+import { Timer, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { ServiceCardPrice } from "./ServiceCardPrice";
+import { formatDuration } from "@/utils/formatters";
 import { Service } from "@/types/service";
 import { Language } from "@/types/language";
-import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface ServiceDetailsSheetProps {
   service: Service;
@@ -13,7 +15,7 @@ interface ServiceDetailsSheetProps {
   isOpen: boolean;
   setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
   onSelect: (service: Service) => void;
-  // Additional props
+  // Add these new props
   serviceName?: string;
   serviceDescription?: string | null;
   finalPrice?: number;
@@ -46,61 +48,72 @@ export const ServiceDetailsSheet = ({
   // Use the provided serviceDescription or derive it from the service
   const displayDescription = serviceDescription || (language === 'ar' ? service.description_ar : service.description_en);
   
-  const isRTL = language === 'ar';
-  
   return (
     <SheetContent
       side="bottom"
-      className="p-0 rounded-t-3xl border-t-0 max-h-[85vh] sm:max-w-full overflow-hidden"
+      className="p-0 rounded-t-2xl border-t-0 max-h-[85vh] sm:max-w-full"
       onCloseAutoFocus={(e) => e.preventDefault()}
     >
-      {/* Decorative header element with subtle mint gradient */}
-      <div className="absolute inset-x-0 top-0 h-1 bg-mint-50" />
-      
-      <div className="relative bg-white p-5">
-        {/* Main content with description only */}
-        <div className="space-y-4">
-          <SheetHeader className={`text-${isRTL ? 'right' : 'left'} space-y-2`}>
-            <SheetTitle className={`text-xl font-semibold leading-tight ${isRTL ? 'text-right' : 'text-left'}`}>
+      <div className="p-6 space-y-6">
+        <div className="flex justify-between items-start">
+          <SheetHeader className="text-left space-y-1">
+            <SheetTitle className="text-xl font-semibold pr-8">
               {displayName}
             </SheetTitle>
+            <div className="flex items-center gap-1 text-muted-foreground">
+              <Timer className="h-4 w-4" />
+              <span>{formatDuration(service.duration, language as 'en' | 'ar')}</span>
+            </div>
           </SheetHeader>
-
-          {displayDescription && (
-            <motion.div 
-              initial={{ opacity: 0, y: 5 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-              className="space-y-2"
-            >
-              <div className={`text-sm font-medium text-gray-700 ${isRTL ? 'text-right' : 'text-left'}`}>
-                {language === 'ar' ? 'وصف الخدمة' : 'Description'}
-              </div>
-              <ScrollArea className="max-h-[160px] pr-4" dir={isRTL ? 'rtl' : 'ltr'}>
-                <p className={`text-sm text-gray-600 leading-relaxed ${isRTL ? 'text-right' : 'text-left'}`}>
-                  {displayDescription}
-                </p>
-              </ScrollArea>
-            </motion.div>
-          )}
-
-          <motion.div
-            initial={{ opacity: 0, y: 5 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            whileTap={{ scale: 0.98 }}
-            className="pt-1"
+          <Button
+            size="icon"
+            variant="ghost"
+            className="rounded-full h-8 w-8"
+            onClick={onClose}
           >
-            <button 
-              className="w-auto mx-auto block font-medium text-white py-2 px-4 rounded-lg bg-[#C4A484] hover:bg-[#B8997C] transition-all duration-300 text-sm" 
-              onClick={handleSelect}
-            >
-              {isSelected
-                ? language === 'ar' ? 'إزالة الخدمة' : 'Remove Service'
-                : language === 'ar' ? 'اضف الخدمة' : 'Add Service'}
-            </button>
-          </motion.div>
+            <X className="h-4 w-4" />
+            <span className="sr-only">Close</span>
+          </Button>
         </div>
+
+        <div className="flex justify-between items-center">
+          <div className="text-sm text-muted-foreground">
+            {language === 'ar' ? 'السعر' : 'Price'}
+          </div>
+          {finalPrice !== undefined && hasDiscount !== undefined ? (
+            <ServiceCardPrice
+              price={service.price}
+              finalPrice={finalPrice}
+              hasDiscount={hasDiscount}
+              language={language}
+            />
+          ) : (
+            <ServiceCardPrice
+              price={service.price}
+              discountType={service.discount_type}
+              discountValue={service.discount_value}
+              language={language}
+            />
+          )}
+        </div>
+
+        {displayDescription && (
+          <div className="space-y-2">
+            <div className="text-sm font-medium">
+              {language === 'ar' ? 'وصف الخدمة' : 'Description'}
+            </div>
+            <p className="text-sm text-muted-foreground">{displayDescription}</p>
+          </div>
+        )}
+
+        <Button 
+          className="w-full mt-4" 
+          onClick={handleSelect}
+        >
+          {isSelected
+            ? language === 'ar' ? 'إزالة الخدمة' : 'Remove Service'
+            : language === 'ar' ? 'إضافة الخدمة' : 'Add Service'}
+        </Button>
       </div>
     </SheetContent>
   );

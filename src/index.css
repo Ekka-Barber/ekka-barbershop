@@ -78,16 +78,3 @@
     @apply h-full;
   }
 }
-
-/* Mint color classes */
-.bg-mint-50 {
-  background-color: #F2FCF2;
-}
-
-.text-mint-600 {
-  color: #10B981;
-}
-
-.text-mint-700 {
-  color: #059669;
-}

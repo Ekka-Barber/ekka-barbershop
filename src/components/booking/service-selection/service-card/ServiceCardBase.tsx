@@ -1,65 +1,45 @@
 
-import React from "react";
-import { motion } from "framer-motion";
+import * as React from "react";
 import { cn } from "@/lib/utils";
-import { CustomBadge } from "@/components/ui/custom-badge";
+import { motion, HTMLMotionProps } from "framer-motion";
+import { Tag } from "lucide-react";
 
-interface ServiceCardBaseProps {
-  children: React.ReactNode;
+interface ServiceCardBaseProps extends Omit<HTMLMotionProps<"div">, "isSelected" | "isSelecting" | "hasDiscount" | "discountPercentage"> {
   isSelected: boolean;
-  isSelecting: boolean;
-  hasDiscount: boolean;
+  isSelecting?: boolean;
+  hasDiscount?: boolean;
   discountPercentage?: number;
-  onClick: () => void;
-  className?: string;
+  children: React.ReactNode;
 }
 
 export const ServiceCardBase = ({
-  children,
   isSelected,
-  isSelecting,
+  isSelecting = false,
   hasDiscount,
   discountPercentage,
-  onClick,
-  className
+  children,
+  className,
+  ...props
 }: ServiceCardBaseProps) => {
-  return (
-    <motion.div
-      whileHover={{ scale: 1.02 }}
-      whileTap={{ scale: 0.98 }}
-      onClick={onClick}
-      className={cn(
-        "relative p-4 rounded-lg shadow-sm border cursor-pointer transition-all duration-300",
-        isSelected
-          ? "border-green-500 bg-green-50 shadow-md"
-          : "border-gray-200 bg-white hover:shadow",
-        isSelecting && "border-green-300",
-        className
-      )}
-    >
-      {hasDiscount && discountPercentage && (
-        <div className="absolute -top-2 left-2 z-10">
-          <CustomBadge variant="discount" className="rounded-full shadow-sm animate-pulse-once">
-            -{Math.round(discountPercentage)}%
-          </CustomBadge>
-        </div>
-      )}
-      
-      {isSelected && (
-        <motion.div
-          className="absolute top-2 right-2 w-4 h-4 rounded-full bg-green-500 flex items-center justify-center"
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          transition={{ type: "spring", stiffness: 500, damping: 30 }}
-        >
-          <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-          </svg>
-        </motion.div>
-      )}
-      
+  return <motion.div className={cn("border rounded-lg p-4 relative cursor-pointer", "transition-all duration-150", isSelected ? "border-[#e7bd71] bg-[#FDF9EF]" : "border-border hover:border-[#e7bd71]", className)} initial={{
+    scale: 1
+  }} whileHover={{
+    scale: 1.01
+  }} whileTap={{
+    scale: 0.99
+  }} animate={isSelecting ? {
+    scale: [1, 1.02, 1]
+  } : {
+    scale: 1
+  }} transition={{
+    duration: 0.15
+  }} {...props}>
+      {hasDiscount && discountPercentage && <div className="absolute top-0 right-0 transform translate-x-1/4 -translate-y-1/3 z-10">
+          <div className="text-white text-xs font-bold flex items-center shadow-md px-[4px] py-[3px] mx-[208px] bg-red-500 rounded-full">
+            <Tag className="w-3 h-3 mr-1" />
+            <span>{discountPercentage}%</span>
+          </div>
+        </div>}
       {children}
-    </motion.div>
-  );
+    </motion.div>;
 };
-
