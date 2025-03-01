@@ -81,6 +81,14 @@ export const BookingSteps = ({ branch }: BookingStepsProps) => {
   // Show the summary bar for all steps except the details step
   const shouldShowSummaryBar = currentStep !== 'details' && selectedServices.length > 0;
 
+  // Transform the selectedServices to match the expected format for ServicesSummary
+  const transformedServices = selectedServices.map(service => ({
+    id: service.id,
+    name: language === 'ar' ? service.name_ar : service.name_en,
+    price: service.price,
+    duration: service.duration
+  }));
+
   return (
     <>
       <BookingProgress
@@ -129,7 +137,7 @@ export const BookingSteps = ({ branch }: BookingStepsProps) => {
 
       {shouldShowSummaryBar && (
         <ServicesSummary
-          selectedServices={selectedServices}
+          selectedServices={transformedServices}
           totalDuration={totalDuration}
           totalPrice={totalPrice}
           language={language}

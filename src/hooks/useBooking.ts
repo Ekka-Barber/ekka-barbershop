@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from "@/integrations/supabase/client";
@@ -209,6 +210,8 @@ export const useBooking = (branch: any) => {
   };
 
   const totalPrice = selectedServices.reduce((sum, service) => sum + service.price, 0);
+  // Calculate total duration from all selected services
+  const totalDuration = selectedServices.reduce((sum, service) => sum + service.duration, 0);
 
   return {
     currentStep,
@@ -229,6 +232,7 @@ export const useBooking = (branch: any) => {
     selectedEmployee,
     handleServiceToggle,
     handleUpsellServiceAdd,
-    totalPrice
+    totalPrice,
+    totalDuration // Add the totalDuration to the return value
   };
 };
