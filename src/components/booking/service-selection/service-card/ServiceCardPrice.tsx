@@ -5,29 +5,52 @@ import { PriceDisplay } from "@/components/ui/price-display";
 
 interface ServiceCardPriceProps {
   price: number;
-  finalPrice: number;
-  hasDiscount: boolean;
+  finalPrice?: number;
+  hasDiscount?: boolean;
   language: string;
+  discountType?: string;
+  discountValue?: number;
 }
 
 export const ServiceCardPrice = ({ 
   price, 
   finalPrice, 
   hasDiscount, 
-  language 
+  language,
+  discountType,
+  discountValue
 }: ServiceCardPriceProps) => {
+  // Apply discount if finalPrice is not provided but discountType and discountValue are
+  let calculatedFinalPrice = finalPrice;
+  let calculatedHasDiscount = hasDiscount;
+  
+  if (finalPrice === undefined && discountType && discountValue) {
+    calculatedHasDiscount = true;
+    if (discountType === 'percentage') {
+      calculatedFinalPrice = price - (price * (discountValue / 100));
+    } else if (discountType === 'fixed') {
+      calculatedFinalPrice = price - discountValue;
+    } else {
+      calculatedFinalPrice = price;
+      calculatedHasDiscount = false;
+    }
+  } else if (finalPrice === undefined) {
+    calculatedFinalPrice = price;
+    calculatedHasDiscount = false;
+  }
+
   return (
     <div className="ml-auto text-right">
-      {hasDiscount ? (
+      {calculatedHasDiscount ? (
         <div className="flex flex-col items-end">
           <motion.div
-            key={finalPrice}
+            key={calculatedFinalPrice}
             initial={{ opacity: 0, y: -5 }}
             animate={{ opacity: 1, y: 0 }}
             className="font-medium"
           >
             <PriceDisplay 
-              price={finalPrice}
+              price={calculatedFinalPrice}
               language={language as 'en' | 'ar'}
               size="base"
             />

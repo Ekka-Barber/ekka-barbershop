@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { openExternalLink } from "@/utils/deepLinking";
 import { formatWhatsAppNumber } from "@/utils/phoneUtils";
 import { motion } from "framer-motion";
-import { WhatsApp, MessageCircleMore, ArrowRight } from "lucide-react";
+import { MessageCircleMore, ArrowRight, Send, MessageSquare } from "lucide-react";
 
 interface WhatsAppIntegrationProps {
   selectedServices: any[];
@@ -177,7 +177,7 @@ export const WhatsAppIntegration = ({
             </span>
           ) : (
             <>
-              <WhatsApp className="h-5 w-5" />
+              <MessageSquare className="h-5 w-5" />
               <span>
                 {language === 'ar' ? 'تأكيد عبر واتساب' : 'Confirm via WhatsApp'}
               </span>
