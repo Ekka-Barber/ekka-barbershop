@@ -1,4 +1,3 @@
-
 import { Share } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Check } from 'lucide-react';
@@ -27,7 +26,7 @@ export const IOSInstallGuide = ({ language, onCancel, trigger }: IOSInstallGuide
       </SheetTrigger>
       <SheetContent 
         side="bottom" 
-        className={`${language === 'ar' ? 'rtl' : 'ltr'} font-changa rounded-t-xl p-0`}
+        className={`${language === 'ar' ? 'rtl' : 'ltr'} font-changa rounded-t-xl p-0 bg-white`}
       >
         <div className="p-6 space-y-6">
           <SheetHeader>
