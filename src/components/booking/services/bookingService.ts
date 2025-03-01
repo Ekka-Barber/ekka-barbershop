@@ -53,8 +53,9 @@ export const createWhatsAppMessage = (formData: BookingFormData) => {
     return `${roundedPrice} ${language === 'ar' ? 'ريال' : 'SAR'}`;
   };
 
+  // Format services as bullet points
   const serviceSummary = selectedServices
-    .map(service => `${language === 'ar' ? service.name_ar : service.name_en}: ${formatPrice(service.price)}${service.originalPrice ? ` (${language === 'ar' ? 'السعر الأصلي' : 'Original price'}: ${formatPrice(service.originalPrice)})` : ''}`)
+    .map(service => `• ${language === 'ar' ? service.name_ar : service.name_en}: ${formatPrice(service.price)}${service.originalPrice ? ` (${language === 'ar' ? 'السعر الأصلي' : 'Original price'}: ${formatPrice(service.originalPrice)})` : ''}`)
     .join('\n');
 
   const totalOriginalPrice = selectedServices.reduce((sum, service) => sum + (service.originalPrice || service.price), 0);
