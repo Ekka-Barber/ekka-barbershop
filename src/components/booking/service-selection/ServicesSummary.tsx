@@ -1,28 +1,24 @@
 
-import React, { useMemo, memo } from "react";
-import { Button } from "@/components/ui/button";
-import { Timer, ArrowRight, ArrowLeft } from "lucide-react";
-import { PriceDisplay } from "@/components/ui/price-display";
-import { cn } from "@/lib/utils";
-
-interface Service {
-  id: string;
-  name: string;
-  price: number;
-  duration: number;
-}
+import { motion, AnimatePresence } from "framer-motion";
+import { MetricsGroup } from "./summary/MetricsGroup";
+import { ActionButton } from "./summary/ActionButton";
 
 interface ServicesSummaryProps {
-  selectedServices: Service[];
+  selectedServices: Array<{
+    id: string;
+    name: string;
+    price: number;
+    duration: number;
+  }>;
   totalDuration: number;
   totalPrice: number;
-  language: string;
+  language: 'en' | 'ar';
   onNextStep: () => void;
   onPrevStep: () => void;
   isFirstStep: boolean;
 }
 
-export const ServicesSummary = memo(({
+export const ServicesSummary = ({
   selectedServices,
   totalDuration,
   totalPrice,
@@ -31,74 +27,45 @@ export const ServicesSummary = memo(({
   onPrevStep,
   isFirstStep
 }: ServicesSummaryProps) => {
-  const hasServices = selectedServices.length > 0;
-  
-  const buttonText = useMemo(() => 
-    language === 'ar' ? 'متابعة' : 'Continue',
-    [language]
-  );
-
-  const durationText = useMemo(() => 
-    language === 'ar' ? `${totalDuration} دقيقة` : `${totalDuration} min`,
-    [language, totalDuration]
-  );
-
-  const isEmpty = !hasServices;
-
-  if (isEmpty) return null;
+  if (selectedServices.length === 0) return null;
 
   return (
-    <div className={cn(
-      "fixed bottom-0 left-0 right-0 p-4 bg-white border-t flex flex-col gap-2 z-10 transition-all duration-200 ease-in-out",
-      hasServices ? "translate-y-0" : "translate-y-full"
-    )}>
-      <div className="flex justify-between items-center">
-        <div className="flex items-center space-x-2 rtl:space-x-reverse">
-          <Timer className="h-4 w-4 text-gray-500" />
-          <span className="text-sm text-gray-700">{durationText}</span>
+    <AnimatePresence>
+      <motion.div 
+        className="fixed bottom-0 left-0 right-0 bg-white border-t shadow-lg z-40"
+        initial={{ y: 100, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        exit={{ y: 100, opacity: 0 }}
+        transition={{ duration: 0.3 }}
+      >
+        <div className="w-full max-w-screen-xl mx-auto px-4 py-2.5">
+          <div className="flex items-center justify-between">
+            {/* Previous button on the left */}
+            <ActionButton 
+              onClick={onPrevStep}
+              direction="prev"
+              language={language}
+              isDisabled={isFirstStep}
+            />
+            
+            {/* Metrics in the center */}
+            <MetricsGroup 
+              selectedServices={selectedServices}
+              totalDuration={totalDuration}
+              totalPrice={totalPrice}
+              language={language}
+            />
+            
+            {/* Next button on the right */}
+            <ActionButton 
+              onClick={onNextStep}
+              direction="next"
+              language={language}
+              isDisabled={selectedServices.length === 0}
+            />
+          </div>
         </div>
-        <PriceDisplay price={totalPrice} language={language as 'en' | 'ar'} />
-      </div>
-      
-      <div className="flex gap-3">
-        {!isFirstStep && (
-          <Button 
-            variant="outline" 
-            className="flex-1"
-            onClick={onPrevStep}
-          >
-            {language === 'ar' ? (
-              <>
-                السابق <ArrowRight className="h-4 w-4 ml-1" />
-              </>
-            ) : (
-              <>
-                <ArrowLeft className="h-4 w-4 mr-1" /> Previous
-              </>
-            )}
-          </Button>
-        )}
-        
-        <Button 
-          className={cn(
-            "flex-1 bg-[#C4A484] hover:bg-[#B3926F]",
-            isFirstStep ? "w-full" : ""
-          )}
-          onClick={onNextStep}
-        >
-          {language === 'ar' ? (
-            <>
-              {buttonText} <ArrowLeft className="h-4 w-4 mr-1" />
-            </>
-          ) : (
-            <>
-              {buttonText} <ArrowRight className="h-4 w-4 ml-1" />
-            </>
-          )}
-        </Button>
-      </div>
-    </div>
+      </motion.div>
+    </AnimatePresence>
   );
-});
-
-ServicesSummary.displayName = 'ServicesSummary';
+};

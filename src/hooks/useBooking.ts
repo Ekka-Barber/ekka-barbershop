@@ -1,5 +1,5 @@
 
-import { useState, useCallback, useMemo } from 'react';
+import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from "@/integrations/supabase/client";
 import { BookingStep } from '@/components/booking/BookingProgress';
@@ -73,7 +73,6 @@ export const useBooking = (branch: any) => {
           .sort((a, b) => (a?.display_order || 0) - (b?.display_order || 0))
       }));
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
   const { data: employees, isLoading: employeesLoading } = useQuery({
@@ -89,7 +88,6 @@ export const useBooking = (branch: any) => {
       return data;
     },
     enabled: !!branch?.id,
-    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
   const { data: selectedEmployee } = useQuery({
@@ -105,33 +103,10 @@ export const useBooking = (branch: any) => {
       if (error) throw error;
       return data;
     },
-    enabled: !!selectedBarber,
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    enabled: !!selectedBarber
   });
 
-  // Memoize calculateDiscountedPrice and roundPrice functions
-  const calculateDiscountedPrice = useCallback((service: any) => {
-    if (!service.discount_type || !service.discount_value) return service.price;
-    
-    if (service.discount_type === 'percentage') {
-      return service.price - (service.price * (service.discount_value / 100));
-    } else {
-      return service.price - service.discount_value;
-    }
-  }, []);
-
-  const roundPrice = useCallback((price: number) => {
-    const decimal = price % 1;
-    if (decimal >= 0.5) {
-      return Math.ceil(price);
-    } else if (decimal <= 0.4) {
-      return Math.floor(price);
-    }
-    return price;
-  }, []);
-
-  // Memoize service toggle handler
-  const handleServiceToggle = useCallback((service: Service, skipDiscountCalculation: boolean = false) => {
+  const handleServiceToggle = (service: Service, skipDiscountCalculation: boolean = false) => {
     const isSelected = selectedServices.some(s => s.id === service.id);
     
     if (isSelected) {
@@ -162,10 +137,9 @@ export const useBooking = (branch: any) => {
         dependentUpsells: []
       }]);
     }
-  }, [selectedServices, toast, language, calculateDiscountedPrice, roundPrice]);
+  };
 
-  // Memoize upsell service handler
-  const handleUpsellServiceAdd = useCallback((upsellServices: any[]) => {
+  const handleUpsellServiceAdd = (upsellServices: any[]) => {
     upsellServices.forEach(upsell => {
       const mainService = selectedServices.find(s => !s.isUpsellItem && s.id === upsell.mainServiceId);
       
@@ -206,19 +180,38 @@ export const useBooking = (branch: any) => {
         return [...updatedServices, newUpsell];
       });
     });
-  }, [selectedServices, roundPrice]);
+  };
 
-  // Memoize customer details handler
-  const handleCustomerDetailsChange = useCallback((field: keyof CustomerDetails, value: string) => {
+  const calculateDiscountedPrice = (service: any) => {
+    if (!service.discount_type || !service.discount_value) return service.price;
+    
+    if (service.discount_type === 'percentage') {
+      return service.price - (service.price * (service.discount_value / 100));
+    } else {
+      return service.price - service.discount_value;
+    }
+  };
+
+  const roundPrice = (price: number) => {
+    const decimal = price % 1;
+    if (decimal >= 0.5) {
+      return Math.ceil(price);
+    } else if (decimal <= 0.4) {
+      return Math.floor(price);
+    }
+    return price;
+  };
+
+  const handleCustomerDetailsChange = (field: keyof CustomerDetails, value: string) => {
     setCustomerDetails(prev => ({
       ...prev,
       [field]: value
     }));
-  }, []);
+  };
 
-  // Memoize calculated totals
-  const totalPrice = useMemo(() => selectedServices.reduce((sum, service) => sum + service.price, 0), [selectedServices]);
-  const totalDuration = useMemo(() => selectedServices.reduce((sum, service) => sum + service.duration, 0), [selectedServices]);
+  const totalPrice = selectedServices.reduce((sum, service) => sum + service.price, 0);
+  // Calculate total duration from all selected services
+  const totalDuration = selectedServices.reduce((sum, service) => sum + service.duration, 0);
 
   return {
     currentStep,
@@ -240,6 +233,6 @@ export const useBooking = (branch: any) => {
     handleServiceToggle,
     handleUpsellServiceAdd,
     totalPrice,
-    totalDuration
+    totalDuration // Add the totalDuration to the return value
   };
 };

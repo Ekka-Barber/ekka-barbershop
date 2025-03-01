@@ -1,5 +1,4 @@
-
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { BookingProgress, BookingStep } from "@/components/booking/BookingProgress";
 import { BookingNavigation } from "@/components/booking/BookingNavigation";
 import { UpsellModal } from "@/components/booking/UpsellModal";
@@ -12,23 +11,22 @@ import { ServicesSummary } from "./service-selection/ServicesSummary";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft } from "lucide-react";
-
 const STEPS: BookingStep[] = ['services', 'datetime', 'barber', 'details'];
-
 interface BookingStepsProps {
   branch: any;
 }
-
 export const BookingSteps = ({
   branch
 }: BookingStepsProps) => {
   const navigate = useNavigate();
-  const { language } = useLanguage();
-  const { toast } = useToast();
-  
+  const {
+    language
+  } = useLanguage();
+  const {
+    toast
+  } = useToast();
   const [showUpsellModal, setShowUpsellModal] = useState(false);
   const [pendingStep, setPendingStep] = useState<BookingStep | null>(null);
-  
   const {
     currentStep,
     setCurrentStep,
@@ -51,21 +49,18 @@ export const BookingSteps = ({
     totalPrice,
     totalDuration
   } = useBooking(branch);
-
-  const { data: availableUpsells = [] } = useBookingUpsells(selectedServices, language);
-  
-  // Memoize step change handler
-  const handleStepChange = useCallback((step: string) => {
+  const {
+    data: availableUpsells
+  } = useBookingUpsells(selectedServices, language);
+  const handleStepChange = (step: string) => {
     if (currentStep === 'services' && step === 'datetime' && availableUpsells?.length) {
       setShowUpsellModal(true);
       setPendingStep('datetime');
     } else {
       setCurrentStep(step as BookingStep);
     }
-  }, [currentStep, availableUpsells, setCurrentStep]);
-
-  // Memoize validation function
-  const validateStep = useCallback((): boolean => {
+  };
+  const validateStep = (): boolean => {
     if (currentStep === 'services') {
       return selectedServices.length > 0;
     }
@@ -100,147 +95,78 @@ export const BookingSteps = ({
       return true;
     }
     return true;
-  }, [currentStep, selectedServices.length, selectedDate, selectedBarber, selectedTime, toast, language]);
-
-  // Memoize navigation handlers
-  const handleNextStep = useCallback(() => {
+  };
+  const handleNextStep = () => {
     const currentIndex = STEPS.indexOf(currentStep);
     if (currentIndex < STEPS.length - 1) {
       if (validateStep()) {
         handleStepChange(STEPS[currentIndex + 1]);
       }
     }
-  }, [currentStep, validateStep, handleStepChange]);
-
-  const handlePrevStep = useCallback(() => {
+  };
+  const handlePrevStep = () => {
     const currentIndex = STEPS.indexOf(currentStep);
     if (currentIndex > 0) {
       setCurrentStep(STEPS[currentIndex - 1]);
     } else {
       navigate('/customer');
     }
-  }, [currentStep, setCurrentStep, navigate]);
-
-  const handleBackToServices = useCallback(() => {
+  };
+  const handleBackToServices = () => {
     setCurrentStep('services');
-  }, [setCurrentStep]);
-
-  // Memoize modal handlers
-  const handleUpsellModalClose = useCallback(() => {
+  };
+  const handleUpsellModalClose = () => {
     setShowUpsellModal(false);
     if (pendingStep) {
       setCurrentStep(pendingStep);
       setPendingStep(null);
     }
-  }, [pendingStep, setCurrentStep]);
-
-  const handleUpsellConfirm = useCallback((selectedUpsells: any[]) => {
+  };
+  const handleUpsellConfirm = (selectedUpsells: any[]) => {
     handleUpsellServiceAdd(selectedUpsells);
     handleUpsellModalClose();
-  }, [handleUpsellServiceAdd, handleUpsellModalClose]);
+  };
+  const currentStepIndex = STEPS.indexOf(currentStep);
 
-  // Memoize derived state
-  const currentStepIndex = useMemo(() => STEPS.indexOf(currentStep), [currentStep]);
-
-  // Memoize disabled state calculation
-  const isNextDisabled = useMemo(() => {
+  // Calculate if the next button should be disabled based on step
+  const isNextDisabled = () => {
     if (currentStep === 'services') return selectedServices.length === 0;
     if (currentStep === 'datetime') return !selectedDate;
     if (currentStep === 'barber') return !selectedBarber || !selectedTime;
     if (currentStep === 'details') return !customerDetails.name || !customerDetails.phone;
     return false;
-  }, [currentStep, selectedServices.length, selectedDate, selectedBarber, selectedTime, customerDetails]);
+  };
+  const employeeWorkingHours = selectedEmployee?.working_hours ? transformWorkingHours(selectedEmployee.working_hours) : null;
 
-  const employeeWorkingHours = useMemo(() => 
-    selectedEmployee?.working_hours ? transformWorkingHours(selectedEmployee.working_hours) : null, 
-    [selectedEmployee?.working_hours]
-  );
-
-  // Memoize UI state flags
+  // Only show the BookingNavigation in the details step
   const shouldShowNavigation = currentStep === 'details';
+
+  // Show the summary bar for all steps except the details step
   const shouldShowSummaryBar = currentStep !== 'details' && selectedServices.length > 0;
+
+  // Show back to services button when not on services step
   const showBackToServices = currentStep !== 'services';
 
-  // Memoize transformed services
-  const transformedServices = useMemo(() => selectedServices.map(service => ({
+  // Transform the selectedServices to match the expected format for ServicesSummary
+  const transformedServices = selectedServices.map(service => ({
     id: service.id,
     name: language === 'ar' ? service.name_ar : service.name_en,
     price: service.price,
     duration: service.duration
-  })), [selectedServices, language]);
-
+  }));
   return <>
-      <BookingProgress 
-        currentStep={currentStep} 
-        steps={STEPS} 
-        onStepClick={setCurrentStep} 
-        currentStepIndex={currentStepIndex} 
-      />
+      <BookingProgress currentStep={currentStep} steps={STEPS} onStepClick={setCurrentStep} currentStepIndex={currentStepIndex} />
 
-      {showBackToServices && (
-        <button 
-          onClick={handleBackToServices}
-          className="flex items-center text-sm text-gray-600 hover:text-gray-900 mb-4"
-        >
-          <ArrowLeft className="h-4 w-4 mr-1" />
-          {language === 'ar' ? 'العودة إلى الخدمات' : 'Back to services'}
-        </button>
-      )}
+      {showBackToServices}
 
       <div className="mb-8">
-        <StepRenderer 
-          currentStep={currentStep} 
-          categories={categories} 
-          categoriesLoading={categoriesLoading} 
-          selectedServices={selectedServices} 
-          handleServiceToggle={handleServiceToggle} 
-          handleStepChange={handleStepChange} 
-          employees={employees} 
-          employeesLoading={employeesLoading} 
-          selectedBarber={selectedBarber} 
-          setSelectedBarber={setSelectedBarber} 
-          selectedDate={selectedDate} 
-          selectedTime={selectedTime} 
-          setSelectedDate={setSelectedDate} 
-          setSelectedTime={setSelectedTime} 
-          employeeWorkingHours={employeeWorkingHours} 
-          customerDetails={customerDetails} 
-          handleCustomerDetailsChange={handleCustomerDetailsChange} 
-          totalPrice={totalPrice} 
-          language={language} 
-          branch={branch} 
-        />
+        <StepRenderer currentStep={currentStep} categories={categories} categoriesLoading={categoriesLoading} selectedServices={selectedServices} handleServiceToggle={handleServiceToggle} handleStepChange={handleStepChange} employees={employees} employeesLoading={employeesLoading} selectedBarber={selectedBarber} setSelectedBarber={setSelectedBarber} selectedDate={selectedDate} selectedTime={selectedTime} setSelectedDate={setSelectedDate} setSelectedTime={setSelectedTime} employeeWorkingHours={employeeWorkingHours} customerDetails={customerDetails} handleCustomerDetailsChange={handleCustomerDetailsChange} totalPrice={totalPrice} language={language} branch={branch} />
       </div>
 
-      {shouldShowNavigation && (
-        <BookingNavigation 
-          currentStepIndex={currentStepIndex} 
-          steps={STEPS} 
-          currentStep={currentStep} 
-          setCurrentStep={setCurrentStep} 
-          isNextDisabled={isNextDisabled} 
-          customerDetails={customerDetails} 
-          branch={branch} 
-        />
-      )}
+      {shouldShowNavigation && <BookingNavigation currentStepIndex={currentStepIndex} steps={STEPS} currentStep={currentStep} setCurrentStep={setCurrentStep} isNextDisabled={isNextDisabled()} customerDetails={customerDetails} branch={branch} />}
 
-      {shouldShowSummaryBar && (
-        <ServicesSummary 
-          selectedServices={transformedServices} 
-          totalDuration={totalDuration} 
-          totalPrice={totalPrice} 
-          language={language} 
-          onNextStep={handleNextStep} 
-          onPrevStep={handlePrevStep} 
-          isFirstStep={currentStepIndex === 0} 
-        />
-      )}
+      {shouldShowSummaryBar && <ServicesSummary selectedServices={transformedServices} totalDuration={totalDuration} totalPrice={totalPrice} language={language} onNextStep={handleNextStep} onPrevStep={handlePrevStep} isFirstStep={currentStepIndex === 0} />}
 
-      <UpsellModal 
-        isOpen={showUpsellModal} 
-        onClose={handleUpsellModalClose} 
-        onConfirm={handleUpsellConfirm} 
-        availableUpsells={availableUpsells || []} 
-      />
+      <UpsellModal isOpen={showUpsellModal} onClose={handleUpsellModalClose} onConfirm={handleUpsellConfirm} availableUpsells={availableUpsells || []} />
     </>;
 };
