@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -10,6 +11,7 @@ import { convertToArabic } from "@/utils/arabicNumerals";
 import { CustomBadge } from "@/components/ui/custom-badge";
 import { motion, AnimatePresence } from "framer-motion";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+
 interface UpsellService {
   id: string;
   name_en: string;
@@ -19,12 +21,14 @@ interface UpsellService {
   discountPercentage: number;
   discountedPrice: number;
 }
+
 interface UpsellModalProps {
   isOpen: boolean;
   onClose: () => void;
   onConfirm: (selectedUpsells: UpsellService[]) => void;
   availableUpsells: UpsellService[];
 }
+
 export const UpsellModal = ({
   isOpen,
   onClose,
@@ -36,6 +40,7 @@ export const UpsellModal = ({
   } = useLanguage();
   const [selectedUpsells, setSelectedUpsells] = useState<UpsellService[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+
   const handleToggleUpsell = (upsell: UpsellService) => {
     setSelectedUpsells(prev => {
       const isSelected = prev.some(s => s.id === upsell.id);
@@ -46,6 +51,7 @@ export const UpsellModal = ({
       }
     });
   };
+
   const handleConfirm = () => {
     setIsLoading(true);
     setTimeout(() => {
@@ -54,6 +60,7 @@ export const UpsellModal = ({
       onClose();
     }, 600);
   };
+
   const formatPrice = (price: number) => {
     const roundedPrice = Math.round(price);
     const formattedNumber = language === 'ar' ? convertToArabic(roundedPrice.toString()) : roundedPrice.toString();
@@ -62,7 +69,9 @@ export const UpsellModal = ({
         <RiyalIcon />
       </span>;
   };
+
   const useGridLayout = availableUpsells.length > 3;
+
   const containerVariants = {
     hidden: {
       opacity: 0
@@ -74,6 +83,7 @@ export const UpsellModal = ({
       }
     }
   };
+
   const itemVariants = {
     hidden: {
       y: 20,
@@ -89,6 +99,7 @@ export const UpsellModal = ({
       }
     }
   };
+
   return <Dialog open={isOpen} onOpenChange={() => onClose()}>
       <DialogContent className="sm:max-w-[500px] flex flex-col h-[85vh] sm:h-auto max-h-[85vh] gap-0 p-0 rounded-xl overflow-hidden">
         <DialogHeader className="px-6 pt-6 pb-2 sticky top-0 bg-background z-10 border-b border-border/30">
@@ -128,27 +139,22 @@ export const UpsellModal = ({
                   scale: 1.02
                 }} whileTap={{
                   scale: 0.98
-                }} className={`p-3 border rounded-lg cursor-pointer transition-all relative ${isSelected ? 'border-[#e7bd71] bg-[#F2FCE2]/30 shadow-md' : 'hover:border-[#e7bd71]/50 hover:shadow-sm'}`} onClick={() => handleToggleUpsell(upsell)}>
+                }} className={`p-3 border rounded-lg cursor-pointer transition-all relative ${isSelected ? 'border-[#e7bd71] bg-[#F2FCE2]/30 shadow-md ring-2 ring-[#b4d98b]/50' : 'hover:border-[#e7bd71]/50 hover:shadow-sm'}`} onClick={() => handleToggleUpsell(upsell)}>
                     <AnimatePresence>
-                      {isSelected && <motion.div className="absolute -left-3 top-0 bottom-0 m-auto h-full" initial={{
-                      x: 10,
-                      opacity: 0
-                    }} animate={{
-                      x: 0,
-                      opacity: 1
-                    }} exit={{
-                      x: 10,
-                      opacity: 0
-                    }} transition={{
-                      duration: 0.2
-                    }}>
-                          <div className="bg-[#b4d98b] h-full w-2 rounded-full shadow-[0_0_5px_rgba(180,217,139,0.5)] px-[5px] my-0 py-0" />
-                        </motion.div>}
+                      {isSelected && <motion.div 
+                        className="absolute top-1 right-1" 
+                        initial={{ opacity: 0, scale: 0.5 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.5 }}
+                        transition={{ duration: 0.2 }}
+                      >
+                        <CheckCircle2 className="w-5 h-5 text-[#b4d98b]" />
+                      </motion.div>}
                     </AnimatePresence>
                       
                     <div className="flex flex-col gap-1.5 relative">
                       <div>
-                        <h3 className={`font-medium ${useGridLayout ? 'text-sm' : 'text-base'} line-clamp-2`}>
+                        <h3 className={`font-medium ${useGridLayout ? 'text-sm' : 'text-base'} ${isSelected ? 'text-[#5f7b3e]' : ''} line-clamp-2 pr-6`}>
                           {language === 'ar' ? upsell.name_ar : upsell.name_en}
                         </h3>
                         <p className="text-xs text-muted-foreground">
@@ -188,7 +194,7 @@ export const UpsellModal = ({
               {isLoading ? <span className="flex items-center gap-2">
                   <span className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                   {language === 'ar' ? 'جاري التأكيد...' : 'Confirming...'}
-                </span> : <span className="flex items-center gap-2">
+                </span> : <span>
                   {language === 'ar' ? 'تأكيد' : 'Confirm'}
                 </span>}
             </Button>
