@@ -11,6 +11,7 @@ import { StepRenderer } from "./steps/StepRenderer";
 import { ServicesSummary } from "./service-selection/ServicesSummary";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
+import { ArrowLeft } from "lucide-react";
 
 const STEPS: BookingStep[] = ['services', 'datetime', 'barber', 'details'];
 
@@ -118,6 +119,10 @@ export const BookingSteps = ({ branch }: BookingStepsProps) => {
     }
   };
 
+  const handleBackToServices = () => {
+    setCurrentStep('services');
+  };
+
   const handleUpsellModalClose = () => {
     setShowUpsellModal(false);
     if (pendingStep) {
@@ -152,6 +157,9 @@ export const BookingSteps = ({ branch }: BookingStepsProps) => {
   // Show the summary bar for all steps except the details step
   const shouldShowSummaryBar = currentStep !== 'details' && selectedServices.length > 0;
 
+  // Show back to services button when not on services step
+  const showBackToServices = currentStep !== 'services';
+
   // Transform the selectedServices to match the expected format for ServicesSummary
   const transformedServices = selectedServices.map(service => ({
     id: service.id,
@@ -168,6 +176,16 @@ export const BookingSteps = ({ branch }: BookingStepsProps) => {
         onStepClick={setCurrentStep}
         currentStepIndex={currentStepIndex}
       />
+
+      {showBackToServices && (
+        <button 
+          onClick={handleBackToServices}
+          className="flex items-center text-[#C4A484] hover:text-[#B39260] text-sm mb-4 transition-colors duration-200"
+        >
+          <ArrowLeft className="h-4 w-4 mr-1" />
+          {language === 'ar' ? 'العودة إلى الخدمات' : 'Back to Services'}
+        </button>
+      )}
 
       <div className="mb-8">
         <StepRenderer

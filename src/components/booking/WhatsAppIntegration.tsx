@@ -8,12 +8,14 @@ import { BookingConfirmDialog } from "./components/BookingConfirmDialog";
 import { generateWhatsAppMessage, saveBookingData } from "./services/bookingService";
 import { formatWhatsAppNumber, isValidWhatsAppNumber } from "@/utils/phoneUtils";
 import { openExternalLink } from "@/utils/deepLinking";
+import { MessageSquare } from "lucide-react";
 
 export const WhatsAppIntegration = (props: BookingFormData) => {
   const { toast } = useToast();
   const { t } = useLanguage();
   const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [showMessagePreview, setShowMessagePreview] = useState(false);
 
   const isFormValid = () => {
     if (!props.customerDetails.name.trim()) {
@@ -67,7 +69,6 @@ export const WhatsAppIntegration = (props: BookingFormData) => {
       try {
         await saveBookingData(props);
       } catch (error: any) {
-        // Handle database errors generically
         console.error('Booking error:', error);
         showError(props.language === 'ar' 
           ? 'حدث خطأ أثناء حفظ الحجز. يرجى المحاولة مرة أخرى.'
@@ -97,15 +98,45 @@ export const WhatsAppIntegration = (props: BookingFormData) => {
     }
   };
 
+  const previewMessage = () => {
+    setShowMessagePreview(!showMessagePreview);
+  };
+
   return (
     <div className="space-y-4">
-      <Button 
-        onClick={handleBookingRequest}
-        className="w-full h-14 text-lg font-medium bg-[#C4A36F] hover:bg-[#B39260] text-white transition-all duration-300 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
-        disabled={isLoading}
-      >
-        {isLoading ? t('processing') : t('confirm.details')}
-      </Button>
+      <div className="flex flex-col gap-4">
+        <Button 
+          onClick={handleBookingRequest}
+          className="w-full h-14 text-lg font-medium bg-[#25D366] hover:bg-[#128C7E] text-white transition-all duration-300 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          disabled={isLoading}
+        >
+          <MessageSquare className="h-5 w-5" />
+          {isLoading ? t('processing') : props.language === 'ar' ? 'تأكيد الحجز عبر واتساب' : 'Confirm via WhatsApp'}
+        </Button>
+        
+        <button 
+          onClick={previewMessage} 
+          className="text-sm text-[#C4A484] hover:text-[#B39260] text-center transition-colors duration-200"
+        >
+          {showMessagePreview 
+            ? (props.language === 'ar' ? 'إخفاء معاينة الرسالة' : 'Hide message preview') 
+            : (props.language === 'ar' ? 'معاينة رسالة الواتساب' : 'Preview WhatsApp message')}
+        </button>
+        
+        {showMessagePreview && (
+          <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 text-sm text-gray-600 max-h-40 overflow-y-auto">
+            <div className="flex items-start space-x-2 rtl:space-x-reverse">
+              <div className="h-8 w-8 rounded-full bg-[#25D366] flex items-center justify-center flex-shrink-0">
+                <MessageSquare className="h-4 w-4 text-white" />
+              </div>
+              <div>
+                <p className="font-medium text-gray-700 mb-1">{props.language === 'ar' ? 'معاينة الرسالة' : 'Message Preview'}</p>
+                <p className="whitespace-pre-line">{generateWhatsAppMessage(props)}</p>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
 
       <BookingConfirmDialog
         isOpen={isConfirmDialogOpen}
