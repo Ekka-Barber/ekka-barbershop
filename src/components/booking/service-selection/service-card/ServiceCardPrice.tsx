@@ -1,52 +1,62 @@
 
-import * as React from "react";
+import React from "react";
+import { motion } from "framer-motion";
 import { PriceDisplay } from "@/components/ui/price-display";
-import { calculateDiscount } from "./calculateDiscount";
-import { Language } from "@/types/language";
 
 interface ServiceCardPriceProps {
   price: number;
-  discountType?: string;
-  discountValue?: number;
-  language: Language;
-  finalPrice?: number;
-  hasDiscount?: boolean;
+  finalPrice: number;
+  hasDiscount: boolean;
+  language: string;
 }
 
-export const ServiceCardPrice = ({
-  price,
-  discountType,
-  discountValue,
-  language,
-  finalPrice,
-  hasDiscount
+export const ServiceCardPrice = ({ 
+  price, 
+  finalPrice, 
+  hasDiscount, 
+  language 
 }: ServiceCardPriceProps) => {
-  const discount = hasDiscount !== undefined 
-    ? (hasDiscount ? { finalPrice: finalPrice || 0, percentage: Math.round((1 - (finalPrice || 0) / price) * 100) } : null)
-    : calculateDiscount(price, discountType, discountValue);
-  
   return (
-    <div className="text-end mt-1">
-      {discount ? (
+    <div className="ml-auto text-right">
+      {hasDiscount ? (
         <div className="flex flex-col items-end">
-          <PriceDisplay 
-            price={price} 
-            language={language as 'en' | 'ar'} 
-            size="sm" 
-            className="text-[#ea384c] line-through"
-          />
-          <PriceDisplay 
-            price={discount.finalPrice} 
-            language={language as 'en' | 'ar'} 
-            size="sm"
-          />
+          <motion.div
+            key={finalPrice}
+            initial={{ opacity: 0, y: -5 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="font-medium"
+          >
+            <PriceDisplay 
+              price={finalPrice}
+              language={language as 'en' | 'ar'}
+              size="base"
+            />
+          </motion.div>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="line-through text-[#ea384c] text-xs mt-0.5"
+          >
+            <PriceDisplay 
+              price={price}
+              language={language as 'en' | 'ar'}
+              size="sm"
+            />
+          </motion.div>
         </div>
       ) : (
-        <PriceDisplay 
-          price={price} 
-          language={language as 'en' | 'ar'} 
-          size="sm"
-        />
+        <motion.div
+          key={price}
+          className="font-medium"
+          initial={{ scale: 1 }}
+          whileHover={{ scale: 1.05 }}
+        >
+          <PriceDisplay 
+            price={price}
+            language={language as 'en' | 'ar'}
+            size="base"
+          />
+        </motion.div>
       )}
     </div>
   );

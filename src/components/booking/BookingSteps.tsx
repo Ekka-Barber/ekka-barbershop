@@ -11,6 +11,8 @@ import { StepRenderer } from "./steps/StepRenderer";
 import { ServicesSummary } from "./service-selection/ServicesSummary";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { CollapsibleSummary } from "./mobile/CollapsibleSummary";
 
 const STEPS: BookingStep[] = ['services', 'datetime', 'barber', 'details'];
 
@@ -22,6 +24,7 @@ export const BookingSteps = ({ branch }: BookingStepsProps) => {
   const navigate = useNavigate();
   const { language } = useLanguage();
   const { toast } = useToast();
+  const isMobile = useIsMobile();
   const [showUpsellModal, setShowUpsellModal] = useState(false);
   const [pendingStep, setPendingStep] = useState<BookingStep | null>(null);
   const {
@@ -160,6 +163,9 @@ export const BookingSteps = ({ branch }: BookingStepsProps) => {
     duration: service.duration
   }));
 
+  // Determine whether to show the mobile collapsible summary
+  const shouldShowMobileSummary = isMobile && currentStep === 'details' && selectedServices.length > 0;
+
   return (
     <>
       <BookingProgress
@@ -206,7 +212,7 @@ export const BookingSteps = ({ branch }: BookingStepsProps) => {
         />
       )}
 
-      {shouldShowSummaryBar && (
+      {shouldShowSummaryBar && !isMobile && (
         <ServicesSummary
           selectedServices={transformedServices}
           totalDuration={totalDuration}
@@ -215,6 +221,14 @@ export const BookingSteps = ({ branch }: BookingStepsProps) => {
           onNextStep={handleNextStep}
           onPrevStep={handlePrevStep}
           isFirstStep={currentStepIndex === 0}
+        />
+      )}
+
+      {shouldShowMobileSummary && (
+        <CollapsibleSummary
+          selectedServices={selectedServices}
+          totalPrice={totalPrice}
+          totalDuration={totalDuration}
         />
       )}
 

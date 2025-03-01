@@ -1,119 +1,197 @@
 
-import { useToast } from "@/hooks/use-toast";
-import { Button } from "@/components/ui/button";
 import { useState } from "react";
-import { useLanguage } from "@/contexts/LanguageContext";
-import { BookingFormData } from "./types/booking";
-import { BookingConfirmDialog } from "./components/BookingConfirmDialog";
-import { generateWhatsAppMessage, saveBookingData } from "./services/bookingService";
-import { formatWhatsAppNumber, isValidWhatsAppNumber } from "@/utils/phoneUtils";
+import { Button } from "@/components/ui/button";
 import { openExternalLink } from "@/utils/deepLinking";
+import { formatWhatsAppNumber } from "@/utils/phoneUtils";
+import { motion } from "framer-motion";
+import { WhatsApp, MessageCircleMore, ArrowRight } from "lucide-react";
 
-export const WhatsAppIntegration = (props: BookingFormData) => {
-  const { toast } = useToast();
-  const { t } = useLanguage();
-  const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-
-  const isFormValid = () => {
-    if (!props.customerDetails.name.trim()) {
-      showError(t('enter.name'));
-      return false;
-    }
-    if (!props.customerDetails.phone.trim() || props.customerDetails.phone.length !== 10) {
-      showError(t('enter.valid.phone'));
-      return false;
-    }
-    if (!props.customerDetails.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(props.customerDetails.email)) {
-      showError(t('enter.valid.email'));
-      return false;
-    }
-    if (!props.selectedDate || !props.selectedTime) {
-      showError(t('select.date.time'));
-      return false;
-    }
-
-    if (!props.branch?.whatsapp_number || !isValidWhatsAppNumber(props.branch.whatsapp_number)) {
-      console.error('Invalid WhatsApp number:', props.branch?.whatsapp_number);
-      showError(t('whatsapp.missing'));
-      return false;
-    }
-
-    return true;
+interface WhatsAppIntegrationProps {
+  selectedServices: any[];
+  totalPrice: number;
+  selectedDate?: Date;
+  selectedTime?: string;
+  selectedBarberName?: string;
+  customerDetails: {
+    name: string;
+    phone: string;
+    email: string;
+    notes: string;
   };
+  language: string;
+  branch: any;
+}
 
-  const showError = (message: string) => {
-    toast({
-      title: t('booking.alert'),
-      description: message,
-      variant: "destructive"
+export const WhatsAppIntegration = ({
+  selectedServices,
+  totalPrice,
+  selectedDate,
+  selectedTime,
+  selectedBarberName,
+  customerDetails,
+  language,
+  branch
+}: WhatsAppIntegrationProps) => {
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [previewMode, setPreviewMode] = useState(false);
+
+  const generateWhatsAppMessage = () => {
+    const serviceName = language === 'ar' ? 'name_ar' : 'name_en';
+    const date = selectedDate ? selectedDate.toLocaleDateString() : '';
+    
+    let message = language === 'ar'
+      ? `مرحباً، أود حجز موعد 📅\n\n`
+      : `Hello, I would like to book an appointment 📅\n\n`;
+
+    message += language === 'ar'
+      ? `🧑‍💼 الاسم: ${customerDetails.name}\n`
+      : `🧑‍💼 Name: ${customerDetails.name}\n`;
+    
+    message += language === 'ar'
+      ? `📱 رقم الهاتف: ${customerDetails.phone}\n`
+      : `📱 Phone: ${customerDetails.phone}\n`;
+    
+    if (customerDetails.email) {
+      message += language === 'ar'
+        ? `✉️ البريد الالكتروني: ${customerDetails.email}\n`
+        : `✉️ Email: ${customerDetails.email}\n`;
+    }
+
+    // Services
+    message += language === 'ar' ? `\n✂️ الخدمات المطلوبة:\n` : `\n✂️ Requested Services:\n`;
+    selectedServices.forEach((service, index) => {
+      message += `${index + 1}. ${service[serviceName]} - ${service.price} ${language === 'ar' ? 'ريال' : 'SAR'}\n`;
     });
-  };
 
-  const handleBookingRequest = () => {
-    if (!isFormValid()) return;
-    setIsConfirmDialogOpen(true);
-  };
+    message += language === 'ar'
+      ? `\n💰 المجموع: ${totalPrice} ريال\n`
+      : `\n💰 Total: ${totalPrice} SAR\n`;
 
-  const handleBookingConfirmation = async () => {
-    if (!props.branch?.whatsapp_number) {
-      showError(t('whatsapp.missing'));
-      return;
+    // Date and time
+    if (selectedDate && selectedTime) {
+      message += language === 'ar'
+        ? `\n🗓️ التاريخ والوقت: ${date} - ${selectedTime}\n`
+        : `\n🗓️ Date & Time: ${date} - ${selectedTime}\n`;
     }
 
-    try {
-      setIsLoading(true);
-      
+    // Barber
+    if (selectedBarberName) {
+      message += language === 'ar'
+        ? `\n💈 الحلاق: ${selectedBarberName}\n`
+        : `\n💈 Barber: ${selectedBarberName}\n`;
+    }
+
+    // Notes
+    if (customerDetails.notes) {
+      message += language === 'ar'
+        ? `\n📝 ملاحظات: ${customerDetails.notes}\n`
+        : `\n📝 Notes: ${customerDetails.notes}\n`;
+    }
+
+    return encodeURIComponent(message);
+  };
+
+  const handleWhatsAppClick = () => {
+    setIsGenerating(true);
+    
+    setTimeout(() => {
       try {
-        await saveBookingData(props);
-      } catch (error: any) {
-        // Handle database errors generically
-        console.error('Booking error:', error);
-        showError(props.language === 'ar' 
-          ? 'حدث خطأ أثناء حفظ الحجز. يرجى المحاولة مرة أخرى.'
-          : 'Error saving booking. Please try again.');
-        return;
+        const whatsappNumber = formatWhatsAppNumber(branch?.whatsapp_number);
+        
+        if (!whatsappNumber) {
+          console.error('Invalid WhatsApp number');
+          setIsGenerating(false);
+          return;
+        }
+        
+        const message = generateWhatsAppMessage();
+        const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${message}`;
+        
+        openExternalLink(whatsappUrl);
+      } catch (error) {
+        console.error('Error opening WhatsApp:', error);
+      } finally {
+        setIsGenerating(false);
       }
+    }, 800); // Small delay for animation
+  };
 
-      const formattedNumber = formatWhatsAppNumber(props.branch.whatsapp_number);
-      if (!formattedNumber) {
-        throw new Error('Invalid WhatsApp number format');
-      }
-
-      const whatsappURL = `https://wa.me/${formattedNumber}?text=${generateWhatsAppMessage(props)}`;
-      openExternalLink(whatsappURL);
-      
-      setIsConfirmDialogOpen(false);
-      toast({
-        description: t('whatsapp.opened'),
-      });
-    } catch (error) {
-      console.error('Booking error:', error);
-      showError(props.language === 'ar' 
-        ? 'حدث خطأ أثناء حفظ الحجز. يرجى المحاولة مرة أخرى.'
-        : 'Error saving booking. Please try again.');
-    } finally {
-      setIsLoading(false);
-    }
+  const togglePreview = () => {
+    setPreviewMode(!previewMode);
   };
 
   return (
-    <div className="space-y-4">
-      <Button 
-        onClick={handleBookingRequest}
-        className="w-full h-14 text-lg font-medium bg-[#C4A36F] hover:bg-[#B39260] text-white transition-all duration-300 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
-        disabled={isLoading}
-      >
-        {isLoading ? t('processing') : t('confirm.details')}
-      </Button>
+    <motion.div 
+      className="space-y-4"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4 }}
+    >
+      <div className="text-center mb-6">
+        <h3 className="text-lg font-semibold mb-2">
+          {language === 'ar' ? 'تأكيد الحجز عبر واتساب' : 'Confirm Booking via WhatsApp'}
+        </h3>
+        <p className="text-sm text-muted-foreground">
+          {language === 'ar' 
+            ? 'انقر على الزر أدناه لإرسال تفاصيل الحجز عبر واتساب' 
+            : 'Click the button below to send your booking details via WhatsApp'}
+        </p>
+      </div>
 
-      <BookingConfirmDialog
-        isOpen={isConfirmDialogOpen}
-        onOpenChange={setIsConfirmDialogOpen}
-        onConfirm={handleBookingConfirmation}
-        isLoading={isLoading}
-        language={props.language}
-      />
-    </div>
+      <div className="flex items-center justify-center gap-2 mb-3">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={togglePreview}
+          className="flex items-center gap-2"
+        >
+          <MessageCircleMore className="h-4 w-4" />
+          {language === 'ar' ? 'معاينة الرسالة' : 'Preview Message'}
+        </Button>
+      </div>
+      
+      {previewMode && (
+        <motion.div 
+          className="bg-gray-50 p-4 rounded-lg border border-gray-200 mb-4 text-sm whitespace-pre-line max-h-60 overflow-y-auto"
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: "auto" }}
+          exit={{ opacity: 0, height: 0 }}
+        >
+          <div className="text-xs text-muted-foreground mb-2">
+            {language === 'ar' ? 'معاينة الرسالة:' : 'Message Preview:'}
+          </div>
+          {decodeURIComponent(generateWhatsAppMessage())}
+        </motion.div>
+      )}
+
+      <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+        <Button
+          onClick={handleWhatsAppClick}
+          disabled={isGenerating}
+          className="w-full h-12 bg-[#25D366] hover:bg-[#128C7E] text-white font-medium flex items-center justify-center gap-2"
+        >
+          {isGenerating ? (
+            <span className="flex items-center gap-2">
+              <span className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full" />
+              {language === 'ar' ? 'جارٍ التحميل...' : 'Loading...'}
+            </span>
+          ) : (
+            <>
+              <WhatsApp className="h-5 w-5" />
+              <span>
+                {language === 'ar' ? 'تأكيد عبر واتساب' : 'Confirm via WhatsApp'}
+              </span>
+              <ArrowRight className="h-4 w-4 ml-1" />
+            </>
+          )}
+        </Button>
+      </motion.div>
+      
+      <p className="text-xs text-center text-muted-foreground mt-2">
+        {language === 'ar' 
+          ? 'سيتم فتح تطبيق واتساب تلقائيًا لإرسال رسالة إلى صالون الحلاقة' 
+          : 'WhatsApp will open automatically to send a message to the barbershop'}
+      </p>
+    </motion.div>
   );
 };
