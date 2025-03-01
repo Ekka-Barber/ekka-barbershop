@@ -80,8 +80,9 @@ export const TimeSlotPicker = ({
                         onClick={() => slot.isAvailable && onTimeSelect(slot.time)}
                         disabled={!slot.isAvailable}
                         className={cn(
-                          "flex-shrink-0",
-                          !slot.isAvailable && "bg-red-50 hover:bg-red-50 cursor-not-allowed text-gray-400 border-red-100"
+                          "flex-shrink-0 transition-all duration-150",
+                          selectedTime === slot.time ? "bg-[#FDF9EF] border-[#e7bd71] text-black" : "border-border",
+                          !slot.isAvailable && "bg-red-50 cursor-not-allowed text-gray-400 border-red-100"
                         )}
                       >
                         {formatTime(slot.time, language === 'ar')}

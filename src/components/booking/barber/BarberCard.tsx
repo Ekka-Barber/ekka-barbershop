@@ -38,9 +38,9 @@ export const BarberCard = ({
         "relative flex flex-col items-center justify-start h-auto min-h-[200px] p-4 rounded-lg overflow-hidden w-full",
         "space-y-2 border transition-all duration-200",
         isSelected 
-          ? "bg-[#e7bd71]/10 border-[#e7bd71]" 
-          : "hover:bg-accent",
-        !isAvailable && "opacity-50 cursor-not-allowed hover:bg-background"
+          ? "bg-[#FDF9EF] border-[#e7bd71]" 
+          : "",
+        !isAvailable && "opacity-50 cursor-not-allowed"
       )}
     >
       <div className="absolute top-2 right-2">
