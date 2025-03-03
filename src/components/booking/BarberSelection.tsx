@@ -1,11 +1,12 @@
 
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { useState, useEffect } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { BarberCard } from "./barber/BarberCard";
 import { TimeSlotPicker } from "./barber/TimeSlotPicker";
 import { useTimeSlots } from "@/hooks/useTimeSlots";
 import { TimeSlot } from "@/utils/timeSlotUtils";
+import { useToast } from "@/hooks/use-toast";
 
 interface Employee {
   id: string;
@@ -48,40 +49,77 @@ export const BarberSelection = ({
   onTimeSelect
 }: BarberSelectionProps) => {
   const { language } = useLanguage();
+  const { toast } = useToast();
   const [showAllSlots, setShowAllSlots] = useState(false);
   const { getAvailableTimeSlots, isEmployeeAvailable } = useTimeSlots();
   const [employeeTimeSlots, setEmployeeTimeSlots] = useState<TimeSlot[]>([]);
+  const [isLoadingSlots, setIsLoadingSlots] = useState(false);
 
-  const updateTimeSlots = async () => {
+  // Filter employees just once when they change
+  const filteredEmployees = useMemo(() => 
+    employees?.filter(employee => 
+      employee.role === 'barber' || employee.role === 'manager'
+    ) || [],
+  [employees]);
+
+  // Time slot update with error handling
+  const updateTimeSlots = useCallback(async () => {
     if (selectedBarber && selectedDate) {
       const selectedEmployee = employees?.find(emp => emp.id === selectedBarber);
+      
       if (selectedEmployee && isEmployeeAvailable(selectedEmployee, selectedDate)) {
-        const slots = await getAvailableTimeSlots(selectedEmployee, selectedDate);
-        setEmployeeTimeSlots(slots);
+        try {
+          setIsLoadingSlots(true);
+          const slots = await getAvailableTimeSlots(selectedEmployee, selectedDate);
+          setEmployeeTimeSlots(slots);
+        } catch (error) {
+          console.error("Error fetching time slots:", error);
+          toast({
+            title: language === 'ar' ? 'خطأ في جلب المواعيد' : 'Error loading time slots',
+            description: language === 'ar' ? 'يرجى المحاولة مرة أخرى' : 'Please try again',
+            variant: "destructive"
+          });
+          setEmployeeTimeSlots([]);
+        } finally {
+          setIsLoadingSlots(false);
+        }
       } else {
         setEmployeeTimeSlots([]);
       }
     } else {
       setEmployeeTimeSlots([]);
     }
-  };
+  }, [selectedBarber, selectedDate, employees, getAvailableTimeSlots, isEmployeeAvailable, toast, language]);
 
+  // Memoize the toggle function to prevent unnecessary re-renders
+  const handleToggleShowAll = useCallback(() => {
+    setShowAllSlots(prev => !prev);
+  }, []);
+
+  // Effect to update time slots when barber or date changes
   useEffect(() => {
     updateTimeSlots();
-  }, [selectedBarber, selectedDate]);
+  }, [updateTimeSlots]);
+
+  // Handle barber selection
+  const handleBarberSelect = useCallback((barberId: string, isAvailable: boolean) => {
+    if (isAvailable) {
+      onBarberSelect(barberId);
+      onTimeSelect(''); // Clear the selected time
+      setShowAllSlots(false); // Reset the "show all" state
+    }
+  }, [onBarberSelect, onTimeSelect]);
 
   if (isLoading) {
     return <BarberSelectionSkeleton />;
   }
 
-  const filteredEmployees = employees?.filter(
-    employee => employee.role === 'barber' || employee.role === 'manager'
-  );
-
-  if (filteredEmployees?.length === 0) {
+  if (filteredEmployees.length === 0) {
     return (
       <div className="text-center p-8">
-        <p className="text-gray-500">{language === 'ar' ? 'لا يوجد حلاقين متاحين' : 'No barbers available'}</p>
+        <p className="text-gray-500">
+          {language === 'ar' ? 'لا يوجد حلاقين متاحين' : 'No barbers available'}
+        </p>
       </div>
     );
   }
@@ -89,7 +127,7 @@ export const BarberSelection = ({
   return (
     <div className="space-y-8">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {filteredEmployees?.map((employee) => {
+        {filteredEmployees.map((employee) => {
           const isAvailable = isEmployeeAvailable(employee, selectedDate);
           const isSelected = selectedBarber === employee.id;
           
@@ -103,13 +141,7 @@ export const BarberSelection = ({
                 nationality={employee.nationality}
                 isAvailable={isAvailable}
                 isSelected={isSelected}
-                onSelect={() => {
-                  if (isAvailable) {
-                    onBarberSelect(employee.id);
-                    onTimeSelect('');
-                    setShowAllSlots(false);
-                  }
-                }}
+                onSelect={() => handleBarberSelect(employee.id, isAvailable)}
               />
 
               {isSelected && isAvailable && (
@@ -118,7 +150,7 @@ export const BarberSelection = ({
                   selectedTime={selectedTime}
                   onTimeSelect={onTimeSelect}
                   showAllSlots={showAllSlots}
-                  onToggleShowAll={() => setShowAllSlots(!showAllSlots)}
+                  onToggleShowAll={handleToggleShowAll}
                 />
               )}
             </div>

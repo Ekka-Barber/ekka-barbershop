@@ -19,20 +19,12 @@ export const isSlotAvailable = (
     slotTime.setHours(Math.floor(slotMinutes / 60), slotMinutes % 60, 0, 0);
     
     if (isBefore(slotTime, minimumBookingTime)) {
-      console.log('Slot not available due to minimum booking time:', {
-        slotTime: format(slotTime, 'HH:mm'),
-        minimumBookingTime: format(minimumBookingTime, 'HH:mm')
-      });
       return false;
     }
   }
 
   // Check if there's enough consecutive time for the service
   if (!hasEnoughConsecutiveTime(slotMinutes, serviceDuration, unavailableSlots)) {
-    console.log('Slot not available due to insufficient consecutive time:', {
-      startTime: slotMinutes,
-      requiredDuration: serviceDuration
-    });
     return false;
   }
   

@@ -1,45 +1,67 @@
 
-import { format, parse, isToday, isBefore, addMinutes, isAfter, addDays } from "date-fns";
+import { format, parse, isToday, isBefore, addMinutes, isAfter, addDays, parseISO } from "date-fns";
+import { useCallback, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { TimeSlot, UnavailableSlot, convertTimeToMinutes, sortTimeSlots } from "@/utils/timeSlotUtils";
+import { TimeSlot, UnavailableSlot, convertTimeToMinutes, sortTimeSlots, createTimeSlotsKey, normalizeUnavailableSlots } from "@/utils/timeSlotUtils";
 import { isSlotAvailable, isEmployeeAvailable } from "@/utils/slotAvailability";
+
+// Simple in-memory cache
+const timeSlotCache: Record<string, { data: TimeSlot[], timestamp: number }> = {};
+const CACHE_EXPIRY = 5 * 60 * 1000; // 5 minutes
 
 export const useTimeSlots = () => {
   /**
-   * Generates time slots for a specific date and employee
+   * Fetch unavailable slots from Supabase with proper error handling
    */
-  const generateTimeSlots = async (
+  const fetchUnavailableSlots = useCallback(async (
+    employeeId: string,
+    formattedDate: string
+  ): Promise<UnavailableSlot[]> => {
+    try {
+      const { data: unavailableSlots, error } = await supabase
+        .from('employee_schedules')
+        .select('start_time, end_time')
+        .eq('employee_id', employeeId)
+        .eq('date', formattedDate)
+        .eq('is_available', false);
+
+      if (error) {
+        console.error('Error fetching unavailable slots:', error);
+        return [];
+      }
+
+      return normalizeUnavailableSlots(unavailableSlots || []);
+    } catch (error) {
+      console.error('Exception fetching unavailable slots:', error);
+      return [];
+    }
+  }, []);
+
+  /**
+   * Generates only available time slots for a specific date and employee
+   */
+  const generateTimeSlots = useCallback(async (
     workingHoursRanges: string[] = [],
     selectedDate?: Date,
     employeeId?: string,
     serviceDuration: number = 30
   ): Promise<TimeSlot[]> => {
-    const slots: TimeSlot[] = [];
+    const availableSlots: TimeSlot[] = [];
     
-    if (!selectedDate || !employeeId) return slots;
+    if (!selectedDate || !employeeId) return availableSlots;
 
-    console.log('Generating time slots for:', {
-      date: selectedDate,
-      employeeId,
-      ranges: workingHoursRanges,
-      serviceDuration
-    });
+    // Create a cache key
+    const cacheKey = createTimeSlotsKey(employeeId, selectedDate);
+    
+    // Check cache first
+    const cachedData = timeSlotCache[cacheKey];
+    if (cachedData && (Date.now() - cachedData.timestamp < CACHE_EXPIRY)) {
+      return cachedData.data;
+    }
 
     // Get all unavailable slots for the day in one query
     const formattedDate = format(selectedDate, 'yyyy-MM-dd');
-    console.log('Fetching unavailable slots for date:', formattedDate);
-    
-    const { data: unavailableSlots, error } = await supabase
-      .from('employee_schedules')
-      .select('start_time, end_time')
-      .eq('employee_id', employeeId)
-      .eq('date', formattedDate)
-      .eq('is_available', false);
-
-    if (error) {
-      console.error('Error fetching unavailable slots:', error);
-      return slots;
-    }
+    const unavailableSlots = await fetchUnavailableSlots(employeeId, formattedDate);
 
     const now = new Date();
     const minimumBookingTime = addMinutes(now, 15);
@@ -57,12 +79,6 @@ export const useTimeSlots = () => {
         endTime = addDays(endTime, 1);
       }
 
-      console.log('Processing time range:', {
-        start: format(startTime, 'HH:mm'),
-        end: format(endTime, 'HH:mm'),
-        crossesMidnight
-      });
-      
       let currentSlot = startTime;
       
       while (isBefore(currentSlot, endTime)) {
@@ -75,41 +91,49 @@ export const useTimeSlots = () => {
           continue;
         }
 
-        // Skip slots that have already passed for today
-        if (isToday(selectedDate)) {
-          const slotTime = new Date(selectedDate);
-          slotTime.setHours(Math.floor(slotMinutes / 60), slotMinutes % 60, 0, 0);
-          
-          if (isBefore(slotTime, minimumBookingTime)) {
-            currentSlot = addMinutes(currentSlot, 30);
-            continue;
-          }
-        }
-        
-        // Check availability considering service duration
+        // Check if slot is available (considering minimum booking time and conflicts)
         const available = isSlotAvailable(
           slotMinutes,
-          unavailableSlots || [],
+          unavailableSlots,
           selectedDate,
           serviceDuration
         );
         
-        slots.push({
-          time: timeString,
-          isAvailable: available
-        });
+        // Only add available slots
+        if (available) {
+          availableSlots.push({
+            time: timeString,
+            isAvailable: true
+          });
+        }
         
         currentSlot = addMinutes(currentSlot, 30);
       }
     }
 
-    return sortTimeSlots(slots);
-  };
+    const sortedSlots = sortTimeSlots(availableSlots);
+    
+    // Cache the result
+    timeSlotCache[cacheKey] = {
+      data: sortedSlots,
+      timestamp: Date.now()
+    };
+    
+    return sortedSlots;
+  }, [fetchUnavailableSlots]);
 
   /**
-   * Gets available time slots for a specific employee and date
+   * Clears the cache for a specific employee-date combination
    */
-  const getAvailableTimeSlots = async (
+  const invalidateCache = useCallback((employeeId: string, date: Date) => {
+    const cacheKey = createTimeSlotsKey(employeeId, date);
+    delete timeSlotCache[cacheKey];
+  }, []);
+
+  /**
+   * Gets available time slots for a specific employee and date with memoization
+   */
+  const getAvailableTimeSlots = useCallback(async (
     employee: any,
     selectedDate: Date | undefined,
     serviceDuration: number = 30
@@ -124,10 +148,11 @@ export const useTimeSlots = () => {
     }
     
     return generateTimeSlots(workingHours, selectedDate, employee.id, serviceDuration);
-  };
+  }, [generateTimeSlots]);
 
   return {
     getAvailableTimeSlots,
-    isEmployeeAvailable
+    isEmployeeAvailable,
+    invalidateCache
   };
 };

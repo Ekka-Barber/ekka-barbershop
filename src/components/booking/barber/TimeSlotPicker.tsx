@@ -1,3 +1,5 @@
+
+import React, { memo } from "react";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { cn } from "@/lib/utils";
@@ -5,6 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Clock12 } from "lucide-react";
 import { formatTime } from "@/utils/timeFormatting";
 import { TimeSlot } from "@/utils/timeSlotUtils";
+
 interface TimeSlotPickerProps {
   timeSlots: TimeSlot[];
   selectedTime: string | undefined;
@@ -12,23 +15,34 @@ interface TimeSlotPickerProps {
   showAllSlots: boolean;
   onToggleShowAll: () => void;
 }
-export const TimeSlotPicker = ({
+
+export const TimeSlotPicker = memo(({
   timeSlots,
   selectedTime,
   onTimeSelect,
   showAllSlots,
   onToggleShowAll
 }: TimeSlotPickerProps) => {
-  const {
-    language
-  } = useLanguage();
+  const { language } = useLanguage();
+  
+  // All slots are available, so we just need to decide how many to show
   const displayedTimeSlots = showAllSlots ? timeSlots : timeSlots.slice(0, 6);
+  
+  // Function to check if a time slot is after midnight
   const isAfterMidnight = (time: string) => {
     const [hours] = time.split(':').map(Number);
     return hours < 12 && hours >= 0; // 00:00 to 11:59
   };
+  
+  // Determine if we need a separator between days
+  const needsSeparator = (currentTime: string, prevTime: string) => {
+    return prevTime === "23:30" && currentTime === "00:00";
+  };
+
+  // Show loading state when no slots are available yet
   if (timeSlots.length === 0) {
-    return <div className="space-y-4">
+    return (
+      <div className="space-y-4">
         <h3 className="text-lg font-medium text-center">
           {language === 'ar' ? 'جاري تحميل المواعيد...' : 'Loading time slots...'}
         </h3>
@@ -41,12 +55,23 @@ export const TimeSlotPicker = ({
             </div>
           </div>
         </div>
-      </div>;
+      </div>
+    );
   }
-  const needsSeparator = (currentTime: string, prevTime: string) => {
-    return prevTime === "23:30" && currentTime === "00:00";
-  };
-  return <div className="space-y-4">
+
+  // Show message when no available slots
+  if (timeSlots.length === 0) {
+    return (
+      <div className="space-y-4">
+        <h3 className="text-lg font-medium text-center">
+          {language === 'ar' ? 'لا توجد مواعيد متاحة' : 'No available time slots'}
+        </h3>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
       <h3 className="text-lg font-medium text-center">
         {language === 'ar' ? 'اختر الوقت المناسب' : 'Select Available Time'}
       </h3>
@@ -55,25 +80,47 @@ export const TimeSlotPicker = ({
           <div className="overflow-x-auto scrollbar-hide px-4 py-4 bg-white">
             <div className="flex space-x-3 rtl:space-x-reverse">
               {displayedTimeSlots.map((slot, index) => {
-              const showSeparator = index > 0 && needsSeparator(slot.time, displayedTimeSlots[index - 1].time);
-              return <>
-                    {showSeparator && <div className="flex items-center mx-2" key={`separator-${index}`}>
+                const showSeparator = index > 0 && needsSeparator(slot.time, displayedTimeSlots[index - 1].time);
+                return (
+                  <React.Fragment key={slot.time}>
+                    {showSeparator && (
+                      <div className="flex items-center mx-2">
                         <Clock12 className="h-6 w-6 text-red-500" />
-                      </div>}
-                    <div key={slot.time}>
-                      <Button variant="outline" onClick={() => slot.isAvailable && onTimeSelect(slot.time)} disabled={!slot.isAvailable} className={cn("flex-shrink-0 transition-all duration-150 hover:bg-transparent", selectedTime === slot.time ? "bg-[#FDF9EF] border-[#e7bd71] text-black hover:bg-[#FDF9EF]" : "border-border bg-background hover:bg-background", !slot.isAvailable && "bg-red-50 cursor-not-allowed text-gray-400 border-red-100")}>
-                        {formatTime(slot.time, language === 'ar')}
-                      </Button>
-                    </div>
-                  </>;
-            })}
+                      </div>
+                    )}
+                    <Button
+                      variant="outline"
+                      onClick={() => onTimeSelect(slot.time)}
+                      className={cn(
+                        "flex-shrink-0 transition-all duration-150 hover:bg-transparent",
+                        selectedTime === slot.time 
+                          ? "bg-[#FDF9EF] border-[#e7bd71] text-black hover:bg-[#FDF9EF]" 
+                          : "border-border bg-background hover:bg-background"
+                      )}
+                    >
+                      {formatTime(slot.time, language === 'ar')}
+                    </Button>
+                  </React.Fragment>
+                );
+              })}
             </div>
           </div>
         </div>
       </div>
       
-      {timeSlots.length > 6 && <Button variant="ghost" onClick={onToggleShowAll} className="w-full mt-2">
-          {showAllSlots ? language === 'ar' ? 'عرض أقل' : 'Show Less' : language === 'ar' ? 'للمزيد' : 'Show More'}
-        </Button>}
-    </div>;
-};
+      {timeSlots.length > 6 && (
+        <Button 
+          variant="ghost" 
+          onClick={onToggleShowAll} 
+          className="w-full mt-2"
+        >
+          {showAllSlots 
+            ? language === 'ar' ? 'عرض أقل' : 'Show Less' 
+            : language === 'ar' ? 'للمزيد' : 'Show More'}
+        </Button>
+      )}
+    </div>
+  );
+});
+
+TimeSlotPicker.displayName = "TimeSlotPicker";
