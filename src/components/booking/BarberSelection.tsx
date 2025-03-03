@@ -72,6 +72,16 @@ export const BarberSelection = ({
           setIsLoadingSlots(true);
           const slots = await getAvailableTimeSlots(selectedEmployee, selectedDate);
           setEmployeeTimeSlots(slots);
+          
+          // Clear selected time if it's no longer available
+          if (selectedTime && !slots.some(slot => slot.time === selectedTime)) {
+            onTimeSelect('');
+            toast({
+              title: language === 'ar' ? 'الوقت لم يعد متاحًا' : 'Time no longer available',
+              description: language === 'ar' ? 'يرجى اختيار وقت آخر' : 'Please select another time',
+              variant: "warning"
+            });
+          }
         } catch (error) {
           console.error("Error fetching time slots:", error);
           toast({
@@ -89,7 +99,7 @@ export const BarberSelection = ({
     } else {
       setEmployeeTimeSlots([]);
     }
-  }, [selectedBarber, selectedDate, employees, getAvailableTimeSlots, isEmployeeAvailable, toast, language]);
+  }, [selectedBarber, selectedDate, employees, getAvailableTimeSlots, isEmployeeAvailable, toast, language, selectedTime, onTimeSelect]);
 
   // Memoize the toggle function to prevent unnecessary re-renders
   const handleToggleShowAll = useCallback(() => {
@@ -151,6 +161,7 @@ export const BarberSelection = ({
                   onTimeSelect={onTimeSelect}
                   showAllSlots={showAllSlots}
                   onToggleShowAll={handleToggleShowAll}
+                  isLoading={isLoadingSlots}
                 />
               )}
             </div>

@@ -14,6 +14,7 @@ interface TimeSlotPickerProps {
   onTimeSelect: (time: string) => void;
   showAllSlots: boolean;
   onToggleShowAll: () => void;
+  isLoading?: boolean;
 }
 
 export const TimeSlotPicker = memo(({
@@ -21,7 +22,8 @@ export const TimeSlotPicker = memo(({
   selectedTime,
   onTimeSelect,
   showAllSlots,
-  onToggleShowAll
+  onToggleShowAll,
+  isLoading = false
 }: TimeSlotPickerProps) => {
   const { language } = useLanguage();
   
@@ -39,8 +41,8 @@ export const TimeSlotPicker = memo(({
     return prevTime === "23:30" && currentTime === "00:00";
   };
 
-  // Show loading state when no slots are available yet
-  if (timeSlots.length === 0) {
+  // Show loading state when loading
+  if (isLoading) {
     return (
       <div className="space-y-4">
         <h3 className="text-lg font-medium text-center">

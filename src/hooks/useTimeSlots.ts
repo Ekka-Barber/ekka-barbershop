@@ -1,22 +1,30 @@
 
 import { format, parse, isToday, isBefore, addMinutes, isAfter, addDays, parseISO } from "date-fns";
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useEffect, useRef } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { TimeSlot, UnavailableSlot, convertTimeToMinutes, sortTimeSlots, createTimeSlotsKey, normalizeUnavailableSlots } from "@/utils/timeSlotUtils";
 import { isSlotAvailable, isEmployeeAvailable } from "@/utils/slotAvailability";
+import { useToast } from "@/hooks/use-toast";
 
-// Simple in-memory cache
-const timeSlotCache: Record<string, { data: TimeSlot[], timestamp: number }> = {};
+// Cache constants
 const CACHE_EXPIRY = 5 * 60 * 1000; // 5 minutes
 
 export const useTimeSlots = () => {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+  const activeSubscriptions = useRef<{ [key: string]: any }>({});
+
   /**
    * Fetch unavailable slots from Supabase with proper error handling
    */
-  const fetchUnavailableSlots = useCallback(async (
-    employeeId: string,
-    formattedDate: string
-  ): Promise<UnavailableSlot[]> => {
+  const fetchUnavailableSlots = useCallback(async ({
+    employeeId,
+    formattedDate
+  }: {
+    employeeId: string;
+    formattedDate: string;
+  }): Promise<UnavailableSlot[]> => {
     try {
       const { data: unavailableSlots, error } = await supabase
         .from('employee_schedules')
@@ -27,15 +35,75 @@ export const useTimeSlots = () => {
 
       if (error) {
         console.error('Error fetching unavailable slots:', error);
-        return [];
+        throw new Error(`Failed to fetch unavailable slots: ${error.message}`);
       }
 
       return normalizeUnavailableSlots(unavailableSlots || []);
     } catch (error) {
       console.error('Exception fetching unavailable slots:', error);
-      return [];
+      throw error;
     }
   }, []);
+
+  /**
+   * Setup realtime subscription for employee schedules
+   */
+  const setupRealtimeSubscription = useCallback((employeeId: string, selectedDate: Date) => {
+    // Create a unique channel name for this subscription
+    const channelName = `employee_schedules_${employeeId}_${format(selectedDate, 'yyyy-MM-dd')}`;
+    
+    // Don't create duplicate subscriptions
+    if (activeSubscriptions.current[channelName]) {
+      return;
+    }
+    
+    const formattedDate = format(selectedDate, 'yyyy-MM-dd');
+    const queryKey = ['unavailableSlots', employeeId, formattedDate];
+    
+    // Subscribe to changes on the employee_schedules table for this employee and date
+    const channel = supabase
+      .channel(channelName)
+      .on(
+        'postgres_changes',
+        {
+          event: '*', // Listen for all events (INSERT, UPDATE, DELETE)
+          schema: 'public',
+          table: 'employee_schedules',
+          filter: `employee_id=eq.${employeeId}` 
+        },
+        (payload) => {
+          console.log('Realtime update received:', payload);
+          
+          // Invalidate the query to trigger a refetch
+          queryClient.invalidateQueries({
+            queryKey: queryKey
+          });
+          
+          // Also invalidate any cached time slots for this employee/date
+          queryClient.invalidateQueries({
+            queryKey: ['timeSlots', employeeId, formattedDate]
+          });
+          
+          // Show a toast notification
+          toast({
+            title: "Schedule updated",
+            description: "The barber's availability has been updated",
+            variant: "default"
+          });
+        }
+      )
+      .subscribe();
+    
+    // Store the subscription reference
+    activeSubscriptions.current[channelName] = channel;
+    
+    return () => {
+      if (activeSubscriptions.current[channelName]) {
+        supabase.removeChannel(channel);
+        delete activeSubscriptions.current[channelName];
+      }
+    };
+  }, [queryClient, toast]);
 
   /**
    * Generates only available time slots for a specific date and employee
@@ -50,85 +118,97 @@ export const useTimeSlots = () => {
     
     if (!selectedDate || !employeeId) return availableSlots;
 
-    // Create a cache key
-    const cacheKey = createTimeSlotsKey(employeeId, selectedDate);
-    
-    // Check cache first
-    const cachedData = timeSlotCache[cacheKey];
-    if (cachedData && (Date.now() - cachedData.timestamp < CACHE_EXPIRY)) {
-      return cachedData.data;
-    }
-
-    // Get all unavailable slots for the day in one query
     const formattedDate = format(selectedDate, 'yyyy-MM-dd');
-    const unavailableSlots = await fetchUnavailableSlots(employeeId, formattedDate);
-
-    const now = new Date();
-    const minimumBookingTime = addMinutes(now, 15);
-
-    for (const range of workingHoursRanges) {
-      const [start, end] = range.split('-');
+    
+    // Use react-query to fetch and cache unavailable slots
+    const queryKey = ['unavailableSlots', employeeId, formattedDate];
+    
+    try {
+      // Fetch unavailable slots using react-query's useQuery
+      const { data: unavailableSlots, error } = await queryClient.fetchQuery({
+        queryKey,
+        queryFn: () => fetchUnavailableSlots({ employeeId, formattedDate }),
+        staleTime: CACHE_EXPIRY,
+        gcTime: CACHE_EXPIRY
+      });
       
-      const baseDate = selectedDate;
-      const startTime = parse(start, 'HH:mm', baseDate);
-      let endTime = parse(end, 'HH:mm', baseDate);
-      
-      // Handle shifts that cross midnight
-      const crossesMidnight = isAfter(startTime, endTime);
-      if (crossesMidnight) {
-        endTime = addDays(endTime, 1);
+      if (error) {
+        console.error('Error in fetchQuery:', error);
+        throw error;
       }
 
-      let currentSlot = startTime;
+      // Set up realtime subscription for this employee and date
+      setupRealtimeSubscription(employeeId, selectedDate);
       
-      while (isBefore(currentSlot, endTime)) {
-        const timeString = format(currentSlot, 'HH:mm');
-        const slotMinutes = convertTimeToMinutes(timeString);
+      for (const range of workingHoursRanges) {
+        const [start, end] = range.split('-');
         
-        // Skip adding the 00:00 slot unless we're handling a shift that crosses midnight
-        if (timeString === '00:00' && !crossesMidnight) {
+        const baseDate = selectedDate;
+        const startTime = parse(start, 'HH:mm', baseDate);
+        let endTime = parse(end, 'HH:mm', baseDate);
+        
+        // Handle shifts that cross midnight
+        const crossesMidnight = isAfter(startTime, endTime);
+        if (crossesMidnight) {
+          endTime = addDays(endTime, 1);
+        }
+
+        let currentSlot = startTime;
+        
+        while (isBefore(currentSlot, endTime)) {
+          const timeString = format(currentSlot, 'HH:mm');
+          const slotMinutes = convertTimeToMinutes(timeString);
+          
+          // Skip adding the 00:00 slot unless we're handling a shift that crosses midnight
+          if (timeString === '00:00' && !crossesMidnight) {
+            currentSlot = addMinutes(currentSlot, 30);
+            continue;
+          }
+
+          // Check if slot is available (considering minimum booking time and conflicts)
+          const available = isSlotAvailable(
+            slotMinutes,
+            unavailableSlots || [],
+            selectedDate,
+            serviceDuration
+          );
+          
+          // Only add available slots
+          if (available) {
+            availableSlots.push({
+              time: timeString,
+              isAvailable: true
+            });
+          }
+          
           currentSlot = addMinutes(currentSlot, 30);
-          continue;
         }
-
-        // Check if slot is available (considering minimum booking time and conflicts)
-        const available = isSlotAvailable(
-          slotMinutes,
-          unavailableSlots,
-          selectedDate,
-          serviceDuration
-        );
-        
-        // Only add available slots
-        if (available) {
-          availableSlots.push({
-            time: timeString,
-            isAvailable: true
-          });
-        }
-        
-        currentSlot = addMinutes(currentSlot, 30);
       }
-    }
 
-    const sortedSlots = sortTimeSlots(availableSlots);
-    
-    // Cache the result
-    timeSlotCache[cacheKey] = {
-      data: sortedSlots,
-      timestamp: Date.now()
-    };
-    
-    return sortedSlots;
-  }, [fetchUnavailableSlots]);
+      return sortTimeSlots(availableSlots);
+    } catch (error) {
+      console.error('Error generating time slots:', error);
+      toast({
+        title: "Error loading available times",
+        description: "Could not load available time slots. Please try again.",
+        variant: "destructive"
+      });
+      return [];
+    }
+  }, [fetchUnavailableSlots, queryClient, setupRealtimeSubscription, toast]);
 
   /**
    * Clears the cache for a specific employee-date combination
    */
   const invalidateCache = useCallback((employeeId: string, date: Date) => {
-    const cacheKey = createTimeSlotsKey(employeeId, date);
-    delete timeSlotCache[cacheKey];
-  }, []);
+    const formattedDate = format(date, 'yyyy-MM-dd');
+    queryClient.invalidateQueries({
+      queryKey: ['unavailableSlots', employeeId, formattedDate]
+    });
+    queryClient.invalidateQueries({
+      queryKey: ['timeSlots', employeeId, formattedDate]
+    });
+  }, [queryClient]);
 
   /**
    * Gets available time slots for a specific employee and date with memoization
@@ -147,8 +227,41 @@ export const useTimeSlots = () => {
       return [];
     }
     
-    return generateTimeSlots(workingHours, selectedDate, employee.id, serviceDuration);
-  }, [generateTimeSlots]);
+    // Create a query key for caching the result
+    const formattedDate = format(selectedDate, 'yyyy-MM-dd');
+    const queryKey = ['timeSlots', employee.id, formattedDate];
+    
+    try {
+      // Use queryClient.fetchQuery to fetch and cache the result
+      return await queryClient.fetchQuery({
+        queryKey,
+        queryFn: () => generateTimeSlots(workingHours, selectedDate, employee.id, serviceDuration),
+        staleTime: CACHE_EXPIRY,
+        gcTime: CACHE_EXPIRY
+      });
+    } catch (error) {
+      console.error('Error fetching time slots:', error);
+      toast({
+        title: "Error loading schedule",
+        description: "Could not load barber's schedule. Please try again.",
+        variant: "destructive"
+      });
+      return [];
+    }
+  }, [generateTimeSlots, queryClient, toast]);
+
+  // Clean up subscriptions when component unmounts
+  useEffect(() => {
+    return () => {
+      // Remove all active subscriptions
+      Object.values(activeSubscriptions.current).forEach((channel) => {
+        if (channel) {
+          supabase.removeChannel(channel);
+        }
+      });
+      activeSubscriptions.current = {};
+    };
+  }, []);
 
   return {
     getAvailableTimeSlots,
