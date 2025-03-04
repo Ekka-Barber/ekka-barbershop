@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import CreateQRCodeForm from "./CreateQRCodeForm";
 import QRCodeDisplay from "./QRCodeDisplay";
-import URLManager from "./URLManager";
 
 const QRCodeManager = () => {
   const { toast } = useToast();
@@ -139,11 +138,13 @@ const QRCodeManager = () => {
                   edgeFunctionUrl={edgeFunctionUrl}
                   handleDownload={handleDownload}
                 />
-                <URLManager
-                  currentUrl={selectedQrCode.url}
-                  newUrl={newUrl}
-                  setNewUrl={setNewUrl}
-                  handleSubmit={(e) => {
+                <div className="rounded-lg border p-4 space-y-4">
+                  <h3 className="font-medium">Current Redirect URL</h3>
+                  <p className="text-sm bg-muted p-2 rounded break-all">
+                    {selectedQrCode.url}
+                  </p>
+                  
+                  <form onSubmit={(e) => {
                     e.preventDefault();
                     if (!newUrl || !selectedQrId) return;
                     
@@ -181,9 +182,25 @@ const QRCodeManager = () => {
                     };
 
                     updateUrl();
-                  }}
-                  isUpdating={false}
-                />
+                  }}>
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <h4 className="text-sm font-medium">Update Redirect URL</h4>
+                        <input
+                          type="url"
+                          value={newUrl}
+                          onChange={(e) => setNewUrl(e.target.value)}
+                          placeholder="https://example.com"
+                          className="w-full p-2 border rounded-md"
+                          required
+                        />
+                      </div>
+                      <Button type="submit" className="w-full">
+                        Update URL
+                      </Button>
+                    </div>
+                  </form>
+                </div>
               </>
             )}
           </div>
