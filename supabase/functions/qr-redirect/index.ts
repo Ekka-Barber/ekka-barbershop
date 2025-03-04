@@ -2,6 +2,9 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { corsHeaders } from '../_shared/cors.ts'
 
+// Simple validation token - a shared secret between function and client
+const VALIDATION_TOKEN = Deno.env.get('QR_VALIDATION_TOKEN') || 'qr-secret-token-123'
+
 // Use service role key for internal operations
 const supabaseUrl = 'https://jfnjvphxhzxojxgptmtu.supabase.co'
 const supabaseServiceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || ''

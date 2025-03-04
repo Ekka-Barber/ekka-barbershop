@@ -58,7 +58,7 @@ const QRCodeManager = () => {
 
   const selectedQrCode = qrCodes?.find(qr => qr.id === selectedQrId);
   
-  // Generate the clean edge function URL without appending the API key as a query parameter
+  // Generate a clean edge function URL with just the ID parameter
   const edgeFunctionUrl = selectedQrId 
     ? `https://jfnjvphxhzxojxgptmtu.supabase.co/functions/v1/qr-redirect?id=${selectedQrId}`
     : '';

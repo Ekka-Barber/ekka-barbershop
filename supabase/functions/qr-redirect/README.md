@@ -10,9 +10,8 @@ This edge function handles QR code redirection by:
 - `id`: The identifier for the QR code (e.g., 'ekka-barber-qr-1')
 
 ## Authentication
-The function now uses the Supabase service role key for internal database operations, 
-allowing it to bypass Row Level Security (RLS) policies. This means no authentication 
-is required from the client side when scanning QR codes.
+This function uses the Supabase service role key for database operations with no client-side authentication required.
+QR codes are publicly accessible without requiring authentication, making them work in any browser or QR scanner.
 
 ## Response
 - 302 Redirect to the stored URL if successful
@@ -28,6 +27,6 @@ The function includes comprehensive logging to help debug issues:
 - Redirect outcomes
 
 ## Important Notes
-- QR codes are now publicly accessible without requiring an API key
-- Mobile browsers and QR code scanners should work without any special configuration
-- For testing purposes, you can access the QR redirect directly in a browser
+- QR codes are publicly accessible with no authorization required
+- Mobile browsers and QR code scanners will work without any configuration
+- The function uses Supabase service role key internally for database access
