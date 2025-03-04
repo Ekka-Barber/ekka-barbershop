@@ -53,7 +53,9 @@ export const useQRCodes = () => {
 
   const selectedQrCode = qrCodes?.find(qr => qr.id === selectedQrId);
   
-  // Generate a clean edge function URL with just the ID parameter
+  // Generate a URL that includes the anon key so it can work without authentication
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Impmbmp2cGh4aHp4b2p4Z3B0bXR1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzY3MjgyMDksImV4cCI6MjA1MjMwNDIwOX0.D7fqEZPOOvqVnrtLPwAJ4tqGyTPY8uXjBejgU8Vshd4";
+  
   const edgeFunctionUrl = selectedQrId 
     ? `https://jfnjvphxhzxojxgptmtu.supabase.co/functions/v1/qr-redirect?id=${selectedQrId}`
     : '';
