@@ -30,7 +30,6 @@ Deno.serve(async (req) => {
     }
 
     // Initialize Supabase client with service role key
-    // This is a public endpoint, so no auth is required from the client
     const supabase = createClient(supabaseUrl, supabaseServiceRoleKey, {
       auth: {
         autoRefreshToken: false,
