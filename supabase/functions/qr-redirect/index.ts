@@ -2,9 +2,6 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { corsHeaders } from '../_shared/cors.ts'
 
-// Simple validation token - a shared secret between function and client
-const VALIDATION_TOKEN = Deno.env.get('QR_VALIDATION_TOKEN') || 'qr-secret-token-123'
-
 // Use service role key for internal operations
 const supabaseUrl = 'https://jfnjvphxhzxojxgptmtu.supabase.co'
 const supabaseServiceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || ''
@@ -18,13 +15,11 @@ Deno.serve(async (req) => {
   try {
     const url = new URL(req.url)
     const id = url.searchParams.get('id')
-    
+
     console.log('🔍 Processing QR redirect for ID:', id)
-    console.log('📍 Request URL:', req.url)
-    console.log('📱 User Agent:', req.headers.get('User-Agent'))
 
     if (!id) {
-      console.error('❌ Missing QR code ID')
+      console.error('Missing QR code ID')
       return new Response(
         JSON.stringify({ error: 'Missing QR code ID' }),
         { 
@@ -34,8 +29,8 @@ Deno.serve(async (req) => {
       )
     }
 
-    // Initialize Supabase client with service role key for admin access
-    console.log('🔌 Initializing Supabase client with service role key')
+    // Initialize Supabase client with service role key
+    // This is a public endpoint, so no auth is required from the client
     const supabase = createClient(supabaseUrl, supabaseServiceRoleKey, {
       auth: {
         autoRefreshToken: false,
@@ -43,7 +38,7 @@ Deno.serve(async (req) => {
       }
     })
     
-    console.log('🔍 Querying QR code:', id)
+    console.log('Querying QR code:', id)
     const { data: qrCode, error } = await supabase
       .from('qr_codes')
       .select('*')
@@ -51,13 +46,9 @@ Deno.serve(async (req) => {
       .maybeSingle()
 
     if (error) {
-      console.error('❌ Database error:', error)
+      console.error('Database error:', error)
       return new Response(
-        JSON.stringify({ 
-          error: 'Error fetching QR code', 
-          details: error.message,
-          code: error.code 
-        }),
+        JSON.stringify({ error: 'Error fetching QR code' }),
         { 
           status: 500,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -66,7 +57,7 @@ Deno.serve(async (req) => {
     }
 
     if (!qrCode) {
-      console.error('❌ QR code not found:', id)
+      console.error('QR code not found:', id)
       return new Response(
         JSON.stringify({ error: 'QR code not found' }),
         { 
@@ -77,7 +68,7 @@ Deno.serve(async (req) => {
     }
 
     if (!qrCode.is_active) {
-      console.error('❌ QR code is inactive:', id)
+      console.error('QR code is inactive:', id)
       return new Response(
         JSON.stringify({ error: 'QR code is inactive' }),
         { 
@@ -100,12 +91,9 @@ Deno.serve(async (req) => {
     })
 
   } catch (error) {
-    console.error('❌ Error processing request:', error)
+    console.error('Error processing request:', error)
     return new Response(
-      JSON.stringify({ 
-        error: 'Internal server error',
-        details: error.message || 'Unknown error'
-      }),
+      JSON.stringify({ error: 'Internal server error' }),
       { 
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
