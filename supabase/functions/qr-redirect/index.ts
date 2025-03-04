@@ -6,10 +6,18 @@ import { corsHeaders } from '../_shared/cors.ts'
 const supabaseUrl = 'https://jfnjvphxhzxojxgptmtu.supabase.co'
 const supabaseServiceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || ''
 
+// Define public CORS headers that don't require authentication
+const publicCorsHeaders = {
+  ...corsHeaders,
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': '*',
+  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS'
+}
+
 Deno.serve(async (req) => {
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders })
+    return new Response('ok', { headers: publicCorsHeaders })
   }
 
   try {
@@ -24,12 +32,13 @@ Deno.serve(async (req) => {
         JSON.stringify({ error: 'Missing QR code ID' }),
         { 
           status: 400,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          headers: { ...publicCorsHeaders, 'Content-Type': 'application/json' }
         }
       )
     }
 
     // Initialize Supabase client with service role key
+    // We use the service role key internally, but the endpoint is public
     const supabase = createClient(supabaseUrl, supabaseServiceRoleKey, {
       auth: {
         autoRefreshToken: false,
@@ -50,7 +59,7 @@ Deno.serve(async (req) => {
         JSON.stringify({ error: 'Error fetching QR code' }),
         { 
           status: 500,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          headers: { ...publicCorsHeaders, 'Content-Type': 'application/json' }
         }
       )
     }
@@ -61,7 +70,7 @@ Deno.serve(async (req) => {
         JSON.stringify({ error: 'QR code not found' }),
         { 
           status: 404,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          headers: { ...publicCorsHeaders, 'Content-Type': 'application/json' }
         }
       )
     }
@@ -72,7 +81,7 @@ Deno.serve(async (req) => {
         JSON.stringify({ error: 'QR code is inactive' }),
         { 
           status: 404,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          headers: { ...publicCorsHeaders, 'Content-Type': 'application/json' }
         }
       )
     }
@@ -83,7 +92,7 @@ Deno.serve(async (req) => {
     return new Response(null, {
       status: 302,
       headers: {
-        ...corsHeaders,
+        ...publicCorsHeaders,
         'Location': qrCode.url,
         'Cache-Control': 'no-cache'
       }
@@ -95,7 +104,7 @@ Deno.serve(async (req) => {
       JSON.stringify({ error: 'Internal server error' }),
       { 
         status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        headers: { ...publicCorsHeaders, 'Content-Type': 'application/json' }
       }
     )
   }
