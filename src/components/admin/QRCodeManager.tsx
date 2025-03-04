@@ -57,6 +57,8 @@ const QRCodeManager = () => {
   }
 
   const selectedQrCode = qrCodes?.find(qr => qr.id === selectedQrId);
+  
+  // Generate the edge function URL - making sure to use the proper format
   const edgeFunctionUrl = selectedQrId 
     ? `https://jfnjvphxhzxojxgptmtu.supabase.co/functions/v1/qr-redirect?id=${selectedQrId}`
     : '';

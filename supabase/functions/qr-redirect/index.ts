@@ -30,7 +30,13 @@ Deno.serve(async (req) => {
     }
 
     // Initialize Supabase client with service role key
-    const supabase = createClient(supabaseUrl, supabaseServiceRoleKey)
+    // This is a public endpoint, so no auth is required from the client
+    const supabase = createClient(supabaseUrl, supabaseServiceRoleKey, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false
+      }
+    })
     
     console.log('Querying QR code:', id)
     const { data: qrCode, error } = await supabase
