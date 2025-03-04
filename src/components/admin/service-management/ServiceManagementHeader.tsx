@@ -6,7 +6,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useLanguage } from '@/contexts/LanguageContext';
 
 interface ServiceManagementHeaderProps {
   totalCategories: number;
@@ -22,40 +21,38 @@ export const ServiceManagementHeader = ({
   onSort,
   onFilter,
 }: ServiceManagementHeaderProps) => {
-  const { language } = useLanguage();
-  
   return (
     <div className="space-y-4 mb-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h2 className="text-2xl font-semibold">
-            {language === 'ar' ? 'إدارة الخدمات' : 'Service Management'}
+            Service Management
           </h2>
           <p className="text-sm text-muted-foreground">
-            {totalCategories} {language === 'ar' ? 'فئة' : 'categories'} • {totalServices} {language === 'ar' ? 'خدمة' : 'services'}
+            {totalCategories} categories • {totalServices} services
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <Select onValueChange={onSort} defaultValue="name">
             <SelectTrigger className="w-[140px]">
-              <SelectValue placeholder={language === 'ar' ? 'ترتيب حسب' : 'Sort by'} />
+              <SelectValue placeholder="Sort by" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="name">{language === 'ar' ? 'الاسم' : 'Name'}</SelectItem>
-              <SelectItem value="newest">{language === 'ar' ? 'الأحدث' : 'Newest'}</SelectItem>
-              <SelectItem value="oldest">{language === 'ar' ? 'الأقدم' : 'Oldest'}</SelectItem>
-              <SelectItem value="services">{language === 'ar' ? 'الأكثر خدمات' : 'Most Services'}</SelectItem>
+              <SelectItem value="name">Name</SelectItem>
+              <SelectItem value="newest">Newest</SelectItem>
+              <SelectItem value="oldest">Oldest</SelectItem>
+              <SelectItem value="services">Most Services</SelectItem>
             </SelectContent>
           </Select>
 
           <Select onValueChange={onFilter} defaultValue="all">
             <SelectTrigger className="w-[140px]">
-              <SelectValue placeholder={language === 'ar' ? 'تصفية' : 'Filter'} />
+              <SelectValue placeholder="Filter" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">{language === 'ar' ? 'كل الفئات' : 'All Categories'}</SelectItem>
-              <SelectItem value="active">{language === 'ar' ? 'النشطة' : 'Active'}</SelectItem>
-              <SelectItem value="empty">{language === 'ar' ? 'الفئات الفارغة' : 'Empty Categories'}</SelectItem>
+              <SelectItem value="all">All Categories</SelectItem>
+              <SelectItem value="active">Active</SelectItem>
+              <SelectItem value="empty">Empty Categories</SelectItem>
             </SelectContent>
           </Select>
         </div>
