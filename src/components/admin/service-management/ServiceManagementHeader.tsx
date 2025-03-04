@@ -10,16 +10,14 @@ import {
 interface ServiceManagementHeaderProps {
   totalCategories: number;
   totalServices: number;
-  onSearch: (query: string) => void;
+  onSearch?: (query: string) => void;
   onSort: (value: string) => void;
-  onFilter: (value: string) => void;
 }
 
 export const ServiceManagementHeader = ({
   totalCategories,
   totalServices,
   onSort,
-  onFilter,
 }: ServiceManagementHeaderProps) => {
   return (
     <div className="space-y-4 mb-6">
@@ -42,17 +40,6 @@ export const ServiceManagementHeader = ({
               <SelectItem value="newest">Newest</SelectItem>
               <SelectItem value="oldest">Oldest</SelectItem>
               <SelectItem value="services">Most Services</SelectItem>
-            </SelectContent>
-          </Select>
-
-          <Select onValueChange={onFilter} defaultValue="all">
-            <SelectTrigger className="w-[140px]">
-              <SelectValue placeholder="Filter" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Categories</SelectItem>
-              <SelectItem value="active">Active</SelectItem>
-              <SelectItem value="empty">Empty Categories</SelectItem>
             </SelectContent>
           </Select>
         </div>

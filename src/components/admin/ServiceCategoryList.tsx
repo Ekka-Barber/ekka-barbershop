@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { useOptimizedCategories } from '@/hooks/useOptimizedCategories';
@@ -19,7 +18,6 @@ const ServiceCategoryList = () => {
     totalServices,
     setSearchQuery,
     setSortBy,
-    setFilterBy,
     setupRealtimeSubscription
   } = useOptimizedCategories();
 
