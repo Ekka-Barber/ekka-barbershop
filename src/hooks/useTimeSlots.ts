@@ -158,6 +158,10 @@ export const useTimeSlots = () => {
         const crossesMidnight = doesCrossMidnight(start, end);
         if (crossesMidnight) {
           endTime = addDays(endTime, 1);
+          console.log(`Shift crosses midnight: ${start}-${end}`, { 
+            startTime: format(startTime, 'HH:mm'), 
+            endTime: format(endTime, 'HH:mm') 
+          });
         }
 
         // Create a slot every 30 minutes from start to end time
@@ -167,6 +171,11 @@ export const useTimeSlots = () => {
         while (isBefore(currentSlot, endTime)) {
           const timeString = format(currentSlot, 'HH:mm');
           const slotMinutes = convertTimeToMinutes(timeString);
+          
+          console.log(`Evaluating slot: ${timeString}`, {
+            isAfterMidnight: isAfterMidnight(timeString),
+            slotMinutes
+          });
           
           // Check if slot is available considering all constraints
           const available = isSlotAvailable(
@@ -179,6 +188,7 @@ export const useTimeSlots = () => {
           
           // Only add available slots
           if (available) {
+            console.log(`Adding available slot: ${timeString}`);
             availableSlots.push({
               time: timeString,
               isAvailable: true
@@ -189,8 +199,20 @@ export const useTimeSlots = () => {
         }
       }
 
+      // Log all slots before sorting
+      console.log('Generated slots before sorting:', availableSlots.map(s => s.time));
+      
       // Make sure to sort slots properly with after-midnight slots appearing after regular slots
-      return sortTimeSlots(availableSlots);
+      const sortedSlots = sortTimeSlots(availableSlots);
+      
+      // Log all slots after sorting
+      console.log('Generated slots after sorting:', sortedSlots.map(s => s.time));
+      
+      // Verify if we have after-midnight slots
+      const afterMidnightSlots = sortedSlots.filter(slot => isAfterMidnight(slot.time));
+      console.log('After-midnight slots:', afterMidnightSlots.map(s => s.time));
+
+      return sortedSlots;
     } catch (error) {
       console.error('Error generating time slots:', error);
       toast({

@@ -1,4 +1,5 @@
-import React, { memo } from "react";
+
+import React, { memo, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { cn } from "@/lib/utils";
@@ -25,6 +26,16 @@ export const TimeSlotPicker = memo(({
   isLoading = false
 }: TimeSlotPickerProps) => {
   const { language } = useLanguage();
+  
+  // Log available time slots for debugging
+  console.log("Available time slots:", timeSlots.map(slot => slot.time));
+  
+  // Check if there are any after-midnight slots
+  const hasAfterMidnightSlots = useMemo(() => {
+    return timeSlots.some(slot => isAfterMidnight(slot.time));
+  }, [timeSlots]);
+  
+  console.log("Has after-midnight slots:", hasAfterMidnightSlots);
   
   // All slots are available, so we just need to decide how many to show
   const displayedTimeSlots = showAllSlots ? timeSlots : timeSlots.slice(0, 6);
@@ -78,6 +89,8 @@ export const TimeSlotPicker = memo(({
               {displayedTimeSlots.map((slot, index) => {
                 const prevTime = index > 0 ? displayedTimeSlots[index - 1].time : '';
                 const showSeparator = needsSeparator(slot.time, prevTime);
+                
+                console.log(`Slot ${slot.time} - isAfterMidnight: ${isAfterMidnight(slot.time)}, showSeparator: ${showSeparator}`);
                 
                 return (
                   <React.Fragment key={slot.time}>
