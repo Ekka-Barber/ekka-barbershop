@@ -1,4 +1,3 @@
-
 import { format, parse, isToday, isBefore, addMinutes, isAfter, addDays, parseISO } from "date-fns";
 import { useCallback, useMemo, useEffect, useRef } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -124,19 +123,14 @@ export const useTimeSlots = () => {
     const queryKey = ['unavailableSlots', employeeId, formattedDate];
     
     try {
-      // Fetch unavailable slots using react-query's useQuery
-      const { data: unavailableSlots, error } = await queryClient.fetchQuery({
+      // Fetch unavailable slots using react-query's fetchQuery
+      const unavailableSlots = await queryClient.fetchQuery({
         queryKey,
         queryFn: () => fetchUnavailableSlots({ employeeId, formattedDate }),
         staleTime: CACHE_EXPIRY,
         gcTime: CACHE_EXPIRY
       });
       
-      if (error) {
-        console.error('Error in fetchQuery:', error);
-        throw error;
-      }
-
       // Set up realtime subscription for this employee and date
       setupRealtimeSubscription(employeeId, selectedDate);
       

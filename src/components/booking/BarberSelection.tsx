@@ -79,7 +79,7 @@ export const BarberSelection = ({
             toast({
               title: language === 'ar' ? 'الوقت لم يعد متاحًا' : 'Time no longer available',
               description: language === 'ar' ? 'يرجى اختيار وقت آخر' : 'Please select another time',
-              variant: "warning"
+              variant: "destructive" // Changed from "warning" to "destructive" as it's an allowed variant
             });
           }
         } catch (error) {
