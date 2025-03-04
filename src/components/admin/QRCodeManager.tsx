@@ -1,32 +1,18 @@
 
 import { useState } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/components/ui/use-toast";
-import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import CreateQRCodeForm from "./CreateQRCodeForm";
 import QRCodeDisplay from "./QRCodeDisplay";
+import QRCodeList from "./qr-code/QRCodeList";
+import UpdateQRCodeUrl from "./qr-code/UpdateQRCodeUrl";
+import { useOwnerAccess } from "./qr-code/useOwnerAccess";
 
 const QRCodeManager = () => {
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
   const [selectedQrId, setSelectedQrId] = useState<string | null>(null);
-  const [newUrl, setNewUrl] = useState("");
-
-  const setOwnerAccess = async () => {
-    const { error } = await supabase.rpc('set_owner_access', { value: 'owner123' });
-    if (error) {
-      console.error('Error setting owner access:', error);
-      toast({
-        title: "Error",
-        description: "Failed to set owner access. Please try again.",
-        variant: "destructive",
-      });
-      return false;
-    }
-    return true;
-  };
+  const { setOwnerAccess } = useOwnerAccess();
 
   const { data: qrCodes, isLoading, error: fetchError } = useQuery({
     queryKey: ["qrCodes"],
@@ -57,7 +43,7 @@ const QRCodeManager = () => {
 
   const selectedQrCode = qrCodes?.find(qr => qr.id === selectedQrId);
   
-  // Generate the edge function URL - making sure to use the proper format
+  // Generate the edge function URL
   const edgeFunctionUrl = selectedQrId 
     ? `https://jfnjvphxhzxojxgptmtu.supabase.co/functions/v1/qr-redirect?id=${selectedQrId}`
     : '';
@@ -100,7 +86,7 @@ const QRCodeManager = () => {
     return (
       <div className="p-8 text-center">
         <div className="text-red-500 mb-4">Error loading QR codes: {(fetchError as Error).message}</div>
-        <Button onClick={() => queryClient.invalidateQueries({ queryKey: ["qrCodes"] })}>
+        <Button onClick={() => window.location.reload()}>
           Retry
         </Button>
       </div>
@@ -118,18 +104,11 @@ const QRCodeManager = () => {
 
       {qrCodes && qrCodes.length > 0 ? (
         <>
-          <div className="flex gap-4 overflow-x-auto pb-2">
-            {qrCodes.map((qr) => (
-              <Button
-                key={qr.id}
-                variant={selectedQrId === qr.id ? "default" : "outline"}
-                onClick={() => setSelectedQrId(qr.id)}
-                className="whitespace-nowrap"
-              >
-                {qr.id}
-              </Button>
-            ))}
-          </div>
+          <QRCodeList 
+            qrCodes={qrCodes} 
+            selectedQrId={selectedQrId} 
+            onSelectQrId={setSelectedQrId} 
+          />
 
           <div className="grid gap-6 md:grid-cols-2">
             {selectedQrCode && (
@@ -138,69 +117,7 @@ const QRCodeManager = () => {
                   edgeFunctionUrl={edgeFunctionUrl}
                   handleDownload={handleDownload}
                 />
-                <div className="rounded-lg border p-4 space-y-4">
-                  <h3 className="font-medium">Current Redirect URL</h3>
-                  <p className="text-sm bg-muted p-2 rounded break-all">
-                    {selectedQrCode.url}
-                  </p>
-                  
-                  <form onSubmit={(e) => {
-                    e.preventDefault();
-                    if (!newUrl || !selectedQrId) return;
-                    
-                    const updateUrl = async () => {
-                      const ownerAccessSet = await setOwnerAccess();
-                      if (!ownerAccessSet) {
-                        toast({
-                          title: "Error",
-                          description: "Failed to set owner access",
-                          variant: "destructive",
-                        });
-                        return;
-                      }
-
-                      const { error } = await supabase
-                        .from("qr_codes")
-                        .update({ url: newUrl })
-                        .eq("id", selectedQrId);
-
-                      if (error) {
-                        toast({
-                          title: "Error",
-                          description: "Failed to update QR code URL",
-                          variant: "destructive",
-                        });
-                        return;
-                      }
-
-                      queryClient.invalidateQueries({ queryKey: ["qrCodes"] });
-                      toast({
-                        title: "Success",
-                        description: "QR code URL has been updated",
-                      });
-                      setNewUrl("");
-                    };
-
-                    updateUrl();
-                  }}>
-                    <div className="space-y-4">
-                      <div className="space-y-2">
-                        <h4 className="text-sm font-medium">Update Redirect URL</h4>
-                        <input
-                          type="url"
-                          value={newUrl}
-                          onChange={(e) => setNewUrl(e.target.value)}
-                          placeholder="https://example.com"
-                          className="w-full p-2 border rounded-md"
-                          required
-                        />
-                      </div>
-                      <Button type="submit" className="w-full">
-                        Update URL
-                      </Button>
-                    </div>
-                  </form>
-                </div>
+                <UpdateQRCodeUrl selectedQrCode={selectedQrCode} />
               </>
             )}
           </div>
