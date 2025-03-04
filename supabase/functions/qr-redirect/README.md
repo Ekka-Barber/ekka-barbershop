@@ -19,3 +19,4 @@ This edge function handles QR code redirection by:
 ## Important Notes
 - This function requires the Supabase anon key to be provided as the `apikey` query parameter
 - The QR code must be active for the redirect to work
+- The function will automatically use the anon key if no apikey is provided
