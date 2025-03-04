@@ -10,10 +10,9 @@ This edge function handles QR code redirection by:
 - `id`: The identifier for the QR code (e.g., 'ekka-barber-qr-1')
 
 ## Authentication
-The function supports three authentication methods in order of preference:
-1. Bearer token in Authorization header (preferred method)
-2. API key as query parameter (`apikey`)
-3. Default anonymous key (fallback)
+The function now uses the Supabase service role key for internal database operations, 
+allowing it to bypass Row Level Security (RLS) policies. This means no authentication 
+is required from the client side when scanning QR codes.
 
 ## Response
 - 302 Redirect to the stored URL if successful
@@ -23,12 +22,12 @@ The function supports three authentication methods in order of preference:
 
 ## Improved Logging
 The function includes comprehensive logging to help debug issues:
-- Request URL and headers
+- Request URL
 - User agent information
-- Authentication method used
 - Database query details
 - Redirect outcomes
 
 ## Important Notes
+- QR codes are now publicly accessible without requiring an API key
 - Mobile browsers and QR code scanners should work without any special configuration
 - For testing purposes, you can access the QR redirect directly in a browser
