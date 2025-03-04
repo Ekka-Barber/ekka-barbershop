@@ -18,7 +18,6 @@ Deno.serve(async (req) => {
   try {
     const url = new URL(req.url)
     const id = url.searchParams.get('id')
-    const apiKey = url.searchParams.get('key')
     
     console.log('🔍 Processing QR redirect for ID:', id)
     console.log('📍 Request URL:', req.url)
