@@ -10,7 +10,8 @@ import {
   sortTimeSlots, 
   createTimeSlotsKey, 
   normalizeUnavailableSlots, 
-  doesCrossMidnight 
+  doesCrossMidnight,
+  isAfterMidnight
 } from "@/utils/timeSlotUtils";
 import { isSlotAvailable, isEmployeeAvailable } from "@/utils/slotAvailability";
 import { useToast } from "@/hooks/use-toast";
@@ -188,6 +189,7 @@ export const useTimeSlots = () => {
         }
       }
 
+      // Make sure to sort slots properly with after-midnight slots appearing after regular slots
       return sortTimeSlots(availableSlots);
     } catch (error) {
       console.error('Error generating time slots:', error);

@@ -1,4 +1,3 @@
-
 import React, { memo } from "react";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -6,7 +5,7 @@ import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Clock12 } from "lucide-react";
 import { formatTime } from "@/utils/timeFormatting";
-import { TimeSlot } from "@/utils/timeSlotUtils";
+import { TimeSlot, isAfterMidnight } from "@/utils/timeSlotUtils";
 
 interface TimeSlotPickerProps {
   timeSlots: TimeSlot[];
@@ -30,17 +29,10 @@ export const TimeSlotPicker = memo(({
   // All slots are available, so we just need to decide how many to show
   const displayedTimeSlots = showAllSlots ? timeSlots : timeSlots.slice(0, 6);
   
-  // Function to check if a time slot is after midnight
-  const isAfterMidnight = (time: string) => {
-    const [hours] = time.split(':').map(Number);
-    return hours < 12 && hours >= 0; // 00:00 to 11:59
-  };
-  
   // Determine if we need a separator between days
   const needsSeparator = (currentTime: string, prevTime: string) => {
-    // If current time is 00:00 or it jumps from late night to early morning
-    return (currentTime === "00:00") || 
-           (prevTime && prevTime >= "22:00" && isAfterMidnight(currentTime));
+    // If this is an after-midnight slot and the previous one wasn't
+    return isAfterMidnight(currentTime) && prevTime && !isAfterMidnight(prevTime);
   };
 
   // Show loading state when loading
