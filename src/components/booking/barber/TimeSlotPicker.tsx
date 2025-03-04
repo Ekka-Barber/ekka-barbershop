@@ -40,7 +40,7 @@ export const TimeSlotPicker = memo(({
   const needsSeparator = (currentTime: string, prevTime: string) => {
     // If current time is 00:00 or it jumps from late night to early morning
     return (currentTime === "00:00") || 
-           (prevTime >= "22:00" && isAfterMidnight(currentTime));
+           (prevTime && prevTime >= "22:00" && isAfterMidnight(currentTime));
   };
 
   // Show loading state when loading
@@ -84,7 +84,9 @@ export const TimeSlotPicker = memo(({
           <div className="overflow-x-auto scrollbar-hide px-4 py-4 bg-white">
             <div className="flex flex-wrap gap-3">
               {displayedTimeSlots.map((slot, index) => {
-                const showSeparator = index > 0 && needsSeparator(slot.time, displayedTimeSlots[index - 1].time);
+                const prevTime = index > 0 ? displayedTimeSlots[index - 1].time : '';
+                const showSeparator = needsSeparator(slot.time, prevTime);
+                
                 return (
                   <React.Fragment key={slot.time}>
                     {showSeparator && (

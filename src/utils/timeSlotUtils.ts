@@ -123,11 +123,15 @@ export const isWithinWorkingHours = (
     // Handle shifts that cross midnight
     if (endMinutes < startMinutes) {
       // For slots before midnight
-      if (slotMinutes >= startMinutes || slotMinutes < endMinutes) {
+      if (slotMinutes >= startMinutes && slotMinutes < 24 * 60) {
+        return true;
+      }
+      // For slots after midnight up to but not including end time
+      if (slotMinutes >= 0 && slotMinutes < endMinutes) {
         return true;
       }
     } else {
-      // For regular shifts
+      // For regular shifts - slot is available if it's between start and end (but not at end time)
       if (slotMinutes >= startMinutes && slotMinutes < endMinutes) {
         return true;
       }
@@ -136,3 +140,4 @@ export const isWithinWorkingHours = (
   
   return false;
 };
+

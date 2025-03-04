@@ -162,6 +162,7 @@ export const useTimeSlots = () => {
         // Create a slot every 30 minutes from start to end time
         let currentSlot = startTime;
         
+        // Generate slots up to but not including the end time
         while (isBefore(currentSlot, endTime)) {
           const timeString = format(currentSlot, 'HH:mm');
           const slotMinutes = convertTimeToMinutes(timeString);
