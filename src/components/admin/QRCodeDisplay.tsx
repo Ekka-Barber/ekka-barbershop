@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { Download } from "lucide-react";
 import { QRCodeSVG } from 'qrcode.react';
@@ -27,6 +28,12 @@ const QRCodeDisplay = ({ edgeFunctionUrl, handleDownload }: QRCodeDisplayProps) 
       <p className="text-sm text-muted-foreground text-center">
         Scan this QR code to access the redirect URL
       </p>
+      
+      <div className="mt-4">
+        <p className="text-xs text-muted-foreground break-all">
+          <span className="font-semibold">QR URL:</span> {edgeFunctionUrl}
+        </p>
+      </div>
     </div>
   );
 };

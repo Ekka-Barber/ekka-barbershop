@@ -8,15 +8,27 @@ This edge function handles QR code redirection by:
 
 ## Query Parameters
 - `id`: The identifier for the QR code (e.g., 'ekka-barber-qr-1')
-- `apikey`: The Supabase anon key required for authentication
+
+## Authentication
+The function supports three authentication methods in order of preference:
+1. Bearer token in Authorization header (preferred method)
+2. API key as query parameter (`apikey`)
+3. Default anonymous key (fallback)
 
 ## Response
 - 302 Redirect to the stored URL if successful
 - 400 if QR code ID is missing
-- 404 if QR code is not found
+- 404 if QR code is not found or inactive
 - 500 for server errors
 
+## Improved Logging
+The function includes comprehensive logging to help debug issues:
+- Request URL and headers
+- User agent information
+- Authentication method used
+- Database query details
+- Redirect outcomes
+
 ## Important Notes
-- This function requires the Supabase anon key to be provided as the `apikey` query parameter
-- The QR code must be active for the redirect to work
-- The function will automatically use the anon key if no apikey is provided
+- Mobile browsers and QR code scanners should work without any special configuration
+- For testing purposes, you can access the QR redirect directly in a browser
