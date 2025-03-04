@@ -1,6 +1,6 @@
 
 import { isToday, isBefore, addMinutes, format } from "date-fns";
-import { UnavailableSlot, hasEnoughConsecutiveTime, convertTimeToMinutes } from "./timeSlotUtils";
+import { UnavailableSlot, hasEnoughConsecutiveTime, isWithinWorkingHours } from "./timeSlotUtils";
 
 /**
  * Checks if a time slot is available based on date, time, and unavailable periods
@@ -9,8 +9,14 @@ export const isSlotAvailable = (
   slotMinutes: number,
   unavailableSlots: UnavailableSlot[],
   selectedDate: Date,
-  serviceDuration: number = 30 // Default to 30 minutes if not specified
+  serviceDuration: number = 30, // Default to 30 minutes if not specified
+  workingHoursRanges: string[] = []
 ): boolean => {
+  // Check if the slot is within working hours
+  if (!isWithinWorkingHours(slotMinutes, workingHoursRanges)) {
+    return false;
+  }
+
   // If it's today, check if the slot is within minimum booking time
   if (isToday(selectedDate)) {
     const now = new Date();

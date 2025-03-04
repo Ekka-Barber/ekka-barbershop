@@ -38,7 +38,9 @@ export const TimeSlotPicker = memo(({
   
   // Determine if we need a separator between days
   const needsSeparator = (currentTime: string, prevTime: string) => {
-    return prevTime === "23:30" && currentTime === "00:00";
+    // If current time is 00:00 or it jumps from late night to early morning
+    return (currentTime === "00:00") || 
+           (prevTime >= "22:00" && isAfterMidnight(currentTime));
   };
 
   // Show loading state when loading
@@ -80,14 +82,19 @@ export const TimeSlotPicker = memo(({
       <div className="w-full">
         <div className="bg-gradient-to-b from-white to-gray-50 shadow-sm border border-gray-100 rounded-lg">
           <div className="overflow-x-auto scrollbar-hide px-4 py-4 bg-white">
-            <div className="flex space-x-3 rtl:space-x-reverse">
+            <div className="flex flex-wrap gap-3">
               {displayedTimeSlots.map((slot, index) => {
                 const showSeparator = index > 0 && needsSeparator(slot.time, displayedTimeSlots[index - 1].time);
                 return (
                   <React.Fragment key={slot.time}>
                     {showSeparator && (
-                      <div className="flex items-center mx-2">
-                        <Clock12 className="h-6 w-6 text-red-500" />
+                      <div className="flex items-center w-full justify-center my-2">
+                        <div className="h-px bg-gray-200 flex-grow mx-2"></div>
+                        <Clock12 className="h-4 w-4 text-gray-500" />
+                        <span className="text-xs text-gray-500 mx-2">
+                          {language === 'ar' ? 'بعد منتصف الليل' : 'After midnight'}
+                        </span>
+                        <div className="h-px bg-gray-200 flex-grow mx-2"></div>
                       </div>
                     )}
                     <Button

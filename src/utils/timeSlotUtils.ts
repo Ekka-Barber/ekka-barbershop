@@ -20,6 +20,15 @@ export const convertTimeToMinutes = (timeStr: string): number => {
 };
 
 /**
+ * Checks if a time range crosses midnight
+ */
+export const doesCrossMidnight = (start: string, end: string): boolean => {
+  const startMinutes = convertTimeToMinutes(start);
+  const endMinutes = convertTimeToMinutes(end);
+  return endMinutes < startMinutes;
+};
+
+/**
  * Checks if there's enough consecutive time for a service
  */
 export const hasEnoughConsecutiveTime = (
@@ -92,4 +101,38 @@ export const normalizeUnavailableSlots = (slots: any[]): UnavailableSlot[] => {
       ? slot.end_time 
       : convertTimeToMinutes(slot.end_time as unknown as string)
   }));
+};
+
+/**
+ * Checks if a time slot is within the working hours ranges
+ */
+export const isWithinWorkingHours = (
+  slotMinutes: number, 
+  workingHoursRanges: string[]
+): boolean => {
+  // If no working hours specified, slot is not available
+  if (!workingHoursRanges || workingHoursRanges.length === 0) {
+    return false;
+  }
+
+  for (const range of workingHoursRanges) {
+    const [start, end] = range.split('-');
+    const startMinutes = convertTimeToMinutes(start);
+    const endMinutes = convertTimeToMinutes(end);
+    
+    // Handle shifts that cross midnight
+    if (endMinutes < startMinutes) {
+      // For slots before midnight
+      if (slotMinutes >= startMinutes || slotMinutes < endMinutes) {
+        return true;
+      }
+    } else {
+      // For regular shifts
+      if (slotMinutes >= startMinutes && slotMinutes < endMinutes) {
+        return true;
+      }
+    }
+  }
+  
+  return false;
 };

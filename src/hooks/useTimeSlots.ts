@@ -1,8 +1,17 @@
+
 import { format, parse, isToday, isBefore, addMinutes, isAfter, addDays, parseISO } from "date-fns";
 import { useCallback, useMemo, useEffect, useRef } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { TimeSlot, UnavailableSlot, convertTimeToMinutes, sortTimeSlots, createTimeSlotsKey, normalizeUnavailableSlots } from "@/utils/timeSlotUtils";
+import { 
+  TimeSlot, 
+  UnavailableSlot, 
+  convertTimeToMinutes, 
+  sortTimeSlots, 
+  createTimeSlotsKey, 
+  normalizeUnavailableSlots, 
+  doesCrossMidnight 
+} from "@/utils/timeSlotUtils";
 import { isSlotAvailable, isEmployeeAvailable } from "@/utils/slotAvailability";
 import { useToast } from "@/hooks/use-toast";
 
@@ -105,7 +114,7 @@ export const useTimeSlots = () => {
   }, [queryClient, toast]);
 
   /**
-   * Generates only available time slots for a specific date and employee
+   * Generates available time slots based on working hours and unavailable periods
    */
   const generateTimeSlots = useCallback(async (
     workingHoursRanges: string[] = [],
@@ -115,7 +124,9 @@ export const useTimeSlots = () => {
   ): Promise<TimeSlot[]> => {
     const availableSlots: TimeSlot[] = [];
     
-    if (!selectedDate || !employeeId) return availableSlots;
+    if (!selectedDate || !employeeId || !workingHoursRanges.length) {
+      return availableSlots;
+    }
 
     const formattedDate = format(selectedDate, 'yyyy-MM-dd');
     
@@ -134,6 +145,7 @@ export const useTimeSlots = () => {
       // Set up realtime subscription for this employee and date
       setupRealtimeSubscription(employeeId, selectedDate);
       
+      // Generate slots at 30-minute intervals for each working hours range
       for (const range of workingHoursRanges) {
         const [start, end] = range.split('-');
         
@@ -142,29 +154,25 @@ export const useTimeSlots = () => {
         let endTime = parse(end, 'HH:mm', baseDate);
         
         // Handle shifts that cross midnight
-        const crossesMidnight = isAfter(startTime, endTime);
+        const crossesMidnight = doesCrossMidnight(start, end);
         if (crossesMidnight) {
           endTime = addDays(endTime, 1);
         }
 
+        // Create a slot every 30 minutes from start to end time
         let currentSlot = startTime;
         
         while (isBefore(currentSlot, endTime)) {
           const timeString = format(currentSlot, 'HH:mm');
           const slotMinutes = convertTimeToMinutes(timeString);
           
-          // Skip adding the 00:00 slot unless we're handling a shift that crosses midnight
-          if (timeString === '00:00' && !crossesMidnight) {
-            currentSlot = addMinutes(currentSlot, 30);
-            continue;
-          }
-
-          // Check if slot is available (considering minimum booking time and conflicts)
+          // Check if slot is available considering all constraints
           const available = isSlotAvailable(
             slotMinutes,
             unavailableSlots || [],
             selectedDate,
-            serviceDuration
+            serviceDuration,
+            workingHoursRanges
           );
           
           // Only add available slots
@@ -217,6 +225,7 @@ export const useTimeSlots = () => {
     const dayName = format(selectedDate, 'EEEE').toLowerCase();
     const workingHours = employee.working_hours[dayName] || [];
     
+    // Check if employee is off on the selected date
     if (employee.off_days?.includes(format(selectedDate, 'yyyy-MM-dd'))) {
       return [];
     }
