@@ -58,9 +58,9 @@ const QRCodeManager = () => {
 
   const selectedQrCode = qrCodes?.find(qr => qr.id === selectedQrId);
   
-  // Generate the edge function URL - making sure to use the proper format
+  // Generate the edge function URL with the anon key as a query parameter
   const edgeFunctionUrl = selectedQrId 
-    ? `https://jfnjvphxhzxojxgptmtu.supabase.co/functions/v1/qr-redirect?id=${selectedQrId}`
+    ? `https://jfnjvphxhzxojxgptmtu.supabase.co/functions/v1/qr-redirect?id=${selectedQrId}&apikey=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Impmbmp2cGh4aHp4b2p4Z3B0bXR1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzY3MjgyMDksImV4cCI6MjA1MjMwNDIwOX0.D7fqEZPOOvqVnrtLPwAJ4tqGyTPY8uXjBejgU8Vshd4`
     : '';
 
   const handleDownload = () => {

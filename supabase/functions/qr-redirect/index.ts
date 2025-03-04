@@ -17,6 +17,7 @@ Deno.serve(async (req) => {
     const id = url.searchParams.get('id')
 
     console.log('🔍 Processing QR redirect for ID:', id)
+    console.log('🔑 Request headers:', JSON.stringify(Object.fromEntries(req.headers.entries())))
 
     if (!id) {
       console.error('Missing QR code ID')
@@ -30,7 +31,7 @@ Deno.serve(async (req) => {
     }
 
     // Initialize Supabase client with service role key
-    // This is a public endpoint, so we need to configure the client properly
+    // This is a public endpoint that requires admin access to the database
     const supabase = createClient(supabaseUrl, supabaseServiceRoleKey, {
       auth: {
         autoRefreshToken: false,
