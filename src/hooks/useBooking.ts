@@ -6,6 +6,7 @@ import { useServiceSelection } from './useServiceSelection';
 import { useCustomerDetails } from './useCustomerDetails';
 import { useCategoryData } from './useCategoryData';
 import { useEmployeeData } from './useEmployeeData';
+import { transformServicesForDisplay } from '@/utils/serviceTransformation';
 
 export const useBooking = (branch: any) => {
   const [currentStep, setCurrentStep] = useState<BookingStep>('services');
@@ -22,6 +23,11 @@ export const useBooking = (branch: any) => {
   // Calculate total price and duration
   const totalPrice = calculateTotalPrice(selectedServices);
   const totalDuration = calculateTotalDuration(selectedServices);
+
+  // Transform selected services for display based on language
+  const getTransformedServices = (language: 'en' | 'ar') => {
+    return transformServicesForDisplay(selectedServices, language);
+  };
 
   return {
     currentStep,
@@ -43,6 +49,7 @@ export const useBooking = (branch: any) => {
     handleServiceToggle,
     handleUpsellServiceAdd,
     totalPrice,
-    totalDuration
+    totalDuration,
+    getTransformedServices
   };
 };

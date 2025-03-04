@@ -11,6 +11,7 @@ import { ServicesSummary } from "./service-selection/ServicesSummary";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft } from "lucide-react";
+import { transformServicesForDisplay } from "@/utils/serviceTransformation";
 
 const STEPS: BookingStep[] = ['services', 'datetime', 'barber', 'details'];
 
@@ -157,12 +158,7 @@ export const BookingSteps = ({
 
   const showBackToServices = currentStep !== 'services';
 
-  const transformedServices = selectedServices.map(service => ({
-    id: service.id,
-    name: language === 'ar' ? service.name_ar : service.name_en,
-    price: service.price,
-    duration: service.duration
-  }));
+  const transformedServices = transformServicesForDisplay(selectedServices, language);
 
   return <>
       <BookingProgress currentStep={currentStep} steps={STEPS} onStepClick={setCurrentStep} currentStepIndex={currentStepIndex} />

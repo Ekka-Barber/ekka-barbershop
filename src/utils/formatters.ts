@@ -1,10 +1,6 @@
 
 import { convertToArabic } from "./arabicNumerals";
-
-export const formatNumber = (num: number, language: 'en' | 'ar' = 'en'): string => {
-  const rounded = Math.round(num);
-  return language === 'ar' ? convertToArabic(rounded.toString()) : rounded.toString();
-};
+import { formatNumber } from "./priceFormatting";
 
 export const formatDuration = (duration: number, language: 'en' | 'ar' = 'en'): string => {
   const rounded = Math.round(duration);
@@ -16,8 +12,4 @@ export const formatDuration = (duration: number, language: 'en' | 'ar' = 'en'): 
   }
   
   return `${formattedNumber} mins`;
-};
-
-export const formatRiyal = (amount: number): string => {
-  return Math.round(amount).toString();
 };

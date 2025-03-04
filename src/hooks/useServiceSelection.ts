@@ -1,9 +1,9 @@
 
 import { useState } from 'react';
 import { Service, SelectedService } from '@/types/service';
-import { calculateDiscountedPrice, roundPrice } from '@/utils/bookingCalculations';
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { transformServiceToSelected, transformUpsellToSelected } from '@/utils/serviceTransformation';
 
 export const useServiceSelection = () => {
   const [selectedServices, setSelectedServices] = useState<SelectedService[]>([]);
@@ -35,14 +35,8 @@ export const useServiceSelection = () => {
         setSelectedServices(prev => prev.filter(s => s.id !== service.id));
       }
     } else {
-      const finalPrice = skipDiscountCalculation ? service.price : calculateDiscountedPrice(service);
-      setSelectedServices(prev => [...prev, {
-        ...service,
-        price: roundPrice(finalPrice),
-        originalPrice: skipDiscountCalculation ? undefined : (finalPrice !== service.price ? roundPrice(service.price) : undefined),
-        isUpsellItem: false,
-        dependentUpsells: []
-      }]);
+      const transformedService = transformServiceToSelected(service, skipDiscountCalculation);
+      setSelectedServices(prev => [...prev, transformedService]);
     }
   };
 
@@ -59,23 +53,7 @@ export const useServiceSelection = () => {
       }
 
       setSelectedServices(prev => {
-        const newUpsell: SelectedService = {
-          id: upsell.id,
-          name_en: upsell.name_en,
-          name_ar: upsell.name_ar,
-          price: roundPrice(upsell.discountedPrice),
-          duration: upsell.duration,
-          category_id: '',
-          display_order: 0,
-          description_en: null,
-          description_ar: null,
-          discount_type: null,
-          discount_value: null,
-          originalPrice: roundPrice(upsell.price),
-          discountPercentage: upsell.discountPercentage,
-          isUpsellItem: true,
-          mainServiceId: mainService.id
-        };
+        const newUpsell = transformUpsellToSelected(upsell, mainService.id);
 
         const updatedServices = prev.map(s => {
           if (s.id === mainService.id) {

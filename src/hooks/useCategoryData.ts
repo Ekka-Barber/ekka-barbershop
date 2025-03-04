@@ -1,7 +1,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from "@/integrations/supabase/client";
-import { Service, validateService } from '@/types/service';
+import { validateService } from '@/utils/serviceValidation';
 
 /**
  * Hook for fetching service categories data
