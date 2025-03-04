@@ -11,10 +11,13 @@ import { ServicesSummary } from "./service-selection/ServicesSummary";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft } from "lucide-react";
+
 const STEPS: BookingStep[] = ['services', 'datetime', 'barber', 'details'];
+
 interface BookingStepsProps {
   branch: any;
 }
+
 export const BookingSteps = ({
   branch
 }: BookingStepsProps) => {
@@ -27,6 +30,7 @@ export const BookingSteps = ({
   } = useToast();
   const [showUpsellModal, setShowUpsellModal] = useState(false);
   const [pendingStep, setPendingStep] = useState<BookingStep | null>(null);
+
   const {
     currentStep,
     setCurrentStep,
@@ -49,9 +53,11 @@ export const BookingSteps = ({
     totalPrice,
     totalDuration
   } = useBooking(branch);
+
   const {
     data: availableUpsells
   } = useBookingUpsells(selectedServices, language);
+
   const handleStepChange = (step: string) => {
     if (currentStep === 'services' && step === 'datetime' && availableUpsells?.length) {
       setShowUpsellModal(true);
@@ -60,6 +66,7 @@ export const BookingSteps = ({
       setCurrentStep(step as BookingStep);
     }
   };
+
   const validateStep = (): boolean => {
     if (currentStep === 'services') {
       return selectedServices.length > 0;
@@ -96,6 +103,7 @@ export const BookingSteps = ({
     }
     return true;
   };
+
   const handleNextStep = () => {
     const currentIndex = STEPS.indexOf(currentStep);
     if (currentIndex < STEPS.length - 1) {
@@ -104,6 +112,7 @@ export const BookingSteps = ({
       }
     }
   };
+
   const handlePrevStep = () => {
     const currentIndex = STEPS.indexOf(currentStep);
     if (currentIndex > 0) {
@@ -112,9 +121,11 @@ export const BookingSteps = ({
       navigate('/customer');
     }
   };
+
   const handleBackToServices = () => {
     setCurrentStep('services');
   };
+
   const handleUpsellModalClose = () => {
     setShowUpsellModal(false);
     if (pendingStep) {
@@ -122,13 +133,14 @@ export const BookingSteps = ({
       setPendingStep(null);
     }
   };
+
   const handleUpsellConfirm = (selectedUpsells: any[]) => {
     handleUpsellServiceAdd(selectedUpsells);
     handleUpsellModalClose();
   };
+
   const currentStepIndex = STEPS.indexOf(currentStep);
 
-  // Calculate if the next button should be disabled based on step
   const isNextDisabled = () => {
     if (currentStep === 'services') return selectedServices.length === 0;
     if (currentStep === 'datetime') return !selectedDate;
@@ -136,24 +148,22 @@ export const BookingSteps = ({
     if (currentStep === 'details') return !customerDetails.name || !customerDetails.phone;
     return false;
   };
+
   const employeeWorkingHours = selectedEmployee?.working_hours ? transformWorkingHours(selectedEmployee.working_hours) : null;
 
-  // Only show the BookingNavigation in the details step
   const shouldShowNavigation = currentStep === 'details';
 
-  // Show the summary bar for all steps except the details step
   const shouldShowSummaryBar = currentStep !== 'details' && selectedServices.length > 0;
 
-  // Show back to services button when not on services step
   const showBackToServices = currentStep !== 'services';
 
-  // Transform the selectedServices to match the expected format for ServicesSummary
   const transformedServices = selectedServices.map(service => ({
     id: service.id,
     name: language === 'ar' ? service.name_ar : service.name_en,
     price: service.price,
     duration: service.duration
   }));
+
   return <>
       <BookingProgress currentStep={currentStep} steps={STEPS} onStepClick={setCurrentStep} currentStepIndex={currentStepIndex} />
 
