@@ -48,7 +48,45 @@ export const useTimeFormatting = () => {
 
     const daysOrder = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
     
-    // Group days with same hours
+    // Check if all days have the same working hours
+    let allDaysHaveSameHours = true;
+    let firstDayWithHours = '';
+    
+    // Find the first day with hours to compare against
+    for (const day of daysOrder) {
+      if (workingHours[day] && workingHours[day].length > 0) {
+        firstDayWithHours = day;
+        break;
+      }
+    }
+    
+    if (firstDayWithHours) {
+      const referenceHours = JSON.stringify(workingHours[firstDayWithHours]);
+      
+      // Compare all other days with hours to the reference day
+      for (const day of daysOrder) {
+        if (workingHours[day] && workingHours[day].length > 0) {
+          if (JSON.stringify(workingHours[day]) !== referenceHours) {
+            allDaysHaveSameHours = false;
+            break;
+          }
+        }
+      }
+    }
+    
+    // If all days have the same hours, return a single entry for "Daily" or "All days"
+    if (allDaysHaveSameHours && firstDayWithHours) {
+      const timeRanges = workingHours[firstDayWithHours].map(range => 
+        formatTimeRange(range, isArabic)
+      ).join(', ');
+      
+      return [{
+        label: isArabic ? 'يومياً' : 'Daily',
+        hours: timeRanges
+      }];
+    }
+    
+    // Group days with same hours as before (if hours differ between days)
     const hoursGroups: { [hours: string]: string[] } = {};
     
     daysOrder.forEach(day => {

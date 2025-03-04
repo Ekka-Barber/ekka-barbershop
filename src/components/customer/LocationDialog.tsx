@@ -70,29 +70,25 @@ export const LocationDialog = ({
               </div>
               <div className={`flex-shrink-0 ${language === 'ar' ? 'border-s' : 'border-e'} border-gray-200 ${language === 'ar' ? 'ps-3' : 'pe-3'}`}>
                 <div className="flex flex-col gap-1 text-xs">
+                  {/* Working Hours Section */}
                   <div className="flex items-center gap-1">
                     <Clock className="w-3.5 h-3.5 text-[#C4A36F]" />
                     <span className="text-[#333333] font-medium">
-                      {language === 'ar' ? 'السبت - الخميس' : 'Sat - Thu'}
+                      {language === 'ar' ? 'ساعات العمل' : 'Working Hours'}
                     </span>
                   </div>
-                  {getAllDaysHours(branch.working_hours, language === 'ar')
-                    .filter(dayHours => dayHours.label.includes(language === 'ar' ? 'السبت' : 'Sat'))
-                    .map((dayHours, index) => (
-                      <span key={index} className="text-[#C4A36F] font-medium leading-tight">
+                  
+                  {/* Render simplified working hours */}
+                  {getAllDaysHours(branch.working_hours, language === 'ar').map((dayHours, index) => (
+                    <div key={index} className="flex flex-col">
+                      <span className="text-[#333333] font-medium">
+                        {dayHours.label}
+                      </span>
+                      <span className="text-[#C4A36F] font-medium leading-tight">
                         {dayHours.hours}
                       </span>
-                    ))}
-                  <span className="text-[#333333] font-medium">
-                    {language === 'ar' ? 'الجمعة' : 'Friday'}
-                  </span>
-                  {getAllDaysHours(branch.working_hours, language === 'ar')
-                    .filter(dayHours => dayHours.label.includes(language === 'ar' ? 'الجمعة' : 'Fri'))
-                    .map((dayHours, index) => (
-                      <span key={index} className="text-[#C4A36F] font-medium leading-tight">
-                        {dayHours.hours}
-                      </span>
-                    ))}
+                    </div>
+                  ))}
                 </div>
               </div>
             </Button>
