@@ -6,19 +6,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ServiceManagementHeader } from '@/components/admin/service-management/ServiceManagementHeader';
 import ServiceCategoryList from '@/components/admin/ServiceCategoryList';
 import { FileManagement } from '@/components/admin/FileManagement';
-import URLManager from '@/components/admin/URLManager';
 import QRCodeManager from '@/components/admin/QRCodeManager';
-import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { ErrorBoundary } from '@/components/common/ErrorBoundary';
-import { AdsMetrics } from '@/components/admin/ads-metrics/AdsMetrics';
-import { useLanguage } from '@/contexts/LanguageContext';
 import { useOptimizedCategories } from '@/hooks/useOptimizedCategories';
 
 const Admin = () => {
-  const { language } = useLanguage();
   const [activeTab, setActiveTab] = useState('services');
-  const [newUrl, setNewUrl] = useState('');
-  const [isUpdating, setIsUpdating] = useState(false);
   
   const {
     categories,
@@ -28,28 +21,17 @@ const Admin = () => {
     setFilterBy
   } = useOptimizedCategories();
 
-  const handleSubmitUrl = (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsUpdating(true);
-    // Simulating URL update
-    setTimeout(() => {
-      setIsUpdating(false);
-      setNewUrl('');
-    }, 1000);
-  };
-
   return (
-    <div dir={language === 'ar' ? 'rtl' : 'ltr'} className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background">
       <header className="border-b p-4 bg-white">
         <div className="container mx-auto flex justify-between items-center">
           <h1 className="text-xl font-bold">Admin Dashboard</h1>
           <div className="flex items-center gap-4">
-            <LanguageSwitcher />
             <Button
               variant="outline"
               onClick={() => window.location.href = '/customer'}
             >
-              {language === 'ar' ? 'العودة للموقع' : 'Back to Site'}
+              Back to Site
             </Button>
           </div>
         </div>
@@ -57,21 +39,15 @@ const Admin = () => {
 
       <div className="container mx-auto px-4 py-6">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-          <TabsList className="w-full sm:w-auto grid grid-cols-3 sm:inline-flex lg:grid-cols-6">
+          <TabsList className="w-full sm:w-auto grid grid-cols-3 sm:inline-flex">
             <TabsTrigger value="services">
-              {language === 'ar' ? 'الخدمات' : 'Services'}
+              Services
             </TabsTrigger>
             <TabsTrigger value="files">
-              {language === 'ar' ? 'الملفات' : 'Files'}
-            </TabsTrigger>
-            <TabsTrigger value="urls">
-              {language === 'ar' ? 'الروابط' : 'URLs'}
+              Files
             </TabsTrigger>
             <TabsTrigger value="qrcodes">
-              {language === 'ar' ? 'رموز QR' : 'QR Codes'}
-            </TabsTrigger>
-            <TabsTrigger value="analytics">
-              {language === 'ar' ? 'التحليلات' : 'Analytics'}
+              QR Codes
             </TabsTrigger>
           </TabsList>
 
@@ -91,7 +67,7 @@ const Admin = () => {
 
           <TabsContent value="files" className="space-y-4">
             <h2 className="text-2xl font-bold">
-              {language === 'ar' ? 'إدارة الملفات' : 'File Management'}
+              File Management
             </h2>
             <Separator />
             <ErrorBoundary>
@@ -99,39 +75,13 @@ const Admin = () => {
             </ErrorBoundary>
           </TabsContent>
 
-          <TabsContent value="urls" className="space-y-4">
-            <h2 className="text-2xl font-bold">
-              {language === 'ar' ? 'إدارة الروابط' : 'URL Management'}
-            </h2>
-            <Separator />
-            <ErrorBoundary>
-              <URLManager 
-                currentUrl="https://example.com"
-                newUrl={newUrl}
-                setNewUrl={setNewUrl}
-                handleSubmit={handleSubmitUrl}
-                isUpdating={isUpdating}
-              />
-            </ErrorBoundary>
-          </TabsContent>
-
           <TabsContent value="qrcodes" className="space-y-4">
             <h2 className="text-2xl font-bold">
-              {language === 'ar' ? 'إدارة رموز QR' : 'QR Code Management'}
+              QR Code Management
             </h2>
             <Separator />
             <ErrorBoundary>
               <QRCodeManager />
-            </ErrorBoundary>
-          </TabsContent>
-
-          <TabsContent value="analytics" className="space-y-4">
-            <h2 className="text-2xl font-bold">
-              {language === 'ar' ? 'تحليلات الإعلانات' : 'Ads Analytics'}
-            </h2>
-            <Separator />
-            <ErrorBoundary>
-              <AdsMetrics />
             </ErrorBoundary>
           </TabsContent>
         </Tabs>
