@@ -13,6 +13,7 @@ import { AlertTriangle } from "lucide-react";
 import { PackageBanner } from "./service-selection/PackageBanner";
 import { PackageInfoDialog } from "./service-selection/PackageInfoDialog";
 import { usePackageDiscount } from "@/hooks/usePackageDiscount";
+import { transformServicesForDisplay } from "@/utils/serviceTransformation";
 
 interface ServiceSelectionProps {
   categories: any[] | undefined;
@@ -107,6 +108,9 @@ export const ServiceSelection = ({
   const totalDuration = processedServices.reduce((total, service) => total + service.duration, 0);
   const totalPrice = processedServices.reduce((total, service) => total + service.price, 0);
 
+  // Transform the services to the format expected by ServicesSummary
+  const displayServices = transformServicesForDisplay(processedServices, language as 'en' | 'ar');
+
   if (isLoading) {
     return <ServicesSkeleton />;
   }
@@ -188,10 +192,10 @@ export const ServiceSelection = ({
       </Sheet>
 
       <ServicesSummary
-        selectedServices={processedServices}
+        selectedServices={displayServices}
         totalDuration={totalDuration}
         totalPrice={totalPrice}
-        language={language}
+        language={language as 'en' | 'ar'}
         onNextStep={() => onStepChange?.('datetime')}
         onPrevStep={() => {}} // Adding the missing onPrevStep prop
         isFirstStep={true} // Adding the missing isFirstStep prop - set to true since this is the first step
