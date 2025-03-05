@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
@@ -11,6 +10,7 @@ import { ErrorBoundary } from '@/components/common/ErrorBoundary';
 import { useOptimizedCategories } from '@/hooks/useOptimizedCategories';
 import { BookingManagement } from '@/components/admin/booking-management/BookingManagement';
 import { PackageManagement } from '@/components/admin/package-management/PackageManagement';
+import { ServiceUpsellManager } from '@/components/admin/service-management/ServiceUpsellManager';
 
 const Admin = () => {
   const [activeTab, setActiveTab] = useState('services');
@@ -58,7 +58,7 @@ const Admin = () => {
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="services" className="space-y-4">
+          <TabsContent value="services" className="space-y-6">
             <ServiceManagementHeader 
               totalCategories={categories?.length || 0}
               totalServices={totalServices}
@@ -68,6 +68,10 @@ const Admin = () => {
             <Separator />
             <ErrorBoundary>
               <ServiceCategoryList />
+            </ErrorBoundary>
+            <Separator className="my-8" />
+            <ErrorBoundary>
+              <ServiceUpsellManager />
             </ErrorBoundary>
           </TabsContent>
 
