@@ -5,6 +5,7 @@ import { SelectedService } from "@/types/service";
 import { PriceDisplay } from "@/components/ui/price-display";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { getBookingDisplayDate } from "@/utils/dateAdjustment";
 
 interface BookingSummaryProps {
   selectedServices: SelectedService[];
@@ -38,6 +39,8 @@ export const BookingSummary = ({
   const totalDuration = selectedServices.reduce((total, service) => total + (service.duration || 0), 0);
   const totalOriginalPrice = selectedServices.reduce((sum, service) => sum + (service.originalPrice || service.price), 0);
   const totalDiscount = totalOriginalPrice - totalPrice;
+
+  const displayDate = getBookingDisplayDate(selectedDate, selectedTime);
 
   const serviceItem = (service: SelectedService) => (
     <motion.div 
@@ -125,13 +128,13 @@ export const BookingSummary = ({
           </div>
         )}
         
-        {selectedDate && selectedTime && (
+        {displayDate && selectedTime && (
           <div className="pt-2 flex justify-between text-muted-foreground items-center">
             <span className="flex items-center gap-2">
               <Calendar className="w-4 h-4" />
               {language === 'ar' ? 'التاريخ والوقت' : t('date.time')}
             </span>
-            <span>{format(selectedDate, 'dd/MM/yyyy')} - {selectedTime}</span>
+            <span>{format(displayDate, 'dd/MM/yyyy')} - {selectedTime}</span>
           </div>
         )}
 

@@ -1,4 +1,3 @@
-
 import { useCallback } from "react";
 import { format, parse, isBefore, addMinutes, addDays } from "date-fns";
 import { useQueryClient } from "@tanstack/react-query";
@@ -13,6 +12,7 @@ import { fetchUnavailableSlots } from "@/services/employeeScheduleService";
 import { isSlotAvailable } from "@/utils/slotAvailability";
 import { useToast } from "@/hooks/use-toast";
 import { useRealtimeSubscription } from "./useRealtimeSubscription";
+import { isAfterMidnight } from "@/utils/timeSlotUtils";
 
 // Cache constants
 const CACHE_EXPIRY = 5 * 60 * 1000; // 5 minutes
@@ -103,7 +103,7 @@ export const useSlotGeneration = () => {
             const slotExists = availableSlots.some(slot => slot.time === timeString);
             
             if (!slotExists) {
-              console.log(`Adding available slot: ${timeString}`);
+              console.log(`Adding available slot: ${timeString} (After midnight: ${isAfterMidnight(timeString)})`);
               availableSlots.push({
                 time: timeString,
                 isAvailable: true
