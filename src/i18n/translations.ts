@@ -1,4 +1,3 @@
-
 import { Translations } from "@/types/language";
 
 export const translations: Translations = {
@@ -78,7 +77,9 @@ export const translations: Translations = {
     'installing': 'Installing...',
     'install.error': 'Installation failed. Please try again.',
     'install.success': 'App installed successfully!',
-    'install.guide.title': 'Install Application'
+    'install.guide.title': 'Install Application',
+    'midnight': 'Midnight',
+    'next.day': 'Next day',
   },
   ar: {
     'select.branch': 'اختر فرعاً',
@@ -156,6 +157,8 @@ export const translations: Translations = {
     'installing': 'جاري التثبيت...',
     'install.error': 'فشل التثبيت. الرجاء المحاولة مرة أخرى.',
     'install.success': 'تم تثبيت التطبيق بنجاح!',
-    'install.guide.title': 'تثبيت التطبيق'
+    'install.guide.title': 'تثبيت التطبيق',
+    'midnight': 'منتصف الليل',
+    'next.day': 'اليوم التالي',
   }
 };

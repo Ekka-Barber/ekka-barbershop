@@ -1,4 +1,3 @@
-
 import React, { memo, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -29,44 +28,30 @@ export const TimeSlotPicker = memo(({
 }: TimeSlotPickerProps) => {
   const { language } = useLanguage();
   
-  // Group slots by availability and time period
   const groupedSlots = useMemo(() => {
-    // Log all time slots for debugging
     console.log("Time slots before grouping:", timeSlots.map(slot => ({
       time: slot.time,
       isAvailable: slot.isAvailable,
       isAfterMidnight: isAfterMidnight(slot.time)
     })));
     
-    // Filter and group slots by time period and availability
     return {
-      // Available slots (before midnight)
       availableSlots: timeSlots.filter(slot => !isAfterMidnight(slot.time) && slot.isAvailable),
-      
-      // Unavailable slots (before midnight)
       unavailableSlots: timeSlots.filter(slot => !isAfterMidnight(slot.time) && !slot.isAvailable),
-      
-      // After-midnight available slots
       afterMidnightAvailable: timeSlots.filter(slot => isAfterMidnight(slot.time) && slot.isAvailable),
-      
-      // After-midnight unavailable slots
       afterMidnightUnavailable: timeSlots.filter(slot => isAfterMidnight(slot.time) && !slot.isAvailable)
     };
   }, [timeSlots]);
   
-  // Check if there are any available slots
   const hasAvailableSlots = useMemo(() => {
     return groupedSlots.availableSlots.length > 0 || groupedSlots.afterMidnightAvailable.length > 0;
   }, [groupedSlots]);
   
-  // Check if there are any after-midnight slots
   const hasAfterMidnightSlots = useMemo(() => {
     return groupedSlots.afterMidnightAvailable.length > 0 || groupedSlots.afterMidnightUnavailable.length > 0;
   }, [groupedSlots]);
   
-  // Determine which slots to display based on showAllSlots flag
   const displayedSlots = useMemo(() => {
-    // If showAllSlots is true, return all slots, otherwise limit to a reasonable number
     const regularAvailable = showAllSlots 
       ? groupedSlots.availableSlots 
       : groupedSlots.availableSlots.slice(0, 12);
@@ -94,7 +79,6 @@ export const TimeSlotPicker = memo(({
     };
   }, [groupedSlots, showAllSlots]);
   
-  // Show loading state when loading
   if (isLoading) {
     return (
       <div className="space-y-4">
@@ -114,7 +98,6 @@ export const TimeSlotPicker = memo(({
     );
   }
 
-  // Show message when no slots at all or no available slots
   if (timeSlots.length === 0 || !hasAvailableSlots) {
     return (
       <div className="space-y-4">
@@ -125,7 +108,6 @@ export const TimeSlotPicker = memo(({
     );
   }
 
-  // Render time slot button with appropriate styling based on availability
   const renderTimeSlotButton = (slot: TimeSlot) => {
     const isSelected = selectedTime === slot.time;
     const slotIsAfterMidnight = isAfterMidnight(slot.time);
@@ -168,7 +150,6 @@ export const TimeSlotPicker = memo(({
     );
   };
 
-  // Calculate total slots for "Show More" button logic
   const totalSlots = timeSlots.length;
   const totalDisplayedSlots = 
     displayedSlots.regularAvailable.length + 
@@ -184,7 +165,6 @@ export const TimeSlotPicker = memo(({
       <div className="w-full">
         <div className="bg-gradient-to-b from-white to-gray-50 shadow-sm border border-gray-100 rounded-lg">
           <div className="overflow-x-auto px-4 py-4 bg-white">
-            {/* Available slots section (before midnight) */}
             {displayedSlots.regularAvailable.length > 0 && (
               <>
                 <div className="flex items-center mb-3">
@@ -198,7 +178,6 @@ export const TimeSlotPicker = memo(({
               </>
             )}
             
-            {/* Unavailable slots section (before midnight) - will be visually distinct */}
             {displayedSlots.regularUnavailable.length > 0 && (
               <>
                 <div className="flex items-center my-3">
@@ -212,19 +191,17 @@ export const TimeSlotPicker = memo(({
               </>
             )}
               
-            {/* After midnight separator and available slots */}
             {hasAfterMidnightSlots && (
               <>
                 <div className="flex items-center w-full justify-center my-3">
                   <div className="h-px bg-gray-200 flex-grow mx-2"></div>
                   <Clock12 className="h-4 w-4 text-gray-500" />
                   <span className="text-xs text-gray-500 mx-2">
-                    {language === 'ar' ? 'اليوم التالي' : 'Next day'}
+                    {language === 'ar' ? 'منتصف الليل' : 'Midnight'}
                   </span>
                   <div className="h-px bg-gray-200 flex-grow mx-2"></div>
                 </div>
                 
-                {/* After-midnight available slots */}
                 {displayedSlots.afterMidnightAvailable.length > 0 && (
                   <>
                     <div className="flex items-center mb-3">
@@ -238,7 +215,6 @@ export const TimeSlotPicker = memo(({
                   </>
                 )}
                 
-                {/* After-midnight unavailable slots */}
                 {displayedSlots.afterMidnightUnavailable.length > 0 && (
                   <>
                     <div className="flex items-center my-3">
