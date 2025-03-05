@@ -63,29 +63,9 @@ export const BlockDateForm = ({ selectedDate, onBlockDate }: BlockDateFormProps)
     }
   };
 
-  const handleCalendarSelect = (date: Date | undefined) => {
-    if (!date) return;
-    
-    // For multi-select mode, toggle the selected date
-    if (showMultiSelect) {
-      setSelectedDates(prev => {
-        const dateExists = prev.some(d => 
-          d.getDate() === date.getDate() && 
-          d.getMonth() === date.getMonth() && 
-          d.getFullYear() === date.getFullYear()
-        );
-        
-        if (dateExists) {
-          return prev.filter(d => 
-            !(d.getDate() === date.getDate() && 
-              d.getMonth() === date.getMonth() && 
-              d.getFullYear() === date.getFullYear())
-          );
-        } else {
-          return [...prev, date];
-        }
-      });
-    }
+  const handleCalendarSelect = (dates: Date[] | undefined) => {
+    if (!dates) return;
+    setSelectedDates(dates);
   };
 
   if (!selectedDate && !showMultiSelect) return null;
@@ -114,7 +94,7 @@ export const BlockDateForm = ({ selectedDate, onBlockDate }: BlockDateFormProps)
           <Calendar
             mode="multiple"
             selected={selectedDates}
-            onSelect={(date) => handleCalendarSelect(date)}
+            onSelect={handleCalendarSelect}
             className="rounded-md border"
           />
           <p className="text-xs text-muted-foreground mt-2">
