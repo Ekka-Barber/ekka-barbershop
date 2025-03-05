@@ -7,6 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { TimeSlot } from "@/utils/timeSlotTypes";
 import { formatTime } from "@/utils/timeFormatting";
 import { sortTimeSlots } from "@/utils/timeSlotSorting";
+import { isAfterMidnight } from "@/utils/timeConversion";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface TimeSlotPickerProps {
@@ -33,7 +34,8 @@ export const TimeSlotPicker = memo(({
     // Log all time slots for debugging
     console.log("Raw time slots:", timeSlots.map(slot => ({
       time: slot.time,
-      isAvailable: slot.isAvailable
+      isAvailable: slot.isAvailable,
+      isAfterMidnight: isAfterMidnight(slot.time)
     })));
     
     // Sort the slots chronologically
@@ -84,6 +86,7 @@ export const TimeSlotPicker = memo(({
   // Render time slot button with appropriate styling based on availability
   const renderTimeSlotButton = (slot: TimeSlot) => {
     const isSelected = selectedTime === slot.time;
+    const isAfterMidnightSlot = isAfterMidnight(slot.time);
     
     return (
       <TooltipProvider key={slot.time}>
@@ -100,16 +103,26 @@ export const TimeSlotPicker = memo(({
                   ? "bg-[#FDF9EF] border-[#e7bd71] text-black hover:bg-[#FDF9EF]" 
                   : slot.isAvailable
                     ? "border-border bg-background hover:bg-background" 
-                    : "border-red-100 bg-red-50 text-red-400 cursor-not-allowed"
+                    : "border-red-100 bg-red-50 text-red-400 cursor-not-allowed",
+                isAfterMidnightSlot && "border-blue-100 bg-blue-50"
               )}
             >
               {formatTime(slot.time, language === 'ar')}
+              {isAfterMidnightSlot && (
+                <span className="ml-1 text-xs">
+                  {language === 'ar' ? '+1' : '+1'}
+                </span>
+              )}
             </Button>
           </TooltipTrigger>
           <TooltipContent>
             {slot.isAvailable 
-              ? language === 'ar' ? 'متاح' : 'Available' 
-              : language === 'ar' ? 'غير متاح' : 'Unavailable'}
+              ? language === 'ar' 
+                ? isAfterMidnightSlot ? 'متاح (اليوم التالي)' : 'متاح' 
+                : isAfterMidnightSlot ? 'Available (next day)' : 'Available'
+              : language === 'ar' 
+                ? isAfterMidnightSlot ? 'غير متاح (اليوم التالي)' : 'غير متاح' 
+                : isAfterMidnightSlot ? 'Unavailable (next day)' : 'Unavailable'}
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>
