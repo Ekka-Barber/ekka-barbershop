@@ -1,16 +1,19 @@
 
 import { Fragment, type ReactNode } from "react";
+import { formatWorkingHoursForDisplay } from "@/utils/workingHoursUtils";
 
 interface WorkingHoursDisplayProps {
   isArabic: boolean;
-  timeRanges: string[];
+  workingHours: any;
 }
 
-export const WorkingHoursDisplay = ({ isArabic, timeRanges }: WorkingHoursDisplayProps): ReactNode => {
+export const WorkingHoursDisplay = ({ isArabic, workingHours }: WorkingHoursDisplayProps): ReactNode => {
+  const timeRanges = formatWorkingHoursForDisplay(workingHours);
+  
   return (
     <Fragment>
       <div className="text-[#333333] font-medium">{isArabic ? 'ساعات العمل اليوم' : "Today's working Hrs"}</div>
-      <div>{timeRanges.join(isArabic ? ' , ' : ', ')}</div>
+      <div className="text-[#C4A36F]">{timeRanges.join(isArabic ? ' , ' : ', ')}</div>
     </Fragment>
   );
 };

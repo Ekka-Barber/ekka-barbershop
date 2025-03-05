@@ -52,3 +52,51 @@ export const transformWorkingHours = (rawHours: any): WorkingHours | null => {
     return null;
   }
 };
+
+// Helper function to format a working hours array for display
+export const formatWorkingHoursForDisplay = (workingHours: any): string[] => {
+  if (!workingHours) return ['N/A'];
+  
+  try {
+    const result: string[] = [];
+    
+    // Handle array format (from the branches table)
+    if (Array.isArray(workingHours)) {
+      return workingHours.map(hours => hours);
+    }
+    
+    // Handle object format with days
+    if (typeof workingHours === 'object') {
+      // Case 1: Format is { day: [time ranges] }
+      const currentDay = new Date().toLocaleLowerCase().slice(0, 3);
+      const daysMap: Record<string, string> = {
+        'mon': 'monday',
+        'tue': 'tuesday',
+        'wed': 'wednesday',
+        'thu': 'thursday',
+        'fri': 'friday',
+        'sat': 'saturday',
+        'sun': 'sunday'
+      };
+      
+      const day = daysMap[currentDay];
+      
+      if (Array.isArray(workingHours[day])) {
+        return workingHours[day];
+      }
+      
+      // Case 2: Format is { day: { start, end } }
+      if (workingHours[day] && typeof workingHours[day] === 'object') {
+        const { start, end } = workingHours[day];
+        if (start && end) {
+          return [`${start}-${end}`];
+        }
+      }
+    }
+    
+    return result.length ? result : ['N/A'];
+  } catch (error) {
+    console.error('Error formatting working hours:', error);
+    return ['N/A'];
+  }
+};

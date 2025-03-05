@@ -4,6 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useTimeFormatting } from "@/hooks/useTimeFormatting";
 import { Clock } from "lucide-react";
+import { WorkingHoursDisplay } from "@/components/working-hours/WorkingHoursDisplay";
 
 interface Branch {
   id: string;
