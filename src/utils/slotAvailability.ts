@@ -39,6 +39,7 @@ export const isSlotAvailable = (
   }
 
   // Check if the slot is bookable today (not in the past with 15 min buffer)
+  // This check should have been done earlier, but we do it again as a safety measure
   if (!isSlotBookableToday(selectedDate, slotMinutes, timeString)) {
     console.log(`❌ Slot ${timeString} is in the past or too soon to book`);
     return false;

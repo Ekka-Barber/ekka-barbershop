@@ -23,7 +23,7 @@ export const useSlotGeneration = () => {
 
   /**
    * Generates available time slots based on working hours and unavailable periods
-   * Improved to better handle cross-midnight ranges and filter past slots
+   * Improved to better handle cross-midnight ranges and completely filter past slots
    */
   const generateTimeSlots = useCallback(async (
     workingHoursRanges: string[] = [],
@@ -98,17 +98,17 @@ export const useSlotGeneration = () => {
           const timeString = format(currentSlot, 'HH:mm');
           const slotMinutes = convertTimeToMinutes(timeString);
           
-          // Skip past slots if today
+          // IMPORTANT CHANGE: Completely skip past slots
           if (isToday(selectedDate)) {
-            // Skip slots that are in the past (with 15 min buffer)
+            // Create a datetime object for this slot
             const slotDateTime = new Date(selectedDate);
             slotDateTime.setHours(Math.floor(slotMinutes / 60), slotMinutes % 60, 0, 0);
             
-            // If slot is in the past, skip it
+            // If slot is in the past or within buffer time, completely skip it
             if (isBefore(slotDateTime, bookingBuffer)) {
-              console.log(`Skipping past slot: ${timeString}`);
+              console.log(`Skipping past/too-soon slot: ${timeString}`);
               currentSlot = addMinutes(currentSlot, SLOT_INTERVAL);
-              continue;
+              continue; // Skip to next iteration - don't add this slot
             }
           }
           
