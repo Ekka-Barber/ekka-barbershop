@@ -23,8 +23,8 @@ export const PackageBanner = ({ isVisible, onInfoClick }: PackageBannerProps) =>
         <div className="flex-1">
           <p className="font-medium text-[#6f5b3e]">
             {language === 'ar' 
-              ? 'الباقات متاحة الآن! اختر خدمة القص مع اللحية وأضف خدمات إضافية بخصم'
-              : 'Packages now available! Select Haircut & Beard Trim and add services at a discount'}
+              ? 'أصنع باقتك بنفسك، أضف خدمات على باقة حلاقة الشعر والدقن.. خدمات أكثر خصم أكبر 😉'
+              : 'Packages now available! Select Haircut & Beard Trim and add services at a discount 😉'}
           </p>
         </div>
         <Button 
