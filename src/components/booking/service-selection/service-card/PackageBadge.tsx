@@ -16,7 +16,7 @@ export const PackageBadge = ({ className }: PackageBadgeProps) => {
   
   const getPackageText = () => {
     if (isMobile) {
-      return language === 'ar' ? 'باقة خاصة ✨' : 'Package ✨';
+      return language === 'ar' ? 'اصنع باقتك ✨' : 'Package ✨';
     }
     return language === 'ar' ? 'اصنع باقتك بنفسك ✨' : 'Make your own Package ✨';
   };
