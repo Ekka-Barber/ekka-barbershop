@@ -11,23 +11,33 @@ import {
 
 /**
  * Checks if a time slot is available based on date, time, and unavailable periods
- * Improved to handle cross-midnight slots properly and provide better logging
+ * Enhanced with better validation and debug logging
  */
 export const isSlotAvailable = (
   slotMinutes: number,
   unavailableSlots: UnavailableSlot[],
   selectedDate: Date,
-  serviceDuration: number = 30, // Default to 30 minutes if not specified
+  serviceDuration: number = 30,
   workingHoursRanges: string[] = []
 ): boolean => {
   // Format the time for logging
   const timeString = convertMinutesToTime(slotMinutes);
   
-  console.log(`Checking availability for slot ${timeString}`);
+  console.log(`\n======= Checking availability for ${timeString} =======`);
+  console.log(`Date: ${format(selectedDate, 'yyyy-MM-dd')}, Duration: ${serviceDuration} mins`);
+  
+  // Validate unavailable slots
+  if (!Array.isArray(unavailableSlots)) {
+    console.error("Invalid unavailableSlots format:", unavailableSlots);
+    unavailableSlots = [];
+  }
+  
+  console.log(`Working hours ranges: ${workingHoursRanges.join(', ')}`);
+  console.log(`Unavailable slots count: ${unavailableSlots.length}`);
   
   // Check if the slot is within working hours
   if (!isWithinWorkingHours(slotMinutes, workingHoursRanges)) {
-    console.log(`Slot ${timeString} is not within working hours`);
+    console.log(`❌ Slot ${timeString} is not within working hours`);
     return false;
   }
 
@@ -45,7 +55,7 @@ export const isSlotAvailable = (
     }
     
     if (isBefore(slotTime, minimumBookingTime)) {
-      console.log(`Slot ${timeString} is before minimum booking time`);
+      console.log(`❌ Slot ${timeString} is before minimum booking time`);
       return false;
     }
   }
@@ -56,7 +66,6 @@ export const isSlotAvailable = (
   const slotEndCrossesMidnight = slotEndMinutes >= 24 * 60;
   
   // Check if service duration would cross outside of working hours
-  // This is a more thorough check than just checking the start time
   if (slotEndCrossesMidnight) {
     // If end time crosses midnight, we need to check if that's allowed in working hours
     const adjustedEndMinutes = slotEndMinutes % (24 * 60);
@@ -75,24 +84,38 @@ export const isSlotAvailable = (
     }
     
     if (!isEndTimeValid) {
-      console.log(`Slot ${timeString} would end at ${slotEndTimeString} which is outside working hours`);
+      console.log(`❌ Slot ${timeString} would end at ${slotEndTimeString} which is outside working hours`);
       return false;
     }
   } else {
     // For non-midnight-crossing slots, check if end time is within working hours
     if (!isWithinWorkingHours(slotEndMinutes, workingHoursRanges)) {
-      console.log(`Slot ${timeString} would end at ${slotEndTimeString} which is outside working hours`);
+      console.log(`❌ Slot ${timeString} would end at ${slotEndTimeString} which is outside working hours`);
       return false;
     }
+  }
+  
+  // Now check unavailable slots
+  if (unavailableSlots.length > 0) {
+    console.log(`Checking ${unavailableSlots.length} unavailable slots for conflicts...`);
+    
+    // Log each unavailable slot for debugging
+    unavailableSlots.forEach((slot, index) => {
+      const start = convertMinutesToTime(slot.start_time);
+      const end = convertMinutesToTime(slot.end_time);
+      console.log(`- Unavailable slot ${index+1}: ${start} to ${end}`);
+    });
+  } else {
+    console.log("No unavailable slots registered for this day");
   }
 
   // Check if there's enough consecutive time for the service
   if (!hasEnoughConsecutiveTime(slotMinutes, serviceDuration, unavailableSlots)) {
-    console.log(`Slot ${timeString} doesn't have enough consecutive time`);
+    console.log(`❌ Slot ${timeString} doesn't have enough consecutive time due to conflicts`);
     return false;
   }
   
-  console.log(`Slot ${timeString} is available!`);
+  console.log(`✅ Slot ${timeString} is available!`);
   return true;
 };
 
