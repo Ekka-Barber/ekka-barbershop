@@ -62,7 +62,8 @@ export const useSlotGeneration = () => {
           endTime = addDays(endTime, 1);
           console.log(`Shift crosses midnight: ${start}-${end}`, { 
             startTime: format(startTime, 'HH:mm'), 
-            endTime: format(endTime, 'HH:mm') 
+            endTime: format(endTime, 'HH:mm'),
+            endMinutes: convertTimeToMinutes(end)
           });
         }
 

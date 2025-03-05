@@ -1,4 +1,3 @@
-
 import { format, parse, isToday, isBefore, addMinutes, isAfter, addDays } from "date-fns";
 
 export interface TimeSlot {
@@ -135,32 +134,31 @@ export const isWithinWorkingHours = (
   for (const range of workingHoursRanges) {
     const [start, end] = range.split('-');
     const startMinutes = convertTimeToMinutes(start);
-    const endMinutes = convertTimeToMinutes(end);
-    
-    // Convert slot minutes for easier comparison if it's an after-midnight slot
-    const isSlotAfterMidnight = slotMinutes < 12 * 60; // Less than 12:00
+    let endMinutes = convertTimeToMinutes(end);
     
     // Handle shifts that cross midnight
-    if (endMinutes < startMinutes) {
-      // For slots before midnight (e.g., 22:00-23:30 in a 22:00-02:00 shift)
+    if (doesCrossMidnight(start, end)) {
+      // For slots before midnight (e.g., 20:00-23:59 in a 20:00-02:00 shift)
       if (slotMinutes >= startMinutes && slotMinutes < 24 * 60) {
-        console.log(`Slot ${slotMinutes} is within working hours (before midnight): ${range}`);
+        console.log(`Slot ${slotMinutes} (${Math.floor(slotMinutes/60)}:${slotMinutes%60}) is within working hours (before midnight): ${range}`);
         return true;
       }
-      // For slots after midnight up to but not including end time (e.g., 00:00-01:30 in a 22:00-02:00 shift)
-      if (isSlotAfterMidnight && slotMinutes < endMinutes) {
-        console.log(`Slot ${slotMinutes} is within working hours (after midnight): ${range}`);
+      
+      // For slots after midnight (00:00-02:00 in a 20:00-02:00 shift)
+      // We check if the slot is between 0 and the end time
+      if (isAfterMidnight(format(new Date().setHours(Math.floor(slotMinutes/60), slotMinutes%60), 'HH:mm')) && slotMinutes < endMinutes) {
+        console.log(`Slot ${slotMinutes} (${Math.floor(slotMinutes/60)}:${slotMinutes%60}) is within working hours (after midnight): ${range}`);
         return true;
       }
     } else {
-      // For regular shifts - slot is available if it's between start and end (but not at end time)
+      // For regular shifts - slot is available if it's between start and end (inclusive of start, exclusive of end)
       if (slotMinutes >= startMinutes && slotMinutes < endMinutes) {
-        console.log(`Slot ${slotMinutes} is within working hours (regular shift): ${range}`);
+        console.log(`Slot ${slotMinutes} (${Math.floor(slotMinutes/60)}:${slotMinutes%60}) is within working hours (regular shift): ${range}`);
         return true;
       }
     }
   }
   
-  console.log(`Slot ${slotMinutes} is NOT within any working hours range`);
+  console.log(`Slot ${slotMinutes} (${Math.floor(slotMinutes/60)}:${slotMinutes%60}) is NOT within any working hours range`);
   return false;
 };
