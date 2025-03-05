@@ -33,6 +33,36 @@ export type Database = {
         }
         Relationships: []
       }
+      blocked_dates: {
+        Row: {
+          created_at: string | null
+          date: string
+          id: string
+          is_recurring: boolean | null
+          reason: string | null
+          recurrence_pattern: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          date: string
+          id?: string
+          is_recurring?: boolean | null
+          reason?: string | null
+          recurrence_pattern?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          date?: string
+          id?: string
+          is_recurring?: boolean | null
+          reason?: string | null
+          recurrence_pattern?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       booking_settings: {
         Row: {
           created_at: string | null

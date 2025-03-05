@@ -9,6 +9,7 @@ import { FileManagement } from '@/components/admin/FileManagement';
 import QRCodeManager from '@/components/admin/QRCodeManager';
 import { ErrorBoundary } from '@/components/common/ErrorBoundary';
 import { useOptimizedCategories } from '@/hooks/useOptimizedCategories';
+import { BookingManagement } from '@/components/admin/booking-management/BookingManagement';
 
 const Admin = () => {
   const [activeTab, setActiveTab] = useState('services');
@@ -38,9 +39,12 @@ const Admin = () => {
 
       <div className="container mx-auto px-4 py-6">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-          <TabsList className="w-full sm:w-auto grid grid-cols-3 sm:inline-flex">
+          <TabsList className="w-full sm:w-auto grid grid-cols-4 sm:inline-flex">
             <TabsTrigger value="services">
               Services
+            </TabsTrigger>
+            <TabsTrigger value="bookings">
+              Bookings
             </TabsTrigger>
             <TabsTrigger value="files">
               Files
@@ -60,6 +64,12 @@ const Admin = () => {
             <Separator />
             <ErrorBoundary>
               <ServiceCategoryList />
+            </ErrorBoundary>
+          </TabsContent>
+
+          <TabsContent value="bookings" className="space-y-4">
+            <ErrorBoundary>
+              <BookingManagement />
             </ErrorBoundary>
           </TabsContent>
 

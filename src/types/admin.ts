@@ -1,3 +1,4 @@
+
 export interface FileMetadata {
   id: string;
   file_name: string;
@@ -45,4 +46,21 @@ export interface FilePreview {
   url: string;
   type: 'menu' | 'offers';
   fileType: 'image' | 'pdf';
+}
+
+export interface BlockedDate {
+  id: string;
+  date: string;
+  reason: string | null;
+  is_recurring: boolean;
+  recurrence_pattern: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface BlockedDateInput {
+  date: Date;
+  reason?: string;
+  is_recurring: boolean;
+  recurrence_pattern?: string;
 }
