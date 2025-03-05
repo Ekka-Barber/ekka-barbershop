@@ -28,7 +28,10 @@ export const TimeSlotPicker = memo(({
   const { language } = useLanguage();
   
   // Log available time slots for debugging
-  console.log("Available time slots:", timeSlots.map(slot => slot.time));
+  console.log("Available time slots:", timeSlots.map(slot => ({
+    time: slot.time, 
+    isAfterMidnight: isAfterMidnight(slot.time)
+  })));
   
   // Check if there are any after-midnight slots
   const hasAfterMidnightSlots = useMemo(() => {
@@ -41,9 +44,14 @@ export const TimeSlotPicker = memo(({
   const displayedTimeSlots = showAllSlots ? timeSlots : timeSlots.slice(0, 6);
   
   // Determine if we need a separator between days
-  const needsSeparator = (currentTime: string, prevTime: string) => {
+  const needsSeparator = (currentIndex: number, slots: TimeSlot[]) => {
+    if (currentIndex === 0) return false;
+    
+    const currentTime = slots[currentIndex].time;
+    const prevTime = slots[currentIndex - 1].time;
+    
     // If this is an after-midnight slot and the previous one wasn't
-    return isAfterMidnight(currentTime) && prevTime && !isAfterMidnight(prevTime);
+    return isAfterMidnight(currentTime) && !isAfterMidnight(prevTime);
   };
 
   // Show loading state when loading
@@ -87,10 +95,10 @@ export const TimeSlotPicker = memo(({
           <div className="overflow-x-auto scrollbar-hide px-4 py-4 bg-white">
             <div className="flex flex-wrap gap-3">
               {displayedTimeSlots.map((slot, index) => {
-                const prevTime = index > 0 ? displayedTimeSlots[index - 1].time : '';
-                const showSeparator = needsSeparator(slot.time, prevTime);
+                const showSeparator = needsSeparator(index, displayedTimeSlots);
+                const isAfterMid = isAfterMidnight(slot.time);
                 
-                console.log(`Slot ${slot.time} - isAfterMidnight: ${isAfterMidnight(slot.time)}, showSeparator: ${showSeparator}`);
+                console.log(`Rendering slot ${slot.time} - isAfterMidnight: ${isAfterMid}, showSeparator: ${showSeparator}`);
                 
                 return (
                   <React.Fragment key={slot.time}>
@@ -111,10 +119,16 @@ export const TimeSlotPicker = memo(({
                         "flex-shrink-0 transition-all duration-150 hover:bg-transparent",
                         selectedTime === slot.time 
                           ? "bg-[#FDF9EF] border-[#e7bd71] text-black hover:bg-[#FDF9EF]" 
-                          : "border-border bg-background hover:bg-background"
+                          : "border-border bg-background hover:bg-background",
+                        isAfterMid && "bg-gray-50"
                       )}
                     >
                       {formatTime(slot.time, language === 'ar')}
+                      {isAfterMid && (
+                        <span className="ml-1 text-xs text-gray-500">
+                          {language === 'ar' ? 'ص' : 'AM'}
+                        </span>
+                      )}
                     </Button>
                   </React.Fragment>
                 );

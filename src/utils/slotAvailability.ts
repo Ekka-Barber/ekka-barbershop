@@ -1,6 +1,6 @@
 
 import { isToday, isBefore, addMinutes, format } from "date-fns";
-import { UnavailableSlot, hasEnoughConsecutiveTime, isWithinWorkingHours } from "./timeSlotUtils";
+import { UnavailableSlot, hasEnoughConsecutiveTime, isWithinWorkingHours, isAfterMidnight } from "./timeSlotUtils";
 
 /**
  * Checks if a time slot is available based on date, time, and unavailable periods
@@ -12,8 +12,16 @@ export const isSlotAvailable = (
   serviceDuration: number = 30, // Default to 30 minutes if not specified
   workingHoursRanges: string[] = []
 ): boolean => {
+  // Format the time for logging
+  const slotHours = Math.floor(slotMinutes / 60);
+  const slotMins = slotMinutes % 60;
+  const timeString = `${slotHours.toString().padStart(2, '0')}:${slotMins.toString().padStart(2, '0')}`;
+  
+  console.log(`Checking availability for slot ${timeString}`);
+  
   // Check if the slot is within working hours
   if (!isWithinWorkingHours(slotMinutes, workingHoursRanges)) {
+    console.log(`Slot ${timeString} is not within working hours`);
     return false;
   }
 
@@ -25,15 +33,18 @@ export const isSlotAvailable = (
     slotTime.setHours(Math.floor(slotMinutes / 60), slotMinutes % 60, 0, 0);
     
     if (isBefore(slotTime, minimumBookingTime)) {
+      console.log(`Slot ${timeString} is before minimum booking time`);
       return false;
     }
   }
 
   // Check if there's enough consecutive time for the service
   if (!hasEnoughConsecutiveTime(slotMinutes, serviceDuration, unavailableSlots)) {
+    console.log(`Slot ${timeString} doesn't have enough consecutive time`);
     return false;
   }
   
+  console.log(`Slot ${timeString} is available!`);
   return true;
 };
 
