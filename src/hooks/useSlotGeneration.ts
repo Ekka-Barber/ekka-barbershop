@@ -1,3 +1,4 @@
+
 import { useCallback } from "react";
 import { format, parse, isBefore, addMinutes, addDays } from "date-fns";
 import { useQueryClient } from "@tanstack/react-query";
@@ -30,11 +31,11 @@ export const useSlotGeneration = () => {
     employeeId?: string,
     serviceDuration: number = 30
   ): Promise<TimeSlot[]> => {
-    const availableSlots: TimeSlot[] = [];
+    const allSlots: TimeSlot[] = []; // All potential slots, even unavailable ones
     
     if (!selectedDate || !employeeId || !workingHoursRanges.length) {
       console.log("Missing required parameters for time slot generation");
-      return availableSlots;
+      return allSlots;
     }
 
     const formattedDate = format(selectedDate, 'yyyy-MM-dd');
@@ -94,18 +95,16 @@ export const useSlotGeneration = () => {
             workingHoursRanges
           );
           
-          // Only add available slots
-          if (available) {
-            // Check if this slot already exists to avoid duplicates
-            const slotExists = availableSlots.some(slot => slot.time === timeString);
-            
-            if (!slotExists) {
-              console.log(`Adding available slot: ${timeString} (After midnight: ${isAfterMidnight(timeString)})`);
-              availableSlots.push({
-                time: timeString,
-                isAvailable: true
-              });
-            }
+          // Check if this slot already exists to avoid duplicates
+          const slotExists = allSlots.some(slot => slot.time === timeString);
+          
+          if (!slotExists) {
+            // Add the slot regardless of availability - we'll filter by availability in the UI
+            console.log(`Adding slot: ${timeString} (Available: ${available}, After midnight: ${isAfterMidnight(timeString)})`);
+            allSlots.push({
+              time: timeString,
+              isAvailable: available
+            });
           }
           
           currentSlot = addMinutes(currentSlot, SLOT_INTERVAL);
@@ -113,13 +112,13 @@ export const useSlotGeneration = () => {
       }
 
       // Log all slots before sorting
-      console.log('Generated slots before sorting:', availableSlots.map(s => s.time));
+      console.log('Generated slots before sorting:', allSlots.map(s => `${s.time} (${s.isAvailable ? 'Available' : 'Unavailable'})`));
       
       // Make sure to sort slots properly with after-midnight slots appearing after regular slots
-      const sortedSlots = sortTimeSlots(availableSlots);
+      const sortedSlots = sortTimeSlots(allSlots);
       
       // Log all slots after sorting
-      console.log('Generated slots after sorting:', sortedSlots.map(s => s.time));
+      console.log('Generated slots after sorting:', sortedSlots.map(s => `${s.time} (${s.isAvailable ? 'Available' : 'Unavailable'})`));
 
       return sortedSlots;
     } catch (error) {

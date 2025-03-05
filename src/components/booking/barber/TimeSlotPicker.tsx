@@ -1,3 +1,4 @@
+
 import React, { memo, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -7,6 +8,7 @@ import { Clock12 } from "lucide-react";
 import { formatTime } from "@/utils/timeFormatting";
 import { TimeSlot } from "@/utils/timeSlotTypes";
 import { isAfterMidnight } from "@/utils/timeConversion";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface TimeSlotPickerProps {
   timeSlots: TimeSlot[];
@@ -30,6 +32,7 @@ export const TimeSlotPicker = memo(({
   // Log available time slots for debugging
   console.log("Available time slots:", timeSlots.map(slot => ({
     time: slot.time, 
+    isAvailable: slot.isAvailable,
     isAfterMidnight: isAfterMidnight(slot.time)
   })));
   
@@ -48,7 +51,7 @@ export const TimeSlotPicker = memo(({
     };
   }, [timeSlots]);
   
-  // All slots are available, so we just need to decide how many to show
+  // Show all slots or just first 6
   const displayedTimeSlots = showAllSlots ? timeSlots : timeSlots.slice(0, 6);
   
   // Show loading state when loading
@@ -82,6 +85,51 @@ export const TimeSlotPicker = memo(({
     );
   }
 
+  // Render time slot button with appropriate styling based on availability
+  const renderTimeSlotButton = (slot: TimeSlot) => {
+    // Determine button styling based on availability and selection state
+    const isSelected = selectedTime === slot.time;
+    
+    if (!slot.isAvailable) {
+      // Unavailable slot styling - disabled and gray
+      return (
+        <TooltipProvider key={slot.time}>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="outline"
+                disabled
+                className="flex-shrink-0 transition-all duration-150 opacity-60 bg-gray-100 text-gray-400 cursor-not-allowed"
+              >
+                {formatTime(slot.time, language === 'ar')}
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>{language === 'ar' ? 'هذا الوقت غير متاح' : 'This time is unavailable'}</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      );
+    }
+    
+    // Available slot styling
+    return (
+      <Button
+        key={slot.time}
+        variant="outline"
+        onClick={() => onTimeSelect(slot.time)}
+        className={cn(
+          "flex-shrink-0 transition-all duration-150 hover:bg-transparent",
+          isSelected 
+            ? "bg-[#FDF9EF] border-[#e7bd71] text-black hover:bg-[#FDF9EF]" 
+            : "border-border bg-background hover:bg-background"
+        )}
+      >
+        {formatTime(slot.time, language === 'ar')}
+      </Button>
+    );
+  };
+
   // Render time slots with better separation for after-midnight slots
   return (
     <div className="space-y-4">
@@ -96,21 +144,7 @@ export const TimeSlotPicker = memo(({
               <div className="flex flex-wrap gap-3 mb-3">
                 {displayedTimeSlots
                   .filter(slot => !isAfterMidnight(slot.time))
-                  .map(slot => (
-                    <Button
-                      key={slot.time}
-                      variant="outline"
-                      onClick={() => onTimeSelect(slot.time)}
-                      className={cn(
-                        "flex-shrink-0 transition-all duration-150 hover:bg-transparent",
-                        selectedTime === slot.time 
-                          ? "bg-[#FDF9EF] border-[#e7bd71] text-black hover:bg-[#FDF9EF]" 
-                          : "border-border bg-background hover:bg-background"
-                      )}
-                    >
-                      {formatTime(slot.time, language === 'ar')}
-                    </Button>
-                  ))}
+                  .map(slot => renderTimeSlotButton(slot))}
               </div>
             )}
               
@@ -129,24 +163,7 @@ export const TimeSlotPicker = memo(({
                 <div className="flex flex-wrap gap-3">
                   {displayedTimeSlots
                     .filter(slot => isAfterMidnight(slot.time))
-                    .map(slot => (
-                      <Button
-                        key={slot.time}
-                        variant="outline"
-                        onClick={() => onTimeSelect(slot.time)}
-                        className={cn(
-                          "flex-shrink-0 transition-all duration-150 hover:bg-transparent",
-                          selectedTime === slot.time 
-                            ? "bg-[#FDF9EF] border-[#e7bd71] text-black hover:bg-[#FDF9EF]" 
-                            : "border-border bg-gray-50 hover:bg-background"
-                        )}
-                      >
-                        {formatTime(slot.time, language === 'ar')}
-                        <span className="ml-1 text-xs text-gray-500">
-                          {language === 'ar' ? 'ص' : 'AM'}
-                        </span>
-                      </Button>
-                    ))}
+                    .map(slot => renderTimeSlotButton(slot))}
                 </div>
               </>
             )}

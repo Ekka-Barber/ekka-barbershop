@@ -2,7 +2,7 @@
 import { isToday, isBefore, addMinutes, format } from "date-fns";
 import { hasEnoughConsecutiveTime } from "./consecutiveTimeChecker";
 import { convertTimeToMinutes, convertMinutesToTime, isAfterMidnight } from "./timeConversion";
-import { UnavailableSlot } from "./timeSlotTypes";
+import { UnavailableSlot, TimeSlot } from "./timeSlotTypes";
 import { isWithinWorkingHours } from "./workingHoursChecker";
 
 /**

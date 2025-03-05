@@ -74,7 +74,7 @@ export const BarberSelection = ({
           setEmployeeTimeSlots(slots);
           
           // Clear selected time if it's no longer available
-          if (selectedTime && !slots.some(slot => slot.time === selectedTime)) {
+          if (selectedTime && !slots.some(slot => slot.time === selectedTime && slot.isAvailable)) {
             onTimeSelect('');
             toast({
               title: language === 'ar' ? 'الوقت لم يعد متاحًا' : 'Time no longer available',
