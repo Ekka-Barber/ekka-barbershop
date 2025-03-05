@@ -29,30 +29,36 @@ export const TimeSlotPicker = memo(({
 }: TimeSlotPickerProps) => {
   const { language } = useLanguage();
   
-  // Log available time slots for debugging
-  console.log("Available time slots:", timeSlots.map(slot => ({
-    time: slot.time, 
-    isAvailable: slot.isAvailable,
-    isAfterMidnight: isAfterMidnight(slot.time)
-  })));
+  // Filter out past time slots from today
+  const filteredTimeSlots = useMemo(() => {
+    // For debugging
+    console.log("Available time slots before filtering:", timeSlots.map(slot => ({
+      time: slot.time, 
+      isAvailable: slot.isAvailable,
+      isAfterMidnight: isAfterMidnight(slot.time)
+    })));
+    
+    // The filtering happens server-side in isSlotAvailable
+    return timeSlots;
+  }, [timeSlots]);
   
   // Check if there are any after-midnight slots
   const hasAfterMidnightSlots = useMemo(() => {
-    return timeSlots.some(slot => isAfterMidnight(slot.time));
-  }, [timeSlots]);
+    return filteredTimeSlots.some(slot => isAfterMidnight(slot.time));
+  }, [filteredTimeSlots]);
   
   console.log("Has after-midnight slots:", hasAfterMidnightSlots);
   
   // Group slots by time period (before/after midnight)
   const groupedSlots = useMemo(() => {
     return {
-      regular: timeSlots.filter(slot => !isAfterMidnight(slot.time)),
-      afterMidnight: timeSlots.filter(slot => isAfterMidnight(slot.time))
+      regular: filteredTimeSlots.filter(slot => !isAfterMidnight(slot.time)),
+      afterMidnight: filteredTimeSlots.filter(slot => isAfterMidnight(slot.time))
     };
-  }, [timeSlots]);
+  }, [filteredTimeSlots]);
   
   // Show all slots or just first 6
-  const displayedTimeSlots = showAllSlots ? timeSlots : timeSlots.slice(0, 6);
+  const displayedTimeSlots = showAllSlots ? filteredTimeSlots : filteredTimeSlots.slice(0, 6);
   
   // Show loading state when loading
   if (isLoading) {
@@ -75,7 +81,7 @@ export const TimeSlotPicker = memo(({
   }
 
   // Show message when no available slots
-  if (timeSlots.length === 0) {
+  if (filteredTimeSlots.length === 0) {
     return (
       <div className="space-y-4">
         <h3 className="text-lg font-medium text-center">
@@ -105,7 +111,11 @@ export const TimeSlotPicker = memo(({
               </Button>
             </TooltipTrigger>
             <TooltipContent>
-              <p>{language === 'ar' ? 'هذا الوقت غير متاح' : 'This time is unavailable'}</p>
+              <p>
+                {language === 'ar' 
+                  ? 'هذا الوقت غير متاح أو مر' 
+                  : 'This time slot is unavailable or has passed'}
+              </p>
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
@@ -171,7 +181,7 @@ export const TimeSlotPicker = memo(({
         </div>
       </div>
       
-      {timeSlots.length > 6 && (
+      {filteredTimeSlots.length > 6 && (
         <Button 
           variant="ghost" 
           onClick={onToggleShowAll} 

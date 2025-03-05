@@ -1,6 +1,6 @@
 
 import { useCallback } from "react";
-import { format, parse, isBefore, addMinutes, addDays } from "date-fns";
+import { format, parse, isBefore, addMinutes, addDays, isToday } from "date-fns";
 import { useQueryClient } from "@tanstack/react-query";
 import { 
   TimeSlot,
@@ -57,6 +57,10 @@ export const useSlotGeneration = () => {
       
       // Set up realtime subscription for this employee and date
       setupRealtimeSubscription(employeeId, selectedDate);
+      
+      // Current time for checking if slots are in the past
+      const now = new Date();
+      const isSelectedDateToday = isToday(selectedDate);
       
       // Generate slots for each working hours range
       for (const range of workingHoursRanges) {

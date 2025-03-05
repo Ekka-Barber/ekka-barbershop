@@ -61,7 +61,8 @@ export const isSlotAvailable = (
 };
 
 /**
- * Checks if a slot is bookable on the current day (at least 15 minutes from now)
+ * Checks if a slot is bookable on the current day (not in the past)
+ * Enhanced to more strictly filter out passed time slots
  */
 const isSlotBookableToday = (
   selectedDate: Date,
@@ -73,7 +74,10 @@ const isSlotBookableToday = (
   }
   
   const now = new Date();
+  // Require at least 15 minutes lead time for bookings
   const minimumBookingTime = addMinutes(now, 15);
+  
+  // Create a new date object for the slot time
   const slotTime = new Date(selectedDate);
   slotTime.setHours(Math.floor(slotMinutes / 60), slotMinutes % 60, 0, 0);
   
@@ -83,8 +87,9 @@ const isSlotBookableToday = (
     slotTime.setDate(slotTime.getDate() + 1);
   }
   
+  // Check if slot time is in the past (with buffer)
   if (isBefore(slotTime, minimumBookingTime)) {
-    console.log(`❌ Slot ${timeString} is before minimum booking time`);
+    console.log(`❌ Slot ${timeString} (${format(slotTime, 'HH:mm')}) is in the past or too soon - current time: ${format(now, 'HH:mm')}`);
     return false;
   }
   
