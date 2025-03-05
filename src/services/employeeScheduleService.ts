@@ -2,9 +2,11 @@
 import { supabase } from "@/integrations/supabase/client";
 import { UnavailableSlot, normalizeUnavailableSlots } from "@/utils/timeSlotTypes";
 import { convertTimeToMinutes, convertMinutesToTime } from "@/utils/timeConversion";
+import { addDays, format } from "date-fns";
 
 /**
  * Fetch unavailable slots from Supabase with improved error handling and validation
+ * Enhanced to fetch slots for both current day and next day to handle midnight-crossing slots
  */
 export const fetchUnavailableSlots = async ({
   employeeId,
@@ -16,22 +18,46 @@ export const fetchUnavailableSlots = async ({
   try {
     console.log(`Fetching unavailable slots for employee ${employeeId} on ${formattedDate}`);
     
-    const { data: unavailableSlots, error } = await supabase
+    // Calculate next day for handling slots that cross midnight
+    const currentDate = new Date(formattedDate);
+    const nextDate = addDays(currentDate, 1);
+    const nextFormattedDate = format(nextDate, 'yyyy-MM-dd');
+    
+    console.log(`Also fetching slots for next day: ${nextFormattedDate} to handle midnight-crossing`);
+    
+    // Fetch unavailable slots for both current day and next day
+    const { data: currentDaySlots, error: currentDayError } = await supabase
       .from('employee_schedules')
       .select('start_time, end_time')
       .eq('employee_id', employeeId)
       .eq('date', formattedDate)
       .eq('is_available', false);
 
-    if (error) {
-      console.error('Error fetching unavailable slots:', error);
-      throw new Error(`Failed to fetch unavailable slots: ${error.message}`);
+    if (currentDayError) {
+      console.error('Error fetching current day unavailable slots:', currentDayError);
+      throw new Error(`Failed to fetch current day unavailable slots: ${currentDayError.message}`);
+    }
+    
+    // Fetch next day's unavailable slots
+    const { data: nextDaySlots, error: nextDayError } = await supabase
+      .from('employee_schedules')
+      .select('start_time, end_time')
+      .eq('employee_id', employeeId)
+      .eq('date', nextFormattedDate)
+      .eq('is_available', false);
+
+    if (nextDayError) {
+      console.error('Error fetching next day unavailable slots:', nextDayError);
+      throw new Error(`Failed to fetch next day unavailable slots: ${nextDayError.message}`);
     }
 
-    console.log(`Raw unavailable slots:`, unavailableSlots);
+    // Combine both days' slots
+    const allUnavailableSlots = [...(currentDaySlots || []), ...(nextDaySlots || [])];
+    
+    console.log(`Raw unavailable slots:`, allUnavailableSlots);
     
     // Enhanced normalization with validation
-    const normalized = normalizeUnavailableSlots(unavailableSlots || []);
+    const normalized = normalizeUnavailableSlots(allUnavailableSlots);
     
     // Log the normalized slots for debugging
     console.log('Normalized unavailable slots:');

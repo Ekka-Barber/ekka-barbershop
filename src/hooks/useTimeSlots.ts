@@ -1,5 +1,5 @@
 
-import { format } from "date-fns";
+import { format, addDays } from "date-fns";
 import { useCallback } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { TimeSlot } from "@/utils/timeSlotUtils";
@@ -19,15 +19,31 @@ export const useTimeSlots = () => {
 
   /**
    * Clears the cache for a specific employee-date combination
+   * Enhanced to also invalidate next day for after-midnight slots
    */
   const invalidateCache = useCallback((employeeId: string, date: Date) => {
     const formattedDate = format(date, 'yyyy-MM-dd');
+    
+    // Invalidate current day
     queryClient.invalidateQueries({
       queryKey: ['unavailableSlots', employeeId, formattedDate]
     });
     queryClient.invalidateQueries({
       queryKey: ['timeSlots', employeeId, formattedDate]
     });
+    
+    // Also invalidate next day for after-midnight slots
+    const nextDay = addDays(date, 1);
+    const nextDayFormatted = format(nextDay, 'yyyy-MM-dd');
+    
+    queryClient.invalidateQueries({
+      queryKey: ['unavailableSlots', employeeId, nextDayFormatted]
+    });
+    queryClient.invalidateQueries({
+      queryKey: ['timeSlots', employeeId, nextDayFormatted]
+    });
+    
+    console.log(`Invalidated cache for ${employeeId} on ${formattedDate} and ${nextDayFormatted}`);
   }, [queryClient]);
 
   /**

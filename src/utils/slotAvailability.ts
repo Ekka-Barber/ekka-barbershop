@@ -18,9 +18,10 @@ export const isSlotAvailable = (
 ): boolean => {
   // Format the time for logging
   const timeString = convertMinutesToTime(slotMinutes);
+  const isSlotAfterMidnight = isAfterMidnight(timeString);
   
   console.log(`\n======= Checking availability for ${timeString} =======`);
-  console.log(`Date: ${format(selectedDate, 'yyyy-MM-dd')}, Duration: ${serviceDuration} mins`);
+  console.log(`Date: ${format(selectedDate, 'yyyy-MM-dd')}, After midnight: ${isSlotAfterMidnight}, Duration: ${serviceDuration} mins`);
   
   // Validate unavailable slots
   if (!Array.isArray(unavailableSlots)) {
@@ -86,6 +87,7 @@ const isSlotBookableToday = (
   if (isAfterMidnight(timeString)) {
     // Add 1 day to the slot time for after-midnight slots
     slotTime.setDate(slotTime.getDate() + 1);
+    console.log(`Adjusted slot time for after-midnight: ${format(slotTime, 'yyyy-MM-dd HH:mm')}`);
   }
   
   // Check if slot time is in the past (with buffer)

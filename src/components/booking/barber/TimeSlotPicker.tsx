@@ -29,26 +29,60 @@ export const TimeSlotPicker = memo(({
 }: TimeSlotPickerProps) => {
   const { language } = useLanguage();
   
-  // Only show available time slots (past slots will already be filtered out in BarberSelection.tsx)
-  const availableTimeSlots = useMemo(() => {
-    return timeSlots.filter(slot => slot.isAvailable);
+  // Log all time slots for debugging
+  console.log("All time slots received:", timeSlots.map(slot => ({
+    time: slot.time,
+    isAvailable: slot.isAvailable,
+    isAfterMidnight: isAfterMidnight(slot.time)
+  })));
+  
+  // Group slots by time period (before/after midnight) and availability
+  const groupedSlots = useMemo(() => {
+    const groups = {
+      // Regular slots (before midnight)
+      regularAvailable: timeSlots.filter(slot => !isAfterMidnight(slot.time) && slot.isAvailable),
+      regularUnavailable: timeSlots.filter(slot => !isAfterMidnight(slot.time) && !slot.isAvailable),
+      
+      // After-midnight slots
+      afterMidnightAvailable: timeSlots.filter(slot => isAfterMidnight(slot.time) && slot.isAvailable),
+      afterMidnightUnavailable: timeSlots.filter(slot => isAfterMidnight(slot.time) && !slot.isAvailable)
+    };
+    
+    console.log("Grouped slots:", {
+      regularAvailable: groups.regularAvailable.length,
+      regularUnavailable: groups.regularUnavailable.length,
+      afterMidnightAvailable: groups.afterMidnightAvailable.length,
+      afterMidnightUnavailable: groups.afterMidnightUnavailable.length
+    });
+    
+    return groups;
   }, [timeSlots]);
+  
+  // Check if there are any available slots
+  const hasAvailableSlots = useMemo(() => {
+    return groupedSlots.regularAvailable.length > 0 || groupedSlots.afterMidnightAvailable.length > 0;
+  }, [groupedSlots]);
   
   // Check if there are any after-midnight slots
   const hasAfterMidnightSlots = useMemo(() => {
-    return availableTimeSlots.some(slot => isAfterMidnight(slot.time));
-  }, [availableTimeSlots]);
+    return groupedSlots.afterMidnightAvailable.length > 0 || groupedSlots.afterMidnightUnavailable.length > 0;
+  }, [groupedSlots]);
   
-  // Group slots by time period (before/after midnight)
-  const groupedSlots = useMemo(() => {
+  // Determine which slots to display based on showAllSlots flag
+  const displayedSlots = useMemo(() => {
+    // Combine available and unavailable slots, but prioritize available ones
+    const allRegularSlots = [...groupedSlots.regularAvailable, ...groupedSlots.regularUnavailable];
+    const allAfterMidnightSlots = [...groupedSlots.afterMidnightAvailable, ...groupedSlots.afterMidnightUnavailable];
+    
+    // If showAllSlots is true, return all slots, otherwise limit to first 6
+    const regulars = showAllSlots ? allRegularSlots : allRegularSlots.slice(0, 6);
+    const afterMidnights = showAllSlots ? allAfterMidnightSlots : allAfterMidnightSlots.slice(0, 6);
+    
     return {
-      regular: availableTimeSlots.filter(slot => !isAfterMidnight(slot.time)),
-      afterMidnight: availableTimeSlots.filter(slot => isAfterMidnight(slot.time))
+      regular: regulars,
+      afterMidnight: afterMidnights
     };
-  }, [availableTimeSlots]);
-  
-  // Show all slots or just first 6
-  const displayedTimeSlots = showAllSlots ? availableTimeSlots : availableTimeSlots.slice(0, 6);
+  }, [groupedSlots, showAllSlots]);
   
   // Show loading state when loading
   if (isLoading) {
@@ -70,8 +104,8 @@ export const TimeSlotPicker = memo(({
     );
   }
 
-  // Show message when no available slots
-  if (availableTimeSlots.length === 0) {
+  // Show message when no slots at all or no available slots
+  if (timeSlots.length === 0 || !hasAvailableSlots) {
     return (
       <div className="space-y-4">
         <h3 className="text-lg font-medium text-center">
@@ -81,26 +115,43 @@ export const TimeSlotPicker = memo(({
     );
   }
 
-  // Render time slot button
+  // Render time slot button with appropriate styling based on availability
   const renderTimeSlotButton = (slot: TimeSlot) => {
     const isSelected = selectedTime === slot.time;
     
     return (
-      <Button
-        key={slot.time}
-        variant="outline"
-        onClick={() => onTimeSelect(slot.time)}
-        className={cn(
-          "flex-shrink-0 transition-all duration-150 hover:bg-transparent",
-          isSelected 
-            ? "bg-[#FDF9EF] border-[#e7bd71] text-black hover:bg-[#FDF9EF]" 
-            : "border-border bg-background hover:bg-background"
-        )}
-      >
-        {formatTime(slot.time, language === 'ar')}
-      </Button>
+      <TooltipProvider key={slot.time}>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              key={slot.time}
+              variant="outline"
+              onClick={() => slot.isAvailable && onTimeSelect(slot.time)}
+              disabled={!slot.isAvailable}
+              className={cn(
+                "flex-shrink-0 transition-all duration-150",
+                isSelected 
+                  ? "bg-[#FDF9EF] border-[#e7bd71] text-black hover:bg-[#FDF9EF]" 
+                  : slot.isAvailable
+                    ? "border-border bg-background hover:bg-background" 
+                    : "border-rose-200 bg-rose-50 text-gray-400 cursor-not-allowed"
+              )}
+            >
+              {formatTime(slot.time, language === 'ar')}
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            {slot.isAvailable 
+              ? language === 'ar' ? 'متاح' : 'Available' 
+              : language === 'ar' ? 'غير متاح' : 'Unavailable'}
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
     );
   };
+
+  // Calculate total slots for "Show More" button logic
+  const totalSlots = timeSlots.length;
 
   // Render time slots with better separation for after-midnight slots
   return (
@@ -112,16 +163,14 @@ export const TimeSlotPicker = memo(({
         <div className="bg-gradient-to-b from-white to-gray-50 shadow-sm border border-gray-100 rounded-lg">
           <div className="overflow-x-auto scrollbar-hide px-4 py-4 bg-white">
             {/* Regular time slots (before midnight) */}
-            {groupedSlots.regular.length > 0 && (
+            {displayedSlots.regular.length > 0 && (
               <div className="flex flex-wrap gap-3 mb-3">
-                {displayedTimeSlots
-                  .filter(slot => !isAfterMidnight(slot.time))
-                  .map(slot => renderTimeSlotButton(slot))}
+                {displayedSlots.regular.map(slot => renderTimeSlotButton(slot))}
               </div>
             )}
               
             {/* After midnight separator and slots */}
-            {hasAfterMidnightSlots && groupedSlots.afterMidnight.length > 0 && (
+            {hasAfterMidnightSlots && displayedSlots.afterMidnight.length > 0 && (
               <>
                 <div className="flex items-center w-full justify-center my-3">
                   <div className="h-px bg-gray-200 flex-grow mx-2"></div>
@@ -133,9 +182,7 @@ export const TimeSlotPicker = memo(({
                 </div>
                 
                 <div className="flex flex-wrap gap-3">
-                  {displayedTimeSlots
-                    .filter(slot => isAfterMidnight(slot.time))
-                    .map(slot => renderTimeSlotButton(slot))}
+                  {displayedSlots.afterMidnight.map(slot => renderTimeSlotButton(slot))}
                 </div>
               </>
             )}
@@ -143,7 +190,7 @@ export const TimeSlotPicker = memo(({
         </div>
       </div>
       
-      {availableTimeSlots.length > 6 && (
+      {totalSlots > 6 && (
         <Button 
           variant="ghost" 
           onClick={onToggleShowAll} 

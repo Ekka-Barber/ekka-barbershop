@@ -12,17 +12,21 @@ export const useRealtimeSubscription = () => {
 
   /**
    * Setup realtime subscription for employee schedules
+   * Enhanced to track changes for specific employee and date
    */
   const setupRealtimeSubscription = useCallback((employeeId: string, selectedDate: Date) => {
     // Create a unique channel name for this subscription
-    const channelName = `employee_schedules_${employeeId}_${format(selectedDate, 'yyyy-MM-dd')}`;
+    const formattedDate = format(selectedDate, 'yyyy-MM-dd');
+    const channelName = `employee_schedules_${employeeId}_${formattedDate}`;
     
     // Don't create duplicate subscriptions
     if (activeSubscriptions.current[channelName]) {
+      console.log(`Subscription for ${channelName} already exists`);
       return;
     }
     
-    const formattedDate = format(selectedDate, 'yyyy-MM-dd');
+    console.log(`Setting up realtime subscription for ${channelName}`);
+    
     const queryKey = ['unavailableSlots', employeeId, formattedDate];
     
     // Subscribe to changes on the employee_schedules table for this employee and date
@@ -34,10 +38,10 @@ export const useRealtimeSubscription = () => {
           event: '*', // Listen for all events (INSERT, UPDATE, DELETE)
           schema: 'public',
           table: 'employee_schedules',
-          filter: `employee_id=eq.${employeeId}` 
+          filter: `employee_id=eq.${employeeId} AND date=eq.${formattedDate}`
         },
         (payload) => {
-          console.log('Realtime update received:', payload);
+          console.log(`Realtime update received for ${formattedDate}:`, payload);
           
           // Invalidate the query to trigger a refetch
           queryClient.invalidateQueries({
@@ -61,11 +65,13 @@ export const useRealtimeSubscription = () => {
     
     // Store the subscription reference
     activeSubscriptions.current[channelName] = channel;
+    console.log(`Active subscriptions: ${Object.keys(activeSubscriptions.current).join(', ')}`);
     
     return () => {
       if (activeSubscriptions.current[channelName]) {
         supabase.removeChannel(channel);
         delete activeSubscriptions.current[channelName];
+        console.log(`Removed subscription for ${channelName}`);
       }
     };
   }, [queryClient, toast]);
@@ -80,6 +86,7 @@ export const useRealtimeSubscription = () => {
         }
       });
       activeSubscriptions.current = {};
+      console.log("Cleaned up all realtime subscriptions");
     };
   }, []);
 
