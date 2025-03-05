@@ -1,5 +1,5 @@
 
-import { isToday, isBefore, addMinutes, format } from "date-fns";
+import { isToday, isBefore, addMinutes, format, addDays } from "date-fns";
 import { hasEnoughConsecutiveTime } from "./consecutiveTimeChecker";
 import { convertTimeToMinutes, convertMinutesToTime, isAfterMidnight } from "./timeConversion";
 import { UnavailableSlot, TimeSlot } from "./timeSlotTypes";
@@ -38,11 +38,27 @@ export const isSlotAvailable = (
     return false;
   }
 
+  // Create a Date object that represents the exact date and time of this slot
+  const slotDateTime = new Date(selectedDate);
+  slotDateTime.setHours(Math.floor(slotMinutes / 60), slotMinutes % 60, 0, 0);
+  
+  // If slot is after midnight, it belongs to the next day
+  if (isSlotAfterMidnight) {
+    slotDateTime.setDate(slotDateTime.getDate() + 1);
+  }
+  
   // Check if the slot is bookable today (not in the past with 15 min buffer)
-  // This check should have been done earlier, but we do it again as a safety measure
-  if (!isSlotBookableToday(selectedDate, slotMinutes, timeString)) {
-    console.log(`❌ Slot ${timeString} is in the past or too soon to book`);
-    return false;
+  if (isToday(new Date())) {
+    // Get current time with extra precision
+    const now = new Date();
+    // Require at least 15 minutes lead time for bookings
+    const minimumBookingTime = addMinutes(now, 15);
+    
+    // Check if slot time is in the past (with buffer)
+    if (isBefore(slotDateTime, minimumBookingTime)) {
+      console.log(`❌ Slot ${timeString} is in the past or too soon - current time: ${format(now, 'HH:mm')}`);
+      return false;
+    }
   }
 
   // Check if the service duration would extend beyond working hours
@@ -61,44 +77,6 @@ export const isSlotAvailable = (
   }
   
   console.log(`✅ Slot ${timeString} is available!`);
-  return true;
-};
-
-/**
- * Checks if a slot is bookable on the current day (not in the past)
- * Strictly filters out past time slots with a 15-minute buffer
- */
-const isSlotBookableToday = (
-  selectedDate: Date,
-  slotMinutes: number,
-  timeString: string
-): boolean => {
-  if (!isToday(selectedDate)) {
-    return true;
-  }
-  
-  // Get current time with extra precision
-  const now = new Date();
-  // Require at least 15 minutes lead time for bookings
-  const minimumBookingTime = addMinutes(now, 15);
-  
-  // Create a new date object for the slot time
-  const slotTime = new Date(selectedDate);
-  slotTime.setHours(Math.floor(slotMinutes / 60), slotMinutes % 60, 0, 0);
-  
-  // Handle after-midnight slots for today's bookings
-  if (isAfterMidnight(timeString)) {
-    // Add 1 day to the slot time for after-midnight slots
-    slotTime.setDate(slotTime.getDate() + 1);
-    console.log(`Adjusted slot time for after-midnight: ${format(slotTime, 'yyyy-MM-dd HH:mm')}`);
-  }
-  
-  // Check if slot time is in the past (with buffer)
-  if (isBefore(slotTime, minimumBookingTime)) {
-    console.log(`❌ Slot ${timeString} (${format(slotTime, 'HH:mm')}) is in the past or too soon - current time: ${format(now, 'HH:mm')}`);
-    return false;
-  }
-  
   return true;
 };
 

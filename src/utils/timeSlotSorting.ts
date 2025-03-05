@@ -7,6 +7,8 @@ import { isAfterMidnight, convertTimeToMinutes } from "./timeConversion";
  * and available slots come before unavailable slots within each time period
  */
 export const sortTimeSlots = (slots: TimeSlot[]): TimeSlot[] => {
+  console.log("🔄 Sorting time slots...");
+  
   // First make a copy to avoid mutating the original array
   const slotsCopy = [...slots];
   
@@ -14,6 +16,9 @@ export const sortTimeSlots = (slots: TimeSlot[]): TimeSlot[] => {
     // Special handling to ensure after-midnight slots (00:00-11:59) come after regular slots
     const aIsAfterMidnight = isAfterMidnight(a.time);
     const bIsAfterMidnight = isAfterMidnight(b.time);
+    
+    // Log sorting decisions for debugging
+    console.log(`Comparing slots: ${a.time} (AM: ${aIsAfterMidnight}) and ${b.time} (AM: ${bIsAfterMidnight})`);
     
     // If one is after midnight and one isn't, the after-midnight slot comes later
     if (aIsAfterMidnight && !bIsAfterMidnight) return 1;

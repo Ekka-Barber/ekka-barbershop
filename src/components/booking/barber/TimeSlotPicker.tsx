@@ -83,6 +83,9 @@ export const TimeSlotPicker = memo(({
       ? groupedSlots.afterMidnightUnavailable 
       : groupedSlots.afterMidnightUnavailable.slice(0, 6);
     
+    console.log("After-midnight available slots:", afterMidnightAvailable.length);
+    console.log("After-midnight unavailable slots:", afterMidnightUnavailable.length);
+    
     return {
       regularAvailable,
       regularUnavailable,
@@ -125,6 +128,7 @@ export const TimeSlotPicker = memo(({
   // Render time slot button with appropriate styling based on availability
   const renderTimeSlotButton = (slot: TimeSlot) => {
     const isSelected = selectedTime === slot.time;
+    const slotIsAfterMidnight = isAfterMidnight(slot.time);
     
     return (
       <TooltipProvider key={slot.time}>
@@ -140,17 +144,24 @@ export const TimeSlotPicker = memo(({
                 isSelected 
                   ? "bg-[#FDF9EF] border-[#e7bd71] text-black hover:bg-[#FDF9EF]" 
                   : slot.isAvailable
-                    ? "border-border bg-background hover:bg-background" 
+                    ? slotIsAfterMidnight 
+                      ? "border-border bg-blue-50 hover:bg-blue-100" 
+                      : "border-border bg-background hover:bg-background" 
                     : "border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed opacity-60"
               )}
             >
               {formatTime(slot.time, language === 'ar')}
+              {slotIsAfterMidnight && <span className="ml-1 text-xs text-blue-500">+1</span>}
             </Button>
           </TooltipTrigger>
           <TooltipContent>
-            {slot.isAvailable 
-              ? language === 'ar' ? 'متاح' : 'Available' 
-              : language === 'ar' ? 'غير متاح' : 'Unavailable'}
+            {slotIsAfterMidnight 
+              ? (slot.isAvailable 
+                ? language === 'ar' ? 'متاح (اليوم التالي)' : 'Available (next day)' 
+                : language === 'ar' ? 'غير متاح (اليوم التالي)' : 'Unavailable (next day)')
+              : (slot.isAvailable 
+                ? language === 'ar' ? 'متاح' : 'Available' 
+                : language === 'ar' ? 'غير متاح' : 'Unavailable')}
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>
@@ -208,7 +219,7 @@ export const TimeSlotPicker = memo(({
                   <div className="h-px bg-gray-200 flex-grow mx-2"></div>
                   <Clock12 className="h-4 w-4 text-gray-500" />
                   <span className="text-xs text-gray-500 mx-2">
-                    {language === 'ar' ? 'بعد منتصف الليل' : 'After midnight'}
+                    {language === 'ar' ? 'اليوم التالي' : 'Next day'}
                   </span>
                   <div className="h-px bg-gray-200 flex-grow mx-2"></div>
                 </div>

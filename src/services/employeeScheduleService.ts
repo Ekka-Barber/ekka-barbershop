@@ -16,7 +16,7 @@ export const fetchUnavailableSlots = async ({
   formattedDate: string;
 }): Promise<UnavailableSlot[]> => {
   try {
-    console.log(`Fetching unavailable slots for employee ${employeeId} on ${formattedDate}`);
+    console.log(`🔍 Fetching unavailable slots for employee ${employeeId} on ${formattedDate}`);
     
     // Calculate next day for handling slots that cross midnight
     const currentDate = new Date(formattedDate);

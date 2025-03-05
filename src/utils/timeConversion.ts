@@ -11,17 +11,21 @@ export const convertTimeToMinutes = (timeStr: string): number => {
  * Converts minutes since midnight to a time string (HH:MM)
  */
 export const convertMinutesToTime = (minutes: number): string => {
-  const hours = Math.floor(minutes / 60);
-  const mins = minutes % 60;
+  // Handle minutes that are greater than 24 hours
+  const adjustedMinutes = minutes % (24 * 60);
+  const hours = Math.floor(adjustedMinutes / 60);
+  const mins = adjustedMinutes % 60;
   return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
 };
 
 /**
  * Checks if a time string represents a time after midnight (00:00-11:59)
+ * This is critical for determining slots that belong to the next day
  */
 export const isAfterMidnight = (time: string): boolean => {
   const [hours] = time.split(':').map(Number);
-  return hours >= 0 && hours < 12; // 00:00 to 11:59 are after midnight
+  // Times from 00:00 to 11:59 are considered "after midnight" (next day)
+  return hours >= 0 && hours < 12;
 };
 
 /**

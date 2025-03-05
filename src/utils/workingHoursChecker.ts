@@ -1,3 +1,4 @@
+
 import { convertTimeToMinutes, convertMinutesToTime, isAfterMidnight, doesCrossMidnight } from "./timeConversion";
 
 /**
