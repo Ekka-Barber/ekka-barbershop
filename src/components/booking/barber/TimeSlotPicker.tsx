@@ -1,4 +1,3 @@
-
 import React, { memo, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -6,7 +5,8 @@ import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Clock12 } from "lucide-react";
 import { formatTime } from "@/utils/timeFormatting";
-import { TimeSlot, isAfterMidnight } from "@/utils/timeSlotUtils";
+import { TimeSlot } from "@/utils/timeSlotTypes";
+import { isAfterMidnight } from "@/utils/timeConversion";
 
 interface TimeSlotPickerProps {
   timeSlots: TimeSlot[];

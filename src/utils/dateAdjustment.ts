@@ -1,6 +1,5 @@
-
 import { addDays } from "date-fns";
-import { isAfterMidnight } from "./timeSlotUtils";
+import { isAfterMidnight } from "./timeConversion";
 
 /**
  * Adjusts the selected date based on the time slot

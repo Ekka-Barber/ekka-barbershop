@@ -1,6 +1,6 @@
-
 import { supabase } from "@/integrations/supabase/client";
-import { UnavailableSlot, normalizeUnavailableSlots, convertTimeToMinutes, convertMinutesToTime } from "@/utils/timeSlotUtils";
+import { UnavailableSlot, normalizeUnavailableSlots } from "@/utils/timeSlotTypes";
+import { convertTimeToMinutes, convertMinutesToTime } from "@/utils/timeConversion";
 
 /**
  * Fetch unavailable slots from Supabase with improved error handling and validation

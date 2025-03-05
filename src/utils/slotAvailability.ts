@@ -1,13 +1,8 @@
-
 import { isToday, isBefore, addMinutes, format } from "date-fns";
-import { 
-  UnavailableSlot, 
-  hasEnoughConsecutiveTime, 
-  isWithinWorkingHours, 
-  isAfterMidnight,
-  convertTimeToMinutes,
-  convertMinutesToTime
-} from "./timeSlotUtils";
+import { hasEnoughConsecutiveTime } from "./consecutiveTimeChecker";
+import { isWithinWorkingHours, isAfterMidnight } from "./workingHoursChecker";
+import { convertTimeToMinutes, convertMinutesToTime } from "./timeConversion";
+import { UnavailableSlot } from "./timeSlotTypes";
 
 /**
  * Checks if a time slot is available based on date, time, and unavailable periods

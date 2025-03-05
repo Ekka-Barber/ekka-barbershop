@@ -2,17 +2,14 @@ import { useCallback } from "react";
 import { format, parse, isBefore, addMinutes, addDays } from "date-fns";
 import { useQueryClient } from "@tanstack/react-query";
 import { 
-  TimeSlot, 
-  doesCrossMidnight, 
-  convertTimeToMinutes, 
-  sortTimeSlots,
-  convertMinutesToTime 
+  TimeSlot,
+  sortTimeSlots
 } from "@/utils/timeSlotUtils";
+import { doesCrossMidnight, convertTimeToMinutes, convertMinutesToTime, isAfterMidnight } from "@/utils/timeConversion";
 import { fetchUnavailableSlots } from "@/services/employeeScheduleService";
 import { isSlotAvailable } from "@/utils/slotAvailability";
 import { useToast } from "@/hooks/use-toast";
 import { useRealtimeSubscription } from "./useRealtimeSubscription";
-import { isAfterMidnight } from "@/utils/timeSlotUtils";
 
 // Cache constants
 const CACHE_EXPIRY = 5 * 60 * 1000; // 5 minutes
