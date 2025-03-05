@@ -37,7 +37,7 @@ export const isSlotAvailable = (
     return false;
   }
 
-  // Check if the slot is bookable today (at least 15 minutes from now)
+  // Check if the slot is bookable today (not in the past)
   if (!isSlotBookableToday(selectedDate, slotMinutes, timeString)) {
     return false;
   }
@@ -73,6 +73,7 @@ const isSlotBookableToday = (
     return true;
   }
   
+  // Get current time with extra precision
   const now = new Date();
   // Require at least 15 minutes lead time for bookings
   const minimumBookingTime = addMinutes(now, 15);

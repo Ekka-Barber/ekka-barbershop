@@ -29,16 +29,15 @@ export const TimeSlotPicker = memo(({
 }: TimeSlotPickerProps) => {
   const { language } = useLanguage();
   
-  // Filter out past time slots from today
+  // Filter out time slots that are in the past
   const filteredTimeSlots = useMemo(() => {
-    // For debugging
     console.log("Available time slots before filtering:", timeSlots.map(slot => ({
       time: slot.time, 
       isAvailable: slot.isAvailable,
       isAfterMidnight: isAfterMidnight(slot.time)
     })));
     
-    // The filtering happens server-side in isSlotAvailable
+    // The filtering is now happening in isSlotAvailable, which sets isAvailable to false for past slots
     return timeSlots;
   }, [timeSlots]);
   
