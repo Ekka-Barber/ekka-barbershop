@@ -7,6 +7,7 @@ import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { format } from "date-fns";
 import { BlockedDateInput } from "@/types/admin";
+import { Calendar } from "@/components/ui/calendar";
 
 interface BlockDateFormProps {
   selectedDate: Date | undefined;
@@ -17,32 +18,110 @@ export const BlockDateForm = ({ selectedDate, onBlockDate }: BlockDateFormProps)
   const [reason, setReason] = useState('');
   const [isRecurring, setIsRecurring] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedDates, setSelectedDates] = useState<Date[]>([]);
+  const [showMultiSelect, setShowMultiSelect] = useState(false);
+
+  // When selectedDate changes from parent, update our selectedDates array
+  React.useEffect(() => {
+    if (selectedDate && !showMultiSelect) {
+      setSelectedDates([selectedDate]);
+    }
+  }, [selectedDate, showMultiSelect]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedDate) return;
+    if (selectedDates.length === 0) return;
 
     setIsSubmitting(true);
     try {
-      await onBlockDate({
-        date: selectedDate,
-        reason,
-        is_recurring: isRecurring
-      });
+      // Process each selected date
+      for (const date of selectedDates) {
+        await onBlockDate({
+          date,
+          reason,
+          is_recurring: isRecurring
+        });
+      }
       setReason('');
+      setSelectedDates([]);
+      if (showMultiSelect) {
+        setShowMultiSelect(false);
+      }
     } catch (error) {
-      console.error('Error blocking date:', error);
+      console.error('Error blocking dates:', error);
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  if (!selectedDate) return null;
+  const toggleMultiSelect = () => {
+    setShowMultiSelect(!showMultiSelect);
+    if (!showMultiSelect && selectedDate) {
+      setSelectedDates([selectedDate]);
+    } else {
+      setSelectedDates([]);
+    }
+  };
+
+  const handleCalendarSelect = (date: Date | undefined) => {
+    if (!date) return;
+    
+    // For multi-select mode, toggle the selected date
+    if (showMultiSelect) {
+      setSelectedDates(prev => {
+        const dateExists = prev.some(d => 
+          d.getDate() === date.getDate() && 
+          d.getMonth() === date.getMonth() && 
+          d.getFullYear() === date.getFullYear()
+        );
+        
+        if (dateExists) {
+          return prev.filter(d => 
+            !(d.getDate() === date.getDate() && 
+              d.getMonth() === date.getMonth() && 
+              d.getFullYear() === date.getFullYear())
+          );
+        } else {
+          return [...prev, date];
+        }
+      });
+    }
+  };
+
+  if (!selectedDate && !showMultiSelect) return null;
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <Separator className="my-4" />
       <h3 className="text-sm font-medium">Block with details</h3>
+      
+      <div className="flex items-center justify-between">
+        <div className="space-y-0.5">
+          <Label htmlFor="multi-select">Multi-select mode</Label>
+          <p className="text-xs text-muted-foreground">
+            Select multiple dates to block
+          </p>
+        </div>
+        <Switch
+          id="multi-select"
+          checked={showMultiSelect}
+          onCheckedChange={toggleMultiSelect}
+        />
+      </div>
+      
+      {showMultiSelect && (
+        <div className="border rounded-md p-2">
+          <Calendar
+            mode="multiple"
+            selected={selectedDates}
+            onSelect={(date) => handleCalendarSelect(date)}
+            className="rounded-md border"
+          />
+          <p className="text-xs text-muted-foreground mt-2">
+            {selectedDates.length} date{selectedDates.length !== 1 ? 's' : ''} selected
+          </p>
+        </div>
+      )}
       
       <div className="space-y-2">
         <Label htmlFor="reason">Reason (optional)</Label>
@@ -68,8 +147,12 @@ export const BlockDateForm = ({ selectedDate, onBlockDate }: BlockDateFormProps)
         />
       </div>
       
-      <Button type="submit" className="w-full" disabled={isSubmitting}>
-        {isSubmitting ? "Saving..." : `Block ${format(selectedDate, "MMMM d, yyyy")}`}
+      <Button type="submit" className="w-full" disabled={isSubmitting || selectedDates.length === 0}>
+        {isSubmitting ? "Saving..." : selectedDates.length > 1 
+          ? `Block ${selectedDates.length} selected dates` 
+          : selectedDates.length === 1 
+            ? `Block ${format(selectedDates[0], "MMMM d, yyyy")}` 
+            : "Select dates to block"}
       </Button>
     </form>
   );
