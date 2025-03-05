@@ -15,15 +15,19 @@ export const PackageBadge = ({ className }: PackageBadgeProps) => {
   return (
     <motion.div 
       className={cn(
-        "absolute -top-2 -right-2 bg-[#C4A484] text-white rounded-full px-2 py-1 text-xs font-medium flex items-center gap-1 shadow-md",
+        "absolute top-0 left-0 transform -translate-x-1/4 -translate-y-1/3 z-10",
+        "bg-gradient-to-r from-[#FFD700] to-[#FF8C00] text-white",
+        "rounded-full px-2 py-1 text-xs font-bold flex items-center gap-1",
+        "shadow-[0_2px_10px_rgba(255,180,0,0.5)] border border-white/20",
         language === 'ar' ? "flex-row-reverse" : "",
         className
       )}
       initial={{ scale: 0.8, opacity: 0 }}
       animate={{ scale: 1, opacity: 1 }}
       transition={{ duration: 0.3 }}
+      whileHover={{ scale: 1.05 }}
     >
-      <Sparkle className="w-3 h-3" />
+      <Sparkle className="w-4 h-4 text-yellow-100" />
       <span>
         {language === 'ar' 
           ? 'اصنع باقتك بنفسك ✨' 
