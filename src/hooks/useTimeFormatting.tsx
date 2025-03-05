@@ -1,4 +1,3 @@
-
 import { type ReactNode } from "react";
 import { formatTimeRange } from "@/utils/timeFormatting";
 import { transformWorkingHours } from "@/utils/workingHoursUtils";
@@ -24,13 +23,8 @@ export const useTimeFormatting = () => {
     const hours = transformWorkingHours(workingHours);
     if (!hours || !hours[currentDay]) return null;
 
-    // Check if the current day has any time ranges
-    const currentDayHours = hours[currentDay];
-    if (!Array.isArray(currentDayHours) || currentDayHours.length === 0) return null;
-
-    const timeRanges = currentDayHours.map(range => formatTimeRange(range, isArabic));
-    
-    return <WorkingHoursDisplay isArabic={isArabic} timeRanges={timeRanges} />;
+    // Instead of parsing the hours here, we'll pass them to the WorkingHoursDisplay component
+    return <WorkingHoursDisplay isArabic={isArabic} workingHours={workingHours} />;
   };
 
   const getAllDaysHours = (workingHours: WorkingHoursType, isArabic: boolean): FormattedHours[] => {

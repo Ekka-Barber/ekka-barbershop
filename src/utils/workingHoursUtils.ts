@@ -68,7 +68,10 @@ export const formatWorkingHoursForDisplay = (workingHours: any): string[] => {
     // Handle object format with days
     if (typeof workingHours === 'object') {
       // Case 1: Format is { day: [time ranges] }
-      const currentDay = new Date().toLocaleLowerCase().slice(0, 3);
+      const today = new Date();
+      const dayNames = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
+      const currentDay = dayNames[today.getDay()];
+      
       const daysMap: Record<string, string> = {
         'mon': 'monday',
         'tue': 'tuesday',
