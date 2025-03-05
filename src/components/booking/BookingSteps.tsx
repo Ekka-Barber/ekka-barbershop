@@ -14,6 +14,8 @@ import { ArrowLeft } from "lucide-react";
 import { transformServicesForDisplay, getBarberNameById } from "@/utils/serviceTransformation";
 import { Branch } from "@/types/booking";
 import { Button } from "@/components/ui/button";
+import { transformWorkingHours } from "@/utils/workingHoursUtils";
+import { WorkingHours } from "@/types/service";
 
 const STEPS: BookingStep[] = ['services', 'datetime', 'barber', 'details'];
 
@@ -158,6 +160,11 @@ export const BookingSteps = ({
   
   const selectedBarberName = getBarberNameById(employees, selectedBarber, language);
 
+  // Transform the working hours to the correct type or null if invalid
+  const employeeWorkingHours: WorkingHours | null = selectedEmployee?.working_hours 
+    ? transformWorkingHours(selectedEmployee.working_hours)
+    : null;
+
   return <>
       <BookingProgress 
         currentStep={currentStep} 
@@ -199,7 +206,7 @@ export const BookingSteps = ({
           totalPrice={totalPrice}
           language={language}
           branch={branch}
-          employeeWorkingHours={selectedEmployee?.working_hours || null}
+          employeeWorkingHours={employeeWorkingHours}
           selectedBarberName={selectedBarberName}
         />
       </div>
