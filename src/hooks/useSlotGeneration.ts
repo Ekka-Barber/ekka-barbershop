@@ -23,7 +23,7 @@ export const useSlotGeneration = () => {
 
   /**
    * Generates available time slots based on working hours and unavailable periods
-   * Improved to better handle cross-midnight ranges and provide more consistent results
+   * Improved to better handle cross-midnight ranges and filter past slots
    */
   const generateTimeSlots = useCallback(async (
     workingHoursRanges: string[] = [],
@@ -45,6 +45,11 @@ export const useSlotGeneration = () => {
     const nextDay = addDays(selectedDate, 1);
     const nextDayFormatted = format(nextDay, 'yyyy-MM-dd');
     console.log(`Next day for after-midnight slots: ${nextDayFormatted}`);
+    
+    // Get current time with buffer (for filtering past slots)
+    const now = new Date();
+    // Add 15 minutes buffer time for bookings
+    const bookingBuffer = addMinutes(now, 15);
     
     // Use react-query to fetch and cache unavailable slots
     const queryKey = ['unavailableSlots', employeeId, formattedDate];
@@ -93,17 +98,28 @@ export const useSlotGeneration = () => {
           const timeString = format(currentSlot, 'HH:mm');
           const slotMinutes = convertTimeToMinutes(timeString);
           
+          // Skip past slots if today
+          if (isToday(selectedDate)) {
+            // Skip slots that are in the past (with 15 min buffer)
+            const slotDateTime = new Date(selectedDate);
+            slotDateTime.setHours(Math.floor(slotMinutes / 60), slotMinutes % 60, 0, 0);
+            
+            // If slot is in the past, skip it
+            if (isBefore(slotDateTime, bookingBuffer)) {
+              console.log(`Skipping past slot: ${timeString}`);
+              currentSlot = addMinutes(currentSlot, SLOT_INTERVAL);
+              continue;
+            }
+          }
+          
           // For after-midnight slots, we need to indicate they belong to the next day
           const slotDate = isAfterMidnight(timeString) && !isToday(baseDate) ? nextDay : selectedDate;
-          
-          // Log the calculated date for this slot
-          console.log(`Slot ${timeString} uses date: ${format(slotDate, 'yyyy-MM-dd')}, isAfterMidnight: ${isAfterMidnight(timeString)}`);
           
           // Check if slot is available considering all constraints
           const available = isSlotAvailable(
             slotMinutes,
             unavailableSlots || [],
-            slotDate, // Use the proper date for this slot
+            slotDate,
             serviceDuration,
             workingHoursRanges
           );

@@ -40,11 +40,13 @@ export const isSlotAvailable = (
 
   // Check if the slot is bookable today (not in the past with 15 min buffer)
   if (!isSlotBookableToday(selectedDate, slotMinutes, timeString)) {
+    console.log(`❌ Slot ${timeString} is in the past or too soon to book`);
     return false;
   }
 
   // Check if the service duration would extend beyond working hours
   if (!hasValidServiceEndTime(slotMinutes, serviceDuration, workingHoursRanges)) {
+    console.log(`❌ Slot ${timeString} would extend beyond working hours`);
     return false;
   }
   

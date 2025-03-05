@@ -1,8 +1,10 @@
+
 import { TimeSlot } from "./timeSlotTypes";
 import { isAfterMidnight, convertTimeToMinutes } from "./timeConversion";
 
 /**
  * Custom sort function for time slots - ensures after-midnight slots come after regular slots
+ * and available slots come before unavailable slots within each time period
  */
 export const sortTimeSlots = (slots: TimeSlot[]): TimeSlot[] => {
   // First make a copy to avoid mutating the original array
@@ -17,7 +19,12 @@ export const sortTimeSlots = (slots: TimeSlot[]): TimeSlot[] => {
     if (aIsAfterMidnight && !bIsAfterMidnight) return 1;
     if (!aIsAfterMidnight && bIsAfterMidnight) return -1;
     
-    // Otherwise, sort by time in minutes
+    // If they're both in the same time period (both after midnight or both before midnight),
+    // prioritize available slots over unavailable ones
+    if (a.isAvailable && !b.isAvailable) return -1;
+    if (!a.isAvailable && b.isAvailable) return 1;
+    
+    // If both have the same availability, sort by time
     const aMinutes = convertTimeToMinutes(a.time);
     const bMinutes = convertTimeToMinutes(b.time);
     return aMinutes - bMinutes;
