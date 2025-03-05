@@ -34,8 +34,8 @@ export const ServiceCardBase = ({
   }} transition={{
     duration: 0.15
   }} {...props}>
-      {hasDiscount && discountPercentage && <div className="absolute top-0 right-0 transform translate-x-1/4 -translate-y-1/3 z-10">
-          <div className="text-white text-xs font-bold flex items-center shadow-md px-[4px] py-[3px] mx-[208px] bg-red-500 rounded-full">
+      {hasDiscount && discountPercentage && <div className="absolute top-0 left-0 transform -translate-x-1/4 -translate-y-1/3 z-10">
+          <div className="text-white text-xs font-bold flex items-center shadow-md px-[4px] py-[3px] bg-red-500 rounded-full">
             <Tag className="w-3 h-3 mr-1" />
             <span>{discountPercentage}%</span>
           </div>
