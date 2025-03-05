@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { MetricsGroup } from "./summary/MetricsGroup";
 import { ActionButton } from "./summary/ActionButton";
 import { useMemo } from "react";
+import { PackageSettings } from "@/types/admin";
+import { PackageSavings } from "./summary/PackageSavings";
 
 interface ServicesSummaryProps {
   selectedServices: Array<{
@@ -10,6 +12,7 @@ interface ServicesSummaryProps {
     name: string;
     price: number;
     duration: number;
+    originalPrice?: number;
   }>;
   totalDuration: number;
   totalPrice: number;
@@ -17,6 +20,8 @@ interface ServicesSummaryProps {
   onNextStep: () => void;
   onPrevStep: () => void;
   isFirstStep: boolean;
+  packageEnabled?: boolean;
+  packageSettings?: PackageSettings;
 }
 
 export const ServicesSummary = ({
@@ -26,10 +31,22 @@ export const ServicesSummary = ({
   language,
   onNextStep,
   onPrevStep,
-  isFirstStep
+  isFirstStep,
+  packageEnabled = false,
+  packageSettings
 }: ServicesSummaryProps) => {
   // Use memoization to prevent unnecessary recalculations
   const shouldDisplay = useMemo(() => selectedServices.length > 0, [selectedServices.length]);
+  
+  // Calculate package savings if any
+  const packageSavings = useMemo(() => {
+    if (!packageEnabled) return 0;
+    
+    return selectedServices.reduce((total, service) => {
+      if (!service.originalPrice) return total;
+      return total + (service.originalPrice - service.price);
+    }, 0);
+  }, [selectedServices, packageEnabled]);
   
   if (!shouldDisplay) return null;
 
@@ -42,6 +59,13 @@ export const ServicesSummary = ({
         exit={{ y: 100, opacity: 0 }}
         transition={{ duration: 0.3 }}
       >
+        {packageEnabled && packageSavings > 0 && (
+          <PackageSavings 
+            savings={packageSavings}
+            language={language}
+          />
+        )}
+        
         <div className="w-full max-w-screen-xl mx-auto px-4 py-2.5">
           <div className="flex items-center justify-between">
             {/* Previous button on the left */}

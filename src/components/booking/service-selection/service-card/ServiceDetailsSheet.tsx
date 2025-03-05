@@ -1,94 +1,90 @@
-
 import * as React from "react";
-import { X } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Button } from "@/components/ui/button";
 import { Service } from "@/types/service";
-import { Language } from "@/types/language";
+import { Package } from "lucide-react";
+import { PackageBadge } from "./PackageBadge";
 
 interface ServiceDetailsSheetProps {
   service: Service;
   isSelected: boolean;
-  language: Language;
+  serviceName: string;
+  serviceDescription: string | null;
+  finalPrice: number;
+  hasDiscount: boolean;
+  language: string;
   isOpen: boolean;
-  setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  setIsOpen: (open: boolean) => void;
   onSelect: (service: Service) => void;
-  serviceName?: string;
-  serviceDescription?: string | null;
-  finalPrice?: number;
-  hasDiscount?: boolean;
+  isBasePackageService?: boolean;
 }
 
 export const ServiceDetailsSheet = ({
   service,
   isSelected,
+  serviceName,
+  serviceDescription,
+  finalPrice,
+  hasDiscount,
   language,
   isOpen,
   setIsOpen,
   onSelect,
-  serviceName,
-  serviceDescription
+  isBasePackageService = false
 }: ServiceDetailsSheetProps) => {
-  if (!isOpen) return null;
-
-  const handleSelect = () => {
-    onSelect(service);
-    setIsOpen(false);
-  };
-
-  const onClose = () => setIsOpen(false);
   
-  // Use the provided serviceName or derive it from the service
-  const displayName = serviceName || (language === 'ar' ? service.name_ar : service.name_en);
-  // Use the provided serviceDescription or derive it from the service
-  const displayDescription = serviceDescription || (language === 'ar' ? service.description_ar : service.description_en);
-  
+
   return (
-    <SheetContent
-      side="bottom"
-      className="p-0 rounded-t-2xl border-t-0 max-h-[85vh] sm:max-w-full bg-gradient-to-b from-[#f8f8f8] to-white"
-      onCloseAutoFocus={(e) => e.preventDefault()}
-    >
-      <div className="p-6 space-y-6">
-        <div className="flex justify-between items-start">
-          <Button
-            size="icon"
-            variant="ghost"
-            className="rounded-full h-8 w-8"
-            onClick={onClose}
-          >
-            <X className="h-4 w-4" />
-            <span className="sr-only">Close</span>
-          </Button>
-          
-          <SheetHeader className="text-center space-y-1">
-            <SheetTitle className="text-xl font-semibold">
-              {displayName}
-            </SheetTitle>
-          </SheetHeader>
-          
-          <div className="w-8 h-8"></div> {/* Empty div for balance */}
-        </div>
-
-        {displayDescription && (
-          <div className="space-y-2 mt-4">
-            <div className="text-sm font-medium text-right">
-              {language === 'ar' ? 'وصف الخدمة' : 'Description'}
+    <SheetContent side="bottom" className="bg-transparent p-0">
+      {isOpen && (
+        <div className="rounded-t-xl border-t-2 border-[#C4A484] bg-white">
+          <div className="p-6 space-y-6">
+            <SheetHeader>
+              <div className="flex items-center gap-2">
+                <SheetTitle className="flex-1">
+                  {serviceName}
+                </SheetTitle>
+                {isBasePackageService && (
+                  <div className="flex items-center bg-[#FCF9F0] border border-[#e9d8a6] rounded-full px-2 py-1">
+                    <Package className="h-3.5 w-3.5 text-[#C4A484] mr-1" />
+                    <span className="text-xs font-medium text-[#6f5b3e]">
+                      {language === 'ar' ? 'باقة' : 'Package'}
+                    </span>
+                  </div>
+                )}
+              </div>
+            </SheetHeader>
+            
+            <div className="mt-6 space-y-4">
+              <p className="text-gray-600">
+                {serviceDescription}
+              </p>
+              
+              {isBasePackageService && (
+                <div className="bg-[#FCF9F0] border border-[#e9d8a6] rounded-lg p-3 mt-4 text-sm text-[#6f5b3e]">
+                  <p>
+                    {language === 'ar' 
+                      ? 'اختر هذه الخدمة الأساسية وأضف خدمات أخرى للاستفادة من خصومات الباقة'
+                      : 'Select this base service and add other services to benefit from package discounts'}
+                  </p>
+                </div>
+              )}
+              
+              <Button
+                className="w-full mt-4"
+                onClick={() => {
+                  onSelect(service);
+                  setIsOpen(false);
+                }}
+              >
+                {isSelected
+                  ? language === 'ar' ? 'إزالة الخدمة' : 'Remove Service'
+                  : language === 'ar' ? 'إضافة الخدمة' : 'Add Service'}
+              </Button>
             </div>
-            <p className="text-sm text-muted-foreground text-right leading-relaxed">{displayDescription}</p>
           </div>
-        )}
-
-        <Button 
-          className="w-full mt-6 bg-[#C4A484] hover:bg-[#B8997C] text-white font-medium py-2 px-4 rounded-lg shadow-md transform transition-transform hover:scale-[1.02] active:scale-[0.98]" 
-          onClick={handleSelect}
-          size="sm"
-        >
-          {isSelected
-            ? language === 'ar' ? 'إزالة الخدمة' : 'Remove Service'
-            : language === 'ar' ? 'اضف الخدمة' : 'Add Service'}
-        </Button>
-      </div>
+        </div>
+      )}
     </SheetContent>
   );
 };

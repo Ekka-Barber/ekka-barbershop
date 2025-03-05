@@ -10,6 +10,9 @@ import { cacheServices, getCachedServices, cacheActiveCategory, getCachedActiveC
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useToast } from "@/hooks/use-toast";
 import { AlertTriangle } from "lucide-react";
+import { PackageBanner } from "./service-selection/PackageBanner";
+import { PackageInfoDialog } from "./service-selection/PackageInfoDialog";
+import { usePackageDiscount } from "@/hooks/usePackageDiscount";
 
 interface ServiceSelectionProps {
   categories: any[] | undefined;
@@ -33,6 +36,19 @@ export const ServiceSelection = ({
   );
   const [selectedService, setSelectedService] = useState<any | null>(null);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const [showPackageInfo, setShowPackageInfo] = useState(false);
+
+  // Use the package discount hook
+  const { 
+    BASE_SERVICE_ID, 
+    packageEnabled, 
+    packageSettings, 
+    hasBaseService,
+    applyPackageDiscounts 
+  } = usePackageDiscount(selectedServices);
+
+  // Process services with package discounts if needed
+  const processedServices = applyPackageDiscounts(selectedServices);
 
   useEffect(() => {
     if (activeCategory) {
@@ -45,6 +61,18 @@ export const ServiceSelection = ({
       cacheServices(selectedServices);
     }
   }, [selectedServices]);
+
+  // Show a toast notification when the base service is selected
+  useEffect(() => {
+    if (hasBaseService && packageSettings) {
+      toast({
+        title: language === 'ar' ? 'وضع الباقة مفعل' : 'Package Mode Activated',
+        description: language === 'ar' 
+          ? 'يمكنك الآن إضافة خدمات إضافية بخصم'
+          : 'You can now add additional services at a discount',
+      });
+    }
+  }, [hasBaseService, packageSettings, language, toast]);
 
   const handleServiceClick = (service: any) => {
     setSelectedService(service);
@@ -75,8 +103,9 @@ export const ServiceSelection = ({
     cat => cat.id === activeCategory
   )?.services.sort((a, b) => a.display_order - b.display_order);
 
-  const totalDuration = selectedServices.reduce((total, service) => total + service.duration, 0);
-  const totalPrice = selectedServices.reduce((total, service) => total + service.price, 0);
+  // Use processed services for calculations
+  const totalDuration = processedServices.reduce((total, service) => total + service.duration, 0);
+  const totalPrice = processedServices.reduce((total, service) => total + service.price, 0);
 
   if (isLoading) {
     return <ServicesSkeleton />;
@@ -100,6 +129,11 @@ export const ServiceSelection = ({
 
   return (
     <div className="space-y-6 pb-8">
+      <PackageBanner 
+        isVisible={true} 
+        onInfoClick={() => setShowPackageInfo(true)}
+      />
+
       <CategoryTabs
         categories={sortedCategories || []}
         activeCategory={activeCategory}
@@ -114,6 +148,7 @@ export const ServiceSelection = ({
             service={service}
             isSelected={selectedServices.some(s => s.id === service.id)}
             onSelect={handleServiceToggleWrapper}
+            isBasePackageService={service.id === BASE_SERVICE_ID}
             className=""
           />
         ))}
@@ -153,13 +188,21 @@ export const ServiceSelection = ({
       </Sheet>
 
       <ServicesSummary
-        selectedServices={selectedServices}
+        selectedServices={processedServices}
         totalDuration={totalDuration}
         totalPrice={totalPrice}
         language={language}
         onNextStep={() => onStepChange?.('datetime')}
         onPrevStep={() => {}} // Adding the missing onPrevStep prop
         isFirstStep={true} // Adding the missing isFirstStep prop - set to true since this is the first step
+        packageEnabled={packageEnabled}
+        packageSettings={packageSettings}
+      />
+
+      <PackageInfoDialog 
+        isOpen={showPackageInfo} 
+        onClose={() => setShowPackageInfo(false)}
+        packageSettings={packageSettings}
       />
     </div>
   );

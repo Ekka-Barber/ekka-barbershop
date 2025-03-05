@@ -1,11 +1,13 @@
+
 import { useLanguage } from "@/contexts/LanguageContext";
 import { format } from "date-fns";
-import { Slash, X, Timer, Calendar, User } from "lucide-react";
+import { Slash, X, Timer, Calendar, User, Package } from "lucide-react";
 import { SelectedService } from "@/types/service";
 import { PriceDisplay } from "@/components/ui/price-display";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { getBookingDisplayDate } from "@/utils/dateAdjustment";
+import { CustomBadge } from "@/components/ui/custom-badge";
 
 interface BookingSummaryProps {
   selectedServices: SelectedService[];
@@ -26,6 +28,9 @@ const roundPrice = (price: number) => {
   return price;
 };
 
+// Base package service ID
+const BASE_SERVICE_ID = 'a3dbfd63-be5d-4465-af99-f25c21d578a0';
+
 export const BookingSummary = ({
   selectedServices,
   totalPrice,
@@ -41,6 +46,10 @@ export const BookingSummary = ({
   const totalDiscount = totalOriginalPrice - totalPrice;
 
   const displayDate = getBookingDisplayDate(selectedDate, selectedTime);
+  
+  // Check if this is a package booking
+  const hasBasePackageService = selectedServices.some(s => s.id === BASE_SERVICE_ID);
+  const hasPackageDiscounts = hasBasePackageService && totalDiscount > 0;
 
   const serviceItem = (service: SelectedService) => (
     <motion.div 
@@ -53,6 +62,11 @@ export const BookingSummary = ({
     >
       <div className="flex items-center gap-2">
         <span>{language === 'ar' ? service.name_ar : service.name_en}</span>
+        {service.id === BASE_SERVICE_ID && (
+          <CustomBadge variant="success" className="text-[0.65rem] px-1 py-0">
+            {language === 'ar' ? 'أساسي' : 'BASE'}
+          </CustomBadge>
+        )}
         {onRemoveService && service.isUpsellItem && (
           <motion.button
             onClick={() => onRemoveService(service.id)}
@@ -148,7 +162,27 @@ export const BookingSummary = ({
           </div>
         )}
 
-        {totalDiscount > 0 && (
+        {hasPackageDiscounts && (
+          <motion.div 
+            className="pt-2 flex justify-between text-green-700 items-center"
+            initial={{ backgroundColor: "rgba(242, 252, 226, 0.5)" }}
+            animate={{ backgroundColor: "transparent" }}
+            transition={{ duration: 1 }}
+          >
+            <div className="flex items-center gap-2">
+              <Package className="w-4 h-4" />
+              <span>{language === 'ar' ? 'توفير الباقة' : 'Package savings'}</span>
+            </div>
+            <PriceDisplay 
+              price={totalDiscount} 
+              language={language as 'en' | 'ar'}
+              size="sm"
+              className="text-green-700"
+            />
+          </motion.div>
+        )}
+        
+        {!hasPackageDiscounts && totalDiscount > 0 && (
           <motion.div 
             className="pt-2 flex justify-between text-destructive items-center"
             initial={{ backgroundColor: "rgba(254, 226, 226, 0.3)" }}

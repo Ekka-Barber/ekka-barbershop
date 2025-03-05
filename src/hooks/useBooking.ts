@@ -7,6 +7,7 @@ import { useCustomerDetails } from './useCustomerDetails';
 import { useCategoryData } from './useCategoryData';
 import { useEmployeeData } from './useEmployeeData';
 import { transformServicesForDisplay } from '@/utils/serviceTransformation';
+import { usePackageDiscount } from './usePackageDiscount';
 
 export const useBooking = (branch: any) => {
   const [currentStep, setCurrentStep] = useState<BookingStep>('services');
@@ -19,6 +20,7 @@ export const useBooking = (branch: any) => {
   const { selectedServices, handleServiceToggle, handleUpsellServiceAdd } = useServiceSelection();
   const { categories, categoriesLoading, employees, employeesLoading } = useCategoryData(branch?.id);
   const { selectedEmployee } = useEmployeeData(selectedBarber);
+  const { packageEnabled, packageSettings } = usePackageDiscount(selectedServices);
 
   // Calculate total price and duration
   const totalPrice = calculateTotalPrice(selectedServices);
@@ -50,6 +52,8 @@ export const useBooking = (branch: any) => {
     handleUpsellServiceAdd,
     totalPrice,
     totalDuration,
-    getTransformedServices
+    getTransformedServices,
+    packageEnabled,
+    packageSettings
   };
 };

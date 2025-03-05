@@ -15,9 +15,16 @@ interface ServiceCardProps {
   isSelected: boolean;
   onSelect: (service: Service) => void;
   className?: string;
+  isBasePackageService?: boolean;
 }
 
-export const ServiceCard = ({ service, isSelected, onSelect, className }: ServiceCardProps) => {
+export const ServiceCard = ({ 
+  service, 
+  isSelected, 
+  onSelect, 
+  className,
+  isBasePackageService = false
+}: ServiceCardProps) => {
   const { language } = useLanguage();
   const serviceName = language === 'ar' ? service.name_ar : service.name_en;
   const serviceDescription = language === 'ar' ? service.description_ar : service.description_en;
@@ -51,6 +58,7 @@ export const ServiceCard = ({ service, isSelected, onSelect, className }: Servic
           isSelecting={isSelecting}
           hasDiscount={hasDiscount}
           discountPercentage={discount?.percentage}
+          isBasePackageService={isBasePackageService}
           onClick={() => setIsOpen(true)}
           className={className}
         >
@@ -88,6 +96,7 @@ export const ServiceCard = ({ service, isSelected, onSelect, className }: Servic
         isOpen={isOpen}
         setIsOpen={setIsOpen}
         onSelect={onSelect}
+        isBasePackageService={isBasePackageService}
       />
     </Sheet>
   );
