@@ -12,8 +12,12 @@ export const WorkingHoursDisplay = ({ isArabic, workingHours }: WorkingHoursDisp
   
   return (
     <Fragment>
-      <div className="text-[#333333] font-medium">{isArabic ? 'ساعات العمل اليوم' : "Today's working Hrs"}</div>
-      <div className="text-[#C4A36F]">{timeRanges.join(isArabic ? ' , ' : ', ')}</div>
+      <div className="text-[#333333] font-medium text-xs whitespace-nowrap">
+        {isArabic ? 'ساعات العمل اليوم' : "Today's working Hrs"}
+      </div>
+      <div className="text-[#C4A36F] text-xs font-medium whitespace-nowrap">
+        {timeRanges.join(isArabic ? ' ، ' : ', ')}
+      </div>
     </Fragment>
   );
 };

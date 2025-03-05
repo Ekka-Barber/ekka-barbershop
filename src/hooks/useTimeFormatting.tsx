@@ -1,6 +1,7 @@
+
 import { type ReactNode } from "react";
 import { formatTimeRange } from "@/utils/timeFormatting";
-import { transformWorkingHours } from "@/utils/workingHoursUtils";
+import { transformWorkingHours, formatWorkingHoursForDisplay } from "@/utils/workingHoursUtils";
 import { WorkingHoursDisplay } from "@/components/working-hours/WorkingHoursDisplay";
 
 type WorkingHoursType = {
@@ -16,14 +17,7 @@ export const useTimeFormatting = () => {
   const getCurrentDayHours = (workingHours: WorkingHoursType, isArabic: boolean): ReactNode => {
     if (!workingHours) return null;
 
-    const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
-    const dayIndex = new Date().getDay();
-    const currentDay = days[dayIndex];
-    
-    const hours = transformWorkingHours(workingHours);
-    if (!hours || !hours[currentDay]) return null;
-
-    // Instead of parsing the hours here, we'll pass them to the WorkingHoursDisplay component
+    // Use the WorkingHoursDisplay component which will handle the formatting
     return <WorkingHoursDisplay isArabic={isArabic} workingHours={workingHours} />;
   };
 
@@ -72,7 +66,7 @@ export const useTimeFormatting = () => {
     if (allDaysHaveSameHours && firstDayWithHours) {
       const timeRanges = workingHours[firstDayWithHours].map(range => 
         formatTimeRange(range, isArabic)
-      ).join(', ');
+      ).join(isArabic ? ' ، ' : ', ');
       
       return [{
         label: isArabic ? 'يومياً' : 'Daily',
@@ -80,13 +74,13 @@ export const useTimeFormatting = () => {
       }];
     }
     
-    // Group days with same hours as before (if hours differ between days)
+    // Group days with same hours
     const hoursGroups: { [hours: string]: string[] } = {};
     
     daysOrder.forEach(day => {
       if (!workingHours[day]) return;
       
-      const timeRanges = workingHours[day].map(range => formatTimeRange(range, isArabic)).join(', ');
+      const timeRanges = workingHours[day].map(range => formatTimeRange(range, isArabic)).join(isArabic ? ' ، ' : ', ');
       if (!hoursGroups[timeRanges]) {
         hoursGroups[timeRanges] = [];
       }

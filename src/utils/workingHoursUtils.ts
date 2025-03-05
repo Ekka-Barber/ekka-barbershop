@@ -1,5 +1,6 @@
 
 import { WorkingHours } from '@/types/service';
+import { formatTimeRange } from './timeFormatting';
 
 export const isValidWorkingHours = (hours: any): hours is WorkingHours => {
   if (!hours || typeof hours !== 'object') return false;
@@ -85,14 +86,15 @@ export const formatWorkingHoursForDisplay = (workingHours: any): string[] => {
       const day = daysMap[currentDay];
       
       if (Array.isArray(workingHours[day])) {
-        return workingHours[day];
+        // Format each time range with the appropriate time formatter
+        return workingHours[day].map((range: string) => formatTimeRange(range, false));
       }
       
       // Case 2: Format is { day: { start, end } }
       if (workingHours[day] && typeof workingHours[day] === 'object') {
         const { start, end } = workingHours[day];
         if (start && end) {
-          return [`${start}-${end}`];
+          return [formatTimeRange(`${start}-${end}`, false)];
         }
       }
     }
