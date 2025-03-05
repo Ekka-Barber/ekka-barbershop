@@ -95,7 +95,7 @@ export const TimeSlotPicker = memo(({
                     ? slotIsAfterMidnight 
                       ? "border-border bg-blue-50 hover:bg-blue-100" 
                       : "border-border bg-background hover:bg-background" 
-                    : "bg-red-50 text-gray-600 border-red-100 cursor-not-allowed opacity-80"
+                    : "bg-destructive/10 text-destructive border-destructive/20 cursor-not-allowed"
               )}
             >
               {formatTime(slot.time, language === 'ar')}
@@ -119,7 +119,7 @@ export const TimeSlotPicker = memo(({
       <div className="w-full">
         <div className="bg-gradient-to-b from-white to-gray-50 shadow-sm border border-gray-100 rounded-lg">
           <div className="overflow-x-auto px-4 py-4 bg-white">
-            {/* Before midnight slots */}
+            {/* Before midnight slots in chronological order */}
             <div className="flex flex-wrap gap-3 mb-4">
               {beforeMidnightSlots.map(slot => renderTimeSlotButton(slot))}
             </div>
@@ -136,7 +136,7 @@ export const TimeSlotPicker = memo(({
               </div>
             )}
             
-            {/* After midnight slots */}
+            {/* After midnight slots in chronological order */}
             {hasAfterMidnightSlots && (
               <div className="flex flex-wrap gap-3">
                 {afterMidnightSlots.map(slot => renderTimeSlotButton(slot))}
