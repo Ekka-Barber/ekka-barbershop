@@ -1,3 +1,4 @@
+
 import React, { memo, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -28,35 +29,26 @@ export const TimeSlotPicker = memo(({
 }: TimeSlotPickerProps) => {
   const { language } = useLanguage();
   
-  // Filter out all unavailable time slots (including past times)
-  const filteredTimeSlots = useMemo(() => {
-    console.log("Available time slots before filtering:", timeSlots.map(slot => ({
-      time: slot.time, 
-      isAvailable: slot.isAvailable,
-      isAfterMidnight: isAfterMidnight(slot.time)
-    })));
-    
-    // Only show available time slots
+  // Only show available time slots (past slots will already be filtered out in BarberSelection.tsx)
+  const availableTimeSlots = useMemo(() => {
     return timeSlots.filter(slot => slot.isAvailable);
   }, [timeSlots]);
   
   // Check if there are any after-midnight slots
   const hasAfterMidnightSlots = useMemo(() => {
-    return filteredTimeSlots.some(slot => isAfterMidnight(slot.time));
-  }, [filteredTimeSlots]);
-  
-  console.log("Has after-midnight slots:", hasAfterMidnightSlots);
+    return availableTimeSlots.some(slot => isAfterMidnight(slot.time));
+  }, [availableTimeSlots]);
   
   // Group slots by time period (before/after midnight)
   const groupedSlots = useMemo(() => {
     return {
-      regular: filteredTimeSlots.filter(slot => !isAfterMidnight(slot.time)),
-      afterMidnight: filteredTimeSlots.filter(slot => isAfterMidnight(slot.time))
+      regular: availableTimeSlots.filter(slot => !isAfterMidnight(slot.time)),
+      afterMidnight: availableTimeSlots.filter(slot => isAfterMidnight(slot.time))
     };
-  }, [filteredTimeSlots]);
+  }, [availableTimeSlots]);
   
   // Show all slots or just first 6
-  const displayedTimeSlots = showAllSlots ? filteredTimeSlots : filteredTimeSlots.slice(0, 6);
+  const displayedTimeSlots = showAllSlots ? availableTimeSlots : availableTimeSlots.slice(0, 6);
   
   // Show loading state when loading
   if (isLoading) {
@@ -79,7 +71,7 @@ export const TimeSlotPicker = memo(({
   }
 
   // Show message when no available slots
-  if (filteredTimeSlots.length === 0) {
+  if (availableTimeSlots.length === 0) {
     return (
       <div className="space-y-4">
         <h3 className="text-lg font-medium text-center">
@@ -89,9 +81,8 @@ export const TimeSlotPicker = memo(({
     );
   }
 
-  // Render time slot button with appropriate styling based on selection state
+  // Render time slot button
   const renderTimeSlotButton = (slot: TimeSlot) => {
-    // All slots shown are available, just check if selected
     const isSelected = selectedTime === slot.time;
     
     return (
@@ -152,7 +143,7 @@ export const TimeSlotPicker = memo(({
         </div>
       </div>
       
-      {filteredTimeSlots.length > 6 && (
+      {availableTimeSlots.length > 6 && (
         <Button 
           variant="ghost" 
           onClick={onToggleShowAll} 

@@ -37,7 +37,7 @@ export const isSlotAvailable = (
     return false;
   }
 
-  // Check if the slot is bookable today (not in the past)
+  // Check if the slot is bookable today (not in the past with 15 min buffer)
   if (!isSlotBookableToday(selectedDate, slotMinutes, timeString)) {
     return false;
   }
@@ -62,7 +62,7 @@ export const isSlotAvailable = (
 
 /**
  * Checks if a slot is bookable on the current day (not in the past)
- * Enhanced to more strictly filter out passed time slots
+ * Strictly filters out past time slots with a 15-minute buffer
  */
 const isSlotBookableToday = (
   selectedDate: Date,

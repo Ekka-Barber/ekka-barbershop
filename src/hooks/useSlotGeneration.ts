@@ -58,10 +58,6 @@ export const useSlotGeneration = () => {
       // Set up realtime subscription for this employee and date
       setupRealtimeSubscription(employeeId, selectedDate);
       
-      // Current time for checking if slots are in the past
-      const now = new Date();
-      const isSelectedDateToday = isToday(selectedDate);
-      
       // Generate slots for each working hours range
       for (const range of workingHoursRanges) {
         console.log(`Processing working hours range: ${range}`);
@@ -103,8 +99,7 @@ export const useSlotGeneration = () => {
           const slotExists = allSlots.some(slot => slot.time === timeString);
           
           if (!slotExists) {
-            // Add the slot regardless of availability - we'll filter by availability in the UI
-            console.log(`Adding slot: ${timeString} (Available: ${available}, After midnight: ${isAfterMidnight(timeString)})`);
+            // Add the slot to the list
             allSlots.push({
               time: timeString,
               isAvailable: available
