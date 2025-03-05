@@ -1113,6 +1113,79 @@ export type Database = {
           },
         ]
       }
+      package_available_services: {
+        Row: {
+          created_at: string
+          enabled: boolean
+          id: string
+          service_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          service_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          service_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "package_available_services_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: true
+            referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      package_settings: {
+        Row: {
+          base_service_id: string
+          created_at: string
+          discount_one_service: number
+          discount_three_plus_services: number
+          discount_two_services: number
+          id: string
+          max_services: number | null
+          updated_at: string
+        }
+        Insert: {
+          base_service_id: string
+          created_at?: string
+          discount_one_service: number
+          discount_three_plus_services: number
+          discount_two_services: number
+          id?: string
+          max_services?: number | null
+          updated_at?: string
+        }
+        Update: {
+          base_service_id?: string
+          created_at?: string
+          discount_one_service?: number
+          discount_three_plus_services?: number
+          discount_two_services?: number
+          id?: string
+          max_services?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "package_settings_base_service_id_fkey"
+            columns: ["base_service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payment_method_fees: {
         Row: {
           created_at: string
