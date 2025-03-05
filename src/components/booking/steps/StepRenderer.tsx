@@ -7,17 +7,15 @@ import { CustomerForm } from "@/components/booking/CustomerForm";
 import { BookingSummary } from "@/components/booking/BookingSummary";
 import { WhatsAppIntegration } from "@/components/booking/WhatsAppIntegration";
 import { Service, SelectedService, WorkingHours } from "@/types/service";
-import { CustomerDetails, Branch } from "@/types/booking";
-import { createServiceFromSelected } from "@/utils/serviceTransformation";
 
 interface StepRendererProps {
   currentStep: BookingStep;
-  categories: any[] | undefined;
+  categories: any[];
   categoriesLoading: boolean;
   selectedServices: SelectedService[];
   handleServiceToggle: (service: Service) => void;
   handleStepChange: (step: string) => void;
-  employees: any[] | undefined;
+  employees: any[];
   employeesLoading: boolean;
   selectedBarber: string | undefined;
   setSelectedBarber: (id: string) => void;
@@ -26,12 +24,11 @@ interface StepRendererProps {
   setSelectedDate: (date: Date | undefined) => void;
   setSelectedTime: (time: string | undefined) => void;
   employeeWorkingHours: WorkingHours | null;
-  customerDetails: CustomerDetails;
+  customerDetails: any;
   handleCustomerDetailsChange: (field: string, value: string) => void;
   totalPrice: number;
-  language: 'en' | 'ar';
-  branch: Branch;
-  selectedBarberName?: string;
+  language: string;
+  branch: any;
 }
 
 export const StepRenderer = ({
@@ -53,14 +50,12 @@ export const StepRenderer = ({
   handleCustomerDetailsChange,
   totalPrice,
   language,
-  branch,
-  employeeWorkingHours,
-  selectedBarberName
+  branch
 }: StepRendererProps) => {
   if (currentStep === 'services') {
     return (
       <ServiceSelection
-        categories={categories || []}
+        categories={categories}
         isLoading={categoriesLoading}
         selectedServices={selectedServices}
         onServiceToggle={handleServiceToggle}
@@ -81,7 +76,7 @@ export const StepRenderer = ({
   if (currentStep === 'barber') {
     return (
       <BarberSelection
-        employees={employees || []}
+        employees={employees}
         isLoading={employeesLoading}
         selectedBarber={selectedBarber}
         onBarberSelect={setSelectedBarber}
@@ -104,11 +99,23 @@ export const StepRenderer = ({
           totalPrice={totalPrice}
           selectedDate={selectedDate}
           selectedTime={selectedTime}
-          selectedBarberName={selectedBarberName}
+          selectedBarberName={selectedBarber ? employees?.find(emp => emp.id === selectedBarber)?.[language === 'ar' ? 'name_ar' : 'name_en'] : undefined}
           onRemoveService={(serviceId) => {
             const service = selectedServices.find(s => s.id === serviceId);
             if (service) {
-              handleServiceToggle(createServiceFromSelected(service));
+              handleServiceToggle({
+                id: service.id,
+                category_id: '',
+                name_en: service.name_en,
+                name_ar: service.name_ar,
+                description_en: null,
+                description_ar: null,
+                price: service.price,
+                duration: service.duration,
+                display_order: 0,
+                discount_type: null,
+                discount_value: null
+              });
             }
           }}
         />
@@ -117,7 +124,7 @@ export const StepRenderer = ({
           totalPrice={totalPrice}
           selectedDate={selectedDate}
           selectedTime={selectedTime}
-          selectedBarberName={selectedBarberName}
+          selectedBarberName={selectedBarber ? employees?.find(emp => emp.id === selectedBarber)?.[language === 'ar' ? 'name_ar' : 'name_en'] : undefined}
           customerDetails={customerDetails}
           language={language}
           branch={branch}

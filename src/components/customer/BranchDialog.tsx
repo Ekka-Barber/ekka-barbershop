@@ -4,8 +4,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useTimeFormatting } from "@/hooks/useTimeFormatting";
 import { Clock } from "lucide-react";
-import { formatWorkingHoursForDisplay } from "@/utils/workingHoursUtils";
-import { formatTimeRange } from "@/utils/timeFormatting";
 
 interface Branch {
   id: string;
@@ -30,20 +28,7 @@ export const BranchDialog = ({
   onBranchSelect 
 }: BranchDialogProps) => {
   const { language, t } = useLanguage();
-  const isArabic = language === 'ar';
-  
-  const formatBranchHours = (workingHours: any): string => {
-    const timeRanges = formatWorkingHoursForDisplay(workingHours);
-    
-    // For Arabic, we need to convert the time ranges to Arabic numerals
-    if (isArabic) {
-      return timeRanges
-        .map(range => formatTimeRange(range, true))
-        .join(' ، ');
-    }
-    
-    return timeRanges.join(', ');
-  };
+  const { getCurrentDayHours } = useTimeFormatting();
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -61,22 +46,19 @@ export const BranchDialog = ({
               className="w-full h-[90px] flex flex-row items-center justify-between gap-3 px-4 bg-white hover:bg-[#C4A36F]/5 border-2 border-gray-200 hover:border-[#C4A36F] transition-all duration-300 rounded-lg group"
               onClick={() => onBranchSelect(branch.id)}
             >
-              <div className={`flex flex-col items-${isArabic ? 'end' : 'start'} flex-shrink min-w-0 max-w-[70%]`}>
+              <div className={`flex flex-col items-${language === 'ar' ? 'end' : 'start'} flex-shrink min-w-0 max-w-[70%]`}>
                 <span className="w-full font-bold text-base text-[#222222] group-hover:text-[#C4A36F] transition-colors truncate">
-                  {isArabic ? branch.name_ar : branch.name}
+                  {language === 'ar' ? branch.name_ar : branch.name}
                 </span>
                 <span className="w-full text-sm text-gray-600 group-hover:text-[#C4A36F]/70 transition-colors truncate mt-1">
-                  {isArabic ? branch.address_ar : branch.address}
+                  {language === 'ar' ? branch.address_ar : branch.address}
                 </span>
               </div>
-              <div className={`flex-shrink-0 ${isArabic ? 'border-s' : 'border-e'} border-gray-200 ${isArabic ? 'ps-3' : 'pe-3'}`}>
-                <div className="flex flex-col items-center gap-1">
-                  <div className="flex items-center gap-1.5 text-xs font-medium">
-                    <span className="text-[#333333]">{isArabic ? 'ساعات العمل اليوم' : "Today's working Hrs"}</span>
-                    <Clock className="w-3.5 h-3.5 text-[#C4A36F]" />
-                  </div>
-                  <span className="text-xs font-medium text-[#C4A36F] whitespace-nowrap">
-                    {formatBranchHours(branch.working_hours)}
+              <div className={`flex-shrink-0 ${language === 'ar' ? 'border-s' : 'border-e'} border-gray-200 ${language === 'ar' ? 'ps-3' : 'pe-3'}`}>
+                <div className="flex items-center gap-1.5 text-sm font-medium text-[#C4A36F]">
+                  <Clock className="w-4 h-4" />
+                  <span className="group-hover:text-[#C4A36F] transition-colors whitespace-nowrap">
+                    {getCurrentDayHours(branch.working_hours, language === 'ar')}
                   </span>
                 </div>
               </div>

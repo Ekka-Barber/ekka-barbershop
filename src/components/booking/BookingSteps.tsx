@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { BookingProgress, BookingStep } from "@/components/booking/BookingProgress";
 import { BookingNavigation } from "@/components/booking/BookingNavigation";
@@ -6,29 +5,30 @@ import { UpsellModal } from "@/components/booking/UpsellModal";
 import { useBooking } from "@/hooks/useBooking";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useBookingUpsells } from "@/hooks/useBookingUpsells";
+import { transformWorkingHours } from "@/utils/workingHoursUtils";
 import { StepRenderer } from "./steps/StepRenderer";
 import { ServicesSummary } from "./service-selection/ServicesSummary";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft } from "lucide-react";
-import { transformServicesForDisplay, getBarberNameById } from "@/utils/serviceTransformation";
-import { Branch } from "@/types/booking";
-import { Button } from "@/components/ui/button";
-import { transformWorkingHours } from "@/utils/workingHoursUtils";
-import { WorkingHours } from "@/types/service";
+import { transformServicesForDisplay } from "@/utils/serviceTransformation";
 
 const STEPS: BookingStep[] = ['services', 'datetime', 'barber', 'details'];
 
 interface BookingStepsProps {
-  branch: Branch;
+  branch: any;
 }
 
 export const BookingSteps = ({
   branch
 }: BookingStepsProps) => {
   const navigate = useNavigate();
-  const { language } = useLanguage();
-  const { toast } = useToast();
+  const {
+    language
+  } = useLanguage();
+  const {
+    toast
+  } = useToast();
   const [showUpsellModal, setShowUpsellModal] = useState(false);
   const [pendingStep, setPendingStep] = useState<BookingStep | null>(null);
 
@@ -62,7 +62,7 @@ export const BookingSteps = ({
   const handleStepChange = (step: string) => {
     if (currentStep === 'services' && step === 'datetime' && availableUpsells?.length) {
       setShowUpsellModal(true);
-      setPendingStep('datetime' as BookingStep);
+      setPendingStep('datetime');
     } else {
       setCurrentStep(step as BookingStep);
     }
@@ -150,6 +150,8 @@ export const BookingSteps = ({
     return false;
   };
 
+  const employeeWorkingHours = selectedEmployee?.working_hours ? transformWorkingHours(selectedEmployee.working_hours) : null;
+
   const shouldShowNavigation = currentStep === 'details';
 
   const shouldShowSummaryBar = currentStep !== 'details' && selectedServices.length > 0;
@@ -157,89 +159,20 @@ export const BookingSteps = ({
   const showBackToServices = currentStep !== 'services';
 
   const transformedServices = transformServicesForDisplay(selectedServices, language);
-  
-  const selectedBarberName = getBarberNameById(employees, selectedBarber, language);
-
-  // Transform the working hours to the correct type or null if invalid
-  const employeeWorkingHours: WorkingHours | null = selectedEmployee?.working_hours 
-    ? transformWorkingHours(selectedEmployee.working_hours)
-    : null;
 
   return <>
-      <BookingProgress 
-        currentStep={currentStep} 
-        steps={STEPS} 
-        onStepClick={setCurrentStep} 
-        currentStepIndex={currentStepIndex} 
-      />
+      <BookingProgress currentStep={currentStep} steps={STEPS} onStepClick={setCurrentStep} currentStepIndex={currentStepIndex} />
 
-      {showBackToServices && (
-        <Button 
-          variant="ghost" 
-          size="sm" 
-          className="mb-4 text-muted-foreground" 
-          onClick={handleBackToServices}
-        >
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          {language === 'ar' ? 'العودة إلى الخدمات' : 'Back to services'}
-        </Button>
-      )}
+      {showBackToServices}
 
       <div className="mb-8">
-        <StepRenderer 
-          currentStep={currentStep}
-          categories={categories}
-          categoriesLoading={categoriesLoading}
-          selectedServices={selectedServices}
-          handleServiceToggle={handleServiceToggle}
-          handleStepChange={handleStepChange}
-          employees={employees}
-          employeesLoading={employeesLoading}
-          selectedBarber={selectedBarber}
-          setSelectedBarber={setSelectedBarber}
-          selectedDate={selectedDate}
-          selectedTime={selectedTime}
-          setSelectedDate={setSelectedDate}
-          setSelectedTime={setSelectedTime}
-          customerDetails={customerDetails}
-          handleCustomerDetailsChange={handleCustomerDetailsChange}
-          totalPrice={totalPrice}
-          language={language}
-          branch={branch}
-          employeeWorkingHours={employeeWorkingHours}
-          selectedBarberName={selectedBarberName}
-        />
+        <StepRenderer currentStep={currentStep} categories={categories} categoriesLoading={categoriesLoading} selectedServices={selectedServices} handleServiceToggle={handleServiceToggle} handleStepChange={handleStepChange} employees={employees} employeesLoading={employeesLoading} selectedBarber={selectedBarber} setSelectedBarber={setSelectedBarber} selectedDate={selectedDate} selectedTime={selectedTime} setSelectedDate={setSelectedDate} setSelectedTime={setSelectedTime} employeeWorkingHours={employeeWorkingHours} customerDetails={customerDetails} handleCustomerDetailsChange={handleCustomerDetailsChange} totalPrice={totalPrice} language={language} branch={branch} />
       </div>
 
-      {shouldShowNavigation && (
-        <BookingNavigation 
-          currentStepIndex={currentStepIndex}
-          steps={STEPS}
-          currentStep={currentStep}
-          setCurrentStep={setCurrentStep}
-          isNextDisabled={isNextDisabled()}
-          customerDetails={customerDetails}
-          branch={branch}
-        />
-      )}
+      {shouldShowNavigation && <BookingNavigation currentStepIndex={currentStepIndex} steps={STEPS} currentStep={currentStep} setCurrentStep={setCurrentStep} isNextDisabled={isNextDisabled()} customerDetails={customerDetails} branch={branch} />}
 
-      {shouldShowSummaryBar && (
-        <ServicesSummary 
-          selectedServices={transformedServices}
-          totalDuration={totalDuration}
-          totalPrice={totalPrice}
-          language={language}
-          onNextStep={handleNextStep}
-          onPrevStep={handlePrevStep}
-          isFirstStep={currentStepIndex === 0}
-        />
-      )}
+      {shouldShowSummaryBar && <ServicesSummary selectedServices={transformedServices} totalDuration={totalDuration} totalPrice={totalPrice} language={language} onNextStep={handleNextStep} onPrevStep={handlePrevStep} isFirstStep={currentStepIndex === 0} />}
 
-      <UpsellModal 
-        isOpen={showUpsellModal}
-        onClose={handleUpsellModalClose}
-        onConfirm={handleUpsellConfirm}
-        availableUpsells={availableUpsells || []}
-      />
+      <UpsellModal isOpen={showUpsellModal} onClose={handleUpsellModalClose} onConfirm={handleUpsellConfirm} availableUpsells={availableUpsells || []} />
     </>;
 };

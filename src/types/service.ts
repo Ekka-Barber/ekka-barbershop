@@ -1,3 +1,4 @@
+
 export interface Service {
   id: string;
   name_en: string;
@@ -43,14 +44,4 @@ export interface WorkingHours {
   };
 }
 
-// Changed from type alias to a more descriptive union type
 export type ValidService = Service | null;
-
-// Add utility type for transformed service display
-export interface DisplayService {
-  id: string;
-  name: string;
-  price: number;
-  duration: number;
-  originalPrice?: number;
-}

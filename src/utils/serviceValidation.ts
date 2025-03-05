@@ -8,38 +8,11 @@ import { Service } from '@/types/service';
  */
 export const validateService = (service: any): Service | null => {
   try {
-    // Check for null/undefined service
-    if (!service) {
-      console.warn('Service is null or undefined');
-      return null;
-    }
-    
     // Check if all required fields are present and of correct type
-    if (
-      typeof service.id !== 'string' || 
-      typeof service.name_en !== 'string' || 
-      typeof service.name_ar !== 'string' || 
-      typeof service.price !== 'number' || 
-      typeof service.duration !== 'number' ||
-      typeof service.display_order !== 'number'
-    ) {
-      console.warn('Invalid service data. Missing or incorrect required fields:', {
-        id: typeof service.id,
-        name_en: typeof service.name_en,
-        name_ar: typeof service.name_ar,
-        price: typeof service.price,
-        duration: typeof service.duration,
-        display_order: typeof service.display_order
-      });
-      return null;
-    }
-
-    // Validate price and duration are positive numbers
-    if (service.price < 0 || service.duration < 0) {
-      console.warn('Invalid service: price or duration is negative', {
-        price: service.price,
-        duration: service.duration
-      });
+    if (!service?.id || !service?.name_en || !service?.name_ar || 
+        typeof service?.price !== 'number' || typeof service?.duration !== 'number' ||
+        typeof service?.display_order !== 'number') {
+      console.warn('Invalid service data:', service);
       return null;
     }
 

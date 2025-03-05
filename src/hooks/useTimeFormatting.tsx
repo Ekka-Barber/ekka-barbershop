@@ -1,7 +1,7 @@
 
 import { type ReactNode } from "react";
 import { formatTimeRange } from "@/utils/timeFormatting";
-import { transformWorkingHours, formatWorkingHoursForDisplay } from "@/utils/workingHoursUtils";
+import { transformWorkingHours } from "@/utils/workingHoursUtils";
 import { WorkingHoursDisplay } from "@/components/working-hours/WorkingHoursDisplay";
 
 type WorkingHoursType = {
@@ -17,8 +17,20 @@ export const useTimeFormatting = () => {
   const getCurrentDayHours = (workingHours: WorkingHoursType, isArabic: boolean): ReactNode => {
     if (!workingHours) return null;
 
-    // Use the WorkingHoursDisplay component which will handle the formatting
-    return <WorkingHoursDisplay isArabic={isArabic} workingHours={workingHours} />;
+    const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+    const dayIndex = new Date().getDay();
+    const currentDay = days[dayIndex];
+    
+    const hours = transformWorkingHours(workingHours);
+    if (!hours || !hours[currentDay]) return null;
+
+    // Check if the current day has any time ranges
+    const currentDayHours = hours[currentDay];
+    if (!Array.isArray(currentDayHours) || currentDayHours.length === 0) return null;
+
+    const timeRanges = currentDayHours.map(range => formatTimeRange(range, isArabic));
+    
+    return <WorkingHoursDisplay isArabic={isArabic} timeRanges={timeRanges} />;
   };
 
   const getAllDaysHours = (workingHours: WorkingHoursType, isArabic: boolean): FormattedHours[] => {
@@ -66,7 +78,7 @@ export const useTimeFormatting = () => {
     if (allDaysHaveSameHours && firstDayWithHours) {
       const timeRanges = workingHours[firstDayWithHours].map(range => 
         formatTimeRange(range, isArabic)
-      ).join(isArabic ? ' ، ' : ', ');
+      ).join(', ');
       
       return [{
         label: isArabic ? 'يومياً' : 'Daily',
@@ -74,13 +86,13 @@ export const useTimeFormatting = () => {
       }];
     }
     
-    // Group days with same hours
+    // Group days with same hours as before (if hours differ between days)
     const hoursGroups: { [hours: string]: string[] } = {};
     
     daysOrder.forEach(day => {
       if (!workingHours[day]) return;
       
-      const timeRanges = workingHours[day].map(range => formatTimeRange(range, isArabic)).join(isArabic ? ' ، ' : ', ');
+      const timeRanges = workingHours[day].map(range => formatTimeRange(range, isArabic)).join(', ');
       if (!hoursGroups[timeRanges]) {
         hoursGroups[timeRanges] = [];
       }
