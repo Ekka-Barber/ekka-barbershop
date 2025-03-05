@@ -3,8 +3,8 @@ import { format, parse, isBefore, addMinutes, addDays } from "date-fns";
 import { useQueryClient } from "@tanstack/react-query";
 import { 
   TimeSlot,
-  sortTimeSlots
-} from "@/utils/timeSlotUtils";
+} from "@/utils/timeSlotTypes";
+import { sortTimeSlots } from "@/utils/timeSlotSorting";
 import { doesCrossMidnight, convertTimeToMinutes, convertMinutesToTime, isAfterMidnight } from "@/utils/timeConversion";
 import { fetchUnavailableSlots } from "@/services/employeeScheduleService";
 import { isSlotAvailable } from "@/utils/slotAvailability";

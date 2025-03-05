@@ -5,7 +5,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { BarberCard } from "./barber/BarberCard";
 import { TimeSlotPicker } from "./barber/TimeSlotPicker";
 import { useTimeSlots } from "@/hooks/useTimeSlots";
-import { TimeSlot } from "@/utils/timeSlotUtils";
+import { TimeSlot } from "@/utils/timeSlotTypes";
 import { useToast } from "@/hooks/use-toast";
 
 interface Employee {

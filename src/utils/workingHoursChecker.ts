@@ -1,6 +1,4 @@
-
 import { convertTimeToMinutes, convertMinutesToTime, isAfterMidnight, doesCrossMidnight } from "./timeConversion";
-import { format } from "date-fns";
 
 /**
  * Checks if a time slot is within the working hours ranges

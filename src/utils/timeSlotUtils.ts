@@ -5,3 +5,4 @@ export * from './timeSlotTypes';
 export * from './timeSlotSorting';
 export * from './workingHoursChecker';
 export * from './consecutiveTimeChecker';
+export * from './dateAdjustment';
