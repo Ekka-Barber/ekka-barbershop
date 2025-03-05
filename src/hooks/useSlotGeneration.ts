@@ -2,7 +2,13 @@
 import { useCallback } from "react";
 import { format, parse, isBefore, addMinutes, addDays } from "date-fns";
 import { useQueryClient } from "@tanstack/react-query";
-import { TimeSlot, doesCrossMidnight, convertTimeToMinutes, sortTimeSlots } from "@/utils/timeSlotUtils";
+import { 
+  TimeSlot, 
+  doesCrossMidnight, 
+  convertTimeToMinutes, 
+  sortTimeSlots,
+  convertMinutesToTime 
+} from "@/utils/timeSlotUtils";
 import { fetchUnavailableSlots } from "@/services/employeeScheduleService";
 import { isSlotAvailable } from "@/utils/slotAvailability";
 import { useToast } from "@/hooks/use-toast";
@@ -10,6 +16,7 @@ import { useRealtimeSubscription } from "./useRealtimeSubscription";
 
 // Cache constants
 const CACHE_EXPIRY = 5 * 60 * 1000; // 5 minutes
+const SLOT_INTERVAL = 30; // 30-minute intervals between slots
 
 export const useSlotGeneration = () => {
   const queryClient = useQueryClient();
@@ -18,6 +25,7 @@ export const useSlotGeneration = () => {
 
   /**
    * Generates available time slots based on working hours and unavailable periods
+   * Improved to better handle cross-midnight ranges and provide more consistent results
    */
   const generateTimeSlots = useCallback(async (
     workingHoursRanges: string[] = [],
@@ -28,10 +36,12 @@ export const useSlotGeneration = () => {
     const availableSlots: TimeSlot[] = [];
     
     if (!selectedDate || !employeeId || !workingHoursRanges.length) {
+      console.log("Missing required parameters for time slot generation");
       return availableSlots;
     }
 
     const formattedDate = format(selectedDate, 'yyyy-MM-dd');
+    console.log(`Generating time slots for ${formattedDate}, employee ${employeeId}`);
     
     // Use react-query to fetch and cache unavailable slots
     const queryKey = ['unavailableSlots', employeeId, formattedDate];
@@ -45,15 +55,18 @@ export const useSlotGeneration = () => {
         gcTime: CACHE_EXPIRY
       });
       
+      console.log(`Fetched ${unavailableSlots?.length || 0} unavailable slots for employee ${employeeId}`);
+      
       // Set up realtime subscription for this employee and date
       setupRealtimeSubscription(employeeId, selectedDate);
       
-      // Generate slots at 30-minute intervals for each working hours range
+      // Generate slots for each working hours range
       for (const range of workingHoursRanges) {
+        console.log(`Processing working hours range: ${range}`);
         const [start, end] = range.split('-');
         
         const baseDate = selectedDate;
-        const startTime = parse(start, 'HH:mm', baseDate);
+        let startTime = parse(start, 'HH:mm', baseDate);
         let endTime = parse(end, 'HH:mm', baseDate);
         
         // Handle shifts that cross midnight
@@ -67,7 +80,7 @@ export const useSlotGeneration = () => {
           });
         }
 
-        // Create a slot every 30 minutes from start to end time
+        // Create a slot every SLOT_INTERVAL minutes from start to end time
         let currentSlot = startTime;
         
         // Generate slots up to but not including the end time
@@ -86,14 +99,19 @@ export const useSlotGeneration = () => {
           
           // Only add available slots
           if (available) {
-            console.log(`Adding available slot: ${timeString}`);
-            availableSlots.push({
-              time: timeString,
-              isAvailable: true
-            });
+            // Check if this slot already exists to avoid duplicates
+            const slotExists = availableSlots.some(slot => slot.time === timeString);
+            
+            if (!slotExists) {
+              console.log(`Adding available slot: ${timeString}`);
+              availableSlots.push({
+                time: timeString,
+                isAvailable: true
+              });
+            }
           }
           
-          currentSlot = addMinutes(currentSlot, 30);
+          currentSlot = addMinutes(currentSlot, SLOT_INTERVAL);
         }
       }
 

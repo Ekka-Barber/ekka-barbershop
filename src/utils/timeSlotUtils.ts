@@ -20,6 +20,15 @@ export const convertTimeToMinutes = (timeStr: string): number => {
 };
 
 /**
+ * Converts minutes since midnight to a time string (HH:MM)
+ */
+export const convertMinutesToTime = (minutes: number): string => {
+  const hours = Math.floor(minutes / 60);
+  const mins = minutes % 60;
+  return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
+};
+
+/**
  * Checks if a time string represents a time after midnight (00:00-11:59)
  */
 export const isAfterMidnight = (time: string): boolean => {
@@ -58,16 +67,26 @@ export const hasEnoughConsecutiveTime = (
       ? slot.end_time 
       : convertTimeToMinutes(slot.end_time as unknown as string);
 
-    // Check for any overlap
-    if (
-      (slotStartMinutes < slotEnd && slotEndMinutes > slotStart) || // Overlaps with unavailable period
-      (slotStartMinutes === slotStart && slotEndMinutes === slotEnd) // Exactly matches unavailable period
-    ) {
+    // Handle slots that cross midnight
+    const slotCrossesMidnight = slotEnd < slotStart;
+    let overlap = false;
+    
+    if (slotCrossesMidnight) {
+      // For slots that cross midnight, check two time periods: from start to midnight and from midnight to end
+      overlap = (slotStartMinutes < slotEnd && slotEndMinutes > 0) || // Overlap in the 00:00 to slotEnd period
+               (slotStartMinutes < 1440 && slotEndMinutes > slotStart); // Overlap in the slotStart to 23:59 period
+    } else {
+      // Standard overlap check for non-midnight-crossing slots
+      overlap = (slotStartMinutes < slotEnd && slotEndMinutes > slotStart);
+    }
+    
+    if (overlap) {
       console.log('Not enough consecutive time due to overlap:', {
         serviceStart: slotStartMinutes,
         serviceEnd: slotEndMinutes,
         unavailableStart: slotStart,
-        unavailableEnd: slotEnd
+        unavailableEnd: slotEnd,
+        slotCrossesMidnight
       });
       return false;
     }
@@ -122,6 +141,7 @@ export const normalizeUnavailableSlots = (slots: any[]): UnavailableSlot[] => {
 
 /**
  * Checks if a time slot is within the working hours ranges
+ * Improved to properly handle ranges that cross midnight
  */
 export const isWithinWorkingHours = (
   slotMinutes: number, 
@@ -132,10 +152,8 @@ export const isWithinWorkingHours = (
     return false;
   }
 
-  // First convert the slotMinutes to a formatted time string for easier comparison
-  const slotHours = Math.floor(slotMinutes / 60);
-  const slotMins = slotMinutes % 60;
-  const timeString = `${slotHours.toString().padStart(2, '0')}:${slotMins.toString().padStart(2, '0')}`;
+  // Convert the slotMinutes to a formatted time string for logging
+  const timeString = convertMinutesToTime(slotMinutes);
   const slotIsAfterMidnight = isAfterMidnight(timeString);
   
   console.log(`Checking if slot ${timeString} (${slotMinutes} mins) is within working hours. After midnight: ${slotIsAfterMidnight}`);
@@ -149,15 +167,15 @@ export const isWithinWorkingHours = (
     console.log(`Checking range ${range}: start=${startMinutes}, end=${endMinutes}, crossesMidnight=${crossesMidnight}`);
     
     if (crossesMidnight) {
-      // For shifts that cross midnight we need special handling
+      // For shifts that cross midnight
       if (slotIsAfterMidnight) {
-        // If slot is after midnight (e.g., 01:30), check if it's before the end time
-        if (slotMinutes < endMinutes) {
+        // Slot is after midnight (00:00-11:59) - check if it's before the end time
+        if (slotMinutes <= endMinutes) {
           console.log(`✅ Slot ${timeString} is within after-midnight portion of range ${range}`);
           return true;
         }
       } else {
-        // If slot is before midnight (e.g., 22:30), check if it's after start time
+        // Slot is before midnight (12:00-23:59) - check if it's after the start time
         if (slotMinutes >= startMinutes) {
           console.log(`✅ Slot ${timeString} is within before-midnight portion of range ${range}`);
           return true;
@@ -174,4 +192,17 @@ export const isWithinWorkingHours = (
   
   console.log(`❌ Slot ${timeString} is NOT within any working hours range`);
   return false;
+};
+
+/**
+ * Determines if a time slot falls within a specific date's business hours
+ * Takes into account both the time of day and the date
+ */
+export const isSlotWithinBusinessHours = (
+  slotTime: string, 
+  selectedDate: Date, 
+  workingHoursRanges: string[]
+): boolean => {
+  const slotMinutes = convertTimeToMinutes(slotTime);
+  return isWithinWorkingHours(slotMinutes, workingHoursRanges);
 };

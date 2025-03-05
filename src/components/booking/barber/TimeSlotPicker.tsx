@@ -40,20 +40,17 @@ export const TimeSlotPicker = memo(({
   
   console.log("Has after-midnight slots:", hasAfterMidnightSlots);
   
+  // Group slots by time period (before/after midnight)
+  const groupedSlots = useMemo(() => {
+    return {
+      regular: timeSlots.filter(slot => !isAfterMidnight(slot.time)),
+      afterMidnight: timeSlots.filter(slot => isAfterMidnight(slot.time))
+    };
+  }, [timeSlots]);
+  
   // All slots are available, so we just need to decide how many to show
   const displayedTimeSlots = showAllSlots ? timeSlots : timeSlots.slice(0, 6);
   
-  // Determine if we need a separator between days
-  const needsSeparator = (currentIndex: number, slots: TimeSlot[]) => {
-    if (currentIndex === 0) return false;
-    
-    const currentTime = slots[currentIndex].time;
-    const prevTime = slots[currentIndex - 1].time;
-    
-    // If this is an after-midnight slot and the previous one wasn't
-    return isAfterMidnight(currentTime) && !isAfterMidnight(prevTime);
-  };
-
   // Show loading state when loading
   if (isLoading) {
     return (
@@ -85,6 +82,7 @@ export const TimeSlotPicker = memo(({
     );
   }
 
+  // Render time slots with better separation for after-midnight slots
   return (
     <div className="space-y-4">
       <h3 className="text-lg font-medium text-center">
@@ -93,47 +91,65 @@ export const TimeSlotPicker = memo(({
       <div className="w-full">
         <div className="bg-gradient-to-b from-white to-gray-50 shadow-sm border border-gray-100 rounded-lg">
           <div className="overflow-x-auto scrollbar-hide px-4 py-4 bg-white">
-            <div className="flex flex-wrap gap-3">
-              {displayedTimeSlots.map((slot, index) => {
-                const showSeparator = needsSeparator(index, displayedTimeSlots);
-                const isAfterMid = isAfterMidnight(slot.time);
-                
-                console.log(`Rendering slot ${slot.time} - isAfterMidnight: ${isAfterMid}, showSeparator: ${showSeparator}`);
-                
-                return (
-                  <React.Fragment key={slot.time}>
-                    {showSeparator && (
-                      <div className="flex items-center w-full justify-center my-2">
-                        <div className="h-px bg-gray-200 flex-grow mx-2"></div>
-                        <Clock12 className="h-4 w-4 text-gray-500" />
-                        <span className="text-xs text-gray-500 mx-2">
-                          {language === 'ar' ? 'بعد منتصف الليل' : 'After midnight'}
-                        </span>
-                        <div className="h-px bg-gray-200 flex-grow mx-2"></div>
-                      </div>
-                    )}
+            {/* Regular time slots (before midnight) */}
+            {groupedSlots.regular.length > 0 && (
+              <div className="flex flex-wrap gap-3 mb-3">
+                {displayedTimeSlots
+                  .filter(slot => !isAfterMidnight(slot.time))
+                  .map(slot => (
                     <Button
+                      key={slot.time}
                       variant="outline"
                       onClick={() => onTimeSelect(slot.time)}
                       className={cn(
                         "flex-shrink-0 transition-all duration-150 hover:bg-transparent",
                         selectedTime === slot.time 
                           ? "bg-[#FDF9EF] border-[#e7bd71] text-black hover:bg-[#FDF9EF]" 
-                          : "border-border bg-background hover:bg-background",
-                        isAfterMid && "bg-gray-50"
+                          : "border-border bg-background hover:bg-background"
                       )}
                     >
                       {formatTime(slot.time, language === 'ar')}
-                      {isAfterMid && (
+                    </Button>
+                  ))}
+              </div>
+            )}
+              
+            {/* After midnight separator and slots */}
+            {hasAfterMidnightSlots && groupedSlots.afterMidnight.length > 0 && (
+              <>
+                <div className="flex items-center w-full justify-center my-3">
+                  <div className="h-px bg-gray-200 flex-grow mx-2"></div>
+                  <Clock12 className="h-4 w-4 text-gray-500" />
+                  <span className="text-xs text-gray-500 mx-2">
+                    {language === 'ar' ? 'بعد منتصف الليل' : 'After midnight'}
+                  </span>
+                  <div className="h-px bg-gray-200 flex-grow mx-2"></div>
+                </div>
+                
+                <div className="flex flex-wrap gap-3">
+                  {displayedTimeSlots
+                    .filter(slot => isAfterMidnight(slot.time))
+                    .map(slot => (
+                      <Button
+                        key={slot.time}
+                        variant="outline"
+                        onClick={() => onTimeSelect(slot.time)}
+                        className={cn(
+                          "flex-shrink-0 transition-all duration-150 hover:bg-transparent",
+                          selectedTime === slot.time 
+                            ? "bg-[#FDF9EF] border-[#e7bd71] text-black hover:bg-[#FDF9EF]" 
+                            : "border-border bg-gray-50 hover:bg-background"
+                        )}
+                      >
+                        {formatTime(slot.time, language === 'ar')}
                         <span className="ml-1 text-xs text-gray-500">
                           {language === 'ar' ? 'ص' : 'AM'}
                         </span>
-                      )}
-                    </Button>
-                  </React.Fragment>
-                );
-              })}
-            </div>
+                      </Button>
+                    ))}
+                </div>
+              </>
+            )}
           </div>
         </div>
       </div>
