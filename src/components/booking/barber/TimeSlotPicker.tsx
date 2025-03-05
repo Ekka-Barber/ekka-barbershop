@@ -1,4 +1,3 @@
-
 import React, { memo, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -29,7 +28,7 @@ export const TimeSlotPicker = memo(({
 }: TimeSlotPickerProps) => {
   const { language } = useLanguage();
   
-  // Filter out time slots that are in the past
+  // Filter out all unavailable time slots (including past times)
   const filteredTimeSlots = useMemo(() => {
     console.log("Available time slots before filtering:", timeSlots.map(slot => ({
       time: slot.time, 
@@ -37,8 +36,8 @@ export const TimeSlotPicker = memo(({
       isAfterMidnight: isAfterMidnight(slot.time)
     })));
     
-    // The filtering is now happening in isSlotAvailable, which sets isAvailable to false for past slots
-    return timeSlots;
+    // Only show available time slots
+    return timeSlots.filter(slot => slot.isAvailable);
   }, [timeSlots]);
   
   // Check if there are any after-midnight slots
@@ -90,38 +89,11 @@ export const TimeSlotPicker = memo(({
     );
   }
 
-  // Render time slot button with appropriate styling based on availability
+  // Render time slot button with appropriate styling based on selection state
   const renderTimeSlotButton = (slot: TimeSlot) => {
-    // Determine button styling based on availability and selection state
+    // All slots shown are available, just check if selected
     const isSelected = selectedTime === slot.time;
     
-    if (!slot.isAvailable) {
-      // Unavailable slot styling - disabled and gray
-      return (
-        <TooltipProvider key={slot.time}>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="outline"
-                disabled
-                className="flex-shrink-0 transition-all duration-150 opacity-60 bg-gray-100 text-gray-400 cursor-not-allowed"
-              >
-                {formatTime(slot.time, language === 'ar')}
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>
-                {language === 'ar' 
-                  ? 'هذا الوقت غير متاح أو مر' 
-                  : 'This time slot is unavailable or has passed'}
-              </p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-      );
-    }
-    
-    // Available slot styling
     return (
       <Button
         key={slot.time}

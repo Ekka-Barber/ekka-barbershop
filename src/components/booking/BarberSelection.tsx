@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -55,14 +54,12 @@ export const BarberSelection = ({
   const [employeeTimeSlots, setEmployeeTimeSlots] = useState<TimeSlot[]>([]);
   const [isLoadingSlots, setIsLoadingSlots] = useState(false);
 
-  // Filter employees just once when they change
   const filteredEmployees = useMemo(() => 
     employees?.filter(employee => 
       employee.role === 'barber' || employee.role === 'manager'
     ) || [],
   [employees]);
 
-  // Time slot update with error handling
   const updateTimeSlots = useCallback(async () => {
     if (selectedBarber && selectedDate) {
       const selectedEmployee = employees?.find(emp => emp.id === selectedBarber);
@@ -71,15 +68,26 @@ export const BarberSelection = ({
         try {
           setIsLoadingSlots(true);
           const slots = await getAvailableTimeSlots(selectedEmployee, selectedDate);
+          
+          const availableSlots = slots.filter(slot => slot.isAvailable);
           setEmployeeTimeSlots(slots);
           
-          // Clear selected time if it's no longer available
+          if (availableSlots.length === 0) {
+            toast({
+              title: language === 'ar' ? 'لا توجد مواعيد متاحة' : 'No available time slots',
+              description: language === 'ar' 
+                ? 'يرجى اختيار تاريخ أو حلاق آخر' 
+                : 'Please select another date or barber',
+              variant: "default"
+            });
+          }
+          
           if (selectedTime && !slots.some(slot => slot.time === selectedTime && slot.isAvailable)) {
             onTimeSelect('');
             toast({
               title: language === 'ar' ? 'الوقت لم يعد متاحًا' : 'Time no longer available',
               description: language === 'ar' ? 'يرجى اختيار وقت آخر' : 'Please select another time',
-              variant: "destructive" // Changed from "warning" to "destructive" as it's an allowed variant
+              variant: "destructive"
             });
           }
         } catch (error) {
@@ -101,22 +109,19 @@ export const BarberSelection = ({
     }
   }, [selectedBarber, selectedDate, employees, getAvailableTimeSlots, isEmployeeAvailable, toast, language, selectedTime, onTimeSelect]);
 
-  // Memoize the toggle function to prevent unnecessary re-renders
   const handleToggleShowAll = useCallback(() => {
     setShowAllSlots(prev => !prev);
   }, []);
 
-  // Effect to update time slots when barber or date changes
   useEffect(() => {
     updateTimeSlots();
   }, [updateTimeSlots]);
 
-  // Handle barber selection
   const handleBarberSelect = useCallback((barberId: string, isAvailable: boolean) => {
     if (isAvailable) {
       onBarberSelect(barberId);
-      onTimeSelect(''); // Clear the selected time
-      setShowAllSlots(false); // Reset the "show all" state
+      onTimeSelect('');
+      setShowAllSlots(false);
     }
   }, [onBarberSelect, onTimeSelect]);
 
