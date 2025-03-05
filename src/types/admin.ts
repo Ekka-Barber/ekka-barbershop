@@ -64,3 +64,19 @@ export interface BlockedDateInput {
   is_recurring: boolean;
   recurrence_pattern?: string;
 }
+
+// Package management related interfaces
+export interface PackageSettings {
+  baseServiceId: string;
+  discountTiers: {
+    oneService: number;
+    twoServices: number;
+    threeOrMore: number;
+  };
+  maxServices: number | null;
+}
+
+export interface PackageServiceToggle {
+  serviceId: string;
+  enabled: boolean;
+}
