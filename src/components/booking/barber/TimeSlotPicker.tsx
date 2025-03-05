@@ -1,3 +1,4 @@
+
 import React, { memo, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -26,58 +27,23 @@ export const TimeSlotPicker = memo(({
   onToggleShowAll,
   isLoading = false
 }: TimeSlotPickerProps) => {
-  const { language } = useLanguage();
+  const { language, t } = useLanguage();
   
-  const groupedSlots = useMemo(() => {
-    console.log("Time slots before grouping:", timeSlots.map(slot => ({
-      time: slot.time,
-      isAvailable: slot.isAvailable,
-      isAfterMidnight: isAfterMidnight(slot.time)
-    })));
+  // Split slots into before and after midnight for display purposes
+  const { beforeMidnightSlots, afterMidnightSlots, hasAfterMidnightSlots } = useMemo(() => {
+    // Filter slots into before and after midnight
+    const beforeMidnight = timeSlots.filter(slot => !isAfterMidnight(slot.time));
+    const afterMidnight = timeSlots.filter(slot => isAfterMidnight(slot.time));
     
     return {
-      availableSlots: timeSlots.filter(slot => !isAfterMidnight(slot.time) && slot.isAvailable),
-      unavailableSlots: timeSlots.filter(slot => !isAfterMidnight(slot.time) && !slot.isAvailable),
-      afterMidnightAvailable: timeSlots.filter(slot => isAfterMidnight(slot.time) && slot.isAvailable),
-      afterMidnightUnavailable: timeSlots.filter(slot => isAfterMidnight(slot.time) && !slot.isAvailable)
+      beforeMidnightSlots: showAllSlots ? beforeMidnight : beforeMidnight.slice(0, 18),
+      afterMidnightSlots: showAllSlots ? afterMidnight : afterMidnight.slice(0, 18),
+      hasAfterMidnightSlots: afterMidnight.length > 0
     };
-  }, [timeSlots]);
+  }, [timeSlots, showAllSlots]);
   
-  const hasAvailableSlots = useMemo(() => {
-    return groupedSlots.availableSlots.length > 0 || groupedSlots.afterMidnightAvailable.length > 0;
-  }, [groupedSlots]);
-  
-  const hasAfterMidnightSlots = useMemo(() => {
-    return groupedSlots.afterMidnightAvailable.length > 0 || groupedSlots.afterMidnightUnavailable.length > 0;
-  }, [groupedSlots]);
-  
-  const displayedSlots = useMemo(() => {
-    const regularAvailable = showAllSlots 
-      ? groupedSlots.availableSlots 
-      : groupedSlots.availableSlots.slice(0, 12);
-      
-    const regularUnavailable = showAllSlots 
-      ? groupedSlots.unavailableSlots 
-      : groupedSlots.unavailableSlots.slice(0, 6);
-      
-    const afterMidnightAvailable = showAllSlots 
-      ? groupedSlots.afterMidnightAvailable 
-      : groupedSlots.afterMidnightAvailable.slice(0, 12);
-      
-    const afterMidnightUnavailable = showAllSlots 
-      ? groupedSlots.afterMidnightUnavailable 
-      : groupedSlots.afterMidnightUnavailable.slice(0, 6);
-    
-    console.log("After-midnight available slots:", afterMidnightAvailable.length);
-    console.log("After-midnight unavailable slots:", afterMidnightUnavailable.length);
-    
-    return {
-      regularAvailable,
-      regularUnavailable,
-      afterMidnightAvailable,
-      afterMidnightUnavailable
-    };
-  }, [groupedSlots, showAllSlots]);
+  const totalDisplayedSlots = beforeMidnightSlots.length + afterMidnightSlots.length;
+  const hasAvailableSlots = timeSlots.some(slot => slot.isAvailable);
   
   if (isLoading) {
     return (
@@ -129,33 +95,21 @@ export const TimeSlotPicker = memo(({
                     ? slotIsAfterMidnight 
                       ? "border-border bg-blue-50 hover:bg-blue-100" 
                       : "border-border bg-background hover:bg-background" 
-                    : "border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed opacity-60"
+                    : "bg-red-50 text-gray-600 border-red-100 cursor-not-allowed opacity-80"
               )}
             >
               {formatTime(slot.time, language === 'ar')}
-              {slotIsAfterMidnight && <span className="ml-1 text-xs text-blue-500">+1</span>}
             </Button>
           </TooltipTrigger>
           <TooltipContent>
-            {slotIsAfterMidnight 
-              ? (slot.isAvailable 
-                ? language === 'ar' ? 'متاح (اليوم التالي)' : 'Available (next day)' 
-                : language === 'ar' ? 'غير متاح (اليوم التالي)' : 'Unavailable (next day)')
-              : (slot.isAvailable 
-                ? language === 'ar' ? 'متاح' : 'Available' 
-                : language === 'ar' ? 'غير متاح' : 'Unavailable')}
+            {slot.isAvailable 
+              ? language === 'ar' ? 'متاح' : 'Available'
+              : language === 'ar' ? 'غير متاح' : 'Unavailable'}
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>
     );
   };
-
-  const totalSlots = timeSlots.length;
-  const totalDisplayedSlots = 
-    displayedSlots.regularAvailable.length + 
-    displayedSlots.regularUnavailable.length + 
-    displayedSlots.afterMidnightAvailable.length + 
-    displayedSlots.afterMidnightUnavailable.length;
 
   return (
     <div className="space-y-4">
@@ -165,83 +119,42 @@ export const TimeSlotPicker = memo(({
       <div className="w-full">
         <div className="bg-gradient-to-b from-white to-gray-50 shadow-sm border border-gray-100 rounded-lg">
           <div className="overflow-x-auto px-4 py-4 bg-white">
-            {displayedSlots.regularAvailable.length > 0 && (
-              <>
-                <div className="flex items-center mb-3">
-                  <span className="text-sm font-medium text-gray-700">
-                    {language === 'ar' ? 'المواعيد المتاحة' : 'Available times'}
-                  </span>
-                </div>
-                <div className="flex flex-wrap gap-3 mb-4">
-                  {displayedSlots.regularAvailable.map(slot => renderTimeSlotButton(slot))}
-                </div>
-              </>
+            {/* Before midnight slots */}
+            <div className="flex flex-wrap gap-3 mb-4">
+              {beforeMidnightSlots.map(slot => renderTimeSlotButton(slot))}
+            </div>
+              
+            {/* Midnight divider - only show if there are after-midnight slots */}
+            {hasAfterMidnightSlots && (
+              <div className="flex items-center w-full justify-center my-3">
+                <div className="h-px bg-gray-200 flex-grow mx-2"></div>
+                <Clock12 className="h-4 w-4 text-gray-500" />
+                <span className="text-xs text-gray-500 mx-2">
+                  {t('midnight')}
+                </span>
+                <div className="h-px bg-gray-200 flex-grow mx-2"></div>
+              </div>
             )}
             
-            {displayedSlots.regularUnavailable.length > 0 && (
-              <>
-                <div className="flex items-center my-3">
-                  <span className="text-sm font-medium text-gray-500">
-                    {language === 'ar' ? 'المواعيد غير المتاحة' : 'Unavailable times'}
-                  </span>
-                </div>
-                <div className="flex flex-wrap gap-3 mb-4 opacity-80">
-                  {displayedSlots.regularUnavailable.map(slot => renderTimeSlotButton(slot))}
-                </div>
-              </>
-            )}
-              
+            {/* After midnight slots */}
             {hasAfterMidnightSlots && (
-              <>
-                <div className="flex items-center w-full justify-center my-3">
-                  <div className="h-px bg-gray-200 flex-grow mx-2"></div>
-                  <Clock12 className="h-4 w-4 text-gray-500" />
-                  <span className="text-xs text-gray-500 mx-2">
-                    {language === 'ar' ? 'منتصف الليل' : 'Midnight'}
-                  </span>
-                  <div className="h-px bg-gray-200 flex-grow mx-2"></div>
-                </div>
-                
-                {displayedSlots.afterMidnightAvailable.length > 0 && (
-                  <>
-                    <div className="flex items-center mb-3">
-                      <span className="text-sm font-medium text-gray-700">
-                        {language === 'ar' ? 'المواعيد المتاحة' : 'Available times'}
-                      </span>
-                    </div>
-                    <div className="flex flex-wrap gap-3 mb-4">
-                      {displayedSlots.afterMidnightAvailable.map(slot => renderTimeSlotButton(slot))}
-                    </div>
-                  </>
-                )}
-                
-                {displayedSlots.afterMidnightUnavailable.length > 0 && (
-                  <>
-                    <div className="flex items-center my-3">
-                      <span className="text-sm font-medium text-gray-500">
-                        {language === 'ar' ? 'المواعيد غير المتاحة' : 'Unavailable times'}
-                      </span>
-                    </div>
-                    <div className="flex flex-wrap gap-3 opacity-80">
-                      {displayedSlots.afterMidnightUnavailable.map(slot => renderTimeSlotButton(slot))}
-                    </div>
-                  </>
-                )}
-              </>
+              <div className="flex flex-wrap gap-3">
+                {afterMidnightSlots.map(slot => renderTimeSlotButton(slot))}
+              </div>
             )}
           </div>
         </div>
       </div>
       
-      {totalSlots > totalDisplayedSlots && (
+      {timeSlots.length > totalDisplayedSlots && (
         <Button 
           variant="ghost" 
           onClick={onToggleShowAll} 
           className="w-full mt-2"
         >
           {showAllSlots 
-            ? language === 'ar' ? 'عرض أقل' : 'Show Less' 
-            : language === 'ar' ? 'عرض المزيد' : 'Show More'}
+            ? t('show.less')
+            : t('show.more')}
         </Button>
       )}
     </div>
