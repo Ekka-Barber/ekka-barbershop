@@ -1,8 +1,8 @@
-
-import { isToday, isBefore, addMinutes } from "date-fns";
+import { isToday, isBefore, addMinutes, addDays, format } from "date-fns";
 import { convertTimeToMinutes, convertMinutesToTime, isAfterMidnight } from "./timeConversion";
 import { UnavailableSlot } from "./timeSlotTypes";
 import { isWithinWorkingHours } from "./workingHoursChecker";
+import { doesCrossMidnight } from "./timeConversion";
 
 /**
  * Checks if a time slot is available based on date, time, and unavailable periods
@@ -185,7 +185,3 @@ export const isEmployeeAvailable = (employee: any, selectedDate: Date | undefine
   
   return workingHours.length > 0;
 };
-
-// Import the format function from date-fns
-import { format } from "date-fns";
-import { doesCrossMidnight } from "./timeConversion";

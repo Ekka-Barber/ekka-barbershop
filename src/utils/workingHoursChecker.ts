@@ -1,5 +1,5 @@
 
-import { convertTimeToMinutes, isAfterMidnight, doesCrossMidnight } from "./timeConversion";
+import { convertTimeToMinutes, isAfterMidnight, doesCrossMidnight, convertMinutesToTime } from "./timeConversion";
 
 /**
  * Checks if a time slot is within the working hours ranges
