@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useToast } from "@/hooks/use-toast";
@@ -47,34 +46,28 @@ export const ServiceSelectionContainer = ({
     enabledPackageServices
   } = usePackageDiscount(selectedServices);
 
-  // Find base service
   const baseService = selectedServices.find(s => s.id === BASE_SERVICE_ID) || 
     (categories?.flatMap(c => c.services).find(s => s.id === BASE_SERVICE_ID));
 
-  // Get available package services
   const availablePackageServices = categories?.flatMap(c => c.services)
     .filter(service => 
       service.id !== BASE_SERVICE_ID && 
       enabledPackageServices?.includes(service.id)
     ) || [];
 
-  // Cache active category
   useEffect(() => {
     if (activeCategory) {
       cacheActiveCategory(activeCategory);
     }
   }, [activeCategory]);
 
-  // Handle service click
   const handleServiceClick = (service: any) => {
     setSelectedService(service);
     setIsSheetOpen(true);
   };
 
-  // Handle service toggle with error handling
   const handleServiceToggleWrapper = (service: any) => {
     try {
-      // Check if trying to add base service when other services are selected
       if (service.id === BASE_SERVICE_ID && !selectedServices.some(s => s.id === service.id)) {
         const hasOtherNonUpsellServices = selectedServices.some(s => 
           !s.isUpsellItem && s.id !== BASE_SERVICE_ID
@@ -105,28 +98,22 @@ export const ServiceSelectionContainer = ({
     }
   };
   
-  // Handle package confirmation with proper updating
   const handlePackageConfirm = (services: SelectedService[]) => {
     try {
-      // Preserve selected upsell items
       const existingUpsells = selectedServices.filter(s => s.isUpsellItem);
       
-      // Remove non-upsell services
       selectedServices.forEach(service => {
         if (!service.isUpsellItem) {
           handleServiceToggleWrapper(service);
         }
       });
       
-      // Add new services from package builder
       services.forEach(service => {
         onServiceToggle(service);
       });
       
-      // Restore any upsell items that were removed
       existingUpsells.forEach(upsell => {
         if (!selectedServices.some(s => s.id === upsell.id)) {
-          // Re-add the upsell through the service toggle
           onServiceToggle(upsell);
         }
       });
@@ -149,7 +136,6 @@ export const ServiceSelectionContainer = ({
     }
   };
 
-  // Handle step change
   const handleStepChange = (nextStep: string) => {
     if (nextStep === 'datetime' && hasBaseService && packageSettings && availablePackageServices.length > 0) {
       setShowPackageBuilder(true);
@@ -159,29 +145,23 @@ export const ServiceSelectionContainer = ({
     }
   };
 
-  // Handle skip package - modified to properly proceed to next step
   const handleSkipPackage = () => {
     setShowPackageBuilder(false);
     
     if (pendingNextStep) {
-      // Ensure we dismiss any active toasts before proceeding
-      toast.dismiss(); // This line is causing the TypeScript error
       onStepChange?.(pendingNextStep);
       setPendingNextStep(null);
     }
   };
 
-  // Get sorted categories and active category services
   const sortedCategories = categories?.slice().sort((a, b) => a.display_order - b.display_order);
   const activeCategoryServices = sortedCategories?.find(
     cat => cat.id === activeCategory
   )?.services.sort((a, b) => a.display_order - b.display_order);
 
-  // Calculate totals
   const totalDuration = selectedServices.reduce((total, service) => total + service.duration, 0);
   const totalPrice = selectedServices.reduce((total, service) => total + service.price, 0);
 
-  // Transform services for display
   const transformServicesForDisplay = (services: SelectedService[], lang: 'en' | 'ar') => {
     return services.map(service => ({
       id: service.id,
