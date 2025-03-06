@@ -1,6 +1,6 @@
 
 import { useCallback } from "react";
-import { format, parse, isBefore, addMinutes, addDays, isToday } from "date-fns";
+import { format, parse, isBefore, isEqual, addMinutes, addDays, isToday } from "date-fns";
 import { useQueryClient } from "@tanstack/react-query";
 import { 
   TimeSlot,
@@ -93,8 +93,10 @@ export const useSlotGeneration = () => {
         // Create a slot every SLOT_INTERVAL minutes from start to end time
         let currentSlot = startTime;
         
-        // Generate slots up to but not including the end time
-        while (isBefore(currentSlot, endTime)) {
+        // Generate slots up to and including the end time if it's midnight (00:00)
+        // Modified condition to be inclusive of midnight
+        while (isBefore(currentSlot, endTime) || 
+              (format(endTime, 'HH:mm') === '00:00' && isEqual(currentSlot, endTime))) {
           const timeString = format(currentSlot, 'HH:mm');
           const slotMinutes = convertTimeToMinutes(timeString);
           const slotIsAfterMidnight = isAfterMidnight(timeString);
@@ -143,6 +145,12 @@ export const useSlotGeneration = () => {
             });
             
             console.log(`➕ Added slot ${timeString}, isAvailable: ${available}, isAfterMidnight: ${slotIsAfterMidnight}`);
+          }
+          
+          // Break the loop if we've just processed 00:00 and that's the end time
+          if (timeString === '00:00' && format(endTime, 'HH:mm') === '00:00') {
+            console.log(`✅ Found and processed midnight (00:00) as end time, exiting loop`);
+            break;
           }
           
           currentSlot = addMinutes(currentSlot, SLOT_INTERVAL);

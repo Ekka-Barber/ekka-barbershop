@@ -3,7 +3,7 @@ import { convertTimeToMinutes, convertMinutesToTime, isAfterMidnight, doesCrossM
 
 /**
  * Checks if a time slot is within the working hours ranges
- * Improved to properly handle ranges that cross midnight
+ * Improved to properly handle ranges that cross midnight and the exact 00:00 slot
  */
 export const isWithinWorkingHours = (
   slotMinutes: number, 
@@ -27,6 +27,12 @@ export const isWithinWorkingHours = (
     const crossesMidnight = doesCrossMidnight(start, end);
     
     console.log(`Checking range ${range}: start=${startMinutes}, end=${endMinutes}, crossesMidnight=${crossesMidnight}`);
+    
+    // Special handling for 00:00 (midnight) when it's the end time
+    if (end === '00:00' && timeString === '00:00') {
+      console.log(`✅ Slot ${timeString} is exactly the midnight end time of range ${range}`);
+      return true;
+    }
     
     if (crossesMidnight) {
       // For shifts that cross midnight
