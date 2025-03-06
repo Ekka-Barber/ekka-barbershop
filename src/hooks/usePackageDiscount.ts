@@ -15,6 +15,7 @@ export const usePackageDiscount = (
 ) => {
   const [packageEnabled, setPackageEnabled] = useState(false);
   const [forcePackageEnabled, setForcePackageEnabled] = useState(forceEnabled);
+  const [previousDiscountTier, setPreviousDiscountTier] = useState<number>(0);
   
   // Fetch package settings
   const { data: packageSettings } = useQuery({
@@ -92,7 +93,21 @@ export const usePackageDiscount = (
     return 0;
   };
 
-  // Apply discounts to services
+  // Get current discount tier based on add-on count
+  const getCurrentDiscountTier = useMemo(() => {
+    return getDiscountPercentage(addOnServices.length);
+  }, [addOnServices.length, packageSettings]);
+
+  // Track discount tier changes
+  useEffect(() => {
+    // Only update the previous tier when moving to a higher discount tier
+    if (getCurrentDiscountTier > previousDiscountTier) {
+      console.log(`Updating discount tier from ${previousDiscountTier}% to ${getCurrentDiscountTier}%`);
+      setPreviousDiscountTier(getCurrentDiscountTier);
+    }
+  }, [getCurrentDiscountTier, previousDiscountTier]);
+
+  // Apply discounts to services with improved handling for tier transitions
   const applyPackageDiscounts = (services: SelectedService[]): SelectedService[] => {
     if ((!hasBaseService && !forcePackageEnabled) || !packageSettings) {
       return services;
@@ -101,29 +116,47 @@ export const usePackageDiscount = (
     const addonCount = addOnServices.length;
     if (addonCount === 0) return services;
 
-    const discountPercentage = getDiscountPercentage(addonCount);
+    // Use the higher of current or previous discount tier to prevent discount reduction
+    const discountPercentage = Math.max(getCurrentDiscountTier, previousDiscountTier);
+    
     console.log(`Applying ${discountPercentage}% discount based on ${addonCount} add-on services`);
     
     return services.map(service => {
-      // Skip base service, upsell items, and already discounted package services with the same percentage
+      // Skip base service, upsell items, and non-package services
       if (service.id === BASE_SERVICE_ID || 
           service.isUpsellItem || 
           service.isBasePackageService) {
         return service;
       }
       
-      // If the service already has a package discount but with a different percentage,
-      // we need to update it with the new discount percentage
-      const needsDiscountUpdate = service.isPackageAddOn && 
-                                 service.discountPercentage !== discountPercentage;
+      // If the service already has a package discount, we need to be careful about updates
+      const hasExistingDiscount = service.isPackageAddOn && service.originalPrice;
       
-      // Skip services that aren't in the enabled package services list
-      if (enabledPackageServices && !enabledPackageServices.includes(service.id) && !needsDiscountUpdate) {
+      // Check if service needs to be updated with a new discount percentage
+      const needsDiscountUpdate = (!hasExistingDiscount) || 
+                                 (hasExistingDiscount && service.discountPercentage !== discountPercentage);
+      
+      // Skip services that aren't in the enabled package services list and don't need updates
+      if (enabledPackageServices && 
+          !enabledPackageServices.includes(service.id) && 
+          !needsDiscountUpdate) {
         return service;
       }
 
-      // Apply discount by recreating the service as a package add-on
-      return createPackageService(service, false, discountPercentage);
+      // For already discounted services, ensure we use the ORIGINAL price, not the current price
+      const originalPrice = service.originalPrice || service.price;
+      
+      // Apply discount consistently from original price
+      const discountedPrice = Math.floor(originalPrice * (1 - discountPercentage / 100));
+      
+      // Create package service with consistent discount
+      return {
+        ...service,
+        isPackageAddOn: true,
+        price: discountedPrice,
+        originalPrice: originalPrice,
+        discountPercentage: discountPercentage
+      };
     });
   };
 
@@ -158,6 +191,8 @@ export const usePackageDiscount = (
     if (!hasBaseService && packageEnabled) {
       console.log('Package mode disabled - base service removed');
       setPackageEnabled(false);
+      // Reset the discount tier when package mode is disabled
+      setPreviousDiscountTier(0);
     }
   }, [hasBaseService, packageEnabled, forcePackageEnabled]);
 
@@ -171,6 +206,8 @@ export const usePackageDiscount = (
     applyPackageDiscounts,
     calculatePackageSavings,
     getDiscountPercentage,
-    setForcePackageEnabled
+    setForcePackageEnabled,
+    currentDiscountTier: getCurrentDiscountTier,
+    previousDiscountTier
   };
 };

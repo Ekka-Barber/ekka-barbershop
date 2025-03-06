@@ -12,12 +12,14 @@ export const useServiceSelection = () => {
   const { toast } = useToast();
   const { language } = useLanguage();
   
-  // Use the package discount hook
+  // Use the package discount hook with enhanced discount tier tracking
   const { 
     BASE_SERVICE_ID, 
     packageEnabled, 
     applyPackageDiscounts,
-    setForcePackageEnabled
+    setForcePackageEnabled,
+    currentDiscountTier,
+    previousDiscountTier
   } = usePackageDiscount(selectedServices, isUpdatingPackage);
 
   /**
@@ -243,22 +245,29 @@ export const useServiceSelection = () => {
     }
   };
 
-  // Apply package discounts if applicable
+  // Apply package discounts if applicable, with tracking for discount tier transitions
   useEffect(() => {
     if (packageEnabled && selectedServices.length > 0 && !isUpdatingPackage) {
+      console.log(`Package enabled with ${selectedServices.length} services. Current tier: ${currentDiscountTier}%, Previous tier: ${previousDiscountTier}%`);
+      
       const discountedServices = applyPackageDiscounts(selectedServices);
+      
       // Only update if there's actually a change to avoid infinite loops
-      const hasChanges = discountedServices.some((s, i) => 
-        s.price !== selectedServices[i]?.price || 
-        s.originalPrice !== selectedServices[i]?.originalPrice ||
-        s.discountPercentage !== selectedServices[i]?.discountPercentage
-      );
+      const hasChanges = discountedServices.some((s, i) => {
+        if (i >= selectedServices.length) return true; // New service added
+        
+        return s.price !== selectedServices[i]?.price || 
+              s.originalPrice !== selectedServices[i]?.originalPrice ||
+              s.discountPercentage !== selectedServices[i]?.discountPercentage ||
+              s.isPackageAddOn !== selectedServices[i]?.isPackageAddOn;
+      });
       
       if (hasChanges) {
+        console.log('Updating services with new discount calculations');
         setSelectedServices(discountedServices);
       }
     }
-  }, [packageEnabled, selectedServices.length, isUpdatingPackage]);
+  }, [packageEnabled, selectedServices.length, isUpdatingPackage, currentDiscountTier, previousDiscountTier]);
 
   return {
     selectedServices,

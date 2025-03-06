@@ -85,26 +85,27 @@ export const transformServicesForDisplay = (
  * @returns Package service with proper flags and pricing
  */
 export const createPackageService = (
-  service: Service,
+  service: Service | SelectedService,
   isBaseService: boolean,
   discountPercentage: number = 0
 ): SelectedService => {
   // Base price calculation - no discount for base service
-  const basePrice = service.price;
+  const basePrice = 'originalPrice' in service && service.originalPrice ? service.originalPrice : service.price;
   
   // Only apply discount if it's not the base service and discount is provided
   const finalPrice = isBaseService ? 
     basePrice : 
     Math.floor(basePrice * (1 - discountPercentage / 100));
   
+  // Ensure we always preserve the truly original price for consistent discounting
   return {
     ...service,
     isBasePackageService: isBaseService,
     isPackageAddOn: !isBaseService,
-    isUpsellItem: false,
+    isUpsellItem: 'isUpsellItem' in service ? service.isUpsellItem : false,
     price: finalPrice,
     originalPrice: isBaseService ? undefined : basePrice,
     discountPercentage: isBaseService ? undefined : discountPercentage,
-    dependentUpsells: []
+    dependentUpsells: 'dependentUpsells' in service ? service.dependentUpsells : []
   };
 };
