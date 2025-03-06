@@ -24,6 +24,7 @@ interface ServicesSummaryProps {
   packageSettings?: PackageSettings;
   availableServices?: Service[];
   onAddService?: (service: Service) => void;
+  isValidating?: boolean;
 }
 
 export const ServicesSummary = ({
@@ -37,7 +38,8 @@ export const ServicesSummary = ({
   packageEnabled = false,
   packageSettings,
   availableServices = [],
-  onAddService
+  onAddService,
+  isValidating = false
 }: ServicesSummaryProps) => {
   // Use memoization to prevent unnecessary recalculations
   const shouldDisplay = useMemo(() => selectedServices.length > 0, [selectedServices.length]);
@@ -76,7 +78,8 @@ export const ServicesSummary = ({
               onClick={onNextStep}
               direction="next"
               language={language}
-              isDisabled={selectedServices.length === 0}
+              isDisabled={selectedServices.length === 0 || isValidating}
+              isLoading={isValidating}
             />
           </div>
         </div>

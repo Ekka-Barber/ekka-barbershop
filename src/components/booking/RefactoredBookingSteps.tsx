@@ -1,5 +1,5 @@
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { BookingProgress, BookingStep } from "@/components/booking/BookingProgress";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useNavigate } from "react-router-dom";
@@ -22,21 +22,52 @@ export const RefactoredBookingSteps = ({
   const navigate = useNavigate();
   const { language } = useLanguage();
   const { toast } = useToast();
+  const [isOptimisticUpdate, setIsOptimisticUpdate] = useState(false);
   
   const {
     currentStep,
     setCurrentStep,
     hasBaseService,
     packageSettings,
-    enabledPackageServices
+    enabledPackageServices,
+    validateStep
   } = useBookingContext();
 
   const handleStepChange = useCallback((step: BookingStep) => {
+    // Show optimistic update for better user experience
+    setIsOptimisticUpdate(true);
+    
+    // Optimistically update the step
     setCurrentStep(step);
-  }, [setCurrentStep]);
+    
+    // Simulate network delay and then validate
+    setTimeout(() => {
+      if (validateStep && !validateStep()) {
+        // If validation fails, show error and potentially revert
+        toast({
+          title: language === 'ar' ? 'خطأ في التحقق' : 'Validation Error',
+          description: language === 'ar' 
+            ? 'يرجى التأكد من إكمال جميع البيانات المطلوبة' 
+            : 'Please ensure all required information is completed',
+          variant: "destructive"
+        });
+      }
+      setIsOptimisticUpdate(false);
+    }, 300);
+  }, [setCurrentStep, validateStep, toast, language]);
 
-  // We use the direct step change function rather than refs
-  // This allows the managers to use their own internal logic
+  // Effect to preserve state when navigating back
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (currentStep !== 'services') {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [currentStep]);
   
   return (
     <ErrorBoundary>

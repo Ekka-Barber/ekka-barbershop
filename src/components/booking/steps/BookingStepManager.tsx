@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { BookingProgress, BookingStep } from "@/components/booking/BookingProgress";
 import { BookingNavigation } from "@/components/booking/BookingNavigation";
@@ -9,6 +10,7 @@ import { useBookingContext } from "@/contexts/BookingContext";
 import { ServicesSummary } from "../service-selection/ServicesSummary";
 import { transformServicesForDisplay } from "@/utils/serviceTransformation";
 import { transformWorkingHours } from "@/utils/workingHoursUtils";
+import { SkeletonLoader } from "@/components/common/SkeletonLoader";
 
 const STEPS: BookingStep[] = ['services', 'datetime', 'barber', 'details'];
 
@@ -21,6 +23,8 @@ export const BookingStepManager = ({
 }: BookingStepManagerProps) => {
   const { language } = useLanguage();
   const { toast } = useToast();
+  const [isValidating, setIsValidating] = useState(false);
+  const [formValid, setFormValid] = useState(false);
   
   const {
     currentStep,
@@ -49,19 +53,40 @@ export const BookingStepManager = ({
     packageEnabled,
     packageSettings
   } = useBookingContext();
+  
+  // Handle form validation for customer details step
+  const handleValidationChange = (isValid: boolean) => {
+    setFormValid(isValid);
+  };
 
   const handleStepChange = (step: string) => {
     const typedStep = step as BookingStep;
+    
+    // Add validation before changing steps
+    if (currentStep === 'details' && !formValid && typedStep !== 'barber') {
+      toast({
+        title: language === 'ar' ? "يرجى إكمال جميع الحقول المطلوبة" : "Please complete all required fields",
+        description: language === 'ar' 
+          ? "تأكد من تعبئة جميع الحقول بشكل صحيح قبل المتابعة" 
+          : "Make sure all fields are filled correctly before proceeding",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     setCurrentStep(typedStep);
   };
 
-  const handleNextStep = () => {
+  const handleNextStep = async () => {
+    setIsValidating(true);
     const currentIndex = STEPS.indexOf(currentStep as BookingStep);
+    
     if (currentIndex < STEPS.length - 1) {
-      if (validateStep && validateStep()) {
+      if (validateStep && await validateStep()) {
         handleStepChange(STEPS[currentIndex + 1]);
       }
     }
+    setIsValidating(false);
   };
 
   const handlePrevStep = () => {
@@ -85,9 +110,18 @@ export const BookingStepManager = ({
     if (currentStep === 'services') return selectedServices.length === 0;
     if (currentStep === 'datetime') return !selectedDate;
     if (currentStep === 'barber') return !selectedBarber || !selectedTime;
-    if (currentStep === 'details') return !customerDetails.name || !customerDetails.phone;
+    if (currentStep === 'details') return !formValid;
     return false;
   };
+  
+  // Show loading states for different steps
+  if (categoriesLoading && currentStep === 'services') {
+    return <SkeletonLoader />;
+  }
+  
+  if (employeesLoading && currentStep === 'barber') {
+    return <SkeletonLoader />;
+  }
 
   return (
     <ErrorBoundary>
@@ -98,7 +132,18 @@ export const BookingStepManager = ({
         currentStepIndex={currentStepIndex} 
       />
 
-      <div className="mb-8">
+      <div className="mb-8 relative">
+        {isValidating && (
+          <div className="absolute inset-0 bg-white/70 flex items-center justify-center z-10">
+            <div className="animate-pulse flex flex-col items-center">
+              <div className="h-8 w-8 rounded-full border-2 border-primary border-t-transparent animate-spin mb-2"></div>
+              <span className="text-sm text-gray-500">
+                {language === 'ar' ? "جاري التحقق..." : "Validating..."}
+              </span>
+            </div>
+          </div>
+        )}
+        
         <ErrorBoundary>
           <StepRenderer 
             currentStep={currentStep}
@@ -124,6 +169,7 @@ export const BookingStepManager = ({
             isUpdatingPackage={isUpdatingPackage}
             handlePackageServiceUpdate={handlePackageServiceUpdate}
             onRemoveService={handleServiceRemove}
+            onValidationChange={handleValidationChange}
           />
         </ErrorBoundary>
       </div>
@@ -154,8 +200,9 @@ export const BookingStepManager = ({
             isFirstStep={currentStepIndex === 0} 
             packageEnabled={packageEnabled}
             packageSettings={packageSettings}
-            availableServices={[]} // This should be populated properly
+            availableServices={[]} 
             onAddService={(service) => handleServiceToggle(service)}
+            isValidating={isValidating}
           />
         </ErrorBoundary>
       )}

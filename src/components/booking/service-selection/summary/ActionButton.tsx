@@ -1,49 +1,61 @@
 
-import { ArrowLeft, ArrowRight } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
-import { motion } from "framer-motion";
+import { ArrowLeft, ArrowRight, Loader2 } from "lucide-react";
 
 interface ActionButtonProps {
   onClick: () => void;
-  isDisabled?: boolean;
-  direction: 'next' | 'prev';
+  direction: 'prev' | 'next';
   language: 'en' | 'ar';
+  isDisabled?: boolean;
+  isLoading?: boolean;
 }
 
 export const ActionButton = ({
   onClick,
-  isDisabled = false,
   direction,
-  language
+  language,
+  isDisabled = false,
+  isLoading = false
 }: ActionButtonProps) => {
   const isArabic = language === 'ar';
-  const isNext = direction === 'next';
   
-  // Determine which icon to show based on direction and language
-  const icon = () => {
-    if (isArabic) {
-      return isNext ? <ArrowLeft className="w-4 h-4" /> : <ArrowRight className="w-4 h-4" />;
-    }
-    return isNext ? <ArrowRight className="w-4 h-4" /> : <ArrowLeft className="w-4 h-4" />;
-  };
+  // For RTL languages, we need to swap the directions
+  const isPrev = direction === 'prev';
+  const buttonText = isPrev 
+    ? (isArabic ? 'التالي' : 'Previous') 
+    : (isArabic ? 'السابق' : 'Next');
   
+  // Swap the actual arrow direction for RTL
+  const Arrow = isPrev 
+    ? (isArabic ? ArrowRight : ArrowLeft) 
+    : (isArabic ? ArrowLeft : ArrowRight);
+
   return (
-    <Button 
-      className={cn(
-        "rounded-full w-9 h-9 p-0 flex items-center justify-center",
-        "bg-[#e7bd71] hover:bg-[#d4ad65]", // Same golden color for both buttons
-        isDisabled ? "opacity-50 cursor-not-allowed" : "transition-all duration-300 group"
-      )}
+    <button
       onClick={onClick}
-      disabled={isDisabled}
+      disabled={isDisabled || isLoading}
+      className={`
+        flex items-center gap-2 py-2 px-4 rounded-md font-medium text-sm
+        ${isPrev 
+          ? 'text-gray-600 hover:bg-gray-100' 
+          : 'bg-[#C4A484] text-white hover:bg-[#B39476]'}
+        ${isDisabled || isLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
+        transition-all duration-200
+      `}
+      dir={isArabic ? 'rtl' : 'ltr'}
     >
-      <motion.span
-        whileHover={{ x: isNext ? (isArabic ? -2 : 2) : (isArabic ? 2 : -2) }}
-        className="relative flex items-center justify-center"
-      >
-        {icon()}
-      </motion.span>
-    </Button>
+      {isLoading ? (
+        <Loader2 className="h-4 w-4 animate-spin" />
+      ) : isPrev ? (
+        <>
+          <Arrow className="h-4 w-4" />
+          <span>{buttonText}</span>
+        </>
+      ) : (
+        <>
+          <span>{buttonText}</span>
+          <Arrow className="h-4 w-4" />
+        </>
+      )}
+    </button>
   );
 };

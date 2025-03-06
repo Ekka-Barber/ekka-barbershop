@@ -6,6 +6,9 @@ import { BarberSelection } from '../BarberSelection';
 import { CustomerForm } from '../CustomerForm';
 import { BookingSummary } from '../BookingSummary';
 import { SelectedService, Service } from '@/types/service';
+import { ServicesSkeleton } from '../ServicesSkeleton';
+import { DateTimeSelectionSkeleton } from '../DateTimeSelectionSkeleton';
+import { BarberSelectionSkeleton } from '../BarberSelectionSkeleton';
 
 interface StepRendererProps {
   currentStep: string;
@@ -31,6 +34,7 @@ interface StepRendererProps {
   isUpdatingPackage?: boolean;
   handlePackageServiceUpdate?: (services: SelectedService[]) => void;
   onRemoveService?: (serviceId: string) => void;
+  onValidationChange?: (isValid: boolean) => void;
 }
 
 export const StepRenderer: React.FC<StepRendererProps> = ({
@@ -56,11 +60,15 @@ export const StepRenderer: React.FC<StepRendererProps> = ({
   branch,
   isUpdatingPackage,
   handlePackageServiceUpdate,
-  onRemoveService
+  onRemoveService,
+  onValidationChange
 }) => {
   const renderStep = () => {
     switch (currentStep) {
       case 'services':
+        if (categoriesLoading) {
+          return <ServicesSkeleton />;
+        }
         return (
           <ServiceSelection
             categories={categories}
@@ -73,6 +81,9 @@ export const StepRenderer: React.FC<StepRendererProps> = ({
           />
         );
       case 'datetime':
+        if (!selectedDate && !categories) {
+          return <DateTimeSelectionSkeleton />;
+        }
         return (
           <DateTimeSelection
             selectedDate={selectedDate}
@@ -80,6 +91,9 @@ export const StepRenderer: React.FC<StepRendererProps> = ({
           />
         );
       case 'barber':
+        if (employeesLoading) {
+          return <BarberSelectionSkeleton />;
+        }
         return (
           <BarberSelection
             employees={employees}
@@ -111,6 +125,7 @@ export const StepRenderer: React.FC<StepRendererProps> = ({
             <CustomerForm
               customerDetails={customerDetails}
               onCustomerDetailsChange={handleCustomerDetailsChange}
+              onValidationChange={onValidationChange}
             />
           </div>
         );
