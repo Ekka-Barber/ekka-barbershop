@@ -1,4 +1,3 @@
-
 import { useLanguage } from "@/contexts/LanguageContext";
 import { format } from "date-fns";
 import { Slash, X, Timer, Calendar, User, Package } from "lucide-react";
@@ -22,16 +21,6 @@ interface BookingSummaryProps {
   onAddService?: (service: Service) => void;
   isDetailsStep?: boolean;
 }
-
-const roundPrice = (price: number) => {
-  const decimal = price % 1;
-  if (decimal >= 0.5) {
-    return Math.ceil(price);
-  } else if (decimal <= 0.4) {
-    return Math.floor(price);
-  }
-  return price;
-};
 
 // Base package service ID
 const BASE_SERVICE_ID = 'a3dbfd63-be5d-4465-af99-f25c21d578a0';
@@ -58,7 +47,12 @@ export const BookingSummary = ({
   } = usePackageDiscount(selectedServices);
   
   const totalDuration = selectedServices.reduce((total, service) => total + (service.duration || 0), 0);
-  const totalOriginalPrice = selectedServices.reduce((sum, service) => sum + (service.originalPrice || service.price), 0);
+  
+  // Fixed discount calculation
+  const totalOriginalPrice = selectedServices.reduce((sum, service) => 
+    sum + (service.originalPrice || service.price), 0);
+  
+  // The total discount is the difference between original prices and actual prices
   const totalDiscount = totalOriginalPrice - totalPrice;
 
   const displayDate = getBookingDisplayDate(selectedDate, selectedTime);

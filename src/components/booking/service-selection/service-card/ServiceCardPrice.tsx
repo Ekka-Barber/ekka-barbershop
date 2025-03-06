@@ -21,9 +21,13 @@ export const ServiceCardPrice = ({
   finalPrice,
   hasDiscount
 }: ServiceCardPriceProps) => {
-  const discount = hasDiscount !== undefined 
-    ? (hasDiscount ? { finalPrice: finalPrice || 0, percentage: Math.round((1 - (finalPrice || 0) / price) * 100) } : null)
-    : calculateDiscount(price, discountType, discountValue);
+  // Calculate discount properly based on the inputs
+  const discount = React.useMemo(() => {
+    if (hasDiscount !== undefined) {
+      return hasDiscount ? { finalPrice: finalPrice || 0, percentage: Math.round((1 - (finalPrice || 0) / price) * 100) } : null;
+    }
+    return calculateDiscount(price, discountType, discountValue);
+  }, [price, discountType, discountValue, hasDiscount, finalPrice]);
   
   return (
     <div className="text-end mt-1">
