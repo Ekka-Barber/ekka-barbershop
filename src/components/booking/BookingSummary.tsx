@@ -1,4 +1,3 @@
-
 import { useLanguage } from "@/contexts/LanguageContext";
 import { format } from "date-fns";
 import { Slash, X, Timer, Calendar, User, Package } from "lucide-react";
@@ -24,7 +23,6 @@ interface BookingSummaryProps {
   isDetailsStep?: boolean;
 }
 
-// Base package service ID
 const BASE_SERVICE_ID = 'a3dbfd63-be5d-4465-af99-f25c21d578a0';
 
 export const BookingSummary = ({
@@ -41,7 +39,6 @@ export const BookingSummary = ({
   const { t, language } = useLanguage();
   const { toast } = useToast();
   
-  // Use the package discount hook to get package-related information
   const { 
     packageEnabled, 
     packageSettings, 
@@ -51,34 +48,26 @@ export const BookingSummary = ({
   
   const totalDuration = selectedServices.reduce((total, service) => total + (service.duration || 0), 0);
   
-  // Fixed discount calculation
   const totalOriginalPrice = selectedServices.reduce((sum, service) => 
     sum + (service.originalPrice || service.price), 0);
   
-  // The total discount is the difference between original prices and actual prices
   const totalDiscount = totalOriginalPrice - totalPrice;
 
   const displayDate = getBookingDisplayDate(selectedDate, selectedTime);
   
-  // Check if this is a package booking
   const hasBasePackageService = selectedServices.some(s => s.id === BASE_SERVICE_ID);
   const hasPackageDiscounts = hasBasePackageService && totalDiscount > 0;
   const packageSavings = calculatePackageSavings();
 
-  // Get available package services (that aren't already selected)
   const availablePackageServices = availableServices.filter(service => 
-    // Update this line to check the id property of each enabled package service
     enabledPackageServices?.some(enabledService => enabledService.id === service.id) &&
     !selectedServices.some(s => s.id === service.id)
   );
 
-  // Handle service removal with confirmation for base service
   const handleServiceRemove = (service: SelectedService) => {
     if (!onRemoveService) return;
 
-    // Check if this is the base service
     if (service.id === BASE_SERVICE_ID) {
-      // Show warning toast about removing the base service
       toast({
         title: language === 'ar' ? 'تحذير' : 'Warning',
         description: language === 'ar' 
@@ -88,7 +77,6 @@ export const BookingSummary = ({
       });
     }
     
-    // Call the remove service handler
     onRemoveService(service.id);
   };
 
@@ -102,12 +90,6 @@ export const BookingSummary = ({
       transition={{ duration: 0.2 }}
     >
       <div className="flex items-center gap-2">
-        <span>{language === 'ar' ? service.name_ar : service.name_en}</span>
-        {service.id === BASE_SERVICE_ID && (
-          <CustomBadge variant="success" className="text-[0.65rem] px-1 py-0">
-            {language === 'ar' ? 'أساسي' : 'BASE'}
-          </CustomBadge>
-        )}
         {onRemoveService && (
           <motion.button
             onClick={() => handleServiceRemove(service)}
@@ -121,6 +103,12 @@ export const BookingSummary = ({
           >
             <X className="w-4 h-4 text-red-500" />
           </motion.button>
+        )}
+        <span>{language === 'ar' ? service.name_ar : service.name_en}</span>
+        {service.id === BASE_SERVICE_ID && (
+          <CustomBadge variant="success" className="text-[0.65rem] px-1 py-0">
+            {language === 'ar' ? 'أساسي' : 'BASE'}
+          </CustomBadge>
         )}
       </div>
       <div className="flex items-center gap-2">
@@ -151,7 +139,6 @@ export const BookingSummary = ({
       >
         <h3 className="font-medium">{language === 'ar' ? 'ملخص الحجز' : t('booking.summary')}</h3>
         
-        {/* Moved PackageSavingsDrawer here, before the services list */}
         {isDetailsStep && packageEnabled && packageSavings > 0 && (
           <PackageSavingsDrawer 
             savings={packageSavings}
