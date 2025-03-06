@@ -161,7 +161,10 @@ export const PackageServiceList = ({
                         {language === 'ar' ? service.name_ar : service.name_en}
                       </span>
                       {service.duration > 0 && (
-                        <span className="text-xs text-muted-foreground flex items-center gap-1">
+                        <span className={cn(
+                          "text-xs text-muted-foreground flex items-center gap-1",
+                          language === 'ar' ? "justify-end" : ""
+                        )}>
                           <Timer className="h-3 w-3" />
                           {formatDuration(service.duration, language as 'en' | 'ar')}
                         </span>
