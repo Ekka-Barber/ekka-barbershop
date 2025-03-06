@@ -25,14 +25,19 @@ export const PackageBuilderFooter = ({
     onConfirm();
   };
 
+  const handleSkip = () => {
+    dismiss();
+    onClose();
+  };
+
   return (
     <DialogFooter className="flex-col sm:flex-row gap-2 sm:gap-0 mt-6">
       <Button
         variant="outline"
-        onClick={onClose}
+        onClick={handleSkip}
         className="sm:mr-2"
       >
-        {language === 'ar' ? 'تخطي' : 'Skip'}
+        {language === 'ar' ? 'متابعة بدون باقة' : 'Continue without Package'}
       </Button>
       <Button 
         onClick={handleConfirm}

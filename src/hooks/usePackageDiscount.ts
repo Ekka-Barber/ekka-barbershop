@@ -4,13 +4,11 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { SelectedService } from '@/types/service';
 import { PackageSettings } from '@/types/admin';
-import { useToast } from '@/hooks/use-toast';
 
 // Base service ID
 const BASE_SERVICE_ID = 'a3dbfd63-be5d-4465-af99-f25c21d578a0';
 
 export const usePackageDiscount = (selectedServices: SelectedService[]) => {
-  const { toast } = useToast();
   const [packageEnabled, setPackageEnabled] = useState(false);
   
   // Fetch package settings

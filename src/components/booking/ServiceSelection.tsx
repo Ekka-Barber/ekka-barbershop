@@ -40,14 +40,14 @@ export const ServiceSelection = ({
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [showPackageInfo, setShowPackageInfo] = useState(false);
   const [showPackageBuilder, setShowPackageBuilder] = useState(false);
+  const [pendingNextStep, setPendingNextStep] = useState<string | null>(null);
 
   const { 
     BASE_SERVICE_ID, 
     packageEnabled, 
     packageSettings, 
     hasBaseService,
-    enabledPackageServices,
-    applyPackageDiscounts 
+    enabledPackageServices
   } = usePackageDiscount(selectedServices);
 
   const baseService = selectedServices.find(s => s.id === BASE_SERVICE_ID) || 
@@ -63,8 +63,6 @@ export const ServiceSelection = ({
       ) || [];
   }, [categories, enabledPackageServices, BASE_SERVICE_ID]);
 
-  const processedServices = applyPackageDiscounts(selectedServices);
-
   useEffect(() => {
     if (activeCategory) {
       cacheActiveCategory(activeCategory);
@@ -76,28 +74,6 @@ export const ServiceSelection = ({
       cacheServices(selectedServices);
     }
   }, [selectedServices]);
-
-  useEffect(() => {
-    if (hasBaseService && packageSettings) {
-      toast({
-        title: language === 'ar' ? 'وضع الباقة مفعل' : 'Package Mode Activated',
-        description: language === 'ar' 
-          ? 'يمكنك الآن إضافة خدمات إضافية بخصم'
-          : 'You can now add additional services at a discount',
-        action: (
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={() => setShowPackageBuilder(true)}
-            className="ml-2 whitespace-nowrap"
-          >
-            <Package className="h-3.5 w-3.5 mr-1.5" />
-            {language === 'ar' ? 'بناء باقة' : 'Build Package'}
-          </Button>
-        )
-      });
-    }
-  }, [hasBaseService, packageSettings, language, toast]);
 
   const handleServiceClick = (service: any) => {
     setSelectedService(service);
@@ -136,12 +112,28 @@ export const ServiceSelection = ({
     
     setShowPackageBuilder(false);
     
-    toast({
-      title: language === 'ar' ? 'تم إنشاء الباقة بنجاح' : 'Package Created Successfully',
-      description: language === 'ar' 
-        ? 'تم تطبيق خصومات الباقة على خدماتك المختارة'
-        : 'Package discounts have been applied to your selected services',
-    });
+    if (pendingNextStep) {
+      onStepChange?.(pendingNextStep);
+      setPendingNextStep(null);
+    }
+  };
+
+  const handleStepChange = (nextStep: string) => {
+    if (nextStep === 'datetime' && hasBaseService && packageSettings && availablePackageServices.length > 0) {
+      setShowPackageBuilder(true);
+      setPendingNextStep(nextStep);
+    } else {
+      onStepChange?.(nextStep);
+    }
+  };
+
+  const handleSkipPackage = () => {
+    setShowPackageBuilder(false);
+    
+    if (pendingNextStep) {
+      onStepChange?.(pendingNextStep);
+      setPendingNextStep(null);
+    }
   };
 
   const sortedCategories = categories?.slice().sort((a, b) => a.display_order - b.display_order);
@@ -149,10 +141,10 @@ export const ServiceSelection = ({
     cat => cat.id === activeCategory
   )?.services.sort((a, b) => a.display_order - b.display_order);
 
-  const totalDuration = processedServices.reduce((total, service) => total + service.duration, 0);
-  const totalPrice = processedServices.reduce((total, service) => total + service.price, 0);
+  const totalDuration = selectedServices.reduce((total, service) => total + service.duration, 0);
+  const totalPrice = selectedServices.reduce((total, service) => total + service.price, 0);
 
-  const displayServices = transformServicesForDisplay(processedServices, language as 'en' | 'ar');
+  const displayServices = transformServicesForDisplay(selectedServices, language as 'en' | 'ar');
 
   if (isLoading) {
     return <ServicesSkeleton />;
@@ -241,9 +233,9 @@ export const ServiceSelection = ({
         totalDuration={totalDuration}
         totalPrice={totalPrice}
         language={language as 'en' | 'ar'}
-        onNextStep={() => onStepChange?.('datetime')}
-        onPrevStep={() => {}} // Adding the missing onPrevStep prop
-        isFirstStep={true} // Adding the missing isFirstStep prop - set to true since this is the first step
+        onNextStep={() => handleStepChange('datetime')}
+        onPrevStep={() => {}} 
+        isFirstStep={true} 
         packageEnabled={packageEnabled}
         packageSettings={packageSettings}
       />
@@ -256,7 +248,7 @@ export const ServiceSelection = ({
 
       <PackageBuilderDialog
         isOpen={showPackageBuilder}
-        onClose={() => setShowPackageBuilder(false)}
+        onClose={handleSkipPackage}
         onConfirm={handlePackageConfirm}
         packageSettings={packageSettings}
         baseService={baseService}
