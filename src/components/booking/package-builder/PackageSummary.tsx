@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Package, Tag } from 'lucide-react';
@@ -31,7 +30,6 @@ export const PackageSummary = ({
 }: PackageSummaryProps) => {
   const isRTL = language === 'ar';
   
-  // Format the discount percentage in Arabic numerals if the language is Arabic
   const formattedDiscountPercentage = isRTL 
     ? `${convertToArabic(discountPercentage.toString())}٪` 
     : `${discountPercentage}%`;
@@ -41,7 +39,6 @@ export const PackageSummary = ({
       <Separator />
       
       <div className="space-y-2">
-        {/* Original Total Row */}
         <div className={cn(
           "flex justify-between text-sm",
           isRTL && "flex-row-reverse"
@@ -56,7 +53,6 @@ export const PackageSummary = ({
           </span>
         </div>
         
-        {/* Duration Row */}
         <div className={cn(
           "flex justify-between text-sm text-muted-foreground",
           isRTL && "flex-row-reverse"
@@ -72,7 +68,6 @@ export const PackageSummary = ({
           </div>
         </div>
         
-        {/* Package Discount Row */}
         <div className={cn(
           "flex justify-between text-sm",
           isRTL && "flex-row-reverse"
@@ -86,7 +81,7 @@ export const PackageSummary = ({
           )}>
             {isRTL ? (
               <>
-                خصم الباقة:
+                خصم الخدمات المضافة:
                 <Tag className="h-3.5 w-3.5" />
               </>
             ) : (
@@ -98,7 +93,6 @@ export const PackageSummary = ({
           </div>
         </div>
         
-        {/* Package Savings Row */}
         {savings > 0 && (
           <motion.div 
             className={cn(
@@ -140,7 +134,6 @@ export const PackageSummary = ({
         
         <Separator className="my-2" />
         
-        {/* Final Total Row */}
         <div className={cn(
           "flex justify-between font-medium",
           isRTL && "flex-row-reverse"
@@ -163,7 +156,6 @@ export const PackageSummary = ({
         </div>
       </div>
       
-      {/* Savings Message */}
       <AnimatePresence>
         {savings > 0 && (
           <motion.div 

@@ -1,3 +1,4 @@
+
 import { Translations } from "@/types/language";
 
 export const translations: Translations = {
@@ -181,6 +182,7 @@ export const translations: Translations = {
     'midnight': 'منتصف الليل',
     'next.day': 'اليوم التالي',
     'package.savings': 'مجموع ما ستوفره مع هذه الباقة 😍',
-    'build.package': 'أصنع باقتك'
+    'build.package': 'أصنع باقتك',
+    'package.discount': 'خصم الخدمات المضافة'
   }
 };
