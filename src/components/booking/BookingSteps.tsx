@@ -273,10 +273,12 @@ export const BookingSteps = ({
             handleServiceToggle(service);
           }
           
-          for (const upsell of existingUpsells) {
-            if (!selectedServices.some(s => s.id === upsell.id)) {
-              setSelectedServices(prev => [...prev, upsell]);
-            }
+          const upsellsToAdd = existingUpsells.filter(upsell => 
+            !selectedServices.some(s => s.id === upsell.id)
+          );
+          
+          if (upsellsToAdd.length > 0) {
+            setSelectedServices([...selectedServices, ...upsellsToAdd]);
           }
         },
         {
