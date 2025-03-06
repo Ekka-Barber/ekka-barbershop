@@ -1,9 +1,8 @@
-
 import React from 'react';
 import { Service } from '@/types/service';
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
-import { PlusCircle, CheckCircle } from "lucide-react";
+import { CheckCircle } from "lucide-react";
 import { PriceDisplay } from "@/components/ui/price-display";
 
 interface PackageServiceListProps {
@@ -74,11 +73,6 @@ export const PackageServiceList = ({
                   "flex items-center gap-3 flex-1 min-w-0",
                   language === 'ar' ? "flex-row-reverse" : "flex-row"
                 )}>
-                  <div className="shrink-0 text-primary">
-                    {!isSelected && (
-                      <PlusCircle className="h-5 w-5 text-muted-foreground transition-transform duration-200" />
-                    )}
-                  </div>
                   <span className="text-sm font-medium leading-tight truncate">
                     {language === 'ar' ? service.name_ar : service.name_en}
                   </span>
