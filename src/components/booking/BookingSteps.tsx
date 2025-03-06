@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { BookingProgress, BookingStep } from "@/components/booking/BookingProgress";
 import { BookingNavigation } from "@/components/booking/BookingNavigation";
@@ -82,7 +81,7 @@ export const BookingSteps = ({
   const availablePackageServices = categories?.flatMap(c => c.services)
     .filter(service => 
       service.id !== BASE_SERVICE_ID && 
-      enabledPackageServices?.includes(service.id)
+      enabledPackageServices?.some(enabledService => enabledService.id === service.id)
     ) || [];
 
   // Handle service removal, with proper discount recalculation

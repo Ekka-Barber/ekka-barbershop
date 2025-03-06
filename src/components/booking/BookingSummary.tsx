@@ -67,7 +67,8 @@ export const BookingSummary = ({
 
   // Get available package services (that aren't already selected)
   const availablePackageServices = availableServices.filter(service => 
-    enabledPackageServices?.includes(service.id) &&
+    // Update this line to check the id property of each enabled package service
+    enabledPackageServices?.some(enabledService => enabledService.id === service.id) &&
     !selectedServices.some(s => s.id === service.id)
   );
 
