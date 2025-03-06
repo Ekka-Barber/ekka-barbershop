@@ -17,13 +17,13 @@ export const BaseServiceDisplay = ({ baseService, language }: BaseServiceDisplay
         {language === 'ar' ? 'الخدمة الأساسية:' : 'Base Service:'}
       </div>
       <div className={`flex justify-between items-center ${language === 'ar' ? "flex-row-reverse" : ""}`}>
-        <span>{language === 'ar' ? baseService.name_ar : baseService.name_en}</span>
         <PriceDisplay 
           price={baseService.price} 
           language={language as 'en' | 'ar'} 
           size="sm"
           className="font-medium"
         />
+        <span>{language === 'ar' ? baseService.name_ar : baseService.name_en}</span>
       </div>
     </div>
   );
