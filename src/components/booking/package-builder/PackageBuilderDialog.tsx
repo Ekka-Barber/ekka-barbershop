@@ -105,7 +105,11 @@ export const PackageBuilderDialog = ({
   
   return (
     <Dialog open={isOpen} onOpenChange={() => {}}>
-      <DialogContent className="sm:max-w-md" onPointerDownOutside={(e) => e.preventDefault()}>
+      <DialogContent 
+        className="sm:max-w-md" 
+        onPointerDownOutside={(e) => e.preventDefault()}
+        showCloseButton={false}
+      >
         <PackageBuilderHeader language={language} />
         
         <div className="mt-2 space-y-4">
