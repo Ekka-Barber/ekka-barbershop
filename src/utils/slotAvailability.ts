@@ -1,4 +1,3 @@
-
 import { isToday, isBefore, addMinutes, format, addDays } from "date-fns";
 import { hasEnoughConsecutiveTime } from "./consecutiveTimeChecker";
 import { convertTimeToMinutes, convertMinutesToTime, isAfterMidnight } from "./timeConversion";
@@ -82,6 +81,7 @@ export const isSlotAvailable = (
 
 /**
  * Checks if the service end time is valid within working hours
+ * Modified to properly handle cases where the service ends exactly at the end of working hours
  */
 const hasValidServiceEndTime = (
   slotMinutes: number,
@@ -91,6 +91,9 @@ const hasValidServiceEndTime = (
   const slotEndMinutes = slotMinutes + serviceDuration;
   const slotEndTimeString = convertMinutesToTime(slotEndMinutes);
   const slotEndCrossesMidnight = slotEndMinutes >= 24 * 60;
+  
+  console.log(`Checking if service end time ${slotEndTimeString} is valid within working hours`);
+  console.log(`Service duration: ${serviceDuration} minutes, End crosses midnight: ${slotEndCrossesMidnight}`);
   
   if (slotEndCrossesMidnight) {
     // If end time crosses midnight, we need to check if that's allowed in working hours
@@ -103,6 +106,7 @@ const hasValidServiceEndTime = (
       const rangeStartMinutes = convertTimeToMinutes(start);
       const rangeCrossesMidnight = endMinutes < rangeStartMinutes;
       
+      // Allow service to end exactly at the end time (including midnight)
       if (rangeCrossesMidnight && adjustedEndMinutes <= endMinutes) {
         isEndTimeValid = true;
         break;
@@ -115,12 +119,28 @@ const hasValidServiceEndTime = (
     }
   } else {
     // For non-midnight-crossing slots, check if end time is within working hours
-    if (!isWithinWorkingHours(slotEndMinutes, workingHoursRanges)) {
+    // Modified to allow the service to end exactly at the end of working hours
+    let isEndTimeValid = false;
+    
+    for (const range of workingHoursRanges) {
+      const [start, end] = range.split('-');
+      const endMinutes = convertTimeToMinutes(end);
+      
+      // Check if service end time is within the range (including exactly at end time)
+      if (slotEndMinutes <= endMinutes) {
+        console.log(`✅ Service would end at ${slotEndTimeString} which is within working hours range ${range}`);
+        isEndTimeValid = true;
+        break;
+      }
+    }
+    
+    if (!isEndTimeValid) {
       console.log(`❌ Slot would end at ${slotEndTimeString} which is outside working hours`);
       return false;
     }
   }
   
+  console.log(`✅ Service end time ${slotEndTimeString} is valid within working hours`);
   return true;
 };
 

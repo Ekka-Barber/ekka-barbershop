@@ -51,7 +51,8 @@ export const isWithinWorkingHours = (
       }
     } else {
       // For regular shifts that don't cross midnight
-      if (slotMinutes >= startMinutes && slotMinutes < endMinutes) {
+      // Modified to include exact end time in the valid range
+      if (slotMinutes >= startMinutes && slotMinutes <= endMinutes) {
         console.log(`✅ Slot ${timeString} is within regular shift range ${range}`);
         return true;
       }
