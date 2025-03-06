@@ -89,7 +89,7 @@ export const BookingSummary = ({
       transition={{ duration: 0.2 }}
     >
       <div className="flex items-center gap-2">
-        {onRemoveService && ((service.isPackageAddOn || service.isUpsellItem || service.id !== BASE_SERVICE_ID)) && (
+        {onRemoveService && (service.isPackageAddOn || service.isUpsellItem) && (
           <motion.button
             onClick={() => handleServiceRemove(service)}
             className={cn(
