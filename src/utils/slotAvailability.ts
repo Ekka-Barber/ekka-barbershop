@@ -1,3 +1,4 @@
+
 import { isToday, isBefore, addMinutes, addDays, format } from "date-fns";
 import { convertTimeToMinutes, convertMinutesToTime, isAfterMidnight } from "./timeConversion";
 import { UnavailableSlot } from "./timeSlotTypes";
@@ -25,6 +26,7 @@ export const isSlotAvailable = (
   
   // Check if the slot is within working hours
   if (!isWithinWorkingHours(slotMinutes, workingHoursRanges)) {
+    console.log(`Slot ${timeString} is outside working hours ranges`, workingHoursRanges);
     return false;
   }
 
@@ -51,7 +53,6 @@ export const isSlotAvailable = (
   }
 
   // Check if the service duration would extend beyond working hours
-  const slotEndMinutes = slotMinutes + serviceDuration;
   if (!hasValidServiceEndTime(slotMinutes, serviceDuration, workingHoursRanges)) {
     return false;
   }
@@ -80,7 +81,7 @@ const hasValidServiceEndTime = (
       const [start, end] = range.split('-');
       const endMinutes = convertTimeToMinutes(end);
       const startMinutes = convertTimeToMinutes(start);
-      const rangeCrossesMidnight = endMinutes < startMinutes || end === '00:00';
+      const rangeCrossesMidnight = doesCrossMidnight(start, end);
       
       // Allow service to end exactly at the end time (including midnight)
       if (rangeCrossesMidnight && adjustedEndMinutes <= endMinutes) {
@@ -94,10 +95,20 @@ const hasValidServiceEndTime = (
     for (const range of workingHoursRanges) {
       const [start, end] = range.split('-');
       const endMinutes = convertTimeToMinutes(end);
+      const startMinutes = convertTimeToMinutes(start);
+      const rangeCrossesMidnight = doesCrossMidnight(start, end);
       
-      // Allow the service to end exactly at the end of working hours
-      if (slotEndMinutes <= endMinutes) {
-        return true;
+      if (!rangeCrossesMidnight) {
+        // Standard range (e.g., 9:00-17:00)
+        if (slotEndMinutes <= endMinutes) {
+          return true;
+        }
+      } else {
+        // Range crosses midnight (e.g., 20:00-02:00)
+        // If slot starts before midnight, it can end at midnight or earlier
+        if (slotMinutes < 24 * 60 && slotEndMinutes <= 24 * 60) {
+          return true;
+        }
       }
     }
     

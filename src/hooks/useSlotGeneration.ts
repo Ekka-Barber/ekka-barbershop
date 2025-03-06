@@ -1,4 +1,3 @@
-
 import { useCallback } from "react";
 import { format, parse, isBefore, isEqual, addMinutes, addDays, isToday } from "date-fns";
 import { useQueryClient } from "@tanstack/react-query";
@@ -33,6 +32,8 @@ export const useSlotGeneration = () => {
       return allSlots;
     }
 
+    console.log("Working hours ranges:", workingHoursRanges);
+    
     const formattedDate = format(selectedDate, 'yyyy-MM-dd');
     
     // Get current time with buffer (for filtering past slots)
@@ -68,6 +69,8 @@ export const useSlotGeneration = () => {
         if (crossesMidnight) {
           endTime = addDays(endTime, 1);
         }
+
+        console.log(`Processing range ${start}-${end}, crosses midnight: ${crossesMidnight}`);
 
         // Create a slot every SLOT_INTERVAL minutes from start to end time
         let currentSlot = startTime;
