@@ -1,5 +1,5 @@
 
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -10,6 +10,9 @@ import Customer from "./pages/Customer";
 import Menu from "./pages/Menu";
 import Offers from "./pages/Offers";
 import Bookings from "./pages/Bookings";
+import { OfflineNotification } from "./components/common/OfflineNotification";
+import { ErrorBoundary } from "./components/common/ErrorBoundary";
+import { registerServiceWorker } from "./services/offlineSupport";
 
 // Lazy load Admin component
 const Admin = lazy(() => import("./pages/Admin"));
@@ -29,34 +32,48 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
+// Register service worker
+const ServiceWorkerRegistration = () => {
+  useEffect(() => {
+    const registerSW = async () => {
+      await registerServiceWorker();
+    };
+    registerSW();
+  }, []);
+
+  return null;
+};
+
 // Main App Component
 const AppRoutes = () => {
   return (
-    <Routes>
-      {/* Redirect root to customer page */}
-      <Route path="/" element={<Navigate to="/customer" replace />} />
-      
-      {/* Public routes */}
-      <Route path="/customer" element={<Customer />} />
-      <Route path="/menu" element={<Menu />} />
-      <Route path="/offers" element={<Offers />} />
-      <Route path="/bookings" element={<Bookings />} />
-      
-      {/* Protected routes */}
-      <Route 
-        path="/admin" 
-        element={
-          <ProtectedRoute>
-            <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
-              <Admin />
-            </Suspense>
-          </ProtectedRoute>
-        } 
-      />
-      
-      {/* Catch all other routes and redirect to customer page */}
-      <Route path="*" element={<Navigate to="/customer" replace />} />
-    </Routes>
+    <ErrorBoundary>
+      <Routes>
+        {/* Redirect root to customer page */}
+        <Route path="/" element={<Navigate to="/customer" replace />} />
+        
+        {/* Public routes */}
+        <Route path="/customer" element={<Customer />} />
+        <Route path="/menu" element={<Menu />} />
+        <Route path="/offers" element={<Offers />} />
+        <Route path="/bookings" element={<Bookings />} />
+        
+        {/* Protected routes */}
+        <Route 
+          path="/admin" 
+          element={
+            <ProtectedRoute>
+              <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
+                <Admin />
+              </Suspense>
+            </ProtectedRoute>
+          } 
+        />
+        
+        {/* Catch all other routes and redirect to customer page */}
+        <Route path="*" element={<Navigate to="/customer" replace />} />
+      </Routes>
+    </ErrorBoundary>
   );
 };
 
@@ -67,9 +84,11 @@ const App = () => {
       <LanguageProvider>
         <TooltipProvider>
           <BrowserRouter>
+            <ServiceWorkerRegistration />
             <AppRoutes />
             <Toaster />
             <Sonner />
+            <OfflineNotification />
           </BrowserRouter>
         </TooltipProvider>
       </LanguageProvider>

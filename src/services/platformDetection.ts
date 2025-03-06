@@ -3,6 +3,8 @@ type PlatformType = 'ios' | 'android' | 'desktop' | 'unsupported';
 type InstallationStatus = 'not-installed' | 'installed' | 'installing' | 'unsupported';
 type DeviceModel = 'iPhone' | 'iPad' | 'Android' | 'Desktop' | 'Unknown';
 type BrowserType = 'safari' | 'chrome' | 'firefox' | 'edge' | 'opera' | 'samsung' | 'other';
+type iOSVersion = { major: number; minor: number; patch: number } | null;
+type ConnectionType = 'wifi' | 'cellular' | 'unknown' | 'none';
 
 /**
  * Detects the user's platform (iOS, Android, Desktop, etc.)
@@ -57,6 +59,30 @@ export const getBrowserType = (): BrowserType => {
 };
 
 /**
+ * Gets the iOS version if the user is on an iOS device
+ * @returns The iOS version or null if not on iOS
+ */
+export const getiOSVersion = (): iOSVersion => {
+  const userAgent = navigator.userAgent;
+  const platform = getPlatformType();
+  
+  if (platform !== 'ios') return null;
+  
+  // Match version pattern like "OS 15_4_1" for iOS
+  const match = userAgent.match(/OS\s+(\d+)_(\d+)_?(\d+)?/);
+  
+  if (match) {
+    return {
+      major: parseInt(match[1], 10),
+      minor: parseInt(match[2], 10),
+      patch: match[3] ? parseInt(match[3], 10) : 0
+    };
+  }
+  
+  return null;
+};
+
+/**
  * Checks if the app is running in standalone mode (installed as PWA)
  * @returns True if running as installed PWA
  */
@@ -105,6 +131,32 @@ export const isServiceWorkerSupported = (): boolean => {
 };
 
 /**
+ * Gets the connection information of the device
+ * @returns The connection type
+ */
+export const getConnectionInfo = (): { type: ConnectionType, effectiveType?: string, saveData?: boolean } => {
+  if ('connection' in navigator) {
+    const connection = (navigator as any).connection;
+    
+    if (connection) {
+      let type: ConnectionType = 'unknown';
+      
+      if (connection.type === 'wifi') type = 'wifi';
+      else if (connection.type === 'cellular') type = 'cellular';
+      else if (connection.type === 'none') type = 'none';
+      
+      return {
+        type,
+        effectiveType: connection.effectiveType,
+        saveData: connection.saveData
+      };
+    }
+  }
+  
+  return { type: 'unknown' };
+};
+
+/**
  * Checks if the device has a notch (iPhone X and newer)
  * @returns True if the device likely has a notch
  */
@@ -137,6 +189,36 @@ export const hasNotch = (): boolean => {
 };
 
 /**
+ * Get detailed information about safe area insets
+ * @returns Object with safe area inset values
+ */
+export const getSafeAreaInsets = () => {
+  const testDiv = document.createElement('div');
+  Object.assign(testDiv.style, {
+    position: 'fixed',
+    width: '100%',
+    height: '100%',
+    paddingTop: 'env(safe-area-inset-top)',
+    paddingRight: 'env(safe-area-inset-right)',
+    paddingBottom: 'env(safe-area-inset-bottom)',
+    paddingLeft: 'env(safe-area-inset-left)'
+  });
+  
+  document.body.appendChild(testDiv);
+  const computedStyle = window.getComputedStyle(testDiv);
+  
+  const insets = {
+    top: computedStyle.paddingTop,
+    right: computedStyle.paddingRight,
+    bottom: computedStyle.paddingBottom,
+    left: computedStyle.paddingLeft
+  };
+  
+  document.body.removeChild(testDiv);
+  return insets;
+};
+
+/**
  * Checks if the device supports specific features like
  * vibration, touch, etc.
  * @returns Object with support flags
@@ -151,6 +233,59 @@ export const getDeviceCapabilities = () => {
     notification: 'Notification' in window,
     share: 'share' in navigator,
     bluetooth: 'bluetooth' in navigator,
-    camera: 'mediaDevices' in navigator
+    camera: 'mediaDevices' in navigator,
+    // New capabilities
+    batteryAPI: 'getBattery' in navigator,
+    screenWakeLock: 'wakeLock' in navigator,
+    webPayment: 'PaymentRequest' in window,
+    credentials: 'credentials' in navigator,
+    offlineStorage: 'storage' in navigator && 'estimate' in (navigator.storage || {})
+  };
+};
+
+/**
+ * Detects if the user prefers reduced motion
+ * @returns True if the user prefers reduced motion
+ */
+export const prefersReducedMotion = (): boolean => {
+  return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+};
+
+/**
+ * Detects if the user prefers dark mode
+ * @returns True if the user prefers dark mode
+ */
+export const prefersDarkMode = (): boolean => {
+  return window.matchMedia('(prefers-color-scheme: dark)').matches;
+};
+
+/**
+ * Registers listeners for online/offline status
+ * @param onOnline Function to call when online
+ * @param onOffline Function to call when offline
+ * @returns Cleanup function
+ */
+export const registerConnectivityListeners = (
+  onOnline: () => void,
+  onOffline: () => void
+): () => void => {
+  window.addEventListener('online', onOnline);
+  window.addEventListener('offline', onOffline);
+  
+  return () => {
+    window.removeEventListener('online', onOnline);
+    window.removeEventListener('offline', onOffline);
+  };
+};
+
+/**
+ * Gets the device viewport dimensions accounting for safe areas
+ * @returns Object with viewport dimensions
+ */
+export const getViewportDimensions = () => {
+  return {
+    width: window.innerWidth,
+    height: window.innerHeight,
+    safeAreaInsets: getSafeAreaInsets()
   };
 };
