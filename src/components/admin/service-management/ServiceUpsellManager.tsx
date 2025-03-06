@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { Pencil, Trash2, ChevronDown, ChevronUp, Link } from 'lucide-react';
+import { Pencil, Trash2, ChevronDown, ChevronUp, Link, Plus, X } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from "@/integrations/supabase/client";
 import { Service } from '@/types/service';
@@ -26,6 +26,11 @@ interface ServiceWithUpsells extends Service {
   }>;
 }
 
+interface UpsellItem {
+  upsellServiceId: string;
+  discountPercentage: number;
+}
+
 export const ServiceUpsellManager = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -37,12 +42,10 @@ export const ServiceUpsellManager = () => {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [newUpsell, setNewUpsell] = useState<{
     mainServiceId: string;
-    upsellServiceId: string;
-    discountPercentage: number;
+    upsellItems: UpsellItem[];
   }>({
     mainServiceId: '',
-    upsellServiceId: '',
-    discountPercentage: 10, // Default value
+    upsellItems: [{ upsellServiceId: '', discountPercentage: 10 }],
   });
 
   // Fetch all services for dropdown selection
@@ -110,44 +113,101 @@ export const ServiceUpsellManager = () => {
     }
   });
 
-  // Mutation to add new upsell relationship
+  // Add a new upsell item to the form
+  const addUpsellItem = () => {
+    setNewUpsell({
+      ...newUpsell,
+      upsellItems: [...newUpsell.upsellItems, { upsellServiceId: '', discountPercentage: 10 }]
+    });
+  };
+
+  // Remove an upsell item from the form
+  const removeUpsellItem = (index: number) => {
+    const updatedItems = [...newUpsell.upsellItems];
+    updatedItems.splice(index, 1);
+    setNewUpsell({
+      ...newUpsell,
+      upsellItems: updatedItems
+    });
+  };
+
+  // Update an upsell item in the form
+  const updateUpsellItem = (index: number, field: keyof UpsellItem, value: string | number) => {
+    const updatedItems = [...newUpsell.upsellItems];
+    updatedItems[index] = {
+      ...updatedItems[index],
+      [field]: value
+    };
+    setNewUpsell({
+      ...newUpsell,
+      upsellItems: updatedItems
+    });
+  };
+
+  // Mutation to add new upsell relationships
   const addUpsellMutation = useMutation({
     mutationFn: async (data: typeof newUpsell) => {
-      // Check if relation already exists
-      const { data: existing, error: checkError } = await supabase
-        .from('service_upsells')
-        .select('id')
-        .eq('main_service_id', data.mainServiceId)
-        .eq('upsell_service_id', data.upsellServiceId)
-        .maybeSingle();
-
-      if (checkError) throw checkError;
+      const { mainServiceId, upsellItems } = data;
       
-      if (existing) {
-        throw new Error('This upsell relationship already exists');
+      if (!mainServiceId || upsellItems.some(item => !item.upsellServiceId)) {
+        throw new Error('Please select both main service and all upsell services');
+      }
+      
+      // Check for duplicate upsell services in the form
+      const uniqueUpsellIds = new Set(upsellItems.map(item => item.upsellServiceId));
+      if (uniqueUpsellIds.size !== upsellItems.length) {
+        throw new Error('Each upsell service must be unique');
       }
 
-      const { error } = await supabase
-        .from('service_upsells')
-        .insert({
-          main_service_id: data.mainServiceId,
-          upsell_service_id: data.upsellServiceId,
-          discount_percentage: data.discountPercentage,
-        });
+      // Create array to store promises for batch insert
+      const insertPromises = [];
 
-      if (error) throw error;
+      for (const item of upsellItems) {
+        // Check if relation already exists
+        const { data: existing, error: checkError } = await supabase
+          .from('service_upsells')
+          .select('id')
+          .eq('main_service_id', mainServiceId)
+          .eq('upsell_service_id', item.upsellServiceId)
+          .maybeSingle();
+
+        if (checkError) throw checkError;
+        
+        if (existing) {
+          throw new Error(`An upsell relationship already exists for this service: ${item.upsellServiceId}`);
+        }
+
+        // Add insert operation to array
+        insertPromises.push(
+          supabase
+            .from('service_upsells')
+            .insert({
+              main_service_id: mainServiceId,
+              upsell_service_id: item.upsellServiceId,
+              discount_percentage: item.discountPercentage,
+            })
+        );
+      }
+
+      // Execute all inserts
+      const results = await Promise.all(insertPromises);
+      
+      // Check for errors
+      const errors = results.filter(result => result.error);
+      if (errors.length > 0) {
+        throw new Error(`Error adding relationship: ${errors[0].error?.message}`);
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['services-with-upsells'] });
       toast({
         title: "Success",
-        description: "New upsell relationship added successfully.",
+        description: "New upsell relationships added successfully.",
       });
       setIsAddDialogOpen(false);
       setNewUpsell({
         mainServiceId: '',
-        upsellServiceId: '',
-        discountPercentage: 10,
+        upsellItems: [{ upsellServiceId: '', discountPercentage: 10 }],
       });
     },
     onError: (error) => {
@@ -199,16 +259,26 @@ export const ServiceUpsellManager = () => {
   });
 
   const handleAddUpsell = () => {
-    if (!newUpsell.mainServiceId || !newUpsell.upsellServiceId) {
+    if (!newUpsell.mainServiceId) {
       toast({
         title: "Missing information",
-        description: "Please select both main service and upsell service",
+        description: "Please select a main service",
         variant: "destructive"
       });
       return;
     }
 
-    if (newUpsell.mainServiceId === newUpsell.upsellServiceId) {
+    if (newUpsell.upsellItems.some(item => !item.upsellServiceId)) {
+      toast({
+        title: "Missing information",
+        description: "Please select all upsell services",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Check for services referring to themselves
+    if (newUpsell.upsellItems.some(item => item.upsellServiceId === newUpsell.mainServiceId)) {
       toast({
         title: "Invalid selection",
         description: "Main service and upsell service cannot be the same",
@@ -217,7 +287,10 @@ export const ServiceUpsellManager = () => {
       return;
     }
 
-    if (newUpsell.discountPercentage < 0 || newUpsell.discountPercentage > 100) {
+    // Check for invalid discount values
+    if (newUpsell.upsellItems.some(item => 
+      item.discountPercentage < 0 || item.discountPercentage > 100
+    )) {
       toast({
         title: "Invalid discount",
         description: "Discount must be between 0 and 100%",
@@ -246,6 +319,24 @@ export const ServiceUpsellManager = () => {
     deleteUpsellMutation.mutate(id);
   };
 
+  // Get available services for a specific upsell item (excluding already selected ones)
+  const getAvailableServices = (index: number) => {
+    if (!allServices) return [];
+
+    const selectedIds = new Set(
+      newUpsell.upsellItems
+        .filter((_, i) => i !== index)
+        .map(item => item.upsellServiceId)
+    );
+
+    // Also exclude the main service
+    if (newUpsell.mainServiceId) {
+      selectedIds.add(newUpsell.mainServiceId);
+    }
+
+    return allServices.filter(service => !selectedIds.has(service.id));
+  };
+
   if (isLoading) {
     return (
       <div className="space-y-4">
@@ -272,7 +363,7 @@ export const ServiceUpsellManager = () => {
               Add Upsell Relation
             </Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="max-w-md">
             <DialogHeader>
               <DialogTitle>Create New Upsell Relationship</DialogTitle>
             </DialogHeader>
@@ -297,37 +388,72 @@ export const ServiceUpsellManager = () => {
                 </Select>
               </div>
               
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Upsell Service</label>
-                <Select
-                  value={newUpsell.upsellServiceId}
-                  onValueChange={(value) => setNewUpsell({...newUpsell, upsellServiceId: value})}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select upsell service" />
-                  </SelectTrigger>
-                  <SelectContent className="max-h-[300px]">
-                    {allServices?.map(service => (
-                      <SelectItem key={`upsell-${service.id}`} value={service.id}>
-                        {language === 'ar' ? service.name_ar : service.name_en}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Discount Percentage</label>
-                <Input
-                  type="number"
-                  min={0}
-                  max={100}
-                  value={newUpsell.discountPercentage}
-                  onChange={(e) => setNewUpsell({
-                    ...newUpsell,
-                    discountPercentage: parseInt(e.target.value) || 0
-                  })}
-                />
+              <div className="space-y-3">
+                <div className="flex justify-between items-center">
+                  <label className="text-sm font-medium">Upsell Services</label>
+                  <Button 
+                    type="button" 
+                    size="sm" 
+                    variant="ghost" 
+                    className="h-8 px-2"
+                    onClick={addUpsellItem}
+                  >
+                    <Plus className="h-4 w-4 mr-1" />
+                    Add Another
+                  </Button>
+                </div>
+                
+                {newUpsell.upsellItems.map((item, index) => (
+                  <div key={index} className="flex gap-2 items-start">
+                    <div className="flex-1">
+                      <Select
+                        value={item.upsellServiceId}
+                        onValueChange={(value) => updateUpsellItem(index, 'upsellServiceId', value)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select upsell service" />
+                        </SelectTrigger>
+                        <SelectContent className="max-h-[300px]">
+                          {getAvailableServices(index).map(service => (
+                            <SelectItem key={`upsell-${service.id}-${index}`} value={service.id}>
+                              {language === 'ar' ? service.name_ar : service.name_en}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    <div className="w-16">
+                      <div className="flex items-center">
+                        <Input
+                          type="number"
+                          min={0}
+                          max={100}
+                          value={item.discountPercentage}
+                          onChange={(e) => updateUpsellItem(
+                            index, 
+                            'discountPercentage', 
+                            parseInt(e.target.value) || 0
+                          )}
+                          className="h-10"
+                        />
+                        <span className="ml-1">%</span>
+                      </div>
+                    </div>
+                    
+                    {newUpsell.upsellItems.length > 1 && (
+                      <Button 
+                        type="button" 
+                        variant="ghost" 
+                        size="icon"
+                        className="h-10 w-10 text-red-500 hover:text-red-600 hover:bg-red-50"
+                        onClick={() => removeUpsellItem(index)}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
+                ))}
               </div>
             </div>
             
