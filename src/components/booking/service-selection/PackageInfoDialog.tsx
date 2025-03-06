@@ -1,3 +1,4 @@
+
 import React from 'react';
 import {
   Dialog,
@@ -93,7 +94,7 @@ export const PackageInfoDialog = ({ isOpen, onClose, packageSettings }: PackageI
                       : packageSettings.discountTiers.twoServices + '%'}
                   </span>
                   <span className="text-xs text-gray-500">
-                    {language === 'ar' ? 'خدمتان إضافيتان' : 'add-ons'}
+                    {language === 'ar' ? 'خدمتان' : 'add-ons'}
                   </span>
                 </div>
                 <div className="flex flex-col items-center p-2 bg-white rounded border">
