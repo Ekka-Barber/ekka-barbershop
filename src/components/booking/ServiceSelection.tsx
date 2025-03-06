@@ -9,6 +9,8 @@ interface ServiceSelectionProps {
   selectedServices: SelectedService[];
   onServiceToggle: (service: any) => void;
   onStepChange?: (step: string) => void;
+  isUpdatingPackage?: boolean;
+  handlePackageServiceUpdate?: (services: SelectedService[]) => void;
 }
 
 export const ServiceSelection = ({
@@ -16,14 +18,18 @@ export const ServiceSelection = ({
   isLoading,
   selectedServices,
   onServiceToggle,
-  onStepChange
+  onStepChange,
+  isUpdatingPackage,
+  handlePackageServiceUpdate
 }: ServiceSelectionProps) => {
   const selectionState = ServiceSelectionContainer({
     categories,
     isLoading,
     selectedServices,
     onServiceToggle,
-    onStepChange
+    onStepChange,
+    isUpdatingPackage,
+    handlePackageServiceUpdate
   });
   
   return (

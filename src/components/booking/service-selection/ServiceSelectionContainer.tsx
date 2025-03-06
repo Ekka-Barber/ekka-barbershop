@@ -1,16 +1,10 @@
+
 import { useState, useEffect } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useToast } from "@/hooks/use-toast";
 import { cacheActiveCategory, getCachedActiveCategory } from "@/utils/serviceCache";
-import { PackageBanner } from "./PackageBanner";
-import { CategoryTabs } from "./CategoryTabs";
-import { ServiceGrid } from "./ServiceGrid";
-import { ServiceDetailSheet } from "./ServiceDetailSheet";
-import { ServicesSummary } from "./ServicesSummary";
-import { PackageInfoDialog } from "./PackageInfoDialog";
-import { PackageBuilderDialog } from "../package-builder/PackageBuilderDialog";
-import { usePackageDiscount } from "@/hooks/usePackageDiscount";
 import { Service, SelectedService } from '@/types/service';
+import { usePackageDiscount } from "@/hooks/usePackageDiscount";
 
 interface ServiceSelectionContainerProps {
   categories: any[] | undefined;
@@ -18,6 +12,8 @@ interface ServiceSelectionContainerProps {
   selectedServices: SelectedService[];
   onServiceToggle: (service: any) => void;
   onStepChange?: (step: string) => void;
+  isUpdatingPackage?: boolean;
+  handlePackageServiceUpdate?: (services: SelectedService[]) => void;
 }
 
 export const ServiceSelectionContainer = ({
@@ -25,7 +21,9 @@ export const ServiceSelectionContainer = ({
   isLoading,
   selectedServices,
   onServiceToggle,
-  onStepChange
+  onStepChange,
+  isUpdatingPackage = false,
+  handlePackageServiceUpdate
 }: ServiceSelectionContainerProps) => {
   const { language } = useLanguage();
   const { toast } = useToast();
@@ -44,9 +42,9 @@ export const ServiceSelectionContainer = ({
     packageSettings, 
     hasBaseService,
     enabledPackageServices
-  } = usePackageDiscount(selectedServices);
+  } = usePackageDiscount(selectedServices, isUpdatingPackage);
 
-  const baseService = selectedServices.find(s => s.id === BASE_SERVICE_ID) || 
+  const baseService = selectedServices.find(s => s.id === BASE_SERVICE_ID || s.isBasePackageService) || 
     (categories?.flatMap(c => c.services).find(s => s.id === BASE_SERVICE_ID));
 
   const availablePackageServices = categories?.flatMap(c => c.services)
@@ -100,17 +98,7 @@ export const ServiceSelectionContainer = ({
   
   const handlePackageConfirm = (services: SelectedService[]) => {
     try {
-      // Add detailed logging
-      console.log('Package confirmation received services:', services.map(s => ({
-        id: s.id,
-        name: language === 'ar' ? s.name_ar : s.name_en,
-        isBase: s.isBasePackageService,
-        isPackageAddOn: s.isPackageAddOn,
-        originalPrice: s.originalPrice,
-        price: s.price
-      })));
-      
-      // Verify we have the base service
+      // First, ensure we have the base service
       const baseServiceFromPackage = services.find(s => s.isBasePackageService || s.id === BASE_SERVICE_ID);
       if (!baseServiceFromPackage) {
         console.error('No base service found in package confirmation');
@@ -123,6 +111,23 @@ export const ServiceSelectionContainer = ({
         });
         return;
       }
+      
+      // Using the new streamlined package update function if available
+      if (handlePackageServiceUpdate) {
+        console.log('Using optimized package update flow');
+        handlePackageServiceUpdate(services);
+        
+        // Close dialog and proceed if needed
+        setShowPackageBuilder(false);
+        if (pendingNextStep) {
+          onStepChange?.(pendingNextStep);
+          setPendingNextStep(null);
+        }
+        return;
+      }
+      
+      // Legacy approach - less optimized but works as fallback
+      console.log('Using legacy package update flow');
       
       // Extract existing upsell items to preserve them
       const existingUpsells = selectedServices.filter(s => s.isUpsellItem);

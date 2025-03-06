@@ -9,8 +9,12 @@ import { createPackageService } from '@/utils/serviceTransformation';
 // Base service ID
 const BASE_SERVICE_ID = 'a3dbfd63-be5d-4465-af99-f25c21d578a0';
 
-export const usePackageDiscount = (selectedServices: SelectedService[]) => {
+export const usePackageDiscount = (
+  selectedServices: SelectedService[], 
+  forceEnabled: boolean = false
+) => {
   const [packageEnabled, setPackageEnabled] = useState(false);
+  const [forcePackageEnabled, setForcePackageEnabled] = useState(forceEnabled);
   
   // Fetch package settings
   const { data: packageSettings } = useQuery({
@@ -66,13 +70,13 @@ export const usePackageDiscount = (selectedServices: SelectedService[]) => {
 
   // Get add-on services
   const addOnServices = useMemo(() => {
-    if (!hasBaseService) return [];
+    if (!hasBaseService && !forcePackageEnabled) return [];
     return selectedServices.filter(service => 
       service.id !== BASE_SERVICE_ID && 
       !service.isUpsellItem && 
       !service.isBasePackageService
     );
-  }, [selectedServices, hasBaseService]);
+  }, [selectedServices, hasBaseService, forcePackageEnabled]);
 
   // Calculate discount percentage based on number of add-on services
   const getDiscountPercentage = (count: number): number => {
@@ -90,7 +94,7 @@ export const usePackageDiscount = (selectedServices: SelectedService[]) => {
 
   // Apply discounts to services
   const applyPackageDiscounts = (services: SelectedService[]): SelectedService[] => {
-    if (!hasBaseService || !packageEnabled || !packageSettings) {
+    if ((!hasBaseService && !forcePackageEnabled) || !packageSettings) {
       return services;
     }
 
@@ -100,7 +104,7 @@ export const usePackageDiscount = (selectedServices: SelectedService[]) => {
     const discountPercentage = getDiscountPercentage(addonCount);
     
     return services.map(service => {
-      // Skip base service, upsell items, and already discounted package services
+      // Skip base service, upsell items, and already discounted package services with the same percentage
       if (service.id === BASE_SERVICE_ID || 
           service.isUpsellItem || 
           service.isBasePackageService || 
@@ -120,7 +124,7 @@ export const usePackageDiscount = (selectedServices: SelectedService[]) => {
 
   // Calculate total savings from package discounts
   const calculatePackageSavings = (): number => {
-    if (!hasBaseService || !packageEnabled) return 0;
+    if (!hasBaseService && !forcePackageEnabled) return 0;
     
     return addOnServices.reduce((total, service) => {
       if (!service.originalPrice) return total;
@@ -128,8 +132,17 @@ export const usePackageDiscount = (selectedServices: SelectedService[]) => {
     }, 0);
   };
 
-  // Track base service selection
+  // Track base service selection with improved handling
   useEffect(() => {
+    // Force package mode to stay enabled during updates if forcePackageEnabled is true
+    if (forcePackageEnabled) {
+      if (!packageEnabled) {
+        console.log('Package mode forced enabled during update');
+        setPackageEnabled(true);
+      }
+      return;
+    }
+    
     // Enable package mode when base service is selected
     if (hasBaseService && !packageEnabled) {
       console.log('Package mode enabled - base service detected');
@@ -141,7 +154,7 @@ export const usePackageDiscount = (selectedServices: SelectedService[]) => {
       console.log('Package mode disabled - base service removed');
       setPackageEnabled(false);
     }
-  }, [hasBaseService, packageEnabled]);
+  }, [hasBaseService, packageEnabled, forcePackageEnabled]);
 
   return {
     BASE_SERVICE_ID,
@@ -152,6 +165,7 @@ export const usePackageDiscount = (selectedServices: SelectedService[]) => {
     enabledPackageServices,
     applyPackageDiscounts,
     calculatePackageSavings,
-    getDiscountPercentage
+    getDiscountPercentage,
+    setForcePackageEnabled
   };
 };

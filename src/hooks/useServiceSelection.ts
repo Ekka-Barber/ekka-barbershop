@@ -8,6 +8,7 @@ import { usePackageDiscount } from '@/hooks/usePackageDiscount';
 
 export const useServiceSelection = () => {
   const [selectedServices, setSelectedServices] = useState<SelectedService[]>([]);
+  const [isUpdatingPackage, setIsUpdatingPackage] = useState<boolean>(false);
   const { toast } = useToast();
   const { language } = useLanguage();
   
@@ -15,13 +16,20 @@ export const useServiceSelection = () => {
   const { 
     BASE_SERVICE_ID, 
     packageEnabled, 
-    applyPackageDiscounts 
-  } = usePackageDiscount(selectedServices);
+    applyPackageDiscounts,
+    setForcePackageEnabled
+  } = usePackageDiscount(selectedServices, isUpdatingPackage);
 
   /**
    * Handles the toggling of a service selection
    */
   const handleServiceToggle = (service: Service | SelectedService, skipDiscountCalculation: boolean = false) => {
+    // Don't process toggles during package updates
+    if (isUpdatingPackage) {
+      console.log('Ignoring service toggle during package update');
+      return;
+    }
+
     const isSelected = selectedServices.some(s => s.id === service.id);
     
     if (isSelected) {
@@ -142,9 +150,69 @@ export const useServiceSelection = () => {
     });
   };
 
+  /**
+   * Safely update package services without removing the base service temporarily
+   */
+  const handlePackageServiceUpdate = (packageServices: SelectedService[]) => {
+    try {
+      if (!packageServices.length) {
+        console.error('No package services provided for update');
+        return;
+      }
+
+      // Set flag to prevent disabling package mode during update
+      setIsUpdatingPackage(true);
+      setForcePackageEnabled(true);
+      
+      console.log('🔄 Starting package update with', packageServices.length, 'services');
+      
+      // Validate that we have a base service in the package
+      const baseService = packageServices.find(s => s.isBasePackageService || s.id === BASE_SERVICE_ID);
+      if (!baseService) {
+        throw new Error('No base service found in package services');
+      }
+      
+      // Extract existing upsell items to preserve them
+      const existingUpsells = selectedServices.filter(s => s.isUpsellItem);
+      
+      // Update selected services in a single state update to prevent flickering
+      setSelectedServices(prevServices => {
+        // First, remove all non-upsell services
+        const withoutNonUpsells = prevServices.filter(s => s.isUpsellItem);
+        
+        // Add the base service first (VERY IMPORTANT)
+        const withBaseService = [...withoutNonUpsells, baseService];
+        
+        // Then add all other package services
+        const otherPackageServices = packageServices.filter(s => 
+          !s.isBasePackageService && s.id !== BASE_SERVICE_ID
+        );
+        
+        return [...withBaseService, ...otherPackageServices];
+      });
+
+      console.log('✅ Package services updated successfully');
+    } catch (error) {
+      console.error('Error updating package services:', error);
+      toast({
+        title: language === 'ar' ? 'خطأ' : 'Error',
+        description: language === 'ar' 
+          ? 'حدث خطأ أثناء تحديث الباقة'
+          : 'An error occurred while updating the package',
+        variant: "destructive"
+      });
+    } finally {
+      // Reset flags after a short delay to ensure state has settled
+      setTimeout(() => {
+        setIsUpdatingPackage(false);
+        setForcePackageEnabled(false);
+      }, 500);
+    }
+  };
+
   // Apply package discounts if applicable
   useEffect(() => {
-    if (packageEnabled && selectedServices.length > 0) {
+    if (packageEnabled && selectedServices.length > 0 && !isUpdatingPackage) {
       const discountedServices = applyPackageDiscounts(selectedServices);
       // Only update if there's actually a change to avoid infinite loops
       const hasChanges = discountedServices.some((s, i) => 
@@ -157,12 +225,14 @@ export const useServiceSelection = () => {
         setSelectedServices(discountedServices);
       }
     }
-  }, [packageEnabled, selectedServices.length]);
+  }, [packageEnabled, selectedServices.length, isUpdatingPackage]);
 
   return {
     selectedServices,
     setSelectedServices,
     handleServiceToggle,
-    handleUpsellServiceAdd
+    handleUpsellServiceAdd,
+    handlePackageServiceUpdate,
+    isUpdatingPackage
   };
 };

@@ -39,12 +39,22 @@ export const PackageBuilderDialog = ({
   const { toast } = useToast();
   const [selectedAddOns, setSelectedAddOns] = useState<Service[]>([]);
   
+  // Reset selected add-ons whenever the dialog opens or currently selected services change
   useEffect(() => {
     if (isOpen) {
-      const existingAddOns = currentlySelectedServices.filter(
-        service => service.id !== baseService?.id && !service.isUpsellItem
-      ).map(service => availableServices.find(s => s.id === service.id)).filter(Boolean) as Service[];
+      // Find currently selected non-base services that are eligible for the package
+      const existingAddOns = currentlySelectedServices
+        .filter(service => 
+          service.id !== baseService?.id && 
+          !service.isUpsellItem &&
+          availableServices.some(s => s.id === service.id)
+        )
+        .map(service => 
+          availableServices.find(s => s.id === service.id)
+        )
+        .filter(Boolean) as Service[];
       
+      console.log('Found', existingAddOns.length, 'existing add-ons for package builder');
       setSelectedAddOns(existingAddOns);
     }
   }, [isOpen, baseService, availableServices, currentlySelectedServices]);
@@ -79,26 +89,26 @@ export const PackageBuilderDialog = ({
   
   const handleConfirm = () => {
     try {
-      const transformedServices: SelectedService[] = [];
-      
-      // ALWAYS add the base service if present
-      if (baseService) {
-        console.log('Adding base service to package:', baseService.id, language === 'ar' ? baseService.name_ar : baseService.name_en);
-        
-        // Create base service with proper flags
-        const baseSelectedService = createPackageService(baseService, true);
-        transformedServices.push(baseSelectedService);
-      } else {
-        console.error('No base service available for package');
+      if (!baseService) {
+        console.error('Cannot confirm package: Base service is missing');
         toast({
           title: language === 'ar' ? 'خطأ' : 'Error',
           description: language === 'ar' 
-            ? 'لا توجد خدمة أساسية متاحة للباقة'
-            : 'No base service available for package',
+            ? 'الخدمة الأساسية مفقودة'
+            : 'Base service is missing',
           variant: "destructive"
         });
         return;
       }
+      
+      const transformedServices: SelectedService[] = [];
+      
+      // ALWAYS add the base service first - critical for correct ordering
+      console.log('Adding base service to package:', baseService.id, language === 'ar' ? baseService.name_ar : baseService.name_en);
+      
+      // Always ensure base service is created with proper flags
+      const baseSelectedService = createPackageService(baseService, true);
+      transformedServices.push(baseSelectedService);
       
       // Add selected add-on services with discounts
       selectedAddOns.forEach(service => {
@@ -112,7 +122,7 @@ export const PackageBuilderDialog = ({
         transformedServices.push(packageAddOn);
       });
 
-      // Log what we're sending back
+      // Log the complete package before confirming
       console.log('Confirming package with', transformedServices.length, 'services');
       console.log('Services being sent:', transformedServices.map(s => ({
         id: s.id,
@@ -143,8 +153,15 @@ export const PackageBuilderDialog = ({
         className="sm:max-w-md" 
         onPointerDownOutside={(e) => e.preventDefault()}
         showCloseButton={false}
+        aria-describedby="package-builder-description"
       >
         <PackageBuilderHeader language={language} />
+        
+        <div id="package-builder-description" className="sr-only">
+          {language === 'ar' 
+            ? 'بناء باقة الخدمات الخاصة بك' 
+            : 'Build your service package'}
+        </div>
         
         <div className="mt-2 space-y-4">
           <BaseServiceDisplay baseService={baseService} language={language} />

@@ -54,7 +54,8 @@ export const BookingSteps = ({
     selectedEmployee,
     handleServiceToggle,
     handleUpsellServiceAdd,
-    handlePackageConfirm,
+    handlePackageServiceUpdate,
+    isUpdatingPackage,
     totalPrice,
     totalDuration
   } = useBooking(branch);
@@ -181,15 +182,8 @@ export const BookingSteps = ({
     }
   };
 
-  // Enhanced handlePackageBuilderConfirm to prioritize the base service
+  // Enhanced handlePackageBuilderConfirm to use the new update approach
   const handlePackageBuilderConfirm = (packageServices: any[]) => {
-    // Log incoming package services for debugging
-    console.log('Package services received:', packageServices.length, packageServices.map(s => ({
-      id: s.id,
-      name: language === 'ar' ? s.name_ar : s.name_en,
-      isBase: s.isBasePackageService
-    })));
-    
     // Verify that we have the base service
     const incomingBaseService = packageServices.find(s => s.isBasePackageService || s.id === BASE_SERVICE_ID);
     if (!incomingBaseService) {
@@ -201,6 +195,17 @@ export const BookingSteps = ({
       });
       return;
     }
+    
+    // Use the new more efficient package update function
+    if (handlePackageServiceUpdate) {
+      console.log('Using optimized package update in BookingSteps');
+      handlePackageServiceUpdate(packageServices);
+      handlePackageBuilderClose();
+      return;
+    }
+    
+    // Legacy approach as fallback
+    console.log('Using legacy package update in BookingSteps');
     
     // Preserve selected upsell items
     const existingUpsells = selectedServices.filter(s => s.isUpsellItem);
@@ -279,7 +284,9 @@ export const BookingSteps = ({
           handleCustomerDetailsChange={handleCustomerDetailsChange} 
           totalPrice={totalPrice} 
           language={language} 
-          branch={branch} 
+          branch={branch}
+          isUpdatingPackage={isUpdatingPackage}
+          handlePackageServiceUpdate={handlePackageServiceUpdate}
         />
       </div>
 

@@ -1,8 +1,7 @@
-
 import { useState } from 'react';
 import { BookingStep } from '@/components/booking/BookingProgress';
 import { calculateTotalPrice, calculateTotalDuration } from '@/utils/bookingCalculations';
-import { useServiceSelection } from './useServiceSelection';
+import { useServiceSelection } from "@/hooks/useServiceSelection";
 import { useCustomerDetails } from './useCustomerDetails';
 import { useCategoryData } from './useCategoryData';
 import { useEmployeeData } from './useEmployeeData';
@@ -18,7 +17,14 @@ export const useBooking = (branch: any) => {
 
   // Use our refactored hooks
   const { customerDetails, handleCustomerDetailsChange } = useCustomerDetails();
-  const { selectedServices, handleServiceToggle, handleUpsellServiceAdd, setSelectedServices } = useServiceSelection();
+  const {
+    selectedServices,
+    setSelectedServices,
+    handleServiceToggle,
+    handleUpsellServiceAdd,
+    handlePackageServiceUpdate,
+    isUpdatingPackage
+  } = useServiceSelection();
   const { categories, categoriesLoading, employees, employeesLoading } = useCategoryData(branch?.id);
   const { selectedEmployee } = useEmployeeData(selectedBarber);
   const { packageEnabled, packageSettings } = usePackageDiscount(selectedServices);
@@ -72,6 +78,8 @@ export const useBooking = (branch: any) => {
     totalDuration,
     getTransformedServices,
     packageEnabled,
-    packageSettings
+    packageSettings,
+    handlePackageServiceUpdate,
+    isUpdatingPackage
   };
 };
