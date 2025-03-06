@@ -14,21 +14,11 @@ interface PackageBannerProps {
 export const PackageBanner = ({
   isVisible,
   onInfoClick,
-  hasBaseService = false,
-  onBuildPackage
 }: PackageBannerProps) => {
   const { language } = useLanguage();
   const { toast } = useToast();
   
   if (!isVisible) return null;
-  
-  const handleBuildPackageClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (onBuildPackage) {
-      onBuildPackage();
-    }
-  };
   
   return <div className="bg-[#FCF9F0] border border-[#e9d8a6] rounded-lg p-3 mb-4 animate-fade-in">
       <div className="flex flex-col gap-2 text-sm">
@@ -47,17 +37,8 @@ export const PackageBanner = ({
           >
             {language === 'ar' ? 'إعرف أكثر' : 'Learn more'}
           </button>
-          
-          {hasBaseService && onBuildPackage && (
-            <button
-              onClick={handleBuildPackageClick}
-              className="text-xs bg-[#C4A484] hover:bg-[#b3946f] text-white py-1 px-2 rounded-md transition-colors flex items-center gap-1"
-            >
-              <Package className="w-3 h-3" />
-              {language === 'ar' ? 'بناء باقة' : 'Build Package'}
-            </button>
-          )}
         </div>
       </div>
     </div>;
 };
+
