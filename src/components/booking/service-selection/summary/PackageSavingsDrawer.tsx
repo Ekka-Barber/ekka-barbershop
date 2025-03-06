@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronUp, ChevronDown } from 'lucide-react';
+import { Package, ChevronUp, ChevronDown } from 'lucide-react';
 import { PriceDisplay } from "@/components/ui/price-display";
 import { 
   Sheet,
@@ -30,17 +30,16 @@ export const PackageSavingsDrawer = ({ savings, language }: PackageSavingsDrawer
         <motion.div
           className={`fixed z-50 right-0 top-24
           bg-gradient-to-l from-[#F2FCE2] to-[#E7F7D4] cursor-pointer
-          py-1.5 px-1 shadow-md border-y border-l border-green-200 rounded-l-lg
-          flex flex-col items-center gap-0.5`}
+          py-2 px-1.5 shadow-md border-y border-l border-green-200 rounded-l-lg
+          flex flex-col items-center gap-1`}
           whileHover={{ 
             scale: 1.03,
             x: -1
           }}
+          whileTap={{ scale: 0.97 }}
           layout
         >
-          <span className="text-2xs font-medium text-green-700 whitespace-nowrap transform -rotate-90 origin-center">
-            {isRtl ? 'وفّرت' : 'Savings'}
-          </span>
+          <Package className="h-4 w-4 text-green-700" />
           <TriggerIcon className="h-2.5 w-2.5 text-green-700" />
         </motion.div>
       </SheetTrigger>
