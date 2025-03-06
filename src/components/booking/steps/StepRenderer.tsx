@@ -1,4 +1,3 @@
-
 import { BookingStep } from "@/components/booking/BookingProgress";
 import { ServiceSelection } from "@/components/booking/ServiceSelection";
 import { DateTimeSelection } from "@/components/booking/DateTimeSelection";
@@ -29,6 +28,8 @@ interface StepRendererProps {
   totalPrice: number;
   language: string;
   branch: any;
+  isUpdatingPackage?: boolean;
+  handlePackageServiceUpdate?: (services: SelectedService[]) => void;
 }
 
 export const StepRenderer = ({
@@ -50,7 +51,9 @@ export const StepRenderer = ({
   handleCustomerDetailsChange,
   totalPrice,
   language,
-  branch
+  branch,
+  isUpdatingPackage,
+  handlePackageServiceUpdate
 }: StepRendererProps) => {
   if (currentStep === 'services') {
     return (
@@ -60,6 +63,8 @@ export const StepRenderer = ({
         selectedServices={selectedServices}
         onServiceToggle={handleServiceToggle}
         onStepChange={handleStepChange}
+        isUpdatingPackage={isUpdatingPackage}
+        handlePackageServiceUpdate={handlePackageServiceUpdate}
       />
     );
   }
