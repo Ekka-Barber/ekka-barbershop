@@ -76,9 +76,7 @@ export const StepRenderer: React.FC<StepRendererProps> = ({
         return (
           <DateTimeSelection
             selectedDate={selectedDate}
-            setSelectedDate={setSelectedDate}
-            selectedTime={selectedTime}
-            setSelectedTime={setSelectedTime}
+            onDateSelect={setSelectedDate}
             services={selectedServices}
           />
         );
@@ -88,9 +86,10 @@ export const StepRenderer: React.FC<StepRendererProps> = ({
             employees={employees}
             isLoading={employeesLoading}
             selectedBarber={selectedBarber}
-            onSelectBarber={setSelectedBarber}
+            onBarberSelect={setSelectedBarber}
             selectedDate={selectedDate}
             selectedTime={selectedTime}
+            onTimeSelect={setSelectedTime}
             workingHours={employeeWorkingHours}
             requiredDuration={selectedServices.reduce((total, service) => total + (service.duration || 0), 0)}
           />
@@ -113,8 +112,8 @@ export const StepRenderer: React.FC<StepRendererProps> = ({
             />
 
             <CustomerForm
-              formData={customerDetails}
-              onChange={handleCustomerDetailsChange}
+              customerDetails={customerDetails}
+              onCustomerDetailsChange={handleCustomerDetailsChange}
             />
           </div>
         );
