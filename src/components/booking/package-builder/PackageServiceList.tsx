@@ -54,21 +54,28 @@ export const PackageServiceList = ({
               <button 
                 key={service.id} 
                 className={cn(
-                  "flex items-center justify-between p-3 rounded-md w-full transition-all duration-200 mb-1",
+                  "flex items-center justify-between p-3 rounded-md w-full transition-all duration-200 mb-1 relative",
                   isSelected 
                     ? "bg-primary/10 border border-primary/20" 
                     : "hover:bg-muted/70 border border-transparent"
                 )}
                 onClick={() => onToggleService(service)}
               >
+                {isSelected && (
+                  <div className={cn(
+                    "absolute top-1",
+                    language === 'ar' ? "left-1" : "right-1"
+                  )}>
+                    <CheckCircle className="h-4 w-4 text-[#C4A484]" />
+                  </div>
+                )}
+                
                 <div className={cn(
                   "flex items-center gap-3 flex-1 min-w-0",
                   language === 'ar' ? "flex-row-reverse" : "flex-row"
                 )}>
                   <div className="shrink-0 text-primary">
-                    {isSelected ? (
-                      <CheckCircle className="h-5 w-5 text-[#C4A484] transition-transform duration-200" />
-                    ) : (
+                    {!isSelected && (
                       <PlusCircle className="h-5 w-5 text-muted-foreground transition-transform duration-200" />
                     )}
                   </div>
