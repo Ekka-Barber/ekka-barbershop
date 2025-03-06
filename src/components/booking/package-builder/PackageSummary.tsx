@@ -31,14 +31,14 @@ export const PackageSummary = ({
           "flex justify-between text-sm",
           isRTL && "flex-row-reverse"
         )}>
-          <span className="text-muted-foreground">
-            {isRTL ? "المجموع الأصلي" : "Original Total:"}
-          </span>
           <PriceDisplay 
             price={originalTotal} 
             language={language as 'en' | 'ar'} 
             size="sm"
           />
+          <span className="text-muted-foreground">
+            {isRTL ? "المجموع الأصلي" : "Original Total:"}
+          </span>
         </div>
         
         {/* Package Savings Row */}
@@ -47,6 +47,16 @@ export const PackageSummary = ({
             "flex justify-between text-sm text-green-600",
             isRTL && "flex-row-reverse"
           )}>
+            <span className="flex items-center">
+              {isRTL && "-"}
+              <PriceDisplay 
+                price={savings} 
+                language={language as 'en' | 'ar'} 
+                size="sm"
+                className="text-green-600"
+              />
+              {!isRTL && "-"}
+            </span>
             <span className={cn(
               "flex items-center",
               isRTL && "flex-row-reverse gap-1.5"
@@ -63,16 +73,6 @@ export const PackageSummary = ({
                 </>
               )}
             </span>
-            <span className="flex items-center">
-              {isRTL && "-"}
-              <PriceDisplay 
-                price={savings} 
-                language={language as 'en' | 'ar'} 
-                size="sm"
-                className="text-green-600"
-              />
-              {!isRTL && "-"}
-            </span>
           </div>
         )}
         
@@ -83,9 +83,6 @@ export const PackageSummary = ({
           "flex justify-between font-medium",
           isRTL && "flex-row-reverse"
         )}>
-          <span>
-            {isRTL ? "المجموع النهائي" : "Final Total:"}
-          </span>
           <motion.div
             initial={{ scale: 1 }}
             animate={{ scale: [1, 1.05, 1] }}
@@ -98,6 +95,9 @@ export const PackageSummary = ({
               className="font-medium"
             />
           </motion.div>
+          <span>
+            {isRTL ? "المجموع النهائي" : "Final Total:"}
+          </span>
         </div>
       </div>
       
