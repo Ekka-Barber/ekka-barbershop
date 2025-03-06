@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { BookingProgress, BookingStep } from "@/components/booking/BookingProgress";
 import { BookingNavigation } from "@/components/booking/BookingNavigation";
@@ -173,7 +172,7 @@ export const BookingSteps = ({
     handleUpsellModalClose();
   };
 
-  // Modified package builder handlers to improve reliability
+  // Improved package builder handlers
   const handlePackageBuilderClose = () => {
     setShowPackageBuilder(false);
     if (pendingStep) {
@@ -182,13 +181,17 @@ export const BookingSteps = ({
     }
   };
 
-  // Improved handlePackageBuilderConfirm to properly handle the base service
+  // Enhanced handlePackageBuilderConfirm to prioritize the base service
   const handlePackageBuilderConfirm = (packageServices: any[]) => {
     // Log incoming package services for debugging
-    console.log('Package services received:', packageServices.length);
+    console.log('Package services received:', packageServices.length, packageServices.map(s => ({
+      id: s.id,
+      name: language === 'ar' ? s.name_ar : s.name_en,
+      isBase: s.isBasePackageService
+    })));
     
     // Verify that we have the base service
-    const incomingBaseService = packageServices.find(s => s.id === BASE_SERVICE_ID);
+    const incomingBaseService = packageServices.find(s => s.isBasePackageService || s.id === BASE_SERVICE_ID);
     if (!incomingBaseService) {
       console.error('No base service found in package services');
       toast({
@@ -202,43 +205,35 @@ export const BookingSteps = ({
     // Preserve selected upsell items
     const existingUpsells = selectedServices.filter(s => s.isUpsellItem);
     
-    // Filter services to keep only those from the package
-    const nonUpsellServices = selectedServices.filter(s => !s.isUpsellItem);
-    
     // Remove current non-upsell services
-    nonUpsellServices.forEach(service => {
+    const nonUpsellServices = selectedServices.filter(s => !s.isUpsellItem);
+    for (const service of nonUpsellServices) {
       handleServiceToggle(service);
-    });
-    
-    // Add the new package services, ensuring the base service is added first
-    const baseServiceToAdd = packageServices.find(s => s.id === BASE_SERVICE_ID);
-    if (baseServiceToAdd) {
-      // Add base service first
-      handleServiceToggle(baseServiceToAdd, true);
-      
-      // Then add other services
-      packageServices.forEach(service => {
-        if (service.id !== BASE_SERVICE_ID) {
-          handleServiceToggle(service, true);
-        }
-      });
-    } else {
-      // Add all services normally if no base service was found (should not happen)
-      packageServices.forEach(service => {
-        handleServiceToggle(service, true);
-      });
     }
     
-    // Restore any upsell items that were removed
-    existingUpsells.forEach(upsell => {
-      if (!selectedServices.some(s => s.id === upsell.id)) {
-        // Re-add the upsell if it was removed
-        setSelectedServices(prev => [...prev, upsell]);
+    // Important: Small delay to ensure all removals are processed before adding
+    setTimeout(() => {
+      // Add the base service first (important for correct order)
+      console.log('Adding base service first:', incomingBaseService.id);
+      handleServiceToggle(incomingBaseService, true);
+      
+      // Add other package services
+      const addOnServices = packageServices.filter(s => !s.isBasePackageService && s.id !== BASE_SERVICE_ID);
+      for (const service of addOnServices) {
+        console.log('Adding addon service:', service.id);
+        handleServiceToggle(service, true);
       }
-    });
-    
-    // Close the dialog and proceed to the next step
-    handlePackageBuilderClose();
+      
+      // Restore any upsell items that were removed
+      for (const upsell of existingUpsells) {
+        if (!selectedServices.some(s => s.id === upsell.id)) {
+          setSelectedServices(prev => [...prev, upsell]);
+        }
+      }
+      
+      // Close the dialog and proceed to the next step
+      handlePackageBuilderClose();
+    }, 100);
   };
 
   const currentStepIndex = STEPS.indexOf(currentStep);

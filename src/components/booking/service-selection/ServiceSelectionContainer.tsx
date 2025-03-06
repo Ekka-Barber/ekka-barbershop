@@ -101,14 +101,17 @@ export const ServiceSelectionContainer = ({
   
   const handlePackageConfirm = (services: SelectedService[]) => {
     try {
-      // Extract existing upsell items
-      const existingUpsells = selectedServices.filter(s => s.isUpsellItem);
+      // Log the incoming services for debugging
+      console.log('Package confirmation received services:', services.map(s => ({
+        id: s.id,
+        name: language === 'ar' ? s.name_ar : s.name_en,
+        isBase: s.isBasePackageService,
+        isPackageAddOn: s.isPackageAddOn
+      })));
       
-      // Get base service from the incoming services
-      const newBaseService = services.find(s => s.id === BASE_SERVICE_ID);
-      
-      // Check if we have a base service in the incoming services
-      if (!newBaseService) {
+      // Verify we have the base service
+      const baseServiceFromPackage = services.find(s => s.isBasePackageService || s.id === BASE_SERVICE_ID);
+      if (!baseServiceFromPackage) {
         console.error('No base service found in package confirmation');
         toast({
           variant: "destructive",
@@ -120,33 +123,40 @@ export const ServiceSelectionContainer = ({
         return;
       }
       
-      // Remove all non-upsell services first
-      selectedServices.forEach(service => {
-        if (!service.isUpsellItem) {
+      // Extract existing upsell items to preserve them
+      const existingUpsells = selectedServices.filter(s => s.isUpsellItem);
+      
+      // Remove all current non-upsell services
+      const nonUpsellServices = selectedServices.filter(s => !s.isUpsellItem);
+      for (const service of nonUpsellServices) {
+        handleServiceToggleWrapper(service);
+      }
+      
+      // Important: Small delay to ensure all removals are processed before adding
+      setTimeout(() => {
+        // Add the base service first to ensure proper order
+        handleServiceToggleWrapper(baseServiceFromPackage);
+        
+        // Add all add-on services
+        const addOnServices = services.filter(s => !s.isBasePackageService && s.id !== BASE_SERVICE_ID);
+        for (const service of addOnServices) {
           handleServiceToggleWrapper(service);
         }
-      });
-      
-      // Add all services from the package, starting with base service
-      console.log('Adding package services:', services.length, 'services');
-      services.forEach(service => {
-        console.log('Adding service from package:', service.id, language === 'ar' ? service.name_ar : service.name_en);
-        onServiceToggle(service);
-      });
-      
-      // Re-add any upsells that might have been removed
-      existingUpsells.forEach(upsell => {
-        if (!selectedServices.some(s => s.id === upsell.id)) {
-          onServiceToggle(upsell);
+        
+        // Re-add any upsells that were removed
+        for (const upsell of existingUpsells) {
+          if (!selectedServices.some(s => s.id === upsell.id)) {
+            onServiceToggle(upsell);
+          }
         }
-      });
-      
-      setShowPackageBuilder(false);
-      
-      if (pendingNextStep) {
-        onStepChange?.(pendingNextStep);
-        setPendingNextStep(null);
-      }
+        
+        // Close dialog and proceed to next step if needed
+        setShowPackageBuilder(false);
+        if (pendingNextStep) {
+          onStepChange?.(pendingNextStep);
+          setPendingNextStep(null);
+        }
+      }, 100);
     } catch (error) {
       console.error('Error confirming package:', error);
       toast({

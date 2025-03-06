@@ -81,10 +81,12 @@ export const PackageBuilderDialog = ({
     try {
       const transformedServices: SelectedService[] = [];
       
-      // Always add the base service if present
+      // FIXED: Always add the base service if present
       if (baseService) {
         console.log('Adding base service to package:', baseService.id, language === 'ar' ? baseService.name_ar : baseService.name_en);
+        // Mark the base service with a clear property to identify it
         const baseSelectedService = transformServiceToSelected(baseService, true);
+        baseSelectedService.isBasePackageService = true; // Add this flag
         transformedServices.push(baseSelectedService);
       } else {
         console.error('No base service available for package');
@@ -108,7 +110,8 @@ export const PackageBuilderDialog = ({
           price: discountedPrice,
           originalPrice: originalPrice,
           discountPercentage: calculations.discountPercentage,
-          isUpsellItem: false
+          isUpsellItem: false,
+          isPackageAddOn: true // Add this flag to identify package add-ons
         };
         
         transformedServices.push(selectedService);
