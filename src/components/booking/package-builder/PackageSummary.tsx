@@ -26,24 +26,25 @@ export const PackageSummary = ({
       <Separator />
       
       <div className="space-y-2">
-        <div className={cn("flex justify-between text-sm", isRTL && "flex-row-reverse")}>
-          <span className="text-muted-foreground">
+        <div className="flex justify-between text-sm">
+          <span className={cn("text-muted-foreground", isRTL && "order-last")}>
             {isRTL ? 'المجموع الأصلي:' : 'Original Total:'}
           </span>
           <PriceDisplay 
             price={originalTotal} 
             language={language as 'en' | 'ar'} 
             size="sm"
+            className={isRTL && "order-first"}
           />
         </div>
         
         {savings > 0 && (
-          <div className={cn("flex justify-between text-sm text-green-600", isRTL && "flex-row-reverse")}>
-            <span className={cn("flex items-center", isRTL && "flex-row-reverse")}>
+          <div className="flex justify-between text-sm text-green-600">
+            <span className={cn("flex items-center", isRTL && "order-last flex-row-reverse")}>
               <Package className={cn("h-3.5 w-3.5", isRTL ? "ml-1.5" : "mr-1.5")} />
               {isRTL ? 'توفير الباقة:' : 'Package Savings:'}
             </span>
-            <span className="flex items-center">
+            <span className={cn("flex items-center", isRTL && "order-first")}>
               {isRTL && '-'} 
               <PriceDisplay 
                 price={savings} 
@@ -58,14 +59,15 @@ export const PackageSummary = ({
         
         <Separator className="my-2" />
         
-        <div className={cn("flex justify-between font-medium", isRTL && "flex-row-reverse")}>
-          <span>
+        <div className="flex justify-between font-medium">
+          <span className={isRTL && "order-last"}>
             {isRTL ? 'المجموع النهائي:' : 'Final Total:'}
           </span>
           <motion.div
             initial={{ scale: 1 }}
             animate={{ scale: [1, 1.05, 1] }}
             transition={{ duration: 0.3 }}
+            className={isRTL && "order-first"}
           >
             <PriceDisplay 
               price={discountedTotal} 
