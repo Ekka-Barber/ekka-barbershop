@@ -1,9 +1,10 @@
+
 import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { PackageSettings } from '@/types/admin';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle2 } from 'lucide-react';
+import { CheckCircle2, AlertCircle } from 'lucide-react';
 import { convertToArabic } from '@/utils/arabicNumerals';
 interface PackageInfoDialogProps {
   isOpen: boolean;
@@ -97,6 +98,14 @@ export const PackageInfoDialog = ({
               </span>{' '}
               {language === 'ar' ? `الحد الأقصى للخدمات الإضافية هو ${convertToArabic(packageSettings.maxServices.toString())}` : `Maximum ${packageSettings.maxServices} add-on services per package`}
             </p>}
+            
+          {/* Add the alert note at the bottom */}
+          <div className="mt-3 flex items-start gap-2 bg-amber-50 p-2 rounded-md">
+            <AlertCircle className="h-4 w-4 text-amber-500 flex-shrink-0 mt-0.5" />
+            <p className="text-sm text-amber-700">
+              {language === 'ar' ? 'تنبيه: الخصم يطبق على الخدمات المضافة' : 'Alert: Discounts apply to add-on services only'}
+            </p>
+          </div>
         </div>
       </DialogContent>
     </Dialog>;
