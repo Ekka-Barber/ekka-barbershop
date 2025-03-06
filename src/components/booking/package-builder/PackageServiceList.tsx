@@ -33,6 +33,21 @@ export const PackageServiceList = ({
     return Math.floor(price * (1 - discountPercentage / 100));
   };
   
+  // Sort services by their display_order if they have that property
+  const sortedServices = [...services].sort((a: any, b: any) => {
+    // If both services have display_order property, sort by it
+    if (a.display_order !== undefined && b.display_order !== undefined) {
+      return a.display_order - b.display_order;
+    }
+    // If only one has display_order, prioritize it
+    if (a.display_order !== undefined) return -1;
+    if (b.display_order !== undefined) return 1;
+    // Fall back to name
+    return (language === 'ar' ? 
+      a.name_ar.localeCompare(b.name_ar) : 
+      a.name_en.localeCompare(b.name_en));
+  });
+  
   return (
     <div className="space-y-2">
       <h3 className="text-sm font-medium">
@@ -46,7 +61,7 @@ export const PackageServiceList = ({
       
       <ScrollArea className="h-48 rounded-md border">
         <div className="px-3 py-2">
-          {services.map((service) => {
+          {sortedServices.map((service) => {
             const isSelected = selectedServices.some(s => s.id === service.id);
             const discountedPrice = calculateDiscountedPrice(service.price);
             

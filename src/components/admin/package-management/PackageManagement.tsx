@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { usePackageManagement } from '@/hooks/usePackageManagement';
 import { BaseServiceCard } from './BaseServiceCard';
-import { ServiceGrid } from './ServiceGrid';
+import { DraggableServiceGrid } from './DraggableServiceGrid';
 import { DiscountPyramid } from './DiscountPyramid';
 import { MaxServicesControl } from './MaxServicesControl';
 import { AlertTriangle, Save } from 'lucide-react';
@@ -18,6 +18,7 @@ export const PackageManagement = () => {
     isSaving,
     updatePackageSettings,
     toggleService,
+    reorderServices,
     saveSettings,
     isBaseService,
     isServiceEnabled
@@ -72,14 +73,15 @@ export const PackageManagement = () => {
       <div>
         <h3 className="text-lg font-semibold mb-3">Available Add-on Services</h3>
         <p className="text-sm text-muted-foreground mb-4">
-          Toggle services to enable them as add-ons for the package. The base service cannot be selected.
+          Toggle services to enable them as add-ons for the package. Drag enabled services to reorder how they appear to customers.
         </p>
-        <ServiceGrid 
+        <DraggableServiceGrid 
           services={services}
           isLoading={isLoading}
           isBaseService={isBaseService}
           isServiceEnabled={isServiceEnabled}
           onToggleService={toggleService}
+          onReorderServices={reorderServices}
         />
       </div>
       

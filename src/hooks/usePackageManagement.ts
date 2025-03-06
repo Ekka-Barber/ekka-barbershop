@@ -63,17 +63,18 @@ export const usePackageManagement = () => {
     }
   });
 
-  // Fetch enabled services
+  // Fetch enabled services with their display order
   const { data: enabledServicesData, isLoading: enabledServicesLoading } = useQuery({
     queryKey: ['package_available_services'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('package_available_services')
         .select('*')
-        .eq('enabled', true);
+        .eq('enabled', true)
+        .order('display_order', { ascending: true });
         
       if (error) throw error;
-      return data.map(item => item.service_id);
+      return data;
     }
   });
 
@@ -92,7 +93,7 @@ export const usePackageManagement = () => {
     }
     
     if (enabledServicesData) {
-      setEnabledServices(enabledServicesData);
+      setEnabledServices(enabledServicesData.map(item => item.service_id));
     }
     
     if (services) {
@@ -164,7 +165,7 @@ export const usePackageManagement = () => {
       // Check if the service exists in the table
       const { data: existingService } = await supabase
         .from('package_available_services')
-        .select('id')
+        .select('id, display_order')
         .eq('service_id', serviceId)
         .single();
       
@@ -177,12 +178,23 @@ export const usePackageManagement = () => {
           
         if (error) throw error;
       } else {
+        // Get max display order to place new enabled service at the end
+        const { data: highestOrder } = await supabase
+          .from('package_available_services')
+          .select('display_order')
+          .order('display_order', { ascending: false })
+          .limit(1)
+          .single();
+          
+        const newDisplayOrder = (highestOrder?.display_order || 0) + 10;
+        
         // Insert
         const { error } = await supabase
           .from('package_available_services')
           .insert({
             service_id: serviceId,
-            enabled
+            enabled,
+            display_order: newDisplayOrder
           });
           
         if (error) throw error;
@@ -196,6 +208,40 @@ export const usePackageManagement = () => {
       toast({
         title: "Error",
         description: "Failed to update service availability.",
+        variant: "destructive",
+      });
+    }
+  });
+
+  // Reorder services mutation
+  const reorderServicesMutation = useMutation({
+    mutationFn: async ({ services }: { services: { service_id: string, display_order: number }[] }) => {
+      // Update multiple items in a batch
+      const { error } = await supabase
+        .from('package_available_services')
+        .upsert(
+          services.map(s => ({
+            service_id: s.service_id,
+            display_order: s.display_order,
+            enabled: true
+          })),
+          { onConflict: 'service_id' }
+        );
+        
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['package_available_services'] });
+      toast({
+        title: "Success",
+        description: "Service order updated successfully.",
+      });
+    },
+    onError: (error) => {
+      console.error('Error reordering services:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update service order.",
         variant: "destructive",
       });
     }
@@ -228,6 +274,30 @@ export const usePackageManagement = () => {
     });
   };
 
+  // Reorder services
+  const reorderServices = (sourceIndex: number, destinationIndex: number) => {
+    // Only reorder if we have enabled services data
+    if (!enabledServicesData || enabledServicesData.length === 0) return;
+    
+    // Create a copy of enabled services
+    const reorderedServices = [...enabledServicesData];
+    
+    // Remove the item from its original position
+    const [movedItem] = reorderedServices.splice(sourceIndex, 1);
+    
+    // Insert the item at its new position
+    reorderedServices.splice(destinationIndex, 0, movedItem);
+    
+    // Update display_order values (use increments of 10 to allow for future insertions)
+    const updatedServices = reorderedServices.map((service, index) => ({
+      service_id: service.service_id,
+      display_order: (index + 1) * 10
+    }));
+    
+    // Send to server
+    reorderServicesMutation.mutate({ services: updatedServices });
+  };
+
   // Save all settings
   const saveSettings = () => {
     saveSettingsMutation.mutate(packageSettings);
@@ -247,10 +317,12 @@ export const usePackageManagement = () => {
     services,
     baseService,
     packageSettings,
+    enabledServicesData,
     isLoading: servicesLoading || settingsLoading || enabledServicesLoading,
-    isSaving: saveSettingsMutation.isPending || toggleServiceMutation.isPending,
+    isSaving: saveSettingsMutation.isPending || toggleServiceMutation.isPending || reorderServicesMutation.isPending,
     updatePackageSettings,
     toggleService,
+    reorderServices,
     saveSettings,
     isBaseService,
     isServiceEnabled

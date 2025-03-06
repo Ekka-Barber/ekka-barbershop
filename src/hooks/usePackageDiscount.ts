@@ -44,21 +44,25 @@ export const usePackageDiscount = (
     }
   });
 
-  // Fetch enabled services
+  // Fetch enabled services with display_order
   const { data: enabledPackageServices } = useQuery({
     queryKey: ['package_available_services'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('package_available_services')
-        .select('service_id')
-        .eq('enabled', true);
+        .select('service_id, display_order')
+        .eq('enabled', true)
+        .order('display_order', { ascending: true });
         
       if (error) {
         console.error('Error fetching package available services:', error);
         return [];
       }
       
-      return data.map(item => item.service_id);
+      return data.map(item => ({
+        id: item.service_id,
+        display_order: item.display_order
+      }));
     }
   });
 
@@ -138,7 +142,7 @@ export const usePackageDiscount = (
       
       // Skip services that aren't in the enabled package services list and don't need updates
       if (enabledPackageServices && 
-          !enabledPackageServices.includes(service.id) && 
+          !enabledPackageServices.some(s => s.id === service.id) && 
           !needsDiscountUpdate) {
         return service;
       }
