@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { MetricsGroup } from "./summary/MetricsGroup";
 import { ActionButton } from "./summary/ActionButton";
 import { useMemo } from "react";
+import { PackageSavingsDrawer } from "./summary/PackageSavingsDrawer";
 import { PackageSettings } from "@/types/admin";
 import { Service, SelectedService } from '@/types/service';
 
@@ -25,6 +26,8 @@ interface ServicesSummaryProps {
   availableServices?: Service[];
   onAddService?: (service: Service) => void;
   isValidating?: boolean;
+  hasBaseService?: boolean;
+  packageSavings?: number;
 }
 
 export const ServicesSummary = ({
@@ -39,7 +42,9 @@ export const ServicesSummary = ({
   packageSettings,
   availableServices = [],
   onAddService,
-  isValidating = false
+  isValidating = false,
+  hasBaseService = false,
+  packageSavings = 0
 }: ServicesSummaryProps) => {
   // Use memoization to prevent unnecessary recalculations
   const shouldDisplay = useMemo(() => selectedServices.length > 0, [selectedServices.length]);

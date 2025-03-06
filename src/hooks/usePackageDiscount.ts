@@ -82,7 +82,7 @@ export const usePackageDiscount = (
     );
   }, [selectedServices, hasBaseService, forcePackageEnabled]);
 
-  // Calculate discount percentage based on number of add-on services
+  // Simplified discount calculation based on current number of add-on services
   const getDiscountPercentage = (count: number): number => {
     if (!packageSettings) return 0;
     

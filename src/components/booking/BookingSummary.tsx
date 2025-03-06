@@ -1,4 +1,3 @@
-
 import { useLanguage } from "@/contexts/LanguageContext";
 import { format } from "date-fns";
 import { Slash, X, Timer, Calendar, User, Package } from "lucide-react";
@@ -44,7 +43,8 @@ export const BookingSummary = ({
     packageEnabled, 
     packageSettings, 
     calculatePackageSavings,
-    enabledPackageServices
+    enabledPackageServices,
+    hasBaseService
   } = usePackageDiscount(selectedServices);
   
   const totalDuration = selectedServices.reduce((total, service) => total + (service.duration || 0), 0);
@@ -56,8 +56,6 @@ export const BookingSummary = ({
 
   const displayDate = getBookingDisplayDate(selectedDate, selectedTime);
   
-  const hasBasePackageService = selectedServices.some(s => s.id === BASE_SERVICE_ID);
-  const hasPackageDiscounts = hasBasePackageService && totalDiscount > 0;
   const packageSavings = calculatePackageSavings();
 
   const availablePackageServices = availableServices.filter(service => 
@@ -91,8 +89,7 @@ export const BookingSummary = ({
       transition={{ duration: 0.2 }}
     >
       <div className="flex items-center gap-2">
-        {/* Only show remove button for package add-ons, upsell items, or if it's not the base service */}
-        {onRemoveService && (service.isPackageAddOn || service.isUpsellItem || service.id !== BASE_SERVICE_ID) && (
+        {onRemoveService && ((service.isPackageAddOn || service.isUpsellItem || service.id !== BASE_SERVICE_ID)) && (
           <motion.button
             onClick={() => handleServiceRemove(service)}
             className={cn(
@@ -141,7 +138,7 @@ export const BookingSummary = ({
       >
         <h3 className="font-medium">{language === 'ar' ? 'ملخص الحجز' : t('booking.summary')}</h3>
         
-        {isDetailsStep && packageEnabled && packageSavings > 0 && (
+        {isDetailsStep && packageEnabled && (
           <PackageSavingsDrawer 
             savings={packageSavings}
             language={language as 'en' | 'ar'}
@@ -150,6 +147,8 @@ export const BookingSummary = ({
             selectedServices={selectedServices}
             onAddService={onAddService}
             isDetailsStep={true}
+            packageEnabled={packageEnabled}
+            hasBaseService={hasBaseService}
           />
         )}
         
@@ -209,7 +208,7 @@ export const BookingSummary = ({
             </div>
           )}
 
-          {hasPackageDiscounts && (
+          {hasBaseService && packageSavings > 0 && (
             <motion.div 
               className="pt-2 flex justify-between text-green-700 items-center"
               initial={{ backgroundColor: "rgba(242, 252, 226, 0.5)" }}
@@ -221,7 +220,7 @@ export const BookingSummary = ({
                 <span>{language === 'ar' ? 'توفير الباقة' : 'Package savings'}</span>
               </div>
               <PriceDisplay 
-                price={totalDiscount} 
+                price={packageSavings} 
                 language={language as 'en' | 'ar'}
                 size="sm"
                 className="text-green-700"
@@ -229,7 +228,7 @@ export const BookingSummary = ({
             </motion.div>
           )}
           
-          {!hasPackageDiscounts && totalDiscount > 0 && (
+          {!hasBaseService && totalDiscount > 0 && (
             <motion.div 
               className="pt-2 flex justify-between text-destructive items-center"
               initial={{ backgroundColor: "rgba(254, 226, 226, 0.3)" }}

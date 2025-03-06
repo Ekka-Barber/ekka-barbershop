@@ -73,6 +73,18 @@ export const ServiceSelectionView = ({
     totalPrice,
   } = selectionState;
 
+  // Calculate package savings for the ServicesSummary
+  const calculatePackageSavings = () => {
+    if (!hasBaseService) return 0;
+    
+    return displayServices.reduce((total, service) => {
+      if (!service.originalPrice || service.id === BASE_SERVICE_ID) return total;
+      return total + (service.originalPrice - service.price);
+    }, 0);
+  };
+
+  const packageSavings = calculatePackageSavings();
+
   return (
     <div className="space-y-6 pb-8 service-selection-container">
       <PackageBanner 
@@ -119,6 +131,10 @@ export const ServiceSelectionView = ({
         isFirstStep={true} 
         packageEnabled={packageEnabled}
         packageSettings={packageSettings}
+        availableServices={availablePackageServices}
+        onAddService={handleServiceToggleWrapper}
+        hasBaseService={hasBaseService}
+        packageSavings={packageSavings}
       />
 
       <PackageInfoDialog 
