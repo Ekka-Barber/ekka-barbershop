@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -268,8 +267,8 @@ export const usePackageManagement = () => {
     });
   };
 
-  // Reorder services - simplified to match services tab approach
-  const reorderServices = (sourceIndex: number, destinationIndex: number) => {
+  // Reorder services - refactored to match the approach in ServiceItem.tsx
+  const reorderServices = async (sourceIndex: number, destinationIndex: number) => {
     // Only reorder if we have enabled services data
     if (!enabledServicesData || enabledServicesData.length === 0) return;
     
@@ -283,31 +282,55 @@ export const usePackageManagement = () => {
       return;
     }
     
-    // Find the destination display order
+    // Get all services in their current order
+    const sortedServices = [...enabledServicesData].sort((a, b) => a.display_order - b.display_order);
+    
+    // Determine new display order based on destination position
     let newDisplayOrder: number;
     
     if (destinationIndex === 0) {
-      // Moving to the start - use half of the first item's display_order or 5 if it's the only item
-      const firstItemOrder = enabledServicesData[0]?.display_order || 10;
-      newDisplayOrder = Math.max(Math.floor(firstItemOrder / 2), 5);
-    } else if (destinationIndex >= enabledServicesData.length - 1) {
-      // Moving to the end - use the last item's display_order + 10
-      const lastItemOrder = enabledServicesData[enabledServicesData.length - 1]?.display_order || 0;
-      newDisplayOrder = lastItemOrder + 10;
-    } else {
-      // Moving to the middle - use the average of the surrounding items
-      const beforeOrder = enabledServicesData[destinationIndex - 1]?.display_order || 0;
-      const afterOrder = enabledServicesData[destinationIndex]?.display_order || beforeOrder + 20;
-      newDisplayOrder = Math.floor((beforeOrder + afterOrder) / 2);
+      // Moving to the start - use 10 as base, or half of first item if it exists
+      if (sortedServices.length > 0) {
+        newDisplayOrder = Math.floor(sortedServices[0].display_order / 2);
+        // Ensure minimum value of 10
+        newDisplayOrder = Math.max(newDisplayOrder, 10);
+      } else {
+        newDisplayOrder = 10;
+      }
+    } 
+    else if (destinationIndex >= sortedServices.length) {
+      // Moving to the end - use last item's display_order + 10
+      const lastItem = sortedServices[sortedServices.length - 1];
+      newDisplayOrder = lastItem ? lastItem.display_order + 10 : 10;
+    } 
+    else {
+      // Moving to the middle - get the items before and after the destination
+      const itemBefore = sortedServices[destinationIndex - 1];
+      const itemAfter = sortedServices[destinationIndex];
+      
+      // Calculate the average of the surrounding items' display orders
+      if (itemBefore && itemAfter) {
+        newDisplayOrder = Math.floor((itemBefore.display_order + itemAfter.display_order) / 2);
+      } else if (itemBefore) {
+        newDisplayOrder = itemBefore.display_order + 10;
+      } else if (itemAfter) {
+        newDisplayOrder = Math.max(Math.floor(itemAfter.display_order / 2), 10);
+      } else {
+        newDisplayOrder = 10;
+      }
     }
     
     console.log(`Moving service ${movedService.service_id} to display order ${newDisplayOrder}`);
     
-    // Update the single item
-    updateServiceOrderMutation.mutate({
-      serviceId: movedService.service_id,
-      newDisplayOrder
-    });
+    try {
+      // Update the single item's display order
+      await updateServiceOrderMutation.mutateAsync({
+        serviceId: movedService.service_id,
+        newDisplayOrder
+      });
+    } catch (error) {
+      console.error("Failed to update service order:", error);
+    }
   };
 
   // Save all settings

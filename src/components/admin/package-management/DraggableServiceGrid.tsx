@@ -77,7 +77,7 @@ export const DraggableServiceGrid = ({
     
     console.log(`Drag end - Source: ${result.source.index}, Destination: ${result.destination.index}`);
     
-    // Call the parent component's reorder function
+    // Call the parent component's reorder function with source and destination indices
     onReorderServices(result.source.index, result.destination.index);
   };
 
