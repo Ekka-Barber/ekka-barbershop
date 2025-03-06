@@ -14,12 +14,12 @@ import { PackageInfoDialog } from "./service-selection/PackageInfoDialog";
 import { PackageBuilderDialog } from "./package-builder/PackageBuilderDialog";
 import { usePackageDiscount } from "@/hooks/usePackageDiscount";
 import { transformServicesForDisplay } from "@/utils/serviceTransformation";
-import { Service } from "@/types/service";
+import { Service, SelectedService } from "@/types/service";
 
 interface ServiceSelectionProps {
   categories: any[] | undefined;
   isLoading: boolean;
-  selectedServices: any[];
+  selectedServices: SelectedService[];
   onServiceToggle: (service: any) => void;
   onStepChange?: (step: string) => void;
 }
@@ -41,7 +41,6 @@ export const ServiceSelection = ({
   const [showPackageInfo, setShowPackageInfo] = useState(false);
   const [showPackageBuilder, setShowPackageBuilder] = useState(false);
 
-  // Use the package discount hook
   const { 
     BASE_SERVICE_ID, 
     packageEnabled, 
@@ -51,11 +50,9 @@ export const ServiceSelection = ({
     applyPackageDiscounts 
   } = usePackageDiscount(selectedServices);
 
-  // Get base service
   const baseService = selectedServices.find(s => s.id === BASE_SERVICE_ID) || 
                      (categories?.flatMap(c => c.services).find(s => s.id === BASE_SERVICE_ID));
 
-  // Get available package services (excluding base service)
   const availablePackageServices = useMemo(() => {
     if (!enabledPackageServices) return [];
     
@@ -66,7 +63,6 @@ export const ServiceSelection = ({
       ) || [];
   }, [categories, enabledPackageServices, BASE_SERVICE_ID]);
 
-  // Process services with package discounts if needed
   const processedServices = applyPackageDiscounts(selectedServices);
 
   useEffect(() => {
@@ -81,7 +77,6 @@ export const ServiceSelection = ({
     }
   }, [selectedServices]);
 
-  // Show a toast notification when the base service is selected
   useEffect(() => {
     if (hasBaseService && packageSettings) {
       toast({
@@ -128,20 +123,15 @@ export const ServiceSelection = ({
     }
   };
   
-  const handlePackageConfirm = (services: Service[]) => {
-    // Reset all services first
+  const handlePackageConfirm = (services: SelectedService[]) => {
     selectedServices.forEach(service => {
       if (!service.isUpsellItem) {
-        const isAlreadySelected = selectedServices.some(s => s.id === service.id);
-        if (isAlreadySelected) {
-          handleServiceToggleWrapper(service);
-        }
+        handleServiceToggleWrapper(service);
       }
     });
     
-    // Then add the confirmed services
     services.forEach(service => {
-      handleServiceToggleWrapper(service);
+      onServiceToggle(service);
     });
     
     setShowPackageBuilder(false);
@@ -159,11 +149,9 @@ export const ServiceSelection = ({
     cat => cat.id === activeCategory
   )?.services.sort((a, b) => a.display_order - b.display_order);
 
-  // Use processed services for calculations
   const totalDuration = processedServices.reduce((total, service) => total + service.duration, 0);
   const totalPrice = processedServices.reduce((total, service) => total + service.price, 0);
 
-  // Transform the services to the format expected by ServicesSummary
   const displayServices = transformServicesForDisplay(processedServices, language as 'en' | 'ar');
 
   if (isLoading) {

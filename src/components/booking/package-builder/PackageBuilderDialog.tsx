@@ -16,11 +16,12 @@ import { PackageServiceList } from './PackageServiceList';
 import { PackageSummary } from './PackageSummary';
 import { useToast } from "@/hooks/use-toast";
 import { X } from 'lucide-react';
+import { transformServiceToSelected } from '@/utils/serviceTransformation';
 
 interface PackageBuilderDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  onConfirm: (selectedServices: Service[]) => void;
+  onConfirm: (selectedServices: SelectedService[]) => void;
   packageSettings?: PackageSettings;
   baseService: Service | null;
   availableServices: Service[];
@@ -118,12 +119,34 @@ export const PackageBuilderDialog = ({
   };
   
   const handleConfirm = () => {
-    // Combine base service with selected add-ons
-    const allSelectedServices = baseService 
-      ? [baseService, ...selectedAddOns]
-      : selectedAddOns;
+    // Transform services to SelectedService with discount information
+    const transformedServices: SelectedService[] = [];
+    
+    // Add base service if present
+    if (baseService) {
+      // Mark the base service as the base package service
+      const baseSelectedService = transformServiceToSelected(baseService, true);
+      transformedServices.push(baseSelectedService);
+    }
+    
+    // Add selected add-ons with discount info
+    selectedAddOns.forEach(service => {
+      const originalPrice = service.price;
+      const discountedPrice = Math.floor(originalPrice * (1 - discountPercentage / 100));
       
-    onConfirm(allSelectedServices);
+      // Create a SelectedService object with discount information
+      const selectedService: SelectedService = {
+        ...service,
+        price: discountedPrice,
+        originalPrice: originalPrice,
+        discountPercentage: discountPercentage,
+        isUpsellItem: false
+      };
+      
+      transformedServices.push(selectedService);
+    });
+    
+    onConfirm(transformedServices);
   };
   
   return (

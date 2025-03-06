@@ -21,7 +21,7 @@ export const useServiceSelection = () => {
   /**
    * Handles the toggling of a service selection
    */
-  const handleServiceToggle = (service: Service, skipDiscountCalculation: boolean = false) => {
+  const handleServiceToggle = (service: Service | SelectedService, skipDiscountCalculation: boolean = false) => {
     const isSelected = selectedServices.some(s => s.id === service.id);
     
     if (isSelected) {
@@ -60,13 +60,20 @@ export const useServiceSelection = () => {
         setSelectedServices(prev => prev.filter(s => s.id !== service.id));
       }
     } else {
-      const transformedService = transformServiceToSelected(service, skipDiscountCalculation);
-      
-      // Add the service to the selection
-      setSelectedServices(prev => {
-        const newServices = [...prev, transformedService];
-        return newServices;
-      });
+      // Check if the service is already a SelectedService with discount info
+      if ('originalPrice' in service || 'discountPercentage' in service) {
+        // It's already a SelectedService with discount info, add it as is
+        setSelectedServices(prev => [...prev, service as SelectedService]);
+      } else {
+        // Transform the regular Service into a SelectedService
+        const transformedService = transformServiceToSelected(service as Service, skipDiscountCalculation);
+        
+        // Add the service to the selection
+        setSelectedServices(prev => {
+          const newServices = [...prev, transformedService];
+          return newServices;
+        });
+      }
     }
   };
 
