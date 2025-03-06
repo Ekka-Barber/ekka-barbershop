@@ -4,7 +4,7 @@ import { Service } from '@/types/service';
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { CheckCircle } from "lucide-react";
-import { PriceDisplay } from "@/components/ui/price-display";
+import { formatNumber } from "@/utils/priceFormatting";
 
 interface PackageServiceListProps {
   services: Service[];
@@ -81,27 +81,16 @@ export const PackageServiceList = ({
                       language === 'ar' ? "items-end" : "items-start"
                     )}>
                       <span className="line-through text-muted-foreground text-xs">
-                        <PriceDisplay 
-                          price={service.price} 
-                          language={language as 'en' | 'ar'} 
-                          size="sm" 
-                          className="text-muted-foreground"
-                        />
+                        {formatNumber(service.price, language as 'en' | 'ar')}
                       </span>
-                      <PriceDisplay 
-                        price={discountedPrice} 
-                        language={language as 'en' | 'ar'} 
-                        size="sm"
-                        className="text-green-600 font-medium"
-                      />
+                      <span className="text-green-600 font-medium">
+                        {formatNumber(discountedPrice, language as 'en' | 'ar')}
+                      </span>
                     </div>
                   ) : (
-                    <PriceDisplay 
-                      price={service.price} 
-                      language={language as 'en' | 'ar'} 
-                      size="sm"
-                      className={isSelected ? "font-medium" : ""}
-                    />
+                    <span className={isSelected ? "font-medium" : ""}>
+                      {formatNumber(service.price, language as 'en' | 'ar')}
+                    </span>
                   )}
                 </div>
                 
