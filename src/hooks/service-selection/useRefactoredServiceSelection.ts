@@ -14,8 +14,7 @@ export const useRefactoredServiceSelection = () => {
     packageEnabled, 
     applyPackageDiscounts,
     setForcePackageEnabled,
-    currentDiscountTier,
-    previousDiscountTier
+    currentDiscountTier
   } = usePackageDiscount(selectedServices);
 
   // Use the service toggle hook for adding/removing services
@@ -40,7 +39,7 @@ export const useRefactoredServiceSelection = () => {
   // Apply package discounts if applicable, with tracking for discount tier transitions
   useEffect(() => {
     if (packageEnabled && selectedServices.length > 0 && !isUpdatingPackage) {
-      console.log(`Package enabled with ${selectedServices.length} services. Current tier: ${currentDiscountTier}%, Previous tier: ${previousDiscountTier}%`);
+      console.log(`Package enabled with ${selectedServices.length} services. Current tier: ${currentDiscountTier}%`);
       
       const discountedServices = applyPackageDiscounts(selectedServices);
       
@@ -59,7 +58,7 @@ export const useRefactoredServiceSelection = () => {
         setSelectedServices(discountedServices);
       }
     }
-  }, [packageEnabled, selectedServices.length, isUpdatingPackage, currentDiscountTier, previousDiscountTier, applyPackageDiscounts]);
+  }, [packageEnabled, selectedServices.length, isUpdatingPackage, currentDiscountTier, applyPackageDiscounts]);
 
   return {
     selectedServices,

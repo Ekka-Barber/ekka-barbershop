@@ -13,6 +13,9 @@ import { PackageBuilderDialog } from "../package-builder/PackageBuilderDialog";
 import { SelectedService } from "@/types/service";
 import "../ServiceSelection.css";
 
+// Import the constant for base service ID from usePackageDiscount
+import { BASE_SERVICE_ID } from "@/hooks/usePackageDiscount";
+
 interface ServiceSelectionViewProps {
   isLoading: boolean;
   categories: any[] | undefined;

@@ -1,240 +1,134 @@
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { PartyPopper, ChevronUp, ChevronDown, Check, Plus } from 'lucide-react';
-import { PriceDisplay } from "@/components/ui/price-display";
-import { 
-  Sheet,
-  SheetContent,
-  SheetTrigger
-} from "@/components/ui/sheet";
-import { Service, SelectedService } from '@/types/service';
-import { PackageSettings } from '@/types/admin';
-import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
-import { Card, CardContent } from "@/components/ui/card";
-import { useToast } from "@/hooks/use-toast";
+import { Gift, ChevronUp, ChevronDown } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { formatPriceArabic } from '@/utils/formatters';
 
 interface PackageSavingsDrawerProps {
   savings: number;
-  language: 'en' | 'ar';
-  availableServices?: Service[];
-  packageSettings?: PackageSettings;
-  selectedServices?: SelectedService[];
-  onAddService?: (service: Service) => void;
-  isDetailsStep?: boolean;
   packageEnabled?: boolean;
   hasBaseService?: boolean;
+  packageSettings?: any;
+  availableServices?: any[];
+  onAddService?: (service: any) => void;
 }
 
-export const PackageSavingsDrawer = ({ 
-  savings, 
-  language,
-  availableServices = [],
-  packageSettings,
-  selectedServices = [],
-  onAddService,
-  isDetailsStep = false,
+export const PackageSavingsDrawer = ({
+  savings = 0,
   packageEnabled = false,
-  hasBaseService = false
+  hasBaseService = false,
+  packageSettings,
+  availableServices = [],
+  onAddService
 }: PackageSavingsDrawerProps) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const { toast } = useToast();
-  
-  // Change visibility logic: only hide if package is disabled or no settings
-  if (!packageEnabled || !packageSettings || !hasBaseService) return null;
-  
+  const [isExpanded, setIsExpanded] = useState(false);
+  const { language } = useLanguage();
   const isRtl = language === 'ar';
-  // Using up/down icons for vertical handle
-  const TriggerIcon = isRtl ? ChevronUp : ChevronDown;
-
-  // Filter out services already in the package
-  const availableToAdd = availableServices.filter(service => 
-    !selectedServices.some(s => s.id === service.id)
-  );
-
-  const getDiscountPercentage = (count: number): number => {
-    if (!packageSettings) return 0;
-    
-    const totalAddOns = selectedServices.length + count - 1; // Subtract 1 for base service
-    
-    if (totalAddOns >= 3) {
-      return packageSettings.discountTiers.threeOrMore;
-    } else if (totalAddOns === 2) {
-      return packageSettings.discountTiers.twoServices;
-    } else if (totalAddOns === 1) {
-      return packageSettings.discountTiers.oneService;
-    }
-    return 0;
+  
+  // Don't render if package system isn't enabled or base service is not selected
+  if (!packageEnabled || !hasBaseService) return null;
+  
+  // Different states: 
+  // 1. Has savings already (show savings)
+  // 2. No savings yet (only base service selected - show encouragement)
+  const hasPackageDiscounts = savings > 0;
+  const showAddMoreMessage = savings === 0;
+  
+  const toggleDrawer = () => {
+    setIsExpanded(!isExpanded);
   };
 
-  const handleAddService = (service: Service) => {
-    if (!onAddService) {
-      toast({
-        title: language === 'ar' ? 'عذراً' : 'Sorry',
-        description: language === 'ar' 
-          ? 'لا يمكن إضافة خدمات في هذه المرحلة'
-          : 'Cannot add services at this stage',
-        variant: "destructive"
-      });
-      return;
-    }
-
-    // Check if adding this service would exceed max services
-    if (packageSettings?.maxServices && 
-        selectedServices.length >= packageSettings.maxServices) {
-      toast({
-        title: language === 'ar' 
-          ? 'تم الوصول إلى الحد الأقصى للخدمات' 
-          : 'Maximum services limit reached',
-        description: language === 'ar'
-          ? `يمكنك إضافة ${packageSettings.maxServices} خدمات كحد أقصى`
-          : `You can add a maximum of ${packageSettings.maxServices} services to your package`,
-        variant: "destructive"
-      });
-      return;
-    }
-
-    onAddService(service);
-    // Keep the drawer open after adding a service
-  };
-
-  // Determine position classes based on whether we're in the details step
-  const positionClasses = isDetailsStep 
-    ? "bottom-36 top-auto" // Position near the bottom for the details step
-    : "top-24";  // Original position for other steps
-  
-  // Calculate if we have package discounts
-  const hasPackageDiscounts = hasBaseService && savings > 0;
-  const showAddMoreMessage = hasBaseService && savings === 0 && selectedServices.length === 1;
-  
   return (
-    <Sheet open={isOpen} onOpenChange={setIsOpen}>
-      {/* Vertical handle - positioned based on the current step */}
-      <SheetTrigger asChild>
+    <div className="sticky bottom-16 z-30 w-full bg-gradient-to-b from-transparent to-white pointer-events-none">
+      <div className="container mx-auto px-4 pointer-events-auto">
         <motion.div
-          className={`fixed z-50 right-0 ${positionClasses}
-          bg-gradient-to-l from-[#F2FCE2] to-[#E7F7D4] cursor-pointer
-          py-2 px-1.5 shadow-md border-y border-l border-green-200 rounded-l-lg
-          flex flex-col items-center gap-1`}
-          whileHover={{ 
-            scale: 1.03,
-            x: -1
-          }}
-          whileTap={{ scale: 0.97 }}
-          layout
+          className="bg-green-50 border border-green-200 rounded-md overflow-hidden"
+          animate={{ height: isExpanded ? 'auto' : '48px' }}
+          transition={{ duration: 0.3 }}
         >
-          <PartyPopper className="h-4 w-4 text-green-700" />
-          <TriggerIcon className="h-2.5 w-2.5 text-green-700" />
-        </motion.div>
-      </SheetTrigger>
-      
-      {/* The drawer content with auto height and flush to the edge */}
-      <SheetContent 
-        side="right"
-        className={`bg-[#F8FFEE] border-l border-y border-green-200 p-0 rounded-l-xl mx-auto h-auto inset-auto ${positionClasses} right-0 shadow-xl`}
-      >
-        <div className="p-3 space-y-3">
-          {/* Show different content based on whether we have savings or need to encourage adding services */}
-          {hasPackageDiscounts ? (
-            <div className="bg-white rounded-lg p-2.5 shadow-inner">
-              <div className="flex flex-col items-center space-y-0.5">
-                <span className="text-2xs text-green-700">
-                  {isRtl ? 'المبلغ الذي وفرته' : 'You saved'}
-                </span>
-                <PriceDisplay 
-                  price={savings} 
-                  language={language} 
-                  size="lg"
-                  className="text-green-700 font-bold text-lg"
-                />
-                <span className="text-[10px] text-green-600 mt-0.5">
-                  {isRtl 
-                    ? 'مقارنة بسعر الخدمات الفردية' 
-                    : 'compared to individual prices'}
-                </span>
-              </div>
+          {/* Header - Always visible */}
+          <div 
+            className="p-3 flex justify-between items-center cursor-pointer"
+            onClick={toggleDrawer}
+          >
+            <div className="flex items-center gap-2">
+              <Gift className="w-5 h-5 text-green-600" />
+              <span className="font-medium text-sm text-green-700">
+                {hasPackageDiscounts ? (
+                  isRtl 
+                    ? `وفرت ${formatPriceArabic(savings)} ريال مع الباقة!` 
+                    : `You saved SAR ${savings} with package!`
+                ) : (
+                  isRtl 
+                    ? 'أضف خدمات للحصول على الخصم!' 
+                    : 'Add services to get discounts!'
+                )}
+              </span>
             </div>
-          ) : showAddMoreMessage && (
-            <div className="bg-white rounded-lg p-2.5 shadow-inner">
-              <div className="flex flex-col items-center space-y-0.5">
-                <span className="text-sm text-green-700 font-medium">
-                  {isRtl 
-                    ? 'أضف خدمات للحصول على خصومات الباقة!' 
-                    : 'Add services to get package discounts!'}
-                </span>
-                <span className="text-[10px] text-green-600 mt-0.5">
-                  {isRtl 
-                    ? 'وفر المزيد مع كل خدمة تضيفها' 
-                    : 'Save more with each service you add'}
-                </span>
-              </div>
+            <div>
+              {isExpanded ? (
+                <ChevronDown className="w-5 h-5 text-green-600" />
+              ) : (
+                <ChevronUp className="w-5 h-5 text-green-600" />
+              )}
             </div>
-          )}
+          </div>
           
-          {availableToAdd.length > 0 && (
-            <>
-              <div className="text-xs text-green-700 font-medium text-center">
-                {isRtl 
-                  ? 'أضف المزيد من الخدمات لتوفير أكثر!'
-                  : 'Add more services to save more!'}
-              </div>
-              
-              <Separator className="bg-green-200" />
-              
-              <div className="max-h-[calc(100vh-350px)] overflow-y-auto space-y-2">
-                {availableToAdd.map((service) => {
-                  const serviceName = language === 'ar' ? service.name_ar : service.name_en;
-                  const nextDiscount = getDiscountPercentage(1);
-                  const discountedPrice = Math.floor(service.price * (1 - nextDiscount / 100));
-                  
-                  return (
-                    <Card key={service.id} className="bg-white shadow-sm border-green-100">
-                      <CardContent className="p-2.5">
-                        <div className="flex items-center justify-between">
-                          <div className="flex-1">
-                            <h4 className="text-xs font-medium truncate">{serviceName}</h4>
-                            {nextDiscount > 0 && (
-                              <div className="flex items-center mt-1">
-                                <PriceDisplay 
-                                  price={discountedPrice} 
-                                  originalPrice={service.price}
-                                  showDiscount={true}
-                                  language={language} 
-                                  size="sm"
-                                  className="text-xs"
-                                />
-                              </div>
-                            )}
-                          </div>
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            className="h-8 w-8 p-0"
-                            onClick={() => handleAddService(service)}
+          {/* Content - Only visible when expanded */}
+          <AnimatePresence>
+            {isExpanded && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="p-3 pt-0 text-sm"
+              >
+                {/* Encouragement when no savings yet */}
+                {showAddMoreMessage && (
+                  <div className="text-center mb-3">
+                    <span className="text-sm text-green-700">
+                      {isRtl 
+                        ? 'أضف خدمات للحصول على خصومات الباقة!'
+                        : 'Add services to get package discounts!'}
+                    </span>
+                  </div>
+                )}
+                
+                {/* Available services to add */}
+                {availableServices && availableServices.length > 0 && (
+                  <div className="space-y-2">
+                    {/* Title */}
+                    <div className="text-xs text-gray-500 mb-1">
+                      {isRtl
+                        ? 'خدمات متاحة للإضافة:'
+                        : 'Available services to add:'}
+                    </div>
+                    
+                    {/* Service list */}
+                    <div className="grid grid-cols-1 gap-2">
+                      {availableServices.map((service) => (
+                        <div 
+                          key={service.id}
+                          className="flex justify-between items-center bg-white p-2 rounded-md border border-green-100"
+                        >
+                          <span>{isRtl ? service.name_ar : service.name_en}</span>
+                          <button
+                            onClick={() => onAddService?.(service)}
+                            className="px-2 py-1 text-xs bg-green-100 text-green-700 rounded hover:bg-green-200 transition-colors"
                           >
-                            <Plus className="h-3.5 w-3.5" />
-                          </Button>
+                            {isRtl ? 'أضف' : 'Add'}
+                          </button>
                         </div>
-                      </CardContent>
-                    </Card>
-                  );
-                })}
-              </div>
-            </>
-          )}
-          
-          {availableToAdd.length === 0 && (
-            <div className="text-center text-green-700 pb-1">
-              <p className="text-xs font-medium">
-                {isRtl 
-                  ? 'لقد أضفت كل الخدمات المتاحة!'
-                  : 'You have added all available services!'}
-              </p>
-            </div>
-          )}
-        </div>
-      </SheetContent>
-    </Sheet>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.div>
+      </div>
+    </div>
   );
 };

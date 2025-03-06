@@ -6,8 +6,8 @@ import { SelectedService } from '@/types/service';
 import { PackageSettings } from '@/types/admin';
 import { createPackageService } from '@/utils/serviceTransformation';
 
-// Base service ID
-const BASE_SERVICE_ID = 'a3dbfd63-be5d-4465-af99-f25c21d578a0';
+// Base service ID - export it so it can be imported elsewhere
+export const BASE_SERVICE_ID = 'a3dbfd63-be5d-4465-af99-f25c21d578a0';
 
 export const usePackageDiscount = (
   selectedServices: SelectedService[], 
