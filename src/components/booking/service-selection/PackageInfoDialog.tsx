@@ -45,7 +45,7 @@ export const PackageInfoDialog = ({ isOpen, onClose, packageSettings }: PackageI
                 <CheckCircle2 className="h-4 w-4 text-green-500 flex-shrink-0" />
                 <p className="text-sm text-gray-600">
                   {language === 'ar' 
-                    ? 'اختر خدمة القص مع اللحية كخدمة أساسية'
+                    ? 'اختر (باقة حلاقة الشعر والدقن) كخدمة أساسية'
                     : 'Select Haircut & Beard Trim as your base service'}
                 </p>
               </div>
