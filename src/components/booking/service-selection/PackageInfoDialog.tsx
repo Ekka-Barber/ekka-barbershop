@@ -1,3 +1,4 @@
+
 import React from 'react';
 import {
   Dialog,
@@ -41,7 +42,7 @@ export const PackageInfoDialog = ({ isOpen, onClose, packageSettings }: PackageI
             </h3>
             <div className="pl-2 space-y-2">
               <div className="flex gap-2 items-center">
-                <CheckCircle2 className="h-4 w-4 text-green-500 flex-shrink-0" />
+                <CheckCircle2 className="h-4 w-4 text-[#e7bd71] flex-shrink-0" />
                 <p className="text-sm text-gray-600">
                   {language === 'ar' 
                     ? 'اختر (باقة حلاقة الشعر والدقن) كخدمة أساسية'
@@ -49,7 +50,7 @@ export const PackageInfoDialog = ({ isOpen, onClose, packageSettings }: PackageI
                 </p>
               </div>
               <div className="flex gap-2 items-center">
-                <CheckCircle2 className="h-4 w-4 text-green-500 flex-shrink-0" />
+                <CheckCircle2 className="h-4 w-4 text-[#e7bd71] flex-shrink-0" />
                 <p className="text-sm text-gray-600">
                   {language === 'ar' 
                     ? 'أضف خدمات إضافية للحصول على خصم'
@@ -57,7 +58,7 @@ export const PackageInfoDialog = ({ isOpen, onClose, packageSettings }: PackageI
                 </p>
               </div>
               <div className="flex gap-2 items-center">
-                <CheckCircle2 className="h-4 w-4 text-green-500 flex-shrink-0" />
+                <CheckCircle2 className="h-4 w-4 text-[#e7bd71] flex-shrink-0" />
                 <p className="text-sm text-gray-600">
                   {language === 'ar' 
                     ? 'يزيد الخصم كلما أضفت المزيد من الخدمات'
