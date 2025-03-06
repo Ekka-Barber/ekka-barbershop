@@ -6,7 +6,6 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { WhatsAppIntegration } from "./WhatsAppIntegration";
 import { CustomerDetails, Branch } from "@/types/booking";
 import { useBookingContext } from "@/contexts/BookingContext";
-import { useEmployeeData } from "@/hooks/useEmployeeData";
 
 interface BookingNavigationProps {
   currentStepIndex: number;
@@ -30,12 +29,11 @@ export const BookingNavigation = ({
   const navigate = useNavigate();
   const { t } = useLanguage();
   
-  // Import additional required props
-  const { selectedServices, selectedDate, selectedTime, selectedBarber, totalPrice } = 
+  // Import additional required props from context
+  const { selectedServices, selectedDate, selectedTime, selectedBarber, totalPrice, employees } = 
     useBookingContext();
 
-  // Get the barber name from the employee list
-  const { employees } = useEmployeeData(branch?.id);
+  // Get the barber name from the employee list instead of using useEmployeeData
   const selectedBarberName = employees?.find(e => e.id === selectedBarber)?.name || '';
   
   const handlePrevClick = () => {

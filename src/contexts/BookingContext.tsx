@@ -22,7 +22,7 @@ interface BookingContextType {
   handleServiceToggle: (service: any, isPackageOperation?: boolean) => void;
   handleUpsellServiceAdd: (services: any[]) => void;
   
-  // Additional properties needed by BookingSteps
+  // Additional properties needed by BookingSteps and BookingNavigation
   categories: any[] | undefined;
   categoriesLoading: boolean;
   employees: any[] | undefined;
