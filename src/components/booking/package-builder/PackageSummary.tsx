@@ -1,10 +1,12 @@
+
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Package, TrendingUp, Tag } from 'lucide-react';
+import { Package, Tag } from 'lucide-react';
 import { Separator } from "@/components/ui/separator";
 import { PriceDisplay } from "@/components/ui/price-display";
 import { cn } from "@/lib/utils";
 import { formatDuration } from "@/utils/formatters";
+import { convertToArabic } from "@/utils/arabicNumerals";
 
 interface PackageSummaryProps {
   originalTotal: number;
@@ -25,10 +27,14 @@ export const PackageSummary = ({
   savings,
   language,
   discountPercentage,
-  nextTierThreshold,
   totalDuration = 0
 }: PackageSummaryProps) => {
   const isRTL = language === 'ar';
+  
+  // Format the discount percentage in Arabic numerals if the language is Arabic
+  const formattedDiscountPercentage = isRTL 
+    ? `${convertToArabic(discountPercentage.toString())}٪` 
+    : `${discountPercentage}%`;
   
   return (
     <div className="space-y-3 pt-2">
@@ -72,7 +78,7 @@ export const PackageSummary = ({
           isRTL && "flex-row-reverse"
         )}>
           <span className="text-primary font-medium">
-            {discountPercentage}%
+            {formattedDiscountPercentage}
           </span>
           <div className={cn(
             "flex items-center gap-1.5",
