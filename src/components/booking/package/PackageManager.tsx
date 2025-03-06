@@ -31,7 +31,7 @@ export const PackageManager = ({ onStepChange }: PackageManagerProps) => {
     handlePackageServiceUpdate
   } = useBookingContext();
 
-  const availablePackageServices = packageSettings?.baseServiceId && enabledPackageServices 
+  const availablePackageServices = packageEnabled && enabledPackageServices 
     ? enabledPackageServices : [];
   
   const initiatePackageFlow = (nextStep: BookingStep) => {
@@ -57,9 +57,7 @@ export const PackageManager = ({ onStepChange }: PackageManagerProps) => {
       
       await executeWithRetry(
         async () => {
-          const incomingBaseService = packageServices.find(s => 
-            s.isBasePackageService || (baseService && s.id === baseService.id)
-          );
+          const incomingBaseService = packageServices.find(s => s.isBasePackageService || s.id === baseService?.id);
           if (!incomingBaseService) {
             throw new Error('No base service found in package services');
           }
@@ -104,6 +102,8 @@ export const PackageManager = ({ onStepChange }: PackageManagerProps) => {
         availableServices={availablePackageServices}
         currentlySelectedServices={selectedServices}
       />
+      {/* Export the method so it can be called by a parent */}
+      <div style={{ display: 'none' }} id="package-manager-api" data-initiate-flow={initiatePackageFlow.toString()} />
     </>
   );
 };

@@ -1,19 +1,14 @@
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { BookingProgress, BookingStep } from "@/components/booking/BookingProgress";
-import { BookingNavigation } from "@/components/booking/BookingNavigation";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { useBookingUpsells } from "@/hooks/useBookingUpsells";
-import { StepRenderer } from "./steps/StepRenderer";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
-import { transformServicesForDisplay } from "@/utils/serviceTransformation";
-import { ServicesSummary } from "./service-selection/ServicesSummary";
-import { useBookingContext } from "@/contexts/BookingContext";
 import { ErrorBoundary } from "@/components/common/ErrorBoundary";
 import { UpsellManager } from "./upsell/UpsellManager";
 import { PackageManager } from "./package/PackageManager";
 import { BookingStepManager } from "./steps/BookingStepManager";
+import { useBookingContext } from "@/contexts/BookingContext";
 
 const STEPS: BookingStep[] = ['services', 'datetime', 'barber', 'details'];
 
@@ -31,31 +26,25 @@ export const RefactoredBookingSteps = ({
   const {
     currentStep,
     setCurrentStep,
-    selectedServices,
-    validateStep = () => true,
-    totalPrice,
-    totalDuration
+    hasBaseService,
+    packageSettings,
+    enabledPackageServices
   } = useBookingContext();
 
-  const handleStepChange = (step: string) => {
-    const typedStep = step as BookingStep;
-    
-    // Direct navigation as a fallback
-    setCurrentStep(typedStep);
-  };
+  const handleStepChange = useCallback((step: BookingStep) => {
+    setCurrentStep(step);
+  }, [setCurrentStep]);
 
+  // We use the direct step change function rather than refs
+  // This allows the managers to use their own internal logic
+  
   return (
     <ErrorBoundary>
       <BookingStepManager branch={branch} />
       
       {/* These components don't render anything visible, they just manage state and show modals */}
-      <UpsellManager 
-        onStepChange={setCurrentStep}
-      />
-      
-      <PackageManager
-        onStepChange={setCurrentStep}
-      />
+      <UpsellManager onStepChange={handleStepChange} />
+      <PackageManager onStepChange={handleStepChange} />
     </ErrorBoundary>
   );
 };

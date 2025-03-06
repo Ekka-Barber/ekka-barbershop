@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { BookingProgress, BookingStep } from "@/components/booking/BookingProgress";
 import { BookingNavigation } from "@/components/booking/BookingNavigation";
@@ -9,6 +8,7 @@ import { StepRenderer } from "./StepRenderer";
 import { useBookingContext } from "@/contexts/BookingContext";
 import { ServicesSummary } from "../service-selection/ServicesSummary";
 import { transformServicesForDisplay } from "@/utils/serviceTransformation";
+import { transformWorkingHours } from "@/utils/workingHoursUtils";
 
 const STEPS: BookingStep[] = ['services', 'datetime', 'barber', 'details'];
 
@@ -26,26 +26,28 @@ export const BookingStepManager = ({
     currentStep,
     setCurrentStep,
     selectedServices,
-    selectedDate,
-    selectedTime,
-    selectedBarber,
-    setSelectedBarber,
-    setSelectedDate,
-    setSelectedTime,
-    customerDetails,
-    handleCustomerDetailsChange,
-    validateStep = () => true,
-    handleServiceRemove = () => {},
+    validateStep,
+    handleServiceRemove,
     totalPrice,
     totalDuration,
     categories,
     categoriesLoading,
     employees,
     employeesLoading,
+    selectedBarber,
+    setSelectedBarber,
+    selectedDate,
+    selectedTime,
+    setSelectedDate,
+    setSelectedTime,
     selectedEmployee,
     handleServiceToggle,
+    customerDetails,
+    handleCustomerDetailsChange,
     isUpdatingPackage,
-    handlePackageServiceUpdate
+    handlePackageServiceUpdate,
+    packageEnabled,
+    packageSettings
   } = useBookingContext();
 
   const handleStepChange = (step: string) => {
@@ -56,7 +58,7 @@ export const BookingStepManager = ({
   const handleNextStep = () => {
     const currentIndex = STEPS.indexOf(currentStep as BookingStep);
     if (currentIndex < STEPS.length - 1) {
-      if (validateStep()) {
+      if (validateStep && validateStep()) {
         handleStepChange(STEPS[currentIndex + 1]);
       }
     }
@@ -72,7 +74,20 @@ export const BookingStepManager = ({
   const currentStepIndex = STEPS.indexOf(currentStep as BookingStep);
   const shouldShowNavigation = currentStep === 'details';
   const shouldShowSummaryBar = selectedServices.length > 0 && currentStep !== 'details';
-  const transformedServices = transformServicesForDisplay(selectedServices, language as 'en' | 'ar');
+  const transformedServices = transformServicesForDisplay(selectedServices, language);
+
+  // Process employee working hours if available
+  const employeeWorkingHours = selectedEmployee?.working_hours ? 
+    transformWorkingHours(selectedEmployee.working_hours) : null;
+
+  // Function to check if next button should be disabled
+  const isNextDisabled = () => {
+    if (currentStep === 'services') return selectedServices.length === 0;
+    if (currentStep === 'datetime') return !selectedDate;
+    if (currentStep === 'barber') return !selectedBarber || !selectedTime;
+    if (currentStep === 'details') return !customerDetails.name || !customerDetails.phone;
+    return false;
+  };
 
   return (
     <ErrorBoundary>
@@ -100,7 +115,7 @@ export const BookingStepManager = ({
             selectedTime={selectedTime}
             setSelectedDate={setSelectedDate}
             setSelectedTime={setSelectedTime}
-            employeeWorkingHours={selectedEmployee?.working_hours}
+            employeeWorkingHours={employeeWorkingHours}
             customerDetails={customerDetails}
             handleCustomerDetailsChange={handleCustomerDetailsChange}
             totalPrice={totalPrice}
@@ -120,9 +135,9 @@ export const BookingStepManager = ({
             steps={STEPS} 
             currentStep={currentStep as BookingStep} 
             setCurrentStep={setCurrentStep}
-            branch={branch}
-            isNextDisabled={false}
+            isNextDisabled={isNextDisabled()}
             customerDetails={customerDetails}
+            branch={branch} 
           />
         </ErrorBoundary>
       )}
@@ -133,10 +148,14 @@ export const BookingStepManager = ({
             selectedServices={transformedServices} 
             totalDuration={totalDuration} 
             totalPrice={totalPrice} 
-            language={language as 'en' | 'ar'} 
+            language={language} 
             onNextStep={handleNextStep} 
             onPrevStep={handlePrevStep} 
             isFirstStep={currentStepIndex === 0} 
+            packageEnabled={packageEnabled}
+            packageSettings={packageSettings}
+            availableServices={[]} // This should be populated properly
+            onAddService={(service) => handleServiceToggle(service)}
           />
         </ErrorBoundary>
       )}

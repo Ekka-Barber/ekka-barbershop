@@ -22,7 +22,7 @@ export const UpsellManager = ({ onStepChange }: UpsellManagerProps) => {
 
   const {
     data: availableUpsells
-  } = useBookingUpsells(selectedServices, language as 'en' | 'ar');
+  } = useBookingUpsells(selectedServices, language);
 
   const initiateUpsellFlow = (nextStep: BookingStep) => {
     if (availableUpsells?.length) {
@@ -54,6 +54,8 @@ export const UpsellManager = ({ onStepChange }: UpsellManagerProps) => {
         onConfirm={handleUpsellConfirm} 
         availableUpsells={availableUpsells || []} 
       />
+      {/* Export the method so it can be called by a parent */}
+      <div style={{ display: 'none' }} id="upsell-manager-api" data-initiate-flow={initiateUpsellFlow.toString()} />
     </>
   );
 };

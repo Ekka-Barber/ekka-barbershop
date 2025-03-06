@@ -2,6 +2,7 @@
 import { BookingContainer } from "@/components/booking/BookingContainer";
 import { ErrorBoundary } from "@/components/common/ErrorBoundary";
 import { useToast } from "@/hooks/use-toast";
+import { RefactoredBookingSteps } from "@/components/booking/RefactoredBookingSteps";
 
 const Bookings = () => {
   const { toast } = useToast();
