@@ -5,6 +5,7 @@ import { ActionButton } from "./summary/ActionButton";
 import { useMemo } from "react";
 import { PackageSettings } from "@/types/admin";
 import { PackageSavingsDrawer } from "./summary/PackageSavingsDrawer";
+import { Service, SelectedService } from "@/types/service";
 
 interface ServicesSummaryProps {
   selectedServices: Array<{
@@ -22,6 +23,8 @@ interface ServicesSummaryProps {
   isFirstStep: boolean;
   packageEnabled?: boolean;
   packageSettings?: PackageSettings;
+  availableServices?: Service[];
+  onAddService?: (service: Service) => void;
 }
 
 export const ServicesSummary = ({
@@ -33,7 +36,9 @@ export const ServicesSummary = ({
   onPrevStep,
   isFirstStep,
   packageEnabled = false,
-  packageSettings
+  packageSettings,
+  availableServices = [],
+  onAddService
 }: ServicesSummaryProps) => {
   // Use memoization to prevent unnecessary recalculations
   const shouldDisplay = useMemo(() => selectedServices.length > 0, [selectedServices.length]);
@@ -56,6 +61,10 @@ export const ServicesSummary = ({
         <PackageSavingsDrawer 
           savings={packageSavings}
           language={language}
+          availableServices={availableServices}
+          packageSettings={packageSettings}
+          selectedServices={selectedServices as SelectedService[]}
+          onAddService={onAddService}
         />
       )}
       

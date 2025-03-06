@@ -302,6 +302,8 @@ export const BookingSteps = ({
         isFirstStep={currentStepIndex === 0} 
         packageEnabled={packageEnabled}
         packageSettings={packageSettings}
+        availableServices={availablePackageServices}
+        onAddService={(service) => handleServiceToggle(service)}
       />}
 
       <UpsellModal isOpen={showUpsellModal} onClose={handleUpsellModalClose} onConfirm={handleUpsellConfirm} availableUpsells={availableUpsells || []} />
