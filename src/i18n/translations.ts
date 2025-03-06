@@ -161,6 +161,7 @@ export const translations: Translations = {
     'install.guide.title': 'تثبيت التطبيق',
     'midnight': 'منتصف الليل',
     'next.day': 'اليوم التالي',
-    'package.savings': 'مجموع ما ستوفره مع هذه الباقة 😍'
+    'package.savings': 'مجموع ما ستوفره مع هذه الباقة 😍',
+    'build.package': 'أصنع باقتك'
   }
 };
