@@ -25,12 +25,12 @@ export const PackageSavingsDrawer = ({ savings, language }: PackageSavingsDrawer
   
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
-      {/* Compact vertical handle on the right edge */}
+      {/* Compact vertical handle on the right edge - attached flush to the edge */}
       <SheetTrigger asChild>
         <motion.div
           className={`fixed z-50 right-0 top-24
           bg-gradient-to-l from-[#F2FCE2] to-[#E7F7D4] cursor-pointer
-          py-1.5 px-1.5 shadow-md border border-green-200 rounded-l-lg
+          py-1.5 px-1 shadow-md border-y border-l border-green-200 rounded-l-lg
           flex flex-col items-center gap-0.5`}
           whileHover={{ 
             scale: 1.03,
@@ -45,10 +45,10 @@ export const PackageSavingsDrawer = ({ savings, language }: PackageSavingsDrawer
         </motion.div>
       </SheetTrigger>
       
-      {/* The drawer content with auto height */}
+      {/* The drawer content with auto height and flush to the edge */}
       <SheetContent 
         side="right"
-        className="bg-[#F8FFEE] border-green-200 p-0 rounded-l-xl mx-auto h-auto inset-auto top-24 bottom-auto"
+        className="bg-[#F8FFEE] border-l border-y border-green-200 p-0 rounded-l-xl mx-auto h-auto inset-auto top-24 bottom-auto right-0 shadow-xl"
       >
         <div className="p-3 space-y-2">
           <div className="flex items-center justify-center gap-1.5 mb-1">
