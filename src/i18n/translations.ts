@@ -1,4 +1,3 @@
-
 import { Translations } from "@/types/language";
 
 export const translations: Translations = {
@@ -79,6 +78,16 @@ export const translations: Translations = {
     'install.error': 'Installation failed. Please try again.',
     'install.success': 'App installed successfully!',
     'install.guide.title': 'Install Application',
+    'whatsapp.button': 'Complete booking via WhatsApp',
+    'whatsapp.message.header': 'New Booking Request',
+    'whatsapp.message.customer': 'Customer Information',
+    'whatsapp.message.booking': 'Booking Details',
+    'whatsapp.message.duration': 'Total Duration',
+    'whatsapp.message.datetime': 'Date & Time',
+    'whatsapp.message.barber': 'Barber',
+    'whatsapp.message.discount': 'Discount',
+    'whatsapp.message.total': 'Total Amount',
+    'whatsapp.message.original': 'Original price',
     'midnight': 'Midnight',
     'next.day': 'Next day',
   },
@@ -159,6 +168,16 @@ export const translations: Translations = {
     'install.error': 'فشل التثبيت. الرجاء المحاولة مرة أخرى.',
     'install.success': 'تم تثبيت التطبيق بنجاح!',
     'install.guide.title': 'تثبيت التطبيق',
+    'whatsapp.button': 'إرسال الحجز عبر واتساب',
+    'whatsapp.message.header': 'طلب حجز جديد',
+    'whatsapp.message.customer': 'معلومات العميل',
+    'whatsapp.message.booking': 'تفاصيل الحجز',
+    'whatsapp.message.duration': 'المدة الإجمالية',
+    'whatsapp.message.datetime': 'التاريخ والوقت',
+    'whatsapp.message.barber': 'الحلاق',
+    'whatsapp.message.discount': 'الخصم',
+    'whatsapp.message.total': 'المبلغ الإجمالي',
+    'whatsapp.message.original': 'السعر الأصلي',
     'midnight': 'منتصف الليل',
     'next.day': 'اليوم التالي',
     'package.savings': 'مجموع ما ستوفره مع هذه الباقة 😍',

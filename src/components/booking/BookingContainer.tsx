@@ -1,4 +1,3 @@
-
 import { useNavigate, useLocation } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { BookingHeader } from "@/components/booking/BookingHeader";
@@ -11,6 +10,9 @@ import { Branch } from "@/types/booking";
 import { ErrorBoundary } from "@/components/common/ErrorBoundary";
 import { Loader2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
+import { BookingProvider } from "@/contexts/BookingContext";
+import { SkeletonLoader } from "@/components/common/SkeletonLoader";
+import { NoBranchSelected } from "@/components/booking/NoBranchSelected";
 
 export const BookingContainer = () => {
   const navigate = useNavigate();
@@ -119,32 +121,18 @@ export const BookingContainer = () => {
 
   return (
     <ErrorBoundary>
-      <div dir={language === 'ar' ? 'rtl' : 'ltr'} className="min-h-screen flex flex-col">
-        <div className="app-header">
-          <div className="language-switcher-container">
-            <LanguageSwitcher />
-          </div>
-        </div>
+      <div className="max-w-screen-lg mx-auto px-4 py-6">
+        <BookingHeader branch={branch} isLoading={branchLoading} onBranchSelect={handleBranchSelect} />
         
-        <div className="flex-grow max-w-4xl mx-auto p-4 sm:p-6 lg:p-8 w-full">
-          <div className="content-area flex flex-col items-center justify-center">
-            <div className="text-center w-full max-w-2xl mx-auto">
-              <BookingHeader
-                branchName={language === 'ar' ? branch?.name_ar : branch?.name}
-                branchAddress={language === 'ar' ? branch?.address_ar : branch?.address}
-                isLoading={branchLoading}
-              />
-            </div>
-            
-            <Card className="overflow-hidden bg-white shadow-xl rounded-xl border-[#C4A36F]/20 w-full mt-8">
-              <div className="p-6">
-                <BookingSteps branch={branch} />
-              </div>
-            </Card>
-          </div>
-        </div>
+        {isLoading && <SkeletonLoader />}
         
-        <footer className="page-footer" />
+        {!isLoading && branch && (
+          <BookingProvider branch={branch}>
+            <BookingSteps branch={branch} />
+          </BookingProvider>
+        )}
+        
+        {!isLoading && !branch && <NoBranchSelected />}
       </div>
     </ErrorBoundary>
   );

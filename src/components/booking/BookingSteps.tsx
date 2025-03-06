@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { BookingProgress, BookingStep } from "@/components/booking/BookingProgress";
 import { BookingNavigation } from "@/components/booking/BookingNavigation";
 import { UpsellModal } from "@/components/booking/UpsellModal";
-import { useBooking } from "@/hooks/useBooking";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useBookingUpsells } from "@/hooks/useBookingUpsells";
 import { transformWorkingHours } from "@/utils/workingHoursUtils";
@@ -11,8 +10,9 @@ import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { transformServicesForDisplay } from "@/utils/serviceTransformation";
 import { ServicesSummary } from "./service-selection/ServicesSummary";
-import { usePackageDiscount } from "@/hooks/usePackageDiscount";
 import { PackageBuilderDialog } from "./package-builder/PackageBuilderDialog";
+import { useBookingContext } from "@/contexts/BookingContext";
+import { usePackageDiscount } from "@/hooks/usePackageDiscount";
 
 const STEPS: BookingStep[] = ['services', 'datetime', 'barber', 'details'];
 
@@ -58,7 +58,7 @@ export const BookingSteps = ({
     isUpdatingPackage,
     totalPrice,
     totalDuration
-  } = useBooking(branch);
+  } = useBookingContext();
 
   const {
     data: availableUpsells
@@ -73,20 +73,16 @@ export const BookingSteps = ({
     applyPackageDiscounts
   } = usePackageDiscount(selectedServices);
 
-  // Find base service
   const baseService = selectedServices.find(s => s.id === BASE_SERVICE_ID) || 
     (categories?.flatMap(c => c.services).find(s => s.id === BASE_SERVICE_ID));
 
-  // Get available package services
   const availablePackageServices = categories?.flatMap(c => c.services)
     .filter(service => 
       service.id !== BASE_SERVICE_ID && 
       enabledPackageServices?.some(enabledService => enabledService.id === service.id)
     ) || [];
 
-  // Handle service removal, with proper discount recalculation
   const handleServiceRemove = (serviceId: string) => {
-    // Find the service to be removed
     const serviceToRemove = selectedServices.find(s => s.id === serviceId);
     
     if (!serviceToRemove) {
@@ -96,26 +92,20 @@ export const BookingSteps = ({
     
     console.log('Removing service:', serviceId);
     
-    // Remove the service
     setSelectedServices(prev => prev.filter(s => s.id !== serviceId));
     
-    // If removing a non-upsell service in package mode, recalculate discounts for remaining services
     const isPackageService = serviceToRemove.id === BASE_SERVICE_ID || 
                            serviceToRemove.isBasePackageService || 
                            serviceToRemove.isPackageAddOn;
     
     if (packageEnabled && isPackageService) {
-      // If removing the base service, we need to handle it specially
       if (serviceToRemove.id === BASE_SERVICE_ID || serviceToRemove.isBasePackageService) {
         console.log('Removing base service - will disable package mode');
-        
-        // Remove discounts from all remaining services by resetting them to original prices
         setSelectedServices(prev => {
           const servicesWithoutDiscounts = prev
             .filter(s => s.id !== serviceId)
             .map(s => {
               if (s.isPackageAddOn && s.originalPrice) {
-                // Reset to original price without discount
                 return {
                   ...s,
                   price: s.originalPrice,
@@ -129,16 +119,10 @@ export const BookingSteps = ({
           return servicesWithoutDiscounts;
         });
       } else {
-        // For non-base services, we just need to recalculate discounts
         console.log('Removing package add-on service - will recalculate discounts');
         setTimeout(() => {
-          // Get updated services after the removal
           const remainingServices = selectedServices.filter(s => s.id !== serviceId);
-          
-          // Apply discounts based on new count
           const updatedServices = applyPackageDiscounts(remainingServices);
-          
-          // Update services with new discount levels
           if (updatedServices.length !== remainingServices.length) {
             console.error('Service count mismatch after discount recalculation');
           } else {
@@ -149,25 +133,21 @@ export const BookingSteps = ({
     }
   };
 
-  // Handle step change with package builder check
   const handleStepChange = (step: string) => {
     if (currentStep === 'services') {
       if (step === 'datetime') {
-        // First check for package
         if (hasBaseService && packageSettings && availablePackageServices.length > 0) {
           setShowPackageBuilder(true);
           setPendingStep(step as BookingStep);
           return;
         }
-        // Then check for upsells
-        else if (availableUpsells?.length) {
+        if (availableUpsells?.length) {
           setShowUpsellModal(true);
           setPendingStep(step as BookingStep);
           return;
         }
       }
     }
-    // If no package or upsells, or not in services step, proceed normally
     setCurrentStep(step as BookingStep);
   };
 
@@ -239,7 +219,6 @@ export const BookingSteps = ({
     handleUpsellModalClose();
   };
 
-  // Improved package builder handlers
   const handlePackageBuilderClose = () => {
     setShowPackageBuilder(false);
     if (pendingStep) {
@@ -248,9 +227,7 @@ export const BookingSteps = ({
     }
   };
 
-  // Enhanced handlePackageBuilderConfirm to use the new update approach
   const handlePackageBuilderConfirm = (packageServices: any[]) => {
-    // Verify that we have the base service
     const incomingBaseService = packageServices.find(s => s.isBasePackageService || s.id === BASE_SERVICE_ID);
     if (!incomingBaseService) {
       console.error('No base service found in package services');
@@ -262,7 +239,6 @@ export const BookingSteps = ({
       return;
     }
     
-    // Use the new more efficient package update function
     if (handlePackageServiceUpdate) {
       console.log('Using optimized package update in BookingSteps');
       handlePackageServiceUpdate(packageServices);
@@ -270,39 +246,30 @@ export const BookingSteps = ({
       return;
     }
     
-    // Legacy approach as fallback
     console.log('Using legacy package update in BookingSteps');
     
-    // Preserve selected upsell items
     const existingUpsells = selectedServices.filter(s => s.isUpsellItem);
-    
-    // Remove current non-upsell services
     const nonUpsellServices = selectedServices.filter(s => !s.isUpsellItem);
     for (const service of nonUpsellServices) {
       handleServiceToggle(service);
     }
     
-    // Important: Small delay to ensure all removals are processed before adding
     setTimeout(() => {
-      // Add the base service first (important for correct order)
       console.log('Adding base service first:', incomingBaseService.id);
       handleServiceToggle(incomingBaseService, true);
       
-      // Add other package services
       const addOnServices = packageServices.filter(s => !s.isBasePackageService && s.id !== BASE_SERVICE_ID);
       for (const service of addOnServices) {
         console.log('Adding addon service:', service.id);
         handleServiceToggle(service, true);
       }
       
-      // Restore any upsell items that were removed
       for (const upsell of existingUpsells) {
         if (!selectedServices.some(s => s.id === upsell.id)) {
           setSelectedServices(prev => [...prev, upsell]);
         }
       }
       
-      // Close the dialog and proceed to the next step
       handlePackageBuilderClose();
     }, 100);
   };
@@ -321,7 +288,6 @@ export const BookingSteps = ({
 
   const shouldShowNavigation = currentStep === 'details';
 
-  // Modified to always show summary bar when services are selected, regardless of step
   const shouldShowSummaryBar = selectedServices.length > 0 && currentStep !== 'details';
 
   const transformedServices = transformServicesForDisplay(selectedServices, language);
@@ -357,7 +323,15 @@ export const BookingSteps = ({
         />
       </div>
 
-      {shouldShowNavigation && <BookingNavigation currentStepIndex={currentStepIndex} steps={STEPS} currentStep={currentStep} setCurrentStep={setCurrentStep} isNextDisabled={isNextDisabled()} customerDetails={customerDetails} branch={branch} />}
+      {shouldShowNavigation && <BookingNavigation 
+        currentStepIndex={currentStepIndex} 
+        steps={STEPS} 
+        currentStep={currentStep} 
+        setCurrentStep={setCurrentStep} 
+        isNextDisabled={isNextDisabled()} 
+        customerDetails={customerDetails} 
+        branch={branch} 
+      />}
 
       {shouldShowSummaryBar && <ServicesSummary 
         selectedServices={transformedServices} 
@@ -375,7 +349,6 @@ export const BookingSteps = ({
 
       <UpsellModal isOpen={showUpsellModal} onClose={handleUpsellModalClose} onConfirm={handleUpsellConfirm} availableUpsells={availableUpsells || []} />
       
-      {/* Updated PackageBuilderDialog with improved onConfirm handler */}
       <PackageBuilderDialog
         isOpen={showPackageBuilder}
         onClose={handlePackageBuilderClose}

@@ -3,16 +3,19 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 import { getBookingDisplayDate } from "@/utils/dateAdjustment";
-import { Branch } from "./types/booking";
+import { Branch, CustomerDetails } from "@/types/booking";
+import { SelectedService } from "@/types/service";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { Sparkle, User, Scissors, Clock, Calendar, User2, DollarSign } from "lucide-react";
+import { convertToArabic } from "@/utils/arabicNumerals";
 
 interface WhatsAppIntegrationProps {
-  selectedServices: any[];
+  selectedServices: SelectedService[];
   totalPrice: number;
   selectedDate?: Date;
   selectedTime?: string;
   selectedBarberName?: string;
-  customerDetails: any;
-  language: string;
+  customerDetails: CustomerDetails;
   branch?: Branch;
 }
 
@@ -23,11 +26,11 @@ export const WhatsAppIntegration = ({
   selectedTime,
   selectedBarberName,
   customerDetails,
-  language,
   branch
 }: WhatsAppIntegrationProps) => {
   const [whatsappMessage, setWhatsappMessage] = useState("");
   const [isWhatsAppAvailable, setIsWhatsAppAvailable] = useState(false);
+  const { language } = useLanguage();
   
   // Get the correct display date by adjusting for after-midnight slots
   const displayDate = getBookingDisplayDate(selectedDate, selectedTime);
@@ -38,34 +41,78 @@ export const WhatsAppIntegration = ({
     
     // Create the WhatsApp message with booking details
     if (customerDetails?.name && displayDate && selectedTime && branch?.whatsapp_number) {
-      const services = selectedServices.map(service => 
-        language === 'ar' ? service.name_ar : service.name_en
-      ).join(", ");
+      const formatPrice = (price: number) => {
+        const roundedPrice = Math.round(price);
+        return language === 'ar' 
+          ? `${convertToArabic(roundedPrice.toString())} ريال`
+          : `${roundedPrice} SAR`;
+      };
       
-      const formattedDate = format(displayDate, "dd/MM/yyyy");
+      // Format services as bullet points with proper pricing
+      const services = selectedServices.map(service => {
+        const serviceName = language === 'ar' ? service.name_ar : service.name_en;
+        const servicePrice = formatPrice(service.price);
+        const hasDiscount = service.originalPrice && service.originalPrice > service.price;
+        
+        return hasDiscount
+          ? `• ${serviceName}: ${servicePrice}${service.originalPrice ? ` (${language === 'ar' ? 'السعر الأصلي' : 'Original price'}: ${formatPrice(service.originalPrice)})` : ''}`
+          : `• ${serviceName}: ${servicePrice}`;
+      }).join('\n');
+
+      const totalOriginalPrice = selectedServices.reduce((sum, service) => sum + (service.originalPrice || service.price), 0);
+      const totalDiscount = totalOriginalPrice - totalPrice;
       
-      // Create the message in the appropriate language
-      const message = language === 'ar'
-        ? `أود حجز موعد: %0a
-          الاسم: ${customerDetails.name} %0a
-          الرقم: ${customerDetails.phone || '-'} %0a
-          التاريخ: ${formattedDate} %0a
-          الوقت: ${selectedTime} %0a
-          الخدمات: ${services} %0a
-          الحلاق: ${selectedBarberName || '-'} %0a
-          السعر الاجمالي: ${totalPrice} ريال %0a
-          ${customerDetails.notes ? `ملاحظات: ${customerDetails.notes}` : ''}`
-        : `I'd like to book an appointment: %0a
-          Name: ${customerDetails.name} %0a
-          Phone: ${customerDetails.phone || '-'} %0a
-          Date: ${formattedDate} %0a
-          Time: ${selectedTime} %0a
-          Services: ${services} %0a
-          Barber: ${selectedBarberName || '-'} %0a
-          Total Price: ${totalPrice} SAR %0a
-          ${customerDetails.notes ? `Notes: ${customerDetails.notes}` : ''}`;
-          
-      setWhatsappMessage(message);
+      const totalDuration = selectedServices.reduce((sum, service) => sum + (service.duration || 0), 0);
+      const formattedDuration = language === 'ar' 
+        ? `${convertToArabic(totalDuration.toString())} دقيقة` 
+        : `${totalDuration} minutes`;
+      
+      const formattedDate = format(displayDate, 'dd/MM/yyyy');
+      
+      // Create the enhanced message for Arabic (with emojis and better formatting)
+      const arabicMessage = `✨ طلب حجز جديد
+
+👤 معلومات العميل:
+• الاسم: ${customerDetails.name}
+• رقم الجوال: ${customerDetails.phone || '-'}
+${customerDetails.email ? `• البريد الإلكتروني: ${customerDetails.email}` : ''}
+${customerDetails.notes ? `• ملاحظات: ${customerDetails.notes}` : ''}
+
+✂️ تفاصيل الحجز:
+${services}
+
+⏰ المدة الإجمالية: ${formattedDuration}
+📅 التاريخ والوقت: ${language === 'ar' ? convertToArabic(formattedDate) : formattedDate} - ${selectedTime}
+${selectedBarberName ? `💈 الحلاق: ${selectedBarberName}` : ''}
+${totalDiscount > 0 ? `💰 الخصم: ${formatPrice(totalDiscount)}` : ''}
+
+💵 المبلغ الإجمالي: ${formatPrice(totalPrice)}`;
+
+      // Create the message in English (also with emojis for consistency)
+      const englishMessage = `✨ New Booking Request
+
+👤 Customer Information:
+• Name: ${customerDetails.name}
+• Phone: ${customerDetails.phone || '-'}
+${customerDetails.email ? `• Email: ${customerDetails.email}` : ''}
+${customerDetails.notes ? `• Notes: ${customerDetails.notes}` : ''}
+
+✂️ Booking Details:
+${services}
+
+⏰ Total Duration: ${formattedDuration}
+📅 Date & Time: ${formattedDate} - ${selectedTime}
+${selectedBarberName ? `💈 Barber: ${selectedBarberName}` : ''}
+${totalDiscount > 0 ? `💰 Discount: ${formatPrice(totalDiscount)}` : ''}
+
+💵 Total Amount: ${formatPrice(totalPrice)}`;
+
+      // Use the appropriate message based on language
+      const finalMessage = language === 'ar' ? arabicMessage : englishMessage;
+      
+      // Prepare the message for WhatsApp URL (encode line breaks)
+      const encodedMessage = finalMessage.replace(/\n/g, '%0a');
+      setWhatsappMessage(encodedMessage);
     }
   }, [customerDetails, selectedServices, displayDate, selectedTime, language, selectedBarberName, totalPrice, branch?.whatsapp_number]);
 
