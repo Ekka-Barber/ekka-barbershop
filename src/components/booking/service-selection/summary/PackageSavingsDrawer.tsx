@@ -45,12 +45,12 @@ export const PackageSavingsDrawer = ({ savings, language }: PackageSavingsDrawer
         </motion.div>
       </SheetTrigger>
       
-      {/* The drawer content - coming from right side, now with reduced height */}
+      {/* The drawer content with auto height */}
       <SheetContent 
         side="right"
-        className="bg-[#F8FFEE] border-green-200 p-0 rounded-l-xl mx-auto max-w-md"
+        className="bg-[#F8FFEE] border-green-200 p-0 rounded-l-xl mx-auto h-auto inset-auto top-24 bottom-auto"
       >
-        <div className="p-3 space-y-2 max-h-[320px] overflow-y-auto">
+        <div className="p-3 space-y-2">
           <div className="flex items-center justify-center gap-1.5 mb-1">
             <Tag className="h-3.5 w-3.5 text-green-700" />
             <h3 className="text-sm font-semibold text-green-700">
