@@ -1,8 +1,8 @@
-
 import { useCallback } from 'react';
 import { SelectedService } from '@/types/service';
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { transformUpsellToSelected } from '@/utils/serviceTransformation';
 
 export const usePackageServiceUpdate = (
   selectedServices: SelectedService[],

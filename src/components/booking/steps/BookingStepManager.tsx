@@ -26,10 +26,26 @@ export const BookingStepManager = ({
     currentStep,
     setCurrentStep,
     selectedServices,
-    validateStep,
-    handleServiceRemove,
+    selectedDate,
+    selectedTime,
+    selectedBarber,
+    setSelectedBarber,
+    setSelectedDate,
+    setSelectedTime,
+    customerDetails,
+    handleCustomerDetailsChange,
+    validateStep = () => true,
+    handleServiceRemove = () => {},
     totalPrice,
-    totalDuration
+    totalDuration,
+    categories,
+    categoriesLoading,
+    employees,
+    employeesLoading,
+    selectedEmployee,
+    handleServiceToggle,
+    isUpdatingPackage,
+    handlePackageServiceUpdate
   } = useBookingContext();
 
   const handleStepChange = (step: string) => {
@@ -56,7 +72,7 @@ export const BookingStepManager = ({
   const currentStepIndex = STEPS.indexOf(currentStep as BookingStep);
   const shouldShowNavigation = currentStep === 'details';
   const shouldShowSummaryBar = selectedServices.length > 0 && currentStep !== 'details';
-  const transformedServices = transformServicesForDisplay(selectedServices, language);
+  const transformedServices = transformServicesForDisplay(selectedServices, language as 'en' | 'ar');
 
   return (
     <ErrorBoundary>
@@ -71,7 +87,27 @@ export const BookingStepManager = ({
         <ErrorBoundary>
           <StepRenderer 
             currentStep={currentStep}
+            categories={categories}
+            categoriesLoading={categoriesLoading}
+            selectedServices={selectedServices}
+            handleServiceToggle={handleServiceToggle}
+            handleStepChange={handleStepChange}
+            employees={employees}
+            employeesLoading={employeesLoading}
+            selectedBarber={selectedBarber}
+            setSelectedBarber={setSelectedBarber}
+            selectedDate={selectedDate}
+            selectedTime={selectedTime}
+            setSelectedDate={setSelectedDate}
+            setSelectedTime={setSelectedTime}
+            employeeWorkingHours={selectedEmployee?.working_hours}
+            customerDetails={customerDetails}
+            handleCustomerDetailsChange={handleCustomerDetailsChange}
+            totalPrice={totalPrice}
+            language={language}
             branch={branch}
+            isUpdatingPackage={isUpdatingPackage}
+            handlePackageServiceUpdate={handlePackageServiceUpdate}
             onRemoveService={handleServiceRemove}
           />
         </ErrorBoundary>
@@ -84,7 +120,9 @@ export const BookingStepManager = ({
             steps={STEPS} 
             currentStep={currentStep as BookingStep} 
             setCurrentStep={setCurrentStep}
-            branch={branch} 
+            branch={branch}
+            isNextDisabled={false}
+            customerDetails={customerDetails}
           />
         </ErrorBoundary>
       )}
@@ -95,7 +133,7 @@ export const BookingStepManager = ({
             selectedServices={transformedServices} 
             totalDuration={totalDuration} 
             totalPrice={totalPrice} 
-            language={language} 
+            language={language as 'en' | 'ar'} 
             onNextStep={handleNextStep} 
             onPrevStep={handlePrevStep} 
             isFirstStep={currentStepIndex === 0} 

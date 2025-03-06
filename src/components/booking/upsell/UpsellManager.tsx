@@ -22,7 +22,7 @@ export const UpsellManager = ({ onStepChange }: UpsellManagerProps) => {
 
   const {
     data: availableUpsells
-  } = useBookingUpsells(selectedServices, language);
+  } = useBookingUpsells(selectedServices, language as 'en' | 'ar');
 
   const initiateUpsellFlow = (nextStep: BookingStep) => {
     if (availableUpsells?.length) {

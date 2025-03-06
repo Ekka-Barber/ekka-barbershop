@@ -31,7 +31,7 @@ export const PackageManager = ({ onStepChange }: PackageManagerProps) => {
     handlePackageServiceUpdate
   } = useBookingContext();
 
-  const availablePackageServices = packageEnabled && enabledPackageServices 
+  const availablePackageServices = packageSettings?.baseServiceId && enabledPackageServices 
     ? enabledPackageServices : [];
   
   const initiatePackageFlow = (nextStep: BookingStep) => {
@@ -57,7 +57,9 @@ export const PackageManager = ({ onStepChange }: PackageManagerProps) => {
       
       await executeWithRetry(
         async () => {
-          const incomingBaseService = packageServices.find(s => s.isBasePackageService || s.id === baseService?.id);
+          const incomingBaseService = packageServices.find(s => 
+            s.isBasePackageService || (baseService && s.id === baseService.id)
+          );
           if (!incomingBaseService) {
             throw new Error('No base service found in package services');
           }

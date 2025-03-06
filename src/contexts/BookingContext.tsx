@@ -3,6 +3,7 @@ import { createContext, useContext, ReactNode } from 'react';
 import { useBooking } from '@/hooks/useBooking';
 import { SelectedService } from '@/types/service';
 import { CustomerDetails } from '@/types/booking';
+import { BookingStep } from '@/components/booking/BookingProgress';
 
 interface BookingContextType {
   currentStep: string;
@@ -30,6 +31,15 @@ interface BookingContextType {
   selectedEmployee: any;
   handlePackageServiceUpdate: (services: SelectedService[]) => void;
   isUpdatingPackage: boolean;
+  
+  // New properties for the refactored components
+  packageEnabled?: boolean;
+  packageSettings?: any;
+  hasBaseService?: boolean;
+  enabledPackageServices?: any[];
+  baseService?: any;
+  validateStep?: () => boolean;
+  handleServiceRemove?: (serviceId: string) => void;
 }
 
 const BookingContext = createContext<BookingContextType | undefined>(undefined);
