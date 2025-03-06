@@ -52,7 +52,7 @@ export const useBooking = (branch: any) => {
             description: language === 'ar' 
               ? 'الرجاء اختيار خدمة واحدة على الأقل'
               : 'Please select at least one service',
-            variant: "warning"
+            variant: "default"  // Changed from "warning" to "default"
           });
           return false;
         }
@@ -64,7 +64,7 @@ export const useBooking = (branch: any) => {
             description: language === 'ar' 
               ? 'الرجاء اختيار تاريخ'
               : 'Please select a date',
-            variant: "warning"
+            variant: "default"  // Changed from "warning" to "default"
           });
           return false;
         }
@@ -76,7 +76,7 @@ export const useBooking = (branch: any) => {
             description: language === 'ar' 
               ? 'الرجاء اختيار حلاق ووقت للموعد'
               : 'Please select a barber and appointment time',
-            variant: "warning"
+            variant: "default"  // Changed from "warning" to "default"
           });
           return false;
         }
@@ -89,7 +89,7 @@ export const useBooking = (branch: any) => {
             description: language === 'ar' 
               ? 'الرجاء تعبئة الاسم ورقم الهاتف'
               : 'Please fill in your name and phone number',
-            variant: "warning"
+            variant: "default"  // Changed from "warning" to "default"
           });
           return false;
         }
