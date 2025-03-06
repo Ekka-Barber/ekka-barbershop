@@ -1,7 +1,6 @@
 
 import React from 'react';
-import { Package, Info } from 'lucide-react';
-import { Separator } from "@/components/ui/separator";
+import { Package, Info, Sparkles } from 'lucide-react';
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
@@ -9,9 +8,16 @@ import { useToast } from "@/hooks/use-toast";
 interface PackageBannerProps {
   isVisible: boolean;
   onInfoClick: () => void;
+  hasBaseService?: boolean;
+  onBuildPackage?: () => void;
 }
 
-export const PackageBanner = ({ isVisible, onInfoClick }: PackageBannerProps) => {
+export const PackageBanner = ({ 
+  isVisible, 
+  onInfoClick,
+  hasBaseService = false,
+  onBuildPackage
+}: PackageBannerProps) => {
   const { language } = useLanguage();
   
   if (!isVisible) return null;
@@ -27,14 +33,27 @@ export const PackageBanner = ({ isVisible, onInfoClick }: PackageBannerProps) =>
               : 'Packages now available! Select Haircut & Beard Trim and add services at a discount 😉'}
           </p>
         </div>
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          className="h-7 w-7 rounded-full hover:bg-[#e9d8a6]/50"
-          onClick={onInfoClick}
-        >
-          <Info className="h-4 w-4 text-[#6f5b3e]" />
-        </Button>
+        <div className="flex items-center gap-1">
+          {hasBaseService && onBuildPackage && (
+            <Button 
+              variant="outline" 
+              size="sm"
+              className="h-8 bg-[#C4A484]/10 border-[#C4A484]/20 text-[#6f5b3e] hover:bg-[#C4A484]/20"
+              onClick={onBuildPackage}
+            >
+              <Sparkles className="h-3.5 w-3.5 mr-1.5 text-[#C4A484]" />
+              {language === 'ar' ? 'بناء باقة' : 'Build Package'}
+            </Button>
+          )}
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="h-7 w-7 rounded-full hover:bg-[#e9d8a6]/50"
+            onClick={onInfoClick}
+          >
+            <Info className="h-4 w-4 text-[#6f5b3e]" />
+          </Button>
+        </div>
       </div>
     </div>
   );

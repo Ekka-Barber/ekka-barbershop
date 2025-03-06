@@ -1,5 +1,4 @@
-
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { ServicesSkeleton } from "./ServicesSkeleton";
@@ -9,11 +8,13 @@ import { ServicesSummary } from "./service-selection/ServicesSummary";
 import { cacheServices, getCachedServices, cacheActiveCategory, getCachedActiveCategory } from "@/utils/serviceCache";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useToast } from "@/hooks/use-toast";
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, Package } from "lucide-react";
 import { PackageBanner } from "./service-selection/PackageBanner";
 import { PackageInfoDialog } from "./service-selection/PackageInfoDialog";
+import { PackageBuilderDialog } from "./package-builder/PackageBuilderDialog";
 import { usePackageDiscount } from "@/hooks/usePackageDiscount";
 import { transformServicesForDisplay } from "@/utils/serviceTransformation";
+import { Service } from "@/types/service";
 
 interface ServiceSelectionProps {
   categories: any[] | undefined;
@@ -38,6 +39,7 @@ export const ServiceSelection = ({
   const [selectedService, setSelectedService] = useState<any | null>(null);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [showPackageInfo, setShowPackageInfo] = useState(false);
+  const [showPackageBuilder, setShowPackageBuilder] = useState(false);
 
   // Use the package discount hook
   const { 
@@ -45,8 +47,24 @@ export const ServiceSelection = ({
     packageEnabled, 
     packageSettings, 
     hasBaseService,
+    enabledPackageServices,
     applyPackageDiscounts 
   } = usePackageDiscount(selectedServices);
+
+  // Get base service
+  const baseService = selectedServices.find(s => s.id === BASE_SERVICE_ID) || 
+                     (categories?.flatMap(c => c.services).find(s => s.id === BASE_SERVICE_ID));
+
+  // Get available package services (excluding base service)
+  const availablePackageServices = useMemo(() => {
+    if (!enabledPackageServices) return [];
+    
+    return categories?.flatMap(c => c.services)
+      .filter(service => 
+        service.id !== BASE_SERVICE_ID && 
+        enabledPackageServices.includes(service.id)
+      ) || [];
+  }, [categories, enabledPackageServices, BASE_SERVICE_ID]);
 
   // Process services with package discounts if needed
   const processedServices = applyPackageDiscounts(selectedServices);
@@ -71,6 +89,17 @@ export const ServiceSelection = ({
         description: language === 'ar' 
           ? 'يمكنك الآن إضافة خدمات إضافية بخصم'
           : 'You can now add additional services at a discount',
+        action: (
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => setShowPackageBuilder(true)}
+            className="ml-2 whitespace-nowrap"
+          >
+            <Package className="h-3.5 w-3.5 mr-1.5" />
+            {language === 'ar' ? 'بناء باقة' : 'Build Package'}
+          </Button>
+        )
       });
     }
   }, [hasBaseService, packageSettings, language, toast]);
@@ -97,6 +126,32 @@ export const ServiceSelection = ({
       handleServiceToggleError();
       console.error('Service toggle error:', error);
     }
+  };
+  
+  const handlePackageConfirm = (services: Service[]) => {
+    // Reset all services first
+    selectedServices.forEach(service => {
+      if (!service.isUpsellItem) {
+        const isAlreadySelected = selectedServices.some(s => s.id === service.id);
+        if (isAlreadySelected) {
+          handleServiceToggleWrapper(service);
+        }
+      }
+    });
+    
+    // Then add the confirmed services
+    services.forEach(service => {
+      handleServiceToggleWrapper(service);
+    });
+    
+    setShowPackageBuilder(false);
+    
+    toast({
+      title: language === 'ar' ? 'تم إنشاء الباقة بنجاح' : 'Package Created Successfully',
+      description: language === 'ar' 
+        ? 'تم تطبيق خصومات الباقة على خدماتك المختارة'
+        : 'Package discounts have been applied to your selected services',
+    });
   };
 
   const sortedCategories = categories?.slice().sort((a, b) => a.display_order - b.display_order);
@@ -136,6 +191,8 @@ export const ServiceSelection = ({
       <PackageBanner 
         isVisible={true} 
         onInfoClick={() => setShowPackageInfo(true)}
+        hasBaseService={hasBaseService}
+        onBuildPackage={() => setShowPackageBuilder(true)}
       />
 
       <CategoryTabs
@@ -207,6 +264,16 @@ export const ServiceSelection = ({
         isOpen={showPackageInfo} 
         onClose={() => setShowPackageInfo(false)}
         packageSettings={packageSettings}
+      />
+
+      <PackageBuilderDialog
+        isOpen={showPackageBuilder}
+        onClose={() => setShowPackageBuilder(false)}
+        onConfirm={handlePackageConfirm}
+        packageSettings={packageSettings}
+        baseService={baseService}
+        availableServices={availablePackageServices}
+        currentlySelectedServices={selectedServices}
       />
     </div>
   );
