@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { BookingProgress, BookingStep } from "@/components/booking/BookingProgress";
 import { BookingNavigation } from "@/components/booking/BookingNavigation";
@@ -11,7 +10,7 @@ import { StepRenderer } from "./steps/StepRenderer";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { transformServicesForDisplay } from "@/utils/serviceTransformation";
-import { ServicesSummary } from "./service-selection/summary/ServicesSummary";
+import { ServicesSummary } from "./service-selection/ServicesSummary";
 
 const STEPS: BookingStep[] = ['services', 'datetime', 'barber', 'details'];
 
