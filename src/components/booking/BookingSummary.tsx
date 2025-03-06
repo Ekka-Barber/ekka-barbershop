@@ -141,10 +141,8 @@ export const BookingSummary = ({
         {isDetailsStep && packageEnabled && (
           <PackageSavingsDrawer 
             savings={packageSavings}
-            language={language as 'en' | 'ar'}
             availableServices={availablePackageServices}
             packageSettings={packageSettings}
-            selectedServices={selectedServices}
             onAddService={onAddService}
             isDetailsStep={true}
             packageEnabled={packageEnabled}

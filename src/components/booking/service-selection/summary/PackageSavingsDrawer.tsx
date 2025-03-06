@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Gift, ChevronUp, ChevronDown } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { formatPriceArabic } from '@/utils/formatters';
+import { formatPrice } from '@/utils/formatters';
 
 interface PackageSavingsDrawerProps {
   savings: number;
@@ -12,6 +12,7 @@ interface PackageSavingsDrawerProps {
   packageSettings?: any;
   availableServices?: any[];
   onAddService?: (service: any) => void;
+  isDetailsStep?: boolean;
 }
 
 export const PackageSavingsDrawer = ({
@@ -20,7 +21,8 @@ export const PackageSavingsDrawer = ({
   hasBaseService = false,
   packageSettings,
   availableServices = [],
-  onAddService
+  onAddService,
+  isDetailsStep = false
 }: PackageSavingsDrawerProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const { language } = useLanguage();
@@ -57,7 +59,7 @@ export const PackageSavingsDrawer = ({
               <span className="font-medium text-sm text-green-700">
                 {hasPackageDiscounts ? (
                   isRtl 
-                    ? `وفرت ${formatPriceArabic(savings)} ريال مع الباقة!` 
+                    ? `وفرت ${formatPrice(savings, 'ar')} ريال مع الباقة!` 
                     : `You saved SAR ${savings} with package!`
                 ) : (
                   isRtl 

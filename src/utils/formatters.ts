@@ -26,6 +26,12 @@ export const formatPrice = (price: number, language: 'en' | 'ar' = 'en'): string
   return `${roundedPrice} SAR`;
 };
 
+// Format a price in Arabic
+export const formatPriceArabic = (price: number): string => {
+  const roundedPrice = Math.round(price);
+  return convertToArabic(roundedPrice.toString());
+};
+
 // Format a date string to display in the proper language
 export const formatDateString = (dateStr: string, language: 'en' | 'ar' = 'en'): string => {
   if (language === 'ar') {
