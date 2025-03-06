@@ -105,7 +105,7 @@ export const PackageInfoDialog = ({ isOpen, onClose, packageSettings }: PackageI
                       : packageSettings.discountTiers.threeOrMore + '%'}
                   </span>
                   <span className="text-xs text-gray-500">
-                    {language === 'ar' ? 'خدمات إضافية' : 'add-ons'}
+                    {language === 'ar' ? 'ثلاث خدمات وأكثر' : 'add-ons'}
                   </span>
                 </div>
               </div>
