@@ -27,3 +27,11 @@
     background-position: 200% 0;
   }
 }
+
+/* Add responsive padding for small screens */
+@media (max-width: 768px) {
+  .service-selection-container {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+  }
+}

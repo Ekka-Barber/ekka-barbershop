@@ -1,6 +1,7 @@
 
 import { ServiceCard } from "./ServiceCard";
 import { Service } from "@/types/service";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface ServiceGridProps {
   services: Service[];
@@ -17,8 +18,10 @@ export const ServiceGrid = ({
   onServiceToggle,
   baseServiceId
 }: ServiceGridProps) => {
+  const isMobile = useIsMobile();
+
   return (
-    <div className="grid grid-cols-2 gap-4">
+    <div className={`grid ${isMobile ? 'grid-cols-1' : 'grid-cols-2'} gap-4`}>
       {services.map((service: Service) => (
         <ServiceCard
           key={service.id}

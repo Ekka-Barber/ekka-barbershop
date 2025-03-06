@@ -122,7 +122,7 @@ export const BookingContainer = () => {
 
   return (
     <ErrorBoundary>
-      <div className="max-w-screen-lg mx-auto px-4 py-6">
+      <div className="w-full max-w-screen-lg mx-auto px-2 sm:px-4 py-4 sm:py-6">
         <BookingHeader 
           branch={branch} 
           isLoading={branchLoading}

@@ -11,6 +11,7 @@ import { ServicesSummary } from "./ServicesSummary";
 import { PackageInfoDialog } from "./PackageInfoDialog";
 import { PackageBuilderDialog } from "../package-builder/PackageBuilderDialog";
 import { SelectedService } from "@/types/service";
+import "../ServiceSelection.css";
 
 interface ServiceSelectionViewProps {
   isLoading: boolean;
@@ -73,7 +74,7 @@ export const ServiceSelectionView = ({
   } = selectionState;
 
   return (
-    <div className="space-y-6 pb-8">
+    <div className="space-y-6 pb-8 service-selection-container">
       <PackageBanner 
         isVisible={true} 
         onInfoClick={() => setShowPackageInfo(true)}
