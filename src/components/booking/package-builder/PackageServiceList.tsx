@@ -63,8 +63,8 @@ export const PackageServiceList = ({
               >
                 {isSelected && (
                   <div className={cn(
-                    "absolute top-1",
-                    language === 'ar' ? "left-1" : "right-1"
+                    "absolute -top-1.5 -right-1.5",
+                    language === 'ar' && "-top-1.5 -left-1.5 right-auto"
                   )}>
                     <CheckCircle className="h-4 w-4 text-[#C4A484]" />
                   </div>
