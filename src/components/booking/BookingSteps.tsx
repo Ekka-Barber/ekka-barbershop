@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { BookingProgress, BookingStep } from "@/components/booking/BookingProgress";
 import { BookingNavigation } from "@/components/booking/BookingNavigation";
@@ -181,8 +182,23 @@ export const BookingSteps = ({
     }
   };
 
-  // Fixed handlePackageConfirm to properly update services
+  // Improved handlePackageBuilderConfirm to properly handle the base service
   const handlePackageBuilderConfirm = (packageServices: any[]) => {
+    // Log incoming package services for debugging
+    console.log('Package services received:', packageServices.length);
+    
+    // Verify that we have the base service
+    const incomingBaseService = packageServices.find(s => s.id === BASE_SERVICE_ID);
+    if (!incomingBaseService) {
+      console.error('No base service found in package services');
+      toast({
+        title: language === 'ar' ? 'خطأ' : 'Error',
+        description: language === 'ar' ? 'خطأ في الباقة: لا توجد خدمة أساسية' : 'Package error: No base service found',
+        variant: "destructive"
+      });
+      return;
+    }
+    
     // Preserve selected upsell items
     const existingUpsells = selectedServices.filter(s => s.isUpsellItem);
     
@@ -194,10 +210,24 @@ export const BookingSteps = ({
       handleServiceToggle(service);
     });
     
-    // Add the new package services
-    packageServices.forEach(service => {
-      handleServiceToggle(service, true);
-    });
+    // Add the new package services, ensuring the base service is added first
+    const baseServiceToAdd = packageServices.find(s => s.id === BASE_SERVICE_ID);
+    if (baseServiceToAdd) {
+      // Add base service first
+      handleServiceToggle(baseServiceToAdd, true);
+      
+      // Then add other services
+      packageServices.forEach(service => {
+        if (service.id !== BASE_SERVICE_ID) {
+          handleServiceToggle(service, true);
+        }
+      });
+    } else {
+      // Add all services normally if no base service was found (should not happen)
+      packageServices.forEach(service => {
+        handleServiceToggle(service, true);
+      });
+    }
     
     // Restore any upsell items that were removed
     existingUpsells.forEach(upsell => {

@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useToast } from "@/hooks/use-toast";
@@ -100,18 +101,40 @@ export const ServiceSelectionContainer = ({
   
   const handlePackageConfirm = (services: SelectedService[]) => {
     try {
+      // Extract existing upsell items
       const existingUpsells = selectedServices.filter(s => s.isUpsellItem);
       
+      // Get base service from the incoming services
+      const newBaseService = services.find(s => s.id === BASE_SERVICE_ID);
+      
+      // Check if we have a base service in the incoming services
+      if (!newBaseService) {
+        console.error('No base service found in package confirmation');
+        toast({
+          variant: "destructive",
+          title: language === 'ar' ? 'خطأ' : 'Error',
+          description: language === 'ar' 
+            ? 'لم يتم العثور على الخدمة الأساسية في الباقة'
+            : 'Base service not found in the package',
+        });
+        return;
+      }
+      
+      // Remove all non-upsell services first
       selectedServices.forEach(service => {
         if (!service.isUpsellItem) {
           handleServiceToggleWrapper(service);
         }
       });
       
+      // Add all services from the package, starting with base service
+      console.log('Adding package services:', services.length, 'services');
       services.forEach(service => {
+        console.log('Adding service from package:', service.id, language === 'ar' ? service.name_ar : service.name_en);
         onServiceToggle(service);
       });
       
+      // Re-add any upsells that might have been removed
       existingUpsells.forEach(upsell => {
         if (!selectedServices.some(s => s.id === upsell.id)) {
           onServiceToggle(upsell);

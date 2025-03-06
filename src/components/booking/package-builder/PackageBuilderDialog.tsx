@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import {
   Dialog,
@@ -80,10 +81,21 @@ export const PackageBuilderDialog = ({
     try {
       const transformedServices: SelectedService[] = [];
       
-      // Add the base service if present
+      // Always add the base service if present
       if (baseService) {
+        console.log('Adding base service to package:', baseService.id, language === 'ar' ? baseService.name_ar : baseService.name_en);
         const baseSelectedService = transformServiceToSelected(baseService, true);
         transformedServices.push(baseSelectedService);
+      } else {
+        console.error('No base service available for package');
+        toast({
+          title: language === 'ar' ? 'خطأ' : 'Error',
+          description: language === 'ar' 
+            ? 'لا توجد خدمة أساسية متاحة للباقة'
+            : 'No base service available for package',
+          variant: "destructive"
+        });
+        return;
       }
       
       // Add selected add-on services with discounts
@@ -102,14 +114,9 @@ export const PackageBuilderDialog = ({
         transformedServices.push(selectedService);
       });
 
-      // Keep existing upsell items
-      const existingUpsells = currentlySelectedServices.filter(service => service.isUpsellItem);
-      
-      // Preserve upsell items
-      const allServices = [...transformedServices, ...existingUpsells];
-      
       // Call the onConfirm handler with the complete list of services
-      onConfirm(allServices);
+      console.log('Confirming package with', transformedServices.length, 'services');
+      onConfirm(transformedServices);
     } catch (error) {
       console.error('Error confirming package:', error);
       toast({
@@ -154,7 +161,7 @@ export const PackageBuilderDialog = ({
           language={language}
           onClose={onClose}
           onConfirm={handleConfirm}
-          isConfirmDisabled={selectedAddOns.length === 0 && !baseService}
+          isConfirmDisabled={!baseService} // Changed to only disable if no base service
         />
       </DialogContent>
     </Dialog>
