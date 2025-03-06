@@ -3,50 +3,63 @@ import { useMemo } from 'react';
 import { Service } from '@/types/service';
 import { PackageSettings } from '@/types/admin';
 
-export const usePackageCalculation = (
+export function usePackageCalculation(
   selectedAddOns: Service[],
   packageSettings?: PackageSettings,
   baseService: Service | null = null
-) => {
-  // Calculate discounts based on the number of selected add-ons
-  const discountPercentage = useMemo(() => {
-    if (!packageSettings) return 0;
-    
-    const count = selectedAddOns.length;
-    if (count >= 3) {
-      return packageSettings.discountTiers.threeOrMore;
-    } else if (count === 2) {
-      return packageSettings.discountTiers.twoServices;
-    } else if (count === 1) {
-      return packageSettings.discountTiers.oneService;
-    }
-    return 0;
-  }, [selectedAddOns.length, packageSettings]);
-  
-  // Calculate total price and savings
+) {
+  // Calculate all package-related values in one go to avoid repeated calculations
   const calculations = useMemo(() => {
-    // Start with base service if present
-    let originalTotal = baseService?.price || 0;
-    let discountedTotal = originalTotal;
-    
-    // Add all selected add-on services
-    selectedAddOns.forEach(service => {
-      originalTotal += service.price;
-      // Apply discount to add-ons
-      const discountedPrice = Math.floor(service.price * (1 - discountPercentage / 100));
-      discountedTotal += discountedPrice;
-    });
-    
-    return {
-      originalTotal,
-      discountedTotal,
-      savings: originalTotal - discountedTotal,
-      discountPercentage
+    // Default values
+    const result = {
+      originalTotal: 0,
+      discountedTotal: 0,
+      savings: 0,
+      discountPercentage: 0,
+      totalWithBase: 0
     };
-  }, [baseService, selectedAddOns, discountPercentage]);
+    
+    // If no package settings or no base service, return defaults
+    if (!packageSettings || !baseService) {
+      return result;
+    }
+    
+    // Include base service price in original total
+    const basePrice = baseService.price;
+    result.originalTotal = basePrice;
+    result.totalWithBase = basePrice;
+    
+    // Calculate discount percentage based on add-on count
+    if (selectedAddOns.length >= 3) {
+      result.discountPercentage = packageSettings.discountTiers.threeOrMore;
+    } else if (selectedAddOns.length === 2) {
+      result.discountPercentage = packageSettings.discountTiers.twoServices;
+    } else if (selectedAddOns.length === 1) {
+      result.discountPercentage = packageSettings.discountTiers.oneService;
+    }
+    
+    // Calculate add-on prices
+    if (selectedAddOns.length > 0) {
+      // Sum original add-on prices
+      const addOnTotal = selectedAddOns.reduce((total, service) => total + service.price, 0);
+      result.originalTotal += addOnTotal;
+      
+      // Apply discount to add-ons
+      if (result.discountPercentage > 0) {
+        const discountMultiplier = 1 - result.discountPercentage / 100;
+        const discountedAddOnTotal = Math.floor(addOnTotal * discountMultiplier);
+        result.discountedTotal = basePrice + discountedAddOnTotal;
+        result.savings = result.originalTotal - result.discountedTotal;
+      } else {
+        result.discountedTotal = result.originalTotal;
+      }
+    } else {
+      // No add-ons, just base service price
+      result.discountedTotal = basePrice;
+    }
+    
+    return result;
+  }, [selectedAddOns, packageSettings, baseService]);
 
-  return {
-    ...calculations,
-    discountPercentage
-  };
-};
+  return calculations;
+}

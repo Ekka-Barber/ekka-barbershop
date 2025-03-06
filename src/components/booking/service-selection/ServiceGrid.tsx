@@ -1,4 +1,5 @@
 
+import React, { useMemo } from "react";
 import { ServiceCard } from "./ServiceCard";
 import { Service } from "@/types/service";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -20,18 +21,23 @@ export const ServiceGrid = ({
 }: ServiceGridProps) => {
   const isMobile = useIsMobile();
 
+  // Memoize service cards to prevent unnecessary re-renders
+  const serviceCards = useMemo(() => {
+    return services.map((service: Service) => (
+      <ServiceCard
+        key={service.id}
+        service={service}
+        isSelected={selectedServices.some(s => s.id === service.id)}
+        onSelect={onServiceToggle}
+        isBasePackageService={service.id === baseServiceId}
+        className=""
+      />
+    ));
+  }, [services, selectedServices, onServiceToggle, baseServiceId]);
+
   return (
-    <div className={`grid ${isMobile ? 'grid-cols-1' : 'grid-cols-2'} gap-4`}>
-      {services.map((service: Service) => (
-        <ServiceCard
-          key={service.id}
-          service={service}
-          isSelected={selectedServices.some(s => s.id === service.id)}
-          onSelect={onServiceToggle}
-          isBasePackageService={service.id === baseServiceId}
-          className=""
-        />
-      ))}
+    <div className={`grid gap-4 ${isMobile ? 'grid-cols-1' : 'sm:grid-cols-1 md:grid-cols-2'}`}>
+      {serviceCards}
     </div>
   );
 };

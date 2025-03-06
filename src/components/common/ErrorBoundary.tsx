@@ -7,6 +7,8 @@ import { AlertTriangle } from "lucide-react";
 
 interface Props {
   children: React.ReactNode;
+  fallbackComponent?: React.ComponentType<{ error: Error; resetErrorBoundary: () => void }>;
+  onError?: (error: Error, errorInfo: React.ErrorInfo) => void;
 }
 
 interface State {
@@ -25,24 +27,45 @@ export class ErrorBoundary extends React.Component<Props, State> {
 
   public componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     console.error('Uncaught error:', error, errorInfo);
-    // Here we could add error reporting service integration
+    if (this.props.onError) {
+      this.props.onError(error, errorInfo);
+    }
   }
+
+  public resetErrorBoundary = () => {
+    this.setState({ hasError: false, error: undefined });
+  };
 
   public render() {
     if (this.state.hasError) {
-      return <ErrorFallback error={this.state.error} />;
+      if (this.props.fallbackComponent) {
+        const FallbackComponent = this.props.fallbackComponent;
+        return <FallbackComponent 
+          error={this.state.error as Error} 
+          resetErrorBoundary={this.resetErrorBoundary} 
+        />;
+      }
+      return <ErrorFallback 
+        error={this.state.error} 
+        resetErrorBoundary={this.resetErrorBoundary} 
+      />;
     }
 
     return this.props.children;
   }
 }
 
-const ErrorFallback = ({ error }: { error?: Error }) => {
+interface ErrorFallbackProps {
+  error?: Error;
+  resetErrorBoundary: () => void;
+}
+
+const ErrorFallback = ({ error, resetErrorBoundary }: ErrorFallbackProps) => {
   const navigate = useNavigate();
   const { language } = useLanguage();
 
   const handleRetry = () => {
-    navigate(0); // This will refresh the current route
+    resetErrorBoundary();
   };
 
   return (
@@ -62,6 +85,11 @@ const ErrorFallback = ({ error }: { error?: Error }) => {
         {error && process.env.NODE_ENV === 'development' && (
           <pre className="mt-4 p-4 bg-gray-100 rounded-lg text-left text-sm overflow-auto">
             {error.message}
+            {error.stack && (
+              <div className="mt-2 text-xs text-gray-500">
+                {error.stack.split("\n").slice(1).join("\n")}
+              </div>
+            )}
           </pre>
         )}
         <div className="pt-4 space-x-3 rtl:space-x-reverse">
@@ -81,4 +109,3 @@ const ErrorFallback = ({ error }: { error?: Error }) => {
     </div>
   );
 };
-

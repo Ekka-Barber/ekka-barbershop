@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Service, SelectedService } from '@/types/service';
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -23,28 +23,9 @@ export const useServiceSelection = () => {
   } = usePackageDiscount(selectedServices, isUpdatingPackage);
 
   /**
-   * Handles the toggling of a service selection
-   */
-  const handleServiceToggle = (service: Service | SelectedService, skipDiscountCalculation: boolean = false) => {
-    // Don't process toggles during package updates
-    if (isUpdatingPackage) {
-      console.log('Ignoring service toggle during package update');
-      return;
-    }
-
-    const isSelected = selectedServices.some(s => s.id === service.id);
-    
-    if (isSelected) {
-      removeService(service);
-    } else {
-      addService(service, skipDiscountCalculation);
-    }
-  };
-
-  /**
    * Removes a service from the selected services
    */
-  const removeService = (service: Service | SelectedService) => {
+  const removeService = useCallback((service: Service | SelectedService) => {
     const hasUpsells = selectedServices.some(s => s.mainServiceId === service.id);
     
     if (hasUpsells) {
@@ -98,12 +79,12 @@ export const useServiceSelection = () => {
       
       setSelectedServices(prev => prev.filter(s => s.id !== service.id));
     }
-  };
+  }, [selectedServices, BASE_SERVICE_ID, packageEnabled, language, toast]);
 
   /**
    * Adds a service to the selected services
    */
-  const addService = (service: Service | SelectedService, skipDiscountCalculation: boolean = false) => {
+  const addService = useCallback((service: Service | SelectedService, skipDiscountCalculation: boolean = false) => {
     // Check if trying to add the base service when other services are already selected
     if (service.id === BASE_SERVICE_ID) {
       const hasOtherNonUpsellServices = selectedServices.some(s => 
@@ -153,12 +134,31 @@ export const useServiceSelection = () => {
         return newServices;
       });
     }
-  };
+  }, [BASE_SERVICE_ID, selectedServices, language, toast]);
+
+  /**
+   * Handles the toggling of a service selection
+   */
+  const handleServiceToggle = useCallback((service: Service | SelectedService, skipDiscountCalculation: boolean = false) => {
+    // Don't process toggles during package updates
+    if (isUpdatingPackage) {
+      console.log('Ignoring service toggle during package update');
+      return;
+    }
+
+    const isSelected = selectedServices.some(s => s.id === service.id);
+    
+    if (isSelected) {
+      removeService(service);
+    } else {
+      addService(service, skipDiscountCalculation);
+    }
+  }, [isUpdatingPackage, selectedServices, removeService, addService]);
 
   /**
    * Adds upsell services to the selected services
    */
-  const handleUpsellServiceAdd = (upsellServices: any[]) => {
+  const handleUpsellServiceAdd = useCallback((upsellServices: any[]) => {
     upsellServices.forEach(upsell => {
       const mainService = selectedServices.find(s => !s.isUpsellItem && s.id === upsell.mainServiceId);
       
@@ -183,12 +183,12 @@ export const useServiceSelection = () => {
         return [...updatedServices, newUpsell];
       });
     });
-  };
+  }, [selectedServices]);
 
   /**
    * Safely update package services without removing the base service temporarily
    */
-  const handlePackageServiceUpdate = (packageServices: SelectedService[]) => {
+  const handlePackageServiceUpdate = useCallback((packageServices: SelectedService[]) => {
     try {
       if (!packageServices.length) {
         console.error('No package services provided for update');
@@ -243,7 +243,7 @@ export const useServiceSelection = () => {
         setForcePackageEnabled(false);
       }, 500);
     }
-  };
+  }, [BASE_SERVICE_ID, selectedServices, language, toast, setForcePackageEnabled]);
 
   // Apply package discounts if applicable, with tracking for discount tier transitions
   useEffect(() => {
@@ -267,7 +267,7 @@ export const useServiceSelection = () => {
         setSelectedServices(discountedServices);
       }
     }
-  }, [packageEnabled, selectedServices.length, isUpdatingPackage, currentDiscountTier, previousDiscountTier]);
+  }, [packageEnabled, selectedServices.length, isUpdatingPackage, currentDiscountTier, previousDiscountTier, applyPackageDiscounts]);
 
   return {
     selectedServices,
