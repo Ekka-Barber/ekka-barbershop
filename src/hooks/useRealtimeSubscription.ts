@@ -29,6 +29,7 @@ export const useRealtimeSubscription = () => {
     
     const queryKey = ['unavailableSlots', employeeId, formattedDate];
     
+    // Fixed filter conditions for the subscription to properly separate employee_id and date
     // Subscribe to changes on the employee_schedules table for this employee and date
     const channel = supabase
       .channel(channelName)
@@ -38,7 +39,7 @@ export const useRealtimeSubscription = () => {
           event: '*', // Listen for all events (INSERT, UPDATE, DELETE)
           schema: 'public',
           table: 'employee_schedules',
-          filter: `employee_id=eq.${employeeId} AND date=eq.${formattedDate}`
+          filter: `employee_id=eq.${employeeId}&date=eq.${formattedDate}`
         },
         (payload) => {
           console.log(`Realtime update received for ${formattedDate}:`, payload);

@@ -25,6 +25,7 @@ export const fetchUnavailableSlots = async ({
     
     console.log(`Also fetching slots for next day: ${nextFormattedDate} to handle midnight-crossing`);
     
+    // Fixed query - separating employee_id and date conditions properly
     // Fetch unavailable slots for both current day and next day
     const { data: currentDaySlots, error: currentDayError } = await supabase
       .from('employee_schedules')
