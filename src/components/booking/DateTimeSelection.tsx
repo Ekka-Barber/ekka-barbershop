@@ -67,7 +67,7 @@ export const DateTimeSelection = ({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 relative z-20">
       {!showFullCalendar ? (
         <div className="space-y-4">
           <div className="grid grid-cols-3 gap-3">
@@ -118,12 +118,14 @@ export const DateTimeSelection = ({
             </Alert>
           )}
           
-          <button
-            onClick={() => setShowFullCalendar(true)}
-            className="text-sm text-[#C4A484] hover:underline w-full text-center transition-colors duration-200"
-          >
-            {language === 'ar' ? 'المزيد من التواريخ' : 'More dates'}
-          </button>
+          <div className="pt-2 relative z-30">
+            <button
+              onClick={() => setShowFullCalendar(true)}
+              className="text-sm text-[#C4A484] hover:underline w-full text-center transition-colors duration-200 py-2"
+            >
+              {language === 'ar' ? 'المزيد من التواريخ' : 'More dates'}
+            </button>
+          </div>
         </div>
       ) : (
         <div className="space-y-4">
@@ -148,7 +150,7 @@ export const DateTimeSelection = ({
           />
           <button
             onClick={() => setShowFullCalendar(false)}
-            className="text-sm text-[#C4A484] hover:underline w-full text-center transition-colors duration-200"
+            className="text-sm text-[#C4A484] hover:underline w-full text-center transition-colors duration-200 py-2"
           >
             {language === 'ar' ? 'عرض أقل' : 'Show less'}
           </button>

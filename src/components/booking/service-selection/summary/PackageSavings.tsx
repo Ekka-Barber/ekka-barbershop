@@ -14,7 +14,7 @@ export const PackageSavings = ({ savings, language }: PackageSavingsProps) => {
   
   return (
     <motion.div 
-      className="w-full bg-[#F2FCE2] py-1 border-t border-green-200"
+      className="w-full bg-[#F2FCE2] py-1 border-t border-green-200 z-10 relative"
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -10 }}
