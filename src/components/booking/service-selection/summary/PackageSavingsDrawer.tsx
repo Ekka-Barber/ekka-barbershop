@@ -148,7 +148,7 @@ export const PackageSavingsDrawer = ({
               <Separator className="bg-green-200" />
               
               <div className="max-h-[calc(100vh-350px)] overflow-y-auto space-y-2">
-                {availableToAdd.slice(0, 5).map((service) => {
+                {availableToAdd.map((service) => {
                   const serviceName = language === 'ar' ? service.name_ar : service.name_en;
                   const nextDiscount = getDiscountPercentage(1);
                   const discountedPrice = Math.floor(service.price * (1 - nextDiscount / 100));
@@ -185,21 +185,13 @@ export const PackageSavingsDrawer = ({
                     </Card>
                   );
                 })}
-                
-                {availableToAdd.length > 5 && (
-                  <div className="text-2xs text-center text-green-700">
-                    {isRtl 
-                      ? `و ${availableToAdd.length - 5} خدمات أخرى متاحة...` 
-                      : `And ${availableToAdd.length - 5} more services available...`}
-                  </div>
-                )}
               </div>
             </>
           )}
           
           {availableToAdd.length === 0 && (
-            <div className="text-2xs text-green-700 text-center pb-1">
-              <p>
+            <div className="text-center text-green-700 pb-1">
+              <p className="text-xs font-medium">
                 {isRtl 
                   ? 'لقد أضفت كل الخدمات المتاحة!'
                   : 'You have added all available services!'}
