@@ -11,6 +11,7 @@ import { Service } from '@/types/service';
 import { UseMutationResult } from '@tanstack/react-query';
 import { AddUpsellFormState, UpsellItem } from './types';
 import { Separator } from '@/components/ui/separator';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface AddUpsellDialogProps {
   children: ReactNode;
@@ -171,12 +172,14 @@ export const AddUpsellDialog = ({
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="Select main service" />
               </SelectTrigger>
-              <SelectContent className="max-h-[300px]">
-                {allServices?.map(service => (
-                  <SelectItem key={`main-${service.id}`} value={service.id}>
-                    {language === 'ar' ? service.name_ar : service.name_en}
-                  </SelectItem>
-                ))}
+              <SelectContent className="max-h-80">
+                <ScrollArea className="h-80">
+                  {allServices?.map(service => (
+                    <SelectItem key={`main-${service.id}`} value={service.id}>
+                      {language === 'ar' ? service.name_ar : service.name_en}
+                    </SelectItem>
+                  ))}
+                </ScrollArea>
               </SelectContent>
             </Select>
             <div className="flex items-start text-xs text-muted-foreground bg-muted/30 p-2 rounded border border-muted/50">
@@ -233,12 +236,14 @@ export const AddUpsellDialog = ({
                       <SelectTrigger>
                         <SelectValue placeholder="Select upsell service" />
                       </SelectTrigger>
-                      <SelectContent className="max-h-[300px]">
-                        {getAvailableServices(index).map(service => (
-                          <SelectItem key={`upsell-${service.id}-${index}`} value={service.id}>
-                            {language === 'ar' ? service.name_ar : service.name_en}
-                          </SelectItem>
-                        ))}
+                      <SelectContent className="max-h-80">
+                        <ScrollArea className="h-80">
+                          {getAvailableServices(index).map(service => (
+                            <SelectItem key={`upsell-${service.id}-${index}`} value={service.id}>
+                              {language === 'ar' ? service.name_ar : service.name_en}
+                            </SelectItem>
+                          ))}
+                        </ScrollArea>
                       </SelectContent>
                     </Select>
                     
