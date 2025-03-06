@@ -145,7 +145,7 @@ export const getDeviceCapabilities = () => {
   return {
     vibration: 'vibrate' in navigator,
     touch: 'ontouchstart' in window,
-    orientation: 'orientation' in window || 'orientation' in window.screen,
+    orientation: 'orientation' in window || 'orientation' in (window as any).screen,
     motion: 'DeviceMotionEvent' in window,
     geolocation: 'geolocation' in navigator,
     notification: 'Notification' in window,
