@@ -143,19 +143,6 @@ export const BookingSummary = ({
 
   return (
     <>
-      {/* Show PackageSavingsDrawer on the details step if package discounts are available */}
-      {isDetailsStep && packageEnabled && packageSavings > 0 && (
-        <PackageSavingsDrawer 
-          savings={packageSavings}
-          language={language as 'en' | 'ar'}
-          availableServices={availablePackageServices}
-          packageSettings={packageSettings}
-          selectedServices={selectedServices}
-          onAddService={onAddService}
-          isDetailsStep={true}
-        />
-      )}
-      
       <motion.div 
         className="rounded-lg border p-4 space-y-3"
         initial={{ opacity: 0 }}
@@ -163,6 +150,19 @@ export const BookingSummary = ({
         transition={{ duration: 0.3 }}
       >
         <h3 className="font-medium">{language === 'ar' ? 'ملخص الحجز' : t('booking.summary')}</h3>
+        
+        {/* Moved PackageSavingsDrawer here, before the services list */}
+        {isDetailsStep && packageEnabled && packageSavings > 0 && (
+          <PackageSavingsDrawer 
+            savings={packageSavings}
+            language={language as 'en' | 'ar'}
+            availableServices={availablePackageServices}
+            packageSettings={packageSettings}
+            selectedServices={selectedServices}
+            onAddService={onAddService}
+            isDetailsStep={true}
+          />
+        )}
         
         <div className="space-y-2 text-sm divide-y">
           <div className="pb-2">
