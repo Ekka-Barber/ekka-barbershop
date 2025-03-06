@@ -26,6 +26,7 @@ export const PackageSummary = ({
       <Separator />
       
       <div className="space-y-2">
+        {/* Original Total Row */}
         <div className="flex justify-between text-sm">
           {isRTL ? (
             <>
@@ -35,7 +36,7 @@ export const PackageSummary = ({
                 size="sm"
               />
               <span className="text-muted-foreground">
-                المجموع الأصلي:
+                المجموع الأصلي
               </span>
             </>
           ) : (
@@ -52,6 +53,7 @@ export const PackageSummary = ({
           )}
         </div>
         
+        {/* Package Savings Row */}
         {savings > 0 && (
           <div className="flex justify-between text-sm text-green-600">
             {isRTL ? (
@@ -65,15 +67,15 @@ export const PackageSummary = ({
                     className="text-green-600"
                   />
                 </span>
-                <span className="flex items-center flex-row-reverse">
-                  <Package className="h-3.5 w-3.5 ml-1.5" />
-                  توفير الباقة:
+                <span className="flex items-center gap-1.5">
+                  توفير الباقة
+                  <Package className="h-3.5 w-3.5" />
                 </span>
               </>
             ) : (
               <>
-                <span className="flex items-center">
-                  <Package className="h-3.5 w-3.5 mr-1.5" />
+                <span className="flex items-center gap-1.5">
+                  <Package className="h-3.5 w-3.5" />
                   Package Savings:
                 </span>
                 <span className="flex items-center">
@@ -92,6 +94,7 @@ export const PackageSummary = ({
         
         <Separator className="my-2" />
         
+        {/* Final Total Row */}
         <div className="flex justify-between font-medium">
           {isRTL ? (
             <>
@@ -108,7 +111,7 @@ export const PackageSummary = ({
                 />
               </motion.div>
               <span>
-                المجموع النهائي:
+                المجموع النهائي
               </span>
             </>
           ) : (
@@ -133,6 +136,7 @@ export const PackageSummary = ({
         </div>
       </div>
       
+      {/* Savings Message */}
       {savings > 0 && (
         <div className="bg-green-50 border border-green-100 rounded-md p-2 text-sm text-center text-green-700">
           {isRTL 

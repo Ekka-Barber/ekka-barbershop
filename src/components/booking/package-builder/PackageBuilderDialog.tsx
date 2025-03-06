@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import {
   Dialog,
@@ -39,10 +38,8 @@ export const PackageBuilderDialog = ({
   const { toast } = useToast();
   const [selectedAddOns, setSelectedAddOns] = useState<Service[]>([]);
   
-  // Reset selections when dialog opens
   useEffect(() => {
     if (isOpen) {
-      // Initialize with add-ons that are already selected in the main interface
       const existingAddOns = currentlySelectedServices.filter(
         service => service.id !== baseService?.id && !service.isUpsellItem
       ).map(service => availableServices.find(s => s.id === service.id)).filter(Boolean) as Service[];
@@ -51,15 +48,12 @@ export const PackageBuilderDialog = ({
     }
   }, [isOpen, baseService, availableServices, currentlySelectedServices]);
   
-  // Use the package calculation hook
   const calculations = usePackageCalculation(selectedAddOns, packageSettings, baseService);
   
-  // Toggle service selection
   const toggleService = (service: Service) => {
     setSelectedAddOns(prev => {
       const isSelected = prev.some(s => s.id === service.id);
       
-      // Check if we've reached the max services limit
       if (!isSelected && packageSettings?.maxServices && 
           prev.length >= packageSettings.maxServices) {
         toast({
@@ -83,22 +77,17 @@ export const PackageBuilderDialog = ({
   };
   
   const handleConfirm = () => {
-    // Transform services to SelectedService with discount information
     const transformedServices: SelectedService[] = [];
     
-    // Add base service if present
     if (baseService) {
-      // Mark the base service as the base package service
       const baseSelectedService = transformServiceToSelected(baseService, true);
       transformedServices.push(baseSelectedService);
     }
     
-    // Add selected add-ons with discount info
     selectedAddOns.forEach(service => {
       const originalPrice = service.price;
       const discountedPrice = Math.floor(originalPrice * (1 - calculations.discountPercentage / 100));
       
-      // Create a SelectedService object with discount information
       const selectedService: SelectedService = {
         ...service,
         price: discountedPrice,
@@ -116,7 +105,7 @@ export const PackageBuilderDialog = ({
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md">
-        <PackageBuilderHeader language={language} onClose={onClose} />
+        <PackageBuilderHeader language={language} />
         
         <div className="mt-2 space-y-4">
           <BaseServiceDisplay baseService={baseService} language={language} />
