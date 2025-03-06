@@ -36,7 +36,7 @@ export const PackageBanner = ({
             </p>
           </div>
         </div>
-        <div className="flex justify-start mt-1">
+        <div className="flex justify-end mt-1">
           <button 
             onClick={onInfoClick}
             className="text-xs text-[#6f5b3e] hover:text-[#C4A484] transition-colors underline cursor-pointer"
