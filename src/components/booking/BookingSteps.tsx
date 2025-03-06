@@ -11,6 +11,8 @@ import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { transformServicesForDisplay } from "@/utils/serviceTransformation";
 import { ServicesSummary } from "./service-selection/ServicesSummary";
+import { usePackageDiscount } from "@/hooks/usePackageDiscount";
+import { PackageBuilderDialog } from "./package-builder/PackageBuilderDialog";
 
 const STEPS: BookingStep[] = ['services', 'datetime', 'barber', 'details'];
 
@@ -29,12 +31,14 @@ export const BookingSteps = ({
     toast
   } = useToast();
   const [showUpsellModal, setShowUpsellModal] = useState(false);
+  const [showPackageBuilder, setShowPackageBuilder] = useState(false);
   const [pendingStep, setPendingStep] = useState<BookingStep | null>(null);
 
   const {
     currentStep,
     setCurrentStep,
     selectedServices,
+    setSelectedServices,
     selectedDate,
     setSelectedDate,
     selectedTime,
@@ -50,6 +54,7 @@ export const BookingSteps = ({
     selectedEmployee,
     handleServiceToggle,
     handleUpsellServiceAdd,
+    handlePackageConfirm,
     totalPrice,
     totalDuration
   } = useBooking(branch);
@@ -58,13 +63,45 @@ export const BookingSteps = ({
     data: availableUpsells
   } = useBookingUpsells(selectedServices, language);
 
+  const { 
+    BASE_SERVICE_ID, 
+    packageEnabled, 
+    packageSettings, 
+    hasBaseService,
+    enabledPackageServices
+  } = usePackageDiscount(selectedServices);
+
+  // Find base service
+  const baseService = selectedServices.find(s => s.id === BASE_SERVICE_ID) || 
+    (categories?.flatMap(c => c.services).find(s => s.id === BASE_SERVICE_ID));
+
+  // Get available package services
+  const availablePackageServices = categories?.flatMap(c => c.services)
+    .filter(service => 
+      service.id !== BASE_SERVICE_ID && 
+      enabledPackageServices?.includes(service.id)
+    ) || [];
+
+  // Handle step change with package builder check
   const handleStepChange = (step: string) => {
-    if (currentStep === 'services' && step === 'datetime' && availableUpsells?.length) {
-      setShowUpsellModal(true);
-      setPendingStep('datetime');
-    } else {
-      setCurrentStep(step as BookingStep);
+    if (currentStep === 'services') {
+      if (step === 'datetime') {
+        // First check for package
+        if (hasBaseService && packageSettings && availablePackageServices.length > 0) {
+          setShowPackageBuilder(true);
+          setPendingStep(step as BookingStep);
+          return;
+        }
+        // Then check for upsells
+        else if (availableUpsells?.length) {
+          setShowUpsellModal(true);
+          setPendingStep(step as BookingStep);
+          return;
+        }
+      }
     }
+    // If no package or upsells, or not in services step, proceed normally
+    setCurrentStep(step as BookingStep);
   };
 
   const validateStep = (): boolean => {
@@ -135,6 +172,15 @@ export const BookingSteps = ({
     handleUpsellModalClose();
   };
 
+  // Handle package builder closing and confirmation
+  const handlePackageBuilderClose = () => {
+    setShowPackageBuilder(false);
+    if (pendingStep) {
+      setCurrentStep(pendingStep);
+      setPendingStep(null);
+    }
+  };
+
   const currentStepIndex = STEPS.indexOf(currentStep);
 
   const isNextDisabled = () => {
@@ -191,8 +237,21 @@ export const BookingSteps = ({
         onNextStep={handleNextStep} 
         onPrevStep={handlePrevStep} 
         isFirstStep={currentStepIndex === 0} 
+        packageEnabled={packageEnabled}
+        packageSettings={packageSettings}
       />}
 
       <UpsellModal isOpen={showUpsellModal} onClose={handleUpsellModalClose} onConfirm={handleUpsellConfirm} availableUpsells={availableUpsells || []} />
+      
+      {/* Add PackageBuilderDialog */}
+      <PackageBuilderDialog
+        isOpen={showPackageBuilder}
+        onClose={handlePackageBuilderClose}
+        onConfirm={handlePackageConfirm}
+        packageSettings={packageSettings}
+        baseService={baseService}
+        availableServices={availablePackageServices}
+        currentlySelectedServices={selectedServices}
+      />
     </>;
 };

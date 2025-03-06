@@ -8,6 +8,7 @@ import { useCategoryData } from './useCategoryData';
 import { useEmployeeData } from './useEmployeeData';
 import { transformServicesForDisplay } from '@/utils/serviceTransformation';
 import { usePackageDiscount } from './usePackageDiscount';
+import { SelectedService } from '@/types/service';
 
 export const useBooking = (branch: any) => {
   const [currentStep, setCurrentStep] = useState<BookingStep>('services');
@@ -17,10 +18,25 @@ export const useBooking = (branch: any) => {
 
   // Use our refactored hooks
   const { customerDetails, handleCustomerDetailsChange } = useCustomerDetails();
-  const { selectedServices, handleServiceToggle, handleUpsellServiceAdd } = useServiceSelection();
+  const { selectedServices, handleServiceToggle, handleUpsellServiceAdd, setSelectedServices } = useServiceSelection();
   const { categories, categoriesLoading, employees, employeesLoading } = useCategoryData(branch?.id);
   const { selectedEmployee } = useEmployeeData(selectedBarber);
   const { packageEnabled, packageSettings } = usePackageDiscount(selectedServices);
+
+  // Handle package confirmation
+  const handlePackageConfirm = (services: SelectedService[]) => {
+    // Remove currently selected services (non-upsell items)
+    selectedServices.forEach(service => {
+      if (!service.isUpsellItem) {
+        handleServiceToggle(service);
+      }
+    });
+    
+    // Add new services from package builder
+    services.forEach(service => {
+      handleServiceToggle(service);
+    });
+  };
 
   // Calculate total price and duration
   const totalPrice = calculateTotalPrice(selectedServices);
@@ -35,6 +51,7 @@ export const useBooking = (branch: any) => {
     currentStep,
     setCurrentStep,
     selectedServices,
+    setSelectedServices,
     selectedDate,
     setSelectedDate,
     selectedTime,
@@ -50,6 +67,7 @@ export const useBooking = (branch: any) => {
     selectedEmployee,
     handleServiceToggle,
     handleUpsellServiceAdd,
+    handlePackageConfirm,
     totalPrice,
     totalDuration,
     getTransformedServices,
