@@ -2,6 +2,7 @@
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { useState, useEffect } from "react";
 import { CustomerDetails } from "@/types/booking";
 import { identifyCustomer } from "@/utils/tiktokTracking";
@@ -89,12 +90,15 @@ export const CustomerForm = ({
   };
 
   return (
-    <div className="space-y-6">
-      <div className="space-y-4">
+    <div className="space-y-8 max-w-2xl mx-auto">
+      <div className="space-y-6">
         <div>
-          <Label htmlFor="name" className="flex items-center justify-between">
+          <Label 
+            htmlFor="name" 
+            className="flex items-center justify-between text-base mb-2 font-medium"
+          >
             {t('name')} <span className="text-destructive">*</span>
-            {getFieldStatus('name') === 'success' && <Check className="h-4 w-4 text-green-500" />}
+            {getFieldStatus('name') === 'success' && <Check className="h-5 w-5 text-green-500" />}
           </Label>
           <div className="relative">
             <Input
@@ -102,8 +106,11 @@ export const CustomerForm = ({
               value={customerDetails.name}
               onChange={(e) => handleInputChange('name', e.target.value)}
               required
-              className={errors.name && touched.name ? "border-destructive pr-10" : ""}
+              className={`h-12 text-lg ${errors.name && touched.name ? "border-2 border-destructive" : "border-gray-200"} 
+                ${language === 'ar' ? 'text-right' : 'text-left'}`}
               onBlur={() => setTouched(prev => ({ ...prev, name: true }))}
+              dir={language === 'ar' ? 'rtl' : 'ltr'}
+              placeholder={language === 'ar' ? 'الاسم الكامل' : 'Full Name'}
             />
             {errors.name && touched.name && (
               <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
@@ -112,14 +119,17 @@ export const CustomerForm = ({
             )}
           </div>
           {errors.name && touched.name && (
-            <p className="text-sm text-destructive mt-1">{errors.name}</p>
+            <p className="text-sm text-destructive mt-2">{errors.name}</p>
           )}
         </div>
-        
+
         <div>
-          <Label htmlFor="phone" className="flex items-center justify-between">
+          <Label 
+            htmlFor="phone" 
+            className="flex items-center justify-between text-base mb-2 font-medium"
+          >
             {t('phone')} <span className="text-destructive">*</span>
-            {getFieldStatus('phone') === 'success' && <Check className="h-4 w-4 text-green-500" />}
+            {getFieldStatus('phone') === 'success' && <Check className="h-5 w-5 text-green-500" />}
           </Label>
           <div className="relative">
             <Input
@@ -129,8 +139,11 @@ export const CustomerForm = ({
               onChange={(e) => handlePhoneChange(e.target.value)}
               required
               maxLength={10}
-              className={errors.phone && touched.phone ? "border-destructive pr-10" : ""}
+              className={`h-12 text-lg ${errors.phone && touched.phone ? "border-2 border-destructive" : "border-gray-200"}
+                ${language === 'ar' ? 'text-right' : 'text-left'}`}
               onBlur={() => setTouched(prev => ({ ...prev, phone: true }))}
+              dir={language === 'ar' ? 'rtl' : 'ltr'}
+              placeholder={language === 'ar' ? 'رقم الجوال' : 'Phone Number'}
             />
             {errors.phone && touched.phone && (
               <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
@@ -139,14 +152,18 @@ export const CustomerForm = ({
             )}
           </div>
           {errors.phone && touched.phone && (
-            <p className="text-sm text-destructive mt-1">{errors.phone}</p>
+            <p className="text-sm text-destructive mt-2">{errors.phone}</p>
           )}
         </div>
-        
+
         <div>
-          <Label htmlFor="email" className="flex items-center justify-between">
-            {t('email')} {language === 'ar' ? '( لغرض تنبيهات الحجز )' : '(for appointment notifications)'} <span className="text-destructive">*</span>
-            {getFieldStatus('email') === 'success' && <Check className="h-4 w-4 text-green-500" />}
+          <Label 
+            htmlFor="email" 
+            className="flex items-center justify-between text-base mb-2 font-medium"
+          >
+            {t('email')} {language === 'ar' ? '( لغرض تنبيهات الحجز )' : '(for appointment notifications)'} 
+            <span className="text-destructive">*</span>
+            {getFieldStatus('email') === 'success' && <Check className="h-5 w-5 text-green-500" />}
           </Label>
           <div className="relative">
             <Input
@@ -155,8 +172,11 @@ export const CustomerForm = ({
               value={customerDetails.email}
               onChange={(e) => handleInputChange('email', e.target.value)}
               required
-              className={errors.email && touched.email ? "border-destructive pr-10" : ""}
+              className={`h-12 text-lg ${errors.email && touched.email ? "border-2 border-destructive" : "border-gray-200"}
+                ${language === 'ar' ? 'text-right' : 'text-left'}`}
               onBlur={() => setTouched(prev => ({ ...prev, email: true }))}
+              dir={language === 'ar' ? 'rtl' : 'ltr'}
+              placeholder={language === 'ar' ? 'البريد الإلكتروني' : 'Email Address'}
             />
             {errors.email && touched.email && (
               <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
@@ -165,24 +185,30 @@ export const CustomerForm = ({
             )}
           </div>
           {errors.email && touched.email && (
-            <p className="text-sm text-destructive mt-1">{errors.email}</p>
+            <p className="text-sm text-destructive mt-2">{errors.email}</p>
           )}
         </div>
-        
+
         <div>
-          <Label htmlFor="notes">
+          <Label 
+            htmlFor="notes" 
+            className="flex items-center justify-between text-base mb-2 font-medium"
+          >
             {t('notes')} ({language === 'ar' ? 'اختياري' : 'optional'})
           </Label>
-          <Input
+          <Textarea
             id="notes"
             value={customerDetails.notes}
             onChange={(e) => handleInputChange('notes', e.target.value)}
+            className={`min-h-[100px] text-lg ${language === 'ar' ? 'text-right' : 'text-left'}`}
+            dir={language === 'ar' ? 'rtl' : 'ltr'}
+            placeholder={language === 'ar' ? 'أي ملاحظات إضافية؟' : 'Any additional notes?'}
           />
         </div>
       </div>
 
       {/* Form Status Summary */}
-      <div className={`mt-4 p-3 rounded-md ${
+      <div className={`mt-6 p-4 rounded-lg ${
         Object.keys(errors).length > 0 && Object.values(touched).some(t => t)
           ? 'bg-red-50 border border-red-200 text-red-700'
           : Object.values(touched).every(t => t) && Object.keys(errors).length === 0
@@ -190,13 +216,13 @@ export const CustomerForm = ({
           : 'hidden'
       }`}>
         {Object.keys(errors).length > 0 && Object.values(touched).some(t => t) ? (
-          <div className="flex items-start gap-2">
+          <div className="flex items-start gap-3">
             <AlertCircle className="h-5 w-5 text-red-500 mt-0.5" />
             <div>
               <p className="font-medium">
                 {language === 'ar' ? 'يرجى تصحيح الأخطاء التالية:' : 'Please correct the following errors:'}
               </p>
-              <ul className="list-disc list-inside mt-1 text-sm">
+              <ul className="list-disc list-inside mt-2 text-sm space-y-1">
                 {Object.values(errors).map((error, index) => (
                   <li key={index}>{error}</li>
                 ))}
@@ -204,7 +230,7 @@ export const CustomerForm = ({
             </div>
           </div>
         ) : Object.values(touched).every(t => t) && Object.keys(errors).length === 0 ? (
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             <Check className="h-5 w-5 text-green-500" />
             <p>
               {language === 'ar' ? 'تم تعبئة جميع الحقول بشكل صحيح!' : 'All fields are filled correctly!'}
