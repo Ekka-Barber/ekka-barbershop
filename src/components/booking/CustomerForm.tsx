@@ -6,11 +6,13 @@ import { useState, useEffect } from "react";
 import { CustomerDetails } from "@/types/booking";
 import { identifyCustomer } from "@/utils/tiktokTracking";
 import { Check, AlertCircle } from "lucide-react";
+
 interface CustomerFormProps {
   customerDetails: CustomerDetails;
   onCustomerDetailsChange: (field: keyof CustomerDetails, value: string) => void;
   onValidationChange?: (isValid: boolean) => void;
 }
+
 export const CustomerForm = ({
   customerDetails,
   onCustomerDetailsChange,
@@ -26,6 +28,7 @@ export const CustomerForm = ({
     phone: false,
     email: false
   });
+
   const validateForm = () => {
     const newErrors: Partial<Record<keyof CustomerDetails, string>> = {};
     if (!customerDetails.name.trim()) {
@@ -54,6 +57,7 @@ export const CustomerForm = ({
     }
     return isValid;
   };
+
   useEffect(() => {
     // Only validate if any field has been touched
     if (Object.values(touched).some(t => t)) {
@@ -61,6 +65,7 @@ export const CustomerForm = ({
       onValidationChange?.(isValid);
     }
   }, [customerDetails, touched]);
+
   const handlePhoneChange = (value: string) => {
     const numbersOnly = value.replace(/[^0-9]/g, '');
     onCustomerDetailsChange('phone', numbersOnly);
@@ -69,6 +74,7 @@ export const CustomerForm = ({
       phone: true
     }));
   };
+
   const handleInputChange = (field: keyof CustomerDetails, value: string) => {
     onCustomerDetailsChange(field, value);
     setTouched(prev => ({
@@ -76,10 +82,12 @@ export const CustomerForm = ({
       [field]: true
     }));
   };
+
   const getFieldStatus = (field: keyof CustomerDetails) => {
     if (!touched[field]) return null;
     return errors[field] ? 'error' : 'success';
   };
+
   return <div className="space-y-4 max-w-xl mx-auto">
       <div className="space-y-4">
         <div>
@@ -163,24 +171,21 @@ export const CustomerForm = ({
         </div>
       </div>
 
-      {/* Form Status Summary - only show if there are errors or all fields are valid */}
-      {Object.keys(errors).length > 0 && Object.values(touched).some(t => t) || Object.values(touched).every(t => t) && Object.keys(errors).length === 0 ? <div className={`mt-4 p-3 rounded-lg text-sm ${Object.keys(errors).length > 0 && Object.values(touched).some(t => t) ? 'bg-red-50 border border-red-200 text-red-700' : 'bg-green-50 border border-green-200 text-green-700'}`}>
-          {Object.keys(errors).length > 0 && Object.values(touched).some(t => t) ? <div className="flex items-start gap-2">
-              <AlertCircle className="h-4 w-4 text-red-500 mt-0.5 flex-shrink-0" />
-              <div>
-                <p className="font-medium">
-                  {language === 'ar' ? 'يرجى تصحيح الأخطاء التالية:' : 'Please correct the following errors:'}
-                </p>
-                <ul className="list-disc list-inside mt-1 text-xs space-y-1">
-                  {Object.values(errors).map((error, index) => <li key={index}>{error}</li>)}
-                </ul>
-              </div>
-            </div> : Object.values(touched).every(t => t) && Object.keys(errors).length === 0 ? <div className="flex items-center gap-2">
-              <Check className="h-4 w-4 text-green-500 flex-shrink-0" />
-              <p>
-                {language === 'ar' ? 'تم تعبئة جميع الحقول بشكل صحيح!' : 'All fields are filled correctly!'}
+      {/* Form Status Summary - only show if there are errors */}
+      {Object.keys(errors).length > 0 && Object.values(touched).some(t => t) ? 
+        <div className="mt-4 p-3 rounded-lg text-sm bg-red-50 border border-red-200 text-red-700">
+          <div className="flex items-start gap-2">
+            <AlertCircle className="h-4 w-4 text-red-500 mt-0.5 flex-shrink-0" />
+            <div>
+              <p className="font-medium">
+                {language === 'ar' ? 'يرجى تصحيح الأخطاء التالية:' : 'Please correct the following errors:'}
               </p>
-            </div> : null}
-        </div> : null}
+              <ul className="list-disc list-inside mt-1 text-xs space-y-1">
+                {Object.values(errors).map((error, index) => <li key={index}>{error}</li>)}
+              </ul>
+            </div>
+          </div>
+        </div>
+      : null}
     </div>;
 };
