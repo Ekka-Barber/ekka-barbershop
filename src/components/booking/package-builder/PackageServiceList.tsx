@@ -3,7 +3,7 @@ import React from 'react';
 import { Service } from '@/types/service';
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Separator } from "@/components/ui/separator";
+import { PriceDisplay } from "@/components/ui/price-display";
 
 interface PackageServiceListProps {
   services: Service[];
@@ -44,41 +44,46 @@ export const PackageServiceList = ({
       </h3>
       
       <ScrollArea className="h-48 rounded-md border">
-        <div className="p-4 space-y-3">
+        <div className="px-3 py-2">
           {services.map((service) => {
             const isSelected = selectedServices.some(s => s.id === service.id);
             const discountedPrice = calculateDiscountedPrice(service.price);
             
             return (
-              <div key={service.id} className="flex items-center space-x-3 rtl:space-x-reverse">
-                <Checkbox
-                  id={`service-${service.id}`}
-                  checked={isSelected}
-                  onCheckedChange={() => onToggleService(service)}
-                />
-                <div className="flex justify-between items-center w-full">
+              <div 
+                key={service.id} 
+                className={`flex items-center justify-between p-2.5 rounded-md ${isSelected ? 'bg-primary/5' : 'hover:bg-muted/50'} transition-colors duration-150`}
+              >
+                <div className="flex items-center gap-3 rtl:flex-row-reverse flex-1 min-w-0">
+                  <Checkbox
+                    id={`service-${service.id}`}
+                    checked={isSelected}
+                    onCheckedChange={() => onToggleService(service)}
+                    className="shrink-0"
+                  />
                   <label
                     htmlFor={`service-${service.id}`}
-                    className="text-sm font-medium cursor-pointer leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                    className="text-sm font-medium cursor-pointer leading-tight truncate peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                   >
                     {language === 'ar' ? service.name_ar : service.name_en}
                   </label>
-                  <div className="text-sm">
-                    {isSelected && discountPercentage > 0 ? (
-                      <div className="text-right">
-                        <span className="line-through text-muted-foreground text-xs mr-1">
-                          {language === 'ar' ? `${service.price} ر.س` : `SAR ${service.price}`}
-                        </span>
-                        <span className="text-green-600 font-medium">
-                          {language === 'ar' ? `${discountedPrice} ر.س` : `SAR ${discountedPrice}`}
-                        </span>
-                      </div>
-                    ) : (
-                      <span>
+                </div>
+                
+                <div className="text-sm whitespace-nowrap rtl:text-left">
+                  {isSelected && discountPercentage > 0 ? (
+                    <div className="flex flex-col items-end rtl:items-start">
+                      <span className="line-through text-muted-foreground text-xs">
                         {language === 'ar' ? `${service.price} ر.س` : `SAR ${service.price}`}
                       </span>
-                    )}
-                  </div>
+                      <span className="text-green-600 font-medium">
+                        {language === 'ar' ? `${discountedPrice} ر.س` : `SAR ${discountedPrice}`}
+                      </span>
+                    </div>
+                  ) : (
+                    <span>
+                      {language === 'ar' ? `${service.price} ر.س` : `SAR ${service.price}`}
+                    </span>
+                  )}
                 </div>
               </div>
             );
