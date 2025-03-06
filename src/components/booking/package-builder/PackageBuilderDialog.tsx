@@ -15,17 +15,14 @@ import { PackageServiceList } from './PackageServiceList';
 import { PackageSummary } from './PackageSummary';
 import { PackageBuilderFooter } from './PackageBuilderFooter';
 import { usePackageCalculation } from '@/hooks/usePackageCalculation';
+import { useNextTierCalculation } from '@/hooks/useNextTierCalculation';
 
-interface PackageBuilderDialogProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onConfirm: (selectedServices: SelectedService[]) => void;
-  packageSettings?: PackageSettings;
-  baseService: Service | null;
-  availableServices: Service[];
-  currentlySelectedServices: SelectedService[];
-}
-
+/**
+ * Dialog component for building and customizing service packages
+ * Allows users to select add-on services with automatic discount application
+ *
+ * @component
+ */
 export const PackageBuilderDialog = ({
   isOpen,
   onClose,
@@ -34,7 +31,15 @@ export const PackageBuilderDialog = ({
   baseService,
   availableServices,
   currentlySelectedServices
-}: PackageBuilderDialogProps) => {
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  onConfirm: (selectedServices: SelectedService[]) => void;
+  packageSettings?: PackageSettings;
+  baseService: Service | null;
+  availableServices: Service[];
+  currentlySelectedServices: SelectedService[];
+}) => {
   const { language } = useLanguage();
   const { toast } = useToast();
   const [selectedAddOns, setSelectedAddOns] = useState<Service[]>([]);
@@ -60,36 +65,9 @@ export const PackageBuilderDialog = ({
     }
   }, [isOpen, baseService, availableServices, currentlySelectedServices]);
   
+  // Use our hooks for calculations
   const calculations = usePackageCalculation(selectedAddOns, packageSettings, baseService);
-  
-  // Calculate next tier threshold
-  const calculateNextTierThreshold = () => {
-    if (!packageSettings) return undefined;
-    
-    const { discountTiers } = packageSettings;
-    const addOnCount = selectedAddOns.length;
-    
-    if (addOnCount === 0) {
-      return { 
-        servicesNeeded: 1, 
-        newPercentage: discountTiers.oneService 
-      };
-    } else if (addOnCount === 1) {
-      return { 
-        servicesNeeded: 1, 
-        newPercentage: discountTiers.twoServices 
-      };
-    } else if (addOnCount === 2) {
-      return { 
-        servicesNeeded: 1, 
-        newPercentage: discountTiers.threeOrMore 
-      };
-    }
-    
-    return undefined;
-  };
-  
-  const nextTierThreshold = calculateNextTierThreshold();
+  const nextTierThreshold = useNextTierCalculation(selectedAddOns.length, packageSettings);
   
   // Calculate total duration
   const totalDuration = [baseService, ...selectedAddOns].reduce(

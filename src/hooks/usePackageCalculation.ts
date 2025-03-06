@@ -2,16 +2,31 @@
 import { useMemo } from 'react';
 import { Service } from '@/types/service';
 import { PackageSettings } from '@/types/admin';
+import { PackageCalculation } from '@/types/package';
 
+/**
+ * Hook that calculates all package-related values for a set of selected services
+ * 
+ * @param selectedAddOns - Array of selected add-on services
+ * @param packageSettings - Configuration for package discounts and tiers
+ * @param baseService - The base service of the package
+ * @returns Package calculation results including prices and discount
+ * 
+ * @example
+ * ```tsx
+ * const calculations = usePackageCalculation(selectedAddOns, packageSettings, baseService);
+ * console.log(`You save ${calculations.savings} with a ${calculations.discountPercentage}% discount!`);
+ * ```
+ */
 export function usePackageCalculation(
   selectedAddOns: Service[],
   packageSettings?: PackageSettings,
   baseService: Service | null = null
-) {
+): PackageCalculation {
   // Calculate all package-related values in one go to avoid repeated calculations
-  const calculations = useMemo(() => {
+  const calculations = useMemo((): PackageCalculation => {
     // Default values
-    const result = {
+    const result: PackageCalculation = {
       originalTotal: 0,
       discountedTotal: 0,
       savings: 0,
