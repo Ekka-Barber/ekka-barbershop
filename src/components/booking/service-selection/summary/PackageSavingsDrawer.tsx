@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PartyPopper, ChevronUp, ChevronDown, Check, Plus } from 'lucide-react';
@@ -22,6 +21,7 @@ interface PackageSavingsDrawerProps {
   packageSettings?: PackageSettings;
   selectedServices?: SelectedService[];
   onAddService?: (service: Service) => void;
+  isDetailsStep?: boolean;
 }
 
 export const PackageSavingsDrawer = ({ 
@@ -30,7 +30,8 @@ export const PackageSavingsDrawer = ({
   availableServices = [],
   packageSettings,
   selectedServices = [],
-  onAddService
+  onAddService,
+  isDetailsStep = false
 }: PackageSavingsDrawerProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const { toast } = useToast();
@@ -38,7 +39,7 @@ export const PackageSavingsDrawer = ({
   if (savings <= 0) return null;
   
   const isRtl = language === 'ar';
-  // Using up/down icons for vertical handle on right edge
+  // Using up/down icons for vertical handle
   const TriggerIcon = isRtl ? ChevronUp : ChevronDown;
 
   // Filter out services already in the package
@@ -89,14 +90,20 @@ export const PackageSavingsDrawer = ({
     }
 
     onAddService(service);
+    // Keep the drawer open after adding a service
   };
+
+  // Determine position classes based on whether we're in the details step
+  const positionClasses = isDetailsStep 
+    ? "bottom-36 top-auto" // Position near the bottom for the details step
+    : "top-24";  // Original position for other steps
   
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
-      {/* Compact vertical handle on the right edge - attached flush to the edge */}
+      {/* Vertical handle - positioned based on the current step */}
       <SheetTrigger asChild>
         <motion.div
-          className={`fixed z-50 right-0 top-24
+          className={`fixed z-50 right-0 ${positionClasses}
           bg-gradient-to-l from-[#F2FCE2] to-[#E7F7D4] cursor-pointer
           py-2 px-1.5 shadow-md border-y border-l border-green-200 rounded-l-lg
           flex flex-col items-center gap-1`}
@@ -115,7 +122,7 @@ export const PackageSavingsDrawer = ({
       {/* The drawer content with auto height and flush to the edge */}
       <SheetContent 
         side="right"
-        className="bg-[#F8FFEE] border-l border-y border-green-200 p-0 rounded-l-xl mx-auto h-auto inset-auto top-24 bottom-auto right-0 shadow-xl"
+        className={`bg-[#F8FFEE] border-l border-y border-green-200 p-0 rounded-l-xl mx-auto h-auto inset-auto ${positionClasses} right-0 shadow-xl`}
       >
         <div className="p-3 space-y-3">
           <div className="bg-white rounded-lg p-2.5 shadow-inner">

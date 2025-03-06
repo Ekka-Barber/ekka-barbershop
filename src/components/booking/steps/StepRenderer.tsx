@@ -1,3 +1,4 @@
+
 import { BookingStep } from "@/components/booking/BookingProgress";
 import { ServiceSelection } from "@/components/booking/ServiceSelection";
 import { DateTimeSelection } from "@/components/booking/DateTimeSelection";
@@ -55,6 +56,10 @@ export const StepRenderer = ({
   isUpdatingPackage,
   handlePackageServiceUpdate
 }: StepRendererProps) => {
+  
+  // Extract all services from categories for the package drawer in the details step
+  const allServices = categories?.flatMap(category => category.services || []) || [];
+  
   if (currentStep === 'services') {
     return (
       <ServiceSelection
@@ -123,6 +128,9 @@ export const StepRenderer = ({
               });
             }
           }}
+          availableServices={allServices}
+          onAddService={handleServiceToggle}
+          isDetailsStep={true}
         />
         <WhatsAppIntegration
           selectedServices={selectedServices}
