@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -37,7 +38,9 @@ export const usePackageManagement = () => {
         
       if (error) throw error;
       return data as Service[];
-    }
+    },
+    refetchOnMount: true,
+    refetchOnWindowFocus: true
   });
 
   // Fetch package settings
@@ -59,7 +62,8 @@ export const usePackageManagement = () => {
       }
       
       return data;
-    }
+    },
+    refetchOnMount: true
   });
 
   // Fetch enabled services with their display order
@@ -74,7 +78,9 @@ export const usePackageManagement = () => {
         
       if (error) throw error;
       return data;
-    }
+    },
+    refetchOnMount: true,
+    refetchOnWindowFocus: true
   });
 
   // Process data when it's loaded
@@ -198,6 +204,17 @@ export const usePackageManagement = () => {
         if (error) throw error;
       }
     },
+    onMutate: async ({ serviceId, enabled }) => {
+      // Cancel any outgoing refetches to avoid overwriting our optimistic update
+      await queryClient.cancelQueries({ queryKey: ['package_available_services'] });
+      
+      // Optimistically update the local state
+      if (enabled) {
+        setEnabledServices(prev => [...prev, serviceId]);
+      } else {
+        setEnabledServices(prev => prev.filter(id => id !== serviceId));
+      }
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['package_available_services'] });
     },
@@ -208,6 +225,10 @@ export const usePackageManagement = () => {
         description: "Failed to update service availability.",
         variant: "destructive",
       });
+      // Reset the enabledServices state from the server data
+      if (enabledServicesData) {
+        setEnabledServices(enabledServicesData.map(item => item.service_id));
+      }
     }
   });
 
@@ -252,21 +273,14 @@ export const usePackageManagement = () => {
     const isCurrentlyEnabled = enabledServices.includes(serviceId);
     const newEnabledValue = !isCurrentlyEnabled;
     
-    // Optimistically update UI
-    if (newEnabledValue) {
-      setEnabledServices(prev => [...prev, serviceId]);
-    } else {
-      setEnabledServices(prev => prev.filter(id => id !== serviceId));
-    }
-    
-    // Send to server
+    // Send to server (optimistic update handled by the mutation)
     toggleServiceMutation.mutate({
       serviceId,
       enabled: newEnabledValue
     });
   };
 
-  // Reorder services - simplified like ServiceItem.tsx
+  // Reorder services - simplified to use sequential ordering
   const reorderServices = async (sourceIndex: number, destinationIndex: number) => {
     // Only reorder if we have enabled services data
     if (!enabledServicesData || enabledServicesData.length === 0) return;
@@ -284,6 +298,15 @@ export const usePackageManagement = () => {
     // Insert at destination
     newOrder.splice(destinationIndex, 0, movedItem);
     
+    // Optimistically update UI
+    const updatedServicesData = newOrder.map((service, index) => ({
+      ...service,
+      display_order: index
+    }));
+    
+    // Update local cache optimistically
+    queryClient.setQueryData(['package_available_services'], updatedServicesData);
+    
     // Calculate new display_order values with simple sequential numbering (0, 1, 2...)
     const updates = newOrder.map((service, index) => ({
       serviceId: service.service_id,
@@ -293,6 +316,7 @@ export const usePackageManagement = () => {
     // Update each service with its new position
     try {
       for (const update of updates) {
+        console.log(`Updating service ${update.serviceId} to display order ${update.newDisplayOrder}`);
         await updateServiceOrderMutation.mutateAsync(update);
       }
     } catch (error) {
@@ -302,6 +326,9 @@ export const usePackageManagement = () => {
         description: "Failed to update service order.",
         variant: "destructive",
       });
+      
+      // Revert the optimistic update by fetching fresh data
+      queryClient.invalidateQueries({ queryKey: ['package_available_services'] });
     }
   };
 

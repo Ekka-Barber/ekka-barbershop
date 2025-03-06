@@ -81,7 +81,7 @@ export const DraggableServiceGrid = ({
     onReorderServices(result.source.index, result.destination.index);
   };
 
-  const renderServiceCard = (service: Service, isDraggable: boolean) => {
+  const renderServiceCard = (service: Service, isDraggable: boolean = false) => {
     const isBase = isBaseService(service.id);
     const isEnabled = isServiceEnabled(service.id);
     
@@ -129,12 +129,12 @@ export const DraggableServiceGrid = ({
         <div>
           <h4 className="text-sm font-medium text-muted-foreground mb-3">Base Service</h4>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {baseServices.map(service => renderServiceCard(service, false))}
+            {baseServices.map(service => renderServiceCard(service))}
           </div>
         </div>
       )}
       
-      {/* Draggable enabled services - Display in a single column for better drag and drop */}
+      {/* Draggable enabled services - Display in a vertical list similar to service categories for better drag and drop */}
       {enabledServices.length > 0 && (
         <div>
           <h4 className="text-sm font-medium text-muted-foreground mb-3">
@@ -146,7 +146,7 @@ export const DraggableServiceGrid = ({
                 <div 
                   {...provided.droppableProps}
                   ref={provided.innerRef}
-                  className="flex flex-col space-y-2 max-w-2xl"
+                  className="space-y-2"
                 >
                   {enabledServices.map((service, index) => (
                     <Draggable key={service.id} draggableId={service.id} index={index}>
@@ -175,7 +175,7 @@ export const DraggableServiceGrid = ({
         <div>
           <h4 className="text-sm font-medium text-muted-foreground mb-3">Disabled Services</h4>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {disabledServices.map(service => renderServiceCard(service, false))}
+            {disabledServices.map(service => renderServiceCard(service))}
           </div>
         </div>
       )}
