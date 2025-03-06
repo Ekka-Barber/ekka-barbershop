@@ -4,6 +4,7 @@ import { Service } from '@/types/service';
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { PlusCircle, CheckCircle } from "lucide-react";
+import { PriceDisplay } from "@/components/ui/price-display";
 
 interface PackageServiceListProps {
   services: Service[];
@@ -37,7 +38,7 @@ export const PackageServiceList = ({
       <h3 className="text-sm font-medium">
         {language === 'ar' ? 'الخدمات الإضافية' : 'Add-on Services'}
         {discountPercentage > 0 && (
-          <span className="text-green-600 ml-2">
+          <span className="text-green-600 mx-2">
             ({discountPercentage}% {language === 'ar' ? 'خصم' : 'off'})
           </span>
         )}
@@ -60,7 +61,10 @@ export const PackageServiceList = ({
                 )}
                 onClick={() => onToggleService(service)}
               >
-                <div className="flex items-center gap-3 rtl:flex-row-reverse flex-1 min-w-0">
+                <div className={cn(
+                  "flex items-center gap-3 flex-1 min-w-0",
+                  language === 'ar' ? "flex-row-reverse" : "flex-row"
+                )}>
                   <div className="shrink-0 text-primary">
                     {isSelected ? (
                       <CheckCircle className="h-5 w-5 text-[#C4A484] transition-transform duration-200" />
@@ -73,20 +77,37 @@ export const PackageServiceList = ({
                   </span>
                 </div>
                 
-                <div className="text-sm whitespace-nowrap rtl:text-left">
+                <div className={cn(
+                  "whitespace-nowrap",
+                  language === 'ar' ? "text-left" : "text-right"
+                )}>
                   {isSelected && discountPercentage > 0 ? (
-                    <div className="flex flex-col items-end rtl:items-start">
+                    <div className={cn(
+                      "flex flex-col",
+                      language === 'ar' ? "items-start" : "items-end"
+                    )}>
                       <span className="line-through text-muted-foreground text-xs">
-                        {language === 'ar' ? `${service.price} ر.س` : `SAR ${service.price}`}
+                        <PriceDisplay 
+                          price={service.price} 
+                          language={language as 'en' | 'ar'} 
+                          size="sm" 
+                          className="text-muted-foreground"
+                        />
                       </span>
-                      <span className="text-green-600 font-medium">
-                        {language === 'ar' ? `${discountedPrice} ر.س` : `SAR ${discountedPrice}`}
-                      </span>
+                      <PriceDisplay 
+                        price={discountedPrice} 
+                        language={language as 'en' | 'ar'} 
+                        size="sm"
+                        className="text-green-600 font-medium"
+                      />
                     </div>
                   ) : (
-                    <span className={cn(isSelected ? "font-medium" : "")}>
-                      {language === 'ar' ? `${service.price} ر.س` : `SAR ${service.price}`}
-                    </span>
+                    <PriceDisplay 
+                      price={service.price} 
+                      language={language as 'en' | 'ar'} 
+                      size="sm"
+                      className={isSelected ? "font-medium" : ""}
+                    />
                   )}
                 </div>
               </button>
