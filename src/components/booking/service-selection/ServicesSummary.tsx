@@ -63,7 +63,8 @@ export const ServicesSummary = ({
           language={language}
           availableServices={availableServices}
           packageSettings={packageSettings}
-          selectedServices={selectedServices as SelectedService[]}
+          // Fix: Cast the simplified selectedServices to unknown first, then to SelectedService[]
+          selectedServices={selectedServices as unknown as SelectedService[]}
           onAddService={onAddService}
         />
       )}
