@@ -1,3 +1,4 @@
+
 import { addDays } from "date-fns";
 import { isAfterMidnight } from "./timeConversion";
 
@@ -12,7 +13,6 @@ export const adjustDateForAfterMidnightSlot = (date: Date, timeSlot: string): Da
   
   // If the time slot is after midnight (00:00-11:59), add one day to the date
   if (isAfterMidnight(timeSlot)) {
-    console.log(`Adjusting date for after-midnight slot: ${timeSlot}`);
     return addDays(date, 1);
   }
   

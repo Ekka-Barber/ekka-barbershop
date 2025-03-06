@@ -51,14 +51,8 @@ export const TimeSlotPicker = memo(({
         <h3 className="text-lg font-medium text-center">
           {language === 'ar' ? 'جاري تحميل المواعيد...' : 'Loading time slots...'}
         </h3>
-        <div className="w-full">
-          <div className="bg-gradient-to-b from-white to-gray-50 shadow-sm border border-gray-100 rounded-lg">
-            <div className="overflow-x-auto scrollbar-hide px-4 py-4">
-              <div className="flex space-x-3 rtl:space-x-reverse">
-                {[1, 2, 3, 4, 5, 6].map(i => <Skeleton key={i} className="h-10 w-20" />)}
-              </div>
-            </div>
-          </div>
+        <div className="flex space-x-3 rtl:space-x-reverse justify-center">
+          {[1, 2, 3, 4, 5, 6].map(i => <Skeleton key={i} className="h-10 w-20" />)}
         </div>
       </div>
     );
@@ -118,7 +112,7 @@ export const TimeSlotPicker = memo(({
       </h3>
       <div className="w-full">
         <div className="bg-gradient-to-b from-white to-gray-50 shadow-sm border border-gray-100 rounded-lg">
-          <div className="overflow-x-auto px-4 py-4 bg-white">
+          <div className="p-4 bg-white">
             {/* Before midnight slots in chronological order */}
             <div className="flex flex-wrap gap-3 mb-4">
               {beforeMidnightSlots.map(slot => renderTimeSlotButton(slot))}

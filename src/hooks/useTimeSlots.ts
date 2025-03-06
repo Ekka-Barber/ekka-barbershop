@@ -2,7 +2,7 @@
 import { format, addDays } from "date-fns";
 import { useCallback } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { TimeSlot } from "@/utils/timeSlotUtils";
+import { TimeSlot } from "@/utils/timeSlotTypes";
 import { useToast } from "@/hooks/use-toast";
 import { useSlotGeneration } from "./useSlotGeneration";
 import { useEmployeeAvailability } from "./useEmployeeAvailability";
@@ -15,7 +15,7 @@ export const useTimeSlots = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const { generateTimeSlots } = useSlotGeneration();
-  const { getEmployeeWorkingHours, isEmployeeOffDay } = useEmployeeAvailability();
+  const { getEmployeeWorkingHours, isEmployeeOffDay, hasPreviousDayCrossMidnightShifts } = useEmployeeAvailability();
 
   /**
    * Clears the cache for a specific employee-date combination
@@ -42,8 +42,6 @@ export const useTimeSlots = () => {
     queryClient.invalidateQueries({
       queryKey: ['timeSlots', employeeId, nextDayFormatted]
     });
-    
-    console.log(`Invalidated cache for ${employeeId} on ${formattedDate} and ${nextDayFormatted}`);
   }, [queryClient]);
 
   /**
@@ -53,11 +51,11 @@ export const useTimeSlots = () => {
     employee: any,
     selectedDate: Date | undefined,
     serviceDuration: number = 30
-  ) => {
+  ): Promise<TimeSlot[]> => {
     if (!selectedDate || !employee?.working_hours) return [];
     
-    // Check if employee is off on the selected date
-    if (isEmployeeOffDay(employee, selectedDate)) {
+    // Check if employee is completely off on the selected date (no regular shifts and no late night shifts)
+    if (isEmployeeOffDay(employee, selectedDate) && !hasPreviousDayCrossMidnightShifts(employee, selectedDate)) {
       return [];
     }
     
@@ -84,7 +82,7 @@ export const useTimeSlots = () => {
       });
       return [];
     }
-  }, [generateTimeSlots, queryClient, toast, getEmployeeWorkingHours, isEmployeeOffDay]);
+  }, [generateTimeSlots, queryClient, toast, getEmployeeWorkingHours, isEmployeeOffDay, hasPreviousDayCrossMidnightShifts]);
 
   return {
     getAvailableTimeSlots,

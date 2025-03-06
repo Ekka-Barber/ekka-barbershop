@@ -21,7 +21,6 @@ export const convertMinutesToTime = (minutes: number): string => {
 /**
  * Checks if a time string represents a time after midnight (00:00-11:59)
  * This is critical for determining slots that belong to the next day
- * Updated to explicitly treat 00:00 (midnight) as after midnight
  */
 export const isAfterMidnight = (time: string): boolean => {
   // Special case: exactly midnight (00:00) is considered after midnight
@@ -36,6 +35,9 @@ export const isAfterMidnight = (time: string): boolean => {
  * Checks if a time range crosses midnight
  */
 export const doesCrossMidnight = (start: string, end: string): boolean => {
+  // Special case for midnight (00:00) as the end time
+  if (end === '00:00') return true;
+  
   const startMinutes = convertTimeToMinutes(start);
   const endMinutes = convertTimeToMinutes(end);
   

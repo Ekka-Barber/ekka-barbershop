@@ -2,10 +2,7 @@
 import { useCallback } from "react";
 import { format, parse, isBefore, isEqual, addMinutes, addDays, isToday } from "date-fns";
 import { useQueryClient } from "@tanstack/react-query";
-import { 
-  TimeSlot,
-} from "@/utils/timeSlotTypes";
-import { sortTimeSlots } from "@/utils/timeSlotSorting";
+import { TimeSlot } from "@/utils/timeSlotTypes";
 import { doesCrossMidnight, convertTimeToMinutes, convertMinutesToTime, isAfterMidnight } from "@/utils/timeConversion";
 import { fetchUnavailableSlots } from "@/services/employeeScheduleService";
 import { isSlotAvailable } from "@/utils/slotAvailability";
@@ -23,7 +20,6 @@ export const useSlotGeneration = () => {
 
   /**
    * Generates available time slots based on working hours and unavailable periods
-   * Improved to better handle cross-midnight ranges and completely filter past slots
    */
   const generateTimeSlots = useCallback(async (
     workingHoursRanges: string[] = [],
@@ -34,18 +30,10 @@ export const useSlotGeneration = () => {
     const allSlots: TimeSlot[] = []; // All potential slots, even unavailable ones
     
     if (!selectedDate || !employeeId || !workingHoursRanges.length) {
-      console.log("Missing required parameters for time slot generation");
       return allSlots;
     }
 
     const formattedDate = format(selectedDate, 'yyyy-MM-dd');
-    console.log(`\n🕒 GENERATING TIME SLOTS for ${formattedDate}, employee ${employeeId}`);
-    console.log(`Working hours ranges: ${workingHoursRanges.join(', ')}`);
-    
-    // Calculate next day for after-midnight slots
-    const nextDay = addDays(selectedDate, 1);
-    const nextDayFormatted = format(nextDay, 'yyyy-MM-dd');
-    console.log(`Next day for after-midnight slots: ${nextDayFormatted}`);
     
     // Get current time with buffer (for filtering past slots)
     const now = new Date();
@@ -64,15 +52,11 @@ export const useSlotGeneration = () => {
         gcTime: CACHE_EXPIRY
       });
       
-      console.log(`Fetched ${unavailableSlots?.length || 0} unavailable slots for employee ${employeeId}`);
-      
-      // Set up realtime subscription for this employee and the relevant dates
+      // Set up realtime subscription for this employee and date
       setupRealtimeSubscription(employeeId, selectedDate);
-      setupRealtimeSubscription(employeeId, nextDay);
       
       // Generate slots for each working hours range
       for (const range of workingHoursRanges) {
-        console.log(`\n⏰ Processing working hours range: ${range}`);
         const [start, end] = range.split('-');
         
         const baseDate = selectedDate;
@@ -83,27 +67,19 @@ export const useSlotGeneration = () => {
         const crossesMidnight = doesCrossMidnight(start, end);
         if (crossesMidnight) {
           endTime = addDays(endTime, 1);
-          console.log(`🌙 Shift crosses midnight: ${start}-${end}`, { 
-            startTime: format(startTime, 'HH:mm'), 
-            endTime: format(endTime, 'HH:mm'),
-            endMinutes: convertTimeToMinutes(end)
-          });
         }
 
         // Create a slot every SLOT_INTERVAL minutes from start to end time
         let currentSlot = startTime;
         
         // Generate slots up to and including the end time if it's midnight (00:00)
-        // Modified condition to be inclusive of midnight
         while (isBefore(currentSlot, endTime) || 
               (format(endTime, 'HH:mm') === '00:00' && isEqual(currentSlot, endTime))) {
           const timeString = format(currentSlot, 'HH:mm');
           const slotMinutes = convertTimeToMinutes(timeString);
           const slotIsAfterMidnight = isAfterMidnight(timeString);
           
-          console.log(`Processing slot: ${timeString}, After midnight: ${slotIsAfterMidnight}`);
-          
-          // Skip past slots only for today, but be careful with after-midnight logic
+          // Skip past slots only for today
           if (isToday(selectedDate)) {
             // Create a datetime object for this slot
             const slotDateTime = new Date(selectedDate);
@@ -114,16 +90,15 @@ export const useSlotGeneration = () => {
               slotDateTime.setDate(slotDateTime.getDate() + 1);
             }
             
-            // If slot is in the past or within buffer time, completely skip it
+            // If slot is in the past or within buffer time, skip it
             if (isBefore(slotDateTime, bookingBuffer)) {
-              console.log(`⏭️ Skipping past/too-soon slot: ${timeString}`);
               currentSlot = addMinutes(currentSlot, SLOT_INTERVAL);
-              continue; // Skip to next iteration - don't add this slot
+              continue; // Skip to next iteration
             }
           }
           
           // For after-midnight slots, we need to indicate they belong to the next day
-          const slotDate = slotIsAfterMidnight ? nextDay : selectedDate;
+          const slotDate = slotIsAfterMidnight ? addDays(selectedDate, 1) : selectedDate;
           
           // Check if slot is available considering all constraints
           const available = isSlotAvailable(
@@ -141,15 +116,13 @@ export const useSlotGeneration = () => {
             // Add the slot to the list with its availability
             allSlots.push({
               time: timeString,
-              isAvailable: available
+              isAvailable: available,
+              isAfterMidnight: slotIsAfterMidnight
             });
-            
-            console.log(`➕ Added slot ${timeString}, isAvailable: ${available}, isAfterMidnight: ${slotIsAfterMidnight}`);
           }
           
           // Break the loop if we've just processed 00:00 and that's the end time
           if (timeString === '00:00' && format(endTime, 'HH:mm') === '00:00') {
-            console.log(`✅ Found and processed midnight (00:00) as end time, exiting loop`);
             break;
           }
           
@@ -157,16 +130,21 @@ export const useSlotGeneration = () => {
         }
       }
 
-      // Log all slots before sorting
-      console.log('\n📊 Generated slots before sorting:', allSlots.map(s => `${s.time} (${s.isAvailable ? 'Available' : 'Unavailable'})`));
-      
-      // Make sure to sort slots properly with after-midnight slots appearing after regular slots
-      const sortedSlots = sortTimeSlots(allSlots);
-      
-      // Log all slots after sorting
-      console.log('📊 Generated slots after sorting:', sortedSlots.map(s => `${s.time} (${s.isAvailable ? 'Available' : 'Unavailable'})`));
+      // Sort the slots - first by time of day (before/after midnight), then by time
+      return allSlots.sort((a, b) => {
+        const aIsAfterMidnight = isAfterMidnight(a.time);
+        const bIsAfterMidnight = isAfterMidnight(b.time);
+        
+        // If one is after midnight and one isn't, the after-midnight slot comes later
+        if (aIsAfterMidnight && !bIsAfterMidnight) return 1;
+        if (!aIsAfterMidnight && bIsAfterMidnight) return -1;
+        
+        // If both slots are in the same time period, sort chronologically
+        const aMinutes = convertTimeToMinutes(a.time);
+        const bMinutes = convertTimeToMinutes(b.time);
+        return aMinutes - bMinutes;
+      });
 
-      return sortedSlots;
     } catch (error) {
       console.error('Error generating time slots:', error);
       toast({

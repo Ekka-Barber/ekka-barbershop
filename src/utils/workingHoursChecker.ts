@@ -1,9 +1,8 @@
 
-import { convertTimeToMinutes, convertMinutesToTime, isAfterMidnight, doesCrossMidnight } from "./timeConversion";
+import { convertTimeToMinutes, isAfterMidnight, doesCrossMidnight } from "./timeConversion";
 
 /**
  * Checks if a time slot is within the working hours ranges
- * Improved to properly handle ranges that cross midnight and the exact 00:00 slot
  */
 export const isWithinWorkingHours = (
   slotMinutes: number, 
@@ -18,19 +17,14 @@ export const isWithinWorkingHours = (
   const timeString = convertMinutesToTime(slotMinutes);
   const slotIsAfterMidnight = isAfterMidnight(timeString);
   
-  console.log(`Checking if slot ${timeString} (${slotMinutes} mins) is within working hours. After midnight: ${slotIsAfterMidnight}`);
-
   for (const range of workingHoursRanges) {
     const [start, end] = range.split('-');
     const startMinutes = convertTimeToMinutes(start);
     const endMinutes = convertTimeToMinutes(end);
     const crossesMidnight = doesCrossMidnight(start, end);
     
-    console.log(`Checking range ${range}: start=${startMinutes}, end=${endMinutes}, crossesMidnight=${crossesMidnight}`);
-    
     // Special handling for 00:00 (midnight) when it's the end time
     if (end === '00:00' && timeString === '00:00') {
-      console.log(`✅ Slot ${timeString} is exactly the midnight end time of range ${range}`);
       return true;
     }
     
@@ -39,39 +33,22 @@ export const isWithinWorkingHours = (
       if (slotIsAfterMidnight) {
         // Slot is after midnight (00:00-11:59) - check if it's before the end time
         if (slotMinutes <= endMinutes) {
-          console.log(`✅ Slot ${timeString} is within after-midnight portion of range ${range}`);
           return true;
         }
       } else {
         // Slot is before midnight (12:00-23:59) - check if it's after the start time
         if (slotMinutes >= startMinutes) {
-          console.log(`✅ Slot ${timeString} is within before-midnight portion of range ${range}`);
           return true;
         }
       }
     } else {
       // For regular shifts that don't cross midnight
-      // Modified to include exact end time in the valid range
+      // Include exact end time in the valid range
       if (slotMinutes >= startMinutes && slotMinutes <= endMinutes) {
-        console.log(`✅ Slot ${timeString} is within regular shift range ${range}`);
         return true;
       }
     }
   }
   
-  console.log(`❌ Slot ${timeString} is NOT within any working hours range`);
   return false;
-};
-
-/**
- * Determines if a time slot falls within a specific date's business hours
- * Takes into account both the time of day and the date
- */
-export const isSlotWithinBusinessHours = (
-  slotTime: string, 
-  selectedDate: Date, 
-  workingHoursRanges: string[]
-): boolean => {
-  const slotMinutes = convertTimeToMinutes(slotTime);
-  return isWithinWorkingHours(slotMinutes, workingHoursRanges);
 };

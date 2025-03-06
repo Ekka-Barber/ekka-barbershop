@@ -38,7 +38,7 @@ export interface TimeSlot {
   /**
    * Whether the time slot is on the next day (after midnight)
    */
-  isNextDay?: boolean;
+  isAfterMidnight?: boolean;
   
   /**
    * Human-readable label for the time slot
