@@ -1,3 +1,4 @@
+
 import { isToday, isBefore, addMinutes, format, addDays } from "date-fns";
 import { hasEnoughConsecutiveTime } from "./consecutiveTimeChecker";
 import { convertTimeToMinutes, convertMinutesToTime, isAfterMidnight } from "./timeConversion";
@@ -174,6 +175,24 @@ export const isEmployeeAvailable = (employee: any, selectedDate: Date | undefine
   
   // Check if this date is marked as off day
   if (Array.isArray(employee.off_days) && employee.off_days.includes(format(selectedDate, 'yyyy-MM-dd'))) {
+    // Check if there are shifts from previous day that cross midnight
+    const prevDate = addDays(selectedDate, -1);
+    const prevDayName = format(prevDate, 'EEEE').toLowerCase();
+    const prevDayWorkingHours = employee.working_hours?.[prevDayName] || [];
+    
+    // If any shifts from previous day cross midnight, employee is available for early morning
+    const hasCrossMidnightShifts = prevDayWorkingHours.some((shift: string) => {
+      const [start, end] = shift.split('-');
+      const startHour = parseInt(start.split(':')[0], 10);
+      const endHour = parseInt(end.split(':')[0], 10);
+      return endHour < startHour || end === '00:00';
+    });
+    
+    if (hasCrossMidnightShifts) {
+      console.log(`Employee ${employee.name} has shifts crossing midnight from previous day`);
+      return true;
+    }
+    
     console.log(`Employee ${employee.name} is off on ${format(selectedDate, 'yyyy-MM-dd')}`);
     return false;
   }
