@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useToast } from "@/hooks/use-toast";
@@ -6,7 +5,7 @@ import { cacheActiveCategory, getCachedActiveCategory } from "@/utils/serviceCac
 import { Service, SelectedService } from '@/types/service';
 import { usePackageDiscount } from "@/hooks/usePackageDiscount";
 
-interface ServiceSelectionContainerProps {
+interface UseServiceSelectionStateProps {
   categories: any[] | undefined;
   isLoading: boolean;
   selectedServices: SelectedService[];
@@ -16,7 +15,7 @@ interface ServiceSelectionContainerProps {
   handlePackageServiceUpdate?: (services: SelectedService[]) => void;
 }
 
-export const ServiceSelectionContainer = ({
+export const useServiceSelectionState = ({
   categories,
   isLoading,
   selectedServices,
@@ -24,7 +23,7 @@ export const ServiceSelectionContainer = ({
   onStepChange,
   isUpdatingPackage = false,
   handlePackageServiceUpdate
-}: ServiceSelectionContainerProps) => {
+}: UseServiceSelectionStateProps) => {
   const { language } = useLanguage();
   const { toast } = useToast();
   const [activeCategory, setActiveCategory] = useState<string | null>(
@@ -43,21 +42,6 @@ export const ServiceSelectionContainer = ({
     hasBaseService,
     enabledPackageServices
   } = usePackageDiscount(selectedServices, isUpdatingPackage);
-
-  const baseService = selectedServices.find(s => s.id === BASE_SERVICE_ID || s.isBasePackageService) || 
-    (categories?.flatMap(c => c.services).find(s => s.id === BASE_SERVICE_ID));
-
-  const availablePackageServices = categories?.flatMap(c => c.services)
-    .filter(service => 
-      service.id !== BASE_SERVICE_ID && 
-      enabledPackageServices?.includes(service.id)
-    ) || [];
-
-  useEffect(() => {
-    if (activeCategory) {
-      cacheActiveCategory(activeCategory);
-    }
-  }, [activeCategory]);
 
   const handleServiceClick = (service: any) => {
     setSelectedService(service);
@@ -186,23 +170,11 @@ export const ServiceSelectionContainer = ({
     }
   };
 
-  const handleStepChange = (nextStep: string) => {
-    if (nextStep === 'datetime' && hasBaseService && packageSettings && availablePackageServices.length > 0) {
-      setShowPackageBuilder(true);
-      setPendingNextStep(nextStep);
-    } else {
-      onStepChange?.(nextStep);
+  useEffect(() => {
+    if (activeCategory) {
+      cacheActiveCategory(activeCategory);
     }
-  };
-
-  const handleSkipPackage = () => {
-    setShowPackageBuilder(false);
-    
-    if (pendingNextStep) {
-      onStepChange?.(pendingNextStep);
-      setPendingNextStep(null);
-    }
-  };
+  }, [activeCategory]);
 
   const sortedCategories = categories?.slice().sort((a, b) => a.display_order - b.display_order);
   const activeCategoryServices = sortedCategories?.find(
@@ -229,14 +201,25 @@ export const ServiceSelectionContainer = ({
   return {
     activeCategory,
     activeCategoryServices,
-    availablePackageServices,
-    baseService,
-    displayServices,
+    availablePackageServices: enabledPackageServices || [],
+    baseService: selectedServices.find(s => 
+      s.isBasePackageService || s.id === packageSettings?.baseServiceId
+    ) || categories?.flatMap(c => c.services).find(s => s.id === packageSettings?.baseServiceId),
+    displayServices: selectedServices,
     handlePackageConfirm,
-    handleServiceClick,
-    handleServiceToggleWrapper,
-    handleSkipPackage,
-    handleStepChange,
+    handleServiceClick: (service: any) => {
+      setSelectedService(service);
+      setIsSheetOpen(true);
+    },
+    handleServiceToggleWrapper: onServiceToggle,
+    handleSkipPackage: () => {
+      setShowPackageBuilder(false);
+      if (pendingNextStep) {
+        onStepChange?.(pendingNextStep);
+        setPendingNextStep(null);
+      }
+    },
+    handleStepChange: onStepChange,
     hasBaseService,
     isSheetOpen,
     packageEnabled,
