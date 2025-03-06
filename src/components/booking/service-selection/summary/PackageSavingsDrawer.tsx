@@ -1,14 +1,13 @@
 
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Tag, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Tag, ChevronLeft, ChevronRight, ChevronUp, ChevronDown } from 'lucide-react';
 import { PriceDisplay } from "@/components/ui/price-display";
 import { 
   Sheet,
   SheetContent,
   SheetTrigger
 } from "@/components/ui/sheet";
-import { Collapsible, CollapsibleContent } from "@/components/ui/collapsible";
 
 interface PackageSavingsDrawerProps {
   savings: number;
@@ -21,37 +20,38 @@ export const PackageSavingsDrawer = ({ savings, language }: PackageSavingsDrawer
   if (savings <= 0) return null;
   
   const isRtl = language === 'ar';
-  const TriggerIcon = isRtl ? ChevronLeft : ChevronRight;
+  // Changed icons to Up/Down for 90-degree rotated handle
+  const TriggerIcon = isRtl ? ChevronDown : ChevronUp;
   
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
-      {/* The "tongue" handle that sticks out from the edge */}
+      {/* The "tongue" handle that sticks out from the edge - now at the bottom */}
       <SheetTrigger asChild>
         <motion.div
-          className={`fixed z-50 top-1/2 -translate-y-1/2 ${isRtl ? 'left-0 rounded-r-xl' : 'right-0 rounded-l-xl'} 
-          bg-gradient-to-l from-[#F2FCE2] to-[#E7F7D4] cursor-pointer
-          py-3 px-4 shadow-md border border-green-200
-          flex items-center gap-2`}
+          className={`fixed z-50 bottom-0 left-1/2 -translate-x-1/2
+          bg-gradient-to-t from-[#F2FCE2] to-[#E7F7D4] cursor-pointer
+          px-5 py-2 shadow-md border border-green-200 rounded-t-xl
+          flex flex-col items-center gap-1`}
           whileHover={{ 
             scale: 1.03,
-            x: isRtl ? 3 : -3
+            y: -2
           }}
           layout
         >
+          <TriggerIcon className="h-4 w-4 text-green-700" />
           <span className="text-sm font-medium text-green-700 whitespace-nowrap">
             {isRtl ? 'تدري كم وفّرت ؟' : 'Your savings'}
           </span>
-          <TriggerIcon className="h-4 w-4 text-green-700" />
         </motion.div>
       </SheetTrigger>
       
-      {/* The drawer content */}
+      {/* The drawer content - now coming from bottom and sized to fit content */}
       <SheetContent 
-        side={isRtl ? "left" : "right"} 
-        className="bg-[#F8FFEE] border-green-200 p-0 w-80 max-w-[80vw]"
+        side="bottom"
+        className="bg-[#F8FFEE] border-green-200 p-0 rounded-t-xl mx-auto max-w-md"
       >
         <div className="p-5 space-y-4">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center justify-center gap-2 mb-2">
             <Tag className="h-5 w-5 text-green-700" />
             <h3 className="text-lg font-semibold text-green-700">
               {isRtl ? 'توفيرات الباقة' : 'Package Savings'}
@@ -77,7 +77,7 @@ export const PackageSavingsDrawer = ({ savings, language }: PackageSavingsDrawer
             </div>
           </div>
           
-          <div className="text-sm text-green-700 mt-6">
+          <div className="text-sm text-green-700 text-center">
             <p>
               {isRtl 
                 ? 'استمتع بتوفير أكثر عند إضافة خدمات أخرى إلى باقتك!'
