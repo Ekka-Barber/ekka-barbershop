@@ -7,6 +7,9 @@ import {
   roundPrice 
 } from '../bookingCalculations';
 
+// Explicit imports for Jest functions
+import { describe, expect, it } from '@jest/globals';
+
 describe('Booking Calculations Utility', () => {
   describe('calculateDiscountedPrice', () => {
     it('should return original price when no discount is applied', () => {

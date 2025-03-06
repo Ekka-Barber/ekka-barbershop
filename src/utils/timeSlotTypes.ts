@@ -71,3 +71,33 @@ export interface GroupedTimeSlots {
    */
   afterMidnight: TimeSlot[];
 }
+
+/**
+ * Normalizes the raw unavailable slot data from the database
+ * into a standardized format for the application
+ * 
+ * @param slots - Raw unavailable slot data from the database
+ * @returns Array of normalized UnavailableSlot objects
+ */
+export const normalizeUnavailableSlots = (slots: any[]): UnavailableSlot[] => {
+  if (!slots || !Array.isArray(slots)) {
+    return [];
+  }
+  
+  return slots.map(slot => {
+    // Ensure the start and end times are numbers
+    const start_time = typeof slot.start_time === 'number' 
+      ? slot.start_time 
+      : parseInt(slot.start_time, 10);
+      
+    const end_time = typeof slot.end_time === 'number' 
+      ? slot.end_time 
+      : parseInt(slot.end_time, 10);
+    
+    return {
+      start_time: isNaN(start_time) ? 0 : start_time,
+      end_time: isNaN(end_time) ? 0 : end_time,
+      reason: slot.reason
+    };
+  }).filter(slot => slot.start_time < slot.end_time); // Ensure valid slots only
+};
