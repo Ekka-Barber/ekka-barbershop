@@ -2,6 +2,7 @@
 import React from 'react';
 import { cn } from "@/lib/utils";
 import { formatDuration } from "@/utils/formatters";
+import { Clock } from 'lucide-react';
 
 interface DurationDisplayProps {
   duration: number;
@@ -20,16 +21,17 @@ export const DurationDisplay = ({
 }: DurationDisplayProps) => {
   return (
     <div className={cn(
-      "flex justify-between text-sm text-muted-foreground",
+      "flex justify-between items-center text-sm text-muted-foreground py-2",
       isRTL && "flex-row-reverse"
     )}>
-      <span>
+      <span className="font-medium">
         {formatDuration(duration, language as 'en' | 'ar')}
       </span>
       <div className={cn(
         "flex items-center gap-1.5",
         isRTL && "flex-row-reverse"
       )}>
+        <Clock className="h-4 w-4" />
         {isRTL ? "المدة الإجمالية:" : "Total Duration:"}
       </div>
     </div>

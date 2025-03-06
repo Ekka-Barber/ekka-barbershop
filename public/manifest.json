@@ -15,14 +15,60 @@
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
-  "theme_color": "#ffffff",
+  "theme_color": "#C4A36F",
   "orientation": "portrait",
-  "display_override": ["standalone", "fullscreen"],
+  "display_override": ["standalone", "fullscreen", "minimal-ui"],
   "categories": ["business", "lifestyle"],
   "launch_handler": {
     "client_mode": ["navigate-existing", "auto"]
   },
+  "shortcuts": [
+    {
+      "name": {
+        "ar": "حجز موعد",
+        "en": "Book Appointment"
+      },
+      "url": "/bookings",
+      "icons": [
+        {
+          "src": "/lovable-uploads/2ea1f72e-efd2-4345-bf4d-957efd873986.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        }
+      ]
+    }
+  ],
   "icons": [
+    {
+      "src": "/lovable-uploads/2ea1f72e-efd2-4345-bf4d-957efd873986.png",
+      "sizes": "72x72",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/lovable-uploads/2ea1f72e-efd2-4345-bf4d-957efd873986.png",
+      "sizes": "96x96",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/lovable-uploads/2ea1f72e-efd2-4345-bf4d-957efd873986.png",
+      "sizes": "128x128",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/lovable-uploads/2ea1f72e-efd2-4345-bf4d-957efd873986.png",
+      "sizes": "144x144",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/lovable-uploads/2ea1f72e-efd2-4345-bf4d-957efd873986.png",
+      "sizes": "152x152",
+      "type": "image/png",
+      "purpose": "any"
+    },
     {
       "src": "/lovable-uploads/2ea1f72e-efd2-4345-bf4d-957efd873986.png",
       "sizes": "192x192",
@@ -31,9 +77,31 @@
     },
     {
       "src": "/lovable-uploads/2ea1f72e-efd2-4345-bf4d-957efd873986.png",
+      "sizes": "384x384",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/lovable-uploads/2ea1f72e-efd2-4345-bf4d-957efd873986.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/lovable-uploads/2ea1f72e-efd2-4345-bf4d-957efd873986.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "platform": "wide",
+      "label": "Ekka Barbershop App"
+    },
+    {
+      "src": "/lovable-uploads/2ea1f72e-efd2-4345-bf4d-957efd873986.png",
+      "sizes": "750x1334",
+      "type": "image/png",
+      "platform": "narrow",
+      "label": "Ekka Barbershop App Mobile View"
     }
   ]
 }

@@ -1,6 +1,6 @@
-import { Share } from 'lucide-react';
+
+import { Share, Check, X } from 'lucide-react';
 import { Button } from "@/components/ui/button";
-import { Check } from 'lucide-react';
 import AddToHomeScreenIcon from '@/components/icons/AddToHomeScreenIcon';
 import {
   Sheet,
@@ -10,6 +10,7 @@ import {
   SheetDescription,
   SheetClose,
   SheetTrigger,
+  SheetFooter,
 } from "@/components/ui/sheet";
 
 interface IOSInstallGuideProps {
@@ -19,6 +20,8 @@ interface IOSInstallGuideProps {
 }
 
 export const IOSInstallGuide = ({ language, onCancel, trigger }: IOSInstallGuideProps) => {
+  const isRTL = language === 'ar';
+  
   return (
     <Sheet>
       <SheetTrigger asChild>
@@ -26,65 +29,89 @@ export const IOSInstallGuide = ({ language, onCancel, trigger }: IOSInstallGuide
       </SheetTrigger>
       <SheetContent 
         side="bottom" 
-        className={`${language === 'ar' ? 'rtl' : 'ltr'} font-changa rounded-t-xl p-0 bg-white`}
+        className={`${isRTL ? 'rtl' : 'ltr'} font-changa rounded-t-xl p-0 bg-white pb-[calc(var(--sab)+1rem)]`}
       >
         <div className="p-6 space-y-6">
+          <div className="w-12 h-1 bg-gray-300 rounded-full mx-auto mb-2" />
+          
           <SheetHeader>
             <SheetTitle className="text-2xl font-bold text-center">
-              {language === 'ar' ? 'لتثبيت التطبيق على الشاشة الرئيسية' : 'Add to Home Screen'}
+              {isRTL ? 'لتثبيت التطبيق على الشاشة الرئيسية' : 'Add to Home Screen'}
             </SheetTitle>
             <SheetDescription className="text-center text-base font-medium">
-              {language === 'ar' ? 'اتبع الخطوات التالية:' : 'Follow these steps:'}
+              {isRTL ? 'اتبع الخطوات التالية:' : 'Follow these steps:'}
             </SheetDescription>
           </SheetHeader>
           
           <div className="space-y-6">
-            <div className={`flex items-center gap-4 ${language === 'ar' ? 'flex-row-reverse' : 'flex-row'}`}>
-              <div className="flex-shrink-0 w-10 h-10 rounded-full bg-[#9B87F5] text-white flex items-center justify-center font-bold">
+            <div className={`flex items-center gap-4 ${isRTL ? 'flex-row-reverse' : 'flex-row'}`}>
+              <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-r from-[#8B5CF6] to-[#D946EF] text-white flex items-center justify-center font-bold shadow-md">
                 1
               </div>
               <div className="flex items-center gap-3 flex-1">
-                <Share className="w-6 h-6 text-gray-600" />
+                <Share className="w-6 h-6 text-gray-600 flex-shrink-0" />
                 <span className="text-base">
-                  {language === 'ar' ? 'انقر على زر المشاركة' : 'Tap the Share button'}
+                  {isRTL ? 'انقر على زر المشاركة' : 'Tap the Share button'}
                 </span>
               </div>
             </div>
 
-            <div className={`flex items-center gap-4 ${language === 'ar' ? 'flex-row-reverse' : 'flex-row'}`}>
-              <div className="flex-shrink-0 w-10 h-10 rounded-full bg-[#9B87F5] text-white flex items-center justify-center font-bold">
+            <div className={`flex items-center gap-4 ${isRTL ? 'flex-row-reverse' : 'flex-row'}`}>
+              <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-r from-[#D946EF] to-[#F97316] text-white flex items-center justify-center font-bold shadow-md">
                 2
               </div>
               <div className="flex items-center gap-3 flex-1">
-                <AddToHomeScreenIcon />
+                <AddToHomeScreenIcon className="text-gray-600" />
                 <span className="text-base">
-                  {language === 'ar' ? 'اختر "إضافة إلى الشاشة الرئيسية"' : 'Choose "Add to Home Screen"'}
+                  {isRTL ? 'اختر "إضافة إلى الشاشة الرئيسية"' : 'Choose "Add to Home Screen"'}
                 </span>
               </div>
             </div>
 
-            <div className={`flex items-center gap-4 ${language === 'ar' ? 'flex-row-reverse' : 'flex-row'}`}>
-              <div className="flex-shrink-0 w-10 h-10 rounded-full bg-[#9B87F5] text-white flex items-center justify-center font-bold">
+            <div className={`flex items-center gap-4 ${isRTL ? 'flex-row-reverse' : 'flex-row'}`}>
+              <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-r from-[#F97316] to-[#8B5CF6] text-white flex items-center justify-center font-bold shadow-md">
                 3
               </div>
               <div className="flex items-center gap-3 flex-1">
-                <Check className="w-6 h-6 text-gray-600" />
+                <Check className="w-6 h-6 text-gray-600 flex-shrink-0" />
                 <span className="text-base">
-                  {language === 'ar' ? 'انقر على "إضافة" للتأكيد' : 'Tap "Add" to confirm'}
+                  {isRTL ? 'انقر على "إضافة" للتأكيد' : 'Tap "Add" to confirm'}
                 </span>
+              </div>
+            </div>
+            
+            <div className="bg-gray-100 p-4 rounded-lg mt-4">
+              <div className={`flex items-center gap-2 ${isRTL ? 'flex-row-reverse' : 'flex-row'} text-sm text-gray-600`}>
+                <div className="flex-shrink-0 w-6 h-6 rounded-full bg-yellow-400 text-white flex items-center justify-center">
+                  <span className="text-xs">!</span>
+                </div>
+                <p>
+                  {isRTL 
+                    ? 'سيظهر تطبيق إكّـه على شاشتك الرئيسية مع كل مزايا التطبيق الكاملة!' 
+                    : 'Ekka will appear on your home screen with full app functionality!'}
+                </p>
               </div>
             </div>
           </div>
 
-          <SheetClose asChild>
-            <Button 
-              variant="outline" 
-              className="w-full mt-4"
-              onClick={onCancel}
-            >
-              {language === 'ar' ? 'إلغاء' : 'Cancel'}
-            </Button>
-          </SheetClose>
+          <SheetFooter className={`flex ${isRTL ? 'flex-row-reverse' : 'flex-row'} gap-4 mt-6`}>
+            <SheetClose asChild>
+              <Button 
+                variant="outline" 
+                className="flex-1 min-h-12"
+                onClick={onCancel}
+              >
+                {isRTL ? 'ليس الآن' : 'Not now'}
+              </Button>
+            </SheetClose>
+            <SheetClose asChild>
+              <Button 
+                className="flex-1 bg-gradient-to-r from-[#8B5CF6] to-[#D946EF] hover:opacity-90 min-h-12"
+              >
+                {isRTL ? 'فهمت' : 'Got it'}
+              </Button>
+            </SheetClose>
+          </SheetFooter>
         </div>
       </SheetContent>
     </Sheet>

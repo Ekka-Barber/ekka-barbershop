@@ -1,9 +1,9 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { usePWAInstall } from 'react-use-pwa-install';
 import { useLanguage } from "@/contexts/LanguageContext";
 import { trackButtonClick } from "@/utils/tiktokTracking";
-import { getPlatformType } from "@/services/platformDetection";
+import { getPlatformType, getInstallationStatus } from "@/services/platformDetection";
 import { useToast } from "@/components/ui/use-toast";
 import { InstallButton } from './InstallButton';
 import { IOSInstallGuide } from './IOSInstallGuide';
@@ -11,9 +11,24 @@ import { IOSInstallGuide } from './IOSInstallGuide';
 export const InstallAppPrompt = () => {
   const { t, language } = useLanguage();
   const [isInstalling, setIsInstalling] = useState(false);
+  const [isPromptDismissed, setIsPromptDismissed] = useState(false);
   const install = usePWAInstall();
   const { toast } = useToast();
   const platform = getPlatformType();
+  const installationStatus = getInstallationStatus();
+
+  // Check local storage for user's dismissal preference
+  useEffect(() => {
+    const dismissed = localStorage.getItem('app_install_dismissed');
+    if (dismissed === 'true') {
+      setIsPromptDismissed(true);
+    }
+  }, []);
+
+  const handleDismiss = () => {
+    setIsPromptDismissed(true);
+    localStorage.setItem('app_install_dismissed', 'true');
+  };
 
   const handleInstallClick = async () => {
     trackButtonClick({
@@ -41,6 +56,11 @@ export const InstallAppPrompt = () => {
     }
   };
 
+  // Don't show if already installed, on desktop, or if user dismissed
+  if (installationStatus === 'installed' || platform === 'desktop' || platform === 'unsupported' || isPromptDismissed) {
+    return null;
+  }
+
   const shouldShowPrompt = platform === 'ios' || (platform === 'android' && install);
 
   if (!shouldShowPrompt) {
@@ -52,6 +72,8 @@ export const InstallAppPrompt = () => {
       platform={platform as 'ios' | 'android'}
       language={language}
       onClick={handleInstallClick}
+      isInstalling={isInstalling}
+      onDismiss={handleDismiss}
     />
   );
 
@@ -59,7 +81,7 @@ export const InstallAppPrompt = () => {
     return (
       <IOSInstallGuide
         language={language}
-        onCancel={() => {}}
+        onCancel={handleDismiss}
         trigger={installButton}
       />
     );
