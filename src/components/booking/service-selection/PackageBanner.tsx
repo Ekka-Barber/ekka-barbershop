@@ -19,8 +19,17 @@ export const PackageBanner = ({
   onBuildPackage
 }: PackageBannerProps) => {
   const { language } = useLanguage();
+  const { dismiss } = useToast();
   
   if (!isVisible) return null;
+  
+  const handleBuildPackage = () => {
+    if (onBuildPackage) {
+      onBuildPackage();
+      // Dismiss any existing toasts when building package
+      dismiss();
+    }
+  };
   
   return (
     <div className="bg-[#FCF9F0] border border-[#e9d8a6] rounded-lg p-3 mb-4 animate-fade-in">
@@ -39,7 +48,7 @@ export const PackageBanner = ({
               variant="outline" 
               size="sm"
               className="h-8 bg-[#C4A484]/10 border-[#C4A484]/20 text-[#6f5b3e] hover:bg-[#C4A484]/20"
-              onClick={onBuildPackage}
+              onClick={handleBuildPackage}
             >
               <Sparkles className="h-3.5 w-3.5 mr-1.5 text-[#C4A484]" />
               {language === 'ar' ? 'بناء باقة' : 'Build Package'}

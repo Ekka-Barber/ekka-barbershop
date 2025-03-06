@@ -16,6 +16,11 @@ export const PackageBuilderFooter = ({
   onConfirm, 
   isConfirmDisabled 
 }: PackageBuilderFooterProps) => {
+  const handleConfirm = () => {
+    onConfirm();
+    // Button handling is now handled by onConfirm, no additional toast handling needed here
+  };
+
   return (
     <DialogFooter className="flex-col sm:flex-row gap-2 sm:gap-0 mt-6">
       <Button
@@ -26,7 +31,7 @@ export const PackageBuilderFooter = ({
         {language === 'ar' ? 'تخطي' : 'Skip'}
       </Button>
       <Button 
-        onClick={onConfirm}
+        onClick={handleConfirm}
         disabled={isConfirmDisabled}
       >
         {language === 'ar' ? 'تأكيد الباقة' : 'Confirm Package'}
