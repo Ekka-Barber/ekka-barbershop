@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
+import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import { Service } from '@/types/service';
 import { Switch } from "@/components/ui/switch";
 import { Card, CardContent } from "@/components/ui/card";
@@ -64,8 +64,8 @@ export const DraggableServiceGrid = ({
     );
   }
 
-  const handleDragEnd = (result: any) => {
-    // Dropped outside the list
+  const handleDragEnd = (result: DropResult) => {
+    // Dropped outside the list or no destination
     if (!result.destination) {
       return;
     }
@@ -75,6 +75,7 @@ export const DraggableServiceGrid = ({
       return;
     }
     
+    // Call the parent component's reorder function
     onReorderServices(result.source.index, result.destination.index);
   };
 
@@ -138,7 +139,7 @@ export const DraggableServiceGrid = ({
             Enabled Services <span className="text-xs">(drag to reorder)</span>
           </h4>
           <DragDropContext onDragEnd={handleDragEnd}>
-            <Droppable droppableId="enabledServices">
+            <Droppable droppableId="enabledServices" direction="horizontal">
               {(provided) => (
                 <div 
                   {...provided.droppableProps}
@@ -152,6 +153,7 @@ export const DraggableServiceGrid = ({
                           ref={provided.innerRef}
                           {...provided.draggableProps}
                           {...provided.dragHandleProps}
+                          className="flex"
                         >
                           {renderServiceCard(service, true, index)}
                         </div>

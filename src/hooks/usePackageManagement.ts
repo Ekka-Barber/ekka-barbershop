@@ -216,6 +216,8 @@ export const usePackageManagement = () => {
   // Reorder services mutation
   const reorderServicesMutation = useMutation({
     mutationFn: async ({ services }: { services: { service_id: string, display_order: number }[] }) => {
+      console.log("Reordering services:", services);
+      
       // Update multiple items in a batch
       const { error } = await supabase
         .from('package_available_services')
@@ -228,7 +230,10 @@ export const usePackageManagement = () => {
           { onConflict: 'service_id' }
         );
         
-      if (error) throw error;
+      if (error) {
+        console.error("Error in reordering:", error);
+        throw error;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['package_available_services'] });
@@ -293,6 +298,9 @@ export const usePackageManagement = () => {
       service_id: service.service_id,
       display_order: (index + 1) * 10
     }));
+    
+    console.log("Reordering from:", sourceIndex, "to:", destinationIndex);
+    console.log("Updated services:", updatedServices);
     
     // Send to server
     reorderServicesMutation.mutate({ services: updatedServices });
