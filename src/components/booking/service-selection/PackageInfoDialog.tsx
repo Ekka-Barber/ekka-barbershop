@@ -1,4 +1,3 @@
-
 import React from 'react';
 import {
   Dialog,
@@ -30,7 +29,7 @@ export const PackageInfoDialog = ({ isOpen, onClose, packageSettings }: PackageI
           </DialogTitle>
           <DialogDescription>
             {language === 'ar' 
-              ? 'احصل على خصومات عند إضافة خدمات إلى حجزك'
+              ? 'أصنع باقتك بنفسك، خدمات أكثر خصم أكبر 😉'
               : 'Get discounts when adding services to your booking'}
           </DialogDescription>
         </DialogHeader>
