@@ -76,22 +76,17 @@ export const PackageSummary = ({
           <span className="text-primary font-medium">
             {formattedDiscountPercentage}
           </span>
-          <div className={cn(
-            "flex items-center gap-1.5",
-            isRTL && "flex-row-reverse"
-          )}>
-            {isRTL ? (
-              <>
-                خصم الخدمات المضافة:
-                <Tag className="h-3.5 w-3.5" />
-              </>
-            ) : (
-              <>
-                <Tag className="h-3.5 w-3.5" />
-                Package Discount:
-              </>
-            )}
-          </div>
+          {isRTL ? (
+            <span className="flex items-center gap-1.5 flex-row-reverse">
+              خصم الخدمات المضافة:
+              <Tag className="h-3.5 w-3.5" />
+            </span>
+          ) : (
+            <span className="flex items-center gap-1.5">
+              <Tag className="h-3.5 w-3.5" />
+              Package Discount:
+            </span>
+          )}
         </div>
         
         {savings > 0 && (
