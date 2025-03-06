@@ -177,23 +177,22 @@ export const usePackageManagement = () => {
           
         if (error) throw error;
       } else {
-        // Get max display order to place new enabled service at the end
-        const { data: highestOrder } = await supabase
+        // Get max display order for new enabled service
+        const { data } = await supabase
           .from('package_available_services')
           .select('display_order')
           .order('display_order', { ascending: false })
-          .limit(1)
-          .single();
+          .limit(1);
           
-        const newDisplayOrder = (highestOrder?.display_order || 0) + 10;
+        const nextOrder = data && data.length > 0 ? data[0].display_order + 1 : 0;
         
-        // Insert
+        // Insert with sequential numbering
         const { error } = await supabase
           .from('package_available_services')
           .insert({
             service_id: serviceId,
             enabled,
-            display_order: newDisplayOrder
+            display_order: nextOrder
           });
           
         if (error) throw error;
@@ -212,7 +211,7 @@ export const usePackageManagement = () => {
     }
   });
 
-  // Update service order mutation - update one service at a time
+  // Update service order mutation 
   const updateServiceOrderMutation = useMutation({
     mutationFn: async ({ serviceId, newDisplayOrder }: { serviceId: string, newDisplayOrder: number }) => {
       console.log(`Updating service ${serviceId} to display order ${newDisplayOrder}`);
@@ -267,69 +266,42 @@ export const usePackageManagement = () => {
     });
   };
 
-  // Reorder services - refactored to match the approach in ServiceItem.tsx
+  // Reorder services - simplified like ServiceItem.tsx
   const reorderServices = async (sourceIndex: number, destinationIndex: number) => {
     // Only reorder if we have enabled services data
     if (!enabledServicesData || enabledServicesData.length === 0) return;
     
     console.log(`Reordering service from position ${sourceIndex} to ${destinationIndex}`);
     
-    // Get the service that's being moved
-    const movedService = enabledServicesData[sourceIndex];
-    
-    if (!movedService) {
-      console.error("Could not find service at source index:", sourceIndex);
-      return;
-    }
-    
-    // Get all services in their current order
+    // Create a new array from the enabled services sorted by display_order
     const sortedServices = [...enabledServicesData].sort((a, b) => a.display_order - b.display_order);
     
-    // Determine new display order based on destination position
-    let newDisplayOrder: number;
+    // Extract moved item and remove from array
+    const movedItem = sortedServices[sourceIndex];
+    const newOrder = [...sortedServices];
+    newOrder.splice(sourceIndex, 1);
     
-    if (destinationIndex === 0) {
-      // Moving to the start - use 10 as base, or half of first item if it exists
-      if (sortedServices.length > 0) {
-        newDisplayOrder = Math.floor(sortedServices[0].display_order / 2);
-        // Ensure minimum value of 10
-        newDisplayOrder = Math.max(newDisplayOrder, 10);
-      } else {
-        newDisplayOrder = 10;
-      }
-    } 
-    else if (destinationIndex >= sortedServices.length) {
-      // Moving to the end - use last item's display_order + 10
-      const lastItem = sortedServices[sortedServices.length - 1];
-      newDisplayOrder = lastItem ? lastItem.display_order + 10 : 10;
-    } 
-    else {
-      // Moving to the middle - get the items before and after the destination
-      const itemBefore = sortedServices[destinationIndex - 1];
-      const itemAfter = sortedServices[destinationIndex];
-      
-      // Calculate the average of the surrounding items' display orders
-      if (itemBefore && itemAfter) {
-        newDisplayOrder = Math.floor((itemBefore.display_order + itemAfter.display_order) / 2);
-      } else if (itemBefore) {
-        newDisplayOrder = itemBefore.display_order + 10;
-      } else if (itemAfter) {
-        newDisplayOrder = Math.max(Math.floor(itemAfter.display_order / 2), 10);
-      } else {
-        newDisplayOrder = 10;
-      }
-    }
+    // Insert at destination
+    newOrder.splice(destinationIndex, 0, movedItem);
     
-    console.log(`Moving service ${movedService.service_id} to display order ${newDisplayOrder}`);
+    // Calculate new display_order values with simple sequential numbering (0, 1, 2...)
+    const updates = newOrder.map((service, index) => ({
+      serviceId: service.service_id,
+      newDisplayOrder: index
+    }));
     
+    // Update each service with its new position
     try {
-      // Update the single item's display order
-      await updateServiceOrderMutation.mutateAsync({
-        serviceId: movedService.service_id,
-        newDisplayOrder
-      });
+      for (const update of updates) {
+        await updateServiceOrderMutation.mutateAsync(update);
+      }
     } catch (error) {
-      console.error("Failed to update service order:", error);
+      console.error("Failed to update service orders:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update service order.",
+        variant: "destructive",
+      });
     }
   };
 

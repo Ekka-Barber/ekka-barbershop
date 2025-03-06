@@ -134,19 +134,19 @@ export const DraggableServiceGrid = ({
         </div>
       )}
       
-      {/* Draggable enabled services */}
+      {/* Draggable enabled services - Display in a single column for better drag and drop */}
       {enabledServices.length > 0 && (
         <div>
           <h4 className="text-sm font-medium text-muted-foreground mb-3">
             Enabled Services <span className="text-xs">(drag to reorder)</span>
           </h4>
           <DragDropContext onDragEnd={handleDragEnd}>
-            <Droppable droppableId="enabledServices" direction="horizontal">
+            <Droppable droppableId="enabledServices" direction="vertical">
               {(provided) => (
                 <div 
                   {...provided.droppableProps}
                   ref={provided.innerRef}
-                  className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"
+                  className="flex flex-col space-y-2 max-w-2xl"
                 >
                   {enabledServices.map((service, index) => (
                     <Draggable key={service.id} draggableId={service.id} index={index}>
@@ -155,7 +155,7 @@ export const DraggableServiceGrid = ({
                           ref={provided.innerRef}
                           {...provided.draggableProps}
                           {...provided.dragHandleProps}
-                          className="flex"
+                          className="w-full"
                         >
                           {renderServiceCard(service, true)}
                         </div>
