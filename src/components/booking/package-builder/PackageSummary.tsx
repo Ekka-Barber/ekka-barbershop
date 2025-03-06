@@ -27,55 +27,109 @@ export const PackageSummary = ({
       
       <div className="space-y-2">
         <div className="flex justify-between text-sm">
-          <span className={cn("text-muted-foreground", isRTL && "order-last")}>
-            {isRTL ? 'المجموع الأصلي:' : 'Original Total:'}
-          </span>
-          <PriceDisplay 
-            price={originalTotal} 
-            language={language as 'en' | 'ar'} 
-            size="sm"
-            className={isRTL && "order-first"}
-          />
+          {isRTL ? (
+            <>
+              <PriceDisplay 
+                price={originalTotal} 
+                language={language as 'en' | 'ar'} 
+                size="sm"
+              />
+              <span className="text-muted-foreground">
+                المجموع الأصلي:
+              </span>
+            </>
+          ) : (
+            <>
+              <span className="text-muted-foreground">
+                Original Total:
+              </span>
+              <PriceDisplay 
+                price={originalTotal} 
+                language={language as 'en' | 'ar'} 
+                size="sm"
+              />
+            </>
+          )}
         </div>
         
         {savings > 0 && (
           <div className="flex justify-between text-sm text-green-600">
-            <span className={cn("flex items-center", isRTL && "order-last flex-row-reverse")}>
-              <Package className={cn("h-3.5 w-3.5", isRTL ? "ml-1.5" : "mr-1.5")} />
-              {isRTL ? 'توفير الباقة:' : 'Package Savings:'}
-            </span>
-            <span className={cn("flex items-center", isRTL && "order-first")}>
-              {isRTL && '-'} 
-              <PriceDisplay 
-                price={savings} 
-                language={language as 'en' | 'ar'} 
-                size="sm"
-                className="text-green-600"
-              />
-              {!isRTL && '-'}
-            </span>
+            {isRTL ? (
+              <>
+                <span className="flex items-center">
+                  {'-'} 
+                  <PriceDisplay 
+                    price={savings} 
+                    language={language as 'en' | 'ar'} 
+                    size="sm"
+                    className="text-green-600"
+                  />
+                </span>
+                <span className="flex items-center flex-row-reverse">
+                  <Package className="h-3.5 w-3.5 ml-1.5" />
+                  توفير الباقة:
+                </span>
+              </>
+            ) : (
+              <>
+                <span className="flex items-center">
+                  <Package className="h-3.5 w-3.5 mr-1.5" />
+                  Package Savings:
+                </span>
+                <span className="flex items-center">
+                  <PriceDisplay 
+                    price={savings} 
+                    language={language as 'en' | 'ar'} 
+                    size="sm"
+                    className="text-green-600"
+                  />
+                  {'-'}
+                </span>
+              </>
+            )}
           </div>
         )}
         
         <Separator className="my-2" />
         
         <div className="flex justify-between font-medium">
-          <span className={isRTL && "order-last"}>
-            {isRTL ? 'المجموع النهائي:' : 'Final Total:'}
-          </span>
-          <motion.div
-            initial={{ scale: 1 }}
-            animate={{ scale: [1, 1.05, 1] }}
-            transition={{ duration: 0.3 }}
-            className={isRTL && "order-first"}
-          >
-            <PriceDisplay 
-              price={discountedTotal} 
-              language={language as 'en' | 'ar'} 
-              size="base"
-              className="font-medium"
-            />
-          </motion.div>
+          {isRTL ? (
+            <>
+              <motion.div
+                initial={{ scale: 1 }}
+                animate={{ scale: [1, 1.05, 1] }}
+                transition={{ duration: 0.3 }}
+              >
+                <PriceDisplay 
+                  price={discountedTotal} 
+                  language={language as 'en' | 'ar'} 
+                  size="base"
+                  className="font-medium"
+                />
+              </motion.div>
+              <span>
+                المجموع النهائي:
+              </span>
+            </>
+          ) : (
+            <>
+              <span>
+                Final Total:
+              </span>
+              <motion.div
+                initial={{ scale: 1 }}
+                animate={{ scale: [1, 1.05, 1] }}
+                transition={{ duration: 0.3 }}
+              >
+                <PriceDisplay 
+                  price={discountedTotal} 
+                  language={language as 'en' | 'ar'} 
+                  size="base"
+                  className="font-medium"
+                />
+              </motion.div>
+            </>
+          )}
         </div>
       </div>
       
