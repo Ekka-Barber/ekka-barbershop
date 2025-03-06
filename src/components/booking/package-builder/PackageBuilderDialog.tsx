@@ -1,22 +1,20 @@
 
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
 } from "@/components/ui/dialog";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { Button } from "@/components/ui/button";
 import { PackageSettings } from '@/types/admin';
 import { Service, SelectedService } from '@/types/service';
+import { useToast } from "@/hooks/use-toast";
+import { transformServiceToSelected } from '@/utils/serviceTransformation';
+import { PackageBuilderHeader } from './PackageBuilderHeader';
+import { BaseServiceDisplay } from './BaseServiceDisplay';
 import { PackageServiceList } from './PackageServiceList';
 import { PackageSummary } from './PackageSummary';
-import { useToast } from "@/hooks/use-toast";
-import { X } from 'lucide-react';
-import { transformServiceToSelected } from '@/utils/serviceTransformation';
+import { PackageBuilderFooter } from './PackageBuilderFooter';
+import { usePackageCalculation } from '@/hooks/usePackageCalculation';
 
 interface PackageBuilderDialogProps {
   isOpen: boolean;
@@ -53,42 +51,8 @@ export const PackageBuilderDialog = ({
     }
   }, [isOpen, baseService, availableServices, currentlySelectedServices]);
   
-  // Calculate discounts based on the number of selected add-ons
-  const discountPercentage = useMemo(() => {
-    if (!packageSettings) return 0;
-    
-    const count = selectedAddOns.length;
-    if (count >= 3) {
-      return packageSettings.discountTiers.threeOrMore;
-    } else if (count === 2) {
-      return packageSettings.discountTiers.twoServices;
-    } else if (count === 1) {
-      return packageSettings.discountTiers.oneService;
-    }
-    return 0;
-  }, [selectedAddOns.length, packageSettings]);
-  
-  // Calculate total price and savings
-  const calculations = useMemo(() => {
-    // Start with base service if present
-    let originalTotal = baseService?.price || 0;
-    let discountedTotal = originalTotal;
-    
-    // Add all selected add-on services
-    selectedAddOns.forEach(service => {
-      originalTotal += service.price;
-      // Apply discount to add-ons
-      const discountedPrice = service.price * (1 - discountPercentage / 100);
-      discountedTotal += Math.floor(discountedPrice);
-    });
-    
-    return {
-      originalTotal,
-      discountedTotal,
-      savings: originalTotal - discountedTotal,
-      discountPercentage
-    };
-  }, [baseService, selectedAddOns, discountPercentage]);
+  // Use the package calculation hook
+  const calculations = usePackageCalculation(selectedAddOns, packageSettings, baseService);
   
   // Toggle service selection
   const toggleService = (service: Service) => {
@@ -132,14 +96,14 @@ export const PackageBuilderDialog = ({
     // Add selected add-ons with discount info
     selectedAddOns.forEach(service => {
       const originalPrice = service.price;
-      const discountedPrice = Math.floor(originalPrice * (1 - discountPercentage / 100));
+      const discountedPrice = Math.floor(originalPrice * (1 - calculations.discountPercentage / 100));
       
       // Create a SelectedService object with discount information
       const selectedService: SelectedService = {
         ...service,
         price: discountedPrice,
         originalPrice: originalPrice,
-        discountPercentage: discountPercentage,
+        discountPercentage: calculations.discountPercentage,
         isUpsellItem: false
       };
       
@@ -152,45 +116,16 @@ export const PackageBuilderDialog = ({
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>
-            {language === 'ar' ? 'بناء باقتك' : 'Build Your Package'}
-          </DialogTitle>
-          <DialogDescription>
-            {language === 'ar' 
-              ? 'أضف خدمات إضافية للحصول على خصومات'
-              : 'Add additional services to get discounts'}
-          </DialogDescription>
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="absolute right-4 top-4" 
-            onClick={onClose}
-          >
-            <X className="h-4 w-4" />
-          </Button>
-        </DialogHeader>
+        <PackageBuilderHeader language={language} onClose={onClose} />
         
         <div className="mt-2 space-y-4">
-          {baseService && (
-            <div className="bg-muted/30 p-3 rounded-md border">
-              <div className="text-sm font-medium mb-1">
-                {language === 'ar' ? 'الخدمة الأساسية:' : 'Base Service:'}
-              </div>
-              <div className="flex justify-between items-center">
-                <span>{language === 'ar' ? baseService.name_ar : baseService.name_en}</span>
-                <span className="text-sm font-medium">
-                  {language === 'ar' ? `${baseService.price} ر.س` : `SAR ${baseService.price}`}
-                </span>
-              </div>
-            </div>
-          )}
+          <BaseServiceDisplay baseService={baseService} language={language} />
           
           <PackageServiceList 
             services={availableServices}
             selectedServices={selectedAddOns}
             onToggleService={toggleService}
-            discountPercentage={discountPercentage}
+            discountPercentage={calculations.discountPercentage}
             language={language}
           />
           
@@ -202,21 +137,12 @@ export const PackageBuilderDialog = ({
           />
         </div>
         
-        <DialogFooter className="flex-col sm:flex-row gap-2 sm:gap-0 mt-6">
-          <Button
-            variant="outline"
-            onClick={onClose}
-            className="sm:mr-2"
-          >
-            {language === 'ar' ? 'تخطي' : 'Skip'}
-          </Button>
-          <Button 
-            onClick={handleConfirm}
-            disabled={selectedAddOns.length === 0 && !baseService}
-          >
-            {language === 'ar' ? 'تأكيد الباقة' : 'Confirm Package'}
-          </Button>
-        </DialogFooter>
+        <PackageBuilderFooter 
+          language={language}
+          onClose={onClose}
+          onConfirm={handleConfirm}
+          isConfirmDisabled={selectedAddOns.length === 0 && !baseService}
+        />
       </DialogContent>
     </Dialog>
   );
