@@ -38,6 +38,7 @@ export const PackageBuilderDialog = ({
   const { language } = useLanguage();
   const { toast } = useToast();
   const [selectedAddOns, setSelectedAddOns] = useState<Service[]>([]);
+  const [showConfirmation, setShowConfirmation] = useState(false);
   
   // Reset selected add-ons whenever the dialog opens or currently selected services change
   useEffect(() => {
@@ -61,6 +62,41 @@ export const PackageBuilderDialog = ({
   
   const calculations = usePackageCalculation(selectedAddOns, packageSettings, baseService);
   
+  // Calculate next tier threshold
+  const calculateNextTierThreshold = () => {
+    if (!packageSettings) return undefined;
+    
+    const { discountTiers } = packageSettings;
+    const addOnCount = selectedAddOns.length;
+    
+    if (addOnCount === 0) {
+      return { 
+        servicesNeeded: 1, 
+        newPercentage: discountTiers.oneService 
+      };
+    } else if (addOnCount === 1) {
+      return { 
+        servicesNeeded: 1, 
+        newPercentage: discountTiers.twoServices 
+      };
+    } else if (addOnCount === 2) {
+      return { 
+        servicesNeeded: 1, 
+        newPercentage: discountTiers.threeOrMore 
+      };
+    }
+    
+    return undefined;
+  };
+  
+  const nextTierThreshold = calculateNextTierThreshold();
+  
+  // Calculate total duration
+  const totalDuration = [baseService, ...selectedAddOns].reduce(
+    (total, service) => total + (service?.duration || 0),
+    0
+  );
+  
   const toggleService = (service: Service) => {
     setSelectedAddOns(prev => {
       const isSelected = prev.some(s => s.id === service.id);
@@ -77,6 +113,12 @@ export const PackageBuilderDialog = ({
           variant: "destructive"
         });
         return prev;
+      }
+      
+      // Show a brief confirmation animation when service is added
+      if (!isSelected) {
+        setShowConfirmation(true);
+        setTimeout(() => setShowConfirmation(false), 500);
       }
       
       if (isSelected) {
@@ -150,7 +192,7 @@ export const PackageBuilderDialog = ({
   return (
     <Dialog open={isOpen} onOpenChange={() => {}}>
       <DialogContent 
-        className="sm:max-w-md" 
+        className="sm:max-w-md overflow-visible" 
         onPointerDownOutside={(e) => e.preventDefault()}
         showCloseButton={false}
         aria-describedby="package-builder-description"
@@ -179,6 +221,9 @@ export const PackageBuilderDialog = ({
             discountedTotal={calculations.discountedTotal}
             savings={calculations.savings}
             language={language}
+            discountPercentage={calculations.discountPercentage}
+            nextTierThreshold={nextTierThreshold}
+            totalDuration={totalDuration}
           />
         </div>
         
