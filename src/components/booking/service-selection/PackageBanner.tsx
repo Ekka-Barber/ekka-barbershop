@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Package, Info, Sparkles } from 'lucide-react';
+import { Package, Info } from 'lucide-react';
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
@@ -23,14 +23,6 @@ export const PackageBanner = ({
   
   if (!isVisible) return null;
   
-  const handleBuildPackage = () => {
-    if (onBuildPackage) {
-      onBuildPackage();
-      // Dismiss any existing toasts when building package
-      dismiss();
-    }
-  };
-  
   return (
     <div className="bg-[#FCF9F0] border border-[#e9d8a6] rounded-lg p-3 mb-4 animate-fade-in">
       <div className="flex items-center gap-2 text-sm">
@@ -43,17 +35,6 @@ export const PackageBanner = ({
           </p>
         </div>
         <div className="flex items-center gap-1">
-          {hasBaseService && onBuildPackage && (
-            <Button 
-              variant="outline" 
-              size="sm"
-              className="h-8 bg-[#C4A484]/10 border-[#C4A484]/20 text-[#6f5b3e] hover:bg-[#C4A484]/20"
-              onClick={handleBuildPackage}
-            >
-              <Sparkles className="h-3.5 w-3.5 mr-1.5 text-[#C4A484]" />
-              {language === 'ar' ? 'بناء باقة' : 'Build Package'}
-            </Button>
-          )}
           <Button 
             variant="ghost" 
             size="icon" 
