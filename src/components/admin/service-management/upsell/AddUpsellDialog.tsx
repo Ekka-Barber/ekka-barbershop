@@ -1,6 +1,6 @@
 
 import { useState, ReactNode } from 'react';
-import { Plus, X } from 'lucide-react';
+import { Plus, X, Info, ArrowRight } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
@@ -10,6 +10,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { Service } from '@/types/service';
 import { UseMutationResult } from '@tanstack/react-query';
 import { AddUpsellFormState, UpsellItem } from './types';
+import { Separator } from '@/components/ui/separator';
 
 interface AddUpsellDialogProps {
   children: ReactNode;
@@ -143,19 +144,31 @@ export const AddUpsellDialog = ({
       <DialogTrigger asChild>
         {children}
       </DialogTrigger>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Create New Upsell Relationship</DialogTitle>
+          <DialogTitle className="text-xl flex items-center gap-2">
+            Create New Upsell Relationship
+          </DialogTitle>
+          <p className="text-sm text-muted-foreground mt-1">
+            Upsell relationships allow you to offer discounted services when purchased with a main service.
+          </p>
         </DialogHeader>
         
-        <div className="space-y-4 py-4">
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Main Service</label>
+        <div className="space-y-6 py-4">
+          {/* Step 1: Main Service Selection */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <label className="text-sm font-medium flex items-center">
+                <span className="flex items-center justify-center w-5 h-5 bg-primary text-primary-foreground rounded-full text-xs mr-2">1</span>
+                Select Main Service
+              </label>
+              <div className="text-xs text-muted-foreground">Required</div>
+            </div>
             <Select
               value={newUpsell.mainServiceId}
               onValueChange={(value) => setNewUpsell({...newUpsell, mainServiceId: value})}
             >
-              <SelectTrigger>
+              <SelectTrigger className="w-full">
                 <SelectValue placeholder="Select main service" />
               </SelectTrigger>
               <SelectContent className="max-h-[300px]">
@@ -166,83 +179,113 @@ export const AddUpsellDialog = ({
                 ))}
               </SelectContent>
             </Select>
+            <div className="flex items-start text-xs text-muted-foreground bg-muted/30 p-2 rounded border border-muted/50">
+              <Info className="h-4 w-4 mr-2 mt-0.5 flex-shrink-0" />
+              <p>This is the primary service that customers will purchase first.</p>
+            </div>
           </div>
           
-          <div className="space-y-3">
-            <div className="flex justify-between items-center">
-              <label className="text-sm font-medium">Upsell Services</label>
+          <Separator />
+          
+          {/* Step 2: Upsell Services */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <label className="text-sm font-medium flex items-center">
+                <span className="flex items-center justify-center w-5 h-5 bg-primary text-primary-foreground rounded-full text-xs mr-2">2</span>
+                Add Upsell Services
+              </label>
               <Button 
                 type="button" 
                 size="sm" 
-                variant="ghost" 
-                className="h-8 px-2"
+                variant="outline" 
+                className="h-8 px-2 text-xs"
                 onClick={addUpsellItem}
               >
-                <Plus className="h-4 w-4 mr-1" />
+                <Plus className="h-3.5 w-3.5 mr-1" />
                 Add Another
               </Button>
             </div>
             
-            {newUpsell.upsellItems.map((item, index) => (
-              <div key={index} className="flex gap-2 items-start">
-                <div className="flex-1">
-                  <Select
-                    value={item.upsellServiceId}
-                    onValueChange={(value) => updateUpsellItem(index, 'upsellServiceId', value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select upsell service" />
-                    </SelectTrigger>
-                    <SelectContent className="max-h-[300px]">
-                      {getAvailableServices(index).map(service => (
-                        <SelectItem key={`upsell-${service.id}-${index}`} value={service.id}>
-                          {language === 'ar' ? service.name_ar : service.name_en}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div className="w-16">
-                  <div className="flex items-center">
-                    <Input
-                      type="number"
-                      min={0}
-                      max={100}
-                      value={item.discountPercentage}
-                      onChange={(e) => updateUpsellItem(
-                        index, 
-                        'discountPercentage', 
-                        parseInt(e.target.value) || 0
+            <div className="space-y-3">
+              {newUpsell.upsellItems.map((item, index) => (
+                <div key={index} className="relative bg-muted/10 p-3 rounded border border-muted/30">
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <label className="text-sm font-medium">Upsell Service {index + 1}</label>
+                      {newUpsell.upsellItems.length > 1 && (
+                        <Button 
+                          type="button" 
+                          variant="ghost" 
+                          size="icon"
+                          className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                          onClick={() => removeUpsellItem(index)}
+                        >
+                          <X className="h-4 w-4" />
+                          <span className="sr-only">Remove</span>
+                        </Button>
                       )}
-                      className="h-10"
-                    />
-                    <span className="ml-1">%</span>
+                    </div>
+                    
+                    <Select
+                      value={item.upsellServiceId}
+                      onValueChange={(value) => updateUpsellItem(index, 'upsellServiceId', value)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select upsell service" />
+                      </SelectTrigger>
+                      <SelectContent className="max-h-[300px]">
+                        {getAvailableServices(index).map(service => (
+                          <SelectItem key={`upsell-${service.id}-${index}`} value={service.id}>
+                            {language === 'ar' ? service.name_ar : service.name_en}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    
+                    <div className="space-y-1">
+                      <label className="text-xs font-medium text-muted-foreground">
+                        Discount Percentage
+                      </label>
+                      <div className="flex items-center">
+                        <Input
+                          type="number"
+                          min={0}
+                          max={100}
+                          value={item.discountPercentage}
+                          onChange={(e) => updateUpsellItem(
+                            index, 
+                            'discountPercentage', 
+                            parseInt(e.target.value) || 0
+                          )}
+                          className="h-9"
+                        />
+                        <span className="ml-2 text-sm">%</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
-                
-                {newUpsell.upsellItems.length > 1 && (
-                  <Button 
-                    type="button" 
-                    variant="ghost" 
-                    size="icon"
-                    className="h-10 w-10 text-red-500 hover:text-red-600 hover:bg-red-50"
-                    onClick={() => removeUpsellItem(index)}
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                )}
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
         
-        <DialogFooter>
+        <DialogFooter className="flex items-center justify-end gap-2">
           <Button variant="outline" onClick={() => handleOpenChange(false)}>
             Cancel
           </Button>
-          <Button onClick={handleAddUpsell} disabled={addUpsellMutation.isPending}>
-            {addUpsellMutation.isPending ? 'Adding...' : 'Add Relationship'}
+          <Button 
+            onClick={handleAddUpsell} 
+            disabled={addUpsellMutation.isPending}
+            className="flex items-center"
+          >
+            {addUpsellMutation.isPending ? (
+              'Adding...'
+            ) : (
+              <>
+                Create Relationship
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </>
+            )}
           </Button>
         </DialogFooter>
       </DialogContent>
