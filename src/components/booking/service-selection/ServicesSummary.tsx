@@ -4,7 +4,7 @@ import { MetricsGroup } from "./summary/MetricsGroup";
 import { ActionButton } from "./summary/ActionButton";
 import { useMemo } from "react";
 import { PackageSettings } from "@/types/admin";
-import { PackageSavings } from "./summary/PackageSavings";
+import { PackageSavingsDrawer } from "./summary/PackageSavingsDrawer";
 
 interface ServicesSummaryProps {
   selectedServices: Array<{
@@ -53,7 +53,7 @@ export const ServicesSummary = ({
   return (
     <>
       {packageEnabled && packageSavings > 0 && (
-        <PackageSavings 
+        <PackageSavingsDrawer 
           savings={packageSavings}
           language={language}
         />
