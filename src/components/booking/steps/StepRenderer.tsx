@@ -77,7 +77,6 @@ export const StepRenderer: React.FC<StepRendererProps> = ({
           <DateTimeSelection
             selectedDate={selectedDate}
             onDateSelect={setSelectedDate}
-            services={selectedServices}
           />
         );
       case 'barber':
@@ -90,8 +89,6 @@ export const StepRenderer: React.FC<StepRendererProps> = ({
             selectedDate={selectedDate}
             selectedTime={selectedTime}
             onTimeSelect={setSelectedTime}
-            workingHours={employeeWorkingHours}
-            requiredDuration={selectedServices.reduce((total, service) => total + (service.duration || 0), 0)}
           />
         );
       case 'details':
