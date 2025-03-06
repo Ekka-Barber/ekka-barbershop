@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Service, SelectedService } from '@/types/service';
 import { useToast } from "@/hooks/use-toast";
@@ -12,14 +11,13 @@ export const useServiceSelection = () => {
   const { toast } = useToast();
   const { language } = useLanguage();
   
-  // Use the package discount hook with enhanced discount tier tracking
+  // Use the package discount hook with simplified discount tier calculation
   const { 
     BASE_SERVICE_ID, 
     packageEnabled, 
     applyPackageDiscounts,
     setForcePackageEnabled,
-    currentDiscountTier,
-    previousDiscountTier
+    currentDiscountTier
   } = usePackageDiscount(selectedServices, isUpdatingPackage);
 
   /**
@@ -245,10 +243,10 @@ export const useServiceSelection = () => {
     }
   }, [BASE_SERVICE_ID, selectedServices, language, toast, setForcePackageEnabled]);
 
-  // Apply package discounts if applicable, with tracking for discount tier transitions
+  // Apply package discounts if applicable, with simplified tier calculation
   useEffect(() => {
     if (packageEnabled && selectedServices.length > 0 && !isUpdatingPackage) {
-      console.log(`Package enabled with ${selectedServices.length} services. Current tier: ${currentDiscountTier}%, Previous tier: ${previousDiscountTier}%`);
+      console.log(`Package enabled with ${selectedServices.length} services. Current tier: ${currentDiscountTier}%`);
       
       const discountedServices = applyPackageDiscounts(selectedServices);
       
@@ -267,7 +265,7 @@ export const useServiceSelection = () => {
         setSelectedServices(discountedServices);
       }
     }
-  }, [packageEnabled, selectedServices.length, isUpdatingPackage, currentDiscountTier, previousDiscountTier, applyPackageDiscounts]);
+  }, [packageEnabled, selectedServices.length, isUpdatingPackage, currentDiscountTier, applyPackageDiscounts]);
 
   return {
     selectedServices,

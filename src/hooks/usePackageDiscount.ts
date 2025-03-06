@@ -15,7 +15,6 @@ export const usePackageDiscount = (
 ) => {
   const [packageEnabled, setPackageEnabled] = useState(false);
   const [forcePackageEnabled, setForcePackageEnabled] = useState(forceEnabled);
-  const [previousDiscountTier, setPreviousDiscountTier] = useState<number>(0);
   
   // Fetch package settings
   const { data: packageSettings } = useQuery({
@@ -102,16 +101,7 @@ export const usePackageDiscount = (
     return getDiscountPercentage(addOnServices.length);
   }, [addOnServices.length, packageSettings]);
 
-  // Track discount tier changes
-  useEffect(() => {
-    // Only update the previous tier when moving to a higher discount tier
-    if (getCurrentDiscountTier > previousDiscountTier) {
-      console.log(`Updating discount tier from ${previousDiscountTier}% to ${getCurrentDiscountTier}%`);
-      setPreviousDiscountTier(getCurrentDiscountTier);
-    }
-  }, [getCurrentDiscountTier, previousDiscountTier]);
-
-  // Apply discounts to services with improved handling for tier transitions
+  // Apply discounts to services with simplified tier calculation
   const applyPackageDiscounts = (services: SelectedService[]): SelectedService[] => {
     if ((!hasBaseService && !forcePackageEnabled) || !packageSettings) {
       return services;
@@ -120,8 +110,8 @@ export const usePackageDiscount = (
     const addonCount = addOnServices.length;
     if (addonCount === 0) return services;
 
-    // Use the higher of current or previous discount tier to prevent discount reduction
-    const discountPercentage = Math.max(getCurrentDiscountTier, previousDiscountTier);
+    // Use the current discount tier based on the number of add-ons
+    const discountPercentage = getCurrentDiscountTier;
     
     console.log(`Applying ${discountPercentage}% discount based on ${addonCount} add-on services`);
     
@@ -133,27 +123,19 @@ export const usePackageDiscount = (
         return service;
       }
       
-      // If the service already has a package discount, we need to be careful about updates
-      const hasExistingDiscount = service.isPackageAddOn && service.originalPrice;
-      
-      // Check if service needs to be updated with a new discount percentage
-      const needsDiscountUpdate = (!hasExistingDiscount) || 
-                                 (hasExistingDiscount && service.discountPercentage !== discountPercentage);
-      
-      // Skip services that aren't in the enabled package services list and don't need updates
+      // Check if service is in the enabled package services list
       if (enabledPackageServices && 
-          !enabledPackageServices.some(s => s.id === service.id) && 
-          !needsDiscountUpdate) {
+          !enabledPackageServices.some(s => s.id === service.id)) {
         return service;
       }
 
-      // For already discounted services, ensure we use the ORIGINAL price, not the current price
+      // For services with existing discounts, ensure we use the original price
       const originalPrice = service.originalPrice || service.price;
       
-      // Apply discount consistently from original price
+      // Apply discount from original price
       const discountedPrice = Math.floor(originalPrice * (1 - discountPercentage / 100));
       
-      // Create package service with consistent discount
+      // Create package service with updated discount
       return {
         ...service,
         isPackageAddOn: true,
@@ -174,7 +156,7 @@ export const usePackageDiscount = (
     }, 0);
   };
 
-  // Track base service selection with improved handling
+  // Track base service selection
   useEffect(() => {
     // Force package mode to stay enabled during updates if forcePackageEnabled is true
     if (forcePackageEnabled) {
@@ -195,8 +177,6 @@ export const usePackageDiscount = (
     if (!hasBaseService && packageEnabled) {
       console.log('Package mode disabled - base service removed');
       setPackageEnabled(false);
-      // Reset the discount tier when package mode is disabled
-      setPreviousDiscountTier(0);
     }
   }, [hasBaseService, packageEnabled, forcePackageEnabled]);
 
@@ -211,7 +191,6 @@ export const usePackageDiscount = (
     calculatePackageSavings,
     getDiscountPercentage,
     setForcePackageEnabled,
-    currentDiscountTier: getCurrentDiscountTier,
-    previousDiscountTier
+    currentDiscountTier: getCurrentDiscountTier
   };
 };

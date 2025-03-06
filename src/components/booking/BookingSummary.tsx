@@ -1,3 +1,4 @@
+
 import { useLanguage } from "@/contexts/LanguageContext";
 import { format } from "date-fns";
 import { Slash, X, Timer, Calendar, User, Package } from "lucide-react";
@@ -90,7 +91,8 @@ export const BookingSummary = ({
       transition={{ duration: 0.2 }}
     >
       <div className="flex items-center gap-2">
-        {onRemoveService && (
+        {/* Only show remove button for package add-ons, upsell items, or if it's not the base service */}
+        {onRemoveService && (service.isPackageAddOn || service.isUpsellItem || service.id !== BASE_SERVICE_ID) && (
           <motion.button
             onClick={() => handleServiceRemove(service)}
             className={cn(
