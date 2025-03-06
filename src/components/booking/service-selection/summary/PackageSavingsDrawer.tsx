@@ -20,35 +20,35 @@ export const PackageSavingsDrawer = ({ savings, language }: PackageSavingsDrawer
   if (savings <= 0) return null;
   
   const isRtl = language === 'ar';
-  // Changed icons to Up/Down for 90-degree rotated handle
-  const TriggerIcon = isRtl ? ChevronDown : ChevronUp;
+  // Using side icons for left edge position
+  const TriggerIcon = isRtl ? ChevronRight : ChevronLeft;
   
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
-      {/* The "tongue" handle that sticks out from the edge - now at the bottom */}
+      {/* The "tongue" handle that sticks out from the left edge */}
       <SheetTrigger asChild>
         <motion.div
-          className={`fixed z-50 bottom-0 left-1/2 -translate-x-1/2
-          bg-gradient-to-t from-[#F2FCE2] to-[#E7F7D4] cursor-pointer
-          px-5 py-2 shadow-md border border-green-200 rounded-t-xl
-          flex flex-col items-center gap-1`}
+          className={`fixed z-50 left-0 top-1/2 -translate-y-1/2
+          bg-gradient-to-r from-[#F2FCE2] to-[#E7F7D4] cursor-pointer
+          px-4 py-3 shadow-md border border-green-200 rounded-r-xl
+          flex items-center gap-2`}
           whileHover={{ 
             scale: 1.03,
-            y: -2
+            x: 3
           }}
           layout
         >
-          <TriggerIcon className="h-4 w-4 text-green-700" />
           <span className="text-sm font-medium text-green-700 whitespace-nowrap">
             {isRtl ? 'تدري كم وفّرت ؟' : 'Your savings'}
           </span>
+          <TriggerIcon className="h-4 w-4 text-green-700" />
         </motion.div>
       </SheetTrigger>
       
-      {/* The drawer content - now coming from bottom and sized to fit content */}
+      {/* The drawer content - coming from left side */}
       <SheetContent 
-        side="bottom"
-        className="bg-[#F8FFEE] border-green-200 p-0 rounded-t-xl mx-auto max-w-md"
+        side="left"
+        className="bg-[#F8FFEE] border-green-200 p-0 rounded-r-xl mx-auto max-w-md"
       >
         <div className="p-5 space-y-4">
           <div className="flex items-center justify-center gap-2 mb-2">
