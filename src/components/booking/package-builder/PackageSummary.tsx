@@ -105,7 +105,7 @@ export const PackageSummary = ({
       {savings > 0 && (
         <div className="bg-green-50 border border-green-100 rounded-md p-2 text-sm text-center text-green-700">
           {isRTL 
-            ? 'ستوفر ' 
+            ? 'مجموع ما ستوفره (' 
             : "You'll save "}
           <PriceDisplay 
             price={savings} 
@@ -114,7 +114,7 @@ export const PackageSummary = ({
             className="text-green-700 font-medium inline-flex"
           />
           {isRTL 
-            ? ' مع هذه الباقة!' 
+            ? ') مع هذه الباقة 😍' 
             : ' with this package!'}
         </div>
       )}

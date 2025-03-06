@@ -1,3 +1,4 @@
+
 import { Translations } from "@/types/language";
 
 export const translations: Translations = {
@@ -160,5 +161,6 @@ export const translations: Translations = {
     'install.guide.title': 'تثبيت التطبيق',
     'midnight': 'منتصف الليل',
     'next.day': 'اليوم التالي',
+    'package.savings': 'مجموع ما ستوفره مع هذه الباقة 😍'
   }
 };
