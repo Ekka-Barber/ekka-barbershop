@@ -213,37 +213,26 @@ export const usePackageManagement = () => {
     }
   });
 
-  // Reorder services mutation
-  const reorderServicesMutation = useMutation({
-    mutationFn: async ({ services }: { services: { service_id: string, display_order: number }[] }) => {
-      console.log("Reordering services:", services);
+  // Update service order mutation - update one service at a time
+  const updateServiceOrderMutation = useMutation({
+    mutationFn: async ({ serviceId, newDisplayOrder }: { serviceId: string, newDisplayOrder: number }) => {
+      console.log(`Updating service ${serviceId} to display order ${newDisplayOrder}`);
       
-      // Update multiple items in a batch
       const { error } = await supabase
         .from('package_available_services')
-        .upsert(
-          services.map(s => ({
-            service_id: s.service_id,
-            display_order: s.display_order,
-            enabled: true
-          })),
-          { onConflict: 'service_id' }
-        );
+        .update({ display_order: newDisplayOrder })
+        .eq('service_id', serviceId);
         
       if (error) {
-        console.error("Error in reordering:", error);
+        console.error("Error updating service order:", error);
         throw error;
       }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['package_available_services'] });
-      toast({
-        title: "Success",
-        description: "Service order updated successfully.",
-      });
     },
     onError: (error) => {
-      console.error('Error reordering services:', error);
+      console.error('Error updating service order:', error);
       toast({
         title: "Error",
         description: "Failed to update service order.",
@@ -279,31 +268,46 @@ export const usePackageManagement = () => {
     });
   };
 
-  // Reorder services
+  // Reorder services - simplified to match services tab approach
   const reorderServices = (sourceIndex: number, destinationIndex: number) => {
     // Only reorder if we have enabled services data
     if (!enabledServicesData || enabledServicesData.length === 0) return;
     
-    // Create a copy of enabled services
-    const reorderedServices = [...enabledServicesData];
+    console.log(`Reordering service from position ${sourceIndex} to ${destinationIndex}`);
     
-    // Remove the item from its original position
-    const [movedItem] = reorderedServices.splice(sourceIndex, 1);
+    // Get the service that's being moved
+    const movedService = enabledServicesData[sourceIndex];
     
-    // Insert the item at its new position
-    reorderedServices.splice(destinationIndex, 0, movedItem);
+    if (!movedService) {
+      console.error("Could not find service at source index:", sourceIndex);
+      return;
+    }
     
-    // Update display_order values (use increments of 10 to allow for future insertions)
-    const updatedServices = reorderedServices.map((service, index) => ({
-      service_id: service.service_id,
-      display_order: (index + 1) * 10
-    }));
+    // Find the destination display order
+    let newDisplayOrder: number;
     
-    console.log("Reordering from:", sourceIndex, "to:", destinationIndex);
-    console.log("Updated services:", updatedServices);
+    if (destinationIndex === 0) {
+      // Moving to the start - use half of the first item's display_order or 5 if it's the only item
+      const firstItemOrder = enabledServicesData[0]?.display_order || 10;
+      newDisplayOrder = Math.max(Math.floor(firstItemOrder / 2), 5);
+    } else if (destinationIndex >= enabledServicesData.length - 1) {
+      // Moving to the end - use the last item's display_order + 10
+      const lastItemOrder = enabledServicesData[enabledServicesData.length - 1]?.display_order || 0;
+      newDisplayOrder = lastItemOrder + 10;
+    } else {
+      // Moving to the middle - use the average of the surrounding items
+      const beforeOrder = enabledServicesData[destinationIndex - 1]?.display_order || 0;
+      const afterOrder = enabledServicesData[destinationIndex]?.display_order || beforeOrder + 20;
+      newDisplayOrder = Math.floor((beforeOrder + afterOrder) / 2);
+    }
     
-    // Send to server
-    reorderServicesMutation.mutate({ services: updatedServices });
+    console.log(`Moving service ${movedService.service_id} to display order ${newDisplayOrder}`);
+    
+    // Update the single item
+    updateServiceOrderMutation.mutate({
+      serviceId: movedService.service_id,
+      newDisplayOrder
+    });
   };
 
   // Save all settings
@@ -327,7 +331,7 @@ export const usePackageManagement = () => {
     packageSettings,
     enabledServicesData,
     isLoading: servicesLoading || settingsLoading || enabledServicesLoading,
-    isSaving: saveSettingsMutation.isPending || toggleServiceMutation.isPending || reorderServicesMutation.isPending,
+    isSaving: saveSettingsMutation.isPending || toggleServiceMutation.isPending || updateServiceOrderMutation.isPending,
     updatePackageSettings,
     toggleService,
     reorderServices,
