@@ -28,14 +28,14 @@ export const BaseServiceDisplay = ({ baseService, language }: BaseServiceDisplay
         "flex justify-between items-center gap-2 mb-1",
         isRTL && "flex-row-reverse"
       )}>
+        <div className="text-xs px-2 py-0.5 bg-primary/10 rounded-full text-primary">
+          {isRTL ? 'أساسي' : 'BASE'}
+        </div>
         <div className="flex items-center gap-1.5">
           <Scissors className="h-4 w-4 text-primary" />
           <span className="text-sm font-medium">
             {isRTL ? 'الخدمة الأساسية:' : 'Base Service:'}
           </span>
-        </div>
-        <div className="text-xs px-2 py-0.5 bg-primary/10 rounded-full text-primary">
-          {isRTL ? 'أساسي' : 'BASE'}
         </div>
       </div>
       
