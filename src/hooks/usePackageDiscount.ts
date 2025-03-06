@@ -102,18 +102,23 @@ export const usePackageDiscount = (
     if (addonCount === 0) return services;
 
     const discountPercentage = getDiscountPercentage(addonCount);
+    console.log(`Applying ${discountPercentage}% discount based on ${addonCount} add-on services`);
     
     return services.map(service => {
       // Skip base service, upsell items, and already discounted package services with the same percentage
       if (service.id === BASE_SERVICE_ID || 
           service.isUpsellItem || 
-          service.isBasePackageService || 
-          (service.isPackageAddOn && service.discountPercentage === discountPercentage)) {
+          service.isBasePackageService) {
         return service;
       }
       
+      // If the service already has a package discount but with a different percentage,
+      // we need to update it with the new discount percentage
+      const needsDiscountUpdate = service.isPackageAddOn && 
+                                 service.discountPercentage !== discountPercentage;
+      
       // Skip services that aren't in the enabled package services list
-      if (enabledPackageServices && !enabledPackageServices.includes(service.id)) {
+      if (enabledPackageServices && !enabledPackageServices.includes(service.id) && !needsDiscountUpdate) {
         return service;
       }
 

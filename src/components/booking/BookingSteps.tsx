@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { BookingProgress, BookingStep } from "@/components/booking/BookingProgress";
 import { BookingNavigation } from "@/components/booking/BookingNavigation";
@@ -69,7 +70,8 @@ export const BookingSteps = ({
     packageEnabled, 
     packageSettings, 
     hasBaseService,
-    enabledPackageServices
+    enabledPackageServices,
+    applyPackageDiscounts
   } = usePackageDiscount(selectedServices);
 
   // Find base service
@@ -82,6 +84,71 @@ export const BookingSteps = ({
       service.id !== BASE_SERVICE_ID && 
       enabledPackageServices?.includes(service.id)
     ) || [];
+
+  // Handle service removal, with proper discount recalculation
+  const handleServiceRemove = (serviceId: string) => {
+    // Find the service to be removed
+    const serviceToRemove = selectedServices.find(s => s.id === serviceId);
+    
+    if (!serviceToRemove) {
+      console.error('Service not found:', serviceId);
+      return;
+    }
+    
+    console.log('Removing service:', serviceId);
+    
+    // Remove the service
+    setSelectedServices(prev => prev.filter(s => s.id !== serviceId));
+    
+    // If removing a non-upsell service in package mode, recalculate discounts for remaining services
+    const isPackageService = serviceToRemove.id === BASE_SERVICE_ID || 
+                           serviceToRemove.isBasePackageService || 
+                           serviceToRemove.isPackageAddOn;
+    
+    if (packageEnabled && isPackageService) {
+      // If removing the base service, we need to handle it specially
+      if (serviceToRemove.id === BASE_SERVICE_ID || serviceToRemove.isBasePackageService) {
+        console.log('Removing base service - will disable package mode');
+        
+        // Remove discounts from all remaining services by resetting them to original prices
+        setSelectedServices(prev => {
+          const servicesWithoutDiscounts = prev
+            .filter(s => s.id !== serviceId)
+            .map(s => {
+              if (s.isPackageAddOn && s.originalPrice) {
+                // Reset to original price without discount
+                return {
+                  ...s,
+                  price: s.originalPrice,
+                  isPackageAddOn: false,
+                  discountPercentage: 0
+                };
+              }
+              return s;
+            });
+          
+          return servicesWithoutDiscounts;
+        });
+      } else {
+        // For non-base services, we just need to recalculate discounts
+        console.log('Removing package add-on service - will recalculate discounts');
+        setTimeout(() => {
+          // Get updated services after the removal
+          const remainingServices = selectedServices.filter(s => s.id !== serviceId);
+          
+          // Apply discounts based on new count
+          const updatedServices = applyPackageDiscounts(remainingServices);
+          
+          // Update services with new discount levels
+          if (updatedServices.length !== remainingServices.length) {
+            console.error('Service count mismatch after discount recalculation');
+          } else {
+            setSelectedServices(updatedServices);
+          }
+        }, 50);
+      }
+    }
+  };
 
   // Handle step change with package builder check
   const handleStepChange = (step: string) => {
@@ -287,6 +354,7 @@ export const BookingSteps = ({
           branch={branch}
           isUpdatingPackage={isUpdatingPackage}
           handlePackageServiceUpdate={handlePackageServiceUpdate}
+          onRemoveService={handleServiceRemove}
         />
       </div>
 

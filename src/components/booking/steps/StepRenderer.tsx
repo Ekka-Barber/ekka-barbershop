@@ -1,39 +1,39 @@
 
-import { BookingStep } from "@/components/booking/BookingProgress";
-import { ServiceSelection } from "@/components/booking/ServiceSelection";
-import { DateTimeSelection } from "@/components/booking/DateTimeSelection";
-import { BarberSelection } from "@/components/booking/BarberSelection";
-import { CustomerForm } from "@/components/booking/CustomerForm";
-import { BookingSummary } from "@/components/booking/BookingSummary";
-import { WhatsAppIntegration } from "@/components/booking/WhatsAppIntegration";
-import { Service, SelectedService, WorkingHours } from "@/types/service";
+import React from 'react';
+import { ServiceSelection } from '../ServiceSelection';
+import { DateTimeSelection } from '../DateTimeSelection';
+import { BarberSelection } from '../BarberSelection';
+import { CustomerForm } from '../CustomerForm';
+import { BookingSummary } from '../BookingSummary';
+import { SelectedService, Service } from '@/types/service';
 
 interface StepRendererProps {
-  currentStep: BookingStep;
-  categories: any[];
+  currentStep: string;
+  categories: any[] | undefined;
   categoriesLoading: boolean;
   selectedServices: SelectedService[];
-  handleServiceToggle: (service: Service) => void;
+  handleServiceToggle: (service: any) => void;
   handleStepChange: (step: string) => void;
-  employees: any[];
+  employees: any[] | undefined;
   employeesLoading: boolean;
   selectedBarber: string | undefined;
-  setSelectedBarber: (id: string) => void;
+  setSelectedBarber: (barberId: string) => void;
   selectedDate: Date | undefined;
   selectedTime: string | undefined;
-  setSelectedDate: (date: Date | undefined) => void;
-  setSelectedTime: (time: string | undefined) => void;
-  employeeWorkingHours: WorkingHours | null;
+  setSelectedDate: (date: Date) => void;
+  setSelectedTime: (time: string) => void;
+  employeeWorkingHours: any;
   customerDetails: any;
-  handleCustomerDetailsChange: (field: string, value: string) => void;
+  handleCustomerDetailsChange: (name: string, value: string) => void;
   totalPrice: number;
   language: string;
   branch: any;
   isUpdatingPackage?: boolean;
   handlePackageServiceUpdate?: (services: SelectedService[]) => void;
+  onRemoveService?: (serviceId: string) => void;
 }
 
-export const StepRenderer = ({
+export const StepRenderer: React.FC<StepRendererProps> = ({
   currentStep,
   categories,
   categoriesLoading,
@@ -48,103 +48,84 @@ export const StepRenderer = ({
   selectedTime,
   setSelectedDate,
   setSelectedTime,
+  employeeWorkingHours,
   customerDetails,
   handleCustomerDetailsChange,
   totalPrice,
   language,
   branch,
   isUpdatingPackage,
-  handlePackageServiceUpdate
-}: StepRendererProps) => {
-  
-  // Extract all services from categories for the package drawer in the details step
-  const allServices = categories?.flatMap(category => category.services || []) || [];
-  
-  if (currentStep === 'services') {
-    return (
-      <ServiceSelection
-        categories={categories}
-        isLoading={categoriesLoading}
-        selectedServices={selectedServices}
-        onServiceToggle={handleServiceToggle}
-        onStepChange={handleStepChange}
-        isUpdatingPackage={isUpdatingPackage}
-        handlePackageServiceUpdate={handlePackageServiceUpdate}
-      />
-    );
-  }
+  handlePackageServiceUpdate,
+  onRemoveService
+}) => {
+  const renderStep = () => {
+    switch (currentStep) {
+      case 'services':
+        return (
+          <ServiceSelection
+            categories={categories}
+            isLoading={categoriesLoading}
+            selectedServices={selectedServices}
+            onServiceToggle={handleServiceToggle}
+            onStepChange={handleStepChange}
+            isUpdatingPackage={isUpdatingPackage}
+            handlePackageServiceUpdate={handlePackageServiceUpdate}
+          />
+        );
+      case 'datetime':
+        return (
+          <DateTimeSelection
+            selectedDate={selectedDate}
+            setSelectedDate={setSelectedDate}
+            selectedTime={selectedTime}
+            setSelectedTime={setSelectedTime}
+            services={selectedServices}
+          />
+        );
+      case 'barber':
+        return (
+          <BarberSelection
+            employees={employees}
+            isLoading={employeesLoading}
+            selectedBarber={selectedBarber}
+            onSelectBarber={setSelectedBarber}
+            selectedDate={selectedDate}
+            selectedTime={selectedTime}
+            workingHours={employeeWorkingHours}
+            requiredDuration={selectedServices.reduce((total, service) => total + (service.duration || 0), 0)}
+          />
+        );
+      case 'details':
+        const selectedBarberName = employees?.find(e => e.id === selectedBarber)?.name || '';
+        
+        return (
+          <div className="space-y-6">
+            <BookingSummary
+              selectedServices={selectedServices}
+              totalPrice={totalPrice}
+              selectedDate={selectedDate}
+              selectedTime={selectedTime}
+              selectedBarberName={selectedBarberName}
+              onRemoveService={onRemoveService}
+              availableServices={categories?.flatMap(c => c.services)}
+              onAddService={handleServiceToggle}
+              isDetailsStep={true}
+            />
 
-  if (currentStep === 'datetime') {
-    return (
-      <DateTimeSelection
-        selectedDate={selectedDate}
-        onDateSelect={setSelectedDate}
-      />
-    );
-  }
+            <CustomerForm
+              formData={customerDetails}
+              onChange={handleCustomerDetailsChange}
+            />
+          </div>
+        );
+      default:
+        return null;
+    }
+  };
 
-  if (currentStep === 'barber') {
-    return (
-      <BarberSelection
-        employees={employees}
-        isLoading={employeesLoading}
-        selectedBarber={selectedBarber}
-        onBarberSelect={setSelectedBarber}
-        selectedDate={selectedDate}
-        selectedTime={selectedTime}
-        onTimeSelect={setSelectedTime}
-      />
-    );
-  }
-
-  if (currentStep === 'details') {
-    return (
-      <div className="space-y-6">
-        <CustomerForm
-          customerDetails={customerDetails}
-          onCustomerDetailsChange={handleCustomerDetailsChange}
-        />
-        <BookingSummary
-          selectedServices={selectedServices}
-          totalPrice={totalPrice}
-          selectedDate={selectedDate}
-          selectedTime={selectedTime}
-          selectedBarberName={selectedBarber ? employees?.find(emp => emp.id === selectedBarber)?.[language === 'ar' ? 'name_ar' : 'name_en'] : undefined}
-          onRemoveService={(serviceId) => {
-            const service = selectedServices.find(s => s.id === serviceId);
-            if (service) {
-              handleServiceToggle({
-                id: service.id,
-                category_id: '',
-                name_en: service.name_en,
-                name_ar: service.name_ar,
-                description_en: null,
-                description_ar: null,
-                price: service.price,
-                duration: service.duration,
-                display_order: 0,
-                discount_type: null,
-                discount_value: null
-              });
-            }
-          }}
-          availableServices={allServices}
-          onAddService={handleServiceToggle}
-          isDetailsStep={true}
-        />
-        <WhatsAppIntegration
-          selectedServices={selectedServices}
-          totalPrice={totalPrice}
-          selectedDate={selectedDate}
-          selectedTime={selectedTime}
-          selectedBarberName={selectedBarber ? employees?.find(emp => emp.id === selectedBarber)?.[language === 'ar' ? 'name_ar' : 'name_en'] : undefined}
-          customerDetails={customerDetails}
-          language={language}
-          branch={branch}
-        />
-      </div>
-    );
-  }
-
-  return null;
+  return (
+    <div>
+      {renderStep()}
+    </div>
+  );
 };

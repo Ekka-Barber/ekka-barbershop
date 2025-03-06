@@ -1,3 +1,4 @@
+
 import { useLanguage } from "@/contexts/LanguageContext";
 import { format } from "date-fns";
 import { Slash, X, Timer, Calendar, User, Package } from "lucide-react";
@@ -9,6 +10,7 @@ import { getBookingDisplayDate } from "@/utils/dateAdjustment";
 import { CustomBadge } from "@/components/ui/custom-badge";
 import { PackageSavingsDrawer } from "./service-selection/summary/PackageSavingsDrawer";
 import { usePackageDiscount } from "@/hooks/usePackageDiscount";
+import { useToast } from "@/hooks/use-toast";
 
 interface BookingSummaryProps {
   selectedServices: SelectedService[];
@@ -37,6 +39,7 @@ export const BookingSummary = ({
   isDetailsStep = false
 }: BookingSummaryProps) => {
   const { t, language } = useLanguage();
+  const { toast } = useToast();
   
   // Use the package discount hook to get package-related information
   const { 
@@ -68,6 +71,26 @@ export const BookingSummary = ({
     !selectedServices.some(s => s.id === service.id)
   );
 
+  // Handle service removal with confirmation for base service
+  const handleServiceRemove = (service: SelectedService) => {
+    if (!onRemoveService) return;
+
+    // Check if this is the base service
+    if (service.id === BASE_SERVICE_ID) {
+      // Show warning toast about removing the base service
+      toast({
+        title: language === 'ar' ? 'تحذير' : 'Warning',
+        description: language === 'ar' 
+          ? 'إزالة الخدمة الأساسية ستؤدي إلى فقدان جميع خصومات الباقة'
+          : 'Removing the base service will remove all package discounts',
+        variant: "destructive"
+      });
+    }
+    
+    // Call the remove service handler
+    onRemoveService(service.id);
+  };
+
   const serviceItem = (service: SelectedService) => (
     <motion.div 
       key={service.id} 
@@ -84,10 +107,13 @@ export const BookingSummary = ({
             {language === 'ar' ? 'أساسي' : 'BASE'}
           </CustomBadge>
         )}
-        {onRemoveService && service.isUpsellItem && (
+        {onRemoveService && (
           <motion.button
-            onClick={() => onRemoveService(service.id)}
-            className="p-1 hover:bg-gray-100 rounded-full transition-colors opacity-0 group-hover:opacity-100"
+            onClick={() => handleServiceRemove(service)}
+            className={cn(
+              "p-1 hover:bg-gray-100 rounded-full transition-colors",
+              service.isUpsellItem ? "opacity-0 group-hover:opacity-100" : "opacity-70 group-hover:opacity-100"
+            )}
             aria-label="Remove service"
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
