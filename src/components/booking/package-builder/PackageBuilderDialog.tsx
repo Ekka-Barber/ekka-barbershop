@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import {
   Dialog,
@@ -78,29 +77,49 @@ export const PackageBuilderDialog = ({
   };
   
   const handleConfirm = () => {
-    const transformedServices: SelectedService[] = [];
-    
-    if (baseService) {
-      const baseSelectedService = transformServiceToSelected(baseService, true);
-      transformedServices.push(baseSelectedService);
+    try {
+      const transformedServices: SelectedService[] = [];
+      
+      // Add the base service if present
+      if (baseService) {
+        const baseSelectedService = transformServiceToSelected(baseService, true);
+        transformedServices.push(baseSelectedService);
+      }
+      
+      // Add selected add-on services with discounts
+      selectedAddOns.forEach(service => {
+        const originalPrice = service.price;
+        const discountedPrice = Math.floor(originalPrice * (1 - calculations.discountPercentage / 100));
+        
+        const selectedService: SelectedService = {
+          ...service,
+          price: discountedPrice,
+          originalPrice: originalPrice,
+          discountPercentage: calculations.discountPercentage,
+          isUpsellItem: false
+        };
+        
+        transformedServices.push(selectedService);
+      });
+
+      // Keep existing upsell items
+      const existingUpsells = currentlySelectedServices.filter(service => service.isUpsellItem);
+      
+      // Preserve upsell items
+      const allServices = [...transformedServices, ...existingUpsells];
+      
+      // Call the onConfirm handler with the complete list of services
+      onConfirm(allServices);
+    } catch (error) {
+      console.error('Error confirming package:', error);
+      toast({
+        title: language === 'ar' ? 'خطأ' : 'Error',
+        description: language === 'ar' 
+          ? 'حدث خطأ أثناء تأكيد الباقة' 
+          : 'An error occurred while confirming the package',
+        variant: "destructive"
+      });
     }
-    
-    selectedAddOns.forEach(service => {
-      const originalPrice = service.price;
-      const discountedPrice = Math.floor(originalPrice * (1 - calculations.discountPercentage / 100));
-      
-      const selectedService: SelectedService = {
-        ...service,
-        price: discountedPrice,
-        originalPrice: originalPrice,
-        discountPercentage: calculations.discountPercentage,
-        isUpsellItem: false
-      };
-      
-      transformedServices.push(selectedService);
-    });
-    
-    onConfirm(transformedServices);
   };
   
   return (

@@ -60,6 +60,24 @@ export const useServiceSelection = () => {
         setSelectedServices(prev => prev.filter(s => s.id !== service.id));
       }
     } else {
+      // Check if trying to add the base service when other services are already selected
+      if (service.id === BASE_SERVICE_ID) {
+        const hasOtherNonUpsellServices = selectedServices.some(s => 
+          !s.isUpsellItem && s.id !== BASE_SERVICE_ID
+        );
+        
+        if (hasOtherNonUpsellServices) {
+          toast({
+            title: language === 'ar' ? 'غير مسموح' : 'Not Allowed',
+            description: language === 'ar' 
+              ? 'يجب إختيار خدمة الباقة الأساسية أولاً قبل إضافة خدمات أخرى'
+              : 'You must select the base package service first before adding other services',
+            variant: "destructive"
+          });
+          return;
+        }
+      }
+      
       // Check if the service is already a SelectedService with discount info
       if ('originalPrice' in service || 'discountPercentage' in service) {
         // It's already a SelectedService with discount info, add it as is

@@ -74,6 +74,24 @@ export const ServiceSelectionContainer = ({
   // Handle service toggle with error handling
   const handleServiceToggleWrapper = (service: any) => {
     try {
+      // Check if trying to add base service when other services are selected
+      if (service.id === BASE_SERVICE_ID && !selectedServices.some(s => s.id === service.id)) {
+        const hasOtherNonUpsellServices = selectedServices.some(s => 
+          !s.isUpsellItem && s.id !== BASE_SERVICE_ID
+        );
+        
+        if (hasOtherNonUpsellServices) {
+          toast({
+            variant: "destructive",
+            title: language === 'ar' ? 'غير مسموح' : 'Not Allowed',
+            description: language === 'ar' 
+              ? 'يجب إختيار خدمة الباقة الأساسية أولاً قبل إضافة خدمات أخرى'
+              : 'You must select the base package service first before adding other services',
+          });
+          return;
+        }
+      }
+      
       onServiceToggle(service);
     } catch (error) {
       toast({
@@ -87,25 +105,47 @@ export const ServiceSelectionContainer = ({
     }
   };
   
-  // Handle package confirmation
+  // Handle package confirmation with proper updating
   const handlePackageConfirm = (services: SelectedService[]) => {
-    // Remove currently selected services
-    selectedServices.forEach(service => {
-      if (!service.isUpsellItem) {
-        handleServiceToggleWrapper(service);
+    try {
+      // Preserve selected upsell items
+      const existingUpsells = selectedServices.filter(s => s.isUpsellItem);
+      
+      // Remove non-upsell services
+      selectedServices.forEach(service => {
+        if (!service.isUpsellItem) {
+          handleServiceToggleWrapper(service);
+        }
+      });
+      
+      // Add new services from package builder
+      services.forEach(service => {
+        onServiceToggle(service);
+      });
+      
+      // Restore any upsell items that were removed
+      existingUpsells.forEach(upsell => {
+        if (!selectedServices.some(s => s.id === upsell.id)) {
+          // Re-add the upsell through the service toggle
+          onServiceToggle(upsell);
+        }
+      });
+      
+      setShowPackageBuilder(false);
+      
+      if (pendingNextStep) {
+        onStepChange?.(pendingNextStep);
+        setPendingNextStep(null);
       }
-    });
-    
-    // Add new services from package builder
-    services.forEach(service => {
-      onServiceToggle(service);
-    });
-    
-    setShowPackageBuilder(false);
-    
-    if (pendingNextStep) {
-      onStepChange?.(pendingNextStep);
-      setPendingNextStep(null);
+    } catch (error) {
+      console.error('Error confirming package:', error);
+      toast({
+        variant: "destructive",
+        title: language === 'ar' ? 'خطأ' : 'Error',
+        description: language === 'ar' 
+          ? 'حدث خطأ أثناء تأكيد الباقة. يرجى المحاولة مرة أخرى.'
+          : 'There was an error confirming the package. Please try again.',
+      });
     }
   };
 
@@ -119,11 +159,13 @@ export const ServiceSelectionContainer = ({
     }
   };
 
-  // Handle skip package
+  // Handle skip package - modified to properly proceed to next step
   const handleSkipPackage = () => {
     setShowPackageBuilder(false);
     
     if (pendingNextStep) {
+      // Ensure we dismiss any active toasts before proceeding
+      toast.dismiss();
       onStepChange?.(pendingNextStep);
       setPendingNextStep(null);
     }

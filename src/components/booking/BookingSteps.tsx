@@ -172,13 +172,43 @@ export const BookingSteps = ({
     handleUpsellModalClose();
   };
 
-  // Handle package builder closing and confirmation
+  // Modified package builder handlers to improve reliability
   const handlePackageBuilderClose = () => {
     setShowPackageBuilder(false);
     if (pendingStep) {
       setCurrentStep(pendingStep);
       setPendingStep(null);
     }
+  };
+
+  // Fixed handlePackageConfirm to properly update services
+  const handlePackageBuilderConfirm = (packageServices: any[]) => {
+    // Preserve selected upsell items
+    const existingUpsells = selectedServices.filter(s => s.isUpsellItem);
+    
+    // Filter services to keep only those from the package
+    const nonUpsellServices = selectedServices.filter(s => !s.isUpsellItem);
+    
+    // Remove current non-upsell services
+    nonUpsellServices.forEach(service => {
+      handleServiceToggle(service);
+    });
+    
+    // Add the new package services
+    packageServices.forEach(service => {
+      handleServiceToggle(service, true);
+    });
+    
+    // Restore any upsell items that were removed
+    existingUpsells.forEach(upsell => {
+      if (!selectedServices.some(s => s.id === upsell.id)) {
+        // Re-add the upsell if it was removed
+        setSelectedServices(prev => [...prev, upsell]);
+      }
+    });
+    
+    // Close the dialog and proceed to the next step
+    handlePackageBuilderClose();
   };
 
   const currentStepIndex = STEPS.indexOf(currentStep);
@@ -195,7 +225,8 @@ export const BookingSteps = ({
 
   const shouldShowNavigation = currentStep === 'details';
 
-  const shouldShowSummaryBar = currentStep !== 'details' && selectedServices.length > 0;
+  // Modified to always show summary bar when services are selected, regardless of step
+  const shouldShowSummaryBar = selectedServices.length > 0 && currentStep !== 'details';
 
   const transformedServices = transformServicesForDisplay(selectedServices, language);
 
@@ -243,11 +274,11 @@ export const BookingSteps = ({
 
       <UpsellModal isOpen={showUpsellModal} onClose={handleUpsellModalClose} onConfirm={handleUpsellConfirm} availableUpsells={availableUpsells || []} />
       
-      {/* Add PackageBuilderDialog */}
+      {/* Updated PackageBuilderDialog with improved onConfirm handler */}
       <PackageBuilderDialog
         isOpen={showPackageBuilder}
         onClose={handlePackageBuilderClose}
-        onConfirm={handlePackageConfirm}
+        onConfirm={handlePackageBuilderConfirm}
         packageSettings={packageSettings}
         baseService={baseService}
         availableServices={availablePackageServices}
