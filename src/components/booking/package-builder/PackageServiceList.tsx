@@ -1,9 +1,9 @@
 
 import React from 'react';
 import { Service } from '@/types/service';
-import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { PriceDisplay } from "@/components/ui/price-display";
+import { cn } from "@/lib/utils";
+import { PlusCircle, CheckCircle } from "lucide-react";
 
 interface PackageServiceListProps {
   services: Service[];
@@ -50,23 +50,27 @@ export const PackageServiceList = ({
             const discountedPrice = calculateDiscountedPrice(service.price);
             
             return (
-              <div 
+              <button 
                 key={service.id} 
-                className={`flex items-center justify-between p-2.5 rounded-md ${isSelected ? 'bg-primary/5' : 'hover:bg-muted/50'} transition-colors duration-150`}
+                className={cn(
+                  "flex items-center justify-between p-3 rounded-md w-full transition-all duration-200 mb-1",
+                  isSelected 
+                    ? "bg-primary/10 border border-primary/20" 
+                    : "hover:bg-muted/70 border border-transparent"
+                )}
+                onClick={() => onToggleService(service)}
               >
                 <div className="flex items-center gap-3 rtl:flex-row-reverse flex-1 min-w-0">
-                  <Checkbox
-                    id={`service-${service.id}`}
-                    checked={isSelected}
-                    onCheckedChange={() => onToggleService(service)}
-                    className="shrink-0"
-                  />
-                  <label
-                    htmlFor={`service-${service.id}`}
-                    className="text-sm font-medium cursor-pointer leading-tight truncate peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                  >
+                  <div className="shrink-0 text-primary">
+                    {isSelected ? (
+                      <CheckCircle className="h-5 w-5 text-[#C4A484] transition-transform duration-200" />
+                    ) : (
+                      <PlusCircle className="h-5 w-5 text-muted-foreground transition-transform duration-200" />
+                    )}
+                  </div>
+                  <span className="text-sm font-medium leading-tight truncate">
                     {language === 'ar' ? service.name_ar : service.name_en}
-                  </label>
+                  </span>
                 </div>
                 
                 <div className="text-sm whitespace-nowrap rtl:text-left">
@@ -80,12 +84,12 @@ export const PackageServiceList = ({
                       </span>
                     </div>
                   ) : (
-                    <span>
+                    <span className={cn(isSelected ? "font-medium" : "")}>
                       {language === 'ar' ? `${service.price} ر.س` : `SAR ${service.price}`}
                     </span>
                   )}
                 </div>
-              </div>
+              </button>
             );
           })}
         </div>

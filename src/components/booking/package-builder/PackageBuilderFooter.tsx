@@ -2,6 +2,7 @@
 import React from 'react';
 import { DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
 
 interface PackageBuilderFooterProps {
   language: string;
@@ -16,9 +17,12 @@ export const PackageBuilderFooter = ({
   onConfirm, 
   isConfirmDisabled 
 }: PackageBuilderFooterProps) => {
+  const { toast, dismiss } = useToast();
+  
   const handleConfirm = () => {
+    // Dismiss any toasts before confirming
+    dismiss();
     onConfirm();
-    // Button handling is now handled by onConfirm, no additional toast handling needed here
   };
 
   return (
