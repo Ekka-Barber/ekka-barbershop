@@ -13,7 +13,7 @@ export const PackageBuilderHeader = ({ language }: PackageBuilderHeaderProps) =>
   
   return (
     <div className={cn(
-      "flex items-center gap-2 mb-1",
+      "flex items-center justify-center gap-2 mb-1",
       isRTL && "flex-row-reverse"
     )}>
       <motion.div
@@ -24,12 +24,12 @@ export const PackageBuilderHeader = ({ language }: PackageBuilderHeaderProps) =>
         <Package className="h-5 w-5 text-primary" />
       </motion.div>
       <motion.h2 
-        className="text-xl font-semibold text-gray-800"
+        className="text-xl font-semibold text-gray-800 text-center"
         initial={{ opacity: 0, x: isRTL ? 10 : -10 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.3 }}
       >
-        {isRTL ? 'بناء باقة خدماتك' : 'Build Your Service Package'}
+        {isRTL ? 'أصنع باقتك' : 'Build Your Service Package'}
       </motion.h2>
     </div>
   );
