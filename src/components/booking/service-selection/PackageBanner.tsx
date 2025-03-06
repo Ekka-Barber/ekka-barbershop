@@ -17,12 +17,8 @@ export const PackageBanner = ({
   hasBaseService = false,
   onBuildPackage
 }: PackageBannerProps) => {
-  const {
-    language
-  } = useLanguage();
-  const {
-    dismiss
-  } = useToast();
+  const { language } = useLanguage();
+  const { toast } = useToast();
   
   if (!isVisible) return null;
   
@@ -30,7 +26,7 @@ export const PackageBanner = ({
     e.preventDefault();
     e.stopPropagation();
     if (onBuildPackage) {
-      dismiss();
+      // Remove the dismiss call which doesn't exist on the toast function
       onBuildPackage();
     }
   };

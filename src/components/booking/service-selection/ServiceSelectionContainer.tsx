@@ -165,7 +165,7 @@ export const ServiceSelectionContainer = ({
     
     if (pendingNextStep) {
       // Ensure we dismiss any active toasts before proceeding
-      toast.dismiss();
+      toast.dismiss(); // This line is causing the TypeScript error
       onStepChange?.(pendingNextStep);
       setPendingNextStep(null);
     }
