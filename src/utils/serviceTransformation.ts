@@ -7,11 +7,13 @@ import { calculateDiscountedPrice } from './bookingCalculations';
  * Transforms a service into a selected service with calculated prices
  * @param service The original service
  * @param skipDiscountCalculation Whether to skip discount calculation
+ * @param isBasePackageService Flag to mark as base package service
  * @returns The transformed selected service
  */
 export const transformServiceToSelected = (
   service: Service, 
-  skipDiscountCalculation: boolean = false
+  skipDiscountCalculation: boolean = false,
+  isBasePackageService: boolean = false
 ): SelectedService => {
   const finalPrice = skipDiscountCalculation ? service.price : calculateDiscountedPrice(service);
   
@@ -20,6 +22,7 @@ export const transformServiceToSelected = (
     price: roundPrice(finalPrice),
     originalPrice: skipDiscountCalculation ? undefined : (finalPrice !== service.price ? roundPrice(service.price) : undefined),
     isUpsellItem: false,
+    isBasePackageService: isBasePackageService,
     dependentUpsells: []
   };
 };
@@ -67,6 +70,41 @@ export const transformServicesForDisplay = (
     id: service.id,
     name: language === 'ar' ? service.name_ar : service.name_en,
     price: service.price,
-    duration: service.duration
+    duration: service.duration,
+    originalPrice: service.originalPrice,
+    isBasePackageService: service.isBasePackageService,
+    isPackageAddOn: service.isPackageAddOn
   }));
+};
+
+/**
+ * Creates a package SelectedService from a regular Service
+ * @param service Original service
+ * @param isBaseService Whether this is the base service
+ * @param discountPercentage Discount to apply (for add-ons only)
+ * @returns Package service with proper flags and pricing
+ */
+export const createPackageService = (
+  service: Service,
+  isBaseService: boolean,
+  discountPercentage: number = 0
+): SelectedService => {
+  // Base price calculation - no discount for base service
+  const basePrice = service.price;
+  
+  // Only apply discount if it's not the base service and discount is provided
+  const finalPrice = isBaseService ? 
+    basePrice : 
+    Math.floor(basePrice * (1 - discountPercentage / 100));
+  
+  return {
+    ...service,
+    isBasePackageService: isBaseService,
+    isPackageAddOn: !isBaseService,
+    isUpsellItem: false,
+    price: finalPrice,
+    originalPrice: isBaseService ? undefined : basePrice,
+    discountPercentage: isBaseService ? undefined : discountPercentage,
+    dependentUpsells: []
+  };
 };

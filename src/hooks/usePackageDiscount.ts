@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { SelectedService } from '@/types/service';
 import { PackageSettings } from '@/types/admin';
+import { createPackageService } from '@/utils/serviceTransformation';
 
 // Base service ID
 const BASE_SERVICE_ID = 'a3dbfd63-be5d-4465-af99-f25c21d578a0';
@@ -58,14 +59,18 @@ export const usePackageDiscount = (selectedServices: SelectedService[]) => {
 
   // Check if base service is selected
   const hasBaseService = useMemo(() => {
-    return selectedServices.some(service => service.id === BASE_SERVICE_ID);
+    return selectedServices.some(service => 
+      service.id === BASE_SERVICE_ID || service.isBasePackageService
+    );
   }, [selectedServices]);
 
   // Get add-on services
   const addOnServices = useMemo(() => {
     if (!hasBaseService) return [];
     return selectedServices.filter(service => 
-      service.id !== BASE_SERVICE_ID && !service.isUpsellItem
+      service.id !== BASE_SERVICE_ID && 
+      !service.isUpsellItem && 
+      !service.isBasePackageService
     );
   }, [selectedServices, hasBaseService]);
 
@@ -95,8 +100,11 @@ export const usePackageDiscount = (selectedServices: SelectedService[]) => {
     const discountPercentage = getDiscountPercentage(addonCount);
     
     return services.map(service => {
-      // Skip base service and upsell items
-      if (service.id === BASE_SERVICE_ID || service.isUpsellItem) {
+      // Skip base service, upsell items, and already discounted package services
+      if (service.id === BASE_SERVICE_ID || 
+          service.isUpsellItem || 
+          service.isBasePackageService || 
+          (service.isPackageAddOn && service.discountPercentage === discountPercentage)) {
         return service;
       }
       
@@ -105,16 +113,8 @@ export const usePackageDiscount = (selectedServices: SelectedService[]) => {
         return service;
       }
 
-      // Apply discount
-      const originalPrice = service.price;
-      const discountedPrice = originalPrice * (1 - discountPercentage / 100);
-      
-      return {
-        ...service,
-        originalPrice,
-        price: Math.floor(discountedPrice), // Round down to nearest integer
-        discountPercentage,
-      };
+      // Apply discount by recreating the service as a package add-on
+      return createPackageService(service, false, discountPercentage);
     });
   };
 
@@ -132,11 +132,13 @@ export const usePackageDiscount = (selectedServices: SelectedService[]) => {
   useEffect(() => {
     // Enable package mode when base service is selected
     if (hasBaseService && !packageEnabled) {
+      console.log('Package mode enabled - base service detected');
       setPackageEnabled(true);
     }
     
     // Disable package mode when base service is deselected
     if (!hasBaseService && packageEnabled) {
+      console.log('Package mode disabled - base service removed');
       setPackageEnabled(false);
     }
   }, [hasBaseService, packageEnabled]);

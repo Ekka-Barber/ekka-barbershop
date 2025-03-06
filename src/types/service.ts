@@ -15,8 +15,8 @@ export interface Service {
 
 export interface SelectedService extends Service {
   isUpsellItem?: boolean;
-  isBasePackageService?: boolean; // New flag to identify base service
-  isPackageAddOn?: boolean; // New flag to identify package add-ons
+  isBasePackageService?: boolean; // Flag to identify base service
+  isPackageAddOn?: boolean; // Flag to identify package add-ons
   originalPrice?: number;
   discountPercentage?: number;
   mainServiceId?: string; // Track which main service this upsell depends on

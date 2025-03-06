@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useToast } from "@/hooks/use-toast";
@@ -11,7 +10,7 @@ import { ServicesSummary } from "./ServicesSummary";
 import { PackageInfoDialog } from "./PackageInfoDialog";
 import { PackageBuilderDialog } from "../package-builder/PackageBuilderDialog";
 import { usePackageDiscount } from "@/hooks/usePackageDiscount";
-import { Service, SelectedService } from "@/types/service";
+import { Service, SelectedService } from '@/types/service';
 
 interface ServiceSelectionContainerProps {
   categories: any[] | undefined;
@@ -101,12 +100,14 @@ export const ServiceSelectionContainer = ({
   
   const handlePackageConfirm = (services: SelectedService[]) => {
     try {
-      // Log the incoming services for debugging
+      // Add detailed logging
       console.log('Package confirmation received services:', services.map(s => ({
         id: s.id,
         name: language === 'ar' ? s.name_ar : s.name_en,
         isBase: s.isBasePackageService,
-        isPackageAddOn: s.isPackageAddOn
+        isPackageAddOn: s.isPackageAddOn,
+        originalPrice: s.originalPrice,
+        price: s.price
       })));
       
       // Verify we have the base service
@@ -126,36 +127,47 @@ export const ServiceSelectionContainer = ({
       // Extract existing upsell items to preserve them
       const existingUpsells = selectedServices.filter(s => s.isUpsellItem);
       
-      // Remove all current non-upsell services
+      // First, remove all current non-upsell services
       const nonUpsellServices = selectedServices.filter(s => !s.isUpsellItem);
       for (const service of nonUpsellServices) {
         handleServiceToggleWrapper(service);
       }
       
-      // Important: Small delay to ensure all removals are processed before adding
+      // Important: Add services in a staggered way to ensure proper processing
       setTimeout(() => {
-        // Add the base service first to ensure proper order
+        // First pass: add the base service
+        console.log('First pass: Adding base service:', baseServiceFromPackage.id);
         handleServiceToggleWrapper(baseServiceFromPackage);
         
-        // Add all add-on services
-        const addOnServices = services.filter(s => !s.isBasePackageService && s.id !== BASE_SERVICE_ID);
-        for (const service of addOnServices) {
-          handleServiceToggleWrapper(service);
-        }
-        
-        // Re-add any upsells that were removed
-        for (const upsell of existingUpsells) {
-          if (!selectedServices.some(s => s.id === upsell.id)) {
-            onServiceToggle(upsell);
+        // Second pass: add all add-on services
+        setTimeout(() => {
+          const addOnServices = services.filter(s => 
+            !s.isBasePackageService && s.id !== BASE_SERVICE_ID
+          );
+          
+          console.log('Second pass: Adding', addOnServices.length, 'add-on services');
+          for (const service of addOnServices) {
+            handleServiceToggleWrapper(service);
           }
-        }
-        
-        // Close dialog and proceed to next step if needed
-        setShowPackageBuilder(false);
-        if (pendingNextStep) {
-          onStepChange?.(pendingNextStep);
-          setPendingNextStep(null);
-        }
+          
+          // Third pass: restore any upsells
+          setTimeout(() => {
+            console.log('Third pass: Restoring', existingUpsells.length, 'upsells');
+            for (const upsell of existingUpsells) {
+              if (!selectedServices.some(s => s.id === upsell.id)) {
+                onServiceToggle(upsell);
+              }
+            }
+            
+            // Finally, close dialog and proceed if needed
+            setShowPackageBuilder(false);
+            if (pendingNextStep) {
+              console.log('Proceeding to next step:', pendingNextStep);
+              onStepChange?.(pendingNextStep);
+              setPendingNextStep(null);
+            }
+          }, 100);
+        }, 100);
       }, 100);
     } catch (error) {
       console.error('Error confirming package:', error);
@@ -201,7 +213,9 @@ export const ServiceSelectionContainer = ({
       name: lang === 'ar' ? service.name_ar : service.name_en,
       price: service.price,
       duration: service.duration,
-      originalPrice: service.originalPrice
+      originalPrice: service.originalPrice,
+      isBasePackageService: service.isBasePackageService,
+      isPackageAddOn: service.isPackageAddOn
     }));
   };
 

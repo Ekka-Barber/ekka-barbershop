@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { Service, SelectedService } from '@/types/service';
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { transformServiceToSelected, transformUpsellToSelected } from '@/utils/serviceTransformation';
+import { transformServiceToSelected, transformUpsellToSelected, createPackageService } from '@/utils/serviceTransformation';
 import { usePackageDiscount } from '@/hooks/usePackageDiscount';
 
 export const useServiceSelection = () => {
@@ -78,13 +78,30 @@ export const useServiceSelection = () => {
         }
       }
       
-      // Check if the service is already a SelectedService with discount info
+      // Check if it's a package service (has package-specific properties)
+      if ('isBasePackageService' in service || 'isPackageAddOn' in service) {
+        console.log('Adding pre-configured package service:', service.id, service.isBasePackageService ? 'BASE' : 'ADD-ON');
+        setSelectedServices(prev => [...prev, service as SelectedService]);
+        return;
+      }
+      
+      // Check if it's already a SelectedService with discount info
       if ('originalPrice' in service || 'discountPercentage' in service) {
         // It's already a SelectedService with discount info, add it as is
         setSelectedServices(prev => [...prev, service as SelectedService]);
       } else {
+        // Determine if this is the base package service
+        const isBasePackageService = service.id === BASE_SERVICE_ID;
+        
         // Transform the regular Service into a SelectedService
-        const transformedService = transformServiceToSelected(service as Service, skipDiscountCalculation);
+        const transformedService = transformServiceToSelected(
+          service as Service, 
+          skipDiscountCalculation,
+          isBasePackageService
+        );
+        
+        console.log('Adding transformed service:', transformedService.id, 
+          isBasePackageService ? '(base service)' : '');
         
         // Add the service to the selection
         setSelectedServices(prev => {

@@ -33,8 +33,8 @@ export const usePackageCalculation = (
     selectedAddOns.forEach(service => {
       originalTotal += service.price;
       // Apply discount to add-ons
-      const discountedPrice = service.price * (1 - discountPercentage / 100);
-      discountedTotal += Math.floor(discountedPrice);
+      const discountedPrice = Math.floor(service.price * (1 - discountPercentage / 100));
+      discountedTotal += discountedPrice;
     });
     
     return {

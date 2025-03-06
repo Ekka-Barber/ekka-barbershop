@@ -8,7 +8,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { PackageSettings } from '@/types/admin';
 import { Service, SelectedService } from '@/types/service';
 import { useToast } from "@/hooks/use-toast";
-import { transformServiceToSelected } from '@/utils/serviceTransformation';
+import { createPackageService } from '@/utils/serviceTransformation';
 import { PackageBuilderHeader } from './PackageBuilderHeader';
 import { BaseServiceDisplay } from './BaseServiceDisplay';
 import { PackageServiceList } from './PackageServiceList';
@@ -81,12 +81,12 @@ export const PackageBuilderDialog = ({
     try {
       const transformedServices: SelectedService[] = [];
       
-      // FIXED: Always add the base service if present
+      // ALWAYS add the base service if present
       if (baseService) {
         console.log('Adding base service to package:', baseService.id, language === 'ar' ? baseService.name_ar : baseService.name_en);
-        // Mark the base service with a clear property to identify it
-        const baseSelectedService = transformServiceToSelected(baseService, true);
-        baseSelectedService.isBasePackageService = true; // Add this flag
+        
+        // Create base service with proper flags
+        const baseSelectedService = createPackageService(baseService, true);
         transformedServices.push(baseSelectedService);
       } else {
         console.error('No base service available for package');
@@ -102,23 +102,28 @@ export const PackageBuilderDialog = ({
       
       // Add selected add-on services with discounts
       selectedAddOns.forEach(service => {
-        const originalPrice = service.price;
-        const discountedPrice = Math.floor(originalPrice * (1 - calculations.discountPercentage / 100));
+        // Create package add-on with discount applied
+        const packageAddOn = createPackageService(
+          service, 
+          false, 
+          calculations.discountPercentage
+        );
         
-        const selectedService: SelectedService = {
-          ...service,
-          price: discountedPrice,
-          originalPrice: originalPrice,
-          discountPercentage: calculations.discountPercentage,
-          isUpsellItem: false,
-          isPackageAddOn: true // Add this flag to identify package add-ons
-        };
-        
-        transformedServices.push(selectedService);
+        transformedServices.push(packageAddOn);
       });
 
-      // Call the onConfirm handler with the complete list of services
+      // Log what we're sending back
       console.log('Confirming package with', transformedServices.length, 'services');
+      console.log('Services being sent:', transformedServices.map(s => ({
+        id: s.id,
+        name: language === 'ar' ? s.name_ar : s.name_en,
+        isBase: s.isBasePackageService,
+        isAddOn: s.isPackageAddOn,
+        originalPrice: s.originalPrice,
+        finalPrice: s.price
+      })));
+      
+      // Call the onConfirm handler with the complete list of services
       onConfirm(transformedServices);
     } catch (error) {
       console.error('Error confirming package:', error);
@@ -164,7 +169,7 @@ export const PackageBuilderDialog = ({
           language={language}
           onClose={onClose}
           onConfirm={handleConfirm}
-          isConfirmDisabled={!baseService} // Changed to only disable if no base service
+          isConfirmDisabled={!baseService} 
         />
       </DialogContent>
     </Dialog>
