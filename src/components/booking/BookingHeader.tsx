@@ -1,15 +1,28 @@
 
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Link } from "react-router-dom";
+import { Branch } from "@/types/booking";
 
-interface BookingHeaderProps {
-  branchName: string | undefined;
-  branchAddress: string | undefined;
+export interface BookingHeaderProps {
+  branchName?: string;
+  branchAddress?: string;
   isLoading: boolean;
+  branch?: Branch;
+  onBranchSelect?: (branchId: string) => void;
 }
 
-export const BookingHeader = ({ branchName, branchAddress, isLoading }: BookingHeaderProps) => {
+export const BookingHeader = ({ 
+  branchName, 
+  branchAddress, 
+  isLoading,
+  branch,
+  onBranchSelect
+}: BookingHeaderProps) => {
   const { t, language } = useLanguage();
+  
+  // Use branch object properties if direct props are not provided
+  const displayName = branchName || (branch ? (language === 'ar' ? branch.name_ar || branch.name : branch.name) : '');
+  const displayAddress = branchAddress || (branch ? (language === 'ar' ? branch.address_ar || branch.address : branch.address) : '');
   
   return (
     <div className="text-center mb-8">
@@ -30,12 +43,12 @@ export const BookingHeader = ({ branchName, branchAddress, isLoading }: BookingH
           <div className="h-4 bg-gray-200 rounded w-3/4 mx-auto mb-2"></div>
           <div className="h-3 bg-gray-200 rounded w-1/2 mx-auto"></div>
         </div>
-      ) : branchName && (
+      ) : displayName && (
         <div className="text-lg text-gray-600 mb-6">
-          {language === 'ar' ? branchName : branchName}
+          {displayName}
           <br />
           <span className="text-sm text-gray-500">
-            {language === 'ar' ? branchAddress : branchAddress}
+            {displayAddress}
           </span>
         </div>
       )}

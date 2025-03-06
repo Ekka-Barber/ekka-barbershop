@@ -1,3 +1,4 @@
+
 import { useNavigate, useLocation } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { BookingHeader } from "@/components/booking/BookingHeader";
@@ -122,17 +123,22 @@ export const BookingContainer = () => {
   return (
     <ErrorBoundary>
       <div className="max-w-screen-lg mx-auto px-4 py-6">
-        <BookingHeader branch={branch} isLoading={branchLoading} onBranchSelect={handleBranchSelect} />
+        <BookingHeader 
+          branch={branch} 
+          isLoading={branchLoading}
+          branchName={branch?.name}
+          branchAddress={branch?.address}
+        />
         
-        {isLoading && <SkeletonLoader />}
+        {branchLoading && <SkeletonLoader />}
         
-        {!isLoading && branch && (
+        {!branchLoading && branch && (
           <BookingProvider branch={branch}>
             <BookingSteps branch={branch} />
           </BookingProvider>
         )}
         
-        {!isLoading && !branch && <NoBranchSelected />}
+        {!branchLoading && !branch && <NoBranchSelected />}
       </div>
     </ErrorBoundary>
   );

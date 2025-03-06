@@ -19,8 +19,17 @@ interface BookingContextType {
   handleCustomerDetailsChange: (field: string, value: string) => void;
   totalPrice: number;
   totalDuration: number;
-  handleServiceToggle: (service: any) => void;
+  handleServiceToggle: (service: any, isPackageOperation?: boolean) => void;
   handleUpsellServiceAdd: (services: any[]) => void;
+  
+  // Additional properties needed by BookingSteps
+  categories: any[] | undefined;
+  categoriesLoading: boolean;
+  employees: any[] | undefined;
+  employeesLoading: boolean;
+  selectedEmployee: any;
+  handlePackageServiceUpdate: (services: SelectedService[]) => void;
+  isUpdatingPackage: boolean;
 }
 
 const BookingContext = createContext<BookingContextType | undefined>(undefined);

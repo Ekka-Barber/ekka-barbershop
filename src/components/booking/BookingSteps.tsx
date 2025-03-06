@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { BookingProgress, BookingStep } from "@/components/booking/BookingProgress";
 import { BookingNavigation } from "@/components/booking/BookingNavigation";
@@ -13,6 +14,7 @@ import { ServicesSummary } from "./service-selection/ServicesSummary";
 import { PackageBuilderDialog } from "./package-builder/PackageBuilderDialog";
 import { useBookingContext } from "@/contexts/BookingContext";
 import { usePackageDiscount } from "@/hooks/usePackageDiscount";
+import { SelectedService } from "@/types/service";
 
 const STEPS: BookingStep[] = ['services', 'datetime', 'barber', 'details'];
 
@@ -92,7 +94,7 @@ export const BookingSteps = ({
     
     console.log('Removing service:', serviceId);
     
-    setSelectedServices(prev => prev.filter(s => s.id !== serviceId));
+    setSelectedServices(selectedServices.filter(s => s.id !== serviceId));
     
     const isPackageService = serviceToRemove.id === BASE_SERVICE_ID || 
                            serviceToRemove.isBasePackageService || 
@@ -101,23 +103,19 @@ export const BookingSteps = ({
     if (packageEnabled && isPackageService) {
       if (serviceToRemove.id === BASE_SERVICE_ID || serviceToRemove.isBasePackageService) {
         console.log('Removing base service - will disable package mode');
-        setSelectedServices(prev => {
-          const servicesWithoutDiscounts = prev
-            .filter(s => s.id !== serviceId)
-            .map(s => {
-              if (s.isPackageAddOn && s.originalPrice) {
-                return {
-                  ...s,
-                  price: s.originalPrice,
-                  isPackageAddOn: false,
-                  discountPercentage: 0
-                };
-              }
-              return s;
-            });
-          
-          return servicesWithoutDiscounts;
-        });
+        setSelectedServices(selectedServices
+          .filter(s => s.id !== serviceId)
+          .map(s => {
+            if (s.isPackageAddOn && s.originalPrice) {
+              return {
+                ...s,
+                price: s.originalPrice,
+                isPackageAddOn: false,
+                discountPercentage: 0
+              };
+            }
+            return s;
+          }));
       } else {
         console.log('Removing package add-on service - will recalculate discounts');
         setTimeout(() => {
@@ -134,21 +132,22 @@ export const BookingSteps = ({
   };
 
   const handleStepChange = (step: string) => {
+    const typedStep = step as BookingStep;
     if (currentStep === 'services') {
-      if (step === 'datetime') {
+      if (typedStep === 'datetime') {
         if (hasBaseService && packageSettings && availablePackageServices.length > 0) {
           setShowPackageBuilder(true);
-          setPendingStep(step as BookingStep);
+          setPendingStep(typedStep);
           return;
         }
         if (availableUpsells?.length) {
           setShowUpsellModal(true);
-          setPendingStep(step as BookingStep);
+          setPendingStep(typedStep);
           return;
         }
       }
     }
-    setCurrentStep(step as BookingStep);
+    setCurrentStep(typedStep);
   };
 
   const validateStep = (): boolean => {
@@ -189,7 +188,7 @@ export const BookingSteps = ({
   };
 
   const handleNextStep = () => {
-    const currentIndex = STEPS.indexOf(currentStep);
+    const currentIndex = STEPS.indexOf(currentStep as BookingStep);
     if (currentIndex < STEPS.length - 1) {
       if (validateStep()) {
         handleStepChange(STEPS[currentIndex + 1]);
@@ -198,7 +197,7 @@ export const BookingSteps = ({
   };
 
   const handlePrevStep = () => {
-    const currentIndex = STEPS.indexOf(currentStep);
+    const currentIndex = STEPS.indexOf(currentStep as BookingStep);
     if (currentIndex > 0) {
       setCurrentStep(STEPS[currentIndex - 1]);
     } else {
@@ -227,7 +226,7 @@ export const BookingSteps = ({
     }
   };
 
-  const handlePackageBuilderConfirm = (packageServices: any[]) => {
+  const handlePackageBuilderConfirm = (packageServices: SelectedService[]) => {
     const incomingBaseService = packageServices.find(s => s.isBasePackageService || s.id === BASE_SERVICE_ID);
     if (!incomingBaseService) {
       console.error('No base service found in package services');
@@ -256,17 +255,17 @@ export const BookingSteps = ({
     
     setTimeout(() => {
       console.log('Adding base service first:', incomingBaseService.id);
-      handleServiceToggle(incomingBaseService, true);
+      handleServiceToggle(incomingBaseService);
       
       const addOnServices = packageServices.filter(s => !s.isBasePackageService && s.id !== BASE_SERVICE_ID);
       for (const service of addOnServices) {
         console.log('Adding addon service:', service.id);
-        handleServiceToggle(service, true);
+        handleServiceToggle(service);
       }
       
       for (const upsell of existingUpsells) {
         if (!selectedServices.some(s => s.id === upsell.id)) {
-          setSelectedServices(prev => [...prev, upsell]);
+          setSelectedServices([...selectedServices, upsell]);
         }
       }
       
@@ -274,7 +273,7 @@ export const BookingSteps = ({
     }, 100);
   };
 
-  const currentStepIndex = STEPS.indexOf(currentStep);
+  const currentStepIndex = STEPS.indexOf(currentStep as BookingStep);
 
   const isNextDisabled = () => {
     if (currentStep === 'services') return selectedServices.length === 0;
@@ -293,7 +292,7 @@ export const BookingSteps = ({
   const transformedServices = transformServicesForDisplay(selectedServices, language);
 
   return <>
-      <BookingProgress currentStep={currentStep} steps={STEPS} onStepClick={setCurrentStep} currentStepIndex={currentStepIndex} />
+      <BookingProgress currentStep={currentStep as BookingStep} steps={STEPS} onStepClick={setCurrentStep} currentStepIndex={currentStepIndex} />
 
       <div className="mb-8">
         <StepRenderer 
@@ -326,7 +325,7 @@ export const BookingSteps = ({
       {shouldShowNavigation && <BookingNavigation 
         currentStepIndex={currentStepIndex} 
         steps={STEPS} 
-        currentStep={currentStep} 
+        currentStep={currentStep as BookingStep} 
         setCurrentStep={setCurrentStep} 
         isNextDisabled={isNextDisabled()} 
         customerDetails={customerDetails} 

@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { WhatsAppIntegration } from "./WhatsAppIntegration";
 import { CustomerDetails, Branch } from "@/types/booking";
+import { useBookingContext } from "@/contexts/BookingContext";
+import { useEmployeeData } from "@/hooks/useEmployeeData";
 
 interface BookingNavigationProps {
   currentStepIndex: number;
@@ -33,7 +35,7 @@ export const BookingNavigation = ({
     useBookingContext();
 
   // Get the barber name from the employee list
-  const { data: employees } = useEmployeeData();
+  const { employees } = useEmployeeData(branch?.id);
   const selectedBarberName = employees?.find(e => e.id === selectedBarber)?.name || '';
   
   const handlePrevClick = () => {
@@ -86,7 +88,3 @@ export const BookingNavigation = ({
     </div>
   );
 };
-
-// Add these imports at the top of the file
-import { useBookingContext } from "@/contexts/BookingContext";
-import { useEmployeeData } from "@/hooks/useEmployeeData";
