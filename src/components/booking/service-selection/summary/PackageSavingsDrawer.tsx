@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Package, ChevronUp, ChevronDown } from 'lucide-react';
+import { PartyPopper, ChevronUp, ChevronDown } from 'lucide-react';
 import { PriceDisplay } from "@/components/ui/price-display";
 import { 
   Sheet,
@@ -39,7 +39,7 @@ export const PackageSavingsDrawer = ({ savings, language }: PackageSavingsDrawer
           whileTap={{ scale: 0.97 }}
           layout
         >
-          <Package className="h-4 w-4 text-green-700" />
+          <PartyPopper className="h-4 w-4 text-green-700" />
           <TriggerIcon className="h-2.5 w-2.5 text-green-700" />
         </motion.div>
       </SheetTrigger>
