@@ -90,23 +90,26 @@ export const CustomerForm = ({
   };
 
   return (
-    <div className="space-y-8 max-w-2xl mx-auto">
-      <div className="space-y-6">
+    <div className="space-y-4 max-w-xl mx-auto">
+      <div className="space-y-4">
         <div>
-          <Label 
-            htmlFor="name" 
-            className="flex items-center justify-between text-base mb-2 font-medium"
-          >
-            {t('name')} <span className="text-destructive">*</span>
-            {getFieldStatus('name') === 'success' && <Check className="h-5 w-5 text-green-500" />}
-          </Label>
+          <div className="flex items-center justify-between mb-1.5">
+            <Label 
+              htmlFor="name" 
+              className="text-sm font-medium flex items-center"
+            >
+              {t('name')}
+              <span className="text-destructive mx-1">*</span>
+            </Label>
+            {getFieldStatus('name') === 'success' && <Check className="h-4 w-4 text-green-500" />}
+          </div>
           <div className="relative">
             <Input
               id="name"
               value={customerDetails.name}
               onChange={(e) => handleInputChange('name', e.target.value)}
               required
-              className={`h-12 text-lg ${errors.name && touched.name ? "border-2 border-destructive" : "border-gray-200"} 
+              className={`h-10 ${errors.name && touched.name ? "border-destructive" : "border-gray-200"} 
                 ${language === 'ar' ? 'text-right' : 'text-left'}`}
               onBlur={() => setTouched(prev => ({ ...prev, name: true }))}
               dir={language === 'ar' ? 'rtl' : 'ltr'}
@@ -114,23 +117,26 @@ export const CustomerForm = ({
             />
             {errors.name && touched.name && (
               <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                <AlertCircle className="h-5 w-5 text-destructive" />
+                <AlertCircle className="h-4 w-4 text-destructive" />
               </div>
             )}
           </div>
           {errors.name && touched.name && (
-            <p className="text-sm text-destructive mt-2">{errors.name}</p>
+            <p className="text-xs text-destructive mt-1">{errors.name}</p>
           )}
         </div>
 
         <div>
-          <Label 
-            htmlFor="phone" 
-            className="flex items-center justify-between text-base mb-2 font-medium"
-          >
-            {t('phone')} <span className="text-destructive">*</span>
-            {getFieldStatus('phone') === 'success' && <Check className="h-5 w-5 text-green-500" />}
-          </Label>
+          <div className="flex items-center justify-between mb-1.5">
+            <Label 
+              htmlFor="phone" 
+              className="text-sm font-medium flex items-center"
+            >
+              {t('phone')}
+              <span className="text-destructive mx-1">*</span>
+            </Label>
+            {getFieldStatus('phone') === 'success' && <Check className="h-4 w-4 text-green-500" />}
+          </div>
           <div className="relative">
             <Input
               id="phone"
@@ -139,7 +145,7 @@ export const CustomerForm = ({
               onChange={(e) => handlePhoneChange(e.target.value)}
               required
               maxLength={10}
-              className={`h-12 text-lg ${errors.phone && touched.phone ? "border-2 border-destructive" : "border-gray-200"}
+              className={`h-10 ${errors.phone && touched.phone ? "border-destructive" : "border-gray-200"}
                 ${language === 'ar' ? 'text-right' : 'text-left'}`}
               onBlur={() => setTouched(prev => ({ ...prev, phone: true }))}
               dir={language === 'ar' ? 'rtl' : 'ltr'}
@@ -147,24 +153,31 @@ export const CustomerForm = ({
             />
             {errors.phone && touched.phone && (
               <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                <AlertCircle className="h-5 w-5 text-destructive" />
+                <AlertCircle className="h-4 w-4 text-destructive" />
               </div>
             )}
           </div>
           {errors.phone && touched.phone && (
-            <p className="text-sm text-destructive mt-2">{errors.phone}</p>
+            <p className="text-xs text-destructive mt-1">{errors.phone}</p>
           )}
         </div>
 
         <div>
-          <Label 
-            htmlFor="email" 
-            className="flex items-center justify-between text-base mb-2 font-medium"
-          >
-            {t('email')} {language === 'ar' ? '( لغرض تنبيهات الحجز )' : '(for appointment notifications)'} 
-            <span className="text-destructive">*</span>
-            {getFieldStatus('email') === 'success' && <Check className="h-5 w-5 text-green-500" />}
-          </Label>
+          <div className="flex items-center justify-between mb-1.5">
+            <div className="flex items-center">
+              <Label 
+                htmlFor="email" 
+                className="text-sm font-medium flex items-center"
+              >
+                {t('email')}
+                <span className="text-destructive mx-1">*</span>
+              </Label>
+              <span className="text-xs text-muted-foreground mr-1 ml-1">
+                {language === 'ar' ? '( لغرض تنبيهات الحجز )' : '(for appointment notifications)'}
+              </span>
+            </div>
+            {getFieldStatus('email') === 'success' && <Check className="h-4 w-4 text-green-500" />}
+          </div>
           <div className="relative">
             <Input
               id="email"
@@ -172,7 +185,7 @@ export const CustomerForm = ({
               value={customerDetails.email}
               onChange={(e) => handleInputChange('email', e.target.value)}
               required
-              className={`h-12 text-lg ${errors.email && touched.email ? "border-2 border-destructive" : "border-gray-200"}
+              className={`h-10 ${errors.email && touched.email ? "border-destructive" : "border-gray-200"}
                 ${language === 'ar' ? 'text-right' : 'text-left'}`}
               onBlur={() => setTouched(prev => ({ ...prev, email: true }))}
               dir={language === 'ar' ? 'rtl' : 'ltr'}
@@ -180,64 +193,70 @@ export const CustomerForm = ({
             />
             {errors.email && touched.email && (
               <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                <AlertCircle className="h-5 w-5 text-destructive" />
+                <AlertCircle className="h-4 w-4 text-destructive" />
               </div>
             )}
           </div>
           {errors.email && touched.email && (
-            <p className="text-sm text-destructive mt-2">{errors.email}</p>
+            <p className="text-xs text-destructive mt-1">{errors.email}</p>
           )}
         </div>
 
         <div>
-          <Label 
-            htmlFor="notes" 
-            className="flex items-center justify-between text-base mb-2 font-medium"
-          >
-            {t('notes')} ({language === 'ar' ? 'اختياري' : 'optional'})
-          </Label>
+          <div className="flex items-center justify-between mb-1.5">
+            <Label 
+              htmlFor="notes" 
+              className="text-sm font-medium flex items-center"
+            >
+              {t('notes')}
+              <span className="text-xs text-muted-foreground mr-1 ml-1">
+                ({language === 'ar' ? 'اختياري' : 'optional'})
+              </span>
+            </Label>
+          </div>
           <Textarea
             id="notes"
             value={customerDetails.notes}
             onChange={(e) => handleInputChange('notes', e.target.value)}
-            className={`min-h-[100px] text-lg ${language === 'ar' ? 'text-right' : 'text-left'}`}
+            className={`min-h-[80px] ${language === 'ar' ? 'text-right' : 'text-left'}`}
             dir={language === 'ar' ? 'rtl' : 'ltr'}
             placeholder={language === 'ar' ? 'أي ملاحظات إضافية؟' : 'Any additional notes?'}
           />
         </div>
       </div>
 
-      {/* Form Status Summary */}
-      <div className={`mt-6 p-4 rounded-lg ${
-        Object.keys(errors).length > 0 && Object.values(touched).some(t => t)
-          ? 'bg-red-50 border border-red-200 text-red-700'
-          : Object.values(touched).every(t => t) && Object.keys(errors).length === 0
-          ? 'bg-green-50 border border-green-200 text-green-700'
-          : 'hidden'
-      }`}>
-        {Object.keys(errors).length > 0 && Object.values(touched).some(t => t) ? (
-          <div className="flex items-start gap-3">
-            <AlertCircle className="h-5 w-5 text-red-500 mt-0.5" />
-            <div>
-              <p className="font-medium">
-                {language === 'ar' ? 'يرجى تصحيح الأخطاء التالية:' : 'Please correct the following errors:'}
-              </p>
-              <ul className="list-disc list-inside mt-2 text-sm space-y-1">
-                {Object.values(errors).map((error, index) => (
-                  <li key={index}>{error}</li>
-                ))}
-              </ul>
+      {/* Form Status Summary - only show if there are errors or all fields are valid */}
+      {(Object.keys(errors).length > 0 && Object.values(touched).some(t => t)) || 
+       (Object.values(touched).every(t => t) && Object.keys(errors).length === 0) ? (
+        <div className={`mt-4 p-3 rounded-lg text-sm ${
+          Object.keys(errors).length > 0 && Object.values(touched).some(t => t)
+            ? 'bg-red-50 border border-red-200 text-red-700'
+            : 'bg-green-50 border border-green-200 text-green-700'
+        }`}>
+          {Object.keys(errors).length > 0 && Object.values(touched).some(t => t) ? (
+            <div className="flex items-start gap-2">
+              <AlertCircle className="h-4 w-4 text-red-500 mt-0.5 flex-shrink-0" />
+              <div>
+                <p className="font-medium">
+                  {language === 'ar' ? 'يرجى تصحيح الأخطاء التالية:' : 'Please correct the following errors:'}
+                </p>
+                <ul className="list-disc list-inside mt-1 text-xs space-y-1">
+                  {Object.values(errors).map((error, index) => (
+                    <li key={index}>{error}</li>
+                  ))}
+                </ul>
+              </div>
             </div>
-          </div>
-        ) : Object.values(touched).every(t => t) && Object.keys(errors).length === 0 ? (
-          <div className="flex items-center gap-3">
-            <Check className="h-5 w-5 text-green-500" />
-            <p>
-              {language === 'ar' ? 'تم تعبئة جميع الحقول بشكل صحيح!' : 'All fields are filled correctly!'}
-            </p>
-          </div>
-        ) : null}
-      </div>
+          ) : Object.values(touched).every(t => t) && Object.keys(errors).length === 0 ? (
+            <div className="flex items-center gap-2">
+              <Check className="h-4 w-4 text-green-500 flex-shrink-0" />
+              <p>
+                {language === 'ar' ? 'تم تعبئة جميع الحقول بشكل صحيح!' : 'All fields are filled correctly!'}
+              </p>
+            </div>
+          ) : null}
+        </div>
+      ) : null}
     </div>
   );
 };
