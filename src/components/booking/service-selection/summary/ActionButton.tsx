@@ -17,12 +17,7 @@ export const ActionButton = ({
   isLoading = false
 }: ActionButtonProps) => {
   const isArabic = language === 'ar';
-  
-  // For RTL languages, we need to swap the directions
   const isPrev = direction === 'prev';
-  const buttonText = isPrev 
-    ? (isArabic ? 'التالي' : 'Previous') 
-    : (isArabic ? 'السابق' : 'Next');
   
   // Swap the actual arrow direction for RTL
   const Arrow = isPrev 
@@ -34,7 +29,7 @@ export const ActionButton = ({
       onClick={onClick}
       disabled={isDisabled || isLoading}
       className={`
-        flex items-center gap-2 py-2 px-4 rounded-md font-medium text-sm
+        flex items-center justify-center p-2 rounded-md
         ${isPrev 
           ? 'text-gray-600 hover:bg-gray-100' 
           : 'bg-[#C4A484] text-white hover:bg-[#B39476]'}
@@ -45,16 +40,8 @@ export const ActionButton = ({
     >
       {isLoading ? (
         <Loader2 className="h-4 w-4 animate-spin" />
-      ) : isPrev ? (
-        <>
-          <Arrow className="h-4 w-4" />
-          <span>{buttonText}</span>
-        </>
       ) : (
-        <>
-          <span>{buttonText}</span>
-          <Arrow className="h-4 w-4" />
-        </>
+        <Arrow className="h-4 w-4" />
       )}
     </button>
   );
