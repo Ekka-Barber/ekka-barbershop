@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Service } from '@/types/service';
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -69,23 +70,15 @@ export const PackageServiceList = ({
                   </div>
                 )}
                 
-                <div className={cn(
-                  "flex items-center gap-3 flex-1 min-w-0",
-                  language === 'ar' ? "flex-row-reverse" : "flex-row"
-                )}>
-                  <span className="text-sm font-medium leading-tight truncate">
-                    {language === 'ar' ? service.name_ar : service.name_en}
-                  </span>
-                </div>
-                
+                {/* Price display - moved to the left side */}
                 <div className={cn(
                   "whitespace-nowrap",
-                  language === 'ar' ? "text-left" : "text-right"
+                  language === 'ar' ? "text-right" : "text-left"
                 )}>
                   {isSelected && discountPercentage > 0 ? (
                     <div className={cn(
                       "flex flex-col",
-                      language === 'ar' ? "items-start" : "items-end"
+                      language === 'ar' ? "items-end" : "items-start"
                     )}>
                       <span className="line-through text-muted-foreground text-xs">
                         <PriceDisplay 
@@ -110,6 +103,16 @@ export const PackageServiceList = ({
                       className={isSelected ? "font-medium" : ""}
                     />
                   )}
+                </div>
+                
+                {/* Service name - now on the right side */}
+                <div className={cn(
+                  "flex items-center gap-3 flex-1 min-w-0",
+                  language === 'ar' ? "flex-row-reverse text-right" : "flex-row text-left"
+                )}>
+                  <span className="text-sm font-medium leading-tight truncate">
+                    {language === 'ar' ? service.name_ar : service.name_en}
+                  </span>
                 </div>
               </button>
             );
