@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Tag, ChevronLeft, ChevronRight, ChevronUp, ChevronDown } from 'lucide-react';
+import { ChevronUp, ChevronDown } from 'lucide-react';
 import { PriceDisplay } from "@/components/ui/price-display";
 import { 
   Sheet,
@@ -51,13 +51,6 @@ export const PackageSavingsDrawer = ({ savings, language }: PackageSavingsDrawer
         className="bg-[#F8FFEE] border-l border-y border-green-200 p-0 rounded-l-xl mx-auto h-auto inset-auto top-24 bottom-auto right-0 shadow-xl"
       >
         <div className="p-3 space-y-2">
-          <div className="flex items-center justify-center gap-1.5 mb-1">
-            <Tag className="h-3.5 w-3.5 text-green-700" />
-            <h3 className="text-sm font-semibold text-green-700">
-              {isRtl ? 'توفيرات الباقة' : 'Package Savings'}
-            </h3>
-          </div>
-          
           <div className="bg-white rounded-lg p-2.5 shadow-inner">
             <div className="flex flex-col items-center space-y-0.5">
               <span className="text-2xs text-green-700">
