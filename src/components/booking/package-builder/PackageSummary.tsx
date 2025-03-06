@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Package, TrendingUp, Tag } from 'lucide-react';
@@ -148,25 +147,6 @@ export const PackageSummary = ({
           </span>
         </div>
       </div>
-      
-      {/* Next Tier Threshold Message */}
-      <AnimatePresence>
-        {nextTierThreshold && (
-          <motion.div 
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            className="bg-amber-50 border border-amber-100 rounded-md p-2 text-sm text-center text-amber-700"
-          >
-            <div className="flex items-center justify-center gap-1">
-              <TrendingUp className="h-4 w-4" />
-              {isRTL 
-                ? `أضف ${nextTierThreshold.servicesNeeded} خدمة للحصول على خصم ${nextTierThreshold.newPercentage}٪` 
-                : `Add ${nextTierThreshold.servicesNeeded} more service${nextTierThreshold.servicesNeeded > 1 ? 's' : ''} for ${nextTierThreshold.newPercentage}% discount!`}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
       
       {/* Savings Message */}
       <AnimatePresence>
