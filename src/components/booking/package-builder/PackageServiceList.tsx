@@ -1,9 +1,8 @@
-
 import React from 'react';
 import { Service } from '@/types/service';
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
-import { CheckCircle, PlusCircle, Timer } from "lucide-react";
+import { CheckCircle, Timer } from "lucide-react";
 import { formatNumber } from "@/utils/priceFormatting";
 import { formatDuration } from "@/utils/formatters";
 import { motion, AnimatePresence } from 'framer-motion';
@@ -35,16 +34,12 @@ export const PackageServiceList = ({
     return Math.floor(price * (1 - discountPercentage / 100));
   };
   
-  // Sort services by their display_order if they have that property
   const sortedServices = [...services].sort((a: any, b: any) => {
-    // If both services have display_order property, sort by it
     if (a.display_order !== undefined && b.display_order !== undefined) {
       return a.display_order - b.display_order;
     }
-    // If only one has display_order, prioritize it
     if (a.display_order !== undefined) return -1;
     if (b.display_order !== undefined) return 1;
-    // Fall back to name
     return (language === 'ar' ? 
       a.name_ar.localeCompare(b.name_ar) : 
       a.name_en.localeCompare(b.name_en));
@@ -86,36 +81,15 @@ export const PackageServiceList = ({
                   animate={isSelected ? { backgroundColor: "rgba(153, 135, 245, 0.1)" } : {}}
                   transition={{ duration: 0.3 }}
                 >
-                  {/* Selection indicator */}
-                  <div className={cn(
-                    "absolute -top-1.5 -right-1.5",
-                    language === 'ar' && "-top-1.5 -left-1.5 right-auto"
-                  )}>
-                    <AnimatePresence mode="wait">
-                      {isSelected ? (
-                        <motion.div
-                          initial={{ scale: 0, opacity: 0 }}
-                          animate={{ scale: 1, opacity: 1 }}
-                          exit={{ scale: 0, opacity: 0 }}
-                          transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                        >
-                          <CheckCircle className="h-4 w-4 text-[#9b87f5]" />
-                        </motion.div>
-                      ) : (
-                        <motion.div
-                          initial={{ scale: 0, opacity: 0 }}
-                          animate={{ scale: 1, opacity: 1 }}
-                          exit={{ scale: 0, opacity: 0 }}
-                          transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                          className="opacity-0 group-hover:opacity-100"
-                        >
-                          <PlusCircle className="h-4 w-4 text-muted-foreground" />
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </div>
+                  {isSelected && (
+                    <div className={cn(
+                      "absolute -top-1.5 -right-1.5",
+                      language === 'ar' && "-top-1.5 -left-1.5 right-auto"
+                    )}>
+                      <CheckCircle className="h-4 w-4 text-[#9b87f5]" />
+                    </div>
+                  )}
                   
-                  {/* Price display */}
                   <div className={cn(
                     "whitespace-nowrap",
                     language === 'ar' ? "text-right" : "text-left"
@@ -151,7 +125,6 @@ export const PackageServiceList = ({
                     </AnimatePresence>
                   </div>
                   
-                  {/* Service name and duration */}
                   <div className={cn(
                     "flex items-center gap-3 flex-1 min-w-0",
                     language === 'ar' ? "flex-row-reverse text-right" : "flex-row text-left"
