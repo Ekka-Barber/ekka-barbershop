@@ -36,8 +36,10 @@ export const isWithinWorkingHours = (
           return true;
         }
       } else {
-        // Slot is before midnight (12:00-23:59) - check if it's after the start time
-        if (slotMinutes >= startMinutes) {
+        // Slot is before midnight (12:00-23:59)
+        // The previous logic only checked if it's after the start time,
+        // but we need to also check that it's before midnight (< 24*60)
+        if (slotMinutes >= startMinutes && slotMinutes < 24 * 60) {
           return true;
         }
       }
