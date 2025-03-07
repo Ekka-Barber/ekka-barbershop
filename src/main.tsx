@@ -72,7 +72,7 @@ if ('PerformanceObserver' in window) {
 root.render(
   <React.StrictMode>
     <React.Suspense fallback={<LoadingSpinner />}>
-      <ErrorBoundary fallback={<ErrorFallback />}>
+      <ErrorBoundary fallbackComponent={() => <ErrorFallback />}>
         <App />
       </ErrorBoundary>
     </React.Suspense>
