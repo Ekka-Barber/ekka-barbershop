@@ -1,7 +1,5 @@
-// Service worker version for tracking
 const SW_VERSION = '1.0.0';
 
-// Cache name and critical resources to precache
 const CACHE_NAME = 'ekka-v1';
 const CRITICAL_RESOURCES = [
   '/',
@@ -9,11 +7,9 @@ const CRITICAL_RESOURCES = [
   '/manifest.json',
   '/manifest.ar.json',
   '/offline.html',
-  '/lovable-uploads/2ea1f72e-efd2-4345-bf4d-957efd873986.png',
-  '/index.css'
+  '/lovable-uploads/2ea1f72e-efd2-4345-bf4d-957efd873986.png'
 ];
 
-// Logger utility functions
 function log(message, data) {
   const timestamp = new Date().toISOString();
   const prefix = `[ServiceWorker ${SW_VERSION}] ${timestamp} - `;
@@ -32,11 +28,29 @@ function logError(message, error) {
   console.error(prefix + message, error);
 }
 
-// Cache management functions
 async function initializeCache() {
   log('Initializing cache');
   const cache = await caches.open(CACHE_NAME);
-  return cache.addAll(CRITICAL_RESOURCES);
+  
+  const successfulCaches = [];
+  const failedCaches = [];
+  
+  for (const resource of CRITICAL_RESOURCES) {
+    try {
+      await cache.add(resource);
+      successfulCaches.push(resource);
+    } catch (error) {
+      failedCaches.push({ resource, error: error.message });
+      logError(`Failed to cache: ${resource}`, error);
+    }
+  }
+  
+  log('Cache initialization completed', { 
+    successful: successfulCaches.length, 
+    failed: failedCaches.length 
+  });
+  
+  return { successfulCaches, failedCaches };
 }
 
 async function cleanupOldCaches() {
@@ -53,29 +67,22 @@ async function cleanupOldCaches() {
 }
 
 async function handleFetch(event) {
-  const requestUrl = new URL(event.request.url);
-  
-  // For navigate requests, serve index.html
   if (event.request.mode === 'navigate') {
     log('Handling navigation request', event.request.url);
     const indexResponse = await caches.match('/index.html');
     if (indexResponse) return indexResponse;
   }
   
-  // Check cache first for all other requests
   const cachedResponse = await caches.match(event.request);
   if (cachedResponse) {
     log('Serving from cache', event.request.url);
-    // Revalidate cache in the background
     revalidateCache(event.request);
     return cachedResponse;
   }
   
-  // If not in cache, try network
   log('Fetching from network', event.request.url);
   try {
     const networkResponse = await fetch(event.request);
-    // Clone and cache the response
     if (shouldCache(event.request)) {
       const responseToCache = networkResponse.clone();
       const cache = await caches.open(CACHE_NAME);
@@ -85,38 +92,31 @@ async function handleFetch(event) {
   } catch (error) {
     logError('Network fetch failed', error);
     
-    // For navigate requests, return offline page
     if (event.request.mode === 'navigate') {
       const offlineResponse = await caches.match('/offline.html');
       if (offlineResponse) return offlineResponse;
     }
     
-    // For image requests, return a placeholder
     if (event.request.destination === 'image') {
       const placeholderResponse = await caches.match('/placeholder.svg');
       if (placeholderResponse) return placeholderResponse;
     }
     
-    // Otherwise just throw the error
     throw error;
   }
 }
 
-// Helper function to determine if a request should be cached
 function shouldCache(request) {
   const url = new URL(request.url);
   
-  // Don't cache cross-origin requests
   if (url.origin !== location.origin) {
     return false;
   }
   
-  // Only cache GET requests
   if (request.method !== 'GET') {
     return false;
   }
   
-  // Don't cache API requests
   if (url.pathname.startsWith('/api/')) {
     return false;
   }
@@ -124,7 +124,6 @@ function shouldCache(request) {
   return true;
 }
 
-// Helper function to revalidate a cached response
 async function revalidateCache(request) {
   if (!shouldCache(request)) {
     return;
@@ -142,12 +141,10 @@ async function revalidateCache(request) {
   }
 }
 
-// Helper function to sync bookings
 async function syncBookings() {
   log('Syncing bookings');
   
   try {
-    // Implementation depends on app's data storage strategy
     return Promise.resolve();
   } catch (error) {
     logError('Sync failed', error);
@@ -155,12 +152,10 @@ async function syncBookings() {
   }
 }
 
-// Helper function to update content
 async function updateContent() {
   log('Updating content');
   
   try {
-    // Fetch new content and update cache
     return Promise.resolve();
   } catch (error) {
     logError('Content update failed', error);
@@ -168,7 +163,6 @@ async function updateContent() {
   }
 }
 
-// Install event handler - precache critical resources
 self.addEventListener('install', (event) => {
   log('Installing Service Worker version ' + SW_VERSION);
   event.waitUntil(
@@ -179,7 +173,6 @@ self.addEventListener('install', (event) => {
   );
 });
 
-// Activate event handler - clean up old caches
 self.addEventListener('activate', (event) => {
   log('Activating Service Worker version ' + SW_VERSION);
   event.waitUntil(
@@ -190,18 +183,14 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// Fetch event handler - implement stale-while-revalidate for most resources
 self.addEventListener('fetch', (event) => {
-  // Skip cross-origin requests
   if (!event.request.url.startsWith(self.location.origin)) {
     return;
   }
   
-  // Handle the fetch event with our caching strategy
   event.respondWith(handleFetch(event));
 });
 
-// Push notification handler
 self.addEventListener('push', (event) => {
   log('Push notification received');
   
@@ -222,7 +211,6 @@ self.addEventListener('push', (event) => {
   );
 });
 
-// Notification click handler
 self.addEventListener('notificationclick', (event) => {
   log('Notification clicked', event.notification);
   event.notification.close();
@@ -243,7 +231,6 @@ self.addEventListener('notificationclick', (event) => {
   );
 });
 
-// Background sync handler
 self.addEventListener('sync', (event) => {
   log('Background sync event: ' + event.tag);
   
@@ -252,7 +239,6 @@ self.addEventListener('sync', (event) => {
   }
 });
 
-// Periodic background sync handler
 self.addEventListener('periodicsync', (event) => {
   log('Periodic sync event: ' + event.tag);
   
