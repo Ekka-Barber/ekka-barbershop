@@ -81,7 +81,7 @@ const Customer = () => {
               <img 
                 src="lovable-uploads/7eb81221-fbf5-4b1d-8327-eb0e707236d8.png" 
                 alt="Ekka Barbershop Logo" 
-                className="h-32 mx-auto mb-6"
+                className="h-32 mx-auto mb-6 object-contain"
                 loading="eager"
                 width="320" 
                 height="128"

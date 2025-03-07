@@ -30,7 +30,7 @@ export const BookingHeader = ({
         <img 
           src="lovable-uploads/7eb81221-fbf5-4b1d-8327-eb0e707236d8.png"
           alt="Ekka Barbershop Logo" 
-          className="h-24 mb-6 object-contain mx-auto"
+          className="h-24 mb-6 object-contain mx-auto w-auto"
           loading="eager"
           width="240"
           height="96"
