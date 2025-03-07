@@ -32,10 +32,24 @@ export const OptimizedImage = ({
   // Determine whether to load lazily based on priority flag
   const loadingStrategy = priority ? 'eager' : 'lazy';
   
-  // Determine final sources to use - ensure they're valid paths
-  const cleanSrc = src.startsWith('/') ? src : `/${src}`;
-  const finalWebpSrc = webpSrc || (src.match(/\.(jpg|jpeg|png)$/i) ? cleanSrc.replace(/\.(jpg|jpeg|png)$/i, '.webp') : null);
-  const finalFallbackSrc = fallbackSrc || cleanSrc;
+  // Ensure src is a valid path (remove double slashes)
+  const normalizePath = (path: string) => {
+    // If the path is an absolute URL, return it as is
+    if (path.startsWith('http')) {
+      return path;
+    }
+    // Clean up paths that might have double slashes
+    return path.startsWith('/') ? path : `/${path}`;
+  };
+  
+  const cleanSrc = normalizePath(src);
+  const finalFallbackSrc = fallbackSrc ? normalizePath(fallbackSrc) : cleanSrc;
+  
+  // Only attempt WebP conversion for compatible image types
+  const canConvertToWebp = cleanSrc.match(/\.(jpg|jpeg|png)$/i);
+  const finalWebpSrc = webpSrc 
+    ? normalizePath(webpSrc) 
+    : (canConvertToWebp ? cleanSrc.replace(/\.(jpg|jpeg|png)$/i, '.webp') : null);
   
   // Only use picture with WebP if we actually have WebP conversion
   const hasWebp = finalWebpSrc !== null && finalWebpSrc !== cleanSrc;
@@ -48,7 +62,6 @@ export const OptimizedImage = ({
 
   const handleLoad = () => {
     setIsLoaded(true);
-    console.log(`Image loaded successfully: ${finalFallbackSrc}`);
   };
 
   const handleError = () => {

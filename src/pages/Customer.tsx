@@ -74,8 +74,8 @@ const Customer = () => {
   };
 
   // Define constant paths to prevent typos
-  const logoPath = "/lovable-uploads/8289fb1d-c6e6-4528-980c-6b52313ca898.png";
-  const boonusLogoPath = "/lovable-uploads/ba9a65f1-bf31-4b9c-ab41-7c7228a2f1b7.png";
+  const logoPath = "lovable-uploads/8289fb1d-c6e6-4528-980c-6b52313ca898.png";
+  const boonusLogoPath = "lovable-uploads/ba9a65f1-bf31-4b9c-ab41-7c7228a2f1b7.png";
 
   return (
     <div dir={language === 'ar' ? 'rtl' : 'ltr'} className="min-h-screen flex flex-col">
@@ -85,7 +85,7 @@ const Customer = () => {
             <div className="text-center mb-8">
               <OptimizedImage 
                 src={logoPath}
-                fallbackSrc={logoPath} // Explicit fallback
+                fallbackSrc={logoPath} 
                 alt="Ekka Barbershop Logo" 
                 className="h-32 mx-auto mb-6" 
                 width={128}

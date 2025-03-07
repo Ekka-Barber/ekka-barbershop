@@ -60,7 +60,7 @@ const Menu = () => {
   });
 
   // Define constant paths to prevent typos
-  const logoPath = "/lovable-uploads/8289fb1d-c6e6-4528-980c-6b52313ca898.png";
+  const logoPath = "lovable-uploads/8289fb1d-c6e6-4528-980c-6b52313ca898.png";
 
   return (
     <div dir={language === 'ar' ? 'rtl' : 'ltr'} className="min-h-screen flex flex-col">
