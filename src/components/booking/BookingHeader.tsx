@@ -2,7 +2,6 @@
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Link } from "react-router-dom";
 import { Branch } from "@/types/booking";
-import { OptimizedImage } from "@/components/common/OptimizedImage";
 
 export interface BookingHeaderProps {
   branchName?: string;
@@ -25,19 +24,13 @@ export const BookingHeader = ({
   const displayName = branchName || (branch ? (language === 'ar' ? branch.name_ar || branch.name : branch.name) : '');
   const displayAddress = branchAddress || (branch ? (language === 'ar' ? branch.address_ar || branch.address : branch.address) : '');
   
-  const logoPath = "lovable-uploads/8289fb1d-c6e6-4528-980c-6b52313ca898.png";
-  
   return (
     <div className="text-center mb-8">
       <Link to="/customer" className="transition-opacity hover:opacity-80 block">
-        <OptimizedImage 
-          src={logoPath}
-          fallbackSrc={logoPath}
+        <img 
+          src="/lovable-uploads/8289fb1d-c6e6-4528-980c-6b52313ca898.png"
           alt="Ekka Barbershop Logo" 
           className="h-24 mb-6 object-contain mx-auto"
-          width={96}
-          height={96}
-          priority={true}
         />
       </Link>
       <h1 className="text-3xl font-bold text-[#222222] mb-2">

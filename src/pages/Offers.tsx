@@ -10,14 +10,12 @@ import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import CountdownTimer from '@/components/CountdownTimer';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { trackViewContent, trackButtonClick } from "@/utils/tiktokTracking";
-import { OptimizedImage } from "@/components/common/OptimizedImage";
 
 const Offers = () => {
   const navigate = useNavigate();
   const { t, language } = useLanguage();
-  const [imageErrors, setImageErrors] = useState<Record<string, boolean>>({});
   
   useEffect(() => {
     // Track page view after component mounts
@@ -134,14 +132,6 @@ const Offers = () => {
     </div>
   );
 
-  // Define constant paths to prevent typos
-  const logoPath = "/lovable-uploads/8289fb1d-c6e6-4528-980c-6b52313ca898.png";
-
-  const handleImageError = (id: string) => {
-    setImageErrors(prev => ({...prev, [id]: true}));
-    toast.error('Failed to load offer image');
-  };
-
   return (
     <div className="flex flex-col min-h-screen">
       <div className="flex-grow">
@@ -157,14 +147,10 @@ const Offers = () => {
           <div className="flex-grow max-w-4xl mx-auto p-4 sm:p-6 lg:p-8 w-full">
             <div className="flex flex-col items-center mb-8">
               <Link to="/customer" className="transition-opacity hover:opacity-80">
-                <OptimizedImage 
-                  src={logoPath}
-                  fallbackSrc={logoPath}
+                <img 
+                  src="/lovable-uploads/8289fb1d-c6e6-4528-980c-6b52313ca898.png"
                   alt="Ekka Barbershop Logo" 
                   className="h-24 mb-6 object-contain cursor-pointer"
-                  width={96}
-                  height={96}
-                  priority={true}
                 />
               </Link>
               <h1 className="text-3xl font-bold text-[#222222] mb-2">{t('special.offers.title')}</h1>
@@ -215,35 +201,25 @@ const Offers = () => {
                           <PDFViewer pdfUrl={file.url} />
                         ) : (
                           <div className={`relative ${file.isExpired ? 'filter grayscale blur-[2px]' : ''}`}>
-                            {!imageErrors[file.id] && (
-                              <OptimizedImage 
-                                src={file.url} 
-                                alt={file.isExpired ? `Expired Offer - ${file.file_name || 'Special Offer'}` : "Special Offer"}
-                                className="w-full max-w-full h-auto rounded-lg transition-all duration-300"
-                                width={800}
-                                height={500}
-                                loading="lazy"
-                                onLoad={() => console.log('Image loaded successfully:', file.url)}
-                                onError={() => {
-                                  console.error('Image failed to load:', file.url);
-                                  console.error('Image error details:', {
-                                    fileName: file.file_name,
-                                    filePath: file.file_path,
-                                    fileType: file.file_type,
-                                    generatedUrl: file.url
-                                  });
-                                  handleImageError(file.id);
-                                }}
-                              />
-                            )}
-                            {imageErrors[file.id] && (
-                              <div className="w-full h-64 flex items-center justify-center bg-gray-100 rounded-lg border border-gray-200">
-                                <div className="text-gray-500 text-center">
-                                  <p className="mb-2">{t('image.failed.to.load')}</p>
-                                  <p className="text-sm">{file.file_name || 'Special Offer'}</p>
-                                </div>
-                              </div>
-                            )}
+                            <img 
+                              src={file.url} 
+                              alt={file.isExpired ? `Expired Offer - ${file.file_name || 'Special Offer'}` : "Special Offer"}
+                              className="w-full max-w-full h-auto rounded-lg transition-all duration-300"
+                              onLoad={() => console.log('Image loaded successfully:', file.url)}
+                              onError={(e) => {
+                                console.error('Image failed to load:', file.url);
+                                // Log detailed error information
+                                console.error('Image error details:', {
+                                  fileName: file.file_name,
+                                  filePath: file.file_path,
+                                  fileType: file.file_type,
+                                  generatedUrl: file.url
+                                });
+                                e.currentTarget.src = '/placeholder.svg';
+                                // Show toast for better user feedback
+                                toast.error('Failed to load offer image');
+                              }}
+                            />
                           </div>
                         )}
                       </div>

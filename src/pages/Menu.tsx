@@ -9,7 +9,6 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { useEffect } from 'react';
 import { trackViewContent, trackButtonClick } from "@/utils/tiktokTracking";
-import { OptimizedImage } from "@/components/common/OptimizedImage";
 
 const Menu = () => {
   const navigate = useNavigate();
@@ -59,9 +58,6 @@ const Menu = () => {
     queryFn: fetchMenu
   });
 
-  // Define constant paths to prevent typos
-  const logoPath = "lovable-uploads/8289fb1d-c6e6-4528-980c-6b52313ca898.png";
-
   return (
     <div dir={language === 'ar' ? 'rtl' : 'ltr'} className="min-h-screen flex flex-col">
       <div className="app-header">
@@ -74,14 +70,10 @@ const Menu = () => {
         <div className="content-area flex flex-col items-center justify-center">
           <div className="text-center w-full max-w-2xl mx-auto">
             <Link to="/customer" className="transition-opacity hover:opacity-80 block">
-              <OptimizedImage 
-                src={logoPath}
-                fallbackSrc={logoPath}
+              <img 
+                src="/lovable-uploads/8289fb1d-c6e6-4528-980c-6b52313ca898.png"
                 alt="Ekka Barbershop Logo" 
                 className="h-24 mb-6 object-contain mx-auto"
-                width={96}
-                height={96}
-                priority={true}
               />
             </Link>
             <h1 className="text-3xl font-bold text-[#222222] mb-2">{t('our.menu')}</h1>
@@ -108,13 +100,10 @@ const Menu = () => {
                 menuFile.file_type.includes('pdf') ? (
                   <PDFViewer pdfUrl={menuFile.url} />
                 ) : (
-                  <OptimizedImage 
+                  <img 
                     src={menuFile.url} 
                     alt="Menu"
                     className="w-full max-w-full h-auto rounded-lg"
-                    width={800}
-                    height={1200}
-                    loading="lazy"
                     onError={(e) => {
                       console.error('Failed to load menu image:', menuFile.url);
                       e.currentTarget.src = '/placeholder.svg';
