@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -27,7 +26,6 @@ const Customer = () => {
   const isStandalone = isRunningAsStandalone();
   const deviceHasNotch = hasNotch();
 
-  // Update viewport dimensions and safe area insets on resize and orientation change
   useEffect(() => {
     const handleResize = () => {
       const { height } = getViewportDimensions();
@@ -39,20 +37,17 @@ const Customer = () => {
         bottom: parseInt(insets.bottom || '0', 10)
       });
       
-      // For debugging safe areas
       console.log('Safe areas:', insets);
       console.log('Viewport height:', height);
       console.log('Has notch:', deviceHasNotch);
       console.log('Is standalone:', isStandalone);
     };
 
-    // Initial measurement
     handleResize();
 
     window.addEventListener('resize', handleResize);
     window.addEventListener('orientationchange', handleResize);
 
-    // Force multiple measurements to catch iOS safe area changes
     const timeoutIds = [
       setTimeout(handleResize, 100),
       setTimeout(handleResize, 500),
@@ -117,26 +112,24 @@ const Customer = () => {
     });
   };
 
-  // Calculate dynamic vertical spacing based on viewport height
-  const getContentStyle = () => {
-    const baseStyle = {
-      minHeight: isStandalone ? `calc(100vh - ${safeAreaInsets.top + safeAreaInsets.bottom}px)` : '100vh',
-      paddingTop: deviceHasNotch && isStandalone ? `max(env(safe-area-inset-top), ${safeAreaInsets.top}px)` : undefined,
-      display: 'grid',
-      gridTemplateRows: 'auto 1fr auto',
-    };
-    
-    return baseStyle;
-  };
-
   return (
     <div dir={language === 'ar' ? 'rtl' : 'ltr'} className="min-h-screen flex flex-col">
       <div className="app-container h-full">
         <PullToRefresh onRefresh={handleRefresh}>
           <div 
             ref={contentRef}
-            className={`content-area home-grid ${isStandalone ? 'standalone-mode' : ''} ${deviceHasNotch ? 'has-notch' : ''}`}
-            style={getContentStyle()}
+            className={`content-area ${isStandalone ? 'standalone-mode' : ''} ${deviceHasNotch ? 'has-notch' : ''}`}
+            style={{
+              display: 'grid',
+              gridTemplateRows: 'auto auto',
+              gap: '0',
+              minHeight: isStandalone ? 
+                `calc(100vh - ${safeAreaInsets.top + safeAreaInsets.bottom}px)` : 
+                '100vh',
+              paddingTop: deviceHasNotch && isStandalone ? 
+                `max(env(safe-area-inset-top), ${safeAreaInsets.top}px)` : 
+                undefined,
+            }}
           >
             <div className="text-center pt-safe">
               <img 
@@ -158,9 +151,7 @@ const Customer = () => {
               <div className="h-1 w-24 bg-[#C4A36F] mx-auto mt-3 md:mt-4 mb-6"></div>
             </div>
 
-            <div className="flex-grow"></div>
-
-            <div className="space-y-3 md:space-y-4 max-w-xs mx-auto pb-safe">
+            <div className="space-y-3 md:space-y-4 max-w-xs mx-auto self-end pb-safe">
               <Button 
                 className="w-full h-14 text-lg font-medium bg-[#C4A36F] hover:bg-[#B39260] text-white transition-all duration-300 shadow-lg hover:shadow-xl touch-target" 
                 onClick={() => {
