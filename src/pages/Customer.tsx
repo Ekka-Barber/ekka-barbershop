@@ -73,6 +73,10 @@ const Customer = () => {
     });
   };
 
+  // Define constant paths to prevent typos
+  const logoPath = "/lovable-uploads/8289fb1d-c6e6-4528-980c-6b52313ca898.png";
+  const boonusLogoPath = "/lovable-uploads/ba9a65f1-bf31-4b9c-ab41-7c7228a2f1b7.png";
+
   return (
     <div dir={language === 'ar' ? 'rtl' : 'ltr'} className="min-h-screen flex flex-col">
       <div className="app-container">
@@ -80,7 +84,8 @@ const Customer = () => {
           <div className="content-area">
             <div className="text-center mb-8">
               <OptimizedImage 
-                src="/lovable-uploads/8289fb1d-c6e6-4528-980c-6b52313ca898.png" 
+                src={logoPath}
+                fallbackSrc={logoPath} // Explicit fallback
                 alt="Ekka Barbershop Logo" 
                 className="h-32 mx-auto mb-6" 
                 width={128}
@@ -163,11 +168,13 @@ const Customer = () => {
                     {language === 'ar' ? 'انضم لبرنامج الولاء' : 'Join loyalty program'}
                   </span>
                   <OptimizedImage 
-                    src="/lovable-uploads/ba9a65f1-bf31-4b9c-ab41-7c7228a2f1b7.png" 
+                    src={boonusLogoPath}
+                    fallbackSrc={boonusLogoPath}
                     alt="Boonus Logo" 
                     className="h-7 w-auto flex-shrink-0" 
                     width={28}
                     height={28}
+                    priority={true}
                   />
                 </div>
               </Button>

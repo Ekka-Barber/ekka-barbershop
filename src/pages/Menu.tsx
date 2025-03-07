@@ -59,6 +59,9 @@ const Menu = () => {
     queryFn: fetchMenu
   });
 
+  // Define constant paths to prevent typos
+  const logoPath = "/lovable-uploads/8289fb1d-c6e6-4528-980c-6b52313ca898.png";
+
   return (
     <div dir={language === 'ar' ? 'rtl' : 'ltr'} className="min-h-screen flex flex-col">
       <div className="app-header">
@@ -72,7 +75,8 @@ const Menu = () => {
           <div className="text-center w-full max-w-2xl mx-auto">
             <Link to="/customer" className="transition-opacity hover:opacity-80 block">
               <OptimizedImage 
-                src="/lovable-uploads/8289fb1d-c6e6-4528-980c-6b52313ca898.png"
+                src={logoPath}
+                fallbackSrc={logoPath}
                 alt="Ekka Barbershop Logo" 
                 className="h-24 mb-6 object-contain mx-auto"
                 width={96}

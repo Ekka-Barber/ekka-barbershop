@@ -25,11 +25,14 @@ export const BookingHeader = ({
   const displayName = branchName || (branch ? (language === 'ar' ? branch.name_ar || branch.name : branch.name) : '');
   const displayAddress = branchAddress || (branch ? (language === 'ar' ? branch.address_ar || branch.address : branch.address) : '');
   
+  const logoSrc = "/lovable-uploads/8289fb1d-c6e6-4528-980c-6b52313ca898.png";
+  
   return (
     <div className="text-center mb-8">
       <Link to="/customer" className="transition-opacity hover:opacity-80 block">
         <OptimizedImage 
-          src="/lovable-uploads/8289fb1d-c6e6-4528-980c-6b52313ca898.png"
+          src={logoSrc}
+          fallbackSrc={logoSrc} // Explicit fallback
           alt="Ekka Barbershop Logo" 
           className="h-24 mb-6 object-contain mx-auto"
           width={96}
