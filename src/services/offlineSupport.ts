@@ -1,4 +1,3 @@
-
 /**
  * Functions for managing offline capabilities and service worker registration
  */
@@ -10,14 +9,43 @@
 export const registerServiceWorker = async (): Promise<ServiceWorkerRegistration | null> => {
   if ('serviceWorker' in navigator) {
     try {
+      // Use the updated registration method with more options
       const registration = await navigator.serviceWorker.register('/service-worker.js', {
-        scope: '/'
+        scope: '/',
+        updateViaCache: 'none' // Ensure fresh service worker checks
       });
       
+      // Log successful registration
       console.log('Service Worker registered with scope:', registration.scope);
+      
+      // Event handler for when a new service worker is waiting
+      registration.addEventListener('updatefound', () => {
+        const newWorker = registration.installing;
+        if (newWorker) {
+          newWorker.addEventListener('statechange', () => {
+            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+              console.log('New Service Worker installed and waiting to activate');
+              // Could show UI to prompt user to refresh
+            }
+          });
+        }
+      });
+      
       return registration;
     } catch (error) {
       console.error('Service Worker registration failed:', error);
+      
+      // Try to unregister any problematic service workers
+      try {
+        const existingRegistration = await navigator.serviceWorker.getRegistration();
+        if (existingRegistration) {
+          await existingRegistration.unregister();
+          console.log('Unregistered problematic service worker, please reload the page');
+        }
+      } catch (unregError) {
+        console.error('Failed to unregister service worker:', unregError);
+      }
+      
       return null;
     }
   }
@@ -82,12 +110,62 @@ export const prefetchResources = async (resources: string[]): Promise<void> => {
   if ('caches' in window) {
     try {
       const cache = await caches.open('ekka-prefetch');
-      await cache.addAll(resources);
+      
+      // Use individual add operations with error handling
+      const addPromises = resources.map(async (resource) => {
+        try {
+          await cache.add(resource);
+          console.log(`Resource prefetched: ${resource}`);
+        } catch (error) {
+          console.warn(`Failed to prefetch resource: ${resource}`, error);
+        }
+      });
+      
+      await Promise.allSettled(addPromises);
       console.log('Resources prefetched successfully');
     } catch (error) {
       console.error('Failed to prefetch resources:', error);
     }
   }
+};
+
+/**
+ * Sends a message to the service worker
+ * @param message The message to send
+ * @returns A promise that resolves when the message is sent
+ */
+export const sendMessageToServiceWorker = async (message: any): Promise<void> => {
+  if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+    try {
+      await navigator.serviceWorker.ready;
+      navigator.serviceWorker.controller.postMessage(message);
+    } catch (error) {
+      console.error('Failed to send message to service worker:', error);
+    }
+  }
+};
+
+/**
+ * Forces an update of the service worker
+ * @returns A promise that resolves when the update is complete
+ */
+export const forceServiceWorkerUpdate = async (): Promise<boolean> => {
+  if ('serviceWorker' in navigator) {
+    try {
+      const registration = await navigator.serviceWorker.getRegistration();
+      if (registration) {
+        await registration.update();
+        if (registration.waiting) {
+          // Tell the waiting service worker to activate
+          registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+          return true;
+        }
+      }
+    } catch (error) {
+      console.error('Failed to update service worker:', error);
+    }
+  }
+  return false;
 };
 
 /**
