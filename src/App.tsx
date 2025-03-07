@@ -6,38 +6,18 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { LanguageProvider } from "@/contexts/LanguageContext";
+import Customer from "./pages/Customer";
+import Menu from "./pages/Menu";
+import Offers from "./pages/Offers";
+import Bookings from "./pages/Bookings";
 import { OfflineNotification } from "./components/common/OfflineNotification";
 import { ErrorBoundary } from "./components/common/ErrorBoundary";
 import { registerServiceWorker } from "./services/offlineSupport";
 
-// Implement lazy loading for all page components
-const Customer = lazy(() => import("./pages/Customer"));
-const Menu = lazy(() => import("./pages/Menu"));
-const Offers = lazy(() => import("./pages/Offers"));
-const Bookings = lazy(() => import("./pages/Bookings"));
+// Lazy load Admin component
 const Admin = lazy(() => import("./pages/Admin"));
 
-// Loading fallback component with optimized animation
-const PageLoadingFallback = () => (
-  <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-gray-50 to-gray-100">
-    <div className="flex flex-col items-center">
-      <div className="w-10 h-10 border-4 border-[#C4A36F] border-t-transparent rounded-full animate-spin mb-4"></div>
-      <p className="text-[#4A4A4A] font-medium">Loading...</p>
-    </div>
-  </div>
-);
-
-// Configure Query Client with optimized settings
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: 1,
-      staleTime: 30000,
-      gcTime: 5 * 60 * 1000,
-      refetchOnWindowFocus: false,
-    },
-  },
-});
+const queryClient = new QueryClient();
 
 // Protected route component
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -66,53 +46,24 @@ const ServiceWorkerRegistration = () => {
 
 // Main App Component
 const AppRoutes = () => {
-  // Prefetch data for commonly accessed routes
-  useEffect(() => {
-    // Preload Customer component after initial render
-    const timer = setTimeout(() => {
-      import("./pages/Customer");
-    }, 1000);
-
-    return () => clearTimeout(timer);
-  }, []);
-
   return (
     <ErrorBoundary>
       <Routes>
         {/* Redirect root to customer page */}
         <Route path="/" element={<Navigate to="/customer" replace />} />
         
-        {/* Public routes with Suspense for code splitting */}
-        <Route path="/customer" element={
-          <Suspense fallback={<PageLoadingFallback />}>
-            <Customer />
-          </Suspense>
-        } />
-        
-        <Route path="/menu" element={
-          <Suspense fallback={<PageLoadingFallback />}>
-            <Menu />
-          </Suspense>
-        } />
-        
-        <Route path="/offers" element={
-          <Suspense fallback={<PageLoadingFallback />}>
-            <Offers />
-          </Suspense>
-        } />
-        
-        <Route path="/bookings" element={
-          <Suspense fallback={<PageLoadingFallback />}>
-            <Bookings />
-          </Suspense>
-        } />
+        {/* Public routes */}
+        <Route path="/customer" element={<Customer />} />
+        <Route path="/menu" element={<Menu />} />
+        <Route path="/offers" element={<Offers />} />
+        <Route path="/bookings" element={<Bookings />} />
         
         {/* Protected routes */}
         <Route 
           path="/admin" 
           element={
             <ProtectedRoute>
-              <Suspense fallback={<PageLoadingFallback />}>
+              <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
                 <Admin />
               </Suspense>
             </ProtectedRoute>

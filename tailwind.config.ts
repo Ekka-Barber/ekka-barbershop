@@ -2,18 +2,10 @@
 import type { Config } from "tailwindcss";
 
 const config: Config = {
-  // Enable JIT mode for better performance and smaller CSS bundles
-  mode: "jit",
-  // Configure content paths for better purging
   content: [
     './index.html',
     './src/**/*.{js,ts,jsx,tsx}',
   ],
-  // Enable future features for better performance
-  future: {
-    hoverOnlyWhenSupported: true,
-    disableColorOpacityUtilitiesByDefault: true,
-  },
   theme: {
     extend: {
       colors: {
@@ -79,13 +71,6 @@ const config: Config = {
     },
   },
   plugins: [require("tailwindcss-animate")],
-  // Optimize CSS size by removing unused variants
-  variants: {
-    extend: {
-      opacity: ['active'],
-      transform: ['hover', 'focus'],
-    },
-  },
 };
 
 export default config;
