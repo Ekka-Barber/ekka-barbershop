@@ -28,9 +28,12 @@ export const BookingHeader = ({
     <div className="text-center mb-8">
       <Link to="/customer" className="transition-opacity hover:opacity-80 block">
         <img 
-          src="/lovable-uploads/8289fb1d-c6e6-4528-980c-6b52313ca898.png"
+          src="lovable-uploads/7eb81221-fbf5-4b1d-8327-eb0e707236d8.png"
           alt="Ekka Barbershop Logo" 
           className="h-24 mb-6 object-contain mx-auto"
+          loading="eager"
+          width="240"
+          height="96"
         />
       </Link>
       <h1 className="text-3xl font-bold text-[#222222] mb-2">

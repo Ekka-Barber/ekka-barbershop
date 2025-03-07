@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -77,7 +78,14 @@ const Customer = () => {
         <PullToRefresh onRefresh={handleRefresh}>
           <div className="content-area">
             <div className="text-center mb-8">
-              <img src="/lovable-uploads/8289fb1d-c6e6-4528-980c-6b52313ca898.png" alt="Ekka Barbershop Logo" className="h-32 mx-auto mb-6" />
+              <img 
+                src="lovable-uploads/7eb81221-fbf5-4b1d-8327-eb0e707236d8.png" 
+                alt="Ekka Barbershop Logo" 
+                className="h-32 mx-auto mb-6"
+                loading="eager"
+                width="320" 
+                height="128"
+              />
               <div className="space-y-2">
                 <h2 className="text-xl font-medium text-[#222222]">
                   {t('welcome.line1')}
