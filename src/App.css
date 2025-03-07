@@ -88,9 +88,10 @@
   will-change: transform;
   /* Enable momentum scrolling on iOS */
   -webkit-overflow-scrolling: touch;
-  /* Fix for the excessive white space */
-  display: grid;
-  grid-template-rows: auto 1fr;
+  /* Center content properly */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
   min-height: 100vh;
 }
 
@@ -110,14 +111,6 @@ input, button, select, textarea {
 html {
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
-}
-
-/* New Home Grid Layout */
-.home-grid {
-  display: grid;
-  grid-template-rows: auto 1fr;
-  min-height: 100vh;
-  gap: 0;
 }
 
 /* PWA specific adjustments */
@@ -300,9 +293,9 @@ html {
 .standalone-mode {
   min-height: 100vh;
   padding-top: env(safe-area-inset-top);
-  display: grid;
-  grid-template-rows: auto 1fr;
-  gap: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 /* Notch device specific adjustments */
@@ -322,9 +315,9 @@ html {
   @media all and (display-mode: standalone) {
     .content-area {
       min-height: calc(100vh - var(--sat) - var(--sab));
-      display: grid;
-      grid-template-rows: auto 1fr;
-      gap: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
     }
   }
 }

@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -118,20 +119,20 @@ const Customer = () => {
         <PullToRefresh onRefresh={handleRefresh}>
           <div 
             ref={contentRef}
-            className={`content-area ${isStandalone ? 'standalone-mode' : ''} ${deviceHasNotch ? 'has-notch' : ''}`}
+            className={`content-area flex flex-col justify-center items-center ${isStandalone ? 'standalone-mode' : ''} ${deviceHasNotch ? 'has-notch' : ''}`}
             style={{
-              display: 'grid',
-              gridTemplateRows: 'auto auto',
-              gap: '0',
               minHeight: isStandalone ? 
                 `calc(100vh - ${safeAreaInsets.top + safeAreaInsets.bottom}px)` : 
                 '100vh',
               paddingTop: deviceHasNotch && isStandalone ? 
                 `max(env(safe-area-inset-top), ${safeAreaInsets.top}px)` : 
                 undefined,
+              paddingBottom: deviceHasNotch && isStandalone ? 
+                `max(env(safe-area-inset-bottom), ${safeAreaInsets.bottom}px)` : 
+                undefined,
             }}
           >
-            <div className="text-center pt-safe">
+            <div className="text-center flex-shrink-0 mx-auto pt-safe">
               <img 
                 src="lovable-uploads/7eb81221-fbf5-4b1d-8327-eb0e707236d8.png" 
                 alt="Ekka Barbershop Logo" 
@@ -151,7 +152,7 @@ const Customer = () => {
               <div className="h-1 w-24 bg-[#C4A36F] mx-auto mt-3 md:mt-4 mb-6"></div>
             </div>
 
-            <div className="space-y-3 md:space-y-4 max-w-xs mx-auto self-end pb-safe">
+            <div className="space-y-3 md:space-y-4 max-w-xs mx-auto pb-safe">
               <Button 
                 className="w-full h-14 text-lg font-medium bg-[#C4A36F] hover:bg-[#B39260] text-white transition-all duration-300 shadow-lg hover:shadow-xl touch-target" 
                 onClick={() => {
