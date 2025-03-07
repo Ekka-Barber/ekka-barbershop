@@ -76,7 +76,7 @@ const Customer = () => {
     <div dir={language === 'ar' ? 'rtl' : 'ltr'} className="min-h-screen flex flex-col">
       <div className="app-container">
         <PullToRefresh onRefresh={handleRefresh}>
-          <div className="content-area">
+          <div className="content-area flex flex-col justify-center min-h-[calc(100vh-var(--header-height)-var(--sat)-var(--sab))]">
             <div className="text-center mb-8">
               <img 
                 src="lovable-uploads/7eb81221-fbf5-4b1d-8327-eb0e707236d8.png" 

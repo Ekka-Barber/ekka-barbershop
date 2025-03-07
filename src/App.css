@@ -1,3 +1,4 @@
+
 /* Root level custom properties for safe areas and layout */
 :root {
   --sat: env(safe-area-inset-top, 0px);
@@ -283,4 +284,23 @@ html {
   overflow: hidden;
   background-color: white;
   padding: 1.5rem;
+}
+
+/* New styles for vertical centering especially for iPhone screens */
+.min-h-screen-safe {
+  min-height: calc(100vh - var(--sat) - var(--sab));
+}
+
+/* iPhone X and newer (devices with notches) specific adjustments */
+@supports (padding-top: env(safe-area-inset-top)) {
+  .app-container {
+    padding-top: var(--sat);
+    padding-bottom: var(--sab);
+  }
+  
+  .content-area.flex.flex-col.justify-center {
+    min-height: calc(100vh - var(--sat) - var(--sab));
+    padding-top: max(1rem, var(--sat));
+    padding-bottom: max(1rem, var(--sab));
+  }
 }
