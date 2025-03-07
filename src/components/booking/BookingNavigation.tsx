@@ -51,7 +51,16 @@ export const BookingNavigation = ({
   };
   
   return (
-    <div className="sticky bottom-0 left-0 w-full bg-white shadow-md p-4 flex flex-col gap-4 z-10">
+    <div 
+      className="sticky bottom-0 left-0 w-full bg-white/95 backdrop-blur-sm shadow-md border-t border-gray-200 flex flex-col gap-4 z-10 pb-safe"
+      style={{
+        paddingTop: '1rem',
+        paddingLeft: '1rem',
+        paddingRight: '1rem',
+        paddingBottom: `max(env(safe-area-inset-bottom, 0.5rem), 1rem)`,
+        WebkitBackdropFilter: 'blur(8px)'
+      }}
+    >
       {currentStep === 'details' && (
         <WhatsAppIntegration
           selectedServices={selectedServices}

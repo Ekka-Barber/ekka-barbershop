@@ -1,4 +1,3 @@
-
 /* Root level custom properties for safe areas and layout */
 :root {
   --sat: env(safe-area-inset-top, 0px);

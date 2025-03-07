@@ -54,7 +54,11 @@ export const ServicesSummary = ({
   return (
     <AnimatePresence>
       <motion.div 
-        className="fixed bottom-0 left-0 right-0 bg-white border-t shadow-lg z-40"
+        className="fixed inset-x-0 bottom-0 bg-white/95 backdrop-blur-sm border-t border-gray-200 shadow-lg z-40 pb-safe"
+        style={{ 
+          paddingBottom: `max(env(safe-area-inset-bottom, 0.5rem), 0.5rem)`,
+          WebkitBackdropFilter: 'blur(8px)'
+        }}
         initial={{ y: 100, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         exit={{ y: 100, opacity: 0 }}
