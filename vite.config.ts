@@ -16,7 +16,7 @@ export default defineConfig(({ mode }) => ({
   },
   plugins: [
     react({
-      jsxImportSource: "@emotion/react",
+      // Remove the emotion configuration
       // Use faster babel transforms
       devTarget: "esnext"
     }),
@@ -31,7 +31,7 @@ export default defineConfig(({ mode }) => ({
     // Generate BROTLI compressed files for production
     mode === 'production' && 
     compression({
-      algorithm: 'brotliCompress', // Changed from 'brotli' to 'brotliCompress'
+      algorithm: 'brotliCompress',
       ext: '.br',
     }),
     // Inject preload/prefetch directives in HTML
