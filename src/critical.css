@@ -1,0 +1,120 @@
+
+/* Critical styles for initial render */
+:root {
+  --brand-primary: #C4A36F;
+  --brand-secondary: #4A4A4A;
+}
+
+body {
+  margin: 0;
+  font-family: 'Changa', sans-serif;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+#root {
+  max-width: 100vw;
+  min-height: 100dvh;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(180deg, #F9FAFB 0%, #F3F4F6 100%);
+  overflow-x: hidden;
+}
+
+.app-container {
+  width: 100%;
+  max-width: 28rem;
+  margin: 0 auto;
+  padding: 0 1rem 1rem;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.content-area {
+  flex: 1;
+  width: 100%;
+}
+
+/* Core text styles */
+h1, h2, h3 {
+  margin: 0;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.font-bold {
+  font-weight: 700;
+}
+
+.font-medium {
+  font-weight: 500;
+}
+
+/* Minimal spacing and layout */
+.mb-8 {
+  margin-bottom: 2rem;
+}
+
+.mb-6 {
+  margin-bottom: 1.5rem;
+}
+
+.mx-auto {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.h-32 {
+  height: 8rem;
+}
+
+.h-1 {
+  height: 0.25rem;
+}
+
+.w-24 {
+  width: 6rem;
+}
+
+.bg-\[\#C4A36F\] {
+  background-color: #C4A36F;
+}
+
+.text-\[\#222222\] {
+  color: #222222;
+}
+
+.text-xl {
+  font-size: 1.25rem;
+  line-height: 1.75rem;
+}
+
+.text-3xl {
+  font-size: 1.875rem;
+  line-height: 2.25rem;
+}
+
+.space-y-2 > * + * {
+  margin-top: 0.5rem;
+}
+
+.space-y-4 > * + * {
+  margin-top: 1rem;
+}
+
+.mt-4 {
+  margin-top: 1rem;
+}
+
+.object-contain {
+  object-fit: contain;
+}
+
+/* RTL support */
+[dir="rtl"] {
+  direction: rtl;
+}

@@ -55,6 +55,9 @@
     <meta name="msapplication-tap-highlight" content="no">
     <meta name="apple-touch-fullscreen" content="yes">
     
+    <!-- Preload main logo -->
+    <link rel="preload" as="image" href="/lovable-uploads/7eb81221-fbf5-4b1d-8327-eb0e707236d8.png" fetchpriority="high" />
+    
     <!-- iOS icons - Enhanced with more sizes -->
     <link rel="apple-touch-icon" href="/lovable-uploads/2ea1f72e-efd2-4345-bf4d-957efd873986.png">
     <link rel="apple-touch-icon" sizes="152x152" href="/lovable-uploads/2ea1f72e-efd2-4345-bf4d-957efd873986.png">
@@ -63,7 +66,7 @@
     <link rel="apple-touch-icon" sizes="192x192" href="/lovable-uploads/2ea1f72e-efd2-4345-bf4d-957efd873986.png">
     <link rel="mask-icon" href="/lovable-uploads/2ea1f72e-efd2-4345-bf4d-957efd873986.png" color="#C4A36F">
     
-    <!-- iOS Splash Screens - Comprehensive coverage for all devices -->
+    <!-- iOS Splash Screens -->
     <!-- iPhone 14 Pro Max, 13 Pro Max (1290px x 2796px) -->
     <link rel="apple-touch-startup-image" media="(device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3)" href="/lovable-uploads/2ea1f72e-efd2-4345-bf4d-957efd873986.png">
     <!-- iPhone 14 Pro, 13 Pro (1179px x 2556px) -->
@@ -93,7 +96,13 @@
     <!-- iPad Air, iPad Mini (1536px x 2048px) -->
     <link rel="apple-touch-startup-image" media="(device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2)" href="/lovable-uploads/2ea1f72e-efd2-4345-bf4d-957efd873986.png">
     
-    <!-- Font Preloading for Performance -->
+    <!-- Inline critical CSS -->
+    <style>
+      /* Critical CSS inlined here */
+      @import url("src/critical.css");
+    </style>
+    
+    <!-- Font Preloading - Optimized -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=Changa:wght@400;500;600;700&display=swap" as="style">
@@ -102,20 +111,8 @@
       <link href="https://fonts.googleapis.com/css2?family=Changa:wght@400;500;600;700&display=swap" rel="stylesheet">
     </noscript>
     
-    <!-- TikTok Pixel Code Start -->
-    <script>
-      window.addEventListener('load', function() {
-        !function (w, d, t) {
-          w.TiktokAnalyticsObject=t;var ttq=w[t]=w[t]||[];ttq.methods=["page","track","identify","instances","debug","on","off","once","ready","alias","group","enableCookie","disableCookie","holdConsent","revokeConsent","grantConsent"],ttq.setAndDefer=function(t,e){t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}};for(var i=0;i<ttq.methods.length;i++)ttq.setAndDefer(ttq,ttq.methods[i]);ttq.instance=function(t){for(
-          var e=ttq._i[t]||[],n=0;n<ttq.methods.length;n++)ttq.setAndDefer(e,ttq.methods[n]);return e},ttq.load=function(e,n){var r="https://analytics.tiktok.com/i18n/pixel/events.js",o=n&&n.partner;ttq._i=ttq._i||{},ttq._i[e]=[],ttq._i[e]._u=r,ttq._t=ttq._t||{},ttq._t[e]=+new Date,ttq._o=ttq._o||{},ttq._o[e]=n||{};n=document.createElement("script")
-          ;n.type="text/javascript",n.async=!0,n.src=r+"?sdkid="+e+"&lib="+t;e=document.getElementsByTagName("script")[0];e.parentNode.insertBefore(n,e)};
-
-          ttq.load('CURE1FJC77UAVCG31EJG');
-          ttq.page();
-        }(window, document, 'ttq');
-      });
-    </script>
-    <!-- TikTok Pixel Code End -->
+    <!-- Deferred non-critical CSS -->
+    <link rel="stylesheet" href="src/animations.css" media="print" onload="this.media='all'">
     
     <!-- Web Manifest -->
     <link rel="manifest" href="/manifest.json" crossorigin="use-credentials">
@@ -126,3 +123,4 @@
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
+

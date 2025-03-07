@@ -32,6 +32,12 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  css: {
+    // Extract CSS into separate chunks
+    modules: {
+      localsConvention: 'camelCase',
+    },
+  },
   build: {
     sourcemap: false,
     // Improved minification and optimization settings
@@ -42,6 +48,8 @@ export default defineConfig(({ mode }) => ({
         drop_debugger: true,
       },
     },
+    // CSS code splitting - enable to create separate CSS chunks
+    cssCodeSplit: true,
     // Chunk strategy optimization
     rollupOptions: {
       output: {
@@ -64,6 +72,8 @@ export default defineConfig(({ mode }) => ({
           'utils-vendor': ['date-fns', 'class-variance-authority', 'clsx', 'tailwind-merge', 'lodash'],
           'chart-vendor': ['recharts'],
           'admin': ['/src/pages/Admin.tsx'],
+          'critical-css': ['/src/critical.css'],
+          'animations': ['/src/animations.css'],
         },
         // Add asset fingerprinting and cache optimization
         entryFileNames: 'assets/[name].[hash].js',
@@ -71,8 +81,6 @@ export default defineConfig(({ mode }) => ({
         assetFileNames: 'assets/[name].[hash].[ext]',
       },
     },
-    // Enable CSS code splitting
-    cssCodeSplit: true,
     // Limit asset inlining size
     assetsInlineLimit: 4096,
   },
