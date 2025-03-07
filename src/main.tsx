@@ -2,6 +2,7 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import './index.css';
+import { ErrorBoundary } from "@/components/common/ErrorBoundary";
 
 // Dynamically import App for code splitting
 const App = React.lazy(() => import('./App.tsx'));
@@ -71,9 +72,9 @@ if ('PerformanceObserver' in window) {
 root.render(
   <React.StrictMode>
     <React.Suspense fallback={<LoadingSpinner />}>
-      <React.ErrorBoundary fallback={<ErrorFallback />}>
+      <ErrorBoundary fallback={<ErrorFallback />}>
         <App />
-      </React.ErrorBoundary>
+      </ErrorBoundary>
     </React.Suspense>
   </React.StrictMode>
 );
