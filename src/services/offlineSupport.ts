@@ -15,25 +15,6 @@ export const registerServiceWorker = async (): Promise<ServiceWorkerRegistration
       });
       
       console.log('Service Worker registered with scope:', registration.scope);
-      
-      // Check if there's a waiting service worker (update available)
-      if (registration.waiting) {
-        console.log('New Service Worker waiting');
-        // You can notify the user about an update here
-      }
-      
-      // Listen for new service workers
-      registration.addEventListener('updatefound', () => {
-        const newWorker = registration.installing;
-        if (!newWorker) return;
-        
-        console.log('New Service Worker installing');
-        
-        newWorker.addEventListener('statechange', () => {
-          console.log('Service Worker state changed to:', newWorker.state);
-        });
-      });
-      
       return registration;
     } catch (error) {
       console.error('Service Worker registration failed:', error);
@@ -54,7 +35,6 @@ export const updateServiceWorker = async (): Promise<boolean> => {
     try {
       const registration = await navigator.serviceWorker.getRegistration();
       if (registration) {
-        console.log('Checking for Service Worker updates');
         await registration.update();
         return true;
       }
@@ -171,49 +151,4 @@ export const registerPeriodicSync = async (
   }
   
   return false;
-};
-
-/**
- * Sends a message to the service worker
- * @param message The message to send
- */
-export const messageServiceWorker = async (message: any): Promise<void> => {
-  if ('serviceWorker' in navigator) {
-    const registration = await navigator.serviceWorker.ready;
-    if (registration.active) {
-      registration.active.postMessage(message);
-    }
-  }
-};
-
-/**
- * Precache critical resources for the app
- * @param resourceUrls Array of URLs to precache
- */
-export const precacheCriticalResources = async (resourceUrls: string[]): Promise<void> => {
-  try {
-    await messageServiceWorker({
-      type: 'CACHE_URLS',
-      urls: resourceUrls
-    });
-    console.log('Critical resources precached');
-  } catch (error) {
-    console.error('Failed to precache critical resources:', error);
-  }
-};
-
-/**
- * Forces refresh of cached content
- * @param resourceUrls Array of URLs to refresh in cache
- */
-export const refreshCachedContent = async (resourceUrls: string[]): Promise<void> => {
-  try {
-    await messageServiceWorker({
-      type: 'CLEAR_CACHE',
-      urls: resourceUrls
-    });
-    console.log('Cached content refreshed');
-  } catch (error) {
-    console.error('Failed to refresh cached content:', error);
-  }
 };

@@ -1,170 +1,10 @@
-const SW_VERSION = '1.0.0';
 
-const CACHE_NAME = 'ekka-v1';
-const CRITICAL_RESOURCES = [
-  '/',
-  '/index.html',
-  '/manifest.json',
-  '/manifest.ar.json',
-  '/offline.html',
-  '/lovable-uploads/2ea1f72e-efd2-4345-bf4d-957efd873986.png'
-];
+// Import the cache manager
+importScripts('/sw/cacheManager.js');
 
-function log(message, data) {
-  const timestamp = new Date().toISOString();
-  const prefix = `[ServiceWorker ${SW_VERSION}] ${timestamp} - `;
-  
-  if (data) {
-    console.log(prefix + message, data);
-  } else {
-    console.log(prefix + message);
-  }
-}
-
-function logError(message, error) {
-  const timestamp = new Date().toISOString();
-  const prefix = `[ServiceWorker ${SW_VERSION}] ${timestamp} - `;
-  
-  console.error(prefix + message, error);
-}
-
-async function initializeCache() {
-  log('Initializing cache');
-  const cache = await caches.open(CACHE_NAME);
-  
-  const successfulCaches = [];
-  const failedCaches = [];
-  
-  for (const resource of CRITICAL_RESOURCES) {
-    try {
-      await cache.add(resource);
-      successfulCaches.push(resource);
-    } catch (error) {
-      failedCaches.push({ resource, error: error.message });
-      logError(`Failed to cache: ${resource}`, error);
-    }
-  }
-  
-  log('Cache initialization completed', { 
-    successful: successfulCaches.length, 
-    failed: failedCaches.length 
-  });
-  
-  return { successfulCaches, failedCaches };
-}
-
-async function cleanupOldCaches() {
-  log('Cleaning up old caches');
-  const cacheNames = await caches.keys();
-  const cachesToDelete = cacheNames.filter(cacheName => cacheName !== CACHE_NAME);
-  
-  return Promise.all(
-    cachesToDelete.map(cacheName => {
-      log(`Deleting old cache: ${cacheName}`);
-      return caches.delete(cacheName);
-    })
-  );
-}
-
-async function handleFetch(event) {
-  if (event.request.mode === 'navigate') {
-    log('Handling navigation request', event.request.url);
-    const indexResponse = await caches.match('/index.html');
-    if (indexResponse) return indexResponse;
-  }
-  
-  const cachedResponse = await caches.match(event.request);
-  if (cachedResponse) {
-    log('Serving from cache', event.request.url);
-    revalidateCache(event.request);
-    return cachedResponse;
-  }
-  
-  log('Fetching from network', event.request.url);
-  try {
-    const networkResponse = await fetch(event.request);
-    if (shouldCache(event.request)) {
-      const responseToCache = networkResponse.clone();
-      const cache = await caches.open(CACHE_NAME);
-      cache.put(event.request, responseToCache);
-    }
-    return networkResponse;
-  } catch (error) {
-    logError('Network fetch failed', error);
-    
-    if (event.request.mode === 'navigate') {
-      const offlineResponse = await caches.match('/offline.html');
-      if (offlineResponse) return offlineResponse;
-    }
-    
-    if (event.request.destination === 'image') {
-      const placeholderResponse = await caches.match('/placeholder.svg');
-      if (placeholderResponse) return placeholderResponse;
-    }
-    
-    throw error;
-  }
-}
-
-function shouldCache(request) {
-  const url = new URL(request.url);
-  
-  if (url.origin !== location.origin) {
-    return false;
-  }
-  
-  if (request.method !== 'GET') {
-    return false;
-  }
-  
-  if (url.pathname.startsWith('/api/')) {
-    return false;
-  }
-  
-  return true;
-}
-
-async function revalidateCache(request) {
-  if (!shouldCache(request)) {
-    return;
-  }
-  
-  try {
-    const networkResponse = await fetch(request);
-    if (networkResponse.ok) {
-      const cache = await caches.open(CACHE_NAME);
-      await cache.put(request, networkResponse);
-      log('Cache revalidated', request.url);
-    }
-  } catch (error) {
-    logError('Revalidation failed', error);
-  }
-}
-
-async function syncBookings() {
-  log('Syncing bookings');
-  
-  try {
-    return Promise.resolve();
-  } catch (error) {
-    logError('Sync failed', error);
-    return Promise.reject(error);
-  }
-}
-
-async function updateContent() {
-  log('Updating content');
-  
-  try {
-    return Promise.resolve();
-  } catch (error) {
-    logError('Content update failed', error);
-    return Promise.reject(error);
-  }
-}
-
+// Service worker lifecycle events
 self.addEventListener('install', (event) => {
-  log('Installing Service Worker version ' + SW_VERSION);
+  console.log('[Service Worker] Installing Service Worker');
   event.waitUntil(
     Promise.all([
       self.skipWaiting(),
@@ -174,7 +14,7 @@ self.addEventListener('install', (event) => {
 });
 
 self.addEventListener('activate', (event) => {
-  log('Activating Service Worker version ' + SW_VERSION);
+  console.log('[Service Worker] Activating Service Worker');
   event.waitUntil(
     Promise.all([
       clients.claim(),
@@ -184,15 +24,25 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
-  if (!event.request.url.startsWith(self.location.origin)) {
-    return;
-  }
-  
   event.respondWith(handleFetch(event));
 });
 
+// Listen for messages from the client
+self.addEventListener('message', (event) => {
+  console.log('[Service Worker] Message received:', event.data);
+  
+  if (event.data && event.data.type === 'CACHE_URLS') {
+    event.waitUntil(cacheUrls(event.data.urls));
+  }
+  
+  if (event.data && event.data.type === 'CLEAR_CACHE') {
+    event.waitUntil(clearCachedItems(event.data.urls));
+  }
+});
+
+// Handle push notifications
 self.addEventListener('push', (event) => {
-  log('Push notification received');
+  console.log('[Service Worker] Push received');
   
   const title = 'Ekka Barbershop';
   const options = {
@@ -211,10 +61,13 @@ self.addEventListener('push', (event) => {
   );
 });
 
+// Handle notification click
 self.addEventListener('notificationclick', (event) => {
-  log('Notification clicked', event.notification);
+  console.log('[Service Worker] Notification clicked:', event.notification);
   event.notification.close();
   
+  // This looks for the relevant open window and focuses it,
+  // or opens a new window if none is found
   event.waitUntil(
     clients.matchAll({
       type: 'window'
@@ -231,18 +84,49 @@ self.addEventListener('notificationclick', (event) => {
   );
 });
 
+// Handle background sync
 self.addEventListener('sync', (event) => {
-  log('Background sync event: ' + event.tag);
+  console.log('[Service Worker] Background Sync:', event.tag);
   
   if (event.tag === 'sync-bookings') {
     event.waitUntil(syncBookings());
   }
 });
 
+// Function to sync bookings from cache
+async function syncBookings() {
+  console.log('[Service Worker] Syncing bookings');
+  
+  try {
+    // Check for cached bookings in IndexedDB or other storage
+    // and send them to the server
+    // This is just a placeholder implementation
+    return Promise.resolve();
+  } catch (error) {
+    console.error('[Service Worker] Sync failed:', error);
+    return Promise.reject(error);
+  }
+}
+
+// Handle periodic background sync (if supported)
 self.addEventListener('periodicsync', (event) => {
-  log('Periodic sync event: ' + event.tag);
+  console.log('[Service Worker] Periodic Sync:', event.tag);
   
   if (event.tag === 'update-content') {
     event.waitUntil(updateContent());
   }
 });
+
+// Function to update content in the background
+async function updateContent() {
+  console.log('[Service Worker] Updating content');
+  
+  try {
+    // Fetch new content and update cache
+    // This is just a placeholder implementation
+    return Promise.resolve();
+  } catch (error) {
+    console.error('[Service Worker] Content update failed:', error);
+    return Promise.reject(error);
+  }
+}

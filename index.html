@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -56,9 +55,6 @@
     <meta name="msapplication-tap-highlight" content="no">
     <meta name="apple-touch-fullscreen" content="yes">
     
-    <!-- Preload main logo -->
-    <link rel="preload" as="image" href="/lovable-uploads/7eb81221-fbf5-4b1d-8327-eb0e707236d8.png" fetchpriority="high" />
-    
     <!-- iOS icons - Enhanced with more sizes -->
     <link rel="apple-touch-icon" href="/lovable-uploads/2ea1f72e-efd2-4345-bf4d-957efd873986.png">
     <link rel="apple-touch-icon" sizes="152x152" href="/lovable-uploads/2ea1f72e-efd2-4345-bf4d-957efd873986.png">
@@ -67,7 +63,7 @@
     <link rel="apple-touch-icon" sizes="192x192" href="/lovable-uploads/2ea1f72e-efd2-4345-bf4d-957efd873986.png">
     <link rel="mask-icon" href="/lovable-uploads/2ea1f72e-efd2-4345-bf4d-957efd873986.png" color="#C4A36F">
     
-    <!-- iOS Splash Screens -->
+    <!-- iOS Splash Screens - Comprehensive coverage for all devices -->
     <!-- iPhone 14 Pro Max, 13 Pro Max (1290px x 2796px) -->
     <link rel="apple-touch-startup-image" media="(device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3)" href="/lovable-uploads/2ea1f72e-efd2-4345-bf4d-957efd873986.png">
     <!-- iPhone 14 Pro, 13 Pro (1179px x 2556px) -->
@@ -97,73 +93,30 @@
     <!-- iPad Air, iPad Mini (1536px x 2048px) -->
     <link rel="apple-touch-startup-image" media="(device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2)" href="/lovable-uploads/2ea1f72e-efd2-4345-bf4d-957efd873986.png">
     
-    <!-- Inline critical CSS -->
-    <style>
-      /* Critical CSS inlined here */
-      @import url("src/critical.css");
-    </style>
-    
-    <!-- Font Preloading - Optimized -->
+    <!-- Preconnect to Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Changa:wght@400;500;600;700&display=swap" as="style">
-    <link href="https://fonts.googleapis.com/css2?family=Changa:wght@400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
-    <noscript>
-      <link href="https://fonts.googleapis.com/css2?family=Changa:wght@400;500;600;700&display=swap" rel="stylesheet">
-    </noscript>
     
-    <!-- Deferred non-critical CSS -->
-    <link rel="stylesheet" href="src/animations.css" media="print" onload="this.media='all'">
+    <!-- Optimized Font Loading -->
+    <link href="https://fonts.googleapis.com/css2?family=Changa:wght@400;500;600;700&display=swap" rel="stylesheet">
     
-    <!-- Web Manifest - Dynamic loading based on language -->
+    <!-- TikTok Pixel Code Start -->
     <script>
-      // Initialize manifest based on user's language preference
-      (function() {
-        function getLanguagePreference() {
-          // First check localStorage
-          var storedLang = localStorage.getItem('ekka-language-preference');
-          if (storedLang === 'ar' || storedLang === 'en') {
-            return storedLang;
-          }
-          
-          // Check URL params
-          var urlParams = new URLSearchParams(window.location.search);
-          var langParam = urlParams.get('lang');
-          if (langParam === 'ar' || langParam === 'en') {
-            return langParam;
-          }
-          
-          // Fall back to browser language
-          var navLang = navigator.language || '';
-          return navLang.toLowerCase().startsWith('ar') ? 'ar' : 'en';
-        }
-        
-        var lang = getLanguagePreference();
-        var manifestPath = lang === 'ar' ? '/manifest.ar.json' : '/manifest.json';
-        
-        var link = document.createElement('link');
-        link.rel = 'manifest';
-        link.href = manifestPath;
-        link.crossOrigin = 'use-credentials';
-        document.head.appendChild(link);
-      })();
+      window.addEventListener('load', function() {
+        !function (w, d, t) {
+          w.TiktokAnalyticsObject=t;var ttq=w[t]=w[t]||[];ttq.methods=["page","track","identify","instances","debug","on","off","once","ready","alias","group","enableCookie","disableCookie","holdConsent","revokeConsent","grantConsent"],ttq.setAndDefer=function(t,e){t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}};for(var i=0;i<ttq.methods.length;i++)ttq.setAndDefer(ttq,ttq.methods[i]);ttq.instance=function(t){for(
+          var e=ttq._i[t]||[],n=0;n<ttq.methods.length;n++)ttq.setAndDefer(e,ttq.methods[n]);return e},ttq.load=function(e,n){var r="https://analytics.tiktok.com/i18n/pixel/events.js",o=n&&n.partner;ttq._i=ttq._i||{},ttq._i[e]=[],ttq._i[e]._u=r,ttq._t=ttq._t||{},ttq._t[e]=+new Date,ttq._o=ttq._o||{},ttq._o[e]=n||{};n=document.createElement("script")
+          ;n.type="text/javascript",n.async=!0,n.src=r+"?sdkid="+e+"&lib="+t;e=document.getElementsByTagName("script")[0];e.parentNode.insertBefore(n,e)};
+
+          ttq.load('CURE1FJC77UAVCG31EJG');
+          ttq.page();
+        }(window, document, 'ttq');
+      });
     </script>
+    <!-- TikTok Pixel Code End -->
     
-    <!-- Service Worker Registration -->
-    <script>
-      // Register service worker with improved error handling
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', function() {
-          navigator.serviceWorker.register('/service-worker.js')
-            .then(function(registration) {
-              console.info('Service Worker registered with scope:', registration.scope);
-            })
-            .catch(function(error) {
-              console.error('Service Worker registration failed:', error);
-            });
-        });
-      }
-    </script>
+    <!-- Web Manifest -->
+    <link rel="manifest" href="/manifest.json" crossorigin="use-credentials">
   </head>
   <body>
     <div id="root"></div>

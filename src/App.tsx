@@ -6,33 +6,18 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { LanguageProvider } from "@/contexts/LanguageContext";
+import Customer from "./pages/Customer";
+import Menu from "./pages/Menu";
+import Offers from "./pages/Offers";
+import Bookings from "./pages/Bookings";
 import { OfflineNotification } from "./components/common/OfflineNotification";
 import { ErrorBoundary } from "./components/common/ErrorBoundary";
 import { registerServiceWorker } from "./services/offlineSupport";
 
-// Lazy load all page components for better code splitting
-const Customer = lazy(() => import("./pages/Customer"));
-const Menu = lazy(() => import("./pages/Menu"));
-const Offers = lazy(() => import("./pages/Offers"));
-const Bookings = lazy(() => import("./pages/Bookings"));
+// Lazy load Admin component
 const Admin = lazy(() => import("./pages/Admin"));
 
-// Create loading component for suspense fallback
-const PageLoading = () => (
-  <div className="min-h-screen flex items-center justify-center">
-    <div className="animate-pulse text-primary">Loading...</div>
-  </div>
-);
-
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      refetchOnWindowFocus: false,
-      retry: 1,
-      staleTime: 5 * 60 * 1000, // 5 minutes
-    },
-  },
-});
+const queryClient = new QueryClient();
 
 // Protected route component
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -67,34 +52,18 @@ const AppRoutes = () => {
         {/* Redirect root to customer page */}
         <Route path="/" element={<Navigate to="/customer" replace />} />
         
-        {/* Public routes with Suspense */}
-        <Route path="/customer" element={
-          <Suspense fallback={<PageLoading />}>
-            <Customer />
-          </Suspense>
-        } />
-        <Route path="/menu" element={
-          <Suspense fallback={<PageLoading />}>
-            <Menu />
-          </Suspense>
-        } />
-        <Route path="/offers" element={
-          <Suspense fallback={<PageLoading />}>
-            <Offers />
-          </Suspense>
-        } />
-        <Route path="/bookings" element={
-          <Suspense fallback={<PageLoading />}>
-            <Bookings />
-          </Suspense>
-        } />
+        {/* Public routes */}
+        <Route path="/customer" element={<Customer />} />
+        <Route path="/menu" element={<Menu />} />
+        <Route path="/offers" element={<Offers />} />
+        <Route path="/bookings" element={<Bookings />} />
         
         {/* Protected routes */}
         <Route 
           path="/admin" 
           element={
             <ProtectedRoute>
-              <Suspense fallback={<PageLoading />}>
+              <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
                 <Admin />
               </Suspense>
             </ProtectedRoute>

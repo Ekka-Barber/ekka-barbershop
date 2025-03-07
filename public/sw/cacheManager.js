@@ -1,195 +1,125 @@
 
-import { log, logError } from './logger.js';
+// Cache name - update this when making significant changes
+const CACHE_NAME = 'ekka-v1';
 
-/**
- * Initialize the cache with important resources
- * @param {string} cacheName - The name of the cache to use
- * @param {string[]} resources - Array of URLs to cache
- * @returns {Promise<void>}
- */
-export const initializeCache = async (cacheName, resources) => {
-  try {
-    const cache = await caches.open(cacheName);
-    log(`Precaching ${resources.length} resources`);
-    await cache.addAll(resources);
-    log('Precaching complete');
-  } catch (error) {
-    logError('Failed to initialize cache', error);
-    throw error;
-  }
+// Resources to cache immediately on service worker install
+const INITIAL_CACHED_RESOURCES = [
+  '/',
+  '/index.html',
+  '/manifest.json'
+];
+
+// Initialize the cache with important resources
+export const initializeCache = async () => {
+  const cache = await caches.open(CACHE_NAME);
+  return cache.addAll(INITIAL_CACHED_RESOURCES);
 };
 
-/**
- * Clean up old caches
- * @param {string} currentCacheName - The name of the current cache to keep
- * @returns {Promise<void>}
- */
-export const cleanupOldCaches = async (currentCacheName) => {
-  try {
-    const cacheKeys = await caches.keys();
-    log(`Found ${cacheKeys.length} caches, keeping: ${currentCacheName}`);
-    
-    const deletePromises = cacheKeys
-      .filter(key => key !== currentCacheName)
-      .map(key => {
-        log(`Deleting old cache: ${key}`);
-        return caches.delete(key);
-      });
-    
-    await Promise.all(deletePromises);
-    log('Cache cleanup complete');
-  } catch (error) {
-    logError('Failed to clean up caches', error);
-    throw error;
-  }
+// Clean up old caches
+export const cleanupOldCaches = async () => {
+  const cacheKeys = await caches.keys();
+  const cacheCleanupPromises = cacheKeys
+    .filter(key => key !== CACHE_NAME)
+    .map(key => caches.delete(key));
+  
+  return Promise.all(cacheCleanupPromises);
 };
 
-/**
- * Handles fetch requests using stale-while-revalidate strategy
- * @param {FetchEvent} event - The fetch event
- * @param {string} cacheName - The name of the cache to use
- * @returns {Promise<Response>}
- */
-export const handleFetch = async (event, cacheName) => {
-  const { request } = event;
-  const url = new URL(request.url);
-
-  // For navigation requests (HTML pages)
-  if (request.mode === 'navigate') {
+// Handle fetch requests with a network-first, cache-fallback strategy
+export const handleFetch = async (event) => {
+  // For navigation requests, try network first then fallback to cache
+  if (event.request.mode === 'navigate') {
     try {
       // Try network first
-      log(`Navigation request for: ${url.pathname}`);
-      const networkResponse = await fetch(request);
-      
-      // Cache the response for future use
-      const cache = await caches.open(cacheName);
-      await cache.put(request, networkResponse.clone());
-      
+      const networkResponse = await fetch(event.request);
       return networkResponse;
     } catch (error) {
-      logError(`Navigation request failed for: ${url.pathname}`, error);
-      
       // Network failed, try cache
-      const cachedResponse = await caches.match(request);
+      const cachedResponse = await caches.match(event.request);
       if (cachedResponse) {
-        log(`Serving cached navigation response for: ${url.pathname}`);
         return cachedResponse;
       }
       
       // If cache fails too, show offline page
-      log(`Serving offline page for: ${url.pathname}`);
       return caches.match('/offline.html');
     }
   }
   
-  // For API requests - Network first, no cache
-  if (url.pathname.includes('/api/')) {
-    try {
-      log(`API request for: ${url.pathname}`);
-      return await fetch(request);
-    } catch (error) {
-      logError(`API request failed for: ${url.pathname}`, error);
-      return new Response(JSON.stringify({
-        error: 'You are offline and API requests cannot be served from cache.'
-      }), {
-        status: 503,
-        headers: { 'Content-Type': 'application/json' }
-      });
-    }
-  }
-  
-  // For static assets - Stale while revalidate
+  // For other requests like assets, API calls, etc.
   try {
-    // Check cache first
-    const cachedResponse = await caches.match(request);
-    if (cachedResponse) {
-      log(`Cache hit for: ${url.pathname}`);
-      
-      // Fetch a fresh version in the background
-      event.waitUntil(
-        fetch(request)
-          .then(networkResponse => {
-            if (networkResponse.ok) {
-              const cache = caches.open(cacheName);
-              return cache.then(cache => {
-                log(`Updating cache for: ${url.pathname}`);
-                return cache.put(request, networkResponse.clone());
+    // Check cache first for non-API requests
+    if (!event.request.url.includes('/api/')) {
+      const cachedResponse = await caches.match(event.request);
+      if (cachedResponse) {
+        // Return cached response and update cache in background
+        fetch(event.request)
+          .then(response => {
+            if (response.ok) {
+              const clonedResponse = response.clone();
+              caches.open(CACHE_NAME).then(cache => {
+                cache.put(event.request, clonedResponse);
               });
             }
           })
-          .catch(err => logError(`Background fetch failed for: ${url.pathname}`, err))
-      );
-      
+          .catch(() => {/* ignore fetch errors */});
+        
+        return cachedResponse;
+      }
+    }
+    
+    // Not in cache or is API request, try network
+    const response = await fetch(event.request);
+    
+    // Cache successful responses for non-API requests
+    if (response.ok && !event.request.url.includes('/api/')) {
+      const clonedResponse = response.clone();
+      const cache = await caches.open(CACHE_NAME);
+      cache.put(event.request, clonedResponse);
+    }
+    
+    return response;
+  } catch (error) {
+    // Both network and cache failed
+    // For API requests, return a JSON error
+    if (event.request.url.includes('/api/')) {
+      return new Response(JSON.stringify({
+        error: 'You are offline and the requested resource is not cached.'
+      }), {
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+    
+    // For other assets, try cache again
+    const cachedResponse = await caches.match(event.request);
+    if (cachedResponse) {
       return cachedResponse;
     }
     
-    // Not in cache, get from network
-    log(`Cache miss for: ${url.pathname}, fetching from network`);
-    const networkResponse = await fetch(request);
-    
-    // Add to cache if successful
-    if (networkResponse.ok) {
-      const clonedResponse = networkResponse.clone();
-      event.waitUntil(
-        caches.open(cacheName).then(cache => {
-          log(`Caching new resource: ${url.pathname}`);
-          return cache.put(request, clonedResponse);
-        })
-      );
-    }
-    
-    return networkResponse;
-  } catch (error) {
-    logError(`Failed to fetch resource: ${url.pathname}`, error);
-    
-    // Both network and cache failed
-    if (request.url.match(/\.(jpg|jpeg|png|gif|svg)$/)) {
-      // Return a placeholder for images
-      log(`Serving placeholder for: ${url.pathname}`);
+    // Last resort: return a placeholder or error response
+    if (event.request.url.match(/\.(jpg|jpeg|png|gif|svg)$/)) {
+      // Return a placeholder image for image requests
       return caches.match('/placeholder.svg');
     }
     
     // For other resources
     return new Response('Resource unavailable offline', {
       status: 503,
-      headers: { 'Content-Type': 'text/plain' }
+      statusText: 'Service Unavailable',
+      headers: new Headers({
+        'Content-Type': 'text/plain'
+      })
     });
   }
 };
 
-/**
- * Cache a list of URLs
- * @param {string} cacheName - The name of the cache to use
- * @param {string[]} urls - List of URLs to cache
- * @returns {Promise<void>}
- */
-export const cacheUrls = async (cacheName, urls) => {
-  try {
-    const cache = await caches.open(cacheName);
-    log(`Adding ${urls.length} URLs to cache`);
-    await cache.addAll(urls);
-    log('URLs cached successfully');
-  } catch (error) {
-    logError('Failed to cache URLs', error);
-    throw error;
-  }
+// Cache a list of URLs
+export const cacheUrls = async (urls) => {
+  const cache = await caches.open(CACHE_NAME);
+  return cache.addAll(urls);
 };
 
-/**
- * Clear specific cached items
- * @param {string} cacheName - The name of the cache to use
- * @param {string[]} urls - List of URLs to remove from cache
- * @returns {Promise<boolean[]>}
- */
-export const clearCachedItems = async (cacheName, urls) => {
-  try {
-    const cache = await caches.open(cacheName);
-    log(`Removing ${urls.length} URLs from cache`);
-    const results = await Promise.all(urls.map(url => cache.delete(url)));
-    log('Cache items cleared successfully');
-    return results;
-  } catch (error) {
-    logError('Failed to clear cached items', error);
-    throw error;
-  }
+// Clear specific cached items (useful for forced refresh)
+export const clearCachedItems = async (urls) => {
+  const cache = await caches.open(CACHE_NAME);
+  return Promise.all(urls.map(url => cache.delete(url)));
 };

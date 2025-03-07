@@ -72,15 +72,11 @@
     "react-use-pwa-install": "^1.0.3",
     "react-window": "^1.8.11",
     "recharts": "^2.12.7",
-    "rollup-plugin-visualizer": "^5.14.0",
     "sonner": "^1.5.0",
     "tailwind-merge": "^2.5.2",
     "tailwindcss-animate": "^1.0.7",
-    "terser": "^5.39.0",
     "vaul": "^0.9.3",
-    "vite-plugin-compression2": "^0.11.0",
     "web-push": "^3.6.7",
-    "web-vitals": "^3.5.2",
     "zod": "^3.23.8"
   },
   "devDependencies": {

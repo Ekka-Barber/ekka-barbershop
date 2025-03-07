@@ -29,8 +29,10 @@ export const storeLanguagePreference = (language: Language): void => {
 export const updateManifestLanguage = (language: Language) => {
   const manifestLink = document.querySelector('link[rel="manifest"]');
   if (manifestLink) {
-    // Set the appropriate manifest based on language
-    const manifestPath = language === 'ar' ? '/manifest.ar.json' : '/manifest.json';
-    manifestLink.setAttribute('href', manifestPath);
+    const currentHref = manifestLink.getAttribute('href');
+    const newHref = currentHref?.includes('?') 
+      ? `${currentHref}&lang=${language}`
+      : `${currentHref}?lang=${language}`;
+    manifestLink.setAttribute('href', newHref);
   }
 };

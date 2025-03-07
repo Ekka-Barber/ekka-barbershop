@@ -1,6 +1,7 @@
 
 import { Button } from "@/components/ui/button";
 import { CustomBadge } from "@/components/ui/custom-badge";
+import { X } from 'lucide-react';
 import AndroidIcon from '@/components/icons/AndroidIcon';
 import AppleIcon from '@/components/icons/AppleIcon';
 
@@ -24,13 +25,23 @@ export const InstallButton = ({
 
   return (
     <div className="relative space-y-2 mt-6 mb-3 hardware-accelerated">
-      <div className="absolute -top-3 -right-3 z-10">
+      <div className="absolute -top-3 -right-3 z-10 flex items-center justify-center">
         <CustomBadge 
           variant="secondary" 
           className="bg-[#FFD700] text-black border-none shadow-md px-3 py-1.5 rounded-full font-black text-xs animate-bounce"
         >
           {isRTL ? 'جديد' : 'NEW'}
         </CustomBadge>
+        <button 
+          onClick={(e) => {
+            e.stopPropagation();
+            onDismiss();
+          }}
+          className="ml-2 rounded-full bg-gray-200 p-1 shadow-md hover:bg-gray-300 transition-colors"
+          aria-label={isRTL ? "إغلاق" : "Close"}
+        >
+          <X size={16} />
+        </button>
       </div>
       <Button
         className="w-full flex items-center justify-center gap-3 py-6 text-lg font-medium bg-gradient-to-r from-[#8B5CF6] via-[#D946EF] to-[#F97316] hover:opacity-90 text-white transition-all duration-300 group shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:opacity-70"
