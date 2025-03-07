@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from "@/contexts/LanguageContext";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { MapPin } from "lucide-react";
@@ -13,7 +13,7 @@ import { trackViewContent, trackButtonClick, trackLocationView } from "@/utils/t
 import { InstallAppPrompt } from "@/components/installation/InstallAppPrompt";
 import { PullToRefresh } from "@/components/common/PullToRefresh";
 import { useToast } from "@/components/ui/use-toast";
-import { hasNotch, isRunningAsStandalone } from "@/services/platformDetection";
+import { hasNotch, isRunningAsStandalone, getSafeAreaInsets, getViewportDimensions } from "@/services/platformDetection";
 
 const Customer = () => {
   const navigate = useNavigate();
@@ -22,25 +22,45 @@ const Customer = () => {
   const [branchDialogOpen, setBranchDialogOpen] = useState(false);
   const [locationDialogOpen, setLocationDialogOpen] = useState(false);
   const [viewportHeight, setViewportHeight] = useState(window.innerHeight);
+  const [safeAreaInsets, setSafeAreaInsets] = useState({ top: 0, bottom: 0 });
+  const contentRef = useRef<HTMLDivElement>(null);
   const isStandalone = isRunningAsStandalone();
   const deviceHasNotch = hasNotch();
 
-  // Update viewport height on resize
+  // Update viewport dimensions and safe area insets on resize and orientation change
   useEffect(() => {
     const handleResize = () => {
-      setViewportHeight(window.innerHeight);
+      const { height } = getViewportDimensions();
+      setViewportHeight(height);
+      
+      const insets = getSafeAreaInsets();
+      setSafeAreaInsets({
+        top: parseInt(insets.top || '0', 10),
+        bottom: parseInt(insets.bottom || '0', 10)
+      });
+      
+      // For debugging safe areas
+      console.log('Safe areas:', insets);
+      console.log('Viewport height:', height);
     };
+
+    // Initial measurement
+    handleResize();
 
     window.addEventListener('resize', handleResize);
     window.addEventListener('orientationchange', handleResize);
 
-    // Force a resize after a slight delay to ensure all dimensions are correct
-    const timeoutId = setTimeout(handleResize, 100);
+    // Force multiple measurements to catch iOS safe area changes
+    const timeoutIds = [
+      setTimeout(handleResize, 100),
+      setTimeout(handleResize, 500),
+      setTimeout(handleResize, 1000)
+    ];
 
     return () => {
       window.removeEventListener('resize', handleResize);
       window.removeEventListener('orientationchange', handleResize);
-      clearTimeout(timeoutId);
+      timeoutIds.forEach(id => clearTimeout(id));
     };
   }, []);
 
@@ -99,9 +119,16 @@ const Customer = () => {
     <div dir={language === 'ar' ? 'rtl' : 'ltr'} className="min-h-screen flex flex-col">
       <div className="app-container h-full">
         <PullToRefresh onRefresh={handleRefresh}>
-          <div className={`content-area pwa-content-fix ${isStandalone ? 'standalone-mode' : ''} ${deviceHasNotch ? 'has-notch' : ''}`}>
-            <div className="flex flex-col justify-center min-h-dynamic-viewport">
-              <div className="text-center mb-6 md:mb-8 mt-auto pt-4">
+          <div 
+            ref={contentRef}
+            className={`content-area pwa-content-fix ${isStandalone ? 'standalone-mode' : ''} ${deviceHasNotch ? 'has-notch' : ''}`}
+            style={{
+              // Apply dynamic styles based on measurements
+              minHeight: isStandalone ? `calc(100vh - ${safeAreaInsets.top + safeAreaInsets.bottom}px)` : 'auto'
+            }}
+          >
+            <div className="home-content-wrapper flex flex-col justify-center min-h-dynamic-viewport">
+              <div className="text-center mb-6 md:mb-8 mt-auto pt-safe">
                 <img 
                   src="lovable-uploads/7eb81221-fbf5-4b1d-8327-eb0e707236d8.png" 
                   alt="Ekka Barbershop Logo" 
@@ -121,7 +148,7 @@ const Customer = () => {
                 <div className="h-1 w-24 bg-[#C4A36F] mx-auto mt-3 md:mt-4"></div>
               </div>
 
-              <div className="space-y-3 md:space-y-4 max-w-xs mx-auto mb-auto pb-4">
+              <div className="space-y-3 md:space-y-4 max-w-xs mx-auto mb-auto pb-safe">
                 <Button 
                   className="w-full h-14 text-lg font-medium bg-[#C4A36F] hover:bg-[#B39260] text-white transition-all duration-300 shadow-lg hover:shadow-xl touch-target" 
                   onClick={() => {

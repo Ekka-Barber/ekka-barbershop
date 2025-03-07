@@ -299,9 +299,19 @@ html {
   min-height: calc(100vh - var(--sat) - var(--sab) - 1rem);
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  justify-content: center; /* This centers content vertically */
   padding-top: max(1rem, var(--sat));
   padding-bottom: max(1rem, var(--sab));
+}
+
+/* Home page specific wrapper */
+.home-content-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom);
+  min-height: 100vh;
 }
 
 /* Enhanced PWA content fixes */
@@ -310,6 +320,7 @@ html {
   flex-direction: column;
   min-height: calc(100vh - 2rem);
   padding: 0.5rem 0;
+  justify-content: center;
 }
 
 /* PWA standalone mode enhancements */
@@ -319,8 +330,17 @@ html {
 
 /* Notch device specific adjustments */
 .has-notch.standalone-mode {
-  padding-top: max(1rem, var(--sat));
-  padding-bottom: max(1rem, var(--sab));
+  padding-top: max(1.5rem, var(--sat));
+  padding-bottom: max(1.5rem, var(--sab));
+}
+
+/* Safe area padding utilities */
+.pt-safe {
+  padding-top: max(1.5rem, env(safe-area-inset-top));
+}
+
+.pb-safe {
+  padding-bottom: max(1.5rem, env(safe-area-inset-bottom));
 }
 
 /* iPhone X, XS, 11 Pro, 12, 13, and 14 Pro specific adjustments */
@@ -333,7 +353,16 @@ html {
   
   @media all and (display-mode: standalone) {
     .content-area {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
       min-height: calc(100vh - var(--header-height) - max(20px, var(--sat)) - max(20px, var(--sab)));
+    }
+    
+    /* Better vertical centering for PWA mode */
+    .standalone-mode .home-content-wrapper {
+      justify-content: center;
+      min-height: 100%;
     }
   }
 }
@@ -345,6 +374,15 @@ html {
     padding-top: max(2rem, var(--sat));
     padding-bottom: max(2rem, var(--sab));
   }
+  
+  /* Adjust spacing for taller devices */
+  .pt-safe {
+    padding-top: max(2rem, env(safe-area-inset-top));
+  }
+  
+  .pb-safe {
+    padding-bottom: max(2rem, env(safe-area-inset-bottom));
+  }
 }
 
 /* Large screen enhancements */
@@ -353,5 +391,14 @@ html {
     min-height: calc(100vh - var(--sat) - var(--sab) - 3rem);
     padding-top: max(2.5rem, var(--sat));
     padding-bottom: max(2.5rem, var(--sab));
+  }
+  
+  /* More spacing for even taller devices */
+  .pt-safe {
+    padding-top: max(2.5rem, env(safe-area-inset-top));
+  }
+  
+  .pb-safe {
+    padding-bottom: max(2.5rem, env(safe-area-inset-bottom));
   }
 }
