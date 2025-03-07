@@ -3,7 +3,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Globe } from "lucide-react";
 import { useEffect } from "react";
-import { detectSystemLanguage } from "@/utils/languageUtils";
+import { detectSystemLanguage, updateManifestLanguage } from "@/utils/languageUtils";
 
 export const LanguageSwitcher = () => {
   const { language, setLanguage } = useLanguage();
@@ -13,6 +13,11 @@ export const LanguageSwitcher = () => {
     const detectedLanguage = detectSystemLanguage();
     setLanguage(detectedLanguage);
   }, []);
+  
+  // Update manifest when language changes
+  useEffect(() => {
+    updateManifestLanguage(language);
+  }, [language]);
   
   return (
     <Sheet>

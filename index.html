@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -114,8 +115,39 @@
     <!-- Deferred non-critical CSS -->
     <link rel="stylesheet" href="src/animations.css" media="print" onload="this.media='all'">
     
-    <!-- Web Manifest -->
-    <link rel="manifest" href="/manifest.json" crossorigin="use-credentials">
+    <!-- Web Manifest - Dynamic loading based on language -->
+    <script>
+      // Initialize manifest based on user's language preference
+      (function() {
+        function getLanguagePreference() {
+          // First check localStorage
+          var storedLang = localStorage.getItem('ekka-language-preference');
+          if (storedLang === 'ar' || storedLang === 'en') {
+            return storedLang;
+          }
+          
+          // Check URL params
+          var urlParams = new URLSearchParams(window.location.search);
+          var langParam = urlParams.get('lang');
+          if (langParam === 'ar' || langParam === 'en') {
+            return langParam;
+          }
+          
+          // Fall back to browser language
+          var navLang = navigator.language || '';
+          return navLang.toLowerCase().startsWith('ar') ? 'ar' : 'en';
+        }
+        
+        var lang = getLanguagePreference();
+        var manifestPath = lang === 'ar' ? '/manifest.ar.json' : '/manifest.json';
+        
+        var link = document.createElement('link');
+        link.rel = 'manifest';
+        link.href = manifestPath;
+        link.crossOrigin = 'use-credentials';
+        document.head.appendChild(link);
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>
@@ -123,4 +155,3 @@
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
-

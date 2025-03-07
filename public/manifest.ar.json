@@ -1,8 +1,8 @@
 
 {
-  "name": "Ekka Barbershop",
-  "short_name": "Ekka",
-  "description": "Book your appointment at Ekka Barbershop",
+  "name": "صالون إكّـه",
+  "short_name": "إكّـه",
+  "description": "احجز موعدك في صالون إكّـه",
   "start_url": "/?source=pwa",
   "display": "standalone",
   "background_color": "#ffffff",
@@ -10,8 +10,8 @@
   "orientation": "portrait",
   "display_override": ["standalone", "fullscreen", "minimal-ui"],
   "categories": ["business", "lifestyle"],
-  "lang": "en",
-  "dir": "auto",
+  "lang": "ar",
+  "dir": "rtl",
   "prefer_related_applications": false,
   "related_applications": [],
   "launch_handler": {
@@ -21,7 +21,7 @@
   "scope": "/",
   "shortcuts": [
     {
-      "name": "Book Appointment",
+      "name": "حجز موعد",
       "url": "/bookings",
       "icons": [
         {
@@ -32,7 +32,7 @@
       ]
     },
     {
-      "name": "Special Offers",
+      "name": "عروض خاصة",
       "url": "/offers",
       "icons": [
         {
@@ -99,14 +99,14 @@
       "sizes": "1280x720",
       "type": "image/png",
       "platform": "wide",
-      "label": "Ekka Barbershop App"
+      "label": "تطبيق صالون إكّـه"
     },
     {
       "src": "/lovable-uploads/2ea1f72e-efd2-4345-bf4d-957efd873986.png",
       "sizes": "750x1334",
       "type": "image/png",
       "platform": "narrow",
-      "label": "Ekka Barbershop App Mobile View"
+      "label": "تطبيق صالون إكّـه للجوال"
     }
   ],
   "edge_side_panel": {
