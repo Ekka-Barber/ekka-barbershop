@@ -161,31 +161,48 @@ export const getConnectionInfo = (): { type: ConnectionType, effectiveType?: str
  * @returns True if the device likely has a notch
  */
 export const hasNotch = (): boolean => {
-  // Check if the device is an iPhone and has iOS 11 or higher (which introduced the notch)
+  // Check if the device is an iPhone
   const userAgent = navigator.userAgent.toLowerCase();
   const isIphone = /iphone/.test(userAgent);
   
   if (!isIphone) return false;
   
-  // Check for iOS version 11 or higher
-  const iosVersion = userAgent.match(/os (\d+)_/);
-  if (iosVersion && parseInt(iosVersion[1], 10) >= 11) {
+  // More reliable notch detection for iPhones
+  // iPhone X and newer have a notch
+  // Check for iOS version 11 or higher (which introduced the notch with iPhone X)
+  const iosVersion = getiOSVersion();
+  
+  if (iosVersion && iosVersion.major >= 11) {
     // Check if the environment supports safe area insets
-    const hasSafeArea = CSS.supports('padding-top: env(safe-area-inset-top)');
-    if (hasSafeArea) {
+    if (CSS.supports('padding-top: env(safe-area-inset-top)')) {
       // Get computed style of an element with safe area padding
       const testDiv = document.createElement('div');
-      testDiv.style.paddingTop = 'env(safe-area-inset-top)';
+      testDiv.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        padding-top: env(safe-area-inset-top);
+        z-index: -1;
+      `;
       document.body.appendChild(testDiv);
       const computedStyle = window.getComputedStyle(testDiv);
+      const safeAreaTop = parseFloat(computedStyle.paddingTop);
       document.body.removeChild(testDiv);
       
-      // If the safe area inset is greater than 0, the device likely has a notch
-      return computedStyle.paddingTop !== '0px';
+      // If the safe area inset is greater than 20px, the device likely has a notch
+      // Most notched iPhones have a safe area top of at least 44px
+      return safeAreaTop > 20;
     }
   }
   
-  return false;
+  // Fallback detection based on device model string in user agent
+  // These models are known to have notches
+  const notchedModels = [
+    'iphone x', 'iphone xs', 'iphone xr', 'iphone 11', 'iphone 12', 'iphone 13', 'iphone 14'
+  ];
+  
+  return notchedModels.some(model => userAgent.includes(model));
 };
 
 /**
@@ -201,7 +218,9 @@ export const getSafeAreaInsets = () => {
     paddingTop: 'env(safe-area-inset-top)',
     paddingRight: 'env(safe-area-inset-right)',
     paddingBottom: 'env(safe-area-inset-bottom)',
-    paddingLeft: 'env(safe-area-inset-left)'
+    paddingLeft: 'env(safe-area-inset-left)',
+    visibility: 'hidden',
+    zIndex: '-1'
   });
   
   document.body.appendChild(testDiv);
