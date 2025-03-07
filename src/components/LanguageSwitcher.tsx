@@ -2,17 +2,25 @@
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Globe } from "lucide-react";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { detectSystemLanguage } from "@/utils/languageUtils";
+import { useLocation } from "react-router-dom";
 
 export const LanguageSwitcher = () => {
   const { language, setLanguage } = useLanguage();
+  const location = useLocation();
+  const [showSwitcher, setShowSwitcher] = useState(false);
   
-  // Set the language once based on system preference on initial load
   useEffect(() => {
+    // Set the language once based on system preference on initial load
     const detectedLanguage = detectSystemLanguage();
     setLanguage(detectedLanguage);
-  }, []);
+    
+    // Only show the language switcher on the customer page
+    setShowSwitcher(location.pathname === '/customer');
+  }, [location.pathname, setLanguage]);
+  
+  if (!showSwitcher) return null;
   
   return (
     <Sheet>

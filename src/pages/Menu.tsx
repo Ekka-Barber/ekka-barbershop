@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { useNavigate, Link } from 'react-router-dom';
 import { Card } from "@/components/ui/card";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { useEffect } from 'react';
 import { trackViewContent, trackButtonClick } from "@/utils/tiktokTracking";
 
@@ -60,15 +59,9 @@ const Menu = () => {
 
   return (
     <div dir={language === 'ar' ? 'rtl' : 'ltr'} className="min-h-screen flex flex-col">
-      <div className="app-header">
-        <div className="language-switcher-container">
-          <LanguageSwitcher />
-        </div>
-      </div>
-
       <div className="app-container">
         <div className="content-area flex flex-col items-center justify-center">
-          <div className="text-center w-full max-w-2xl mx-auto">
+          <div className="text-center w-full max-w-2xl mx-auto flex-shrink-0 pt-safe">
             <Link to="/customer" className="transition-opacity hover:opacity-80 block">
               <img 
                 src="lovable-uploads/7eb81221-fbf5-4b1d-8327-eb0e707236d8.png"
@@ -95,7 +88,7 @@ const Menu = () => {
             </Button>
           </div>
           
-          <Card className="overflow-hidden bg-white shadow-xl rounded-xl border-[#C4A36F]/20 w-full max-w-2xl mt-8">
+          <Card className="overflow-hidden bg-white shadow-xl rounded-xl border-[#C4A36F]/20 w-full max-w-2xl mt-8 mb-8">
             <div className="p-6">
               {isLoading ? (
                 <div className="text-center py-8 text-[#222222]">{t('loading.menu')}</div>

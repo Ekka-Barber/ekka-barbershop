@@ -32,12 +32,14 @@ const Bookings = () => {
     <div className="min-h-screen flex flex-col">
       <ErrorBoundary onError={handleError}>
         {isLoading ? (
-          <div className="container mx-auto py-6 px-4">
+          <div className="container mx-auto py-6 px-4 flex-grow flex items-center justify-center">
             <div className="h-8 w-48 bg-gray-200 rounded animate-pulse mb-8"></div>
             <SkeletonLoader />
           </div>
         ) : (
-          <BookingContainer />
+          <div className="flex-grow flex items-center justify-center">
+            <BookingContainer />
+          </div>
         )}
       </ErrorBoundary>
       <footer className="page-footer" />

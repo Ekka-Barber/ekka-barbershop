@@ -6,7 +6,6 @@ import { BookingSteps } from "@/components/booking/BookingSteps";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { Branch } from "@/types/booking";
 import { ErrorBoundary } from "@/components/common/ErrorBoundary";
 import { Loader2 } from "lucide-react";
@@ -43,24 +42,17 @@ export const BookingContainer = () => {
   if (!branchId) {
     return (
       <div className="min-h-screen flex flex-col">
-        <div className="app-header">
-          <div className="language-switcher-container">
-            <LanguageSwitcher />
-          </div>
-        </div>
-        <div className="flex-grow max-w-4xl mx-auto p-4 sm:p-6 lg:p-8 w-full">
-          <div className="content-area flex flex-col items-center justify-center">
-            <div className="text-center w-full max-w-2xl mx-auto">
-              <h1 className="text-2xl font-bold text-gray-800 mb-4">
-                {t('select.branch')}
-              </h1>
-              <Button 
-                className="touch-target bg-[#C4A36F] hover:bg-[#B39260] text-white shadow-md hover:shadow-lg"
-                onClick={() => navigate('/customer')}
-              >
-                {t('go.back')}
-              </Button>
-            </div>
+        <div className="flex-grow flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8 w-full">
+          <div className="text-center w-full max-w-2xl mx-auto">
+            <h1 className="text-2xl font-bold text-gray-800 mb-4">
+              {t('select.branch')}
+            </h1>
+            <Button 
+              className="touch-target bg-[#C4A36F] hover:bg-[#B39260] text-white shadow-md hover:shadow-lg"
+              onClick={() => navigate('/customer')}
+            >
+              {t('go.back')}
+            </Button>
           </div>
         </div>
         <footer className="page-footer" />
@@ -71,30 +63,23 @@ export const BookingContainer = () => {
   if (branchError) {
     return (
       <div className="min-h-screen flex flex-col">
-        <div className="app-header">
-          <div className="language-switcher-container">
-            <LanguageSwitcher />
-          </div>
-        </div>
-        <div className="flex-grow max-w-4xl mx-auto p-4 sm:p-6 lg:p-8 w-full">
-          <div className="content-area flex flex-col items-center justify-center">
-            <div className="text-center w-full max-w-2xl mx-auto space-y-4">
-              <h1 className="text-2xl font-bold text-red-600">
-                {language === 'ar' ? 'عذراً! حدث خطأ ما' : 'Error Loading Branch'}
-              </h1>
-              <p className="text-gray-600">
-                {language === 'ar' 
-                  ? 'لم نتمكن من تحميل معلومات الفرع. يرجى المحاولة مرة أخرى.'
-                  : 'We could not load the branch information. Please try again.'}
-              </p>
-              <Button 
-                onClick={() => navigate('/customer')}
-                variant="outline"
-                className="touch-target"
-              >
-                {t('go.back')}
-              </Button>
-            </div>
+        <div className="flex-grow flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8 w-full">
+          <div className="text-center w-full max-w-2xl mx-auto space-y-4">
+            <h1 className="text-2xl font-bold text-red-600">
+              {language === 'ar' ? 'عذراً! حدث خطأ ما' : 'Error Loading Branch'}
+            </h1>
+            <p className="text-gray-600">
+              {language === 'ar' 
+                ? 'لم نتمكن من تحميل معلومات الفرع. يرجى المحاولة مرة أخرى.'
+                : 'We could not load the branch information. Please try again.'}
+            </p>
+            <Button 
+              onClick={() => navigate('/customer')}
+              variant="outline"
+              className="touch-target"
+            >
+              {t('go.back')}
+            </Button>
           </div>
         </div>
         <footer className="page-footer" />
@@ -105,15 +90,8 @@ export const BookingContainer = () => {
   if (branchLoading) {
     return (
       <div className="min-h-screen flex flex-col">
-        <div className="app-header">
-          <div className="language-switcher-container">
-            <LanguageSwitcher />
-          </div>
-        </div>
-        <div className="flex-grow max-w-4xl mx-auto p-4 sm:p-6 lg:p-8 w-full">
-          <div className="content-area flex flex-col items-center justify-center">
-            <Loader2 className="h-8 w-8 animate-spin text-[#C4A36F]" />
-          </div>
+        <div className="flex-grow flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8 w-full">
+          <Loader2 className="h-8 w-8 animate-spin text-[#C4A36F]" />
         </div>
         <footer className="page-footer" />
       </div>

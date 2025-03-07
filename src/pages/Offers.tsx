@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { useNavigate, Link } from 'react-router-dom';
 import { Card } from "@/components/ui/card";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import CountdownTimer from '@/components/CountdownTimer';
@@ -136,16 +135,8 @@ const Offers = () => {
     <div className="flex flex-col min-h-screen">
       <div className="flex-grow">
         <div dir={language === 'ar' ? 'rtl' : 'ltr'} className="min-h-full bg-gradient-to-b from-gray-50 to-gray-100">
-          <div className="sticky top-0 z-50 bg-gradient-to-b from-gray-50 to-transparent h-11">
-            <div className="max-w-md mx-auto h-full relative">
-              <div className="absolute right-0 top-0 h-full" style={{ direction: 'ltr' }}>
-                <LanguageSwitcher />
-              </div>
-            </div>
-          </div>
-          
           <div className="flex-grow max-w-4xl mx-auto p-4 sm:p-6 lg:p-8 w-full">
-            <div className="flex flex-col items-center mb-8">
+            <div className="flex flex-col items-center mb-8 pt-safe">
               <Link to="/customer" className="transition-opacity hover:opacity-80">
                 <img 
                   src="lovable-uploads/7eb81221-fbf5-4b1d-8327-eb0e707236d8.png"
