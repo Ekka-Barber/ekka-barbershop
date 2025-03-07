@@ -81,9 +81,9 @@ export default defineConfig(({ mode }) => ({
           : 'assets/js/[name].js',
         // Put CSS in dedicated files
         assetFileNames: (info) => {
-          if (info.name && info.name.endsWith('.css')) return 'assets/css/[name]-[hash].css';
-          if (info.name && info.name.match(/\.(woff2?|ttf|eot)$/)) return 'assets/fonts/[name]-[hash][extname]';
-          if (info.name && info.name.match(/\.(png|jpe?g|gif|svg|webp)$/)) return 'assets/img/[name]-[hash][extname]';
+          if (info?.name && info.name.endsWith('.css')) return 'assets/css/[name]-[hash].css';
+          if (info?.name && info.name.match(/\.(woff2?|ttf|eot)$/)) return 'assets/fonts/[name]-[hash][extname]';
+          if (info?.name && info.name.match(/\.(png|jpe?g|gif|svg|webp)$/)) return 'assets/img/[name]-[hash][extname]';
           return 'assets/[name]-[hash][extname]';
         },
       },
