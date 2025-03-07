@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -74,12 +73,6 @@ const Customer = () => {
 
   return (
     <div dir={language === 'ar' ? 'rtl' : 'ltr'} className="min-h-screen flex flex-col">
-      <div className="app-header">
-        <div className="language-switcher-container">
-          <LanguageSwitcher />
-        </div>
-      </div>
-      
       <div className="app-container">
         <PullToRefresh onRefresh={handleRefresh}>
           <div className="content-area">
@@ -169,6 +162,8 @@ const Customer = () => {
           </div>
         </PullToRefresh>
       </div>
+
+      <LanguageSwitcher />
 
       <BranchDialog open={branchDialogOpen} onOpenChange={setBranchDialogOpen} branches={branches} onBranchSelect={handleBranchSelect} />
       <LocationDialog open={locationDialogOpen} onOpenChange={setLocationDialogOpen} branches={branches} onLocationClick={handleLocationClick} />
