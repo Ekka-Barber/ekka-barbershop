@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -12,6 +13,7 @@ import { trackViewContent, trackButtonClick, trackLocationView } from "@/utils/t
 import { InstallAppPrompt } from "@/components/installation/InstallAppPrompt";
 import { PullToRefresh } from "@/components/common/PullToRefresh";
 import { useToast } from "@/components/ui/use-toast";
+import { OptimizedImage } from "@/components/common/OptimizedImage";
 
 const Customer = () => {
   const navigate = useNavigate();
@@ -77,7 +79,14 @@ const Customer = () => {
         <PullToRefresh onRefresh={handleRefresh}>
           <div className="content-area">
             <div className="text-center mb-8">
-              <img src="/lovable-uploads/8289fb1d-c6e6-4528-980c-6b52313ca898.png" alt="Ekka Barbershop Logo" className="h-32 mx-auto mb-6" />
+              <OptimizedImage 
+                src="/lovable-uploads/8289fb1d-c6e6-4528-980c-6b52313ca898.png" 
+                alt="Ekka Barbershop Logo" 
+                className="h-32 mx-auto mb-6" 
+                width={128}
+                height={128}
+                priority={true}
+              />
               <div className="space-y-2">
                 <h2 className="text-xl font-medium text-[#222222]">
                   {t('welcome.line1')}
@@ -153,7 +162,13 @@ const Customer = () => {
                   <span className="font-semibold truncate text-base flex-grow max-w-[75%]">
                     {language === 'ar' ? 'انضم لبرنامج الولاء' : 'Join loyalty program'}
                   </span>
-                  <img src="/lovable-uploads/ba9a65f1-bf31-4b9c-ab41-7c7228a2f1b7.png" alt="Rescale Logo" className="h-7 w-auto flex-shrink-0" />
+                  <OptimizedImage 
+                    src="/lovable-uploads/ba9a65f1-bf31-4b9c-ab41-7c7228a2f1b7.png" 
+                    alt="Boonus Logo" 
+                    className="h-7 w-auto flex-shrink-0" 
+                    width={28}
+                    height={28}
+                  />
                 </div>
               </Button>
 

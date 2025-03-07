@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import CountdownTimer from '@/components/CountdownTimer';
 import { useEffect } from 'react';
 import { trackViewContent, trackButtonClick } from "@/utils/tiktokTracking";
+import { OptimizedImage } from "@/components/common/OptimizedImage";
 
 const Offers = () => {
   const navigate = useNavigate();
@@ -147,10 +148,13 @@ const Offers = () => {
           <div className="flex-grow max-w-4xl mx-auto p-4 sm:p-6 lg:p-8 w-full">
             <div className="flex flex-col items-center mb-8">
               <Link to="/customer" className="transition-opacity hover:opacity-80">
-                <img 
+                <OptimizedImage 
                   src="/lovable-uploads/8289fb1d-c6e6-4528-980c-6b52313ca898.png"
                   alt="Ekka Barbershop Logo" 
                   className="h-24 mb-6 object-contain cursor-pointer"
+                  width={96}
+                  height={96}
+                  priority={true}
                 />
               </Link>
               <h1 className="text-3xl font-bold text-[#222222] mb-2">{t('special.offers.title')}</h1>
@@ -201,14 +205,16 @@ const Offers = () => {
                           <PDFViewer pdfUrl={file.url} />
                         ) : (
                           <div className={`relative ${file.isExpired ? 'filter grayscale blur-[2px]' : ''}`}>
-                            <img 
+                            <OptimizedImage 
                               src={file.url} 
                               alt={file.isExpired ? `Expired Offer - ${file.file_name || 'Special Offer'}` : "Special Offer"}
                               className="w-full max-w-full h-auto rounded-lg transition-all duration-300"
+                              width={800}
+                              height={500}
+                              loading="lazy"
                               onLoad={() => console.log('Image loaded successfully:', file.url)}
                               onError={(e) => {
                                 console.error('Image failed to load:', file.url);
-                                // Log detailed error information
                                 console.error('Image error details:', {
                                   fileName: file.file_name,
                                   filePath: file.file_path,
@@ -216,7 +222,6 @@ const Offers = () => {
                                   generatedUrl: file.url
                                 });
                                 e.currentTarget.src = '/placeholder.svg';
-                                // Show toast for better user feedback
                                 toast.error('Failed to load offer image');
                               }}
                             />
