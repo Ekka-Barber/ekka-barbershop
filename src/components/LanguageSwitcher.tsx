@@ -30,7 +30,7 @@ export const LanguageSwitcher = () => {
       </SheetTrigger>
       <SheetContent side="bottom" className="rounded-t-xl h-auto pb-10 pt-6 px-4">
         <div className="space-y-4">
-          <h3 className="text-center text-lg font-medium">
+          <h3 className="text-center text-lg font-medium text-[#F1F1F1]">
             {language === 'ar' ? 'اختر اللغة' : 'Select Language'}
           </h3>
           
