@@ -88,6 +88,9 @@
   will-change: transform;
   /* Enable momentum scrolling on iOS */
   -webkit-overflow-scrolling: touch;
+  /* Add display flex to enable vertical centering */
+  display: flex;
+  flex-direction: column;
 }
 
 /* Form element enhancements for mobile */
@@ -291,16 +294,64 @@ html {
   min-height: calc(100vh - var(--sat) - var(--sab));
 }
 
-/* iPhone X and newer (devices with notches) specific adjustments */
-@supports (padding-top: env(safe-area-inset-top)) {
+/* Dynamic viewport height for better vertical centering */
+.min-h-dynamic-viewport {
+  min-height: calc(100vh - var(--sat) - var(--sab) - 1rem);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding-top: max(1rem, var(--sat));
+  padding-bottom: max(1rem, var(--sab));
+}
+
+/* Enhanced PWA content fixes */
+.pwa-content-fix {
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100vh - 2rem);
+  padding: 0.5rem 0;
+}
+
+/* PWA standalone mode enhancements */
+.standalone-mode {
+  min-height: calc(100dvh - 2rem);
+}
+
+/* Notch device specific adjustments */
+.has-notch.standalone-mode {
+  padding-top: max(1rem, var(--sat));
+  padding-bottom: max(1rem, var(--sab));
+}
+
+/* iPhone X, XS, 11 Pro, 12, 13, and 14 Pro specific adjustments */
+@supports (padding: max(0px)) {
   .app-container {
-    padding-top: var(--sat);
-    padding-bottom: var(--sab);
+    padding-left: max(var(--content-spacing), env(safe-area-inset-left));
+    padding-right: max(var(--content-spacing), env(safe-area-inset-right));
+    padding-bottom: max(var(--content-spacing), env(safe-area-inset-bottom));
   }
   
-  .content-area.flex.flex-col.justify-center {
-    min-height: calc(100vh - var(--sat) - var(--sab));
-    padding-top: max(1rem, var(--sat));
-    padding-bottom: max(1rem, var(--sab));
+  @media all and (display-mode: standalone) {
+    .content-area {
+      min-height: calc(100vh - var(--header-height) - max(20px, var(--sat)) - max(20px, var(--sab)));
+    }
+  }
+}
+
+/* Enhanced sizing adjustments for different screen sizes */
+@media (min-height: 700px) {
+  .min-h-dynamic-viewport {
+    min-height: calc(100vh - var(--sat) - var(--sab) - 2rem);
+    padding-top: max(2rem, var(--sat));
+    padding-bottom: max(2rem, var(--sab));
+  }
+}
+
+/* Large screen enhancements */
+@media (min-height: 800px) {
+  .min-h-dynamic-viewport {
+    min-height: calc(100vh - var(--sat) - var(--sab) - 3rem);
+    padding-top: max(2.5rem, var(--sat));
+    padding-bottom: max(2.5rem, var(--sab));
   }
 }
