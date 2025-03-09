@@ -1,7 +1,7 @@
 
 import { useLanguage } from "@/contexts/LanguageContext";
 import { format } from "date-fns";
-import { Slash, Timer, Calendar, User, Package } from "lucide-react";
+import { Slash, Timer, Calendar, User, Package, Percent } from "lucide-react";
 import { SelectedService, Service } from "@/types/service";
 import { motion } from "framer-motion";
 import { getBookingDisplayDate } from "@/utils/dateAdjustment";
@@ -152,7 +152,7 @@ export const BookingSummary = ({
               label={language === 'ar' ? 'الخصم' : t('discount')}
               priceValue={totalDiscount}
               language={language as 'en' | 'ar'}
-              icon={<Slash className="w-4 h-4" />}
+              icon={<Percent className="w-4 h-4" />}
               variant="discount"
               valueClassName="text-destructive"
               value=""
