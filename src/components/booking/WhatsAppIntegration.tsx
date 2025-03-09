@@ -80,7 +80,8 @@ export const WhatsAppIntegration = ({
       size="lg"
       disabled={!customerDetails?.name || !customerDetails?.phone}
     >
-      {language === 'ar' ? 'إرسال الحجز عبر واتساب' : 'Complete booking via WhatsApp'}
+      {language === 'ar' ? 'تأكيد تفاصل الحجز' : 'Complete booking via WhatsApp'}
     </Button>
   );
 };
+

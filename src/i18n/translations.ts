@@ -169,7 +169,7 @@ export const translations: Translations = {
     'install.error': 'فشل التثبيت. الرجاء المحاولة مرة أخرى.',
     'install.success': 'تم تثبيت التطبيق بنجاح!',
     'install.guide.title': 'تثبيت التطبيق',
-    'whatsapp.button': 'إرسال الحجز عبر واتساب',
+    'whatsapp.button': 'تأكيد تفاصل الحجز',
     'whatsapp.message.header': 'طلب حجز جديد',
     'whatsapp.message.customer': 'معلومات العميل',
     'whatsapp.message.booking': 'تفاصيل الحجز',
