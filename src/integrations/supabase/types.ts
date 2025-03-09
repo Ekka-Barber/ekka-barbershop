@@ -827,6 +827,7 @@ export type Database = {
           nationality: string | null
           off_days: string[] | null
           photo_url: string | null
+          previous_working_hours: Json | null
           role: Database["public"]["Enums"]["employee_role"]
           salary_plan_id: string | null
           updated_at: string
@@ -841,6 +842,7 @@ export type Database = {
           nationality?: string | null
           off_days?: string[] | null
           photo_url?: string | null
+          previous_working_hours?: Json | null
           role: Database["public"]["Enums"]["employee_role"]
           salary_plan_id?: string | null
           updated_at?: string
@@ -855,6 +857,7 @@ export type Database = {
           nationality?: string | null
           off_days?: string[] | null
           photo_url?: string | null
+          previous_working_hours?: Json | null
           role?: Database["public"]["Enums"]["employee_role"]
           salary_plan_id?: string | null
           updated_at?: string

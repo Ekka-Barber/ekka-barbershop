@@ -1,15 +1,16 @@
+
 import { useLanguage } from "@/contexts/LanguageContext";
 import { format } from "date-fns";
-import { Slash, X, Timer, Calendar, User, Package } from "lucide-react";
+import { Slash, Timer, Calendar, User, Package } from "lucide-react";
 import { SelectedService, Service } from "@/types/service";
-import { PriceDisplay } from "@/components/ui/price-display";
-import { motion, AnimatePresence } from "framer-motion";
-import { cn } from "@/lib/utils";
+import { motion } from "framer-motion";
 import { getBookingDisplayDate } from "@/utils/dateAdjustment";
-import { CustomBadge } from "@/components/ui/custom-badge";
 import { PackageSavingsDrawer } from "./service-selection/summary/PackageSavingsDrawer";
 import { usePackageDiscount } from "@/hooks/usePackageDiscount";
 import { useToast } from "@/hooks/use-toast";
+import { SummaryServicesList } from "./summary/SummaryServicesList";
+import { SummaryDetailItem } from "./summary/SummaryDetailItem";
+import { SummaryTotalSection } from "./summary/SummaryTotalSection";
 
 interface BookingSummaryProps {
   selectedServices: SelectedService[];
@@ -63,10 +64,10 @@ export const BookingSummary = ({
     !selectedServices.some(s => s.id === service.id)
   );
 
-  const handleServiceRemove = (service: SelectedService) => {
+  const handleServiceRemove = (serviceId: string) => {
     if (!onRemoveService) return;
 
-    if (service.id === BASE_SERVICE_ID) {
+    if (serviceId === BASE_SERVICE_ID) {
       toast({
         title: language === 'ar' ? 'تحذير' : 'Warning',
         description: language === 'ar' 
@@ -76,57 +77,8 @@ export const BookingSummary = ({
       });
     }
     
-    onRemoveService(service.id);
+    onRemoveService(serviceId);
   };
-
-  const serviceItem = (service: SelectedService) => (
-    <motion.div 
-      key={service.id} 
-      className="flex justify-between items-center py-2 group"
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, x: -20 }}
-      transition={{ duration: 0.2 }}
-    >
-      <div className="flex items-center gap-2">
-        {onRemoveService && (service.isPackageAddOn || service.isUpsellItem) && (
-          <motion.button
-            onClick={() => handleServiceRemove(service)}
-            className={cn(
-              "p-1 hover:bg-gray-100 rounded-full transition-colors",
-              service.isUpsellItem ? "opacity-0 group-hover:opacity-100" : "opacity-70 group-hover:opacity-100"
-            )}
-            aria-label="Remove service"
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-          >
-            <X className="w-4 h-4 text-red-500" />
-          </motion.button>
-        )}
-        <span>{language === 'ar' ? service.name_ar : service.name_en}</span>
-        {service.id === BASE_SERVICE_ID && (
-          <CustomBadge variant="success" className="text-[0.65rem] px-1 py-0">
-            {language === 'ar' ? 'أساسي' : 'BASE'}
-          </CustomBadge>
-        )}
-      </div>
-      <div className="flex items-center gap-2">
-        {service.originalPrice && service.originalPrice > service.price && (
-          <PriceDisplay 
-            price={service.originalPrice} 
-            language={language as 'en' | 'ar'} 
-            size="sm"
-            className="text-[#ea384c] line-through"
-          />
-        )}
-        <PriceDisplay 
-          price={service.price} 
-          language={language as 'en' | 'ar'} 
-          size="sm"
-        />
-      </div>
-    </motion.div>
-  );
 
   return (
     <>
@@ -151,116 +103,64 @@ export const BookingSummary = ({
         )}
         
         <div className="space-y-2 text-sm divide-y">
-          <div className="pb-2">
-            <AnimatePresence>
-              {selectedServices.length > 0 ? (
-                selectedServices.map(service => serviceItem(service))
-              ) : (
-                <motion.div 
-                  className="text-muted-foreground text-center py-2"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                >
-                  {language === 'ar' ? 'لم يتم اختيار أي خدمات' : 'No services selected'}
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
+          <SummaryServicesList 
+            selectedServices={selectedServices}
+            language={language as 'en' | 'ar'}
+            onRemoveService={handleServiceRemove}
+            baseServiceId={BASE_SERVICE_ID}
+          />
 
           {totalDuration > 0 && (
-            <div className="pt-2 flex justify-between text-muted-foreground items-center">
-              <span className="flex items-center gap-2">
-                <Timer className="w-4 h-4" />
-                {language === 'ar' ? 'المدة الإجمالية' : t('total.duration')}
-              </span>
-              <motion.span
-                key={totalDuration}
-                initial={{ scale: 1.1 }}
-                animate={{ scale: 1 }}
-                transition={{ duration: 0.2 }}
-              >
-                {totalDuration} {language === 'ar' 
-                  ? 'د'
-                  : t('minutes')}
-              </motion.span>
-            </div>
+            <SummaryDetailItem
+              label={language === 'ar' ? 'المدة الإجمالية' : t('total.duration')}
+              value={`${totalDuration} ${language === 'ar' ? 'د' : t('minutes')}`}
+              icon={<Timer className="w-4 h-4" />}
+              animate={true}
+            />
           )}
           
           {displayDate && selectedTime && (
-            <div className="pt-2 flex justify-between text-muted-foreground items-center">
-              <span className="flex items-center gap-2">
-                <Calendar className="w-4 h-4" />
-                {language === 'ar' ? 'التاريخ والوقت' : t('date.time')}
-              </span>
-              <span>{format(displayDate, 'dd/MM/yyyy')} - {selectedTime}</span>
-            </div>
+            <SummaryDetailItem
+              label={language === 'ar' ? 'التاريخ والوقت' : t('date.time')}
+              value={`${format(displayDate, 'dd/MM/yyyy')} - ${selectedTime}`}
+              icon={<Calendar className="w-4 h-4" />}
+            />
           )}
 
           {selectedBarberName && (
-            <div className="pt-2 flex justify-between text-muted-foreground items-center">
-              <span className="flex items-center gap-2">
-                <User className="w-4 h-4" />
-                {language === 'ar' ? 'الحلاق' : t('barber')}
-              </span>
-              <span>{selectedBarberName}</span>
-            </div>
+            <SummaryDetailItem
+              label={language === 'ar' ? 'الحلاق' : t('barber')}
+              value={selectedBarberName}
+              icon={<User className="w-4 h-4" />}
+            />
           )}
 
           {hasBaseService && packageSavings > 0 && (
-            <motion.div 
-              className="pt-2 flex justify-between text-green-700 items-center"
-              initial={{ backgroundColor: "rgba(242, 252, 226, 0.5)" }}
-              animate={{ backgroundColor: "transparent" }}
-              transition={{ duration: 1 }}
-            >
-              <div className="flex items-center gap-2">
-                <Package className="w-4 h-4" />
-                <span>{language === 'ar' ? 'توفير الباقة' : 'Package savings'}</span>
-              </div>
-              <PriceDisplay 
-                price={packageSavings} 
-                language={language as 'en' | 'ar'}
-                size="sm"
-                className="text-green-700"
-              />
-            </motion.div>
+            <SummaryDetailItem
+              label={language === 'ar' ? 'توفير الباقة' : 'Package savings'}
+              priceValue={packageSavings}
+              language={language as 'en' | 'ar'}
+              icon={<Package className="w-4 h-4" />}
+              variant="savings"
+              valueClassName="text-green-700"
+            />
           )}
           
           {!hasBaseService && totalDiscount > 0 && (
-            <motion.div 
-              className="pt-2 flex justify-between text-destructive items-center"
-              initial={{ backgroundColor: "rgba(254, 226, 226, 0.3)" }}
-              animate={{ backgroundColor: "transparent" }}
-              transition={{ duration: 1 }}
-            >
-              <div className="flex items-center gap-2">
-                <Slash className="w-4 h-4" />
-                <span>{language === 'ar' ? 'الخصم' : t('discount')}</span>
-              </div>
-              <PriceDisplay 
-                price={totalDiscount} 
-                language={language as 'en' | 'ar'}
-                size="sm"
-                className="text-destructive"
-              />
-            </motion.div>
+            <SummaryDetailItem
+              label={language === 'ar' ? 'الخصم' : t('discount')}
+              priceValue={totalDiscount}
+              language={language as 'en' | 'ar'}
+              icon={<Slash className="w-4 h-4" />}
+              variant="discount"
+              valueClassName="text-destructive"
+            />
           )}
           
-          <div className="border-t pt-3 font-medium flex justify-between">
-            <span>{language === 'ar' ? 'المجموع' : t('total')}</span>
-            <motion.div
-              key={totalPrice}
-              initial={{ scale: 1.1 }}
-              animate={{ scale: 1 }}
-              transition={{ duration: 0.2 }}
-            >
-              <PriceDisplay 
-                price={totalPrice} 
-                language={language as 'en' | 'ar'}
-                size="base"
-              />
-            </motion.div>
-          </div>
+          <SummaryTotalSection 
+            totalPrice={totalPrice}
+            language={language as 'en' | 'ar'}
+          />
         </div>
       </motion.div>
     </>
