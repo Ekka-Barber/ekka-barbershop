@@ -5,7 +5,7 @@ import { PriceDisplay } from "@/components/ui/price-display";
 
 interface SummaryDetailItemProps {
   label: ReactNode;
-  value: ReactNode;
+  value?: ReactNode;
   icon?: ReactNode;
   valueClassName?: string;
   priceValue?: number;

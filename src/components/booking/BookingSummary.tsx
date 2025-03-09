@@ -143,6 +143,7 @@ export const BookingSummary = ({
               icon={<Package className="w-4 h-4" />}
               variant="savings"
               valueClassName="text-green-700"
+              value=""
             />
           )}
           
@@ -154,6 +155,7 @@ export const BookingSummary = ({
               icon={<Slash className="w-4 h-4" />}
               variant="discount"
               valueClassName="text-destructive"
+              value=""
             />
           )}
           
