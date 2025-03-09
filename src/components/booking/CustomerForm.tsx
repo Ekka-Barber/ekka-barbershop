@@ -36,8 +36,10 @@ export const CustomerForm = ({
     }
     if (!customerDetails.phone.trim()) {
       newErrors.phone = language === 'ar' ? 'رقم الهاتف مطلوب' : 'Phone number is required';
-    } else if (!/^\d{10}$/.test(customerDetails.phone)) {
-      newErrors.phone = language === 'ar' ? 'رقم الهاتف يجب أن يكون 10 أرقام' : 'Phone number must be 10 digits';
+    } else if (!/^05\d{8}$/.test(customerDetails.phone)) {
+      newErrors.phone = language === 'ar' 
+        ? 'يجب أن يبدأ رقم الهاتف بـ 05 ويتكون من 10 أرقام' 
+        : 'Phone number must start with 05 and be 10 digits';
     }
     if (!customerDetails.email.trim()) {
       newErrors.email = language === 'ar' ? 'البريد الإلكتروني مطلوب' : 'Email is required';
@@ -124,7 +126,7 @@ export const CustomerForm = ({
                 ${language === 'ar' ? 'text-right' : 'text-left'}`} onBlur={() => setTouched(prev => ({
             ...prev,
             phone: true
-          }))} dir={language === 'ar' ? 'rtl' : 'ltr'} placeholder={language === 'ar' ? 'رقم الجوال' : 'Phone Number'} />
+          }))} dir={language === 'ar' ? 'rtl' : 'ltr'} placeholder={language === 'ar' ? 'رقم الجوال (يبدأ بـ 05)' : 'Phone Number (starts with 05)'} />
             {errors.phone && touched.phone && <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
                 <AlertCircle className="h-4 w-4 text-destructive" />
               </div>}
