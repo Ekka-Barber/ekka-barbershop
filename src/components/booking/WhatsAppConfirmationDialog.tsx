@@ -15,6 +15,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Card, CardContent } from "@/components/ui/card";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface WhatsAppConfirmationDialogProps {
   isOpen: boolean;
@@ -75,10 +76,14 @@ export const WhatsAppConfirmationDialog = ({
             {language === 'ar' ? 'معاينة الرسالة' : 'Message Preview'}:
           </h3>
           <Card className="bg-[#F6F6F6] border-[#E2E2E2]">
-            <CardContent className="p-4">
-              <pre className="text-xs whitespace-pre-wrap font-sans text-gray-800 rtl:text-right ltr:text-left">
-                {formattedMessage}
-              </pre>
+            <CardContent className="p-0">
+              <ScrollArea className="h-[200px] rounded-md">
+                <div className="p-4 bg-[#E5F7D3] mx-4 my-3 rounded-lg rtl:rounded-tr-none ltr:rounded-tl-none border-[#DCEDC9]">
+                  <pre className="text-xs whitespace-pre-wrap font-sans text-gray-800 rtl:text-right ltr:text-left">
+                    {formattedMessage}
+                  </pre>
+                </div>
+              </ScrollArea>
             </CardContent>
           </Card>
         </div>
