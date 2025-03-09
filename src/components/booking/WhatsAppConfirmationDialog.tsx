@@ -49,14 +49,16 @@ export const WhatsAppConfirmationDialog = ({
   const processMessage = (message: string): string => {
     if (!message) return '';
 
-    // Helper to wrap text with icon
+    // Helper to wrap text with icon - always put icon before text in Arabic mode
     const wrapWithIcon = (line: string, iconName: string): string => {
       const trimmedLine = line.trim();
       if (!trimmedLine) return '';
 
+      // Always place icon before text in Arabic mode
       if (language === 'ar') {
         return `<icon>${iconName}</icon>${trimmedLine}`;
       }
+      // For other languages, place icon after text
       return `${trimmedLine}<icon>${iconName}</icon>`;
     };
 
@@ -95,7 +97,7 @@ export const WhatsAppConfirmationDialog = ({
   const formattedMessage = whatsappMessage.replace(/%0a/g, '\n');
   const processedMessage = processMessage(formattedMessage);
   
-  // Render the message with icons
+  // Render the message with icons - ensure proper RTL rendering
   const renderMessageWithIcons = (message: string) => {
     if (!message) return null;
     
@@ -107,18 +109,22 @@ export const WhatsAppConfirmationDialog = ({
         return part;
       }
       
-      // Render the appropriate icon
+      // Render the appropriate icon with RTL-appropriate styling
+      const iconClass = language === 'ar' 
+        ? "h-4 w-4 inline ml-1 mr-0.5 text-gray-600" 
+        : "h-4 w-4 inline mx-1 text-gray-600";
+        
       switch (part) {
         case 'sparkle':
-          return <Sparkle key={index} className="h-4 w-4 inline mx-1 text-amber-500" />;
+          return <Sparkle key={index} className={`${iconClass} text-amber-500`} />;
         case 'pin':
-          return <Pin key={index} className="h-4 w-4 inline mx-1 text-red-500" />;
+          return <Pin key={index} className={`${iconClass} text-red-500`} />;
         case 'user':
-          return <User key={index} className="h-4 w-4 inline mx-1 text-gray-600" />;
+          return <User key={index} className={iconClass} />;
         case 'phone':
-          return <Phone key={index} className="h-4 w-4 inline mx-1 text-gray-600" />;
+          return <Phone key={index} className={iconClass} />;
         case 'mail':
-          return <Mail key={index} className="h-4 w-4 inline mx-1 text-gray-600" />;
+          return <Mail key={index} className={iconClass} />;
         default:
           return null;
       }
