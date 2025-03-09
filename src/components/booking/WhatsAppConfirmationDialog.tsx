@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { AlertCircle, Send } from "lucide-react";
+import { AlertCircle, Send, Sparkle, Pin, User, Mail, Phone } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Branch, CustomerDetails } from "@/types/booking";
 import { SelectedService } from "@/types/service";
@@ -45,8 +45,85 @@ export const WhatsAppConfirmationDialog = ({
     setIsLoading(false);
   };
   
+  // Process the message to add icon markup
+  const processMessage = (message: string): string => {
+    if (!message) return '';
+
+    // Helper to wrap text with icon
+    const wrapWithIcon = (line: string, iconName: string): string => {
+      const trimmedLine = line.trim();
+      if (!trimmedLine) return '';
+
+      if (language === 'ar') {
+        return `<icon>${iconName}</icon>${trimmedLine}`;
+      }
+      return `${trimmedLine}<icon>${iconName}</icon>`;
+    };
+
+    // Process each line
+    const lines = message.split('\n');
+    const processedLines = lines.map(line => {
+      // Skip empty lines
+      if (!line.trim()) return line;
+
+      // Special headers
+      if (line.includes('طلب حجز جديد')) {
+        return wrapWithIcon(line, 'sparkle');
+      }
+      if (line.includes('معلومات العميل')) {
+        return wrapWithIcon(line, 'pin');
+      }
+      
+      // Customer info lines
+      if (line.includes('الاسم:')) {
+        return wrapWithIcon(line, 'user');
+      }
+      if (line.includes('رقم الجوال:')) {
+        return wrapWithIcon(line, 'phone');
+      }
+      if (line.includes('البريد الإلكتروني:')) {
+        return wrapWithIcon(line, 'mail');
+      }
+      
+      return line;
+    });
+    
+    return processedLines.join('\n');
+  };
+  
   // Format the message for display by replacing URL encoding with line breaks
   const formattedMessage = whatsappMessage.replace(/%0a/g, '\n');
+  const processedMessage = processMessage(formattedMessage);
+  
+  // Render the message with icons
+  const renderMessageWithIcons = (message: string) => {
+    if (!message) return null;
+    
+    const parts = message.split(/<icon>(.*?)<\/icon>/);
+    
+    return parts.map((part, index) => {
+      // Even indices are text, odd indices are icon names
+      if (index % 2 === 0) {
+        return part;
+      }
+      
+      // Render the appropriate icon
+      switch (part) {
+        case 'sparkle':
+          return <Sparkle key={index} className="h-4 w-4 inline mx-1 text-amber-500" />;
+        case 'pin':
+          return <Pin key={index} className="h-4 w-4 inline mx-1 text-red-500" />;
+        case 'user':
+          return <User key={index} className="h-4 w-4 inline mx-1 text-gray-600" />;
+        case 'phone':
+          return <Phone key={index} className="h-4 w-4 inline mx-1 text-gray-600" />;
+        case 'mail':
+          return <Mail key={index} className="h-4 w-4 inline mx-1 text-gray-600" />;
+        default:
+          return null;
+      }
+    });
+  };
   
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -96,7 +173,7 @@ export const WhatsAppConfirmationDialog = ({
                 <ScrollArea className="h-[180px] max-h-[180px]">
                   <div className={`p-3 bg-[#DCF8C6] shadow-sm ${language === 'ar' ? 'rounded-lg rounded-tl-none mr-1 text-right' : 'rounded-lg rounded-tr-none ml-1 text-left'}`}>
                     <pre className="text-xs whitespace-pre-wrap font-sans text-[#333333] leading-relaxed">
-                      {formattedMessage}
+                      {renderMessageWithIcons(processedMessage)}
                     </pre>
                     <div className={`flex items-center mt-1.5 ${language === 'ar' ? 'justify-start space-x-reverse space-x-1' : 'justify-end space-x-1'}`}>
                       <span className="text-[10px] text-[#667781]">
