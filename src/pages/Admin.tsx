@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
@@ -11,6 +12,7 @@ import { useOptimizedCategories } from '@/hooks/useOptimizedCategories';
 import { BookingManagement } from '@/components/admin/booking-management/BookingManagement';
 import { PackageManagement } from '@/components/admin/package-management/PackageManagement';
 import { ServiceUpsellManager } from '@/components/admin/service-management/ServiceUpsellManager';
+import { EmployeeTab } from '@/components/admin/employee-management/EmployeeTab';
 
 const Admin = () => {
   const [activeTab, setActiveTab] = useState('services');
@@ -40,7 +42,7 @@ const Admin = () => {
 
       <div className="container mx-auto px-4 py-6">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-          <TabsList className="w-full sm:w-auto grid grid-cols-5 sm:inline-flex">
+          <TabsList className="w-full sm:w-auto grid grid-cols-6 sm:inline-flex">
             <TabsTrigger value="services">
               Services
             </TabsTrigger>
@@ -49,6 +51,9 @@ const Admin = () => {
             </TabsTrigger>
             <TabsTrigger value="bookings">
               Bookings
+            </TabsTrigger>
+            <TabsTrigger value="employee">
+              Employee
             </TabsTrigger>
             <TabsTrigger value="files">
               Files
@@ -84,6 +89,12 @@ const Admin = () => {
           <TabsContent value="bookings" className="space-y-4">
             <ErrorBoundary>
               <BookingManagement />
+            </ErrorBoundary>
+          </TabsContent>
+          
+          <TabsContent value="employee" className="space-y-4">
+            <ErrorBoundary>
+              <EmployeeTab />
             </ErrorBoundary>
           </TabsContent>
 
