@@ -1,4 +1,3 @@
-
 import { Translations } from "@/types/language";
 
 export const translations: Translations = {
@@ -169,7 +168,7 @@ export const translations: Translations = {
     'install.error': 'فشل التثبيت. الرجاء المحاولة مرة أخرى.',
     'install.success': 'تم تثبيت التطبيق بنجاح!',
     'install.guide.title': 'تثبيت التطبيق',
-    'whatsapp.button': 'تأكيد تفاصل الحجز',
+    'whatsapp.button': 'تأكيد تفاصيل الحجز',
     'whatsapp.message.header': 'طلب حجز جديد',
     'whatsapp.message.customer': 'معلومات العميل',
     'whatsapp.message.booking': 'تفاصيل الحجز',
