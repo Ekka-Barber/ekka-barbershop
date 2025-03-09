@@ -63,8 +63,8 @@ export const WhatsAppConfirmationDialog = ({
         </DialogHeader>
         
         <Alert className="bg-amber-50 border-amber-200">
-          <AlertCircle className="h-4 w-4 text-amber-600" />
-          <AlertDescription className="text-amber-800 font-medium">
+          <AlertCircle className="h-4 w-4 text-red-600" />
+          <AlertDescription className="text-red-600 font-medium">
             {language === 'ar' 
               ? 'الحجز يعتبر غير مؤكد حتى نقوم بالرد عليك بالتأكيد' 
               : 'Booking is considered unconfirmed until we respond with confirmation'}
