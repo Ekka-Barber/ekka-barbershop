@@ -75,15 +75,36 @@ export const WhatsAppConfirmationDialog = ({
           <h3 className="text-sm font-medium">
             {language === 'ar' ? 'معاينة الرسالة' : 'Message Preview'}:
           </h3>
-          <Card className="bg-[#F6F6F6] border-[#E2E2E2]">
+          <Card className="bg-[#F0F2F5] border-[#D1D7DB] shadow-sm">
             <CardContent className="p-0">
-              <ScrollArea className="h-[200px] rounded-md">
-                <div className="p-4 bg-[#E5F7D3] mx-4 my-3 rounded-lg rtl:rounded-tr-none ltr:rounded-tl-none border-[#DCEDC9]">
-                  <pre className="text-xs whitespace-pre-wrap font-sans text-gray-800 rtl:text-right ltr:text-left">
-                    {formattedMessage}
-                  </pre>
+              <div className="flex flex-col p-2.5 rounded-md">
+                <div className={`self-end h-3 w-3 mb-1 ${language === 'ar' ? 'self-start rotate-180' : 'self-end'}`}>
+                  <svg viewBox="0 0 8 13" width="8" height="13">
+                    <path opacity=".13" d="M5.188 1H0v11.193l6.467-8.625C7.526 2.156 6.958 1 5.188 1z"></path>
+                    <path fill="#E5F7D3" d="M5.188 0H0v11.193l6.467-8.625C7.526 1.156 6.958 0 5.188 0z"></path>
+                  </svg>
                 </div>
-              </ScrollArea>
+                <ScrollArea className="h-[180px] max-h-[180px]">
+                  <div className={`p-2.5 bg-[#E5F7D3] ${language === 'ar' ? 'rounded-lg rounded-tl-none mr-1' : 'rounded-lg rounded-tr-none ml-1'}`}>
+                    <pre className="text-xs whitespace-pre-wrap font-sans text-[#111B21] leading-relaxed">
+                      {formattedMessage}
+                    </pre>
+                    <div className="flex justify-end items-center mt-1 space-x-1 rtl:space-x-reverse">
+                      <span className="text-[10px] text-[#667781]">
+                        {new Date().toLocaleTimeString(language === 'ar' ? 'ar-SA' : 'en-US', {
+                          hour: '2-digit',
+                          minute: '2-digit',
+                          hour12: true
+                        })}
+                      </span>
+                      <svg viewBox="0 0 18 18" width="14" height="14" className="text-[#53BDEB]">
+                        <path fill="currentColor" d="M17.394 5.035l-.57-.444a.434.434 0 0 0-.609.076l-6.39 8.198a.38.38 0 0 1-.577.039l-.427-.388a.381.381 0 0 0-.578.038l-.451.576a.497.497 0 0 0 .043.645l1.575 1.51a.38.38 0 0 0 .577-.039l7.483-9.602a.436.436 0 0 0-.076-.609z"></path>
+                        <path fill="currentColor" d="M12.964 5.035l-.57-.444a.434.434 0 0 0-.609.076l-6.39 8.198a.38.38 0 0 1-.577.039l-2.614-2.556a.435.435 0 0 0-.614.007l-.505.516a.435.435 0 0 0 .007.614l3.887 3.8a.38.38 0 0 0 .577-.039l7.483-9.602a.435.435 0 0 0-.075-.609z"></path>
+                      </svg>
+                    </div>
+                  </div>
+                </ScrollArea>
+              </div>
             </CardContent>
           </Card>
         </div>
@@ -98,7 +119,7 @@ export const WhatsAppConfirmationDialog = ({
           </Button>
           <Button 
             onClick={handleConfirm}
-            className="sm:flex-1 gap-2"
+            className="sm:flex-1 gap-2 bg-[#25D366] hover:bg-[#128C7E]"
             disabled={isLoading}
           >
             <Send className="w-4 h-4" />
