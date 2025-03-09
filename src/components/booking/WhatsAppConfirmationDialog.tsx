@@ -78,18 +78,27 @@ export const WhatsAppConfirmationDialog = ({
           <Card className="bg-[#F0F2F5] border-[#D1D7DB] shadow-sm">
             <CardContent className="p-0">
               <div className="flex flex-col p-2.5 rounded-md">
-                <div className={`self-end h-3 w-3 mb-1 ${language === 'ar' ? 'self-start rotate-180' : 'self-end'}`}>
-                  <svg viewBox="0 0 8 13" width="8" height="13">
-                    <path opacity=".13" d="M5.188 1H0v11.193l6.467-8.625C7.526 2.156 6.958 1 5.188 1z"></path>
-                    <path fill="#E5F7D3" d="M5.188 0H0v11.193l6.467-8.625C7.526 1.156 6.958 0 5.188 0z"></path>
-                  </svg>
-                </div>
+                {language === 'ar' ? (
+                  <div className="self-start h-3 w-3 mb-1 rotate-180">
+                    <svg viewBox="0 0 8 13" width="8" height="13">
+                      <path opacity=".13" d="M5.188 1H0v11.193l6.467-8.625C7.526 2.156 6.958 1 5.188 1z"></path>
+                      <path fill="#DCF8C6" d="M5.188 0H0v11.193l6.467-8.625C7.526 1.156 6.958 0 5.188 0z"></path>
+                    </svg>
+                  </div>
+                ) : (
+                  <div className="self-end h-3 w-3 mb-1">
+                    <svg viewBox="0 0 8 13" width="8" height="13">
+                      <path opacity=".13" d="M5.188 1H0v11.193l6.467-8.625C7.526 2.156 6.958 1 5.188 1z"></path>
+                      <path fill="#DCF8C6" d="M5.188 0H0v11.193l6.467-8.625C7.526 1.156 6.958 0 5.188 0z"></path>
+                    </svg>
+                  </div>
+                )}
                 <ScrollArea className="h-[180px] max-h-[180px]">
-                  <div className={`p-2.5 bg-[#E5F7D3] ${language === 'ar' ? 'rounded-lg rounded-tl-none mr-1' : 'rounded-lg rounded-tr-none ml-1'}`}>
-                    <pre className="text-xs whitespace-pre-wrap font-sans text-[#111B21] leading-relaxed">
+                  <div className={`p-3 bg-[#DCF8C6] shadow-sm ${language === 'ar' ? 'rounded-lg rounded-tl-none mr-1 text-right' : 'rounded-lg rounded-tr-none ml-1 text-left'}`}>
+                    <pre className="text-xs whitespace-pre-wrap font-sans text-[#333333] leading-relaxed">
                       {formattedMessage}
                     </pre>
-                    <div className="flex justify-end items-center mt-1 space-x-1 rtl:space-x-reverse">
+                    <div className={`flex items-center mt-1.5 ${language === 'ar' ? 'justify-start space-x-reverse space-x-1' : 'justify-end space-x-1'}`}>
                       <span className="text-[10px] text-[#667781]">
                         {new Date().toLocaleTimeString(language === 'ar' ? 'ar-SA' : 'en-US', {
                           hour: '2-digit',
