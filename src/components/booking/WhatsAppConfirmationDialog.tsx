@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { AlertCircle, Send, Sparkle, Pin, User, Mail, Phone } from "lucide-react";
+import { AlertCircle, Send } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Branch, CustomerDetails } from "@/types/booking";
 import { SelectedService } from "@/types/service";
@@ -45,91 +45,8 @@ export const WhatsAppConfirmationDialog = ({
     setIsLoading(false);
   };
   
-  // Process the message to add icon markup
-  const processMessage = (message: string): string => {
-    if (!message) return '';
-
-    // Helper to wrap text with icon - always put icon before text in Arabic mode
-    const wrapWithIcon = (line: string, iconName: string): string => {
-      const trimmedLine = line.trim();
-      if (!trimmedLine) return '';
-
-      // Always place icon before text in Arabic mode
-      if (language === 'ar') {
-        return `<icon>${iconName}</icon>${trimmedLine}`;
-      }
-      // For other languages, place icon after text
-      return `${trimmedLine}<icon>${iconName}</icon>`;
-    };
-
-    // Process each line
-    const lines = message.split('\n');
-    const processedLines = lines.map(line => {
-      // Skip empty lines
-      if (!line.trim()) return line;
-
-      // Special headers
-      if (line.includes('طلب حجز جديد')) {
-        return wrapWithIcon(line, 'sparkle');
-      }
-      if (line.includes('معلومات العميل')) {
-        return wrapWithIcon(line, 'pin');
-      }
-      
-      // Customer info lines
-      if (line.includes('الاسم:')) {
-        return wrapWithIcon(line, 'user');
-      }
-      if (line.includes('رقم الجوال:')) {
-        return wrapWithIcon(line, 'phone');
-      }
-      if (line.includes('البريد الإلكتروني:')) {
-        return wrapWithIcon(line, 'mail');
-      }
-      
-      return line;
-    });
-    
-    return processedLines.join('\n');
-  };
-  
   // Format the message for display by replacing URL encoding with line breaks
   const formattedMessage = whatsappMessage.replace(/%0a/g, '\n');
-  const processedMessage = processMessage(formattedMessage);
-  
-  // Render the message with icons - ensure proper RTL rendering
-  const renderMessageWithIcons = (message: string) => {
-    if (!message) return null;
-    
-    const parts = message.split(/<icon>(.*?)<\/icon>/);
-    
-    return parts.map((part, index) => {
-      // Even indices are text, odd indices are icon names
-      if (index % 2 === 0) {
-        return part;
-      }
-      
-      // Render the appropriate icon with RTL-appropriate styling
-      const iconClass = language === 'ar' 
-        ? "h-4 w-4 inline ml-1 mr-0.5 text-gray-600" 
-        : "h-4 w-4 inline mx-1 text-gray-600";
-        
-      switch (part) {
-        case 'sparkle':
-          return <Sparkle key={index} className={`${iconClass} text-amber-500`} />;
-        case 'pin':
-          return <Pin key={index} className={`${iconClass} text-red-500`} />;
-        case 'user':
-          return <User key={index} className={iconClass} />;
-        case 'phone':
-          return <Phone key={index} className={iconClass} />;
-        case 'mail':
-          return <Mail key={index} className={iconClass} />;
-        default:
-          return null;
-      }
-    });
-  };
   
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -179,7 +96,7 @@ export const WhatsAppConfirmationDialog = ({
                 <ScrollArea className="h-[180px] max-h-[180px]">
                   <div className={`p-3 bg-[#DCF8C6] shadow-sm ${language === 'ar' ? 'rounded-lg rounded-tl-none mr-1 text-right' : 'rounded-lg rounded-tr-none ml-1 text-left'}`}>
                     <pre className="text-xs whitespace-pre-wrap font-sans text-[#333333] leading-relaxed">
-                      {renderMessageWithIcons(processedMessage)}
+                      {formattedMessage}
                     </pre>
                     <div className={`flex items-center mt-1.5 ${language === 'ar' ? 'justify-start space-x-reverse space-x-1' : 'justify-end space-x-1'}`}>
                       <span className="text-[10px] text-[#667781]">
