@@ -37,20 +37,6 @@ export const useEmployeeSales = (selectedDate: Date, employees: Employee[]) => {
       
       console.log('Fetched sales data:', data);
       
-      // Store the fetched sales data
-      setExistingSales(data || []);
-      
-      // Store the last updated timestamp from the most recent record
-      if (data && data.length > 0) {
-        // Sort by updated_at in descending order to get the most recent update
-        const sortedData = [...data].sort((a, b) => 
-          new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
-        );
-        setLastUpdated(format(new Date(sortedData[0].updated_at), 'yyyy-MM-dd HH:mm:ss'));
-      } else {
-        setLastUpdated(null);
-      }
-      
       // Initialize sales inputs with existing data
       const initialSalesInputs: Record<string, string> = {};
       
@@ -59,15 +45,33 @@ export const useEmployeeSales = (selectedDate: Date, employees: Employee[]) => {
         initialSalesInputs[employee.id] = '';
       });
       
-      // Then populate with existing data where available
-      if (data && data.length > 0) {
-        data.forEach(sale => {
-          const matchingEmployee = employees.find(emp => emp.id === sale.id);
-          if (matchingEmployee) {
-            // Ensure we store integers only
-            initialSalesInputs[sale.id] = Math.floor(sale.sales_amount).toString();
-          }
-        });
+      // Store the fetched sales data
+      if (data) {
+        setExistingSales(data);
+        
+        // Store the last updated timestamp from the most recent record
+        if (data.length > 0) {
+          // Sort by updated_at in descending order to get the most recent update
+          const sortedData = [...data].sort((a, b) => 
+            new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
+          );
+          setLastUpdated(format(new Date(sortedData[0].updated_at), 'yyyy-MM-dd HH:mm:ss'));
+          
+          // Then populate sales inputs with existing data where available
+          data.forEach(sale => {
+            // Find the matching employee by ID
+            const matchingEmployee = employees.find(emp => emp.id === sale.id);
+            if (matchingEmployee) {
+              // Ensure we store integers only
+              initialSalesInputs[sale.id] = Math.floor(sale.sales_amount).toString();
+            }
+          });
+        } else {
+          setLastUpdated(null);
+        }
+      } else {
+        setExistingSales([]);
+        setLastUpdated(null);
       }
       
       console.log('Setting initial sales inputs:', initialSalesInputs);
@@ -127,22 +131,15 @@ export const useEmployeeSales = (selectedDate: Date, employees: Employee[]) => {
       
       console.log('Submitting sales data:', salesData);
       
-      // Use update instead of upsert since we have matching records by id and month
-      // First, delete any existing records for this month
-      const { error: deleteError } = await supabase
+      // Use upsert instead of delete and insert
+      const { error: upsertError } = await supabase
         .from('employee_sales')
-        .delete()
-        .eq('month', monthString)
-        .in('id', salesData.map(item => item.id));
+        .upsert(salesData, { 
+          onConflict: 'id,month',
+          ignoreDuplicates: false
+        });
       
-      if (deleteError) throw deleteError;
-      
-      // Then insert the new records
-      const { error: insertError } = await supabase
-        .from('employee_sales')
-        .insert(salesData);
-      
-      if (insertError) throw insertError;
+      if (upsertError) throw upsertError;
       
       // Refresh sales data to show the latest updates
       await fetchSalesData();
