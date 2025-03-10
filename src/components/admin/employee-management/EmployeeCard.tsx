@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ScheduleDisplay } from './ScheduleDisplay';
-import { RiyalIcon } from '@/components/icons/RiyalIcon';
+import RiyalIcon from '@/components/icons/RiyalIcon';
 
 interface EmployeeCardProps {
   employee: Employee;

@@ -29,7 +29,7 @@ export const ScheduleDisplay = ({ workingHours, offDays = [] }: ScheduleDisplayP
       {daysOfWeek.map((day) => {
         const isOffDay = offDays.includes(day.key);
         const hours = validWorkingHours[day.key] || [];
-        const hasHours = hours.length > 0;
+        const hasHours = Array.isArray(hours) && hours.length > 0;
         const hoursText = hasHours ? hours.join(', ') : 'Off';
         
         return (
