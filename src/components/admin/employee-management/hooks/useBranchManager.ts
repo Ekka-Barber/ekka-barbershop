@@ -17,11 +17,13 @@ export const useBranchManager = () => {
   }, []);
 
   const fetchBranches = async () => {
+    setIsLoading(true);
     try {
       const { data, error } = await supabase.from('branches').select('id, name');
       
       if (error) throw error;
       
+      console.log('Fetched branches:', data);
       setBranches(data || []);
       
       // Set first branch as default if any branches exist
@@ -30,7 +32,8 @@ export const useBranchManager = () => {
       }
     } catch (error) {
       console.error('Error fetching branches:', error);
-      throw error;
+    } finally {
+      setIsLoading(false);
     }
   };
 

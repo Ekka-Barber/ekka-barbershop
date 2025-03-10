@@ -3,6 +3,7 @@ import { Employee } from '@/types/employee';
 import { EmployeeCard } from '../EmployeeCard';
 import { Card, CardContent } from "@/components/ui/card";
 import { LoaderCircle } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface EmployeeGridProps {
   isLoading: boolean;
@@ -19,10 +20,22 @@ export const EmployeeGrid = ({
   selectedBranch,
   onSalesChange
 }: EmployeeGridProps) => {
+  console.log('EmployeeGrid render:', { isLoading, employeesCount: employees.length });
+  
   if (isLoading) {
     return (
-      <div className="flex justify-center py-10">
-        <LoaderCircle className="h-8 w-8 animate-spin text-primary" />
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {[1, 2, 3].map((i) => (
+          <Card key={i}>
+            <CardContent className="p-6">
+              <div className="space-y-4">
+                <Skeleton className="h-8 w-3/4" />
+                <Skeleton className="h-20 w-full" />
+                <Skeleton className="h-12 w-full" />
+              </div>
+            </CardContent>
+          </Card>
+        ))}
       </div>
     );
   }

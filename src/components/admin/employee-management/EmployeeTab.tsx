@@ -17,8 +17,7 @@ export const EmployeeTab = () => {
     branches, 
     selectedBranch, 
     setSelectedBranch, 
-    isLoading: isBranchLoading,
-    setIsLoading: setIsBranchLoading
+    isLoading: isBranchLoading
   } = useBranchManager();
   
   // Employee management
@@ -55,6 +54,13 @@ export const EmployeeTab = () => {
   };
 
   const isLoading = isBranchLoading || isEmployeeLoading;
+  console.log('EmployeeTab render state:', { 
+    isBranchLoading, 
+    isEmployeeLoading, 
+    branchesCount: branches.length,
+    employeesCount: employees.length,
+    selectedBranch
+  });
 
   return (
     <div className="space-y-6">
