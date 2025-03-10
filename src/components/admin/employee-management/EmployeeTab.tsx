@@ -59,7 +59,9 @@ export const EmployeeTab = () => {
     isEmployeeLoading, 
     branchesCount: branches.length,
     employeesCount: employees.length,
-    selectedBranch
+    selectedBranch,
+    selectedDate: selectedDate.toISOString(),
+    salesInputsCount: Object.keys(salesInputs).length
   });
 
   return (

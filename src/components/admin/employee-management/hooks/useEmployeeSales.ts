@@ -10,9 +10,14 @@ export const useEmployeeSales = (selectedDate: Date, employees: Employee[]) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<string | null>(null);
 
+  // Reset the form when date or employees change
   useEffect(() => {
     if (employees.length > 0) {
       fetchSalesData();
+    } else {
+      setSalesInputs({});
+      setExistingSales([]);
+      setLastUpdated(null);
     }
   }, [selectedDate, employees]);
 
@@ -20,6 +25,7 @@ export const useEmployeeSales = (selectedDate: Date, employees: Employee[]) => {
     try {
       // Format date as YYYY-MM-01 to get the first day of the month
       const monthString = format(selectedDate, 'yyyy-MM-01');
+      console.log('Fetching sales data for month:', monthString);
       
       // Fetch sales data for the selected month
       const { data, error } = await supabase
@@ -29,8 +35,10 @@ export const useEmployeeSales = (selectedDate: Date, employees: Employee[]) => {
       
       if (error) throw error;
       
+      console.log('Fetched sales data:', data);
+      
       // Store the fetched sales data
-      setExistingSales(data);
+      setExistingSales(data || []);
       
       // Store the last updated timestamp from the most recent record
       if (data && data.length > 0) {
@@ -45,15 +53,32 @@ export const useEmployeeSales = (selectedDate: Date, employees: Employee[]) => {
       
       // Initialize sales inputs with existing data
       const initialSalesInputs: Record<string, string> = {};
+      
+      // First reset inputs for all employees to empty string
       employees.forEach(employee => {
-        const existingSale = data.find(sale => sale.id === employee.id);
-        initialSalesInputs[employee.id] = existingSale ? existingSale.sales_amount.toString() : '';
+        initialSalesInputs[employee.id] = '';
       });
       
+      // Then populate with existing data where available
+      if (data && data.length > 0) {
+        data.forEach(sale => {
+          const matchingEmployee = employees.find(emp => emp.id === sale.id);
+          if (matchingEmployee) {
+            initialSalesInputs[sale.id] = sale.sales_amount.toString();
+          }
+        });
+      }
+      
+      console.log('Setting initial sales inputs:', initialSalesInputs);
       setSalesInputs(initialSalesInputs);
     } catch (error) {
       console.error('Error fetching sales data:', error);
-      throw error;
+      // Still initialize empty inputs for all employees on error
+      const emptyInputs: Record<string, string> = {};
+      employees.forEach(employee => {
+        emptyInputs[employee.id] = '';
+      });
+      setSalesInputs(emptyInputs);
     }
   };
 
