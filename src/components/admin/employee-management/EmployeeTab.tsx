@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { MonthYearPicker } from './MonthYearPicker';
 import { EmployeeCard } from './EmployeeCard';
 import { Employee, EmployeeSales } from '@/types/employee';
-import { LoaderCircle } from 'lucide-react';
+import { LoaderCircle, Calendar } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export const EmployeeTab = () => {
@@ -21,23 +21,23 @@ export const EmployeeTab = () => {
   const [existingSales, setExistingSales] = useState<EmployeeSales[]>([]);
   const [branches, setBranches] = useState<Array<{id: string, name: string}>>([]);
   const [selectedBranch, setSelectedBranch] = useState<string | null>(null);
+  const [lastUpdated, setLastUpdated] = useState<string | null>(null);
 
   useEffect(() => {
     fetchBranches();
-    fetchEmployees();
   }, []);
-
-  useEffect(() => {
-    if (employees.length > 0) {
-      fetchSalesData();
-    }
-  }, [selectedDate, employees]);
 
   useEffect(() => {
     if (selectedBranch) {
       fetchEmployees();
     }
   }, [selectedBranch]);
+
+  useEffect(() => {
+    if (employees.length > 0) {
+      fetchSalesData();
+    }
+  }, [selectedDate, employees]);
 
   const fetchBranches = async () => {
     try {
@@ -92,8 +92,10 @@ export const EmployeeTab = () => {
 
   const fetchSalesData = async () => {
     try {
+      // Format date as YYYY-MM-01 to get the first day of the month
       const monthString = format(selectedDate, 'yyyy-MM-01');
       
+      // Fetch sales data for the selected month
       const { data, error } = await supabase
         .from('employee_sales')
         .select('*')
@@ -101,7 +103,19 @@ export const EmployeeTab = () => {
       
       if (error) throw error;
       
+      // Store the fetched sales data
       setExistingSales(data);
+      
+      // Store the last updated timestamp from the most recent record
+      if (data && data.length > 0) {
+        // Sort by updated_at in descending order to get the most recent update
+        const sortedData = [...data].sort((a, b) => 
+          new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
+        );
+        setLastUpdated(format(new Date(sortedData[0].updated_at), 'yyyy-MM-dd HH:mm:ss'));
+      } else {
+        setLastUpdated(null);
+      }
       
       // Initialize sales inputs with existing data
       const initialSalesInputs: Record<string, string> = {};
@@ -122,16 +136,29 @@ export const EmployeeTab = () => {
   };
 
   const handleSalesChange = (employeeId: string, value: string) => {
-    setSalesInputs(prev => ({
-      ...prev,
-      [employeeId]: value
-    }));
+    // Validate that the input is a valid number
+    if (value === '' || !isNaN(Number(value))) {
+      setSalesInputs(prev => ({
+        ...prev,
+        [employeeId]: value
+      }));
+    }
   };
 
   const handleSubmit = async () => {
     try {
       setIsSubmitting(true);
+      
+      // Format date as YYYY-MM-01 to get the first day of the month
       const monthString = format(selectedDate, 'yyyy-MM-01');
+      
+      // Validate sales data
+      const invalidEntries = Object.entries(salesInputs)
+        .filter(([_, value]) => value !== '' && (isNaN(Number(value)) || Number(value) < 0));
+      
+      if (invalidEntries.length > 0) {
+        throw new Error('Invalid sales amounts detected. Please enter valid numbers.');
+      }
       
       // Prepare sales data for submission
       const salesData = Object.entries(salesInputs)
@@ -146,10 +173,17 @@ export const EmployeeTab = () => {
           };
         });
       
-      // Upsert sales data to the database
+      if (salesData.length === 0) {
+        throw new Error('No sales data to save. Please enter at least one sales amount.');
+      }
+      
+      // Upsert sales data to the database using the composite key of id and month
       const { error } = await supabase
         .from('employee_sales')
-        .upsert(salesData, { onConflict: 'id,month' });
+        .upsert(salesData, { 
+          onConflict: 'id,month', // Use both id and month as the composite key
+          ignoreDuplicates: false // Update if there's a conflict
+        });
       
       if (error) throw error;
       
@@ -158,13 +192,13 @@ export const EmployeeTab = () => {
         description: "Employee sales data saved successfully",
       });
       
-      // Refresh sales data
+      // Refresh sales data to show the latest updates
       fetchSalesData();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error submitting sales data:', error);
       toast({
         title: "Error",
-        description: "Failed to save sales data",
+        description: error.message || "Failed to save sales data",
         variant: "destructive",
       });
     } finally {
@@ -216,6 +250,13 @@ export const EmployeeTab = () => {
           </Button>
         </div>
       </div>
+      
+      {lastUpdated && (
+        <div className="flex items-center text-sm text-muted-foreground">
+          <Calendar className="h-4 w-4 mr-1" />
+          <span>Last updated: {lastUpdated}</span>
+        </div>
+      )}
       
       {isLoading ? (
         <div className="flex justify-center py-10">
