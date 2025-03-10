@@ -1,3 +1,4 @@
+
 // Service Worker for Ekka Barbershop PWA
 // Version: 1.0.0
 
@@ -44,6 +45,11 @@ const cleanupOldCaches = async () => {
 
 // Handle fetch requests with a network-first, cache-fallback strategy
 const handleFetch = async (event) => {
+  // Skip caching for non-GET requests (POST, DELETE, etc.)
+  if (event.request.method !== 'GET') {
+    return fetch(event.request);
+  }
+  
   // For navigation requests, try network first then fallback to cache
   if (event.request.mode === 'navigate') {
     try {
@@ -62,7 +68,7 @@ const handleFetch = async (event) => {
     }
   }
   
-  // For other requests like assets, API calls, etc.
+  // For other GET requests like assets, API calls, etc.
   try {
     // Check cache first for non-API requests
     if (!event.request.url.includes('/api/')) {
