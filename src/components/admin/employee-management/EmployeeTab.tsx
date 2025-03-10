@@ -9,6 +9,7 @@ import { MonthYearPicker } from './MonthYearPicker';
 import { EmployeeCard } from './EmployeeCard';
 import { Employee, EmployeeSales } from '@/types/employee';
 import { LoaderCircle } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export const EmployeeTab = () => {
   const { toast } = useToast();
@@ -18,8 +19,11 @@ export const EmployeeTab = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [salesInputs, setSalesInputs] = useState<Record<string, string>>({});
   const [existingSales, setExistingSales] = useState<EmployeeSales[]>([]);
+  const [branches, setBranches] = useState<Array<{id: string, name: string}>>([]);
+  const [selectedBranch, setSelectedBranch] = useState<string | null>(null);
 
   useEffect(() => {
+    fetchBranches();
     fetchEmployees();
   }, []);
 
@@ -29,10 +33,46 @@ export const EmployeeTab = () => {
     }
   }, [selectedDate, employees]);
 
+  useEffect(() => {
+    if (selectedBranch) {
+      fetchEmployees();
+    }
+  }, [selectedBranch]);
+
+  const fetchBranches = async () => {
+    try {
+      const { data, error } = await supabase.from('branches').select('id, name');
+      
+      if (error) throw error;
+      
+      setBranches(data || []);
+      
+      // Set first branch as default if any branches exist
+      if (data && data.length > 0) {
+        setSelectedBranch(data[0].id);
+      }
+    } catch (error) {
+      console.error('Error fetching branches:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load branches",
+        variant: "destructive",
+      });
+    }
+  };
+
   const fetchEmployees = async () => {
     try {
       setIsLoading(true);
-      const { data, error } = await supabase.from('employees').select('*');
+      
+      let query = supabase.from('employees').select('*');
+      
+      // Add branch filter if a branch is selected
+      if (selectedBranch) {
+        query = query.eq('branch_id', selectedBranch);
+      }
+      
+      const { data, error } = await query;
       
       if (error) throw error;
       
@@ -140,7 +180,23 @@ export const EmployeeTab = () => {
           <p className="text-muted-foreground">Record monthly sales for each employee</p>
         </div>
         
-        <div className="flex items-center gap-2">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full md:w-auto">
+          <Select
+            value={selectedBranch || ''}
+            onValueChange={setSelectedBranch}
+          >
+            <SelectTrigger className="w-full sm:w-[180px]">
+              <SelectValue placeholder="Select Branch" />
+            </SelectTrigger>
+            <SelectContent>
+              {branches.map((branch) => (
+                <SelectItem key={branch.id} value={branch.id}>
+                  {branch.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          
           <MonthYearPicker 
             selectedDate={selectedDate} 
             onChange={setSelectedDate} 
@@ -168,7 +224,11 @@ export const EmployeeTab = () => {
       ) : employees.length === 0 ? (
         <Card>
           <CardContent className="py-8 text-center">
-            <p className="text-muted-foreground">No employees found. Add employees to record sales.</p>
+            <p className="text-muted-foreground">
+              {selectedBranch 
+                ? "No employees found for the selected branch. Add employees to record sales." 
+                : "No employees found. Please select a branch or add employees to record sales."}
+            </p>
           </CardContent>
         </Card>
       ) : (
