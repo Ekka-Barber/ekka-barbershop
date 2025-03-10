@@ -64,7 +64,8 @@ export const useEmployeeSales = (selectedDate: Date, employees: Employee[]) => {
         data.forEach(sale => {
           const matchingEmployee = employees.find(emp => emp.id === sale.id);
           if (matchingEmployee) {
-            initialSalesInputs[sale.id] = sale.sales_amount.toString();
+            // Ensure we store integers only
+            initialSalesInputs[sale.id] = Math.floor(sale.sales_amount).toString();
           }
         });
       }
@@ -83,8 +84,8 @@ export const useEmployeeSales = (selectedDate: Date, employees: Employee[]) => {
   };
 
   const handleSalesChange = (employeeId: string, value: string) => {
-    // Validate that the input is a valid number
-    if (value === '' || !isNaN(Number(value))) {
+    // Only accept whole numbers (no decimals)
+    if (value === '' || (/^\d+$/.test(value) && !value.includes('.'))) {
       setSalesInputs(prev => ({
         ...prev,
         [employeeId]: value
@@ -101,10 +102,10 @@ export const useEmployeeSales = (selectedDate: Date, employees: Employee[]) => {
       
       // Validate sales data
       const invalidEntries = Object.entries(salesInputs)
-        .filter(([_, value]) => value !== '' && (isNaN(Number(value)) || Number(value) < 0));
+        .filter(([_, value]) => value !== '' && !(/^\d+$/.test(value)));
       
       if (invalidEntries.length > 0) {
-        throw new Error('Invalid sales amounts detected. Please enter valid numbers.');
+        throw new Error('Invalid sales amounts detected. Please enter whole numbers only.');
       }
       
       // Prepare sales data for submission
@@ -116,7 +117,7 @@ export const useEmployeeSales = (selectedDate: Date, employees: Employee[]) => {
             id: employeeId,
             employee_name: employee?.name || 'Unknown',
             month: monthString,
-            sales_amount: parseFloat(salesAmount),
+            sales_amount: parseInt(salesAmount, 10),
           };
         });
       
@@ -124,15 +125,24 @@ export const useEmployeeSales = (selectedDate: Date, employees: Employee[]) => {
         throw new Error('No sales data to save. Please enter at least one sales amount.');
       }
       
-      // Upsert sales data to the database using the composite key of id and month
-      const { error } = await supabase
-        .from('employee_sales')
-        .upsert(salesData, { 
-          onConflict: 'id,month', // Use both id and month as the composite key
-          ignoreDuplicates: false // Update if there's a conflict
-        });
+      console.log('Submitting sales data:', salesData);
       
-      if (error) throw error;
+      // Use update instead of upsert since we have matching records by id and month
+      // First, delete any existing records for this month
+      const { error: deleteError } = await supabase
+        .from('employee_sales')
+        .delete()
+        .eq('month', monthString)
+        .in('id', salesData.map(item => item.id));
+      
+      if (deleteError) throw deleteError;
+      
+      // Then insert the new records
+      const { error: insertError } = await supabase
+        .from('employee_sales')
+        .insert(salesData);
+      
+      if (insertError) throw insertError;
       
       // Refresh sales data to show the latest updates
       await fetchSalesData();

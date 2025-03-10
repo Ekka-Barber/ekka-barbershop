@@ -13,6 +13,14 @@ interface EmployeeCardProps {
 }
 
 export const EmployeeCard = ({ employee, salesValue, onSalesChange }: EmployeeCardProps) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    // Only allow empty string or whole numbers
+    if (value === '' || /^\d+$/.test(value)) {
+      onSalesChange(value);
+    }
+  };
+
   return (
     <Card className="overflow-hidden h-full">
       <CardHeader className="bg-muted/30 pb-3">
@@ -46,13 +54,13 @@ export const EmployeeCard = ({ employee, salesValue, onSalesChange }: EmployeeCa
               </div>
               <Input
                 id={`sales-${employee.id}`}
-                type="number"
-                placeholder="Enter sales amount"
+                type="text"
+                placeholder="Enter whole number only"
                 value={salesValue}
-                onChange={(e) => onSalesChange(e.target.value)}
+                onChange={handleInputChange}
                 className="pl-9"
-                min="0"
-                step="0.01"
+                inputMode="numeric"
+                pattern="[0-9]*"
               />
             </div>
           </div>
