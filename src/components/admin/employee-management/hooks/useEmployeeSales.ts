@@ -112,9 +112,20 @@ export const useEmployeeSales = (selectedDate: Date, employees: Employee[]) => {
         throw new Error('Invalid sales amounts detected. Please enter whole numbers only.');
       }
       
-      // Prepare sales data for submission
-      const salesData = Object.entries(salesInputs)
-        .filter(([_, value]) => value !== '') // Filter out empty values
+      // Filter out empty values and prepare sales data
+      const salesDataEntries = Object.entries(salesInputs)
+        .filter(([_, value]) => value !== '');
+      
+      if (salesDataEntries.length === 0) {
+        throw new Error('No sales data to save. Please enter at least one sales amount.');
+      }
+      
+      // Separate update and insert operations based on existing data
+      const existingEmployeeIds = existingSales.map(sale => sale.id);
+      
+      // Prepare data for updates (existing records)
+      const updateData = salesDataEntries
+        .filter(([employeeId, _]) => existingEmployeeIds.includes(employeeId))
         .map(([employeeId, salesAmount]) => {
           const employee = employees.find(e => e.id === employeeId);
           return {
@@ -125,21 +136,43 @@ export const useEmployeeSales = (selectedDate: Date, employees: Employee[]) => {
           };
         });
       
-      if (salesData.length === 0) {
-        throw new Error('No sales data to save. Please enter at least one sales amount.');
-      }
-      
-      console.log('Submitting sales data:', salesData);
-      
-      // Use upsert instead of delete and insert
-      const { error: upsertError } = await supabase
-        .from('employee_sales')
-        .upsert(salesData, { 
-          onConflict: 'id,month',
-          ignoreDuplicates: false
+      // Prepare data for inserts (new records)
+      const insertData = salesDataEntries
+        .filter(([employeeId, _]) => !existingEmployeeIds.includes(employeeId))
+        .map(([employeeId, salesAmount]) => {
+          const employee = employees.find(e => e.id === employeeId);
+          return {
+            id: employeeId,
+            employee_name: employee?.name || 'Unknown',
+            month: monthString,
+            sales_amount: parseInt(salesAmount, 10),
+          };
         });
       
-      if (upsertError) throw upsertError;
+      console.log('Data to update:', updateData);
+      console.log('Data to insert:', insertData);
+      
+      // Update existing records first
+      if (updateData.length > 0) {
+        for (const record of updateData) {
+          const { error } = await supabase
+            .from('employee_sales')
+            .update({ sales_amount: record.sales_amount, employee_name: record.employee_name })
+            .eq('id', record.id)
+            .eq('month', monthString);
+          
+          if (error) throw error;
+        }
+      }
+      
+      // Insert new records
+      if (insertData.length > 0) {
+        const { error } = await supabase
+          .from('employee_sales')
+          .insert(insertData);
+        
+        if (error) throw error;
+      }
       
       // Refresh sales data to show the latest updates
       await fetchSalesData();
