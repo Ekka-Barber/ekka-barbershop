@@ -2095,6 +2095,16 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: string
       }
+      get_device_breakdown: {
+        Args: {
+          p_qr_id: string
+          p_start_date: string
+        }
+        Returns: {
+          device_type: string
+          count: string
+        }[]
+      }
       get_owner_access: {
         Args: Record<PropertyKey, never>
         Returns: string
@@ -2104,6 +2114,16 @@ export type Database = {
           date_value: string
         }
         Returns: string
+      }
+      get_referrer_breakdown: {
+        Args: {
+          p_qr_id: string
+          p_start_date: string
+        }
+        Returns: {
+          referrer: string
+          count: string
+        }[]
       }
       increment: {
         Args: {

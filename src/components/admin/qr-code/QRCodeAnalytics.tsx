@@ -71,21 +71,25 @@ export const QRCodeAnalytics = ({ qrCodes }: { qrCodes: QRCode[] }) => {
         
       if (dailyError) throw dailyError;
       
-      // Fetch device breakdown using raw SQL query instead of group
-      const { data: deviceData, error: deviceError } = await supabase
-        .rpc('get_device_breakdown', { 
+      // Fetch device breakdown using RPC
+      const { data: deviceData, error: deviceError } = await supabase.rpc(
+        'get_device_breakdown',
+        { 
           p_qr_id: selectedQrId,
           p_start_date: startDate.toISOString()
-        });
+        }
+      );
         
       if (deviceError) throw deviceError;
       
-      // Fetch referrer breakdown using raw SQL query instead of group
-      const { data: referrerData, error: referrerError } = await supabase
-        .rpc('get_referrer_breakdown', { 
+      // Fetch referrer breakdown using RPC
+      const { data: referrerData, error: referrerError } = await supabase.rpc(
+        'get_referrer_breakdown',
+        { 
           p_qr_id: selectedQrId,
           p_start_date: startDate.toISOString()
-        });
+        }
+      );
         
       if (referrerError) throw referrerError;
       
@@ -101,24 +105,28 @@ export const QRCodeAnalytics = ({ qrCodes }: { qrCodes: QRCode[] }) => {
       
       // Process data for device and referrer breakdowns
       const deviceBreakdown: Record<string, number> = {};
-      deviceData?.forEach((item: {device_type: string, count: string}) => {
-        const deviceType = item.device_type || 'unknown';
-        deviceBreakdown[deviceType] = parseInt(item.count);
-      });
+      if (Array.isArray(deviceData)) {
+        deviceData.forEach((item: {device_type: string, count: string}) => {
+          const deviceType = item.device_type || 'unknown';
+          deviceBreakdown[deviceType] = parseInt(item.count);
+        });
+      }
       
       const referrerBreakdown: Record<string, number> = {};
-      referrerData?.forEach((item: {referrer: string, count: string}) => {
-        // Process referrer to get a readable hostname
-        let referrer = item.referrer || 'Direct';
-        try {
-          if (referrer !== 'Direct' && referrer.startsWith('http')) {
-            referrer = new URL(referrer).hostname;
+      if (Array.isArray(referrerData)) {
+        referrerData.forEach((item: {referrer: string, count: string}) => {
+          // Process referrer to get a readable hostname
+          let referrer = item.referrer || 'Direct';
+          try {
+            if (referrer !== 'Direct' && referrer.startsWith('http')) {
+              referrer = new URL(referrer).hostname;
+            }
+          } catch (e) {
+            // Keep original referrer if URL parsing fails
           }
-        } catch (e) {
-          // Keep original referrer if URL parsing fails
-        }
-        referrerBreakdown[referrer] = parseInt(item.count);
-      });
+          referrerBreakdown[referrer] = parseInt(item.count);
+        });
+      }
       
       // Format daily scans data
       const dailyScans = dailyScanData?.map(item => ({
