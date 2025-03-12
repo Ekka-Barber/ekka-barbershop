@@ -1307,6 +1307,50 @@ export type Database = {
         }
         Relationships: []
       }
+      qr_scans: {
+        Row: {
+          created_at: string
+          device_type: string | null
+          id: string
+          ip_address: string | null
+          location: string | null
+          qr_id: string
+          referrer: string | null
+          scanned_at: string
+          user_agent: string | null
+        }
+        Insert: {
+          created_at?: string
+          device_type?: string | null
+          id?: string
+          ip_address?: string | null
+          location?: string | null
+          qr_id: string
+          referrer?: string | null
+          scanned_at?: string
+          user_agent?: string | null
+        }
+        Update: {
+          created_at?: string
+          device_type?: string | null
+          id?: string
+          ip_address?: string | null
+          location?: string | null
+          qr_id?: string
+          referrer?: string | null
+          scanned_at?: string
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "qr_scans_qr_id_fkey"
+            columns: ["qr_id"]
+            isOneToOne: false
+            referencedRelation: "qr_codes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       recurring_expenses: {
         Row: {
           amount: number
@@ -1996,6 +2040,22 @@ export type Database = {
           visits: number | null
         }
         Relationships: []
+      }
+      qr_scan_counts_daily: {
+        Row: {
+          qr_id: string | null
+          scan_count: number | null
+          scan_date: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "qr_scans_qr_id_fkey"
+            columns: ["qr_id"]
+            isOneToOne: false
+            referencedRelation: "qr_codes"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Functions: {

@@ -86,6 +86,43 @@ Deno.serve(async (req) => {
       )
     }
 
+    // Extract information for analytics
+    const userAgent = req.headers.get('user-agent') || '';
+    const referrer = req.headers.get('referer') || '';
+    const ip = req.headers.get('x-forwarded-for') || req.headers.get('cf-connecting-ip') || '';
+    
+    // Determine device type based on user agent
+    let deviceType = 'unknown';
+    if (userAgent.match(/mobile|android|iphone|ipad|ipod/i)) {
+      deviceType = 'mobile';
+    } else if (userAgent.match(/tablet|ipad/i)) {
+      deviceType = 'tablet';
+    } else if (userAgent.match(/macintosh|windows|linux/i)) {
+      deviceType = 'desktop';
+    }
+    
+    // Log scan in database
+    try {
+      const { error: insertError } = await supabase
+        .from('qr_scans')
+        .insert({
+          qr_id: id,
+          ip_address: ip,
+          user_agent: userAgent,
+          device_type: deviceType,
+          referrer: referrer
+        });
+      
+      if (insertError) {
+        console.error('Error logging QR scan:', insertError);
+      } else {
+        console.log('✅ Scan logged for QR code:', id);
+      }
+    } catch (logError) {
+      console.error('Exception logging QR scan:', logError);
+      // Continue with redirect even if logging fails
+    }
+
     console.log('✅ Redirecting to:', qrCode.url)
 
     // Return redirect response with proper headers
