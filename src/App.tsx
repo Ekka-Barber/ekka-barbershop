@@ -4,7 +4,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import Customer from "./pages/Customer";
@@ -34,10 +34,10 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     // Give the auth context time to initialize
     const timer = setTimeout(() => {
       setIsLoading(false);
-    }, 300);
+    }, 400);
     
     return () => clearTimeout(timer);
-  }, [location]);
+  }, [location.pathname]);
 
   if (isLoading) {
     return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
@@ -72,22 +72,25 @@ const ServiceWorkerRegistration = () => {
 // Main App Component
 const AppRoutes = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
+  const initialRedirectDone = useRef(false);
   
   // Check if user should be redirected to admin based on authentication
   useEffect(() => {
-    if (isAuthenticated && location.pathname === '/customer' && !location.search.includes('redirected=true')) {
-      // If the user is authenticated but on the customer page without redirected flag
-      console.log('Authenticated user detected on customer page, redirecting to admin');
-      // Actually perform the redirect
-      window.location.href = '/admin';
-    }
-  }, [isAuthenticated, location]);
-  
-  // Set the appropriate manifest based on the current route
-  useEffect(() => {
+    // Update the manifest based on the current route
     updateManifestLink(location.pathname.includes('/admin') ? 'admin-manifest.json' : 'manifest.json');
-  }, [location.pathname]);
+    
+    // Redirect authenticated users from customer page to admin, but only once
+    if (isAuthenticated && location.pathname === '/customer' && 
+        !location.search.includes('redirected=true') && !initialRedirectDone.current) {
+      console.log('Authenticated user detected on customer page, redirecting to admin');
+      initialRedirectDone.current = true;
+      setTimeout(() => {
+        navigate('/admin', { replace: true });
+      }, 300);
+    }
+  }, [isAuthenticated, location.pathname, location.search, navigate]);
   
   return (
     <ErrorBoundary>
