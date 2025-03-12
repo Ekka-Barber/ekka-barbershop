@@ -22,11 +22,11 @@ export const EmployeeCard = ({ employee, salesValue, onSalesChange }: EmployeeCa
   };
 
   return (
-    <Card className="overflow-hidden h-full">
-      <CardHeader className="bg-muted/30 pb-3">
+    <Card className="overflow-hidden h-full transition-all duration-200 hover:shadow-md">
+      <CardHeader className="bg-primary/5 pb-3">
         <CardTitle className="text-lg font-semibold flex items-center gap-2">
           {employee.photo_url && (
-            <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0">
+            <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0 border-2 border-primary/20">
               <img 
                 src={employee.photo_url} 
                 alt={employee.name} 
@@ -34,12 +34,14 @@ export const EmployeeCard = ({ employee, salesValue, onSalesChange }: EmployeeCa
               />
             </div>
           )}
-          <span>{employee.name}</span>
-          {employee.name_ar && (
-            <span className="text-sm text-muted-foreground font-normal">
-              ({employee.name_ar})
-            </span>
-          )}
+          <div className="flex flex-col">
+            <span>{employee.name}</span>
+            {employee.name_ar && (
+              <span className="text-sm text-muted-foreground font-normal">
+                ({employee.name_ar})
+              </span>
+            )}
+          </div>
         </CardTitle>
       </CardHeader>
       <CardContent className="pt-4">
@@ -58,7 +60,7 @@ export const EmployeeCard = ({ employee, salesValue, onSalesChange }: EmployeeCa
                 placeholder="Enter whole number only"
                 value={salesValue}
                 onChange={handleInputChange}
-                className="pl-9"
+                className="pl-9 focus-visible:ring-primary"
                 inputMode="numeric"
                 pattern="[0-9]*"
               />

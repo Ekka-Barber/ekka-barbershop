@@ -7,6 +7,7 @@ import { useBranchManager } from './hooks/useBranchManager';
 import { useEmployeeManager } from './hooks/useEmployeeManager';
 import { EmployeeSalesHeader } from './components/EmployeeSalesHeader';
 import { EmployeeGrid } from './components/EmployeeGrid';
+import { Card, CardContent } from '@/components/ui/card';
 
 export const EmployeeTab = () => {
   const { toast } = useToast();
@@ -66,18 +67,22 @@ export const EmployeeTab = () => {
 
   return (
     <div className="space-y-6">
-      <EmployeeSalesHeader
-        selectedDate={selectedDate}
-        setSelectedDate={setSelectedDate}
-        selectedBranch={selectedBranch}
-        setSelectedBranch={setSelectedBranch}
-        branches={branches}
-        handleSubmit={handleSubmit}
-        isSubmitting={isSubmitting}
-      />
+      <Card className="bg-white shadow-sm border">
+        <CardContent className="p-4">
+          <EmployeeSalesHeader
+            selectedDate={selectedDate}
+            setSelectedDate={setSelectedDate}
+            selectedBranch={selectedBranch}
+            setSelectedBranch={setSelectedBranch}
+            branches={branches}
+            handleSubmit={handleSubmit}
+            isSubmitting={isSubmitting}
+          />
+        </CardContent>
+      </Card>
       
       {lastUpdated && (
-        <div className="flex items-center text-sm text-muted-foreground">
+        <div className="flex items-center text-sm text-muted-foreground bg-muted/20 p-2 rounded">
           <Calendar className="h-4 w-4 mr-1" />
           <span>Last updated: {lastUpdated}</span>
         </div>

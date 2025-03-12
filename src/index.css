@@ -78,3 +78,27 @@
     @apply h-full;
   }
 }
+
+@layer utilities {
+  .animate-in {
+    @apply opacity-0 transition-all duration-300;
+  }
+  
+  .fade-in-50 {
+    @apply opacity-100 animate-in;
+    animation-duration: 0.5s;
+  }
+  
+  /* Admin dashboard specific utilities */
+  .admin-card {
+    @apply bg-white border rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200;
+  }
+  
+  .admin-card-header {
+    @apply p-4 border-b bg-muted/30;
+  }
+  
+  .admin-card-content {
+    @apply p-4;
+  }
+}
