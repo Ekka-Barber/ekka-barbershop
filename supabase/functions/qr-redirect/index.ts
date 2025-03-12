@@ -101,6 +101,30 @@ Deno.serve(async (req) => {
       deviceType = 'desktop';
     }
     
+    // Get approximate location from IP address using a free geolocation API
+    let location = null;
+    let latitude = null;
+    let longitude = null;
+
+    try {
+      if (ip) {
+        const geoResponse = await fetch(`https://ipapi.co/${ip.split(',')[0].trim()}/json/`);
+        if (geoResponse.ok) {
+          const geoData = await geoResponse.json();
+          if (geoData && !geoData.error) {
+            location = geoData.city ? 
+              `${geoData.city}${geoData.country_name ? ', ' + geoData.country_name : ''}` :
+              geoData.country_name;
+            latitude = geoData.latitude;
+            longitude = geoData.longitude;
+          }
+        }
+      }
+    } catch (geoError) {
+      console.error('Error getting location data:', geoError);
+      // Proceed even if geolocation fails
+    }
+    
     // Log scan in database
     try {
       const { error: insertError } = await supabase
@@ -110,7 +134,10 @@ Deno.serve(async (req) => {
           ip_address: ip,
           user_agent: userAgent,
           device_type: deviceType,
-          referrer: referrer
+          referrer: referrer,
+          location: location,
+          latitude: latitude,
+          longitude: longitude
         });
       
       if (insertError) {

@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -17,6 +18,11 @@ export interface QRScanData {
     device_type: string;
     referrer: string;
     location?: string;
+  }[];
+  scan_locations: {
+    lat: number;
+    lng: number;
+    count: number;
   }[];
 }
 
@@ -86,7 +92,7 @@ export function useQRCodeAnalytics(qrCodes: QRCode[]) {
         
       if (referrerError) throw referrerError;
       
-      // Fetch recent scans
+      // Fetch recent scans with location data
       const { data: recentScans, error: recentError } = await supabase
         .from('qr_scans')
         .select('scanned_at, device_type, referrer, location')
@@ -95,7 +101,18 @@ export function useQRCodeAnalytics(qrCodes: QRCode[]) {
         .limit(5);
         
       if (recentError) throw recentError;
-      
+
+      // Fetch scan locations data
+      const { data: locationData, error: locationError } = await supabase
+        .from('qr_scans')
+        .select('location, latitude, longitude')
+        .eq('qr_id', selectedQrId)
+        .gte('scanned_at', startDate.toISOString())
+        .not('latitude', 'is', null)
+        .not('longitude', 'is', null);
+
+      if (locationError) throw locationError;
+        
       // Process data for device and referrer breakdowns
       const deviceBreakdown: Record<string, number> = {};
       if (Array.isArray(deviceData)) {
@@ -137,6 +154,26 @@ export function useQRCodeAnalytics(qrCodes: QRCode[]) {
         const existing = dailyScans.find(scan => scan.date === date);
         return existing || { date, count: 0 };
       });
+
+      // Process location data
+      const locationMap = new Map();
+      if (Array.isArray(locationData)) {
+        locationData.forEach(item => {
+          if (item.latitude && item.longitude) {
+            const key = `${item.latitude},${item.longitude}`;
+            if (locationMap.has(key)) {
+              locationMap.set(key, locationMap.get(key) + 1);
+            } else {
+              locationMap.set(key, 1);
+            }
+          }
+        });
+      }
+
+      const scanLocations = Array.from(locationMap.entries()).map(([key, count]) => {
+        const [lat, lng] = key.split(',').map(Number);
+        return { lat, lng, count };
+      });
       
       return {
         qr_id: selectedQrId,
@@ -144,7 +181,8 @@ export function useQRCodeAnalytics(qrCodes: QRCode[]) {
         device_breakdown: deviceBreakdown,
         referrer_breakdown: referrerBreakdown,
         daily_scans: filledDailyScans,
-        recent_scans: recentScans || []
+        recent_scans: recentScans || [],
+        scan_locations: scanLocations
       } as QRScanData;
     },
     enabled: !!selectedQrId,
