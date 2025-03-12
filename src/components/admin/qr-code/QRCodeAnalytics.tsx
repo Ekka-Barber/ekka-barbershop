@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -72,23 +71,21 @@ export const QRCodeAnalytics = ({ qrCodes }: { qrCodes: QRCode[] }) => {
         
       if (dailyError) throw dailyError;
       
-      // Fetch device breakdown
+      // Fetch device breakdown using raw SQL query instead of group
       const { data: deviceData, error: deviceError } = await supabase
-        .from('qr_scans')
-        .select('device_type, count')
-        .eq('qr_id', selectedQrId)
-        .gte('scanned_at', startDate.toISOString())
-        .group('device_type');
+        .rpc('get_device_breakdown', { 
+          p_qr_id: selectedQrId,
+          p_start_date: startDate.toISOString()
+        });
         
       if (deviceError) throw deviceError;
       
-      // Fetch referrer breakdown
+      // Fetch referrer breakdown using raw SQL query instead of group
       const { data: referrerData, error: referrerError } = await supabase
-        .from('qr_scans')
-        .select('referrer, count')
-        .eq('qr_id', selectedQrId)
-        .gte('scanned_at', startDate.toISOString())
-        .group('referrer');
+        .rpc('get_referrer_breakdown', { 
+          p_qr_id: selectedQrId,
+          p_start_date: startDate.toISOString()
+        });
         
       if (referrerError) throw referrerError;
       
@@ -104,14 +101,22 @@ export const QRCodeAnalytics = ({ qrCodes }: { qrCodes: QRCode[] }) => {
       
       // Process data for device and referrer breakdowns
       const deviceBreakdown: Record<string, number> = {};
-      deviceData?.forEach(item => {
+      deviceData?.forEach((item: {device_type: string, count: string}) => {
         const deviceType = item.device_type || 'unknown';
         deviceBreakdown[deviceType] = parseInt(item.count);
       });
       
       const referrerBreakdown: Record<string, number> = {};
-      referrerData?.forEach(item => {
-        const referrer = item.referrer ? new URL(item.referrer).hostname || 'Direct' : 'Direct';
+      referrerData?.forEach((item: {referrer: string, count: string}) => {
+        // Process referrer to get a readable hostname
+        let referrer = item.referrer || 'Direct';
+        try {
+          if (referrer !== 'Direct' && referrer.startsWith('http')) {
+            referrer = new URL(referrer).hostname;
+          }
+        } catch (e) {
+          // Keep original referrer if URL parsing fails
+        }
         referrerBreakdown[referrer] = parseInt(item.count);
       });
       
