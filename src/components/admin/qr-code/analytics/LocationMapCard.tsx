@@ -20,8 +20,8 @@ export const LocationMapCard = ({ scanLocations, isLoading }: LocationMapCardPro
   const markersRef = useRef<any[]>([]);
 
   useEffect(() => {
-    // Initialize map if window.mapboxgl is available and there's a container
-    if (!mapContainerRef.current || !window.mapboxgl) return;
+    // Check if Mapbox is available and container exists
+    if (!mapContainerRef.current || typeof window === 'undefined' || !window.mapboxgl) return;
 
     // Only initialize the map once
     if (!mapRef.current) {

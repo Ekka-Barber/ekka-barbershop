@@ -102,16 +102,24 @@ export function useQRCodeAnalytics(qrCodes: QRCode[]) {
         
       if (recentError) throw recentError;
 
-      // Fetch scan locations data
-      const { data: locationData, error: locationError } = await supabase
-        .from('qr_scans')
-        .select('location, latitude, longitude')
-        .eq('qr_id', selectedQrId)
-        .gte('scanned_at', startDate.toISOString())
-        .not('latitude', 'is', null)
-        .not('longitude', 'is', null);
+      // Check if location columns exist and fetch scan locations data safely
+      let locationData: any[] = [];
+      try {
+        const { data, error } = await supabase
+          .from('qr_scans')
+          .select('location, latitude, longitude')
+          .eq('qr_id', selectedQrId)
+          .gte('scanned_at', startDate.toISOString());
 
-      if (locationError) throw locationError;
+        if (!error && data) {
+          locationData = data.filter(
+            item => item.latitude != null && item.longitude != null
+          );
+        }
+      } catch (error) {
+        console.error('Error fetching location data:', error);
+        // Continue even if location data fails
+      }
         
       // Process data for device and referrer breakdowns
       const deviceBreakdown: Record<string, number> = {};
@@ -155,19 +163,23 @@ export function useQRCodeAnalytics(qrCodes: QRCode[]) {
         return existing || { date, count: 0 };
       });
 
-      // Process location data
+      // Process location data - handle possible missing columns
       const locationMap = new Map();
-      if (Array.isArray(locationData)) {
-        locationData.forEach(item => {
-          if (item.latitude && item.longitude) {
-            const key = `${item.latitude},${item.longitude}`;
-            if (locationMap.has(key)) {
-              locationMap.set(key, locationMap.get(key) + 1);
-            } else {
-              locationMap.set(key, 1);
+      try {
+        if (Array.isArray(locationData)) {
+          locationData.forEach(item => {
+            if (item.latitude && item.longitude) {
+              const key = `${item.latitude},${item.longitude}`;
+              if (locationMap.has(key)) {
+                locationMap.set(key, locationMap.get(key) + 1);
+              } else {
+                locationMap.set(key, 1);
+              }
             }
-          }
-        });
+          });
+        }
+      } catch (e) {
+        console.error('Error processing location data:', e);
       }
 
       const scanLocations = Array.from(locationMap.entries()).map(([key, count]) => {
