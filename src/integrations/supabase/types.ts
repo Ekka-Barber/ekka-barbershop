@@ -1313,7 +1313,9 @@ export type Database = {
           device_type: string | null
           id: string
           ip_address: string | null
+          latitude: number | null
           location: string | null
+          longitude: number | null
           qr_id: string
           referrer: string | null
           scanned_at: string
@@ -1324,7 +1326,9 @@ export type Database = {
           device_type?: string | null
           id?: string
           ip_address?: string | null
+          latitude?: number | null
           location?: string | null
+          longitude?: number | null
           qr_id: string
           referrer?: string | null
           scanned_at?: string
@@ -1335,7 +1339,9 @@ export type Database = {
           device_type?: string | null
           id?: string
           ip_address?: string | null
+          latitude?: number | null
           location?: string | null
+          longitude?: number | null
           qr_id?: string
           referrer?: string | null
           scanned_at?: string
