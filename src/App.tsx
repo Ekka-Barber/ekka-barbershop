@@ -1,5 +1,5 @@
 
-import { lazy, Suspense, useEffect } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -25,14 +25,33 @@ const queryClient = new QueryClient();
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated } = useAuth();
   const location = useLocation();
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     // Switch to admin manifest for PWA when on admin page
     updateManifestLink(location.pathname.includes('/admin') ? 'admin-manifest.json' : 'manifest.json');
+    
+    // Give the auth context time to initialize
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 300);
+    
+    return () => clearTimeout(timer);
   }, [location]);
 
+  if (isLoading) {
+    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+  }
+
   if (!isAuthenticated) {
-    return <Navigate to="/customer?redirected=true" replace />;
+    // Preserve the access parameter if it exists in the URL
+    const params = new URLSearchParams(location.search);
+    const accessParam = params.get('access');
+    const redirectUrl = accessParam 
+      ? `/customer?redirected=true&access=${accessParam}` 
+      : "/customer?redirected=true";
+    
+    return <Navigate to={redirectUrl} replace />;
   }
 
   return <>{children}</>;
@@ -58,8 +77,10 @@ const AppRoutes = () => {
   // Check if user should be redirected to admin based on authentication
   useEffect(() => {
     if (isAuthenticated && location.pathname === '/customer' && !location.search.includes('redirected=true')) {
-      // This handles the case where the user is on the customer page but should be on admin
+      // If the user is authenticated but on the customer page without redirected flag
       console.log('Authenticated user detected on customer page, redirecting to admin');
+      // Actually perform the redirect
+      window.location.href = '/admin';
     }
   }, [isAuthenticated, location]);
   

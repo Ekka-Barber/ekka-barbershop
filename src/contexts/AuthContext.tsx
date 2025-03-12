@@ -14,46 +14,65 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [accessKey, setAccessKey] = useState<string | null>(null);
+  const [isInitializing, setIsInitializing] = useState<boolean>(true);
   const location = useLocation();
   const navigate = useNavigate();
   
-  // Initialize authentication state on component mount or URL change
+  // Initialize authentication state on component mount
   useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    const accessParam = params.get('access');
-    
-    // If access key is in URL, store it and navigate to admin
-    if (accessParam === 'owner123') {
-      setIsAuthenticated(true);
-      setAccessKey(accessParam);
+    const initAuth = () => {
+      const params = new URLSearchParams(location.search);
+      const accessParam = params.get('access');
       
-      // Store in session storage for persistence across refreshes
-      sessionStorage.setItem('ekka_admin_access', accessParam);
-      
-      // If we're not already on the admin route, redirect there
-      if (!location.pathname.includes('/admin')) {
-        navigate('/admin', { replace: true });
-      }
-    } else {
-      // Check session storage if not in URL
-      const storedAccess = sessionStorage.getItem('ekka_admin_access');
-      if (storedAccess === 'owner123') {
+      // First priority: check URL parameter
+      if (accessParam === 'owner123') {
+        console.log('Valid access key found in URL');
         setIsAuthenticated(true);
-        setAccessKey(storedAccess);
+        setAccessKey(accessParam);
+        sessionStorage.setItem('ekka_admin_access', accessParam);
         
-        // If authenticated but not on admin page, redirect
-        if (location.pathname === '/customer' && !location.search.includes('redirected=true')) {
-          navigate('/admin', { replace: true });
+        // If we're not on the admin route and should be, redirect
+        if (!location.pathname.includes('/admin')) {
+          console.log('Redirecting to admin from URL param auth');
+          setTimeout(() => {
+            navigate('/admin', { replace: true });
+          }, 100);
+        }
+      } 
+      // Second priority: check session storage
+      else {
+        const storedAccess = sessionStorage.getItem('ekka_admin_access');
+        if (storedAccess === 'owner123') {
+          console.log('Valid access key found in session storage');
+          setIsAuthenticated(true);
+          setAccessKey(storedAccess);
+          
+          // If we're on the customer page but should be on admin, redirect
+          if (location.pathname === '/customer' && !location.search.includes('redirected=true')) {
+            console.log('Redirecting to admin from session storage auth');
+            setTimeout(() => {
+              navigate('/admin', { replace: true });
+            }, 100);
+          }
+        } else {
+          // Not authenticated
+          setIsAuthenticated(false);
+          setAccessKey(null);
         }
       }
-    }
-  }, [location, navigate]);
+      
+      setIsInitializing(false);
+    };
+    
+    initAuth();
+  }, [location.search, location.pathname, navigate]);
 
   const login = (key: string) => {
     if (key === 'owner123') {
       setIsAuthenticated(true);
       setAccessKey(key);
       sessionStorage.setItem('ekka_admin_access', key);
+      console.log('Logging in, redirecting to admin');
       navigate('/admin', { replace: true });
     }
   };
