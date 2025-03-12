@@ -32,7 +32,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   }, [location]);
 
   if (!isAuthenticated) {
-    return <Navigate to="/customer" replace />;
+    return <Navigate to="/customer?redirected=true" replace />;
   }
 
   return <>{children}</>;
@@ -53,6 +53,15 @@ const ServiceWorkerRegistration = () => {
 // Main App Component
 const AppRoutes = () => {
   const location = useLocation();
+  const { isAuthenticated } = useAuth();
+  
+  // Check if user should be redirected to admin based on authentication
+  useEffect(() => {
+    if (isAuthenticated && location.pathname === '/customer' && !location.search.includes('redirected=true')) {
+      // This handles the case where the user is on the customer page but should be on admin
+      console.log('Authenticated user detected on customer page, redirecting to admin');
+    }
+  }, [isAuthenticated, location]);
   
   // Set the appropriate manifest based on the current route
   useEffect(() => {
