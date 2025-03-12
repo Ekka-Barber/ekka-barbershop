@@ -1,5 +1,4 @@
-
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -20,6 +19,10 @@ import { Home, Package, Calendar, Users, FileText, QrCode } from 'lucide-react';
 const Admin = () => {
   const [activeTab, setActiveTab] = useState('services');
   const isMobile = useIsMobile();
+  
+  useEffect(() => {
+    console.log("Admin component - isMobile state:", isMobile);
+  }, [isMobile]);
   
   const {
     categories,
@@ -54,7 +57,7 @@ const Admin = () => {
         <div className="container mx-auto px-4 py-6 pb-24 md:pb-6">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
             {isMobile ? (
-              <div className="fixed bottom-0 left-0 right-0 z-10 bg-white border-t">
+              <div className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t shadow-lg">
                 <TabsList className="w-full grid grid-cols-6 gap-1 p-2">
                   <TabsTrigger value="services" className="flex flex-col items-center py-2 h-auto">
                     <Home className="h-5 w-5 mb-1" />
