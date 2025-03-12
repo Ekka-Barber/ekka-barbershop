@@ -24,6 +24,7 @@ export const EmployeeTab = () => {
   const { 
     employees, 
     isLoading: isEmployeeLoading,
+    fetchEmployees
   } = useEmployeeManager(selectedBranch);
   
   // Sales management
@@ -89,6 +90,7 @@ export const EmployeeTab = () => {
         salesInputs={salesInputs}
         selectedBranch={selectedBranch}
         onSalesChange={handleSalesChange}
+        refetchEmployees={fetchEmployees}
       />
     </div>
   );

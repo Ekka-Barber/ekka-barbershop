@@ -7,20 +7,12 @@ export const useEmployeeManager = (selectedBranch: string | null) => {
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    if (selectedBranch) {
-      fetchEmployees();
-    } else {
-      setEmployees([]);
-      setIsLoading(false);
-    }
-  }, [selectedBranch]);
-
   const fetchEmployees = async () => {
     try {
       setIsLoading(true);
       
       console.log('Fetching employees for branch:', selectedBranch);
+      // When no branch is selected, show all employees to allow branch assignment
       let query = supabase.from('employees').select('*');
       
       // Add branch filter if a branch is selected
@@ -43,6 +35,10 @@ export const useEmployeeManager = (selectedBranch: string | null) => {
       setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchEmployees();
+  }, [selectedBranch]);
 
   return {
     employees,

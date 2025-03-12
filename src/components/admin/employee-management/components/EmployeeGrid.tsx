@@ -11,6 +11,7 @@ interface EmployeeGridProps {
   salesInputs: Record<string, string>;
   selectedBranch: string | null;
   onSalesChange: (employeeId: string, value: string) => void;
+  refetchEmployees?: () => void;
 }
 
 export const EmployeeGrid = ({
@@ -18,7 +19,8 @@ export const EmployeeGrid = ({
   employees,
   salesInputs,
   selectedBranch,
-  onSalesChange
+  onSalesChange,
+  refetchEmployees
 }: EmployeeGridProps) => {
   console.log('EmployeeGrid render:', { isLoading, employeesCount: employees.length });
   
@@ -62,6 +64,7 @@ export const EmployeeGrid = ({
           employee={employee}
           salesValue={salesInputs[employee.id] || ''}
           onSalesChange={(value) => onSalesChange(employee.id, value)}
+          refetchEmployees={refetchEmployees}
         />
       ))}
     </div>

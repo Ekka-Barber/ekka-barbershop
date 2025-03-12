@@ -2,16 +2,19 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2 } from "lucide-react";
+import { Loader2, PieChart } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import CreateQRCodeForm from "./CreateQRCodeForm";
 import QRCodeDisplay from "./QRCodeDisplay";
 import QRCodeList from "./qr-code/QRCodeList";
 import UpdateQRCodeUrl from "./qr-code/UpdateQRCodeUrl";
 import { useOwnerAccess } from "./qr-code/useOwnerAccess";
+import { QRCodeAnalytics } from "./qr-code/QRCodeAnalytics";
 
 const QRCodeManager = () => {
   const [selectedQrId, setSelectedQrId] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'management' | 'analytics'>('management');
   const { setOwnerAccess } = useOwnerAccess();
 
   const { data: qrCodes, isLoading, error: fetchError } = useQuery({
@@ -95,40 +98,59 @@ const QRCodeManager = () => {
 
   return (
     <div className="space-y-6">
-      <div className="space-y-2">
-        <h2 className="text-2xl font-bold">QR Code URL Management</h2>
-        <p className="text-muted-foreground">
-          Update the URL that your QR code redirects to. The QR code itself will remain unchanged.
-        </p>
-      </div>
-
-      {qrCodes && qrCodes.length > 0 ? (
-        <>
-          <QRCodeList 
-            qrCodes={qrCodes} 
-            selectedQrId={selectedQrId} 
-            onSelectQrId={setSelectedQrId} 
-          />
-
-          <div className="grid gap-6 md:grid-cols-2">
-            {selectedQrCode && (
-              <>
-                <QRCodeDisplay 
-                  edgeFunctionUrl={edgeFunctionUrl}
-                  handleDownload={handleDownload}
-                />
-                <UpdateQRCodeUrl selectedQrCode={selectedQrCode} />
-              </>
-            )}
+      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'management' | 'analytics')} className="w-full">
+        <TabsList className="grid w-full grid-cols-2 mb-4">
+          <TabsTrigger value="management" className="flex items-center gap-2">
+            <QrCode className="h-4 w-4" />
+            QR Management
+          </TabsTrigger>
+          <TabsTrigger value="analytics" className="flex items-center gap-2">
+            <PieChart className="h-4 w-4" />
+            Analytics
+          </TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="management" className="space-y-6">
+          <div className="space-y-2">
+            <h2 className="text-2xl font-bold">QR Code URL Management</h2>
+            <p className="text-muted-foreground">
+              Update the URL that your QR code redirects to. The QR code itself will remain unchanged.
+            </p>
           </div>
-        </>
-      ) : (
-        <div className="text-center p-8 text-muted-foreground">
-          No QR codes found. Create one below.
-        </div>
-      )}
 
-      <CreateQRCodeForm />
+          {qrCodes && qrCodes.length > 0 ? (
+            <>
+              <QRCodeList 
+                qrCodes={qrCodes} 
+                selectedQrId={selectedQrId} 
+                onSelectQrId={setSelectedQrId} 
+              />
+
+              <div className="grid gap-6 md:grid-cols-2">
+                {selectedQrCode && (
+                  <>
+                    <QRCodeDisplay 
+                      edgeFunctionUrl={edgeFunctionUrl}
+                      handleDownload={handleDownload}
+                    />
+                    <UpdateQRCodeUrl selectedQrCode={selectedQrCode} />
+                  </>
+                )}
+              </div>
+            </>
+          ) : (
+            <div className="text-center p-8 text-muted-foreground">
+              No QR codes found. Create one below.
+            </div>
+          )}
+
+          <CreateQRCodeForm />
+        </TabsContent>
+        
+        <TabsContent value="analytics">
+          <QRCodeAnalytics qrCodes={qrCodes || []} />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
