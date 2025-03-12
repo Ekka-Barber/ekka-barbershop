@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -116,20 +115,8 @@
     </script>
     <!-- TikTok Pixel Code End -->
     
-    <!-- Dynamic Web Manifest - Default to customer manifest -->
+    <!-- Web Manifest -->
     <link rel="manifest" href="/manifest.json" crossorigin="use-credentials">
-    
-    <!-- Dynamically update manifest based on route -->
-    <script>
-      // Set the appropriate manifest based on the current URL
-      document.addEventListener('DOMContentLoaded', function() {
-        const isAdminRoute = window.location.pathname.includes('/admin');
-        const manifestLink = document.querySelector('link[rel="manifest"]');
-        if (manifestLink && isAdminRoute) {
-          manifestLink.href = '/admin-manifest.json';
-        }
-      });
-    </script>
   </head>
   <body>
     <div id="root"></div>

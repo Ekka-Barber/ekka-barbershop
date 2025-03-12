@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
@@ -13,14 +14,9 @@ import { PackageManagement } from '@/components/admin/package-management/Package
 import { ServiceUpsellManager } from '@/components/admin/service-management/ServiceUpsellManager';
 import { EmployeeTab } from '@/components/admin/employee-management/EmployeeTab';
 import { Package, Calendar, Users, FileText, QrCode, Layers } from 'lucide-react';
-import { useAuth } from '@/contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
-import { InstallAppPrompt } from '@/components/installation/InstallAppPrompt';
 
 const Admin = () => {
   const [activeTab, setActiveTab] = useState('services');
-  const { logout } = useAuth();
-  const navigate = useNavigate();
   
   const {
     categories,
@@ -29,32 +25,18 @@ const Admin = () => {
     setSortBy
   } = useOptimizedCategories();
 
-  const handleBackToSite = () => {
-    // We'll keep the access key in session storage but navigate to customer
-    navigate('/customer');
-  };
-
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b p-4 bg-white shadow-sm sticky top-0 z-10">
         <div className="container mx-auto flex justify-between items-center">
           <h1 className="text-xl font-bold text-primary">Admin Dashboard</h1>
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              onClick={handleBackToSite}
-              className="hover:bg-primary/10"
-            >
-              Back to Site
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={logout}
-              size="sm"
-            >
-              Logout
-            </Button>
-          </div>
+          <Button
+            variant="outline"
+            onClick={() => window.location.href = '/customer'}
+            className="hover:bg-primary/10"
+          >
+            Back to Site
+          </Button>
         </div>
       </header>
 
@@ -145,8 +127,6 @@ const Admin = () => {
           </TabsContent>
         </Tabs>
       </div>
-      
-      <InstallAppPrompt />
     </div>
   );
 };

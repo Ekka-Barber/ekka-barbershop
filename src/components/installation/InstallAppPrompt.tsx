@@ -7,7 +7,6 @@ import { getPlatformType, getInstallationStatus } from "@/services/platformDetec
 import { useToast } from "@/components/ui/use-toast";
 import { InstallButton } from './InstallButton';
 import { IOSInstallGuide } from './IOSInstallGuide';
-import { useLocation } from 'react-router-dom';
 
 export const InstallAppPrompt = () => {
   const { t, language } = useLanguage();
@@ -17,31 +16,24 @@ export const InstallAppPrompt = () => {
   const { toast } = useToast();
   const platform = getPlatformType();
   const installationStatus = getInstallationStatus();
-  const location = useLocation();
-  
-  // Check if we're on the admin route
-  const isAdminRoute = location.pathname.includes('/admin');
-  
-  // Different localStorage key for admin vs user app
-  const dismissalKey = isAdminRoute ? 'admin_app_install_dismissed' : 'app_install_dismissed';
 
   // Check local storage for user's dismissal preference
   useEffect(() => {
-    const dismissed = localStorage.getItem(dismissalKey);
+    const dismissed = localStorage.getItem('app_install_dismissed');
     if (dismissed === 'true') {
       setIsPromptDismissed(true);
     }
-  }, [dismissalKey]);
+  }, []);
 
   const handleDismiss = () => {
     setIsPromptDismissed(true);
-    localStorage.setItem(dismissalKey, 'true');
+    localStorage.setItem('app_install_dismissed', 'true');
   };
 
   const handleInstallClick = async () => {
     trackButtonClick({
-      buttonId: isAdminRoute ? 'install_admin_app' : 'install_app',
-      buttonName: isAdminRoute ? 'Install Admin App' : 'Install App'
+      buttonId: 'install_app',
+      buttonName: 'Install App'
     });
 
     if (platform === 'android' && install) {
@@ -82,7 +74,6 @@ export const InstallAppPrompt = () => {
       onClick={handleInstallClick}
       isInstalling={isInstalling}
       onDismiss={handleDismiss}
-      isAdmin={isAdminRoute}
     />
   );
 
@@ -92,7 +83,6 @@ export const InstallAppPrompt = () => {
         language={language}
         onCancel={handleDismiss}
         trigger={installButton}
-        isAdmin={isAdminRoute}
       />
     );
   }
