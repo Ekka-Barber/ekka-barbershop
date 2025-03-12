@@ -4,7 +4,8 @@ import { useQRAnalyticsData } from "./qr-analytics/useQRAnalyticsData";
 import { QRCode } from '@/types/admin';
 import { QRAnalyticsHookResult } from "./qr-analytics/types";
 
-export { QRScanData } from "./qr-analytics/types";
+// Change to export type syntax for re-exporting types
+export type { QRScanData } from "./qr-analytics/types";
 
 export function useQRCodeAnalytics(qrCodes: QRCode[]): QRAnalyticsHookResult {
   const {
