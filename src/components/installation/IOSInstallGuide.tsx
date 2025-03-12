@@ -17,10 +17,12 @@ interface IOSInstallGuideProps {
   language: string;
   onCancel: () => void;
   trigger: React.ReactNode;
+  isAdmin?: boolean;
 }
 
-export const IOSInstallGuide = ({ language, onCancel, trigger }: IOSInstallGuideProps) => {
+export const IOSInstallGuide = ({ language, onCancel, trigger, isAdmin = false }: IOSInstallGuideProps) => {
   const isRTL = language === 'ar';
+  const appName = isAdmin ? 'Ekka Admin' : 'Ekka';
   
   return (
     <Sheet>
@@ -87,8 +89,8 @@ export const IOSInstallGuide = ({ language, onCancel, trigger }: IOSInstallGuide
                 </div>
                 <p>
                   {isRTL 
-                    ? 'سيظهر تطبيق إكّـه على شاشتك الرئيسية مع كل مزايا التطبيق الكاملة!' 
-                    : 'Ekka will appear on your home screen with full app functionality!'}
+                    ? `سيظهر تطبيق ${appName} على شاشتك الرئيسية مع كل مزايا التطبيق الكاملة!` 
+                    : `${appName} will appear on your home screen with full app functionality!`}
                 </p>
               </div>
             </div>

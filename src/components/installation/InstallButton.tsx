@@ -11,6 +11,7 @@ interface InstallButtonProps {
   onClick: () => void;
   isInstalling?: boolean;
   onDismiss: () => void;
+  isAdmin?: boolean;
 }
 
 export const InstallButton = ({ 
@@ -18,10 +19,16 @@ export const InstallButton = ({
   language, 
   onClick, 
   isInstalling = false,
-  onDismiss
+  onDismiss,
+  isAdmin = false
 }: InstallButtonProps) => {
   const Icon = platform === 'ios' ? AppleIcon : AndroidIcon;
   const isRTL = language === 'ar';
+
+  // Special styling for admin
+  const bgClass = isAdmin 
+    ? "bg-gradient-to-r from-slate-700 via-slate-800 to-slate-900" 
+    : "bg-gradient-to-r from-[#8B5CF6] via-[#D946EF] to-[#F97316]";
 
   return (
     <div className="relative space-y-2 mt-6 mb-3 hardware-accelerated">
@@ -44,7 +51,7 @@ export const InstallButton = ({
         </button>
       </div>
       <Button
-        className="w-full flex items-center justify-center gap-3 py-6 text-lg font-medium bg-gradient-to-r from-[#8B5CF6] via-[#D946EF] to-[#F97316] hover:opacity-90 text-white transition-all duration-300 group shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:opacity-70"
+        className={`w-full flex items-center justify-center gap-3 py-6 text-lg font-medium ${bgClass} hover:opacity-90 text-white transition-all duration-300 group shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:opacity-70`}
         onClick={onClick}
         disabled={isInstalling}
       >
@@ -53,14 +60,18 @@ export const InstallButton = ({
           <span className="font-changa text-xl font-bold animate-[heart-beat_2s_cubic-bezier(0.4,0,0.6,1)_infinite]">
             {isInstalling 
               ? (isRTL ? 'جاري التثبيت...' : 'Installing...') 
-              : (isRTL ? 'حمل تطبيق إكّـه الآن' : 'Download Ekka App')}
+              : isAdmin
+                ? 'Download Ekka Admin App'
+                : (isRTL ? 'حمل تطبيق إكّـه الآن' : 'Download Ekka App')}
           </span>
         </div>
       </Button>
       <p className={`text-sm text-muted-foreground text-center font-changa font-semibold ${isRTL ? 'rtl' : 'ltr'}`}>
-        {isRTL 
-          ? 'حجوزات أسرع، عروض حصرية، ومزايا إضافية بانتظارك' 
-          : 'Faster bookings, exclusive offers, and more features await you'}
+        {isAdmin
+          ? 'Access admin features offline and get a dedicated app icon'
+          : (isRTL 
+            ? 'حجوزات أسرع، عروض حصرية، ومزايا إضافية بانتظارك' 
+            : 'Faster bookings, exclusive offers, and more features await you')}
       </p>
     </div>
   );
