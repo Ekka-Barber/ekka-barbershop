@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { BookingProgress, BookingStep } from "@/components/booking/BookingProgress";
 import { BookingNavigation } from "@/components/booking/BookingNavigation";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -58,6 +58,13 @@ export const BookingStepManager = ({
   const handleValidationChange = (isValid: boolean) => {
     setFormValid(isValid);
   };
+
+  useEffect(() => {
+    // If we're on the details step, validate the form immediately
+    if (currentStep === 'details') {
+      // The validation will happen through the CustomerForm component
+    }
+  }, [currentStep]);
 
   const handleStepChange = (step: string) => {
     const typedStep = step as BookingStep;
@@ -183,7 +190,8 @@ export const BookingStepManager = ({
             setCurrentStep={setCurrentStep}
             isNextDisabled={isNextDisabled()}
             customerDetails={customerDetails}
-            branch={branch} 
+            branch={branch}
+            isFormValid={formValid} // Pass the form validation state
           />
         </ErrorBoundary>
       )}

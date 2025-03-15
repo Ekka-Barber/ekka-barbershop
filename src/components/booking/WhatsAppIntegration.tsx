@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { getBookingDisplayDate } from "@/utils/dateAdjustment";
@@ -16,6 +17,7 @@ interface WhatsAppIntegrationProps {
   selectedBarberName?: string;
   customerDetails: CustomerDetails;
   branch?: Branch;
+  isFormValid?: boolean; // New prop to control button state
 }
 
 export const WhatsAppIntegration = ({
@@ -25,7 +27,8 @@ export const WhatsAppIntegration = ({
   selectedTime,
   selectedBarberName,
   customerDetails,
-  branch
+  branch,
+  isFormValid = false // Default to false for backward compatibility
 }: WhatsAppIntegrationProps) => {
   const [whatsappMessage, setWhatsappMessage] = useState("");
   const [isWhatsAppAvailable, setIsWhatsAppAvailable] = useState(false);
@@ -131,7 +134,7 @@ export const WhatsAppIntegration = ({
         onClick={handleWhatsAppClick}
         className="w-full bg-[#25D366] hover:bg-[#128C7E] text-white"
         size="lg"
-        disabled={!customerDetails?.name || !customerDetails?.phone || !customerDetails?.email}
+        disabled={!isFormValid} // Use the form validation state to control button state
       >
         {language === 'ar' ? 'تأكيد تفاصيل الحجز' : t('whatsapp.button')}
       </Button>

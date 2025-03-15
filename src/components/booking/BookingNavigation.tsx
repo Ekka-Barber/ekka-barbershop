@@ -15,6 +15,7 @@ interface BookingNavigationProps {
   isNextDisabled: boolean;
   customerDetails: CustomerDetails;
   branch?: Branch;
+  isFormValid?: boolean; // Add this new prop for form validation
 }
 
 export const BookingNavigation = ({ 
@@ -24,7 +25,8 @@ export const BookingNavigation = ({
   setCurrentStep, 
   isNextDisabled, 
   customerDetails,
-  branch
+  branch,
+  isFormValid = false // Default to false for backward compatibility
 }: BookingNavigationProps) => {
   const navigate = useNavigate();
   const { t } = useLanguage();
@@ -70,6 +72,7 @@ export const BookingNavigation = ({
           selectedBarberName={selectedBarberName}
           customerDetails={customerDetails}
           branch={branch}
+          isFormValid={isFormValid} // Pass the form validation state
         />
       )}
       

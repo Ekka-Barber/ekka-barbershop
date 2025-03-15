@@ -1,3 +1,4 @@
+
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -29,6 +30,15 @@ export const CustomerForm = ({
     email: false
   });
 
+  // Mark all fields as touched on initial load to trigger validation immediately
+  useEffect(() => {
+    setTouched({
+      name: true,
+      phone: true,
+      email: true
+    });
+  }, []);
+
   const validateForm = () => {
     const newErrors: Partial<Record<keyof CustomerDetails, string>> = {};
     if (!customerDetails.name.trim()) {
@@ -57,18 +67,20 @@ export const CustomerForm = ({
         id: `${customerDetails.email}_${customerDetails.phone}` // Create a unique ID from email and phone
       });
     }
+    
+    // Always call onValidationChange
+    onValidationChange?.(isValid);
+    
     return isValid;
   };
 
   useEffect(() => {
-    // Only validate if any field has been touched
-    if (Object.values(touched).some(t => t)) {
-      const isValid = validateForm();
-      onValidationChange?.(isValid);
-    }
-  }, [customerDetails, touched]);
+    // Always validate form, regardless of whether fields are touched
+    validateForm();
+  }, [customerDetails]);
 
   const handlePhoneChange = (value: string) => {
+    // Only allow numbers
     const numbersOnly = value.replace(/[^0-9]/g, '');
     onCustomerDetailsChange('phone', numbersOnly);
     setTouched(prev => ({
