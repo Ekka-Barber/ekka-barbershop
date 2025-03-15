@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -9,17 +8,20 @@ import { supabase } from "@/integrations/supabase/client";
 import { MapPin } from "lucide-react";
 import { BranchDialog } from "@/components/customer/BranchDialog";
 import { LocationDialog } from "@/components/customer/LocationDialog";
+import { EidBookingsDialog } from "@/components/customer/EidBookingsDialog";
 import { trackViewContent, trackButtonClick, trackLocationView } from "@/utils/tiktokTracking";
 import { InstallAppPrompt } from "@/components/installation/InstallAppPrompt";
 import { PullToRefresh } from "@/components/common/PullToRefresh";
 import { useToast } from "@/components/ui/use-toast";
 import { hasNotch, isRunningAsStandalone, getSafeAreaInsets, getViewportDimensions } from "@/services/platformDetection";
+import freshaLogo from "@/assets/fresha-logo.svg";
 
 const Customer = () => {
   const navigate = useNavigate();
   const { t, language } = useLanguage();
   const { toast } = useToast();
   const [branchDialogOpen, setBranchDialogOpen] = useState(false);
+  const [eidBookingsDialogOpen, setEidBookingsDialogOpen] = useState(false);
   const [locationDialogOpen, setLocationDialogOpen] = useState(false);
   const [viewportHeight, setViewportHeight] = useState(window.innerHeight);
   const [safeAreaInsets, setSafeAreaInsets] = useState({ top: 0, bottom: 0 });
@@ -85,6 +87,37 @@ const Customer = () => {
     });
     setBranchDialogOpen(false);
     navigate(`/bookings?branch=${branchId}`);
+  };
+
+  const handleEidBranchSelect = (branchId: string) => {
+    trackButtonClick({
+      buttonId: 'eid_bookings',
+      buttonName: 'Eid Bookings'
+    });
+    setEidBookingsDialogOpen(false);
+    
+    // Map based on branch name
+    if (branches) {
+      const selectedBranch = branches.find(branch => branch.id === branchId);
+      
+      if (selectedBranch) {
+        if (selectedBranch.name === "Ash-Sharai" || selectedBranch.name_ar === "الشرائع") {
+          window.open("https://www.fresha.com/ar/book-now/ekka-gspkudll/all-offer?id=1532757&share&pId=881059", '_blank');
+          return;
+        } else if (selectedBranch.name === "Al-Waslyia" || selectedBranch.name_ar === "الوصلية") {
+          window.open("https://www.fresha.com/ar/book-now/ekka-gspkudll/all-offer?id=935949&share&pId=881059", '_blank');
+          return;
+        }
+      }
+    }
+    
+    toast({
+      title: language === 'ar' ? 'خطأ' : 'Error',
+      description: language === 'ar' 
+        ? 'لم نتمكن من العثور على رابط الحجز لهذا الفرع' 
+        : 'Could not find booking link for this branch',
+      variant: "destructive"
+    });
   };
 
   const handleLocationClick = (url: string | null) => {
@@ -192,6 +225,36 @@ const Customer = () => {
                 {t('book.now')}
               </Button>
 
+              <div className="w-full bg-white border border-gray-200 rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-all duration-300 mt-3">
+                <div className="flex items-center p-4">
+                  <div className="flex-shrink-0 w-1/4 flex justify-center">
+                    <img src={freshaLogo} alt="Fresha Logo" className="h-12 w-auto" />
+                  </div>
+                  <div className="h-12 border-r border-gray-300 mx-2"></div>
+                  <div className="w-3/4 pr-2">
+                    <button 
+                      className="w-full text-center"
+                      onClick={() => {
+                        trackButtonClick({
+                          buttonId: 'eid_bookings',
+                          buttonName: 'Eid Bookings'
+                        });
+                        setEidBookingsDialogOpen(true);
+                      }}
+                    >
+                      <div className="font-bold text-lg text-[#222222] text-center">
+                        {language === 'ar' ? 'حجوزات العيد' : 'Eid Bookings'}
+                      </div>
+                      <div className={`text-sm text-gray-600 mt-1 ${language === 'ar' ? 'text-right' : 'text-left'}`}>
+                        {language === 'ar' 
+                          ? 'نقبل حجوزات العيد فقط عبر منصة Fresha' 
+                          : 'We only accept Eid bookings through Fresha platform'}
+                      </div>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
               <Button 
                 className="w-full h-14 text-lg font-medium bg-[#4A4A4A] hover:bg-[#3A3A3A] text-white transition-all duration-300 shadow-lg hover:shadow-xl touch-target" 
                 onClick={handleLocationDialog}
@@ -230,6 +293,12 @@ const Customer = () => {
 
       <BranchDialog open={branchDialogOpen} onOpenChange={setBranchDialogOpen} branches={branches} onBranchSelect={handleBranchSelect} />
       <LocationDialog open={locationDialogOpen} onOpenChange={setLocationDialogOpen} branches={branches} onLocationClick={handleLocationClick} />
+      <EidBookingsDialog 
+        open={eidBookingsDialogOpen} 
+        onOpenChange={setEidBookingsDialogOpen} 
+        branches={branches} 
+        onBranchSelect={handleEidBranchSelect} 
+      />
       <footer className="page-footer" />
     </div>
   );
