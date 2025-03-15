@@ -59,6 +59,9 @@ export const CustomerForm = ({
     setErrors(newErrors);
     const isValid = Object.keys(newErrors).length === 0;
 
+    // Log validation results
+    console.log('CustomerForm validation:', { errors: newErrors, isValid });
+
     // If form is valid, identify customer for TikTok tracking
     if (isValid) {
       identifyCustomer({
@@ -69,7 +72,10 @@ export const CustomerForm = ({
     }
     
     // Always call onValidationChange
-    onValidationChange?.(isValid);
+    if (onValidationChange) {
+      console.log('Calling onValidationChange with:', isValid);
+      onValidationChange(isValid);
+    }
     
     return isValid;
   };

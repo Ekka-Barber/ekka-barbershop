@@ -21,12 +21,22 @@ export const useCustomerDetails = () => {
     const isPhoneValid = phoneRegex.test(customerDetails.phone);
     const isEmailValid = emailRegex.test(customerDetails.email);
     
+    // Log validation states for debugging
+    console.log('Validation states:', { 
+      name: isNameValid, 
+      phone: isPhoneValid, 
+      email: isEmailValid,
+      overall: isNameValid && isPhoneValid && isEmailValid
+    });
+    
     return isNameValid && isPhoneValid && isEmailValid;
   };
   
   // Validate form whenever customer details change
   useEffect(() => {
-    setIsFormValid(validateCustomerDetails());
+    const valid = validateCustomerDetails();
+    setIsFormValid(valid);
+    console.log('Form validity updated:', valid);
   }, [customerDetails]);
 
   /**

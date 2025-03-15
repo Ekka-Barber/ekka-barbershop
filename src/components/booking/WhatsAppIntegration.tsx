@@ -17,7 +17,7 @@ interface WhatsAppIntegrationProps {
   selectedBarberName?: string;
   customerDetails: CustomerDetails;
   branch?: Branch;
-  isFormValid?: boolean; // New prop to control button state
+  isFormValid?: boolean; // Form validation prop
 }
 
 export const WhatsAppIntegration = ({
@@ -38,6 +38,10 @@ export const WhatsAppIntegration = ({
   
   // Get the correct display date by adjusting for after-midnight slots
   const displayDate = getBookingDisplayDate(selectedDate, selectedTime);
+
+  // Log form validation and customer details for debugging
+  console.log('WhatsAppIntegration isFormValid:', isFormValid);
+  console.log('WhatsAppIntegration customerDetails:', customerDetails);
 
   useEffect(() => {
     // Check if WhatsApp is available for this branch

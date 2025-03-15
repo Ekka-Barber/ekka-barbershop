@@ -15,7 +15,7 @@ interface BookingNavigationProps {
   isNextDisabled: boolean;
   customerDetails: CustomerDetails;
   branch?: Branch;
-  isFormValid?: boolean; // Add this new prop for form validation
+  isFormValid?: boolean; // Form validation prop
 }
 
 export const BookingNavigation = ({ 
@@ -37,6 +37,9 @@ export const BookingNavigation = ({
 
   // Get the barber name from the employee list instead of using useEmployeeData
   const selectedBarberName = employees?.find(e => e.id === selectedBarber)?.name || '';
+  
+  // Log current form validation state for debugging
+  console.log('BookingNavigation isFormValid:', isFormValid);
   
   const handlePrevClick = () => {
     if (currentStepIndex > 0) {
