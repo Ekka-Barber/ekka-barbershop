@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { getBookingDisplayDate } from "@/utils/dateAdjustment";
@@ -132,7 +131,7 @@ export const WhatsAppIntegration = ({
         onClick={handleWhatsAppClick}
         className="w-full bg-[#25D366] hover:bg-[#128C7E] text-white"
         size="lg"
-        disabled={!customerDetails?.name || !customerDetails?.phone}
+        disabled={!customerDetails?.name || !customerDetails?.phone || !customerDetails?.email}
       >
         {language === 'ar' ? 'تأكيد تفاصيل الحجز' : t('whatsapp.button')}
       </Button>
