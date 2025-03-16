@@ -114,6 +114,7 @@ export const StepRenderer: React.FC<StepRendererProps> = ({
             onStepChange={handleStepChange}
             isUpdatingPackage={isUpdatingPackage}
             handlePackageServiceUpdate={handlePackageServiceUpdate}
+            branchId={branch?.id}
           />
         );
       case 'datetime':

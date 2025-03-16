@@ -113,7 +113,7 @@ export function BranchDialog({
     if (externalBranchSelect) {
       externalBranchSelect(branch.id);
     } else {
-      navigate('/bookings');
+      navigate('/bookings?branch=' + branch.id);
     }
   };
 

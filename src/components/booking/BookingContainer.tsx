@@ -5,7 +5,7 @@ import { BookingHeader } from "@/components/booking/BookingHeader";
 import { BookingSteps } from "@/components/booking/BookingSteps";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/button"
 import { Branch } from "@/types/booking";
 import { ErrorBoundary } from "@/components/common/ErrorBoundary";
 import { Loader2 } from "lucide-react";
