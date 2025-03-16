@@ -1,7 +1,7 @@
 
 import { DragDropContext, Droppable } from '@hello-pangea/dnd';
 import { Category } from '@/types/service';
-import { CategoryItem } from '@/components/admin/CategoryItem';
+import CategoryItem from '@/components/admin/CategoryItem';
 
 interface CategoryListProps {
   categories: Category[] | undefined;

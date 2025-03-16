@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { ServiceSelection } from '../ServiceSelection';
 import { DateTimeSelection } from '../DateTimeSelection';
@@ -113,7 +114,6 @@ export const StepRenderer: React.FC<StepRendererProps> = ({
             onStepChange={handleStepChange}
             isUpdatingPackage={isUpdatingPackage}
             handlePackageServiceUpdate={handlePackageServiceUpdate}
-            branch={branch}
           />
         );
       case 'datetime':

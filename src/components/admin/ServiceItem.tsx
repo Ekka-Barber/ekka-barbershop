@@ -1,10 +1,10 @@
+
 import React, { useState, useEffect } from 'react';
 import { Service } from '@/types/service';
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Edit, Trash2, ChevronDown, ChevronUp } from 'lucide-react';
-import { ConfirmDialog } from '@/components/common/ConfirmDialog';
 import { useToast } from "@/components/ui/use-toast";
 import { ServiceDialog } from './ServiceDialog';
 import { formatPrice } from '@/utils/formatters';
@@ -12,6 +12,18 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ServiceBranchAssignment } from './service-management/ServiceBranchAssignment';
+import { supabase } from "@/integrations/supabase/client";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface ServiceItemProps {
   service: Service;
@@ -158,20 +170,29 @@ const ServiceItem = ({ service, onEdit, onDelete }: ServiceItemProps) => {
         )}
       </div>
       
-      <ConfirmDialog
-        isOpen={isDeleteDialogOpen}
-        onClose={() => setIsDeleteDialogOpen(false)}
-        onConfirm={() => {
-          onDelete(service);
-          setIsDeleteDialogOpen(false);
-          toast({
-            title: "Service Deleted",
-            description: "Service has been deleted successfully.",
-          });
-        }}
-        title="Delete Service"
-        description={`Are you sure you want to delete ${service.name_en}?`}
-      />
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Service</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete {service.name_en}?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={() => {
+              onDelete(service);
+              setIsDeleteDialogOpen(false);
+              toast({
+                title: "Service Deleted",
+                description: "Service has been deleted successfully.",
+              });
+            }}>
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
