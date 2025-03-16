@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { ServiceSelection } from '../ServiceSelection';
 import { DateTimeSelection } from '../DateTimeSelection';
@@ -63,24 +62,20 @@ export const StepRenderer: React.FC<StepRendererProps> = ({
   onRemoveService,
   onValidationChange
 }) => {
-  // Local state to track form validation before propagating up
   const [isFormValid, setIsFormValid] = useState(false);
   
   const handleFormValidationChange = (isValid: boolean) => {
     console.log("StepRenderer: Form validation changed to:", isValid);
     setIsFormValid(isValid);
     
-    // Propagate validation state up
     if (onValidationChange) {
       console.log("StepRenderer: Calling parent onValidationChange with:", isValid);
       onValidationChange(isValid);
     }
   };
   
-  // Force re-validation when customer details change
   useEffect(() => {
     if (currentStep === 'details' && customerDetails) {
-      // This will cause the CustomerForm to re-evaluate and call handleFormValidationChange
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       const phoneRegex = /^05\d{8}$/;
       
@@ -118,6 +113,7 @@ export const StepRenderer: React.FC<StepRendererProps> = ({
             onStepChange={handleStepChange}
             isUpdatingPackage={isUpdatingPackage}
             handlePackageServiceUpdate={handlePackageServiceUpdate}
+            branch={branch}
           />
         );
       case 'datetime':

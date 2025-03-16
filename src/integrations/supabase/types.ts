@@ -177,6 +177,45 @@ export type Database = {
           },
         ]
       }
+      branch_categories: {
+        Row: {
+          branch_id: string
+          branch_name: string | null
+          category_id: string
+          category_name_ar: string | null
+          category_name_en: string | null
+        }
+        Insert: {
+          branch_id: string
+          branch_name?: string | null
+          category_id: string
+          category_name_ar?: string | null
+          category_name_en?: string | null
+        }
+        Update: {
+          branch_id?: string
+          branch_name?: string | null
+          category_id?: string
+          category_name_ar?: string | null
+          category_name_en?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "branch_categories_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "branch_categories_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "service_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       branch_managers: {
         Row: {
           access_code: string
@@ -208,6 +247,45 @@ export type Database = {
             columns: ["branch_id"]
             isOneToOne: false
             referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      branch_services: {
+        Row: {
+          branch_id: string
+          branch_name: string | null
+          service_id: string
+          service_name_ar: string | null
+          service_name_en: string | null
+        }
+        Insert: {
+          branch_id: string
+          branch_name?: string | null
+          service_id: string
+          service_name_ar?: string | null
+          service_name_en?: string | null
+        }
+        Update: {
+          branch_id?: string
+          branch_name?: string | null
+          service_id?: string
+          service_name_ar?: string | null
+          service_name_en?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "branch_services_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "branch_services_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
             referencedColumns: ["id"]
           },
         ]

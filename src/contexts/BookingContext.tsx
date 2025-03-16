@@ -40,6 +40,10 @@ interface BookingContextType {
   baseService?: any;
   validateStep?: () => boolean;
   handleServiceRemove?: (serviceId: string) => void;
+  
+  // Selected branch
+  selectedBranch?: any;
+  setSelectedBranch: (branch: any) => void;
 }
 
 const BookingContext = createContext<BookingContextType | undefined>(undefined);

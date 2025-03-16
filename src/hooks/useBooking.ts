@@ -1,5 +1,4 @@
-
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { BookingStep } from '@/components/booking/BookingProgress';
 import { calculateTotalPrice, calculateTotalDuration } from '@/utils/bookingCalculations';
 import { useServiceSelection } from "@/hooks/useServiceSelection";
@@ -12,11 +11,12 @@ import { SelectedService } from '@/types/service';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/contexts/LanguageContext';
 
-export const useBooking = (branch: any) => {
+export const useBooking = (initialBranch: any) => {
   const [currentStep, setCurrentStep] = useState<BookingStep>('services');
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [selectedTime, setSelectedTime] = useState<string | undefined>(undefined);
   const [selectedBarber, setSelectedBarber] = useState<string | undefined>(undefined);
+  const [selectedBranch, setSelectedBranch] = useState<any>(initialBranch);
   const { toast } = useToast();
   const { language } = useLanguage();
 
@@ -30,7 +30,9 @@ export const useBooking = (branch: any) => {
     handlePackageServiceUpdate,
     isUpdatingPackage
   } = useServiceSelection();
-  const { categories, categoriesLoading, employees, employeesLoading } = useCategoryData(branch?.id);
+  
+  // Pass the selected branch ID to useCategoryData
+  const { categories, categoriesLoading, employees, employeesLoading } = useCategoryData(selectedBranch?.id);
   const { selectedEmployee } = useEmployeeData(selectedBarber);
   const { packageEnabled, packageSettings, hasBaseService, enabledPackageServices } = usePackageDiscount(selectedServices);
 
@@ -113,6 +115,14 @@ export const useBooking = (branch: any) => {
     return transformServicesForDisplay(selectedServices, language);
   };
 
+  // Clear selected services when branch changes
+  useEffect(() => {
+    setSelectedServices([]);
+    setSelectedBarber(undefined);
+    setSelectedDate(undefined);
+    setSelectedTime(undefined);
+  }, [selectedBranch?.id, setSelectedServices]);
+
   return {
     currentStep,
     setCurrentStep,
@@ -146,6 +156,10 @@ export const useBooking = (branch: any) => {
     baseService,
     validateStep,
     handleServiceRemove,
-    isUpdatingPackage
+    isUpdatingPackage,
+    
+    // Branch selection
+    selectedBranch,
+    setSelectedBranch
   };
 };

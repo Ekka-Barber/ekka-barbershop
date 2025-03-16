@@ -1,226 +1,223 @@
-
-import { GripVertical, Trash, ChevronDown, ChevronRight, Pencil } from 'lucide-react';
-import { useState } from 'react';
-import { Draggable, Droppable } from '@hello-pangea/dnd';
+import React, { useState, useEffect } from 'react';
+import { Category, Service } from '@/types/service';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Category } from '@/types/service';
-import { ServiceItem } from './ServiceItem';
-import { supabase } from "@/integrations/supabase/client";
+import { MoreVertical, Edit, Trash, Plus } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import { useToast } from "@/components/ui/use-toast";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import ServiceItem from './ServiceItem';
+import { ServiceDialog } from './ServiceDialog';
+import { CategoryDialog } from './CategoryDialog';
+import { supabase } from "@/integrations/supabase/client";
+import { Badge } from "@/components/ui/badge";
+import { CategoryBranchAssignment } from './category-management/CategoryBranchAssignment';
 
-type CategoryItemProps = {
+interface CategoryItemProps {
   category: Category;
-  index: number;
-  isExpanded: boolean;
-  onToggle: () => void;
-  onDelete: () => void;
-};
+  services: Service[];
+  onDelete: (categoryId: string) => void;
+  onExpandedChange?: (categoryId: string, isExpanded: boolean) => void;
+  isExpanded?: boolean;
+}
 
-export const CategoryItem = ({ 
-  category, 
-  index, 
-  isExpanded, 
-  onToggle, 
-  onDelete 
-}: CategoryItemProps) => {
-  const [isEditing, setIsEditing] = useState(false);
-  const [editedCategory, setEditedCategory] = useState(category);
+const CategoryItem = ({ category, services, onDelete, onExpandedChange, isExpanded }: CategoryItemProps) => {
   const { toast } = useToast();
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isConfirmationOpen, setIsConfirmationOpen] = useState(false);
+  const [expanded, setExpanded] = useState(false);
 
-  const handleEdit = () => {
-    setIsEditing(true);
-    setEditedCategory(category);
+  useEffect(() => {
+    setExpanded(isExpanded || false);
+  }, [isExpanded]);
+
+  const handleExpandedChange = (newExpanded: boolean) => {
+    setExpanded(newExpanded);
+    onExpandedChange?.(category.id, newExpanded);
   };
 
-  const handleCancel = () => {
-    setIsEditing(false);
-    setEditedCategory(category);
+  const handleDelete = () => {
+    onDelete(category.id);
+    setIsDeleteDialogOpen(false);
   };
 
-  const handleSave = async () => {
-    try {
-      const { error } = await supabase
-        .from('service_categories')
-        .update({
-          name_en: editedCategory.name_en,
-          name_ar: editedCategory.name_ar
-        })
-        .eq('id', category.id);
+  // Add branch assignment display
+  const [branchAssignments, setBranchAssignments] = useState<string[]>([]);
+  const [isFetchingBranches, setIsFetchingBranches] = useState(false);
 
-      if (error) throw error;
+  useEffect(() => {
+    const fetchBranchAssignments = async () => {
+      if (!category.id) return;
+      
+      setIsFetchingBranches(true);
+      try {
+        const { data, error } = await supabase
+          .from('branch_categories')
+          .select('branch_id, branch_name')
+          .eq('category_id', category.id);
+          
+        if (error) throw error;
+        
+        if (data && data.length > 0) {
+          setBranchAssignments(data.map(a => a.branch_name));
+        } else {
+          setBranchAssignments([]);
+        }
+      } catch (error) {
+        console.error('Error fetching branch assignments:', error);
+      } finally {
+        setIsFetchingBranches(false);
+      }
+    };
+    
+    fetchBranchAssignments();
+  }, [category.id]);
 
-      setIsEditing(false);
-      toast({
-        title: "Category Updated",
-        description: "Category has been updated successfully.",
-      });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to update category. Please try again.",
-        variant: "destructive",
-      });
-    }
-  };
+  const [showConfirmation, setShowConfirmation] = useState(false);
 
-  const handleServiceDragEnd = async (result: any) => {
-    if (!result.destination || !category.services) return;
-
-    try {
-      const newServices = Array.from(category.services);
-      const [removed] = newServices.splice(result.source.index, 1);
-      newServices.splice(result.destination.index, 0, removed);
-
-      const updates = newServices.map((service, index) => ({
-        id: service.id,
-        name_en: service.name_en,
-        name_ar: service.name_ar,
-        description_en: service.description_en,
-        description_ar: service.description_ar,
-        price: service.price,
-        duration: service.duration,
-        category_id: category.id,
-        display_order: index,
-        discount_type: service.discount_type,
-        discount_value: service.discount_value
-      }));
-
-      const { error } = await supabase
-        .from('services')
-        .upsert(updates, { onConflict: 'id' });
-
-      if (error) throw error;
-
-      toast({
-        title: "Order Updated",
-        description: "Service order has been updated successfully.",
-      });
-    } catch (error) {
-      console.error('Service reorder error:', error);
-      toast({
-        title: "Error",
-        description: "An error occurred while reordering services.",
-        variant: "destructive",
-      });
-    }
-  };
+  let branchLabel = 'Not assigned';
+  if (branchAssignments.length === 1) {
+    branchLabel = branchAssignments[0];
+  } else if (branchAssignments.length > 1) {
+    branchLabel = 'Multiple branches';
+  }
 
   return (
-    <Draggable 
-      key={category.id} 
-      draggableId={category.id} 
-      index={index}
-    >
-      {(provided) => (
-        <div
-          ref={provided.innerRef}
-          {...provided.draggableProps}
-          className="space-y-2"
-        >
-          <div className="flex items-center justify-between p-3 bg-white border rounded-lg shadow-sm">
-            <div className="flex items-center gap-3">
-              <div
-                {...provided.dragHandleProps}
-                className="cursor-move text-gray-400 hover:text-gray-600"
-              >
-                <GripVertical className="w-5 h-5" />
-              </div>
-              {isEditing ? (
-                <div className="flex flex-col gap-2">
-                  <Input
-                    value={editedCategory.name_en}
-                    onChange={(e) => setEditedCategory(prev => ({ ...prev, name_en: e.target.value }))}
-                    placeholder="English name"
-                    className="w-[200px]"
-                  />
-                  <Input
-                    value={editedCategory.name_ar}
-                    onChange={(e) => setEditedCategory(prev => ({ ...prev, name_ar: e.target.value }))}
-                    placeholder="Arabic name"
-                    className="w-[200px]"
-                    dir="rtl"
-                  />
-                </div>
-              ) : (
-                <button
-                  onClick={onToggle}
-                  className="flex items-center gap-2"
-                >
-                  {isExpanded ? (
-                    <ChevronDown className="w-4 h-4" />
-                  ) : (
-                    <ChevronRight className="w-4 h-4" />
-                  )}
-                  <div>
-                    <p className="font-medium">{category.name_en}</p>
-                    <p className="text-sm text-gray-500">{category.name_ar}</p>
-                  </div>
-                </button>
-              )}
-            </div>
-            <div className="flex items-center gap-2">
-              {isEditing ? (
-                <>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleCancel}
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    size="sm"
-                    onClick={handleSave}
-                  >
-                    Save
-                  </Button>
-                </>
-              ) : (
-                <>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={handleEdit}
-                    className="text-blue-500 hover:text-blue-600"
-                  >
-                    <Pencil className="w-4 h-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={onDelete}
-                  >
-                    <Trash className="w-4 h-4 text-red-500" />
-                  </Button>
-                </>
-              )}
-            </div>
+    <Card className="border-none shadow-none">
+      <div className="space-y-2 p-4">
+        <div className="flex items-center justify-between">
+          <div className="flex flex-col">
+            <h3 className="text-lg font-semibold">{category.name_en}</h3>
+            <p className="text-sm text-muted-foreground">{category.name_ar}</p>
+          
+          {/* Add branch assignment badge */}
+          <div className="mt-1">
+            <Badge variant={branchAssignments.length > 0 ? "default" : "outline"} className="mt-1">
+              {isFetchingBranches ? 'Loading...' : branchLabel}
+            </Badge>
           </div>
-
-          {isExpanded && (
-            <Droppable droppableId={category.id} type="service">
-              {(provided) => (
-                <div
-                  {...provided.droppableProps}
-                  ref={provided.innerRef}
-                  className="ml-8 space-y-2"
-                >
-                  {category.services?.map((service, index) => (
-                    <ServiceItem 
-                      key={service.id} 
-                      service={service} 
-                      index={index}
-                      categoryId={category.id}
-                    />
-                  ))}
-                  {provided.placeholder}
-                </div>
-              )}
-            </Droppable>
-          )}
         </div>
-      )}
-    </Draggable>
+        
+        <div className="flex items-center gap-2">
+          <CategoryDialog
+            categoryId={category.id}
+            categoryEnName={category.name_en}
+            categoryArName={category.name_ar}
+            onSuccess={() => {
+              toast({
+                title: "Category Updated",
+                description: "Category has been updated successfully.",
+              });
+            }}
+            trigger={
+              <Button variant="ghost" size="sm">
+                <Edit className="h-4 w-4 mr-2" />
+                Edit
+              </Button>
+            }
+          />
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="ghost" size="sm">
+                <Trash className="h-4 w-4 mr-2" />
+                Delete
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This action cannot be undone. All data associated with this category will be permanently deleted.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={handleDelete}>Continue</AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+          <ServiceDialog
+            categories={[category]}
+            onSuccess={() => {
+              toast({
+                title: "Service Added",
+                description: "Service has been added successfully.",
+              });
+            }}
+            trigger={
+              <Button variant="outline" size="sm">
+                Add Service <Plus className="w-4 h-4 ml-2" />
+              </Button>
+            }
+          />
+        </div>
+      </div>
+      
+      <Collapsible open={expanded} onOpenChange={handleExpandedChange}>
+        <CollapsibleTrigger className="w-full">
+          Services ({services?.length || 0})
+        </CollapsibleTrigger>
+        
+        {isExpanded && (
+          <CollapsibleContent className="space-y-2">
+            <div className="mt-4">
+              <CategoryBranchAssignment categoryId={category.id} categoryName={category.name_en} />
+            </div>
+            
+            {services && services.length > 0 ? (
+              <div className="space-y-2 mt-4">
+                {services.map(service => (
+                  <ServiceItem
+                    key={service.id}
+                    service={service}
+                    onEdit={() => {}}
+                    onDelete={() => {}}
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-4 text-muted-foreground">
+                No services in this category
+              </div>
+            )}
+          </CollapsibleContent>
+        )}
+      </Collapsible>
+      
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmation</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this category?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setIsDeleteDialogOpen(false)}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete}>Delete</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </Card>
   );
 };
+
+export default CategoryItem;

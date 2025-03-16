@@ -1,93 +1,179 @@
-
-import { GripVertical, Pencil } from 'lucide-react';
-import { Draggable } from '@hello-pangea/dnd';
-import { Button } from "@/components/ui/button";
+import React, { useState, useEffect } from 'react';
 import { Service } from '@/types/service';
-import { ServiceDialog } from './ServiceDialog';
-import { supabase } from "@/integrations/supabase/client";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Edit, Trash2, ChevronDown, ChevronUp } from 'lucide-react';
+import { ConfirmDialog } from '@/components/common/ConfirmDialog';
 import { useToast } from "@/components/ui/use-toast";
+import { ServiceDialog } from './ServiceDialog';
+import { formatPrice } from '@/utils/formatters';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { Separator } from '@/components/ui/separator';
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { ServiceBranchAssignment } from './service-management/ServiceBranchAssignment';
 
-type ServiceItemProps = {
+interface ServiceItemProps {
   service: Service;
-  index: number;
-  categoryId: string;
-};
+  onEdit: (service: Service) => void;
+  onDelete: (service: Service) => void;
+}
 
-export const ServiceItem = ({ service, index, categoryId }: ServiceItemProps) => {
+const ServiceItem = ({ service, onEdit, onDelete }: ServiceItemProps) => {
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const { toast } = useToast();
-
-  const handleDragEnd = async (newIndex: number) => {
-    try {
-      const { error } = await supabase
-        .from('services')
-        .update({ display_order: newIndex })
-        .eq('id', service.id)
-        .eq('category_id', categoryId);
-
-      if (error) throw error;
-
-      toast({
-        title: "Order Updated",
-        description: "Service order has been updated successfully.",
-      });
-    } catch (error) {
-      console.error('Service reorder error:', error);
-      toast({
-        title: "Error",
-        description: "An error occurred while reordering services.",
-        variant: "destructive",
-      });
-    }
-  };
-
+  const isMobile = useIsMobile();
+  
+  // Add branch assignment display
+  const [branchAssignments, setBranchAssignments] = useState<string[]>([]);
+  const [isFetchingBranches, setIsFetchingBranches] = useState(false);
+  
+  useEffect(() => {
+    const fetchBranchAssignments = async () => {
+      if (!service.id) return;
+      
+      setIsFetchingBranches(true);
+      try {
+        const { data, error } = await supabase
+          .from('branch_services')
+          .select('branch_id, branch_name')
+          .eq('service_id', service.id);
+          
+        if (error) throw error;
+        
+        if (data && data.length > 0) {
+          setBranchAssignments(data.map(a => a.branch_name));
+        } else {
+          setBranchAssignments([]);
+        }
+      } catch (error) {
+        console.error('Error fetching branch assignments:', error);
+      } finally {
+        setIsFetchingBranches(false);
+      }
+    };
+    
+    fetchBranchAssignments();
+  }, [service.id]);
+  
+  let branchLabel = 'Not assigned';
+  if (branchAssignments.length === 1) {
+    branchLabel = branchAssignments[0];
+  } else if (branchAssignments.length > 1) {
+    branchLabel = 'Multiple branches';
+  }
+  
   return (
-    <Draggable
-      key={service.id}
-      draggableId={service.id}
-      index={index}
-    >
-      {(provided) => (
-        <div
-          ref={provided.innerRef}
-          {...provided.draggableProps}
-          {...provided.dragHandleProps}
-          className="flex items-center justify-between p-2 bg-gray-50 border rounded-lg"
-          onDragEnd={() => handleDragEnd(index)}
-        >
-          <div className="flex items-center gap-2">
-            <GripVertical className="w-4 h-4 text-gray-400" />
-            <div>
-              <p className="text-sm font-medium">{service.name_en}</p>
-              <p className="text-xs text-gray-500">{service.name_ar}</p>
+    <div className="bg-card border rounded-md">
+      <div className="p-4">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-2">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <h3 className="font-medium">{service.name_en}</h3>
+              
+              {/* Add branch badge */}
+              <Badge variant={branchAssignments.length > 0 ? "default" : "outline"} className="ml-2">
+                {isFetchingBranches ? 'Loading...' : branchLabel}
+              </Badge>
             </div>
+            <p className="text-sm text-muted-foreground">{service.name_ar}</p>
           </div>
-          <div className="flex items-center gap-2">
-            <div className="text-sm text-gray-500">
-              {service.duration} mins • ${service.price}
+          
+          <div className="flex flex-wrap items-center gap-2">
+            <p className="text-sm text-muted-foreground">
+              {formatPrice(service.price)}
+            </p>
+            <Separator orientation="vertical" className="h-4" />
+            <p className="text-sm text-muted-foreground">
+              {service.duration} minutes
+            </p>
+            
+            <div className="flex items-center ml-auto">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setIsDetailsOpen(!isDetailsOpen)}
+              >
+                {isDetailsOpen ? (
+                  <>
+                    Hide Details <ChevronUp className="ml-2 h-4 w-4" />
+                  </>
+                ) : (
+                  <>
+                    Show Details <ChevronDown className="ml-2 h-4 w-4" />
+                  </>
+                )}
+              </Button>
+              
+              <ServiceDialog
+                categories={[]}
+                editService={service}
+                onSuccess={() => {
+                  toast({
+                    title: "Service Updated",
+                    description: "Service has been updated successfully.",
+                  });
+                }}
+                trigger={
+                  <Button variant="outline" size="icon">
+                    <Edit className="h-4 w-4" />
+                  </Button>
+                }
+              />
+              
+              <Button
+                variant="destructive"
+                size="icon"
+                onClick={() => setIsDeleteDialogOpen(true)}
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
             </div>
-            <ServiceDialog
-              categories={[{ 
-                id: service.category_id, 
-                name_en: '', 
-                name_ar: '', 
-                display_order: 0,
-                created_at: new Date().toISOString(),
-                services: []
-              }]}
-              editService={service}
-              trigger={
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="text-blue-500 hover:text-blue-600"
-                >
-                  <Pencil className="w-4 h-4" />
-                </Button>
-              }
-            />
           </div>
         </div>
-      )}
-    </Draggable>
+        
+        {isDetailsOpen && (
+          <div className="mt-4 pt-4 border-t space-y-4">
+            <div className="space-y-2">
+              <h4 className="text-sm font-medium">Description (EN)</h4>
+              <p className="text-sm text-muted-foreground">
+                {service.description_en || 'No description'}
+              </p>
+            </div>
+            
+            <div className="space-y-2">
+              <h4 className="text-sm font-medium">Description (AR)</h4>
+              <p className="text-sm text-muted-foreground">
+                {service.description_ar || 'No description'}
+              </p>
+            </div>
+            
+            {/* Add branch assignment component */}
+            <div className="mt-4">
+              <h4 className="text-sm font-medium mb-2">Branch Assignment</h4>
+              <ServiceBranchAssignment serviceId={service.id} serviceName={service.name_en} />
+            </div>
+          </div>
+        )}
+      </div>
+      
+      <ConfirmDialog
+        isOpen={isDeleteDialogOpen}
+        onClose={() => setIsDeleteDialogOpen(false)}
+        onConfirm={() => {
+          onDelete(service);
+          setIsDeleteDialogOpen(false);
+          toast({
+            title: "Service Deleted",
+            description: "Service has been deleted successfully.",
+          });
+        }}
+        title="Delete Service"
+        description={`Are you sure you want to delete ${service.name_en}?`}
+      />
+    </div>
   );
 };
+
+export default ServiceItem;

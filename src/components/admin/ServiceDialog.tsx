@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Plus } from 'lucide-react';
 import { Button } from "@/components/ui/button";
@@ -18,6 +17,8 @@ import { useToast } from '@/components/ui/use-toast';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from "@/integrations/supabase/client";
 import { useIsMobile } from '@/hooks/use-mobile';
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 
 type ServiceDialogProps = {
   categories: Category[] | undefined;
@@ -32,6 +33,8 @@ export const ServiceDialog = ({ categories, editService, onSuccess, trigger }: S
   const queryClient = useQueryClient();
   const isMobile = useIsMobile();
   const [selectedUpsells, setSelectedUpsells] = useState<Array<{ serviceId: string; discountPercentage: number }>>([]);
+  const [branches, setBranches] = useState<any[]>([]);
+  const [selectedBranchIds, setSelectedBranchIds] = useState<string[]>([]);
   const descriptionId = "service-dialog-description";
 
   const { data: services } = useQuery({
@@ -72,13 +75,11 @@ export const ServiceDialog = ({ categories, editService, onSuccess, trigger }: S
 
   const upsellMutation = useMutation({
     mutationFn: async ({ serviceId, upsells }: { serviceId: string, upsells: typeof selectedUpsells }) => {
-      // First, delete existing upsells
       await supabase
         .from('service_upsells')
         .delete()
         .eq('main_service_id', serviceId);
 
-      // Then insert new ones
       if (upsells.length > 0) {
         const { error } = await supabase
           .from('service_upsells')
@@ -115,20 +116,17 @@ export const ServiceDialog = ({ categories, editService, onSuccess, trigger }: S
     });
   });
 
-  // This effect is critical - it ensures we properly set the service data including category
-  // when we're editing a service and the dialog opens
   useEffect(() => {
     if (editService && isOpen) {
       console.log("Setting service data for editing:", editService);
       setNewService({
         ...editService,
-        category_id: editService.category_id // Ensure category_id is explicitly set
+        category_id: editService.category_id
       });
     }
   }, [editService, isOpen, setNewService]);
 
   useEffect(() => {
-    // Reset the form data when the dialog closes
     if (!isOpen) {
       if (!editService) {
         setNewService({
@@ -148,6 +146,56 @@ export const ServiceDialog = ({ categories, editService, onSuccess, trigger }: S
       }
     }
   }, [isOpen, editService, setNewService]);
+
+  useEffect(() => {
+    const fetchBranches = async () => {
+      const { data, error } = await supabase
+        .from('branches')
+        .select('id, name')
+        .order('is_main', { ascending: false });
+      
+      if (error) {
+        console.error('Error fetching branches:', error);
+        return;
+      }
+      
+      if (data) {
+        setBranches(data);
+      }
+    };
+    
+    fetchBranches();
+  }, []);
+
+  useEffect(() => {
+    if (editService?.id && isOpen) {
+      const fetchBranchAssignments = async () => {
+        const { data, error } = await supabase
+          .from('branch_services')
+          .select('branch_id')
+          .eq('service_id', editService.id);
+          
+        if (error) {
+          console.error('Error fetching branch assignments:', error);
+          return;
+        }
+        
+        if (data) {
+          setSelectedBranchIds(data.map(item => item.branch_id));
+        }
+      };
+      
+      fetchBranchAssignments();
+    }
+  }, [editService?.id, isOpen]);
+
+  const handleToggleBranch = (branchId: string, checked: boolean) => {
+    if (checked) {
+      setSelectedBranchIds(prev => [...prev, branchId]);
+    } else {
+      setSelectedBranchIds(prev => prev.filter(id => id !== branchId));
+    }
+  };
 
   const handleSubmit = async () => {
     if (editService) {
@@ -193,6 +241,23 @@ export const ServiceDialog = ({ categories, editService, onSuccess, trigger }: S
             selectedUpsells={selectedUpsells}
             onUpsellsChange={setSelectedUpsells}
           />
+          
+          <div className="py-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2">
+              {branches.map(branch => (
+                <div key={branch.id} className="flex items-center space-x-2">
+                  <Checkbox 
+                    id={`service-branch-${branch.id}`} 
+                    checked={selectedBranchIds.includes(branch.id)}
+                    onCheckedChange={(checked) => handleToggleBranch(branch.id, checked === true)}
+                  />
+                  <Label htmlFor={`service-branch-${branch.id}`} className="text-sm font-normal">
+                    {branch.name}
+                  </Label>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
         <DialogFooter className={`${isMobile ? 'mt-2' : 'mt-4'} gap-2 sm:gap-0`}>
           <Button
