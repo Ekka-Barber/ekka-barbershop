@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useToast } from "@/hooks/use-toast";
@@ -13,6 +14,7 @@ interface UseServiceSelectionStateProps {
   onStepChange?: (step: string) => void;
   isUpdatingPackage?: boolean;
   handlePackageServiceUpdate?: (services: SelectedService[]) => void;
+  branchId?: string;
 }
 
 export const useServiceSelectionState = ({
@@ -22,7 +24,8 @@ export const useServiceSelectionState = ({
   onServiceToggle,
   onStepChange,
   isUpdatingPackage = false,
-  handlePackageServiceUpdate
+  handlePackageServiceUpdate,
+  branchId
 }: UseServiceSelectionStateProps) => {
   const { language } = useLanguage();
   const { toast } = useToast();
