@@ -9,7 +9,6 @@ import { Button } from "@/components/ui/button";
 import { Branch } from "@/types/booking";
 import { ErrorBoundary } from "@/components/common/ErrorBoundary";
 import { Loader2 } from "lucide-react";
-import { Card } from "@/components/ui/card";
 import { BookingProvider } from "@/contexts/BookingContext";
 import { SkeletonLoader } from "@/components/common/SkeletonLoader";
 import { NoBranchSelected } from "@/components/booking/NoBranchSelected";

@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -291,8 +292,18 @@ const Customer = () => {
 
       <LanguageSwitcher />
 
-      <BranchDialog open={branchDialogOpen} onOpenChange={setBranchDialogOpen} branches={branches} onBranchSelect={handleBranchSelect} />
-      <LocationDialog open={locationDialogOpen} onOpenChange={setLocationDialogOpen} branches={branches} onLocationClick={handleLocationClick} />
+      <BranchDialog 
+        open={branchDialogOpen} 
+        onOpenChange={setBranchDialogOpen} 
+        branches={branches} 
+        onBranchSelect={handleBranchSelect} 
+      />
+      <LocationDialog 
+        open={locationDialogOpen} 
+        onOpenChange={setLocationDialogOpen} 
+        branches={branches} 
+        onLocationClick={handleLocationClick} 
+      />
       <EidBookingsDialog 
         open={eidBookingsDialogOpen} 
         onOpenChange={setEidBookingsDialogOpen} 

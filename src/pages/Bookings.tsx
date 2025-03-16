@@ -2,7 +2,6 @@
 import { BookingContainer } from "@/components/booking/BookingContainer";
 import { ErrorBoundary } from "@/components/common/ErrorBoundary";
 import { useToast } from "@/hooks/use-toast";
-import { RefactoredBookingSteps } from "@/components/booking/RefactoredBookingSteps";
 import { useState, useEffect } from "react";
 import { SkeletonLoader } from "@/components/common/SkeletonLoader";
 
@@ -33,7 +32,6 @@ const Bookings = () => {
       <ErrorBoundary onError={handleError}>
         {isLoading ? (
           <div className="container mx-auto py-6 px-4 flex-grow flex items-center justify-center">
-            <div className="h-8 w-48 bg-gray-200 rounded animate-pulse mb-8"></div>
             <SkeletonLoader />
           </div>
         ) : (

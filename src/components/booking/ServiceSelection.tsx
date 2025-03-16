@@ -13,6 +13,7 @@ interface ServiceSelectionProps {
   onStepChange?: (step: string) => void;
   isUpdatingPackage?: boolean;
   handlePackageServiceUpdate?: (services: SelectedService[]) => void;
+  branchId?: string;
 }
 
 export const ServiceSelection = ({
@@ -22,7 +23,8 @@ export const ServiceSelection = ({
   onServiceToggle,
   onStepChange,
   isUpdatingPackage,
-  handlePackageServiceUpdate
+  handlePackageServiceUpdate,
+  branchId
 }: ServiceSelectionProps) => {
   const selectionState = useServiceSelectionState({
     categories,
@@ -31,7 +33,8 @@ export const ServiceSelection = ({
     onServiceToggle,
     onStepChange,
     isUpdatingPackage,
-    handlePackageServiceUpdate
+    handlePackageServiceUpdate,
+    branchId
   });
   
   return (

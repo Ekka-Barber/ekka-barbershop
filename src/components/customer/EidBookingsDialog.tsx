@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -25,8 +26,8 @@ export const EidBookingsDialog = ({
 }: EidBookingsDialogProps) => {
   const { language, t } = useLanguage();
 
-  // Log branch information for debugging
-  console.log("Branches in EidBookingsDialog:", branches);
+  // Enhanced logging with proper serialization
+  console.log("Branches in EidBookingsDialog:", branches ? JSON.stringify(branches) : "undefined");
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

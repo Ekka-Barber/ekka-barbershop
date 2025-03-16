@@ -45,8 +45,14 @@ export function BranchDialog({
   const { toast } = useToast();
   const { language } = useLanguage();
 
-  // Get setSelectedBranch from context
-  const { setSelectedBranch } = useBookingContext();
+  // Get setSelectedBranch from context, but don't require it
+  let contextValue = null;
+  try {
+    contextValue = useBookingContext();
+  } catch (error) {
+    // Silently handle the error when BookingContext is not available
+    console.log("BookingContext not available in current view");
+  }
 
   // Update isOpen when open prop changes
   useEffect(() => {
@@ -97,9 +103,11 @@ export function BranchDialog({
     fetchBranches();
   }, [language, toast, externalBranches]);
 
-  // Update handleBranchSelect to set selected branch in context
+  // Update handleBranchSelect to set selected branch in context only if it's available
   const handleBranchSelect = (branch: Branch) => {
-    setSelectedBranch(branch);
+    if (contextValue?.setSelectedBranch) {
+      contextValue.setSelectedBranch(branch);
+    }
     handleOpenChange(false);
     
     if (externalBranchSelect) {
