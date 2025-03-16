@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { BookingProgress, BookingStep } from "@/components/booking/BookingProgress";
 import { BookingNavigation } from "@/components/booking/BookingNavigation";
@@ -54,22 +53,20 @@ export const BookingStepManager = ({
     packageSettings
   } = useBookingContext();
   
-  // Handle form validation for customer details step
   const handleValidationChange = (isValid: boolean) => {
+    console.log("BookingStepManager: Setting form validity to:", isValid);
     setFormValid(isValid);
   };
 
   useEffect(() => {
-    // If we're on the details step, validate the form immediately
     if (currentStep === 'details') {
-      // The validation will happen through the CustomerForm component
+      console.log("BookingStepManager: On details step, current form validity:", formValid);
     }
-  }, [currentStep]);
+  }, [currentStep, formValid]);
 
   const handleStepChange = (step: string) => {
     const typedStep = step as BookingStep;
     
-    // Add validation before changing steps
     if (currentStep === 'details' && !formValid && typedStep !== 'barber') {
       toast({
         title: language === 'ar' ? "يرجى إكمال جميع الحقول المطلوبة" : "Please complete all required fields",
@@ -108,11 +105,9 @@ export const BookingStepManager = ({
   const shouldShowSummaryBar = selectedServices.length > 0 && currentStep !== 'details';
   const transformedServices = transformServicesForDisplay(selectedServices, language);
 
-  // Process employee working hours if available
   const employeeWorkingHours = selectedEmployee?.working_hours ? 
     transformWorkingHours(selectedEmployee.working_hours) : null;
 
-  // Function to check if next button should be disabled
   const isNextDisabled = () => {
     if (currentStep === 'services') return selectedServices.length === 0;
     if (currentStep === 'datetime') return !selectedDate;
@@ -121,7 +116,6 @@ export const BookingStepManager = ({
     return false;
   };
   
-  // Show loading states for different steps
   if (categoriesLoading && currentStep === 'services') {
     return <SkeletonLoader />;
   }
@@ -129,6 +123,8 @@ export const BookingStepManager = ({
   if (employeesLoading && currentStep === 'barber') {
     return <SkeletonLoader />;
   }
+
+  console.log("BookingStepManager: Rendering with formValid =", formValid);
 
   return (
     <ErrorBoundary>
@@ -191,7 +187,7 @@ export const BookingStepManager = ({
             isNextDisabled={isNextDisabled()}
             customerDetails={customerDetails}
             branch={branch}
-            isFormValid={formValid} // Pass the form validation state
+            isFormValid={formValid}
           />
         </ErrorBoundary>
       )}

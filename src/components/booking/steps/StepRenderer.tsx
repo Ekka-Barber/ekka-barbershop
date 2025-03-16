@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { ServiceSelection } from '../ServiceSelection';
 import { DateTimeSelection } from '../DateTimeSelection';
