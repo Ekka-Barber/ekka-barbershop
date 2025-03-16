@@ -25,8 +25,20 @@ interface Branch {
   is_main: boolean;
 }
 
-export function BranchDialog() {
-  const [isOpen, setIsOpen] = useState(false);
+interface BranchDialogProps {
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  branches?: Branch[];
+  onBranchSelect?: (branchId: string) => void;
+}
+
+export function BranchDialog({
+  open,
+  onOpenChange,
+  branches: externalBranches,
+  onBranchSelect: externalBranchSelect
+}: BranchDialogProps) {
+  const [isOpen, setIsOpen] = useState(open || false);
   const [branches, setBranches] = useState<Branch[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
@@ -36,7 +48,28 @@ export function BranchDialog() {
   // Get setSelectedBranch from context
   const { setSelectedBranch } = useBookingContext();
 
+  // Update isOpen when open prop changes
   useEffect(() => {
+    if (open !== undefined) {
+      setIsOpen(open);
+    }
+  }, [open]);
+
+  // Handle onOpenChange
+  const handleOpenChange = (value: boolean) => {
+    setIsOpen(value);
+    if (onOpenChange) {
+      onOpenChange(value);
+    }
+  };
+
+  useEffect(() => {
+    if (externalBranches) {
+      setBranches(externalBranches);
+      setIsLoading(false);
+      return;
+    }
+
     const fetchBranches = async () => {
       setIsLoading(true);
       try {
@@ -62,17 +95,22 @@ export function BranchDialog() {
     };
 
     fetchBranches();
-  }, [language, toast]);
+  }, [language, toast, externalBranches]);
 
   // Update handleBranchSelect to set selected branch in context
   const handleBranchSelect = (branch: Branch) => {
     setSelectedBranch(branch);
-    setIsOpen(false);
-    navigate('/bookings');
+    handleOpenChange(false);
+    
+    if (externalBranchSelect) {
+      externalBranchSelect(branch.id);
+    } else {
+      navigate('/bookings');
+    }
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         <Button variant="outline">
           {language === 'ar' ? 'احجز الآن' : 'Book Now'}
