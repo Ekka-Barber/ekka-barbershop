@@ -33,8 +33,9 @@ export const CategoryList = ({
                 category={category}
                 index={index}
                 isExpanded={expandedCategories.includes(category.id)}
-                onToggle={() => onToggleCategory(category.id)}
+                onExpandedChange={() => onToggleCategory(category.id)}
                 onDelete={() => onDeleteCategory(category.id)}
+                services={category.services}
               />
             ))}
             {provided.placeholder}
