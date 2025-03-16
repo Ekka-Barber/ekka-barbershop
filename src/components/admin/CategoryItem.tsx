@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Category, Service } from '@/types/service';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
@@ -108,116 +109,118 @@ const CategoryItem = ({ category, services, onDelete, onExpandedChange, isExpand
             <h3 className="text-lg font-semibold">{category.name_en}</h3>
             <p className="text-sm text-muted-foreground">{category.name_ar}</p>
           
-          {/* Add branch assignment badge */}
-          <div className="mt-1">
-            <Badge variant={branchAssignments.length > 0 ? "default" : "outline"} className="mt-1">
-              {isFetchingBranches ? 'Loading...' : branchLabel}
-            </Badge>
+            {/* Add branch assignment badge */}
+            <div className="mt-1">
+              <Badge variant={branchAssignments.length > 0 ? "default" : "outline"} className="mt-1">
+                {isFetchingBranches ? 'Loading...' : branchLabel}
+              </Badge>
+            </div>
+          </div>
+          
+          <div className="flex items-center gap-2">
+            <CategoryDialog
+              categoryId={category.id}
+              categoryEnName={category.name_en}
+              categoryArName={category.name_ar}
+              onSuccess={() => {
+                toast({
+                  title: "Category Updated",
+                  description: "Category has been updated successfully.",
+                });
+              }}
+              trigger={
+                <Button variant="ghost" size="sm">
+                  <Edit className="h-4 w-4 mr-2" />
+                  Edit
+                </Button>
+              }
+            />
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="ghost" size="sm">
+                  <Trash className="h-4 w-4 mr-2" />
+                  Delete
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This action cannot be undone. All data associated with this category will be permanently deleted.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleDelete}>Continue</AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+            <ServiceDialog
+              categories={[category]}
+              onSuccess={() => {
+                toast({
+                  title: "Service Added",
+                  description: "Service has been added successfully.",
+                });
+              }}
+              trigger={
+                <Button variant="outline" size="sm">
+                  Add Service <Plus className="w-4 h-4 ml-2" />
+                </Button>
+              }
+            />
           </div>
         </div>
         
-        <div className="flex items-center gap-2">
-          <CategoryDialog
-            categoryId={category.id}
-            categoryEnName={category.name_en}
-            categoryArName={category.name_ar}
-            onSuccess={() => {
-              toast({
-                title: "Category Updated",
-                description: "Category has been updated successfully.",
-              });
-            }}
-            trigger={
-              <Button variant="ghost" size="sm">
-                <Edit className="h-4 w-4 mr-2" />
-                Edit
-              </Button>
-            }
-          />
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button variant="ghost" size="sm">
-                <Trash className="h-4 w-4 mr-2" />
-                Delete
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                <AlertDialogDescription>
-                  This action cannot be undone. All data associated with this category will be permanently deleted.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction onClick={handleDelete}>Continue</AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-          <ServiceDialog
-            categories={[category]}
-            onSuccess={() => {
-              toast({
-                title: "Service Added",
-                description: "Service has been added successfully.",
-              });
-            }}
-            trigger={
-              <Button variant="outline" size="sm">
-                Add Service <Plus className="w-4 h-4 ml-2" />
-              </Button>
-            }
-          />
-        </div>
-      </div>
-      
-      <Collapsible open={expanded} onOpenChange={handleExpandedChange}>
-        <CollapsibleTrigger className="w-full">
-          Services ({services?.length || 0})
-        </CollapsibleTrigger>
+        <Collapsible open={expanded} onOpenChange={handleExpandedChange}>
+          <CollapsibleTrigger className="w-full">
+            Services ({services?.length || 0})
+          </CollapsibleTrigger>
+          
+          {isExpanded && (
+            <CollapsibleContent className="space-y-2">
+              <div className="mt-4">
+                <CategoryBranchAssignment categoryId={category.id} categoryName={category.name_en} />
+              </div>
+              
+              {services && services.length > 0 ? (
+                <div className="space-y-2 mt-4">
+                  {services.map(service => (
+                    <ServiceItem
+                      key={service.id}
+                      service={service}
+                      onEdit={() => {}}
+                      onDelete={() => {}}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-4 text-muted-foreground">
+                  No services in this category
+                </div>
+              )}
+            </CollapsibleContent>
+          )}
+        </Collapsible>
         
-        {isExpanded && (
-          <CollapsibleContent className="space-y-2">
-            <div className="mt-4">
-              <CategoryBranchAssignment categoryId={category.id} categoryName={category.name_en} />
-            </div>
-            
-            {services && services.length > 0 ? (
-              <div className="space-y-2 mt-4">
-                {services.map(service => (
-                  <ServiceItem
-                    key={service.id}
-                    service={service}
-                    onEdit={() => {}}
-                    onDelete={() => {}}
-                  />
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-4 text-muted-foreground">
-                No services in this category
-              </div>
-            )}
-          </CollapsibleContent>
-        )}
-      </Collapsible>
-      
-      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Confirmation</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to delete this category?
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setIsDeleteDialogOpen(false)}>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete}>Delete</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+        <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Confirmation</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to delete this category?
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel onClick={() => setIsDeleteDialogOpen(false)}>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={handleDelete}>Delete</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      </div>
     </Card>
   );
 };
 
 export default CategoryItem;
+
