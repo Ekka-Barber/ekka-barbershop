@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { BookingProgress, BookingStep } from "@/components/booking/BookingProgress";
 import { BookingNavigation } from "@/components/booking/BookingNavigation";
@@ -63,6 +64,13 @@ export const BookingStepManager = ({
       console.log("BookingStepManager: On details step, current form validity:", formValid);
     }
   }, [currentStep, formValid]);
+  
+  // Reset form validation when moving away from the details step
+  useEffect(() => {
+    if (currentStep !== 'details') {
+      setFormValid(false);
+    }
+  }, [currentStep]);
 
   const handleStepChange = (step: string) => {
     const typedStep = step as BookingStep;

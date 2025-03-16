@@ -43,6 +43,32 @@ export const WhatsAppIntegration = ({
   console.log('WhatsAppIntegration isFormValid:', isFormValid);
   console.log('WhatsAppIntegration customerDetails:', customerDetails);
 
+  // Directly check form validation
+  const [directFormValid, setDirectFormValid] = useState(false);
+
+  useEffect(() => {
+    // Directly verify form validity as a fallback
+    if (customerDetails) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      const phoneRegex = /^05\d{8}$/;
+      
+      const isNameValid = customerDetails.name && customerDetails.name.trim() !== '';
+      const isPhoneValid = customerDetails.phone && phoneRegex.test(customerDetails.phone);
+      const isEmailValid = customerDetails.email && emailRegex.test(customerDetails.email);
+      
+      const isValid = isNameValid && isPhoneValid && isEmailValid;
+      console.log('WhatsAppIntegration: Direct validation check:', { 
+        name: isNameValid, 
+        phone: isPhoneValid, 
+        email: isEmailValid,
+        overall: isValid,
+        externalFormValid: isFormValid
+      });
+      
+      setDirectFormValid(isValid);
+    }
+  }, [customerDetails, isFormValid]);
+
   useEffect(() => {
     // Check if WhatsApp is available for this branch
     setIsWhatsAppAvailable(!!branch?.whatsapp_number);
@@ -132,13 +158,16 @@ export const WhatsAppIntegration = ({
 
   if (!isWhatsAppAvailable) return null;
 
+  // Use either the passed isFormValid prop or our direct validation as a fallback
+  const buttonEnabled = isFormValid || directFormValid;
+
   return (
     <>
       <Button 
         onClick={handleWhatsAppClick}
         className="w-full bg-[#25D366] hover:bg-[#128C7E] text-white"
         size="lg"
-        disabled={!isFormValid} // Use the form validation state to control button state
+        disabled={!buttonEnabled}
       >
         {language === 'ar' ? 'تأكيد تفاصيل الحجز' : t('whatsapp.button')}
       </Button>
