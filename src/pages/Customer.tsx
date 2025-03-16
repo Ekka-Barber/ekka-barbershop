@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -16,6 +15,7 @@ import { PullToRefresh } from "@/components/common/PullToRefresh";
 import { useToast } from "@/components/ui/use-toast";
 import { hasNotch, isRunningAsStandalone, getSafeAreaInsets, getViewportDimensions } from "@/services/platformDetection";
 import freshaLogo from "@/assets/fresha-logo.svg";
+import boonusLogo from "@/assets/boonus-logo.svg";
 
 const Customer = () => {
   const navigate = useNavigate();
@@ -276,11 +276,18 @@ const Customer = () => {
                   window.open('https://enroll.boonus.app/64b7c34953090f001de0fb6c/wallet/64b7efed53090f001de815b4', '_blank');
                 }}
               >
-                <div className={`w-full flex items-center ${language === 'ar' ? 'flex-row-reverse' : 'flex-row'} justify-between gap-2 px-3`}>
-                  <span className="font-semibold truncate text-base flex-grow max-w-[75%]">
-                    {language === 'ar' ? 'انضم لبرنامج الولاء' : 'Join loyalty program'}
-                  </span>
-                  <img src="/lovable-uploads/ba9a65f1-bf31-4b9c-ab41-7c7228a2f1b7.png" alt="Rescale Logo" className="h-7 w-auto flex-shrink-0" />
+                <div className="w-full bg-white border-0 rounded-lg overflow-hidden">
+                  <div className="flex items-center p-0">
+                    <div className="flex-shrink-0 w-1/4 flex flex-col items-center justify-center">
+                      <img src={boonusLogo} alt="Boonus Logo" className="h-10 w-auto" />
+                    </div>
+                    <div className="h-12 border-r border-gray-300 mx-2"></div>
+                    <div className="w-3/4 pr-2">
+                      <div className="font-bold text-lg text-[#222222] text-center">
+                        {language === 'ar' ? 'انضم لبرنامج الولاء' : 'Join loyalty program'}
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </Button>
 
