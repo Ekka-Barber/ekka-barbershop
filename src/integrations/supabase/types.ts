@@ -1105,39 +1105,6 @@ export type Database = {
           },
         ]
       }
-      loyalty_program: {
-        Row: {
-          created_at: string
-          description_template: string | null
-          happy_hour: Json
-          id: string
-          is_active: boolean
-          points_required: Json
-          tiers: Json
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          description_template?: string | null
-          happy_hour?: Json
-          id?: string
-          is_active?: boolean
-          points_required?: Json
-          tiers?: Json
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          description_template?: string | null
-          happy_hour?: Json
-          id?: string
-          is_active?: boolean
-          points_required?: Json
-          tiers?: Json
-          updated_at?: string
-        }
-        Relationships: []
-      }
       marketing_files: {
         Row: {
           branch_name: string | null
@@ -1630,48 +1597,6 @@ export type Database = {
           },
         ]
       }
-      service_branch_availability: {
-        Row: {
-          branch_id: string
-          created_at: string | null
-          id: string
-          is_available: boolean
-          service_id: string
-          updated_at: string | null
-        }
-        Insert: {
-          branch_id: string
-          created_at?: string | null
-          id?: string
-          is_available?: boolean
-          service_id: string
-          updated_at?: string | null
-        }
-        Update: {
-          branch_id?: string
-          created_at?: string | null
-          id?: string
-          is_available?: boolean
-          service_id?: string
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "service_branch_availability_branch_id_fkey"
-            columns: ["branch_id"]
-            isOneToOne: false
-            referencedRelation: "branches"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "service_branch_availability_service_id_fkey"
-            columns: ["service_id"]
-            isOneToOne: false
-            referencedRelation: "services"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       service_categories: {
         Row: {
           created_at: string
@@ -1799,36 +1724,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      terms_and_conditions: {
-        Row: {
-          content_ar: string
-          content_en: string
-          created_at: string | null
-          effective_from: string | null
-          id: string
-          is_active: boolean | null
-          version: number
-        }
-        Insert: {
-          content_ar: string
-          content_en: string
-          created_at?: string | null
-          effective_from?: string | null
-          id?: string
-          is_active?: boolean | null
-          version: number
-        }
-        Update: {
-          content_ar?: string
-          content_en?: string
-          created_at?: string | null
-          effective_from?: string | null
-          id?: string
-          is_active?: boolean | null
-          version?: number
-        }
-        Relationships: []
       }
       transaction_receipts: {
         Row: {

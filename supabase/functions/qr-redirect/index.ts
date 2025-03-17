@@ -2,10 +2,6 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { corsHeaders } from '../_shared/cors.ts'
 
-// Use service role key for internal operations
-const supabaseUrl = 'https://jfnjvphxhzxojxgptmtu.supabase.co'
-const supabaseServiceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || ''
-
 // Define public CORS headers that don't require authentication
 const publicCorsHeaders = {
   ...corsHeaders,
@@ -14,9 +10,14 @@ const publicCorsHeaders = {
   'Access-Control-Allow-Methods': 'GET, POST, OPTIONS'
 }
 
+// Use service role key for internal operations
+const supabaseUrl = 'https://jfnjvphxhzxojxgptmtu.supabase.co'
+const supabaseServiceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || ''
+
 Deno.serve(async (req) => {
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
+    console.log('Handling OPTIONS request with public CORS headers')
     return new Response('ok', { headers: publicCorsHeaders })
   }
 
