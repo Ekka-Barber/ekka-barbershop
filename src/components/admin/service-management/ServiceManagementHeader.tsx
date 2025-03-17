@@ -1,4 +1,3 @@
-
 import {
   Select,
   SelectContent,
@@ -6,6 +5,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Search } from "lucide-react";
 
 interface ServiceManagementHeaderProps {
   totalCategories: number;
@@ -17,6 +18,7 @@ interface ServiceManagementHeaderProps {
 export const ServiceManagementHeader = ({
   totalCategories,
   totalServices,
+  onSearch,
   onSort,
 }: ServiceManagementHeaderProps) => {
   return (
@@ -30,9 +32,21 @@ export const ServiceManagementHeader = ({
             {totalCategories} categories • {totalServices} services
           </p>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+          {onSearch && (
+            <div className="relative w-full sm:w-auto">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                type="search"
+                placeholder="Search services..."
+                className="pl-8 w-full sm:w-[200px]"
+                onChange={(e) => onSearch(e.target.value)}
+              />
+            </div>
+          )}
+          
           <Select onValueChange={onSort} defaultValue="name">
-            <SelectTrigger className="w-[140px]">
+            <SelectTrigger className="w-full sm:w-[140px]">
               <SelectValue placeholder="Sort by" />
             </SelectTrigger>
             <SelectContent>
