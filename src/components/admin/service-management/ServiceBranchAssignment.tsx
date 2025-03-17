@@ -1,10 +1,10 @@
-
 import { useState, useEffect } from 'react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { supabase } from '@/integrations/supabase/client';
 import { Badge } from '@/components/ui/badge';
 import { toast } from '@/components/ui/use-toast';
+import { Loader2 } from 'lucide-react';
 
 interface Branch {
   id: string;
@@ -14,12 +14,14 @@ interface Branch {
 interface ServiceBranchAssignmentProps {
   serviceId: string;
   serviceName: string;
+  serviceNameAr?: string;
 }
 
-export const ServiceBranchAssignment = ({ serviceId, serviceName }: ServiceBranchAssignmentProps) => {
+export const ServiceBranchAssignment = ({ serviceId, serviceName, serviceNameAr }: ServiceBranchAssignmentProps) => {
   const [branches, setBranches] = useState<Branch[]>([]);
   const [assignedBranchIds, setAssignedBranchIds] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [processingBranchIds, setProcessingBranchIds] = useState<string[]>([]);
 
   const fetchBranches = async () => {
     try {
@@ -32,6 +34,11 @@ export const ServiceBranchAssignment = ({ serviceId, serviceName }: ServiceBranc
       setBranches(data || []);
     } catch (error) {
       console.error('Error fetching branches:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load branches. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -46,14 +53,36 @@ export const ServiceBranchAssignment = ({ serviceId, serviceName }: ServiceBranc
       setAssignedBranchIds(data.map(item => item.branch_id));
     } catch (error) {
       console.error('Error fetching branch assignments:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load branch assignments. Please try again.",
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
     }
   };
 
   const toggleBranchAssignment = async (branchId: string, isChecked: boolean) => {
+    // Add branch to processing state
+    setProcessingBranchIds(prev => [...prev, branchId]);
+    
     try {
       if (isChecked) {
+        // Check if assignment already exists to prevent duplicates
+        const { data: existingAssignment } = await supabase
+          .from('branch_services')
+          .select('*')
+          .eq('branch_id', branchId)
+          .eq('service_id', serviceId)
+          .maybeSingle();
+          
+        if (existingAssignment) {
+          console.log('Assignment already exists, skipping insert');
+          setAssignedBranchIds(prev => [...prev, branchId]);
+          return;
+        }
+        
         // Add assignment
         const { error } = await supabase
           .from('branch_services')
@@ -61,7 +90,8 @@ export const ServiceBranchAssignment = ({ serviceId, serviceName }: ServiceBranc
             branch_id: branchId,
             service_id: serviceId,
             branch_name: branches.find(b => b.id === branchId)?.name,
-            service_name_en: serviceName
+            service_name_en: serviceName,
+            service_name_ar: serviceNameAr || null
           });
 
         if (error) throw error;
@@ -92,6 +122,9 @@ export const ServiceBranchAssignment = ({ serviceId, serviceName }: ServiceBranc
         description: "Failed to update branch assignment",
         variant: "destructive",
       });
+    } finally {
+      // Remove branch from processing state
+      setProcessingBranchIds(prev => prev.filter(id => id !== branchId));
     }
   };
 
@@ -103,7 +136,12 @@ export const ServiceBranchAssignment = ({ serviceId, serviceName }: ServiceBranc
   }, [serviceId]);
 
   if (isLoading) {
-    return <div className="text-sm text-gray-500">Loading branch assignments...</div>;
+    return (
+      <div className="flex items-center justify-center py-4">
+        <Loader2 className="h-5 w-5 animate-spin mr-2" />
+        <span className="text-sm text-gray-500">Loading branch assignments...</span>
+      </div>
+    );
   }
 
   const assignmentLabel = 
@@ -121,18 +159,23 @@ export const ServiceBranchAssignment = ({ serviceId, serviceName }: ServiceBranc
         </Badge>
       </div>
       <div className="grid grid-cols-1 gap-2">
-        {branches.map(branch => (
-          <div key={branch.id} className="flex items-center space-x-2">
-            <Checkbox 
-              id={`service-branch-${branch.id}`} 
-              checked={assignedBranchIds.includes(branch.id)}
-              onCheckedChange={(checked) => toggleBranchAssignment(branch.id, checked === true)}
-            />
-            <Label htmlFor={`service-branch-${branch.id}`} className="text-sm font-normal">
-              {branch.name}
-            </Label>
-          </div>
-        ))}
+        {branches.map(branch => {
+          const isProcessing = processingBranchIds.includes(branch.id);
+          return (
+            <div key={branch.id} className="flex items-center space-x-2">
+              <Checkbox 
+                id={`service-branch-${branch.id}`} 
+                checked={assignedBranchIds.includes(branch.id)}
+                onCheckedChange={(checked) => toggleBranchAssignment(branch.id, checked === true)}
+                disabled={isProcessing}
+              />
+              <Label htmlFor={`service-branch-${branch.id}`} className="text-sm font-normal flex items-center">
+                {branch.name}
+                {isProcessing && <Loader2 className="h-3 w-3 animate-spin ml-2" />}
+              </Label>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
