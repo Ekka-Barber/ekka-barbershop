@@ -1,14 +1,14 @@
-
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
-import { FileMetadata } from '@/types/admin';
+import { FileMetadata, FilePreview } from '@/types/admin';
 import { FileUploadParams, FileToggleParams, FileEndDateParams } from './types';
 import { useFileValidation } from './useFileValidation';
+import { format } from 'date-fns';
 
 export const useFileMutations = (
   setUploading: (value: boolean) => void,
-  setFilePreview: (value: any) => void,
+  setFilePreview: (value: FilePreview | null) => void,
   resetUploadState: () => void
 ) => {
   const { toast } = useToast();
@@ -16,9 +16,9 @@ export const useFileMutations = (
   const { validateFile, generatePreview } = useFileValidation();
 
   const uploadMutation = useMutation({
-    mutationFn: async ({ file, category }: FileUploadParams) => {
+    mutationFn: async ({ file, category, branchId, branchName, isAllBranches, endDate, endTime }: FileUploadParams) => {
       setUploading(true);
-      console.log('Starting file upload:', { fileName: file.name, category });
+      console.log('Starting file upload:', { fileName: file.name, category, branchId, endDate });
       
       try {
         validateFile(file);
@@ -35,6 +35,12 @@ export const useFileMutations = (
         
         if (uploadError) throw uploadError;
 
+        // Format end date and time if provided
+        let formattedEndDate = null;
+        if (endDate) {
+          formattedEndDate = new Date(`${format(endDate, 'yyyy-MM-dd')}T${endTime || '23:59'}:00`);
+        }
+
         console.log('Inserting file metadata into database');
         const { error: dbError } = await supabase
           .from('marketing_files')
@@ -43,7 +49,10 @@ export const useFileMutations = (
             file_path: fileName,
             file_type: file.type,
             category,
-            is_active: true
+            is_active: true,
+            branch_name: isAllBranches ? null : branchName,
+            branch_id: isAllBranches ? null : branchId,
+            end_date: formattedEndDate
           });
 
         if (dbError) {
