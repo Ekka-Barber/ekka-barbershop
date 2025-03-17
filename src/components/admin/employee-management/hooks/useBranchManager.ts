@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 
@@ -26,10 +25,8 @@ export const useBranchManager = () => {
       console.log('Fetched branches:', data);
       setBranches(data || []);
       
-      // Set first branch as default if any branches exist
-      if (data && data.length > 0) {
-        setSelectedBranch(data[0].id);
-      }
+      // Don't automatically select the first branch
+      // Let the user choose to see all employees or filter by branch
     } catch (error) {
       console.error('Error fetching branches:', error);
     } finally {
