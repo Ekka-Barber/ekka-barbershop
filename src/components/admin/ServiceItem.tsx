@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Service } from '@/types/service';
 import { Badge } from "@/components/ui/badge";
@@ -164,7 +163,11 @@ const ServiceItem = ({ service, onEdit, onDelete }: ServiceItemProps) => {
             {/* Add branch assignment component */}
             <div className="mt-4">
               <h4 className="text-sm font-medium mb-2">Branch Assignment</h4>
-              <ServiceBranchAssignment serviceId={service.id} serviceName={service.name_en} />
+              <ServiceBranchAssignment 
+                serviceId={service.id} 
+                serviceName={service.name_en} 
+                serviceNameAr={service.name_ar}
+              />
             </div>
           </div>
         )}
