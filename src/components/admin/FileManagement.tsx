@@ -1,4 +1,3 @@
-
 import { useFileManagement } from '@/hooks/useFileManagement';
 import { useEndDateManager } from './file-management/useEndDateManager';
 import { useDragAndDrop } from './file-management/useDragAndDrop';
@@ -39,8 +38,7 @@ export const FileManagement = () => {
     const file = event.target.files?.[0];
     if (!file) return;
     
-    // For offers, we need branch information
-    // For menu, we don't need to specify branch details
+    // For offers, we need branch information and optional end date/time
     if (category === 'offers') {
       // Find the selected branch details
       const selectedBranchDetails = branches?.find(branch => branch.id === selectedBranch);
@@ -55,12 +53,10 @@ export const FileManagement = () => {
         endTime: selectedTime
       });
     } else {
-      // For menu, don't include branch-related params
+      // For menu, don't include branch-related params or end date
       uploadMutation.mutate({
         file,
-        category,
-        endDate: selectedDate,
-        endTime: selectedTime
+        category
       });
     }
   };

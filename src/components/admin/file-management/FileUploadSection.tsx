@@ -56,36 +56,6 @@ export const FileUploadSection = ({
           </div>
         )}
         <div className="space-y-4">
-          <div className="flex flex-col space-y-2">
-            <Label>End Date & Time (Optional)</Label>
-            <div className="flex gap-2">
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={`w-[240px] justify-start text-left font-normal ${!selectedDate && "text-muted-foreground"}`}
-                  >
-                    <Clock className="mr-2 h-4 w-4" />
-                    {selectedDate ? format(selectedDate, "PPP") : <span>Pick a date</span>}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={selectedDate}
-                    onSelect={setSelectedDate}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
-              <Input
-                type="time"
-                value={selectedTime}
-                onChange={(e) => setSelectedTime(e.target.value)}
-                className="w-[120px]"
-              />
-            </div>
-          </div>
           <input
             type="file"
             accept=".pdf,.png,.jpg,.jpeg"

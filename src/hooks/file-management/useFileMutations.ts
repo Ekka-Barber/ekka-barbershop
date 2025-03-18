@@ -1,4 +1,3 @@
-
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
@@ -36,21 +35,19 @@ export const useFileMutations = (
         
         if (uploadError) throw uploadError;
 
-        // Format end date and time if provided
-        let formattedEndDate = null;
-        if (endDate) {
-          formattedEndDate = new Date(`${format(endDate, 'yyyy-MM-dd')}T${endTime || '23:59'}:00`);
-        }
-
-        // Only include branch-related fields for 'offers' category
-        const recordData: any = {
+        // Base record data for both menu and offers
+        const recordData: Record<string, any> = {
           file_name: file.name,
           file_path: fileName,
           file_type: file.type,
           category,
-          is_active: true,
-          end_date: formattedEndDate
+          is_active: true
         };
+
+        // Only add end date if it's provided (for either category)
+        if (endDate) {
+          recordData.end_date = new Date(`${format(endDate, 'yyyy-MM-dd')}T${endTime || '23:59'}:00`);
+        }
 
         // Only add branch data for offers category
         if (category === 'offers') {
