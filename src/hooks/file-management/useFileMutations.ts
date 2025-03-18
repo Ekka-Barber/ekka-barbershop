@@ -1,3 +1,4 @@
+
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
@@ -41,21 +42,30 @@ export const useFileMutations = (
           formattedEndDate = new Date(`${format(endDate, 'yyyy-MM-dd')}T${endTime || '23:59'}:00`);
         }
 
-        console.log('Inserting file metadata into database');
+        // Only include branch-related fields for 'offers' category
+        const recordData: any = {
+          file_name: file.name,
+          file_path: fileName,
+          file_type: file.type,
+          category,
+          is_active: true,
+          end_date: formattedEndDate
+        };
+
+        // Only add branch data for offers category
+        if (category === 'offers') {
+          recordData.branch_name = isAllBranches ? null : branchName;
+          recordData.branch_id = isAllBranches ? null : branchId;
+        }
+
+        console.log('Inserting file metadata into database:', recordData);
         const { error: dbError } = await supabase
           .from('marketing_files')
-          .insert({
-            file_name: file.name,
-            file_path: fileName,
-            file_type: file.type,
-            category,
-            is_active: true,
-            branch_name: isAllBranches ? null : branchName,
-            branch_id: isAllBranches ? null : branchId,
-            end_date: formattedEndDate
-          });
+          .insert(recordData);
 
         if (dbError) {
+          console.error('Database insertion error:', dbError);
+          // Cleanup the uploaded file if the database insert fails
           await supabase.storage
             .from('marketing_files')
             .remove([fileName]);

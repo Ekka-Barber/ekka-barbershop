@@ -1,3 +1,4 @@
+
 import { FileMetadata, FilePreview } from '@/types/admin';
 
 export interface FileUploadParams {
