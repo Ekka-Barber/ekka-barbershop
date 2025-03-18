@@ -71,7 +71,7 @@ const Menu = () => {
     queryFn: fetchMenu
   });
 
-  // Use the first menu file as the active one
+  // Use the first menu file as the active one when data loads
   useEffect(() => {
     if (menuFiles && menuFiles.length > 0) {
       setActiveMenuUrl(menuFiles[0].url);
@@ -120,7 +120,7 @@ const Menu = () => {
               ) : menuFiles && menuFiles.length > 0 ? (
                 <div className="space-y-4">
                   {menuFiles.length > 1 && (
-                    <div className="flex gap-2 mb-4 justify-center">
+                    <div className="flex gap-2 mb-4 justify-center flex-wrap">
                       {menuFiles.map((file, index) => (
                         <Button 
                           key={file.id}

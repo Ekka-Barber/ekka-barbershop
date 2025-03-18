@@ -36,14 +36,14 @@ export const useFileMutations = (
         
         if (uploadError) throw uploadError;
 
-        // Create the base record data
+        // Create the base record data with proper typing
         const recordData: {
           file_name: string;
           file_path: string;
           file_type: string;
           category: string;
           is_active: boolean;
-          end_date?: Date;
+          end_date?: string;
           branch_name?: string | null;
           branch_id?: string | null;
         } = {
@@ -56,7 +56,7 @@ export const useFileMutations = (
 
         // Only add end date if it's provided (for either category)
         if (endDate) {
-          recordData.end_date = new Date(`${format(endDate, 'yyyy-MM-dd')}T${endTime || '23:59'}:00`);
+          recordData.end_date = `${format(endDate, 'yyyy-MM-dd')}T${endTime || '23:59'}:00`;
         }
 
         // Only add branch data for offers category
