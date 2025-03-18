@@ -6,12 +6,13 @@ import { Button } from "@/components/ui/button";
 import { useNavigate, Link } from 'react-router-dom';
 import { Card } from "@/components/ui/card";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { trackViewContent, trackButtonClick } from "@/utils/tiktokTracking";
 
 const Menu = () => {
   const navigate = useNavigate();
   const { t, language } = useLanguage();
+  const [activeMenuUrl, setActiveMenuUrl] = useState<string | null>(null);
   
   useEffect(() => {
     // Track page view after component mounts
@@ -23,39 +24,63 @@ const Menu = () => {
 
   // Separate the fetch function for better type inference
   const fetchMenu = async () => {
+    console.log('Fetching active menu files...');
     const { data, error } = await supabase
       .from('marketing_files')
       .select('*')
       .eq('category', 'menu')
       .eq('is_active', true)
-      .order('display_order')
-      .maybeSingle();
+      .order('created_at', { ascending: false });
     
-    if (error) throw error;
+    if (error) {
+      console.error('Error fetching menu files:', error);
+      throw error;
+    }
     
-    if (data) {
-      // Get the public URL for the file
-      const { data: publicUrlData } = supabase.storage
-        .from('marketing_files')
-        .getPublicUrl(data.file_path);
+    console.log('Menu files returned:', data?.length || 0, 'files');
+    
+    if (data && data.length > 0) {
+      // Get public URLs for all menu files
+      const menuFilesWithUrls = await Promise.all(data.map(async (file) => {
+        const { data: publicUrlData } = supabase.storage
+          .from('marketing_files')
+          .getPublicUrl(file.file_path);
+        
+        return {
+          ...file,
+          url: publicUrlData.publicUrl
+        };
+      }));
       
-      console.log('Menu file data:', { ...data, url: publicUrlData.publicUrl });
+      console.log('Menu files with URLs:', menuFilesWithUrls);
       
-      const menuData = { ...data, url: publicUrlData.publicUrl };
       // Track menu view after successful load
       trackViewContent({
         pageId: 'menu_file',
         pageName: 'Menu File'
       });
-      return menuData;
+      
+      return menuFilesWithUrls;
     }
-    return null;
+    
+    return [];
   };
   
-  const { data: menuFile, isLoading } = useQuery({
-    queryKey: ['active-menu'],
+  const { data: menuFiles, isLoading, error } = useQuery({
+    queryKey: ['active-menu-files'],
     queryFn: fetchMenu
   });
+
+  // Use the first menu file as the active one
+  useEffect(() => {
+    if (menuFiles && menuFiles.length > 0) {
+      setActiveMenuUrl(menuFiles[0].url);
+    }
+  }, [menuFiles]);
+
+  if (error) {
+    console.error('Error in menu query:', error);
+  }
 
   return (
     <div dir={language === 'ar' ? 'rtl' : 'ltr'} className="min-h-screen flex flex-col">
@@ -92,20 +117,39 @@ const Menu = () => {
             <div className="p-6">
               {isLoading ? (
                 <div className="text-center py-8 text-[#222222]">{t('loading.menu')}</div>
-              ) : menuFile ? (
-                menuFile.file_type.includes('pdf') ? (
-                  <PDFViewer pdfUrl={menuFile.url} />
-                ) : (
-                  <img 
-                    src={menuFile.url} 
-                    alt="Menu"
-                    className="w-full max-w-full h-auto rounded-lg"
-                    onError={(e) => {
-                      console.error('Failed to load menu image:', menuFile.url);
-                      e.currentTarget.src = '/placeholder.svg';
-                    }}
-                  />
-                )
+              ) : menuFiles && menuFiles.length > 0 ? (
+                <div className="space-y-4">
+                  {menuFiles.length > 1 && (
+                    <div className="flex gap-2 mb-4 justify-center">
+                      {menuFiles.map((file, index) => (
+                        <Button 
+                          key={file.id}
+                          variant={activeMenuUrl === file.url ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => setActiveMenuUrl(file.url)}
+                        >
+                          {t('menu')} {index + 1}
+                        </Button>
+                      ))}
+                    </div>
+                  )}
+                  
+                  {activeMenuUrl && (
+                    menuFiles.find(f => f.url === activeMenuUrl)?.file_type.includes('pdf') ? (
+                      <PDFViewer pdfUrl={activeMenuUrl} />
+                    ) : (
+                      <img 
+                        src={activeMenuUrl} 
+                        alt="Menu"
+                        className="w-full max-w-full h-auto rounded-lg"
+                        onError={(e) => {
+                          console.error('Failed to load menu image:', activeMenuUrl);
+                          e.currentTarget.src = '/placeholder.svg';
+                        }}
+                      />
+                    )
+                  )}
+                </div>
               ) : (
                 <div className="text-center py-8 text-[#222222]">{t('no.menu')}</div>
               )}

@@ -1,3 +1,4 @@
+
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
@@ -35,8 +36,17 @@ export const useFileMutations = (
         
         if (uploadError) throw uploadError;
 
-        // Base record data for both menu and offers
-        const recordData: Record<string, any> = {
+        // Create the base record data
+        const recordData: {
+          file_name: string;
+          file_path: string;
+          file_type: string;
+          category: string;
+          is_active: boolean;
+          end_date?: Date;
+          branch_name?: string | null;
+          branch_id?: string | null;
+        } = {
           file_name: file.name,
           file_path: fileName,
           file_type: file.type,
@@ -78,6 +88,7 @@ export const useFileMutations = (
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['marketing-files'] });
+      queryClient.invalidateQueries({ queryKey: ['active-menu-files'] });
       toast({
         title: "Success",
         description: "File uploaded successfully",
