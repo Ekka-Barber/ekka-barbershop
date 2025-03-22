@@ -11,12 +11,11 @@ import { DurationDisplay } from "./summary/DurationDisplay";
 import { SavingsAlert } from "./summary/SavingsAlert";
 
 /**
- * Interface for the next tier threshold data
- * @interface NextTierThreshold
+ * Interface for the next tier threshold data expected by PackageSummary
  */
-interface NextTierThreshold {
-  servicesNeeded: number;
-  newPercentage: number;
+interface NextTierThresholdDisplay {
+  itemsUntilNextTier: number;
+  nextTierPercentage: number;
 }
 
 /**
@@ -29,7 +28,7 @@ interface PackageSummaryProps {
   savings: number;
   language: string;
   discountPercentage: number;
-  nextTierThreshold?: NextTierThreshold;
+  nextTierThreshold?: NextTierThresholdDisplay;
   totalDuration: number;
 }
 

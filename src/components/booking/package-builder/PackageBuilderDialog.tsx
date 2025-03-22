@@ -151,6 +151,12 @@ export const PackageBuilderDialog = ({
     }
   };
   
+  // Map NextTierThreshold to the format expected by PackageSummary
+  const mappedNextTierThreshold = nextTierThreshold ? {
+    itemsUntilNextTier: nextTierThreshold.servicesNeeded,
+    nextTierPercentage: nextTierThreshold.newPercentage
+  } : undefined;
+  
   return (
     <Dialog open={isOpen} onOpenChange={() => {}}>
       <DialogContent 
@@ -184,7 +190,7 @@ export const PackageBuilderDialog = ({
             savings={calculations.savings}
             language={language}
             discountPercentage={calculations.discountPercentage}
-            nextTierThreshold={nextTierThreshold}
+            nextTierThreshold={mappedNextTierThreshold}
             totalDuration={totalDuration}
           />
         </div>
