@@ -1,21 +1,20 @@
 
 import React, { useState, useEffect } from 'react';
-import {
-  Dialog,
-  DialogContent,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { PackageSettings } from '@/types/admin';
 import { Service, SelectedService } from '@/types/service';
 import { useToast } from "@/hooks/use-toast";
 import { createPackageService } from '@/utils/serviceTransformation';
-import { PackageBuilderHeader } from './PackageBuilderHeader';
-import { BaseServiceDisplay } from './BaseServiceDisplay';
-import { PackageServiceList } from './PackageServiceList';
-import { PackageSummary } from './PackageSummary';
-import { PackageBuilderFooter } from './PackageBuilderFooter';
 import { usePackageCalculation } from '@/hooks/usePackageCalculation';
 import { useNextTierCalculation } from '@/hooks/useNextTierCalculation';
+import { 
+  PackageBuilderHeader, 
+  BaseServiceDisplay, 
+  PackageServiceList, 
+  PackageSummary, 
+  PackageBuilderFooter 
+} from './PackageDialogComponents';
 
 /**
  * Dialog component for building and customizing service packages
@@ -123,16 +122,12 @@ export const PackageBuilderDialog = ({
       
       const transformedServices: SelectedService[] = [];
       
-      // ALWAYS add the base service first - critical for correct ordering
-      console.log('Adding base service to package:', baseService.id, language === 'ar' ? baseService.name_ar : baseService.name_en);
-      
-      // Always ensure base service is created with proper flags
+      // Add the base service first
       const baseSelectedService = createPackageService(baseService, true);
       transformedServices.push(baseSelectedService);
       
       // Add selected add-on services with discounts
       selectedAddOns.forEach(service => {
-        // Create package add-on with discount applied
         const packageAddOn = createPackageService(
           service, 
           false, 
@@ -142,17 +137,6 @@ export const PackageBuilderDialog = ({
         transformedServices.push(packageAddOn);
       });
 
-      // Log the complete package before confirming
-      console.log('Confirming package with', transformedServices.length, 'services');
-      console.log('Services being sent:', transformedServices.map(s => ({
-        id: s.id,
-        name: language === 'ar' ? s.name_ar : s.name_en,
-        isBase: s.isBasePackageService,
-        isAddOn: s.isPackageAddOn,
-        originalPrice: s.originalPrice,
-        finalPrice: s.price
-      })));
-      
       // Call the onConfirm handler with the complete list of services
       onConfirm(transformedServices);
     } catch (error) {

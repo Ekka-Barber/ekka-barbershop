@@ -3,7 +3,6 @@ import { useState, useEffect } from "react";
 import { BookingProgress, BookingStep } from "@/components/booking/BookingProgress";
 import { BookingNavigation } from "@/components/booking/BookingNavigation";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { useToast } from "@/hooks/use-toast";
 import { ErrorBoundary } from "@/components/common/ErrorBoundary";
 import { StepRenderer } from "./StepRenderer";
 import { useBookingContext } from "@/contexts/BookingContext";
@@ -11,6 +10,7 @@ import { ServicesSummary } from "../service-selection/ServicesSummary";
 import { transformServicesForDisplay } from "@/utils/serviceTransformation";
 import { transformWorkingHours } from "@/utils/workingHoursUtils";
 import { SkeletonLoader } from "@/components/common/SkeletonLoader";
+import { useStepValidation } from "./validation/useStepValidation";
 
 const STEPS: BookingStep[] = ['services', 'datetime', 'barber', 'details'];
 
@@ -22,9 +22,6 @@ export const BookingStepManager = ({
   branch
 }: BookingStepManagerProps) => {
   const { language } = useLanguage();
-  const { toast } = useToast();
-  const [isValidating, setIsValidating] = useState(false);
-  const [formValid, setFormValid] = useState(false);
   
   const {
     currentStep,
@@ -54,10 +51,25 @@ export const BookingStepManager = ({
     packageSettings
   } = useBookingContext();
   
-  const handleValidationChange = (isValid: boolean) => {
-    console.log("BookingStepManager: Setting form validity to:", isValid);
-    setFormValid(isValid);
-  };
+  // Use the extracted validation hook
+  const {
+    isValidating,
+    setIsValidating,
+    formValid,
+    setFormValid,
+    handleValidationChange,
+    isNextDisabled,
+    handleNextStep,
+    handlePrevStep
+  } = useStepValidation({
+    currentStep,
+    selectedServices,
+    selectedDate,
+    selectedBarber,
+    selectedTime,
+    customerDetails,
+    validateStep
+  });
 
   useEffect(() => {
     if (currentStep === 'details') {
@@ -70,41 +82,30 @@ export const BookingStepManager = ({
     if (currentStep !== 'details') {
       setFormValid(false);
     }
-  }, [currentStep]);
+  }, [currentStep, setFormValid]);
 
   const handleStepChange = (step: string) => {
     const typedStep = step as BookingStep;
     
     if (currentStep === 'details' && !formValid && typedStep !== 'barber') {
-      toast({
-        title: language === 'ar' ? "يرجى إكمال جميع الحقول المطلوبة" : "Please complete all required fields",
-        description: language === 'ar' 
-          ? "تأكد من تعبئة جميع الحقول بشكل صحيح قبل المتابعة" 
-          : "Make sure all fields are filled correctly before proceeding",
-        variant: "destructive",
-      });
+      // Don't allow proceeding if form is invalid
       return;
     }
     
     setCurrentStep(typedStep);
   };
 
-  const handleNextStep = async () => {
-    setIsValidating(true);
-    const currentIndex = STEPS.indexOf(currentStep as BookingStep);
-    
-    if (currentIndex < STEPS.length - 1) {
-      if (validateStep && await validateStep()) {
-        handleStepChange(STEPS[currentIndex + 1]);
-      }
+  const onNextStep = async () => {
+    const nextStep = await handleNextStep(STEPS);
+    if (nextStep) {
+      handleStepChange(nextStep);
     }
-    setIsValidating(false);
   };
 
-  const handlePrevStep = () => {
-    const currentIndex = STEPS.indexOf(currentStep as BookingStep);
-    if (currentIndex > 0) {
-      setCurrentStep(STEPS[currentIndex - 1]);
+  const onPrevStep = () => {
+    const prevStep = handlePrevStep(STEPS);
+    if (prevStep) {
+      setCurrentStep(prevStep);
     }
   };
 
@@ -115,14 +116,6 @@ export const BookingStepManager = ({
 
   const employeeWorkingHours = selectedEmployee?.working_hours ? 
     transformWorkingHours(selectedEmployee.working_hours) : null;
-
-  const isNextDisabled = () => {
-    if (currentStep === 'services') return selectedServices.length === 0;
-    if (currentStep === 'datetime') return !selectedDate;
-    if (currentStep === 'barber') return !selectedBarber || !selectedTime;
-    if (currentStep === 'details') return !formValid;
-    return false;
-  };
   
   if (categoriesLoading && currentStep === 'services') {
     return <SkeletonLoader />;
@@ -207,8 +200,8 @@ export const BookingStepManager = ({
             totalDuration={totalDuration} 
             totalPrice={totalPrice} 
             language={language} 
-            onNextStep={handleNextStep} 
-            onPrevStep={handlePrevStep} 
+            onNextStep={onNextStep} 
+            onPrevStep={onPrevStep} 
             isFirstStep={currentStepIndex === 0} 
             packageEnabled={packageEnabled}
             packageSettings={packageSettings}
