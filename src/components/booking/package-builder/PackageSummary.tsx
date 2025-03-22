@@ -55,6 +55,7 @@ export const PackageSummary = ({
   savings,
   language,
   discountPercentage,
+  nextTierThreshold,
   totalDuration = 0
 }: PackageSummaryProps) => {
   const isRTL = language === 'ar';
@@ -115,6 +116,29 @@ export const PackageSummary = ({
         language={language}
         isRTL={isRTL}
       />
+      
+      {/* Next Tier Threshold Alert */}
+      {nextTierThreshold && nextTierThreshold.itemsUntilNextTier > 0 && (
+        <div className={cn(
+          "rounded-md bg-amber-50 border border-amber-200 p-2 text-xs text-amber-800 flex items-start",
+          isRTL && "flex-row-reverse text-right"
+        )}>
+          <div className={cn("flex items-center", isRTL && "mr-1.5")}>
+            <div className={cn("h-3.5 w-3.5 text-amber-600 shrink-0", isRTL ? "ml-1.5" : "mr-1.5")}>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-info">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="16" x2="12" y2="12"></line>
+                <line x1="12" y1="8" x2="12.01" y2="8"></line>
+              </svg>
+            </div>
+          </div>
+          <p className="flex-1">
+            {language === 'ar' 
+              ? `أضف ${nextTierThreshold.itemsUntilNextTier} خدمة أخرى للحصول على خصم ${nextTierThreshold.nextTierPercentage}%`
+              : `Add ${nextTierThreshold.itemsUntilNextTier} more ${nextTierThreshold.itemsUntilNextTier === 1 ? 'service' : 'services'} to get a ${nextTierThreshold.nextTierPercentage}% discount`}
+          </p>
+        </div>
+      )}
     </div>
   );
 };
