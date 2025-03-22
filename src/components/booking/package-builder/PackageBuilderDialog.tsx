@@ -12,6 +12,7 @@ import { PackageSummary } from './PackageSummary';
 import { Button } from "@/components/ui/button";
 import { X, Check, Info, CircleDollarSign, Clock, CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { PriceDisplay } from "@/components/ui/price-display";
 
 /**
  * Dialog component for building and customizing service packages
@@ -196,9 +197,12 @@ export const PackageBuilderDialog = ({
                         ? "الخدمة الأساسية" 
                         : "Base Service"}
                     </span>
-                    <span className="text-primary">
-                      {baseService.price} {language === 'ar' ? "ريال" : "SAR"}
-                    </span>
+                    <PriceDisplay
+                      price={baseService.price}
+                      language={language as 'en' | 'ar'}
+                      size="sm"
+                      className="text-primary"
+                    />
                   </div>
                   <p className="text-sm text-muted-foreground">
                     {language === 'ar' ? baseService.name_ar : baseService.name_en}
@@ -247,12 +251,27 @@ export const PackageBuilderDialog = ({
                           <span className="flex items-center">
                             <CircleDollarSign className="h-3 w-3 mr-1" />
                             {isSelected ? (
-                              <span className="flex items-center">
-                                <span className="line-through mr-1 opacity-70">{service.price}</span>
-                                <span className="text-primary">{Math.round(service.price * (1 - calculations.discountPercentage / 100))}</span>
+                              <span className="flex items-center gap-1">
+                                <PriceDisplay
+                                  price={Math.round(service.price * (1 - calculations.discountPercentage / 100))}
+                                  language={language as 'en' | 'ar'}
+                                  size="sm"
+                                  className="text-primary"
+                                />
+                                <span className="line-through opacity-70">
+                                  <PriceDisplay
+                                    price={service.price}
+                                    language={language as 'en' | 'ar'}
+                                    size="sm"
+                                  />
+                                </span>
                               </span>
                             ) : (
-                              service.price
+                              <PriceDisplay
+                                price={service.price}
+                                language={language as 'en' | 'ar'}
+                                size="sm"
+                              />
                             )}
                           </span>
                         </div>
