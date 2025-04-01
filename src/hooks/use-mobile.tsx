@@ -1,4 +1,3 @@
-
 import * as React from "react"
 
 const MOBILE_BREAKPOINT = 768
@@ -19,13 +18,6 @@ export function useIsMobile() {
     
     // Add event listener
     window.addEventListener("resize", handleResize)
-    
-    // Debug logging
-    console.log("Mobile detection:", { 
-      windowWidth: window.innerWidth, 
-      isMobile: window.innerWidth < MOBILE_BREAKPOINT,
-      breakpoint: MOBILE_BREAKPOINT
-    })
     
     // Cleanup
     return () => window.removeEventListener("resize", handleResize)
