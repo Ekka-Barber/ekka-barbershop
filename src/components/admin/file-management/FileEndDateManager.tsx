@@ -1,20 +1,22 @@
-
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
-import { Clock, X } from "lucide-react";
 import { format } from "date-fns";
-
-interface FileEndDateManagerProps {
-  file: any;
-  selectedDate: Date | undefined;
-  setSelectedDate: (date: Date | undefined) => void;
-  selectedTime: string;
-  setSelectedTime: (time: string) => void;
-  handleEndDateUpdate: (file: any) => void;
-  handleRemoveEndDate: (fileId: string) => void;
-}
+import { Calendar } from "@/components/ui/calendar";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { FileEndDateManagerProps } from "@/types/file-management";
 
 export const FileEndDateManager = ({
   file,
@@ -23,61 +25,99 @@ export const FileEndDateManager = ({
   selectedTime,
   setSelectedTime,
   handleEndDateUpdate,
-  handleRemoveEndDate
+  handleRemoveEndDate,
+  dialogOpen,
+  setDialogOpen,
 }: FileEndDateManagerProps) => {
-  if (file.end_date) {
-    return (
-      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-        <Clock className="h-4 w-4" />
-        <span>Ends: {format(new Date(file.end_date), "PPp")}</span>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-4 w-4 p-0"
-          onClick={() => handleRemoveEndDate(file.id)}
-        >
-          <X className="h-3 w-3" />
-        </Button>
-      </div>
-    );
-  }
-
   return (
-    <div className="mt-2 space-y-2">
-      <div className="flex gap-2">
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              className="text-sm h-8"
-            >
-              <Clock className="mr-2 h-4 w-4" />
-              Set end date
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-0" align="start">
+    <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Set Expiration Date</DialogTitle>
+          <DialogDescription>
+            Set an expiration date and time for "{file.file_name}". The file will automatically 
+            expire on the selected date and time.
+          </DialogDescription>
+        </DialogHeader>
+        
+        <div className="space-y-4 py-4">
+          <div className="flex flex-col space-y-2">
+            <label htmlFor="expiration-date" className="text-sm font-medium">
+              Expiration Date
+            </label>
             <Calendar
               mode="single"
-              selected={selectedDate}
-              onSelect={setSelectedDate}
-              initialFocus
+              selected={selectedDate || undefined}
+              onSelect={(date) => setSelectedDate(date)}
+              disabled={(date) => date < new Date()}
+              className="rounded-md border"
             />
-          </PopoverContent>
-        </Popover>
-        <Input
-          type="time"
-          value={selectedTime}
-          onChange={(e) => setSelectedTime(e.target.value)}
-          className="w-[120px] h-8"
-        />
-        <Button 
-          size="sm"
-          onClick={() => handleEndDateUpdate(file)}
-          className="h-8"
-        >
-          Save
-        </Button>
-      </div>
-    </div>
+          </div>
+          
+          <div className="flex flex-col space-y-2">
+            <label htmlFor="expiration-time" className="text-sm font-medium">
+              Expiration Time
+            </label>
+            <Select
+              value={selectedTime || "23:59"}
+              onValueChange={setSelectedTime}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select a time" />
+              </SelectTrigger>
+              <SelectContent>
+                {[...Array(24)].map((_, hour) => (
+                  <>
+                    <SelectItem key={`${hour}:00`} value={`${hour.toString().padStart(2, '0')}:00`}>
+                      {hour.toString().padStart(2, '0')}:00
+                    </SelectItem>
+                    <SelectItem key={`${hour}:30`} value={`${hour.toString().padStart(2, '0')}:30`}>
+                      {hour.toString().padStart(2, '0')}:30
+                    </SelectItem>
+                  </>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {file.end_date && (
+            <div className="text-sm text-muted-foreground">
+              <p>Current expiration: {format(new Date(file.end_date), "PPP p")}</p>
+            </div>
+          )}
+        </div>
+        
+        <DialogFooter className="flex justify-between sm:justify-between">
+          {file.end_date ? (
+            <Button
+              variant="outline"
+              className="mr-auto"
+              onClick={() => {
+                handleRemoveEndDate(file.id);
+                setDialogOpen(false);
+              }}
+            >
+              Remove Expiration
+            </Button>
+          ) : (
+            <div />
+          )}
+          <div className="flex space-x-2">
+            <Button variant="secondary" onClick={() => setDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              disabled={!selectedDate}
+              onClick={() => {
+                handleEndDateUpdate(file.id);
+                setDialogOpen(false);
+              }}
+            >
+              Save
+            </Button>
+          </div>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 };
