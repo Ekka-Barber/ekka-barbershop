@@ -1,33 +1,31 @@
+import { EndDateManagerProps } from '@/types/file-management';
 
-import { useCallback } from 'react';
-import { FileMetadata } from '@/types/admin';
-
-interface UseEndDateManagerProps {
-  selectedDate: Date | undefined;
-  selectedTime: string;
-  updateEndDateMutation: any;
-}
-
-export const useEndDateManager = ({
+export const useEndDateManager = ({ 
   selectedDate,
   selectedTime,
   updateEndDateMutation
-}: UseEndDateManagerProps) => {
-  const handleEndDateUpdate = useCallback((file: FileMetadata) => {
-    let endDate = null;
-    if (selectedDate && selectedTime) {
-      const [hours, minutes] = selectedTime.split(':');
-      const date = new Date(selectedDate);
-      date.setHours(parseInt(hours), parseInt(minutes));
-      endDate = date.toISOString();
+}: EndDateManagerProps) => {
+  
+  const handleEndDateUpdate = (fileId: string) => {
+    if (!selectedDate) {
+      console.error('No date selected');
+      return;
     }
-    
-    updateEndDateMutation.mutate({ id: file.id, endDate });
-  }, [selectedDate, selectedTime, updateEndDateMutation]);
 
-  const handleRemoveEndDate = useCallback((fileId: string) => {
-    updateEndDateMutation.mutate({ id: fileId, endDate: null });
-  }, [updateEndDateMutation]);
+    updateEndDateMutation.mutate({
+      id: fileId,
+      endDate: selectedDate,
+      endTime: selectedTime
+    });
+  };
+
+  const handleRemoveEndDate = (fileId: string) => {
+    updateEndDateMutation.mutate({
+      id: fileId,
+      endDate: null,
+      endTime: null
+    });
+  };
 
   return {
     handleEndDateUpdate,
