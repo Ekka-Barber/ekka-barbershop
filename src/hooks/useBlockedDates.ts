@@ -1,5 +1,4 @@
-
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { BlockedDate, BlockedDateInput } from '@/types/admin';
 import { isSameDay } from 'date-fns';
@@ -34,10 +33,13 @@ export const useBlockedDates = () => {
 
   const blockDate = useCallback(async (data: BlockedDateInput) => {
     try {
+      // Format date consistently for blocking
+      const formattedDate = data.date.toISOString().split('T')[0];
+      
       const { error } = await supabase
         .from('blocked_dates')
         .insert([{
-          date: data.date.toISOString().split('T')[0],
+          date: formattedDate,
           reason: data.reason,
           is_recurring: data.is_recurring,
           recurrence_pattern: data.is_recurring ? 'yearly' : null
@@ -50,7 +52,7 @@ export const useBlockedDates = () => {
         description: `${data.date.toLocaleDateString()} is now blocked for bookings`,
       });
       
-      await fetchBlockedDates();
+      // No need to refetch - subscription will handle it
     } catch (error: any) {
       console.error('Error blocking date:', error);
       toast({
@@ -59,14 +61,17 @@ export const useBlockedDates = () => {
         variant: "destructive"
       });
     }
-  }, [fetchBlockedDates, toast]);
+  }, [toast]);
 
   const unblockDate = useCallback(async (date: Date) => {
     try {
+      // Format date consistently for unblocking
+      const formattedDate = date.toISOString().split('T')[0];
+      
       const { error } = await supabase
         .from('blocked_dates')
         .delete()
-        .eq('date', date.toISOString().split('T')[0]);
+        .eq('date', formattedDate);
 
       if (error) throw error;
       
@@ -75,7 +80,7 @@ export const useBlockedDates = () => {
         description: `${date.toLocaleDateString()} is now available for bookings`,
       });
       
-      await fetchBlockedDates();
+      // No need to refetch - subscription will handle it
     } catch (error: any) {
       console.error('Error unblocking date:', error);
       toast({
@@ -84,14 +89,19 @@ export const useBlockedDates = () => {
         variant: "destructive"
       });
     }
-  }, [fetchBlockedDates, toast]);
+  }, [toast]);
 
+  // Memoize the isBlocked function to improve performance
   const isBlocked = useCallback((date: Date) => {
+    // Early return for undefined date
+    if (!date) return false;
+    
     return blockedDates.some(blockedDate => 
       isSameDay(new Date(blockedDate.date), date)
     );
   }, [blockedDates]);
 
+  // Set up realtime subscription once on mount
   useEffect(() => {
     fetchBlockedDates();
     
@@ -106,6 +116,7 @@ export const useBlockedDates = () => {
           table: 'blocked_dates'
         },
         () => {
+          // Only fetch when data changes
           fetchBlockedDates();
         }
       )
