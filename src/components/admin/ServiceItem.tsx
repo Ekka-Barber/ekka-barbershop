@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Service } from '@/types/service';
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -24,13 +24,14 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 
-interface ServiceItemProps {
+export interface ServiceItemProps {
   service: Service;
   onEdit: (service: Service) => void;
   onDelete: (service: Service) => void;
 }
 
-const ServiceItem = ({ service, onEdit, onDelete }: ServiceItemProps) => {
+// Optimize with React.memo to prevent unnecessary re-renders
+const ServiceItem = React.memo(({ service, onEdit, onDelete }: ServiceItemProps) => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const { toast } = useToast();
@@ -40,6 +41,7 @@ const ServiceItem = ({ service, onEdit, onDelete }: ServiceItemProps) => {
   const [branchAssignments, setBranchAssignments] = useState<string[]>([]);
   const [isFetchingBranches, setIsFetchingBranches] = useState(false);
   
+  // Optimize by using useEffect with proper dependencies
   useEffect(() => {
     const fetchBranchAssignments = async () => {
       if (!service.id) return;
@@ -68,12 +70,27 @@ const ServiceItem = ({ service, onEdit, onDelete }: ServiceItemProps) => {
     fetchBranchAssignments();
   }, [service.id]);
   
-  let branchLabel = 'Not assigned';
-  if (branchAssignments.length === 1) {
-    branchLabel = branchAssignments[0];
-  } else if (branchAssignments.length > 1) {
-    branchLabel = 'Multiple branches';
-  }
+  // Memoize branch label calculation
+  const branchLabel = useMemo(() => {
+    if (isFetchingBranches) return 'Loading...';
+    if (branchAssignments.length === 0) return 'Not assigned';
+    if (branchAssignments.length === 1) return branchAssignments[0];
+    return 'Multiple branches';
+  }, [branchAssignments, isFetchingBranches]);
+  
+  // Use useCallback for event handlers
+  const toggleDetails = useCallback(() => {
+    setIsDetailsOpen(prev => !prev);
+  }, []);
+  
+  const handleDelete = useCallback(() => {
+    onDelete(service);
+    setIsDeleteDialogOpen(false);
+    toast({
+      title: "Service Deleted",
+      description: "Service has been deleted successfully.",
+    });
+  }, [service, onDelete, toast]);
   
   return (
     <div className="bg-card border rounded-md">
@@ -85,7 +102,7 @@ const ServiceItem = ({ service, onEdit, onDelete }: ServiceItemProps) => {
               
               {/* Add branch badge */}
               <Badge variant={branchAssignments.length > 0 ? "default" : "outline"} className="ml-2">
-                {isFetchingBranches ? 'Loading...' : branchLabel}
+                {branchLabel}
               </Badge>
             </div>
             <p className="text-sm text-muted-foreground">{service.name_ar}</p>
@@ -104,7 +121,7 @@ const ServiceItem = ({ service, onEdit, onDelete }: ServiceItemProps) => {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => setIsDetailsOpen(!isDetailsOpen)}
+                onClick={toggleDetails}
               >
                 {isDetailsOpen ? (
                   <>
@@ -183,14 +200,7 @@ const ServiceItem = ({ service, onEdit, onDelete }: ServiceItemProps) => {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={() => {
-              onDelete(service);
-              setIsDeleteDialogOpen(false);
-              toast({
-                title: "Service Deleted",
-                description: "Service has been deleted successfully.",
-              });
-            }}>
+            <AlertDialogAction onClick={handleDelete}>
               Delete
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -198,6 +208,8 @@ const ServiceItem = ({ service, onEdit, onDelete }: ServiceItemProps) => {
       </AlertDialog>
     </div>
   );
-};
+});
+
+ServiceItem.displayName = 'ServiceItem';
 
 export default ServiceItem;
