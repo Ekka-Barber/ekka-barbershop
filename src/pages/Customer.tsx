@@ -40,11 +40,6 @@ const Customer = () => {
         top: parseInt(insets.top || '0', 10),
         bottom: parseInt(insets.bottom || '0', 10)
       });
-      
-      console.log('Safe areas:', insets);
-      console.log('Viewport height:', height);
-      console.log('Has notch:', deviceHasNotch);
-      console.log('Is standalone:', isStandalone);
     };
 
     handleResize();
