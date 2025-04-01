@@ -1,4 +1,3 @@
-
 import { isToday, isBefore, addMinutes, addDays, format } from "date-fns";
 import { convertTimeToMinutes, convertMinutesToTime, isAfterMidnight } from "./timeConversion";
 import { UnavailableSlot } from "./timeSlotTypes";
@@ -15,9 +14,7 @@ export const isSlotAvailable = (
   serviceDuration: number = 30,
   workingHoursRanges: string[] = []
 ): boolean => {
-  // Format the time for logging
-  const timeString = convertMinutesToTime(slotMinutes);
-  const isSlotAfterMidnight = isAfterMidnight(timeString);
+  const isSlotAfterMidnight = isAfterMidnight(convertMinutesToTime(slotMinutes));
   
   // Validate unavailable slots
   if (!Array.isArray(unavailableSlots)) {
@@ -26,7 +23,6 @@ export const isSlotAvailable = (
   
   // Check if the slot is within working hours
   if (!isWithinWorkingHours(slotMinutes, workingHoursRanges)) {
-    console.log(`Slot ${timeString} is outside working hours ranges`, workingHoursRanges);
     return false;
   }
 
@@ -53,13 +49,8 @@ export const isSlotAvailable = (
   }
 
   // Check if the service duration would extend beyond working hours
-  if (!hasValidServiceEndTime(slotMinutes, serviceDuration, workingHoursRanges)) {
-    return false;
-  }
-  
-  // Check if there's enough consecutive time for the service by checking for conflicts
-  // with unavailable slots
-  return !hasConflictWithUnavailableSlots(slotMinutes, serviceDuration, unavailableSlots);
+  const slotEndMinutes = slotMinutes + serviceDuration;
+  return isWithinWorkingHours(slotEndMinutes, workingHoursRanges);
 };
 
 /**
