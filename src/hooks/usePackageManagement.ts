@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -237,6 +236,9 @@ export const usePackageManagement = () => {
     mutationFn: async ({ serviceId, newDisplayOrder }: { serviceId: string, newDisplayOrder: number }) => {
       console.log(`Updating service ${serviceId} to display order ${newDisplayOrder}`);
       
+      // Add the branch manager code RPC call for authorization
+      await supabase.rpc('set_branch_manager_code', { code: 'true' });
+      
       const { error } = await supabase
         .from('package_available_services')
         .update({ display_order: newDisplayOrder })
@@ -248,7 +250,8 @@ export const usePackageManagement = () => {
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['package_available_services'] });
+      // Don't immediately invalidate the query which could cause a race condition
+      // We'll do this once all updates are complete
     },
     onError: (error) => {
       console.error('Error updating service order:', error);
@@ -307,18 +310,52 @@ export const usePackageManagement = () => {
     // Update local cache optimistically
     queryClient.setQueryData(['package_available_services'], updatedServicesData);
     
-    // Calculate new display_order values with simple sequential numbering (0, 1, 2...)
-    const updates = newOrder.map((service, index) => ({
-      serviceId: service.service_id,
-      newDisplayOrder: index
-    }));
-    
-    // Update each service with its new position
     try {
-      for (const update of updates) {
-        console.log(`Updating service ${update.serviceId} to display order ${update.newDisplayOrder}`);
-        await updateServiceOrderMutation.mutateAsync(update);
+      // Add branch manager code RPC call for authorization
+      await supabase.rpc('set_branch_manager_code', { code: 'true' });
+      
+      // Get all relevant records to update
+      const { data: currentServices, error: fetchError } = await supabase
+        .from('package_available_services')
+        .select('*')
+        .in('service_id', updatedServicesData.map(s => s.service_id));
+      
+      if (fetchError) throw fetchError;
+      
+      // Create the updates with complete records
+      const mergedUpdates = updatedServicesData.map(service => {
+        const current = currentServices?.find(s => s.service_id === service.service_id);
+        if (!current) {
+          console.error(`Service ${service.service_id} not found in database`);
+          return null;
+        }
+        return {
+          ...current,
+          display_order: service.display_order
+        };
+      }).filter(Boolean);
+
+      console.log('Upserting all services with new display orders in a single operation');
+      
+      // Perform a single bulk upsert operation
+      const { error } = await supabase
+        .from('package_available_services')
+        .upsert(mergedUpdates);
+      
+      if (error) throw error;
+      
+      // Individual updates for logging purposes only
+      for (const update of updatedServicesData) {
+        console.log(`Service ${update.service_id} updated to display order ${update.display_order}`);
       }
+      
+      // Now that all updates are complete, invalidate the query to refresh data
+      queryClient.invalidateQueries({ queryKey: ['package_available_services'] });
+      
+      toast({
+        title: "Success",
+        description: "Service order has been updated successfully.",
+      });
     } catch (error) {
       console.error("Failed to update service orders:", error);
       toast({
