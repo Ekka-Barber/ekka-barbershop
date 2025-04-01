@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { useOptimizedCategories } from '@/hooks/useOptimizedCategories';
 import { CategoryList } from './category-management/CategoryList';
@@ -7,6 +7,7 @@ import { ServiceCategorySkeleton } from './service-management/ServiceCategorySke
 import { EmptyServiceState } from './service-management/EmptyServiceState';
 import { useToast } from "@/components/ui/use-toast";
 import { DropResult } from '@hello-pangea/dnd';
+import { Category } from '@/types/service';
 
 const ServiceCategoryList = () => {
   const [expandedCategories, setExpandedCategories] = useState<string[]>([]);
@@ -36,15 +37,15 @@ const ServiceCategoryList = () => {
     };
   }, [setupRealtimeSubscription]);
 
-  const toggleCategory = (categoryId: string) => {
+  const toggleCategory = useCallback((categoryId: string) => {
     setExpandedCategories(prev => 
       prev.includes(categoryId)
         ? prev.filter(id => id !== categoryId)
         : [...prev, categoryId]
     );
-  };
+  }, []);
 
-  const handleDeleteCategory = async (categoryId: string) => {
+  const handleDeleteCategory = useCallback(async (categoryId: string) => {
     try {
       const { error } = await supabase
         .from('service_categories')
@@ -64,14 +65,15 @@ const ServiceCategoryList = () => {
         variant: "destructive",
       });
     }
-  };
+  }, [toast]);
 
   const handleDragEnd = useCallback(async (result: DropResult) => {
     if (!result.destination || !categories) return;
 
     try {
       const { source, destination } = result;
-      const newCategories = Array.from(categories);
+      const typedCategories = categories as Category[];
+      const newCategories = Array.from(typedCategories);
       const [removed] = newCategories.splice(source.index, 1);
       newCategories.splice(destination.index, 0, removed);
 
@@ -103,27 +105,32 @@ const ServiceCategoryList = () => {
     }
   }, [categories, toast]);
 
-  if (isLoading) {
-    return <ServiceCategorySkeleton />;
-  }
+  // Use memoization for the component content to prevent unnecessary re-renders
+  const content = useMemo(() => {
+    if (isLoading) {
+      return <ServiceCategorySkeleton />;
+    }
 
-  if (!categories?.length) {
-    return <EmptyServiceState />;
-  }
+    if (!categories?.length) {
+      return <EmptyServiceState />;
+    }
 
-  return (
-    <div className="space-y-6">
-      <CategoryList
-        categories={categories}
-        expandedCategories={expandedCategories}
-        onToggleCategory={toggleCategory}
-        onDeleteCategory={handleDeleteCategory}
-        onDragEnd={handleDragEnd}
-      />
+    return (
+      <div className="space-y-6">
+        <CategoryList
+          categories={categories}
+          expandedCategories={expandedCategories}
+          onToggleCategory={toggleCategory}
+          onDeleteCategory={handleDeleteCategory}
+          onDragEnd={handleDragEnd}
+        />
 
-      <CategoryActions categories={categories} />
-    </div>
-  );
+        <CategoryActions categories={categories} />
+      </div>
+    );
+  }, [categories, expandedCategories, handleDeleteCategory, handleDragEnd, isLoading, toggleCategory]);
+
+  return content;
 };
 
 export default ServiceCategoryList;
