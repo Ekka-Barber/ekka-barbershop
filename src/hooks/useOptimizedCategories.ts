@@ -56,29 +56,32 @@ export const useOptimizedCategories = () => {
   const { data: categories, isLoading } = useQuery({
     queryKey: ['service-categories', page],
     queryFn: fetchCategories,
-    staleTime: 1000 * 60,
-    gcTime: 1000 * 60 * 5,
+    staleTime: 1000 * 60 * 5,
+    gcTime: 1000 * 60 * 10,
   });
 
+  const searchLower = useMemo(() => searchQuery.toLowerCase(), [searchQuery]);
+  
   const filteredCategories = useMemo(() => {
     if (!categories) return [];
     
+    if (!searchQuery) return categories;
+    
     return categories.filter(category => {
-      if (searchQuery) {
-        const searchLower = searchQuery.toLowerCase();
-        const matchCategory = 
-          category.name_en.toLowerCase().includes(searchLower) ||
-          category.name_ar.toLowerCase().includes(searchLower);
-        const matchServices = category.services?.some(service =>
-          service.name_en.toLowerCase().includes(searchLower) ||
-          service.name_ar.toLowerCase().includes(searchLower)
-        );
-        return matchCategory || matchServices;
-      }
+      const matchCategory = 
+        category.name_en.toLowerCase().includes(searchLower) ||
+        category.name_ar.toLowerCase().includes(searchLower);
+        
+      if (matchCategory) return true;
       
-      return true;
+      const matchServices = category.services?.some(service =>
+        service.name_en.toLowerCase().includes(searchLower) ||
+        service.name_ar.toLowerCase().includes(searchLower)
+      );
+      
+      return matchServices;
     });
-  }, [categories, searchQuery]);
+  }, [categories, searchQuery, searchLower]);
 
   const sortedCategories = useMemo(() => {
     if (!filteredCategories.length) return [];
