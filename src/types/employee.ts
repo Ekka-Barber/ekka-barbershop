@@ -1,4 +1,3 @@
-
 import { WorkingHours } from './service';
 
 export interface Employee {
