@@ -1,5 +1,4 @@
-
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Category, Service } from '@/types/service';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -42,30 +41,31 @@ interface CategoryItemProps {
   index: number; // Added the index prop for drag and drop functionality
 }
 
-const CategoryItem = ({ category, services = [], onDelete, onExpandedChange, isExpanded, index }: CategoryItemProps) => {
+// Optimize the component with React.memo to prevent unnecessary re-renders
+const CategoryItem = React.memo(({ category, services = [], onDelete, onExpandedChange, isExpanded, index }: CategoryItemProps) => {
   const { toast } = useToast();
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isConfirmationOpen, setIsConfirmationOpen] = useState(false);
   const [expanded, setExpanded] = useState(false);
+  const [branchAssignments, setBranchAssignments] = useState<string[]>([]);
+  const [isFetchingBranches, setIsFetchingBranches] = useState(false);
+  const [showConfirmation, setShowConfirmation] = useState(false);
 
   useEffect(() => {
     setExpanded(isExpanded || false);
   }, [isExpanded]);
 
-  const handleExpandedChange = (newExpanded: boolean) => {
+  const handleExpandedChange = useCallback((newExpanded: boolean) => {
     setExpanded(newExpanded);
     onExpandedChange?.(category.id, newExpanded);
-  };
+  }, [category.id, onExpandedChange]);
 
-  const handleDelete = () => {
+  const handleDelete = useCallback(() => {
     onDelete(category.id);
     setIsDeleteDialogOpen(false);
-  };
+  }, [category.id, onDelete]);
 
-  // Add branch assignment display
-  const [branchAssignments, setBranchAssignments] = useState<string[]>([]);
-  const [isFetchingBranches, setIsFetchingBranches] = useState(false);
-
+  // Optimize branch assignments fetching
   useEffect(() => {
     const fetchBranchAssignments = async () => {
       if (!category.id) return;
@@ -94,14 +94,13 @@ const CategoryItem = ({ category, services = [], onDelete, onExpandedChange, isE
     fetchBranchAssignments();
   }, [category.id]);
 
-  const [showConfirmation, setShowConfirmation] = useState(false);
-
-  let branchLabel = 'Not assigned';
-  if (branchAssignments.length === 1) {
-    branchLabel = branchAssignments[0];
-  } else if (branchAssignments.length > 1) {
-    branchLabel = 'Multiple branches';
-  }
+  // Memoize branch label creation to prevent unnecessary calculations
+  const branchLabel = useMemo(() => {
+    if (isFetchingBranches) return 'Loading...';
+    if (branchAssignments.length === 0) return 'Not assigned';
+    if (branchAssignments.length === 1) return branchAssignments[0];
+    return 'Multiple branches';
+  }, [branchAssignments, isFetchingBranches]);
 
   return (
     <Draggable draggableId={category.id} index={index}>
@@ -120,8 +119,11 @@ const CategoryItem = ({ category, services = [], onDelete, onExpandedChange, isE
                 
                   {/* Add branch assignment badge */}
                   <div className="mt-1">
-                    <Badge variant={branchAssignments.length > 0 ? "default" : "outline"} className="mt-1">
-                      {isFetchingBranches ? 'Loading...' : branchLabel}
+                    <Badge 
+                      variant={branchAssignments.length > 0 ? "default" : "outline"} 
+                      className="mt-1"
+                    >
+                      {branchLabel}
                     </Badge>
                   </div>
                 </div>
@@ -232,6 +234,6 @@ const CategoryItem = ({ category, services = [], onDelete, onExpandedChange, isE
       )}
     </Draggable>
   );
-};
+});
 
 export default CategoryItem;
