@@ -1,18 +1,22 @@
-
-import React, { useState } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { format, isSameDay, isWeekend } from "date-fns";
 import { BlockedDatesList } from "./BlockedDatesList";
-import { BlockDateForm } from "./BlockDateForm";
 import { useBlockedDates } from "@/hooks/useBlockedDates";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { CalendarIcon, Loader2 } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 
-export const BookingManagement = () => {
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
+export const BookingManagement = React.memo(() => {
+  // Start with empty array - no pre-selected dates
+  const [selectedDates, setSelectedDates] = useState<Date[]>([]);
+  const [reason, setReason] = useState<string>("");
+  const [isRecurring, setIsRecurring] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState("calendar");
   const { 
     blockedDates, 
@@ -22,23 +26,67 @@ export const BookingManagement = () => {
     isBlocked 
   } = useBlockedDates();
   
-  const handleDateSelect = (date: Date | undefined) => {
-    setSelectedDate(date);
-  };
+  // Get the most recently selected date for actions that need a single date
+  const mostRecentDate = useMemo(() => 
+    selectedDates.length > 0 ? selectedDates[selectedDates.length - 1] : undefined,
+    [selectedDates]
+  );
 
-  const handleToggleBlock = async () => {
-    if (!selectedDate) return;
+  // Memoize the block multiple dates handler
+  const handleBlockDates = useCallback(async () => {
+    if (selectedDates.length === 0) return;
     
-    if (isBlocked(selectedDate)) {
-      await unblockDate(selectedDate);
-    } else {
-      await blockDate({
-        date: selectedDate,
-        reason: isWeekend(selectedDate) ? "Weekend" : "Blocked by admin",
-        is_recurring: false
-      });
+    try {
+      // Process each selected date
+      for (const date of selectedDates) {
+        if (!isBlocked(date)) {
+          await blockDate({
+            date,
+            reason: reason || (isWeekend(date) ? "Weekend" : "Blocked by admin"),
+            is_recurring: isRecurring
+          });
+        }
+      }
+      
+      // Clear selection after blocking
+      setSelectedDates([]);
+      setReason("");
+    } catch (error) {
+      console.error('Error blocking dates:', error);
     }
-  };
+  }, [selectedDates, reason, isRecurring, blockDate, isBlocked]);
+
+  // Memoize the unblock handler for a single date
+  const handleUnblockDate = useCallback(async (date: Date) => {
+    try {
+      await unblockDate(date);
+      
+      // Remove the date from selection after unblocking
+      setSelectedDates(prevDates => 
+        prevDates.filter(d => !isSameDay(d, date))
+      );
+    } catch (error) {
+      console.error('Error unblocking date:', error);
+    }
+  }, [unblockDate]);
+
+  // Memoize the date format for display
+  const selectedDatesText = useMemo(() => {
+    if (selectedDates.length === 0) {
+      return "No dates selected";
+    } else if (selectedDates.length === 1) {
+      return format(selectedDates[0], "PPPP");
+    } else {
+      return `${selectedDates.length} dates selected`;
+    }
+  }, [selectedDates]);
+  
+  // Handle tab change without scrolling to top
+  const handleTabChange = useCallback((value: string) => {
+    // Prevent default browser behavior
+    window.history.pushState(null, '', window.location.href);
+    setActiveTab(value);
+  }, []);
 
   return (
     <div className="space-y-6">
@@ -49,10 +97,10 @@ export const BookingManagement = () => {
         </div>
       </div>
       
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
+      <Tabs value={activeTab} onValueChange={handleTabChange}>
         <TabsList>
-          <TabsTrigger value="calendar">Calendar View</TabsTrigger>
-          <TabsTrigger value="list">Blocked Dates List</TabsTrigger>
+          <TabsTrigger value="calendar" onClick={(e) => e.preventDefault()}>Calendar View</TabsTrigger>
+          <TabsTrigger value="list" onClick={(e) => e.preventDefault()}>Blocked Dates List</TabsTrigger>
         </TabsList>
         
         <TabsContent value="calendar" className="space-y-4">
@@ -61,14 +109,14 @@ export const BookingManagement = () => {
               <CardHeader>
                 <CardTitle>Date Selection</CardTitle>
                 <CardDescription>
-                  Select dates to block or unblock
+                  Select multiple dates to block or unblock
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <Calendar
-                  mode="single"
-                  selected={selectedDate}
-                  onSelect={handleDateSelect}
+                  mode="multiple"
+                  selected={selectedDates}
+                  onSelect={setSelectedDates}
                   className="rounded-md border"
                   modifiers={{
                     blocked: (date) => isBlocked(date),
@@ -86,6 +134,11 @@ export const BookingManagement = () => {
                     }
                   }}
                 />
+                <p className="text-xs text-muted-foreground mt-2">
+                  {selectedDates.length > 0 
+                    ? `${selectedDates.length} date${selectedDates.length !== 1 ? 's' : ''} selected` 
+                    : "No dates selected - click dates to select"}
+                </p>
               </CardContent>
             </Card>
             
@@ -93,7 +146,7 @@ export const BookingManagement = () => {
               <CardHeader>
                 <CardTitle>Date Actions</CardTitle>
                 <CardDescription>
-                  Manage settings for {selectedDate ? format(selectedDate, "PPPP") : "the selected date"}
+                  Manage settings for {selectedDatesText}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -106,39 +159,77 @@ export const BookingManagement = () => {
                     <div className="flex items-center space-x-2">
                       <CalendarIcon className="text-gray-500" />
                       <div>
-                        {selectedDate ? (
+                        {selectedDates.length > 0 ? (
                           <p>
-                            {isBlocked(selectedDate) ? (
+                            {selectedDates.every(date => isBlocked(date)) ? (
                               <span className="text-destructive font-medium">
-                                Currently blocked
+                                All selected dates are blocked
+                              </span>
+                            ) : selectedDates.some(date => isBlocked(date)) ? (
+                              <span className="text-amber-600 font-medium">
+                                Some selected dates are blocked
                               </span>
                             ) : (
                               <span className="text-green-600 font-medium">
-                                Available for booking
+                                All selected dates are available
                               </span>
                             )}
                           </p>
                         ) : (
-                          <p>Select a date to see its status</p>
+                          <p>Select dates to see their status</p>
                         )}
                       </div>
                     </div>
                     
-                    <Button 
-                      onClick={handleToggleBlock}
-                      variant={isBlocked(selectedDate) ? "outline" : "destructive"}
-                      className="w-full"
-                      disabled={!selectedDate}
-                    >
-                      {isBlocked(selectedDate) ? "Unblock Date" : "Block Date"}
-                    </Button>
+                    <Separator className="my-4" />
                     
-                    {!isBlocked(selectedDate) && (
-                      <BlockDateForm 
-                        selectedDate={selectedDate}
-                        onBlockDate={blockDate}
-                      />
-                    )}
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="reason">Reason (optional)</Label>
+                        <Input
+                          id="reason"
+                          placeholder="e.g., Holiday, Maintenance"
+                          value={reason}
+                          onChange={(e) => setReason(e.target.value)}
+                        />
+                      </div>
+                      
+                      <div className="flex items-center justify-between">
+                        <div className="space-y-0.5">
+                          <Label htmlFor="recurring">Recurring</Label>
+                          <p className="text-xs text-muted-foreground">
+                            Block these dates every year
+                          </p>
+                        </div>
+                        <Switch
+                          id="recurring"
+                          checked={isRecurring}
+                          onCheckedChange={setIsRecurring}
+                        />
+                      </div>
+                      
+                      <Button
+                        className="w-full"
+                        disabled={selectedDates.length === 0 || selectedDates.every(date => isBlocked(date))}
+                        onClick={handleBlockDates}
+                      >
+                        {selectedDates.length > 1 
+                          ? `Block ${selectedDates.length} selected dates` 
+                          : selectedDates.length === 1 
+                            ? `Block ${format(selectedDates[0], "MMMM d, yyyy")}` 
+                            : "Select dates to block"}
+                      </Button>
+
+                      {selectedDates.length === 1 && isBlocked(selectedDates[0]) && (
+                        <Button
+                          variant="outline"
+                          className="w-full"
+                          onClick={() => handleUnblockDate(selectedDates[0])}
+                        >
+                          Unblock {format(selectedDates[0], "MMMM d, yyyy")}
+                        </Button>
+                      )}
+                    </div>
                   </>
                 )}
               </CardContent>
@@ -156,4 +247,4 @@ export const BookingManagement = () => {
       </Tabs>
     </div>
   );
-};
+});
