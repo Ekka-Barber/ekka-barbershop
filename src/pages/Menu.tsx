@@ -1,4 +1,3 @@
-
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from "@/integrations/supabase/client";
 import PDFViewer from '@/components/PDFViewer';
@@ -79,7 +78,7 @@ const Menu = () => {
   }, [menuFiles]);
 
   if (error) {
-    console.error('Error in menu query:', error);
+    // Error handling is done through the UI, no need for console.error
   }
 
   return (
