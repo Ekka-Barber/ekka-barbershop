@@ -1,5 +1,4 @@
-
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useToast } from "@/components/ui/use-toast";
 import { Calendar } from 'lucide-react';
 import { useEmployeeSales } from './hooks/useEmployeeSales';
@@ -54,16 +53,11 @@ export const EmployeeTab = () => {
     }
   };
 
-  const isLoading = isBranchLoading || isEmployeeLoading;
-  console.log('EmployeeTab render state:', { 
-    isBranchLoading, 
-    isEmployeeLoading, 
-    branchesCount: branches.length,
-    employeesCount: employees.length,
-    selectedBranch,
-    selectedDate: selectedDate.toISOString(),
-    salesInputsCount: Object.keys(salesInputs).length
-  });
+  // Memoize the loading state to prevent unnecessary re-renders
+  const isLoading = useMemo(() => 
+    isBranchLoading || isEmployeeLoading, 
+    [isBranchLoading, isEmployeeLoading]
+  );
 
   return (
     <div className="space-y-6">
