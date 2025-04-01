@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import { supabase } from "@/integrations/supabase/client";
@@ -59,11 +58,11 @@ export const useEmployeeSales = (selectedDate: Date, employees: Employee[]) => {
           
           // Then populate sales inputs with existing data where available
           data.forEach(sale => {
-            // Find the matching employee by ID
-            const matchingEmployee = employees.find(emp => emp.id === sale.id);
+            // Find the matching employee by name (more reliable than using ID)
+            const matchingEmployee = employees.find(emp => emp.name === sale.employee_name);
             if (matchingEmployee) {
               // Ensure we store integers only
-              initialSalesInputs[sale.id] = Math.floor(sale.sales_amount).toString();
+              initialSalesInputs[matchingEmployee.id] = Math.floor(sale.sales_amount).toString();
             }
           });
         } else {
@@ -120,34 +119,45 @@ export const useEmployeeSales = (selectedDate: Date, employees: Employee[]) => {
         throw new Error('No sales data to save. Please enter at least one sales amount.');
       }
       
-      // Separate update and insert operations based on existing data
-      const existingEmployeeIds = existingSales.map(sale => sale.id);
+      // Find existing sales entries by employee name and month
+      // This is safer than using IDs since the employee_id column doesn't exist
+      const existingEmployeeSalesByName = new Map<string, EmployeeSales>();
+      
+      existingSales.forEach(sale => {
+        existingEmployeeSalesByName.set(sale.employee_name, sale);
+      });
       
       // Prepare data for updates (existing records)
-      const updateData = salesDataEntries
-        .filter(([employeeId, _]) => existingEmployeeIds.includes(employeeId))
-        .map(([employeeId, salesAmount]) => {
-          const employee = employees.find(e => e.id === employeeId);
-          return {
-            id: employeeId,
-            employee_name: employee?.name || 'Unknown',
-            month: monthString,
-            sales_amount: parseInt(salesAmount, 10),
-          };
-        });
+      const updateData = [];
       
       // Prepare data for inserts (new records)
-      const insertData = salesDataEntries
-        .filter(([employeeId, _]) => !existingEmployeeIds.includes(employeeId))
-        .map(([employeeId, salesAmount]) => {
-          const employee = employees.find(e => e.id === employeeId);
-          return {
-            id: employeeId,
-            employee_name: employee?.name || 'Unknown',
+      const insertData = [];
+      
+      // Process each sales entry
+      for (const [employeeId, salesAmount] of salesDataEntries) {
+        const employee = employees.find(e => e.id === employeeId);
+        if (!employee) continue;
+        
+        // Check if this employee already has a sales record for this month
+        const existingSale = existingEmployeeSalesByName.get(employee.name);
+        
+        if (existingSale) {
+          // Update existing record
+          updateData.push({
+            id: existingSale.id,
+            employee_name: employee.name,
             month: monthString,
             sales_amount: parseInt(salesAmount, 10),
-          };
-        });
+          });
+        } else {
+          // Insert new record - don't set an ID, let Supabase generate it
+          insertData.push({
+            employee_name: employee.name,
+            month: monthString,
+            sales_amount: parseInt(salesAmount, 10),
+          });
+        }
+      }
       
       console.log('Data to update:', updateData);
       console.log('Data to insert:', insertData);
@@ -157,9 +167,11 @@ export const useEmployeeSales = (selectedDate: Date, employees: Employee[]) => {
         for (const record of updateData) {
           const { error } = await supabase
             .from('employee_sales')
-            .update({ sales_amount: record.sales_amount, employee_name: record.employee_name })
-            .eq('id', record.id)
-            .eq('month', monthString);
+            .update({ 
+              sales_amount: record.sales_amount, 
+              employee_name: record.employee_name
+            })
+            .eq('id', record.id);
           
           if (error) throw error;
         }
