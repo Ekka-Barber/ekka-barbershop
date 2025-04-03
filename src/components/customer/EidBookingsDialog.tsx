@@ -34,7 +34,7 @@ export const EidBookingsDialog = ({
       <DialogContent className="sm:max-w-xl bg-white border-0 shadow-2xl p-4">
         <DialogHeader>
           <DialogTitle className="text-center text-xl font-bold text-[#222222] mb-4">
-            {language === 'ar' ? 'اختر الفرع لحجوزات العيد' : 'Select Branch for Eid Bookings'}
+            {language === 'ar' ? 'اختر الفرع' : 'Select Branch'}
           </DialogTitle>
         </DialogHeader>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
