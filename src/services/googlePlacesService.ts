@@ -1,4 +1,3 @@
-
 import { supabase } from '@/types/supabase';
 
 // Interface for Google Reviews
@@ -23,17 +22,27 @@ export interface ReviewsResponse {
  */
 export async function fetchBranchReviews(placeId: string, apiKey: string, language: string = 'en'): Promise<ReviewsResponse> {
   try {
-    // Use the Vite dev server proxy endpoint
-    const response = await fetch(`/api/places/reviews?placeId=${encodeURIComponent(placeId)}&apiKey=${encodeURIComponent(apiKey)}&language=${language}`);
-    
+    // Call Google Places API directly
+    const apiUrl = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${encodeURIComponent(placeId)}&fields=reviews,reviews_sort&key=${encodeURIComponent(apiKey)}&language=${language}&reviews_sort=newest`;
+
+    const response = await fetch(apiUrl);
+
     if (!response.ok) {
-      console.error(`Error response: ${response.status} ${response.statusText}`);
-      const errorText = await response.text();
-      console.error(`Error response body: ${errorText}`);
+      console.error(`Google API Error response: ${response.status} ${response.statusText}`);
+      const errorText = await response.text(); // Attempt to read error text from Google
+      console.error(`Google API Error response body: ${errorText}`);
+      // Try parsing as JSON in case Google sends structured error
+      let googleErrorMessage = errorText;
+      try {
+        const errorJson = JSON.parse(errorText);
+        googleErrorMessage = errorJson.error_message || errorJson.status || errorText;
+      } catch (parseError) {
+        // Ignore if it's not JSON
+      }
       return { 
         status: 'ERROR', 
-        error: `API request failed with status: ${response.status}`,
-        error_message: errorText
+        error: `Google API request failed with status: ${response.status}`,
+        error_message: googleErrorMessage
       };
     }
 
@@ -41,10 +50,10 @@ export async function fetchBranchReviews(placeId: string, apiKey: string, langua
     console.log("Google Places API response:", data);
     
     if (data.status !== 'OK') {
-      console.warn(`API responded with non-OK status: ${data.status}`);
+      console.warn(`Google API responded with non-OK status: ${data.status}`, data.error_message);
       return { 
         status: data.status, 
-        error_message: data.error_message || 'Unknown error' 
+        error_message: data.error_message || 'Unknown Google API error' 
       };
     }
 
@@ -53,10 +62,20 @@ export async function fetchBranchReviews(placeId: string, apiKey: string, langua
       reviews: data.result?.reviews || []
     };
   } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     console.error("Error fetching Google reviews:", error);
+    // Check if it's a JSON parsing error, possibly due to receiving HTML
+    if (error instanceof SyntaxError && errorMessage.includes("Unexpected token '<'")) {
+       return {
+        status: 'ERROR', 
+        error: 'Received HTML instead of JSON. Check API Key restrictions (HTTP Referrers) in Google Cloud Console.',
+        error_message: errorMessage
+       }
+    }
     return { 
       status: 'ERROR', 
-      error: error instanceof Error ? error.message : 'Unknown error occurred'
+      error: 'Client-side error during fetch.',
+      error_message: errorMessage
     };
   }
 }
