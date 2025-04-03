@@ -3,6 +3,7 @@ import { ErrorBoundary } from "@/components/common/ErrorBoundary";
 import { useToast } from "@/hooks/use-toast";
 import { useState, useEffect } from "react";
 import { SkeletonLoader } from "@/components/common/SkeletonLoader";
+import AppLayout from '@/components/layout/AppLayout';
 
 const Bookings = () => {
   const { toast } = useToast();
@@ -27,20 +28,19 @@ const Bookings = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <AppLayout>
       <ErrorBoundary onError={handleError}>
         {isLoading ? (
-          <div className="container mx-auto py-6 px-4 flex-grow flex items-center justify-center">
+          <div className="w-full flex flex-1 items-center justify-center max-w-md mx-auto">
             <SkeletonLoader />
           </div>
         ) : (
-          <div className="flex-grow flex items-center justify-center pb-safe">
+          <div className="w-full flex flex-1 items-center justify-center max-w-md mx-auto">
             <BookingContainer />
           </div>
         )}
       </ErrorBoundary>
-      <footer className="page-footer" />
-    </div>
+    </AppLayout>
   );
 };
 
