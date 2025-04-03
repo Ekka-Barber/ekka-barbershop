@@ -1,4 +1,3 @@
-
 import { supabase } from '@/types/supabase';
 
 // Interface for Google Reviews
@@ -25,8 +24,8 @@ export async function fetchBranchReviews(placeId: string, apiKey: string, langua
   try {
     console.log(`Fetching reviews for branch with Place ID: ${placeId}`);
     
-    // Use our local proxy to avoid CORS issues
-    const apiUrl = `/api/places?placeId=${encodeURIComponent(placeId)}&apiKey=${encodeURIComponent(apiKey)}&language=${language}`;
+    // Call Google Places API directly - Bypassing local proxy which doesn't work in production
+    const apiUrl = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${encodeURIComponent(placeId)}&fields=reviews,reviews_sort&key=${encodeURIComponent(apiKey)}&language=${language}&reviews_sort=newest`;
 
     const response = await fetch(apiUrl);
 
