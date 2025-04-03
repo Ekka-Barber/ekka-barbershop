@@ -1,3 +1,4 @@
+
 import { UseMutationResult } from '@tanstack/react-query';
 
 // Core file metadata type
@@ -11,11 +12,11 @@ export interface FileMetadata {
   display_order?: number;
   branch_name?: string;
   branch_id?: string;
-  is_all_branches?: boolean;
+  is_all_branches?: boolean; // Added missing property
   end_date?: string | null;
-  end_time?: string | null;
+  end_time?: string | null; // Added missing property
   created_at?: string;
-  file_url?: string;
+  file_url?: string; // Added missing property
 }
 
 // Preview for uploaded files
@@ -23,7 +24,7 @@ export interface FilePreview {
   url: string;
   type: 'menu' | 'offers';
   fileType: 'image' | 'pdf';
-  name: string;
+  name: string; // Added missing property
 }
 
 // Parameters for file operations
@@ -44,7 +45,7 @@ export interface FileToggleParams {
 
 export interface FileEndDateParams {
   id: string;
-  endDate: string | null;
+  endDate: Date | null;
   endTime: string | null;
 }
 

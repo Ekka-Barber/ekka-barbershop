@@ -19,7 +19,7 @@ export interface FileToggleParams {
 export interface FileEndDateParams {
   id: string;
   endDate: string | null;
-  endTime: string | null;
+  endTime: string | null; // Added missing endTime property
 }
 
 export interface FileValidationConfig {

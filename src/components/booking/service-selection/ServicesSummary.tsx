@@ -5,20 +5,16 @@ import { ActionButton } from "./summary/ActionButton";
 import { useMemo } from "react";
 import { PackageSavingsDrawer } from "./summary/PackageSavingsDrawer";
 import { PackageSettings } from "@/types/admin";
-import { Service } from '@/types/service';
-
-interface ServiceDisplayItem {
-  id: string;
-  name: string;
-  price: number;
-  duration: number;
-  originalPrice?: number;
-  isBasePackageService?: boolean;
-  isPackageAddOn?: boolean;
-}
+import { Service, SelectedService } from '@/types/service';
 
 interface ServicesSummaryProps {
-  selectedServices: ServiceDisplayItem[];
+  selectedServices: Array<{
+    id: string;
+    name: string;
+    price: number;
+    duration: number;
+    originalPrice?: number;
+  }>;
   totalDuration: number;
   totalPrice: number;
   language: 'en' | 'ar';
