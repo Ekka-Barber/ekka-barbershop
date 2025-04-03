@@ -1,1 +1,6 @@
+
+# This file controls the behaviour of the supabase functions.
 project_id = "jfnjvphxhzxojxgptmtu"
+
+[functions.google-places]
+verify_jwt = false

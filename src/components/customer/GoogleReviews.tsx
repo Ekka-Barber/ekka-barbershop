@@ -67,9 +67,11 @@ const ErrorState = ({ error, language }: { error: string, language: string }) =>
       <p className="text-red-500 text-sm">
         {language === 'ar' ? 'نعتذر، حدث خطأ أثناء تحميل المراجعات.' : 'Sorry, there was an error loading reviews.'}
       </p>
-      <div className="mt-4 p-3 bg-red-100 rounded text-xs text-red-800 max-w-xs mx-auto overflow-hidden text-wrap break-words">
-        {error}
-      </div>
+      {error && (
+        <div className="mt-4 p-3 bg-red-100 rounded text-xs text-red-800 max-w-xs mx-auto overflow-hidden text-wrap break-words">
+          {error}
+        </div>
+      )}
     </div>
   </div>
 );
@@ -77,6 +79,7 @@ const ErrorState = ({ error, language }: { error: string, language: string }) =>
 const MAX_CHARS_BEFORE_TRUNCATE = 150;
 
 export default function GoogleReviews() {
+  console.log("GoogleReviews: Component file loaded");
   const { language } = useLanguage();
   const [reviews, setReviews] = useState<Review[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -84,62 +87,92 @@ export default function GoogleReviews() {
   const [error, setError] = useState<string | null>(null);
 
   // Fetch branches with Google Places configuration
-  const { data: branches, isLoading: isBranchesLoading, error: branchesError } = useQuery({
+  const { 
+    data: branches, 
+    isLoading: isBranchesLoading, 
+    error: branchesError 
+  } = useQuery({
     queryKey: ['branches-with-google-places'],
-    queryFn: fetchBranchesWithGooglePlaces,
+    queryFn: () => {
+      console.log("GoogleReviews: Fetching branches...");
+      return fetchBranchesWithGooglePlaces();
+    },
     staleTime: 5 * 60 * 1000, // 5 minutes
+    onSuccess: (data) => {
+      console.log("GoogleReviews: Branches fetched:", data);
+    },
+    onError: (err) => {
+      console.error("GoogleReviews: Error fetching branches:", err);
+      setError(err instanceof Error ? err.message : 'Failed to fetch branches');
+    }
   });
 
   // Function to fetch reviews for all branches
   const fetchAllBranchReviews = useCallback(async () => {
+    console.log("GoogleReviews: fetchReviews started");
+    
     if (!branches || branches.length === 0) {
-      console.log("No branches with Google Places configuration found");
+      console.log("GoogleReviews: No branches with Google Places configuration found");
       return [];
     }
 
+    console.log(`GoogleReviews: Fetching reviews for ${branches.length} branches... Lang: ${language}`);
     setError(null);
     const allReviews: Review[] = [];
     
     try {
       for (const branch of branches) {
         if (!branch.google_place_id || !branch.google_places_api_key) {
-          console.warn(`Skipping branch ${branch.name} due to missing Place ID or API Key`);
+          console.warn(`GoogleReviews: Skipping branch ${branch.name} due to missing Place ID or API Key`);
           continue;
         }
 
-        console.log(`Fetching reviews for branch: ${branch.name}`);
-        const response = await fetchBranchReviews(
-          branch.google_place_id, 
-          branch.google_places_api_key,
-          language
-        );
-
-        if (response.status === 'OK' && response.reviews && response.reviews.length > 0) {
-          // Filter for 5-star reviews only
-          const branchReviews = response.reviews
-            .filter(review => review.rating === 5)
-            .map(review => ({
-              ...review,
-              branch_name: branch.name,
-              branch_name_ar: branch.name_ar,
-            }));
-            
-          console.log(`Found ${branchReviews.length} five-star reviews for branch ${branch.name}`);
-          allReviews.push(...branchReviews);
-        } else {
-          console.warn(
-            `No 5-star reviews or error for branch ${branch.name}:`, 
-            response.error || response.error_message || 'No reviews returned'
+        console.log(`GoogleReviews: Fetching from API for ${branch.name}: /google-places?placeId=${branch.google_place_id}&apiKey=${branch.google_places_api_key}&language=${language}`);
+        
+        try {
+          const response = await fetchBranchReviews(
+            branch.google_place_id, 
+            branch.google_places_api_key,
+            language
           );
+          
+          if (response.status === 'OK' && response.reviews && response.reviews.length > 0) {
+            // Filter for 5-star reviews only
+            const branchReviews = response.reviews
+              .filter(review => review.rating === 5)
+              .map(review => ({
+                ...review,
+                branch_name: branch.name,
+                branch_name_ar: branch.name_ar,
+              }));
+              
+            console.log(`GoogleReviews: Found ${branchReviews.length} five-star reviews for branch ${branch.name}`);
+            allReviews.push(...branchReviews);
+          } else {
+            console.warn(
+              `GoogleReviews: No 5-star reviews or error for branch ${branch.name}:`, 
+              response.error || response.error_message || 'No reviews returned'
+            );
+          }
+        } catch (err) {
+          console.error(`GoogleReviews: Error fetching reviews for branch ${branch.name}:`, err);
         }
       }
 
+      console.log(`GoogleReviews: Total 5-star reviews fetched: ${allReviews.length}`);
+      
+      if (allReviews.length === 0) {
+        console.log("GoogleReviews: No 5-star reviews found across all branches.");
+      }
+      
       return allReviews;
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch reviews';
-      console.error('Error fetching all branch reviews:', errorMessage);
+      console.error('GoogleReviews: Error fetching all branch reviews:', errorMessage);
       setError(errorMessage);
       return [];
+    } finally {
+      console.log("GoogleReviews: fetchReviews finished. Setting loading to false.");
     }
   }, [branches, language]);
 
@@ -149,11 +182,19 @@ export default function GoogleReviews() {
     isLoading: isReviewsLoading,
     error: reviewsError
   } = useQuery({
-    queryKey: ['google-reviews', language, branches],
+    queryKey: ['google-reviews', language, branches && branches.length > 0],
     queryFn: fetchAllBranchReviews,
     enabled: !!branches && branches.length > 0,
     staleTime: 10 * 60 * 1000, // 10 minutes
   });
+
+  // For debugging
+  useEffect(() => {
+    console.log("GoogleReviews: Component Mounted");
+    return () => {
+      console.log("GoogleReviews: Component Unmounted");
+    };
+  }, []);
 
   // Process and shuffle reviews when data changes
   useEffect(() => {
@@ -173,14 +214,25 @@ export default function GoogleReviews() {
       const errorMessage = reviewsError instanceof Error 
         ? reviewsError.message 
         : 'Unknown error fetching reviews';
+      console.error("GoogleReviews: Reviews fetch error:", errorMessage);
       setError(errorMessage);
     } else if (branchesError) {
       const errorMessage = branchesError instanceof Error 
         ? branchesError.message 
         : 'Unknown error fetching branches';
+      console.error("GoogleReviews: Branches fetch error:", errorMessage);
       setError(errorMessage);
     }
   }, [reviewsError, branchesError]);
+
+  // Debug logging current state
+  useEffect(() => {
+    console.log(`GoogleReviews: useEffect triggered, branches: ${branches?.length} language: ${language}`);
+  }, [branches, language]);
+
+  useEffect(() => {
+    console.log(`GoogleReviews: Rendering - Loading: ${isReviewsLoading || isBranchesLoading} Error: ${error} Reviews Count: ${reviews.length}`);
+  }, [isReviewsLoading, isBranchesLoading, error, reviews.length]);
 
   const handleReadMoreClick = (review: Review) => {
     setSelectedReview(review);
@@ -212,7 +264,7 @@ export default function GoogleReviews() {
 
       {/* Reviews Display */}
       {!isLoading && !error && reviews.length > 0 && (
-        <div className="flex overflow-x-auto space-x-4 scroll-smooth py-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 -mx-4 px-4">
+        <div className="flex overflow-x-auto space-x-4 rtl:space-x-reverse scroll-smooth py-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 -mx-4 px-4">
           {reviews.map((review, index) => {
             const isLongReview = review.text.length > MAX_CHARS_BEFORE_TRUNCATE;
             return (
