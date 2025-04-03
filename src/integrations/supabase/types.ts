@@ -296,6 +296,8 @@ export type Database = {
           address_ar: string | null
           created_at: string
           google_maps_url: string | null
+          google_place_id: string | null
+          google_places_api_key: string | null
           id: string
           is_main: boolean | null
           name: string
@@ -309,6 +311,8 @@ export type Database = {
           address_ar?: string | null
           created_at?: string
           google_maps_url?: string | null
+          google_place_id?: string | null
+          google_places_api_key?: string | null
           id?: string
           is_main?: boolean | null
           name: string
@@ -322,6 +326,8 @@ export type Database = {
           address_ar?: string | null
           created_at?: string
           google_maps_url?: string | null
+          google_place_id?: string | null
+          google_places_api_key?: string | null
           id?: string
           is_main?: boolean | null
           name?: string
@@ -1932,6 +1938,51 @@ export type Database = {
           },
         ]
       }
+      ui_elements: {
+        Row: {
+          action: string | null
+          created_at: string | null
+          description: string | null
+          description_ar: string | null
+          display_name: string
+          display_name_ar: string
+          display_order: number
+          icon: string | null
+          id: string
+          is_visible: boolean | null
+          name: string
+          type: string
+        }
+        Insert: {
+          action?: string | null
+          created_at?: string | null
+          description?: string | null
+          description_ar?: string | null
+          display_name: string
+          display_name_ar: string
+          display_order: number
+          icon?: string | null
+          id: string
+          is_visible?: boolean | null
+          name: string
+          type: string
+        }
+        Update: {
+          action?: string | null
+          created_at?: string | null
+          description?: string | null
+          description_ar?: string | null
+          display_name?: string
+          display_name_ar?: string
+          display_order?: number
+          icon?: string | null
+          id?: string
+          is_visible?: boolean | null
+          name?: string
+          type?: string
+        }
+        Relationships: []
+      }
       vat_entries: {
         Row: {
           base_amount: number
@@ -2056,6 +2107,10 @@ export type Database = {
           p_cash_deposit_id: string
         }
         Returns: string
+      }
+      create_ui_elements_table_if_not_exists: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
       }
       generate_15min_slots: {
         Args: {

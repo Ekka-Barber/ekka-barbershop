@@ -1,222 +1,261 @@
+
 import { useEffect, useState, useCallback } from 'react';
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Star } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
 import { Dialog, DialogContent, DialogTrigger, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { fetchBranchesWithGooglePlaces, fetchBranchReviews, GoogleReview } from '@/services/googlePlacesService';
+import { Skeleton } from '@/components/ui/skeleton';
 
-console.log("GoogleReviews: Component file loaded");
-
-// Interfaces for actual Google Reviews
-interface GoogleReview {
-  author_name: string;
-  rating: number;
-  text: string;
-  time: number;
-  profile_photo_url: string;
-}
-
+// Interface for a review with branch information
 interface Review extends GoogleReview {
   branch_name: string;
   branch_name_ar: string;
 }
 
-interface Branch {
-  id: string;
-  name: string;
-  name_ar: string;
-  address: string;
-  address_ar: string;
-  is_main: boolean;
-  created_at: string;
-  updated_at: string;
-  whatsapp_number: string;
-  google_maps_url: string;
-  working_hours: Record<string, string[]> | string;
-  google_places_api_key: string | null;
-  google_place_id: string | null;
-}
+// Skeleton loader for reviews
+const ReviewSkeleton = () => (
+  <div className="flex-grow-0 flex-shrink-0 basis-[90%] sm:basis-[45%] md:basis-[31%]">
+    <div className="bg-white rounded-xl shadow-lg p-6 h-full flex flex-col border border-gray-100">
+      <div className="flex items-start space-x-4 rtl:space-x-reverse mb-4">
+        <Skeleton className="w-14 h-14 rounded-full" />
+        <div className="flex-1">
+          <Skeleton className="h-4 w-24 mb-2" />
+          <Skeleton className="h-3 w-16 mb-2" />
+          <div className="flex items-center mt-1">
+            {[...Array(5)].map((_, i) => (
+              <Skeleton key={i} className="w-4 h-4 mx-0.5" />
+            ))}
+          </div>
+        </div>
+      </div>
+      <Skeleton className="h-4 w-full mb-2" />
+      <Skeleton className="h-4 w-full mb-2" />
+      <Skeleton className="h-4 w-3/4" />
+    </div>
+  </div>
+);
+
+// Empty state component when no reviews are found
+const NoReviews = ({ language }: { language: string }) => (
+  <div className="w-full py-8 text-center">
+    <div className="bg-gray-50 rounded-lg p-8 max-w-md mx-auto">
+      <Star className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+      <h3 className="text-lg font-medium text-gray-700 mb-2">
+        {language === 'ar' ? 'لا توجد مراجعات متاحة' : 'No Reviews Available'}
+      </h3>
+      <p className="text-gray-500 text-sm">
+        {language === 'ar' 
+          ? 'لم نتمكن من العثور على أي مراجعات في الوقت الحالي. الرجاء المحاولة مرة أخرى لاحقًا.'
+          : 'We couldn\'t find any reviews at the moment. Please check back later.'}
+      </p>
+    </div>
+  </div>
+);
+
+// Error state component
+const ErrorState = ({ error, language }: { error: string, language: string }) => (
+  <div className="w-full py-8 text-center">
+    <div className="bg-red-50 rounded-lg p-8 max-w-md mx-auto">
+      <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
+        <Star className="w-6 h-6 text-red-500" />
+      </div>
+      <h3 className="text-lg font-medium text-red-700 mb-2">
+        {language === 'ar' ? 'حدث خطأ' : 'Error Loading Reviews'}
+      </h3>
+      <p className="text-red-500 text-sm">
+        {language === 'ar' ? 'نعتذر، حدث خطأ أثناء تحميل المراجعات.' : 'Sorry, there was an error loading reviews.'}
+      </p>
+      <div className="mt-4 p-3 bg-red-100 rounded text-xs text-red-800 max-w-xs mx-auto overflow-hidden text-wrap break-words">
+        {error}
+      </div>
+    </div>
+  </div>
+);
+
+const MAX_CHARS_BEFORE_TRUNCATE = 150;
 
 export default function GoogleReviews() {
   const { language } = useLanguage();
   const [reviews, setReviews] = useState<Review[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  
-  // State for Read More modal
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedReview, setSelectedReview] = useState<Review | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  console.log("GoogleReviews: Component Mounted");
-
-  const { data: branches } = useQuery({
-    queryKey: ['branches'],
-    queryFn: async () => {
-      console.log("GoogleReviews: Fetching branches...");
-      const { data, error } = await supabase
-        .from('branches')
-        .select('*')
-        .not('google_places_api_key', 'is', null)
-        .not('google_place_id', 'is', null);
-      if (error) {
-        console.error("GoogleReviews: Branch fetch error", error);
-        throw error;
-      }
-      console.log("GoogleReviews: Branches fetched:", data);
-      return data as Branch[];
-    }
+  // Fetch branches with Google Places configuration
+  const { data: branches, isLoading: isBranchesLoading, error: branchesError } = useQuery({
+    queryKey: ['branches-with-google-places'],
+    queryFn: fetchBranchesWithGooglePlaces,
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
-  // Review fetching logic depends on branches AND language
-  useEffect(() => {
-    console.log("GoogleReviews: useEffect triggered, branches:", branches, "language:", language);
-    const fetchReviews = async () => {
-      console.log("GoogleReviews: fetchReviews started");
-      setIsLoading(true);
-      setError(null); // Clear previous errors
-      try {
-        if (!branches || branches.length === 0) {
-          console.log("GoogleReviews: No branches configured or data not yet loaded.");
-          setIsLoading(false);
-          return;
-        }
-
-        const allReviews: Review[] = [];
-        console.log(`GoogleReviews: Fetching reviews for ${branches.length} branches... Lang: ${language}`);
-
-        for (const branch of branches) {
-          if (!branch.google_place_id || !branch.google_places_api_key) {
-            console.warn(`GoogleReviews: Skipping branch ${branch.name} due to missing Place ID or API Key.`);
-            continue;
-          }
-
-          // Add language parameter to the API call
-          const apiUrl = `/api/places/reviews?placeId=${encodeURIComponent(branch.google_place_id)}&apiKey=${encodeURIComponent(branch.google_places_api_key)}&language=${language}`;
-          console.log(`GoogleReviews: Fetching from API for ${branch.name}: ${apiUrl}`);
-
-          try {
-            const response = await fetch(apiUrl);
-            console.log(`GoogleReviews: API Response status for branch ${branch.name}:`, response.status);
-
-            if (!response.ok) {
-              const errorText = await response.text();
-              console.error(`GoogleReviews: Error response for branch ${branch.name}:`, errorText);
-              continue;
-            }
-
-            const data = await response.json();
-            console.log(`GoogleReviews: Parsed API Response data for branch ${branch.name}:`, data);
-
-            if (data.status === 'OK' && data.result?.reviews) {
-              const branchReviews = data.result.reviews
-                .filter((review: GoogleReview) => review.rating === 5)
-                .map((review: GoogleReview) => ({
-                  ...review,
-                  branch_name: branch.name,
-                  branch_name_ar: branch.name_ar,
-                }));
-              console.log(`GoogleReviews: Found ${branchReviews.length} 5-star reviews for branch ${branch.name}`);
-              allReviews.push(...branchReviews);
-            } else {
-              console.warn(`GoogleReviews: No reviews found or API error for branch ${branch.name}. Status: ${data.status}, Message: ${data.error_message || 'No error message'}`);
-            }
-          } catch (fetchError) {
-            console.error(`GoogleReviews: Error fetching/parsing reviews for branch ${branch.name}:`, fetchError);
-          }
-        }
-
-        console.log(`GoogleReviews: Total 5-star reviews fetched: ${allReviews.length}`);
-
-        if (allReviews.length > 0) {
-          // --- Shuffle the reviews randomly ---
-          const shuffledReviews = allReviews.sort(() => 0.5 - Math.random());
-          // --- Take the top 8 --- 
-          const randomReviews = shuffledReviews.slice(0, 8); 
-          console.log("GoogleReviews: Setting final 8 random reviews:", randomReviews);
-          setReviews(randomReviews);
-        } else {
-          console.log("GoogleReviews: No 5-star reviews found across all branches.");
-          setReviews([]);
-        }
-      } catch (err) {
-        console.error('GoogleReviews: Error in fetchReviews outer catch:', err);
-        const errorMessage = err instanceof Error ? err.message : 'Failed to fetch reviews';
-        setError(errorMessage);
-      } finally {
-        console.log("GoogleReviews: fetchReviews finished. Setting loading to false.");
-        setIsLoading(false);
-      }
-    };
-
-    if (branches) {
-      fetchReviews();
+  // Function to fetch reviews for all branches
+  const fetchAllBranchReviews = useCallback(async () => {
+    if (!branches || branches.length === 0) {
+      console.log("No branches with Google Places configuration found");
+      return [];
     }
-  }, [branches, language]); // Add language as dependency
 
-  console.log("GoogleReviews: Rendering - Loading:", isLoading, "Error:", error, "Reviews Count:", reviews.length);
+    setError(null);
+    const allReviews: Review[] = [];
+    
+    try {
+      for (const branch of branches) {
+        if (!branch.google_place_id || !branch.google_places_api_key) {
+          console.warn(`Skipping branch ${branch.name} due to missing Place ID or API Key`);
+          continue;
+        }
+
+        console.log(`Fetching reviews for branch: ${branch.name}`);
+        const response = await fetchBranchReviews(
+          branch.google_place_id, 
+          branch.google_places_api_key,
+          language
+        );
+
+        if (response.status === 'OK' && response.reviews && response.reviews.length > 0) {
+          // Filter for 5-star reviews only
+          const branchReviews = response.reviews
+            .filter(review => review.rating === 5)
+            .map(review => ({
+              ...review,
+              branch_name: branch.name,
+              branch_name_ar: branch.name_ar,
+            }));
+            
+          console.log(`Found ${branchReviews.length} five-star reviews for branch ${branch.name}`);
+          allReviews.push(...branchReviews);
+        } else {
+          console.warn(
+            `No 5-star reviews or error for branch ${branch.name}:`, 
+            response.error || response.error_message || 'No reviews returned'
+          );
+        }
+      }
+
+      return allReviews;
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch reviews';
+      console.error('Error fetching all branch reviews:', errorMessage);
+      setError(errorMessage);
+      return [];
+    }
+  }, [branches, language]);
+
+  // Query for fetching all reviews
+  const { 
+    data: reviewsData, 
+    isLoading: isReviewsLoading,
+    error: reviewsError
+  } = useQuery({
+    queryKey: ['google-reviews', language, branches],
+    queryFn: fetchAllBranchReviews,
+    enabled: !!branches && branches.length > 0,
+    staleTime: 10 * 60 * 1000, // 10 minutes
+  });
+
+  // Process and shuffle reviews when data changes
+  useEffect(() => {
+    if (reviewsData && reviewsData.length > 0) {
+      // Shuffle the reviews randomly
+      const shuffledReviews = [...reviewsData].sort(() => 0.5 - Math.random());
+      // Take the top 8
+      const randomReviews = shuffledReviews.slice(0, 8);
+      setReviews(randomReviews);
+    } else if (reviewsData) {
+      setReviews([]);
+    }
+  }, [reviewsData]);
+
+  useEffect(() => {
+    if (reviewsError) {
+      const errorMessage = reviewsError instanceof Error 
+        ? reviewsError.message 
+        : 'Unknown error fetching reviews';
+      setError(errorMessage);
+    } else if (branchesError) {
+      const errorMessage = branchesError instanceof Error 
+        ? branchesError.message 
+        : 'Unknown error fetching branches';
+      setError(errorMessage);
+    }
+  }, [reviewsError, branchesError]);
 
   const handleReadMoreClick = (review: Review) => {
     setSelectedReview(review);
     setIsModalOpen(true);
   };
 
-  const MAX_CHARS_BEFORE_TRUNCATE = 150; // Adjust as needed
+  const isLoading = isBranchesLoading || isReviewsLoading;
 
-  // Updated Display Reviews UI
   return (
-    <div className="w-full max-w-4xl mx-auto px-4 py-12">
+    <div className="w-full max-w-6xl mx-auto px-4 py-12">
       <h2 className="text-3xl font-bold text-center mb-8 text-[#222222]">
         {language === 'ar' ? 'آراء عملائنا' : 'What Our Clients Say'}
       </h2>
 
-      {/* Horizontal Scroll Container */}
-      <div className="flex overflow-x-auto space-x-4 scroll-smooth py-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 -mx-4 px-4">
-        {reviews.map((review, index) => {
-          const isLongReview = review.text.length > MAX_CHARS_BEFORE_TRUNCATE;
-          return (
-            // Adjusted flex basis for peekaboo effect
-            <div className="flex-grow-0 flex-shrink-0 basis-[90%] sm:basis-[45%] md:basis-[31%]" key={`${review.author_name}-${index}-${review.time}`}>
-              {/* Review Card Styling */}
-              <div className="bg-white rounded-xl shadow-lg p-6 h-full flex flex-col border border-gray-100">
-                <div className="flex items-start space-x-4 rtl:space-x-reverse mb-4">
-                  <img
-                    src={review.profile_photo_url}
-                    alt={review.author_name}
-                    className="w-14 h-14 rounded-full object-cover border-2 border-gray-200"
-                  />
-                  <div className="flex-1">
-                    <h4 className="font-semibold text-gray-800">{review.author_name}</h4>
-                    <p className="text-xs text-gray-500">
-                      {language === 'ar' ? review.branch_name_ar : review.branch_name}
-                    </p>
-                    <div className="flex items-center mt-1">
-                      {[...Array(5)].map((_, i) => (
-                        <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                      ))}
+      {/* Loading State */}
+      {isLoading && (
+        <div className="flex overflow-x-auto space-x-4 py-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 -mx-4 px-4">
+          {[...Array(4)].map((_, index) => (
+            <ReviewSkeleton key={`skeleton-${index}`} />
+          ))}
+        </div>
+      )}
+
+      {/* Error State */}
+      {error && !isLoading && <ErrorState error={error} language={language} />}
+
+      {/* Empty State */}
+      {!isLoading && !error && reviews.length === 0 && <NoReviews language={language} />}
+
+      {/* Reviews Display */}
+      {!isLoading && !error && reviews.length > 0 && (
+        <div className="flex overflow-x-auto space-x-4 scroll-smooth py-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 -mx-4 px-4">
+          {reviews.map((review, index) => {
+            const isLongReview = review.text.length > MAX_CHARS_BEFORE_TRUNCATE;
+            return (
+              <div className="flex-grow-0 flex-shrink-0 basis-[90%] sm:basis-[45%] md:basis-[31%]" key={`${review.author_name}-${index}-${review.time}`}>
+                <div className="bg-white rounded-xl shadow-lg p-6 h-full flex flex-col border border-gray-100">
+                  <div className="flex items-start space-x-4 rtl:space-x-reverse mb-4">
+                    <img
+                      src={review.profile_photo_url}
+                      alt={review.author_name}
+                      className="w-14 h-14 rounded-full object-cover border-2 border-gray-200"
+                      loading="lazy"
+                    />
+                    <div className="flex-1">
+                      <h4 className="font-semibold text-gray-800">{review.author_name}</h4>
+                      <p className="text-xs text-gray-500">
+                        {language === 'ar' ? review.branch_name_ar : review.branch_name}
+                      </p>
+                      <div className="flex items-center mt-1">
+                        {[...Array(5)].map((_, i) => (
+                          <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                        ))}
+                      </div>
                     </div>
                   </div>
+
+                  <p className={`text-gray-600 text-sm leading-relaxed flex-grow ${isLongReview ? 'line-clamp-4' : ''}`}>
+                    {review.text}
+                  </p>
+
+                  {isLongReview && (
+                    <button 
+                      onClick={() => handleReadMoreClick(review)}
+                      className="text-sm text-[#C4A36F] hover:text-[#A3845A] font-medium mt-2 self-start"
+                    >
+                      {language === 'ar' ? 'اقرأ المزيد' : 'Read More'}
+                    </button>
+                  )}
                 </div>
-
-                {/* Review Text with Truncation */}
-                <p className={`text-gray-600 text-sm leading-relaxed flex-grow ${isLongReview ? 'line-clamp-4' : ''}`}>
-                  {review.text}
-                </p>
-
-                {/* Read More Button */}
-                {isLongReview && (
-                  <button 
-                    onClick={() => handleReadMoreClick(review)}
-                    className="text-sm text-[#C4A36F] hover:text-[#A3845A] font-medium mt-2 self-start"
-                  >
-                    {language === 'ar' ? 'اقرأ المزيد' : 'Read More'}
-                  </button>
-                )}
               </div>
-            </div>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
+      )}
 
       {/* Read More Modal */}      
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
@@ -242,7 +281,6 @@ export default function GoogleReviews() {
           </Button>
         </DialogContent>
       </Dialog>
-
     </div>
   );
-} 
+}
