@@ -23,28 +23,22 @@ export interface ReviewsResponse {
  */
 export async function fetchBranchReviews(placeId: string, apiKey: string, language: string = 'en'): Promise<ReviewsResponse> {
   try {
-    console.log(`Fetching reviews for place ID ${placeId} with language ${language}`);
+    // Use the Vite dev server proxy endpoint
+    const response = await fetch(`/api/places/reviews?placeId=${encodeURIComponent(placeId)}&apiKey=${encodeURIComponent(apiKey)}&language=${language}`);
     
-    // Use Supabase edge function instead of proxy
-    const { data, error } = await supabase.functions.invoke('google-places', {
-      body: { placeId, apiKey, language },
-      method: 'GET',
-      query: {
-        placeId,
-        apiKey,
-        language
-      }
-    });
-    
-    if (error) {
-      console.error("Error from edge function:", error);
+    if (!response.ok) {
+      console.error(`Error response: ${response.status} ${response.statusText}`);
+      const errorText = await response.text();
+      console.error(`Error response body: ${errorText}`);
       return { 
         status: 'ERROR', 
-        error: `Edge function error: ${error.message}`
+        error: `API request failed with status: ${response.status}`,
+        error_message: errorText
       };
     }
-    
-    console.log("Google Places API response from edge function:", data);
+
+    const data = await response.json();
+    console.log("Google Places API response:", data);
     
     if (data.status !== 'OK') {
       console.warn(`API responded with non-OK status: ${data.status}`);
