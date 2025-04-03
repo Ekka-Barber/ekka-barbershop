@@ -8,6 +8,7 @@ import { ErrorBoundary } from '@/components/common/ErrorBoundary';
 import { useOptimizedCategories } from '@/hooks/useOptimizedCategories';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Home, Package, Calendar, Users, FileText, QrCode, Layout } from 'lucide-react';
+import AppLayout from '@/components/layout/AppLayout';
 
 // Lazy load components that aren't needed immediately
 const FileManagement = lazy(() => import('@/components/admin/FileManagement').then(mod => ({ default: mod.FileManagement })));
@@ -103,7 +104,7 @@ const Admin = () => {
   }, [isMobile]);
 
   return (
-    <div className="min-h-screen bg-background">
+    <AppLayout>
       <header className="sticky top-0 z-10 border-b p-4 bg-white">
         <div className="container mx-auto flex justify-between items-center">
           <h1 className="text-xl font-bold">Admin Dashboard</h1>
@@ -118,7 +119,7 @@ const Admin = () => {
         </div>
       </header>
 
-      <div className="container mx-auto px-4 py-6 pb-24 md:pb-6">
+      <div className="w-full container mx-auto px-4 py-6 pb-24 md:pb-6">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
           {tabNavigation}
 
@@ -202,7 +203,7 @@ const Admin = () => {
           </TabsContent>
         </Tabs>
       </div>
-    </div>
+    </AppLayout>
   );
 };
 
