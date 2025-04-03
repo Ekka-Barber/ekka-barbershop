@@ -7,7 +7,7 @@ import ServiceCategoryList from '@/components/admin/ServiceCategoryList';
 import { ErrorBoundary } from '@/components/common/ErrorBoundary';
 import { useOptimizedCategories } from '@/hooks/useOptimizedCategories';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { Home, Package, Calendar, Users, FileText, QrCode } from 'lucide-react';
+import { Home, Package, Calendar, Users, FileText, QrCode, Layout } from 'lucide-react';
 
 // Lazy load components that aren't needed immediately
 const FileManagement = lazy(() => import('@/components/admin/FileManagement').then(mod => ({ default: mod.FileManagement })));
@@ -16,6 +16,7 @@ const BookingManagement = lazy(() => import('@/components/admin/booking-manageme
 const PackageManagement = lazy(() => import('@/components/admin/package-management/PackageManagement').then(mod => ({ default: mod.PackageManagement })));
 const ServiceUpsellManager = lazy(() => import('@/components/admin/service-management/ServiceUpsellManager').then(mod => ({ default: mod.ServiceUpsellManager })));
 const EmployeeTab = lazy(() => import('@/components/admin/employee-management/EmployeeTab').then(mod => ({ default: mod.EmployeeTab })));
+const UiElementsManager = lazy(() => import('@/components/admin/ui-elements/UiElementsManager').then(mod => ({ default: mod.UiElementsManager })));
 
 // Create a loading component for Suspense
 const TabLoader = () => (
@@ -40,7 +41,7 @@ const Admin = () => {
     if (isMobile) {
       return (
         <div className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t shadow-lg" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
-          <TabsList className="w-full grid grid-cols-6 gap-1 p-2">
+          <TabsList className="w-full grid grid-cols-7 gap-1 p-2">
             <TabsTrigger value="services" className="flex flex-col items-center py-2 h-auto">
               <Home className="h-5 w-5 mb-1" />
               <span className="text-xs">Services</span>
@@ -65,12 +66,16 @@ const Admin = () => {
               <QrCode className="h-5 w-5 mb-1" />
               <span className="text-xs">QR</span>
             </TabsTrigger>
+            <TabsTrigger value="ui-elements" className="flex flex-col items-center py-2 h-auto">
+              <Layout className="h-5 w-5 mb-1" />
+              <span className="text-xs">UI</span>
+            </TabsTrigger>
           </TabsList>
         </div>
       );
     } else {
       return (
-        <TabsList className="w-full sm:w-auto grid grid-cols-6 sm:inline-flex">
+        <TabsList className="w-full sm:w-auto grid grid-cols-7 sm:inline-flex">
           <TabsTrigger value="services">
             Services
           </TabsTrigger>
@@ -88,6 +93,9 @@ const Admin = () => {
           </TabsTrigger>
           <TabsTrigger value="qrcodes">
             QR Codes
+          </TabsTrigger>
+          <TabsTrigger value="ui-elements">
+            UI Elements
           </TabsTrigger>
         </TabsList>
       );
@@ -177,6 +185,18 @@ const Admin = () => {
             <ErrorBoundary>
               <Suspense fallback={<TabLoader />}>
                 <QRCodeManager />
+              </Suspense>
+            </ErrorBoundary>
+          </TabsContent>
+
+          <TabsContent value="ui-elements" className="space-y-4">
+            <h2 className="text-2xl font-bold">
+              UI Elements Management
+            </h2>
+            <Separator />
+            <ErrorBoundary>
+              <Suspense fallback={<TabLoader />}>
+                <UiElementsManager />
               </Suspense>
             </ErrorBoundary>
           </TabsContent>
