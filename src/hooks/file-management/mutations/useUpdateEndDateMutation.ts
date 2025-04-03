@@ -9,11 +9,20 @@ export const useUpdateEndDateMutation = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ id, endDate }: FileEndDateParams) => {
-      console.log('Updating end date:', { id, endDate });
+    mutationFn: async ({ id, endDate, endTime }: FileEndDateParams) => {
+      console.log('Updating end date:', { id, endDate, endTime });
+      
+      // Create a full timestamp if both date and time are provided
+      const endDateTime = endDate && endTime 
+        ? `${endDate}T${endTime}:00` 
+        : null;
+      
       const { error } = await supabase
         .from('marketing_files')
-        .update({ end_date: endDate })
+        .update({ 
+          end_date: endDateTime,
+          end_time: endTime 
+        })
         .eq('id', id);
       
       if (error) throw error;

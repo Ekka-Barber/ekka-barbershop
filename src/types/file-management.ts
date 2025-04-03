@@ -1,3 +1,4 @@
+
 import { UseMutationResult } from '@tanstack/react-query';
 
 // Core file metadata type
@@ -11,8 +12,11 @@ export interface FileMetadata {
   display_order?: number;
   branch_name?: string;
   branch_id?: string;
+  is_all_branches?: boolean; // Added missing property
   end_date?: string | null;
+  end_time?: string | null; // Added missing property
   created_at?: string;
+  file_url?: string; // Added missing property
 }
 
 // Preview for uploaded files
@@ -20,6 +24,7 @@ export interface FilePreview {
   url: string;
   type: 'menu' | 'offers';
   fileType: 'image' | 'pdf';
+  name: string; // Added missing property
 }
 
 // Parameters for file operations
@@ -66,8 +71,8 @@ export interface DropResult {
 
 // Props types for end date manager hook
 export interface EndDateManagerProps {
-  selectedDate: Date | null;
-  selectedTime: string | null;
+  selectedDate: Date | undefined;
+  selectedTime: string;
   updateEndDateMutation: UseMutationResult<any, unknown, FileEndDateParams, unknown>;
 }
 
@@ -78,10 +83,10 @@ export interface FileUploadSectionProps {
   setIsAllBranches: (value: boolean) => void;
   selectedBranch: string | null;
   setSelectedBranch: (value: string | null) => void;
-  selectedDate: Date | null;
-  setSelectedDate: (value: Date | null) => void;
-  selectedTime: string | null;
-  setSelectedTime: (value: string | null) => void;
+  selectedDate: Date | undefined;
+  setSelectedDate: (value: Date | undefined) => void;
+  selectedTime: string;
+  setSelectedTime: (value: string) => void;
   handleFileUpload: (event: React.ChangeEvent<HTMLInputElement>, category: 'menu' | 'offers') => void;
   uploading: boolean;
   filePreview: FilePreview | null;
@@ -90,11 +95,11 @@ export interface FileUploadSectionProps {
 export interface FileListSectionProps {
   category: 'menu' | 'offers';
   files: FileMetadata[];
-  selectedDate: Date | null;
-  setSelectedDate: (value: Date | null) => void;
-  selectedTime: string | null;
-  setSelectedTime: (value: string | null) => void;
-  handleEndDateUpdate: (fileId: string) => void;
+  selectedDate: Date | undefined;
+  setSelectedDate: (value: Date | undefined) => void;
+  selectedTime: string;
+  setSelectedTime: (value: string) => void;
+  handleEndDateUpdate: (file: FileMetadata) => void;
   handleRemoveEndDate: (fileId: string) => void;
   toggleActiveMutation: UseMutationResult<any, unknown, FileToggleParams, unknown>;
   deleteMutation: UseMutationResult<any, unknown, FileMetadata, unknown>;
@@ -104,25 +109,24 @@ export interface FileListSectionProps {
 export interface FileListItemProps {
   file: FileMetadata;
   index: number;
-  category: 'menu' | 'offers';
-  selectedDate: Date | null;
-  setSelectedDate: (value: Date | null) => void;
-  selectedTime: string | null;
-  setSelectedTime: (value: string | null) => void;
-  handleEndDateUpdate: (fileId: string) => void;
+  selectedDate: Date | undefined;
+  setSelectedDate: (date: Date | undefined) => void;
+  selectedTime: string;
+  setSelectedTime: (time: string) => void;
+  handleEndDateUpdate: (file: FileMetadata) => void;
   handleRemoveEndDate: (fileId: string) => void;
-  toggleActiveMutation: UseMutationResult<any, unknown, FileToggleParams, unknown>;
+  toggleActiveMutation: UseMutationResult<any, unknown, { id: string; isActive: boolean }, unknown>;
   deleteMutation: UseMutationResult<any, unknown, FileMetadata, unknown>;
 }
 
 export interface FileEndDateManagerProps {
   file: FileMetadata;
-  selectedDate: Date | null;
-  setSelectedDate: (date: Date | null) => void;
-  selectedTime: string | null;
-  setSelectedTime: (time: string | null) => void;
+  selectedDate: Date | undefined;
+  setSelectedDate: (date: Date | undefined) => void;
+  selectedTime: string;
+  setSelectedTime: (time: string) => void;
   handleEndDateUpdate: (fileId: string) => void;
   handleRemoveEndDate: (fileId: string) => void;
-  dialogOpen: boolean;
-  setDialogOpen: (open: boolean) => void;
-} 
+  dialogOpen?: boolean;
+  setDialogOpen?: (open: boolean) => void;
+}

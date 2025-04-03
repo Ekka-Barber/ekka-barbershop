@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { FileEndDateManager } from "./FileEndDateManager";
 import { FileMetadata } from "@/types/admin";
@@ -36,16 +37,20 @@ export const FileListItem = ({
   deleteMutation
 }: FileListItemProps) => {
   const [showFilePreview, setShowFilePreview] = useState(false);
+  const [showEndDateDialog, setShowEndDateDialog] = useState(false);
   const isDeleting = deleteMutation.isPending && deleteMutation.variables?.id === file.id;
   const isToggling = toggleActiveMutation.isPending && toggleActiveMutation.variables?.id === file.id;
   
-  const fileUrl = file.file_url;
-  const isImage = fileUrl?.toLowerCase().endsWith('.jpg') || 
-                  fileUrl?.toLowerCase().endsWith('.jpeg') || 
-                  fileUrl?.toLowerCase().endsWith('.png');
+  // Create file URL for display
+  const fileUrl = file.file_url || `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/marketing_files/${file.file_path}`;
+  
+  const isImage = file.file_type?.toLowerCase().includes('image') || 
+                  file.file_path?.toLowerCase().endsWith('.jpg') || 
+                  file.file_path?.toLowerCase().endsWith('.jpeg') || 
+                  file.file_path?.toLowerCase().endsWith('.png');
   
   const fileDateDisplay = file.end_date ? format(new Date(file.end_date), "PPP") : null;
-  const fileTimeDisplay = file.end_time ? file.end_time : null;
+  const fileTimeDisplay = file.end_time || null;
 
   return (
     <Draggable draggableId={file.id} index={index}>
@@ -162,8 +167,10 @@ export const FileListItem = ({
               setSelectedDate={setSelectedDate}
               selectedTime={selectedTime}
               setSelectedTime={setSelectedTime}
-              handleEndDateUpdate={handleEndDateUpdate}
+              handleEndDateUpdate={() => handleEndDateUpdate(file)}
               handleRemoveEndDate={handleRemoveEndDate}
+              dialogOpen={showEndDateDialog}
+              setDialogOpen={setShowEndDateDialog}
             />
           </div>
           

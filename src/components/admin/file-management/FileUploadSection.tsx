@@ -1,3 +1,4 @@
+
 import { useState, useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -7,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { Clock, Upload, FileText, X, Image as ImageIcon, AlertCircle } from "lucide-react";
-import { format } from "date-fns";
+import { format, isSameDay } from "date-fns"; // Import isSameDay from date-fns
 import { FilePreview } from '@/types/admin';
 import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";

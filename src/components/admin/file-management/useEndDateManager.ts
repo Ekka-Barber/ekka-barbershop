@@ -1,4 +1,6 @@
+
 import { EndDateManagerProps } from '@/types/file-management';
+import { format } from 'date-fns';
 
 export const useEndDateManager = ({ 
   selectedDate,
@@ -12,9 +14,12 @@ export const useEndDateManager = ({
       return;
     }
 
+    // Format the date as ISO string
+    const formattedDate = format(selectedDate, 'yyyy-MM-dd');
+    
     updateEndDateMutation.mutate({
       id: fileId,
-      endDate: selectedDate,
+      endDate: formattedDate,
       endTime: selectedTime
     });
   };

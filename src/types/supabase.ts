@@ -1,7 +1,7 @@
 
 import { Database as DatabaseGenerated } from './supabase-generated';
 
-export interface Database extends DatabaseGenerated {
+export interface Database {
   public: {
     Tables: {
       ui_elements: {
@@ -23,6 +23,7 @@ export interface Database extends DatabaseGenerated {
         Update: Partial<Omit<Database['public']['Tables']['ui_elements']['Row'], 'id' | 'created_at'>>;
       };
     };
+    Enums: Record<string, never>; // Add empty Enums property to match DatabaseGenerated
   };
 }
 
