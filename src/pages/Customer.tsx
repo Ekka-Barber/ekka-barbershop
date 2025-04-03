@@ -26,6 +26,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import AppLayout from '@/components/layout/AppLayout';
 
 // Define Branch interface directly in this file
 interface Branch {
@@ -214,200 +215,243 @@ const Customer = () => {
   };
 
   return (
-    <div dir={language === 'ar' ? 'rtl' : 'ltr'} className={`min-h-screen flex flex-col ${isStandalone ? 'pt-14' : 'pt-4'} ${deviceHasNotch ? 'safe-top' : ''}`}>
-      <div className="app-container h-full">
-        <PullToRefresh onRefresh={handleRefresh}>
-          <div 
-            ref={contentRef}
-            className={`content-area flex flex-col justify-center items-center ${isStandalone ? 'standalone-mode' : ''} ${deviceHasNotch ? 'has-notch' : ''}`}
-            style={{
-              minHeight: isStandalone ? 
-                `calc(100vh - ${safeAreaInsets.top + safeAreaInsets.bottom}px)` : 
-                '100vh',
-              paddingTop: deviceHasNotch && isStandalone ? 
-                `max(env(safe-area-inset-top), ${safeAreaInsets.top}px)` : 
-                undefined,
-              paddingBottom: deviceHasNotch && isStandalone ? 
-                `max(env(safe-area-inset-bottom), ${safeAreaInsets.bottom}px)` : 
-                undefined,
-            }}
-          >
-            <div className="text-center flex-shrink-0 mx-auto pt-safe">
-              <img 
-                src="lovable-uploads/7eb81221-fbf5-4b1d-8327-eb0e707236d8.png" 
-                alt="Ekka Barbershop Logo" 
-                className="h-28 md:h-32 mx-auto mb-4 md:mb-6 object-contain"
-                loading="eager"
-                width="320" 
-                height="128"
-              />
-              <div className="space-y-1 md:space-y-2">
-                <h2 className="text-xl font-medium text-[#222222]">
-                  {t('welcome.line1')}
-                </h2>
-                <h1 className="text-2xl md:text-3xl font-bold text-[#222222]">
-                  {t('welcome.line2')}
-                </h1>
-              </div>
-              <div className="h-1 w-24 bg-[#C4A36F] mx-auto mt-3 md:mt-4 mb-6"></div>
+    <AppLayout>
+      <PullToRefresh onRefresh={handleRefresh}>
+        <div className="flex flex-1 flex-col justify-start items-center max-w-md mx-auto">
+          <div className="text-center flex-shrink-0 mx-auto pt-safe w-full">
+            <img 
+              src="lovable-uploads/7eb81221-fbf5-4b1d-8327-eb0e707236d8.png" 
+              alt="Ekka Barbershop Logo" 
+              className="h-28 md:h-32 mx-auto mb-4 md:mb-6 object-contain"
+              loading="eager"
+              width="320" 
+              height="128"
+            />
+            <div className="space-y-1 md:space-y-2">
+              <h2 className="text-xl font-medium text-[#222222]">
+                {t('welcome.line1')}
+              </h2>
+              <h1 className="text-2xl md:text-3xl font-bold text-[#222222]">
+                {t('welcome.line2')}
+              </h1>
             </div>
-
-            <div className="space-y-3 md:space-y-4 max-w-xs mx-auto pb-safe">
+            <div className="h-1 w-24 bg-[#C4A36F] mx-auto mt-3 md:mt-4 mb-6"></div>
+            <div className="w-full max-w-xs mx-auto space-y-4">
               {isLoadingUiElements ? (
-                <div>Loading UI...</div>
+                <>
+                  <div className="h-12 bg-gray-200 rounded animate-pulse"></div>
+                  <div className="h-12 bg-gray-200 rounded animate-pulse"></div>
+                  <div className="h-12 bg-gray-200 rounded animate-pulse"></div>
+                </>
               ) : (
-                visibleElements.map((element) => {
-                  console.log(`[Customer Page] Mapping Element - ID: ${element.id}, Name: ${element.name}, Type: ${element.type}, Visible: ${element.is_visible}`);
-                  
-                  if (element.type === 'button') {
+                visibleElements.map((el) => {
+                  if (el.type === 'button') {
                     return (
-                      <Button 
-                        key={element.id}
+                      <Button
+                        key={el.id}
                         className={`w-full h-auto min-h-[56px] text-lg font-medium flex items-center justify-center px-4 py-3 ${
-                          element.name === 'view_menu' || element.name === 'book_now'
+                          el.name === 'view_menu' || el.name === 'book_now'
                             ? 'bg-[#C4A36F] hover:bg-[#B39260]'
                             : 'bg-[#4A4A4A] hover:bg-[#3A3A3A]'
                         } text-white transition-all duration-300 shadow-lg hover:shadow-xl touch-target`}
                         onClick={() => {
                           trackButtonClick({
-                            buttonId: element.name,
-                            buttonName: language === 'ar' ? element.display_name_ar : element.display_name
+                            buttonId: el.name,
+                            buttonName: language === 'ar' ? el.display_name_ar : el.display_name
                           });
-                          
-                          if (element.action?.startsWith('http')) {
-                            window.open(element.action, '_blank');
-                          } else if (element.action === 'openBranchDialog') {
+
+                          if (el.action?.startsWith('http')) {
+                            window.open(el.action, '_blank');
+                          } else if (el.action === 'openBranchDialog') {
                             setBranchDialogOpen(true);
-                          } else if (element.action === 'openLocationDialog') {
+                          } else if (el.action === 'openLocationDialog') {
                             handleLocationDialog();
-                          } else if (element.action === 'openEidBookingsDialog') {
+                          } else if (el.action === 'openEidBookingsDialog') {
                             setEidBookingsDialogOpen(true);
-                          } else if (element.action) {
-                            navigate(element.action);
+                          } else if (el.action) {
+                            navigate(el.action);
                           }
                         }}
                       >
-                        {renderIcon(element.icon)} 
+                        {renderIcon(el.icon)}
                         <div className="flex flex-col text-center">
                            <span className="text-lg font-medium">
-                             {language === 'ar' ? element.display_name_ar : element.display_name}
+                             {language === 'ar' ? el.display_name_ar : el.display_name}
                            </span>
-                           {element.description && (
+                           {el.description && (
                              <span className="text-xs font-normal text-gray-200 mt-1">
-                               {language === 'ar' ? element.description_ar : element.description}
+                               {language === 'ar' ? el.description_ar : el.description}
                              </span>
                            )}
                         </div>
                       </Button>
                     );
-                  } else if (element.type === 'section' && element.name === 'eid_bookings') {
-                    console.log("[Customer Page] Rendering Fresha/Eid Bookings Section for element:", element);
-                    return (
-                      <div 
-                        key={element.id} 
-                        className="mt-3 bg-white rounded-lg shadow-md border border-gray-200 p-4 cursor-pointer hover:shadow-lg transition-shadow duration-200"
-                        onClick={() => {
-                          trackButtonClick({
-                            buttonId: 'eid_bookings', 
-                            buttonName: language === 'ar' ? element.display_name_ar : element.display_name
-                          });
-                          setEidBookingsDialogOpen(true);
-                        }}
-                        role="button"
-                        tabIndex={0}
-                        aria-label={language === 'ar' ? element.display_name_ar : element.display_name}
-                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setEidBookingsDialogOpen(true); }}
-                      >
-                        <div className="flex items-center justify-between">
-                          <div className={`flex-1 ${language === 'ar' ? 'ml-3' : 'mr-3'}`}>
-                            <h2 className={`text-lg font-bold text-[#222222] mb-1 ${language === 'ar' ? 'text-right' : 'text-left'}`}>
-                              {language === 'ar' ? element.display_name_ar : element.display_name}
-                            </h2>
-                            {element.description && (
-                              <p className={`text-gray-600 text-xs ${language === 'ar' ? 'text-right' : 'text-left'}`}>
-                                {language === 'ar' ? element.description_ar : element.description}
-                              </p>
-                            )}
-                          </div>
-                          <div className="h-10 w-px bg-gray-200 mx-3"></div>
-                          <div className="flex-shrink-0">
-                            <img src={freshaLogo} alt="Fresha Logo" className="h-8 w-auto" />
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  } else if (element.type === 'section' && element.name === 'loyalty_program') {
-                    console.log("[Customer Page] Rendering Loyalty Program Section for element:", element);
-                    return (
-                      <div 
-                        key={element.id} 
-                        className="mt-3 bg-white rounded-lg shadow-md border border-gray-200 p-4 cursor-pointer hover:shadow-lg transition-shadow duration-200"
-                        onClick={() => {
-                          trackButtonClick({
-                            buttonId: 'loyalty_program',
-                            buttonName: language === 'ar' ? element.display_name_ar : element.display_name
-                          });
-                          window.open('https://enroll.boonus.app/64b7c34953090f001de0fb6c/wallet/64b7efed53090f001de815b4', '_blank');
-                        }}
-                        role="button"
-                        tabIndex={0}
-                        aria-label={language === 'ar' ? element.display_name_ar : element.display_name}
-                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') window.open('https://enroll.boonus.app/64b7c34953090f001de0fb6c/wallet/64b7efed53090f001de815b4', '_blank'); }}
-                      >
-                        <div className="flex items-center justify-between">
+                  } else if (el.type === 'section' && el.name === 'eid_bookings') {
+                     return (
+                       <div
+                         key={el.id}
+                         className="mt-3 bg-white rounded-lg shadow-md border border-gray-200 p-4 cursor-pointer hover:shadow-lg transition-shadow duration-200"
+                         onClick={() => {
+                           trackButtonClick({
+                             buttonId: 'eid_bookings',
+                             buttonName: language === 'ar' ? el.display_name_ar : el.display_name
+                           });
+                           setEidBookingsDialogOpen(true);
+                         }}
+                         role="button"
+                         tabIndex={0}
+                         aria-label={language === 'ar' ? el.display_name_ar : el.display_name}
+                         onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setEidBookingsDialogOpen(true); }}
+                       >
+                         <div className="flex items-center justify-between">
                            <div className={`flex-1 ${language === 'ar' ? 'ml-3' : 'mr-3'}`}>
-                            <h2 className={`text-lg font-bold text-[#222222] ${language === 'ar' ? 'text-right' : 'text-left'}`}>
-                              {language === 'ar' ? element.display_name_ar : element.display_name}
-                            </h2>
-                            {element.description && (
-                              <p className={`text-gray-600 text-xs mt-1 ${language === 'ar' ? 'text-right' : 'text-left'}`}>
-                                {language === 'ar' ? element.description_ar : element.description}
-                              </p>
-                            )}
-                          </div>
-                          <div className="h-10 w-px bg-gray-200 mx-3"></div>
-                          <div className="flex-shrink-0 flex flex-col items-center justify-center">
-                            <img src={boonusLogo} alt="Boonus Logo" className="h-8 w-auto" />
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  } else if (element.type === 'section' && element.name === 'google_reviews') {
-                    console.log("[Customer Page] Rendering Google Reviews Section for element:", element);
-                    return <GoogleReviews key={element.id} />;
-                  }
+                             <h2 className={`text-lg font-bold text-[#222222] mb-1 ${language === 'ar' ? 'text-right' : 'text-left'}`}>
+                               {language === 'ar' ? el.display_name_ar : el.display_name}
+                             </h2>
+                             {el.description && (
+                               <p className={`text-gray-600 text-xs ${language === 'ar' ? 'text-right' : 'text-left'}`}>
+                                 {language === 'ar' ? el.description_ar : el.description}
+                               </p>
+                             )}
+                           </div>
+                           <div className="h-10 w-px bg-gray-200 mx-3"></div>
+                           <div className="flex-shrink-0">
+                             <img src={freshaLogo} alt="Fresha Logo" className="h-8 w-auto" />
+                           </div>
+                         </div>
+                       </div>
+                     );
+                  } else if (el.type === 'section' && el.name === 'loyalty_program') {
+                     return (
+                       <div
+                         key={el.id}
+                         className="mt-3 bg-white rounded-lg shadow-md border border-gray-200 p-4 cursor-pointer hover:shadow-lg transition-shadow duration-200"
+                         onClick={() => {
+                           trackButtonClick({
+                             buttonId: 'loyalty_program',
+                             buttonName: language === 'ar' ? el.display_name_ar : el.display_name
+                           });
+                           window.open('https://enroll.boonus.app/64b7c34953090f001de0fb6c/wallet/64b7efed53090f001de815b4', '_blank');
+                         }}
+                         role="button"
+                         tabIndex={0}
+                         aria-label={language === 'ar' ? el.display_name_ar : el.display_name}
+                         onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') window.open('https://enroll.boonus.app/64b7c34953090f001de0fb6c/wallet/64b7efed53090f001de815b4', '_blank'); }}
+                       >
+                         <div className="flex items-center justify-between">
+                            <div className={`flex-1 ${language === 'ar' ? 'ml-3' : 'mr-3'}`}>
+                             <h2 className={`text-lg font-bold text-[#222222] ${language === 'ar' ? 'text-right' : 'text-left'}`}>
+                               {language === 'ar' ? el.display_name_ar : el.display_name}
+                             </h2>
+                             {el.description && (
+                               <p className={`text-gray-600 text-xs mt-1 ${language === 'ar' ? 'text-right' : 'text-left'}`}>
+                                 {language === 'ar' ? el.description_ar : el.description}
+                               </p>
+                             )}
+                           </div>
+                           <div className="h-10 w-px bg-gray-200 mx-3"></div>
+                           <div className="flex-shrink-0 flex flex-col items-center justify-center">
+                             <img src={boonusLogo} alt="Boonus Logo" className="h-8 w-auto" />
+                           </div>
+                         </div>
+                       </div>
+                     );
+                   } else if (el.type === 'section' && el.name === 'google_reviews') {
+                     return <GoogleReviews key={el.id} />;
+                   }
                   return null;
                 })
               )}
+            </div>
 
-              <InstallAppPrompt />
+            <div className="h-px w-full max-w-xs mx-auto bg-gray-200"></div>
+
+            {/* Social Media / External Links Section */}
+            <div className="flex justify-center items-center space-x-6 mt-8">
+              {visibleElements.map((el) => {
+                if (el.type === 'section' && (el.name === 'loyalty_program' || el.name === 'eid_bookings')) {
+                  let imgSrc = '';
+                  let altText = '';
+                  let isDialogTrigger = false;
+
+                  if (el.name === 'eid_bookings') {
+                    imgSrc = freshaLogo;
+                    altText = 'Fresha';
+                    isDialogTrigger = true;
+                  } else if (el.name === 'loyalty_program') {
+                    return null;
+                  }
+
+                  if (imgSrc) {
+                    if (isDialogTrigger) {
+                      return null;
+                    }
+
+                    const linkUrl = el.action ?? '#';
+                    const trackingId = `social_${el.icon || el.name}`;
+                    const trackingName = `Social ${altText}`;
+
+                    return (
+                      <a
+                        key={el.id}
+                        href={linkUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="transition-opacity hover:opacity-80 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#C4A36F] rounded-md"
+                        aria-label={`Visit our ${altText} page`}
+                        onClick={() => {
+                          trackButtonClick({
+                            buttonId: trackingId,
+                            buttonName: trackingName,
+                          });
+                        }}
+                      >
+                        <img src={imgSrc} alt={altText} className="h-10 w-auto" />
+                      </a>
+                    );
+                  }
+                }
+                return null;
+              })}
             </div>
           </div>
-        </PullToRefresh>
-      </div>
+        </div>
+      </PullToRefresh>
 
       <LanguageSwitcher />
 
-      <BranchDialog 
-        open={branchDialogOpen} 
-        onOpenChange={setBranchDialogOpen} 
-        branches={branches} 
-        onBranchSelect={handleBranchSelect} 
+      <BranchDialog
+        open={branchDialogOpen}
+        onOpenChange={setBranchDialogOpen}
+        onBranchSelect={handleBranchSelect}
+        branches={branches || []}
       />
-      <LocationDialog 
-        open={locationDialogOpen} 
-        onOpenChange={setLocationDialogOpen} 
-        branches={branches} 
-        onLocationClick={handleLocationClick} 
+      <LocationDialog
+        open={locationDialogOpen}
+        onOpenChange={setLocationDialogOpen}
+        onLocationClick={handleLocationClick}
+        branches={branches || []}
       />
-      <EidBookingsDialog 
-        open={eidBookingsDialogOpen} 
-        onOpenChange={setEidBookingsDialogOpen} 
-        branches={branches} 
-        onBranchSelect={handleEidBranchSelect} 
+      <EidBookingsDialog
+        open={eidBookingsDialogOpen}
+        onOpenChange={setEidBookingsDialogOpen}
+        onBranchSelect={handleEidBranchSelect}
+        branches={branches || []}
       />
-      <footer className="page-footer" />
-    </div>
+      <Dialog open={mapDialogOpen} onOpenChange={setMapDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{selectedBranch?.name}</DialogTitle>
+            <DialogDescription>{selectedBranch?.address}</DialogDescription>
+          </DialogHeader>
+          <Button onClick={() => handleLocationClick(selectedBranch ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(selectedBranch.address)}` : null)}>
+            {t('open.maps')}
+          </Button>
+        </DialogContent>
+      </Dialog>
+
+      <InstallAppPrompt />
+    </AppLayout>
   );
 };
 
