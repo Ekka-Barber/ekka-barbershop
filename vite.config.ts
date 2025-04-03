@@ -1,4 +1,3 @@
-
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
@@ -11,14 +10,11 @@ export default defineConfig(({ mode }) => ({
     port: 8080,
     proxy: {
       '/api/places': {
-        target: 'https://maps.googleapis.com',
+        target: 'https://jfnjvphxhzxojxgptmtu.supabase.co/functions/v1/google-places',
         changeOrigin: true,
         rewrite: (path) => {
           const url = new URL(path, 'http://example.com');
-          const placeId = url.searchParams.get('placeId');
-          const apiKey = url.searchParams.get('apiKey');
-          const language = url.searchParams.get('language') || 'en';
-          return `/maps/api/place/details/json?place_id=${placeId}&fields=reviews,reviews_sort&key=${apiKey}&language=${language}&reviews_sort=newest`;
+          return url.search;
         }
       }
     }
