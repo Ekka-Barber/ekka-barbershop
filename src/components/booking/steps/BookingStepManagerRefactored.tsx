@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { BookingProgress, BookingStep } from "@/components/booking/BookingProgress";
 import { BookingNavigation } from "@/components/booking/BookingNavigation";
@@ -14,6 +13,7 @@ import { useStepValidation } from "./validation/useStepValidation";
 import { StepContent } from "./components/StepContent";
 import { BookingNavigationWrapper } from "./components/BookingNavigationWrapper";
 import { ServiceSummaryWrapper } from "./components/ServiceSummaryWrapper";
+import { SelectedService } from "@/types/service";
 
 const STEPS: BookingStep[] = ['services', 'datetime', 'barber', 'details'];
 
@@ -54,7 +54,6 @@ export const BookingStepManager = ({
     packageSettings
   } = useBookingContext();
   
-  // Use the extracted validation hook
   const {
     isValidating,
     setIsValidating,
@@ -80,7 +79,6 @@ export const BookingStepManager = ({
     }
   }, [currentStep, formValid]);
   
-  // Reset form validation when moving away from the details step
   useEffect(() => {
     if (currentStep !== 'details') {
       setFormValid(false);
@@ -91,7 +89,6 @@ export const BookingStepManager = ({
     const typedStep = step as BookingStep;
     
     if (currentStep === 'details' && !formValid && typedStep !== 'barber') {
-      // Don't allow proceeding if form is invalid
       return;
     }
     
@@ -115,7 +112,7 @@ export const BookingStepManager = ({
   const currentStepIndex = STEPS.indexOf(currentStep as BookingStep);
   const shouldShowNavigation = currentStep === 'details';
   const shouldShowSummaryBar = selectedServices.length > 0 && currentStep !== 'details';
-  const transformedServices = transformServicesForDisplay(selectedServices, language);
+  const transformedServices = transformServicesForDisplay(selectedServices, language === 'ar' ? 'ar' : 'en');
 
   const employeeWorkingHours = selectedEmployee?.working_hours ? 
     transformWorkingHours(selectedEmployee.working_hours) : null;

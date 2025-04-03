@@ -15,6 +15,12 @@ import { UiElementsRenderer } from "@/components/customer/UiElementsRenderer";
 import { useLayoutSetup } from "@/hooks/customer/useLayoutSetup";
 import { useUiElements } from "@/hooks/customer/useUiElements";
 import { InstallAppPrompt } from "@/components/installation/InstallAppPrompt";
+import { 
+  trackViewContent, 
+  trackButtonClick, 
+  trackLocationView, 
+  trackServiceSelection 
+} from "@/utils/tiktokTracking";
 
 // Define Branch interface directly in this file
 interface Branch {

@@ -26,14 +26,18 @@ export interface FileMetadata {
   display_order?: number;
   branch_name?: string;
   branch_id?: string;
+  is_all_branches?: boolean;
   end_date?: string | null;
+  end_time?: string | null;
   created_at?: string;
+  file_url?: string;
 }
 
 export interface FilePreview {
   url: string;
   type: 'menu' | 'offers';
   fileType: 'image' | 'pdf';
+  name: string;
 }
 
 // Blocked dates types

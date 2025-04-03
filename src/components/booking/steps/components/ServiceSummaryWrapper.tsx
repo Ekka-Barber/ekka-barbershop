@@ -46,7 +46,7 @@ export const ServiceSummaryWrapper = ({
         selectedServices={transformedServices} 
         totalDuration={totalDuration} 
         totalPrice={totalPrice} 
-        language={language} 
+        language={language === 'ar' ? 'ar' : 'en'} 
         onNextStep={onNextStep} 
         onPrevStep={onPrevStep} 
         isFirstStep={currentStepIndex === 0} 
