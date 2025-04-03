@@ -1,3 +1,4 @@
+
 import { Database as DatabaseGenerated } from './supabase-generated';
 
 export interface Database extends DatabaseGenerated {
@@ -31,7 +32,7 @@ export type Enums<T extends keyof Database['public']['Enums']> = Database['publi
 // Re-export the supabase client with the correct types
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || "https://jfnjvphxhzxojxgptmtu.supabase.co";
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Impmbmp2cGh4aHp4b2p4Z3B0bXR1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzY3MjgyMDksImV4cCI6MjA1MjMwNDIwOX0.D7fqEZPOOvqVnrtLPwAJ4tqGyTPY8uXjBejgU8Vshd4";
 
 export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey); 
