@@ -23,7 +23,7 @@ export interface Database {
         Update: Partial<Omit<Database['public']['Tables']['ui_elements']['Row'], 'id' | 'created_at'>>;
       };
     };
-    Enums: Record<string, never>; // Add empty Enums property to match DatabaseGenerated
+    Enums: Record<string, never>; // Add Enums property
   };
 }
 
