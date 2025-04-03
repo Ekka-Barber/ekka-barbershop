@@ -39,13 +39,15 @@ const ReviewSkeleton = () => (
 
 // Empty state component when no reviews are found
 const NoReviews = ({ language }: { language: string }) => (
-  <div className="w-full py-8 text-center">
-    <div className="bg-gray-50 rounded-lg p-8 max-w-md mx-auto">
-      <Star className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-      <h3 className="text-lg font-medium text-gray-700 mb-2">
+  <div className="w-full py-12 text-center">
+    <div className="bg-gray-50 rounded-lg p-8 max-w-md mx-auto border border-gray-100 shadow-sm">
+      <div className="w-20 h-20 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+        <Star className="w-10 h-10 text-gray-300" strokeWidth={1.5} />
+      </div>
+      <h3 className="text-xl font-medium text-gray-700 mb-3">
         {language === 'ar' ? 'لا توجد مراجعات متاحة' : 'No Reviews Available'}
       </h3>
-      <p className="text-gray-500 text-sm">
+      <p className="text-gray-500 text-sm max-w-xs mx-auto">
         {language === 'ar' 
           ? 'لم نتمكن من العثور على أي مراجعات في الوقت الحالي. الرجاء المحاولة مرة أخرى لاحقًا.'
           : 'We couldn\'t find any reviews at the moment. Please check back later.'}
