@@ -20,20 +20,16 @@ export const LanguageSwitcher = () => {
   return (
     <button 
       onClick={handleLanguageToggle}
-      className="fixed bottom-5 right-5 z-50 flex items-center justify-center w-12 h-12 rounded-full bg-[#C4A36F] text-white shadow-lg hover:bg-[#B39260] transition-colors duration-300"
+      className="fixed top-5 right-5 z-50 flex items-center justify-center w-12 h-12 rounded-full bg-[#C4A36F] text-white shadow-lg hover:bg-[#B39260] transition-colors duration-300"
       aria-label={language === 'ar' ? "Switch to English" : "التحويل الى العربية"}
       style={{ 
-        // Use safe-area-inset for notch compatibility
-        bottom: `calc(1.25rem + env(safe-area-inset-bottom, 0px))`,
+        // Use safe-area-inset-top and right for notch compatibility
+        top: `calc(1.25rem + env(safe-area-inset-top, 0px))`,
         right: `calc(1.25rem + env(safe-area-inset-right, 0px))` 
       }}
     >
-      {/* Display the language to switch TO */}
-      <span className="text-lg font-medium">
-        {language === 'ar' ? 'En' : 'ع'}
-      </span>
-      {/* Optional: Keep the Globe icon if preferred */}
-      {/* <Globe className="w-5 h-5" /> */}
+      {/* Replaced language text with Globe icon */}
+      <Globe className="w-6 h-6" />
     </button>
   );
 };
