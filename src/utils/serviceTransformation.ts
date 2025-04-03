@@ -65,7 +65,15 @@ export const transformUpsellToSelected = (
 export const transformServicesForDisplay = (
   services: SelectedService[], 
   language: 'en' | 'ar'
-) => {
+): {
+  id: string;
+  name: string;
+  price: number;
+  duration: number;
+  originalPrice?: number;
+  isBasePackageService?: boolean;
+  isPackageAddOn?: boolean;
+}[] => {
   return services.map(service => ({
     id: service.id,
     name: language === 'ar' ? service.name_ar : service.name_en,

@@ -22,13 +22,15 @@ export const useFileValidation = () => {
       return {
         url: URL.createObjectURL(file),
         type: category,
-        fileType: 'image'
+        fileType: 'image',
+        name: file.name
       };
     } else if (file.type === 'application/pdf') {
       return {
         url: URL.createObjectURL(file),
         type: category,
-        fileType: 'pdf'
+        fileType: 'pdf',
+        name: file.name
       };
     }
     throw new Error('Unsupported file type for preview');

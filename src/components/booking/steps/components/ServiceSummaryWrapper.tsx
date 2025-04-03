@@ -3,6 +3,7 @@ import { ErrorBoundary } from "@/components/common/ErrorBoundary";
 import { ServicesSummary } from "../../service-selection/ServicesSummary";
 import { PackageSettings } from "@/types/admin";
 import { Service, SelectedService } from "@/types/service";
+import { transformServicesForDisplay } from "@/utils/serviceTransformation";
 
 interface ServiceSummaryWrapperProps {
   transformedServices: SelectedService[];
@@ -40,10 +41,13 @@ export const ServiceSummaryWrapper = ({
         !transformedServices.some(ts => ts.id === s.id))
     : [];
 
+  // Transform the services for display
+  const displayServices = transformServicesForDisplay(transformedServices, language === 'ar' ? 'ar' : 'en');
+
   return (
     <ErrorBoundary>
       <ServicesSummary 
-        selectedServices={transformedServices} 
+        selectedServices={displayServices} 
         totalDuration={totalDuration} 
         totalPrice={totalPrice} 
         language={language === 'ar' ? 'ar' : 'en'} 

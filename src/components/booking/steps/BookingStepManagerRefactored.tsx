@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { BookingProgress, BookingStep } from "@/components/booking/BookingProgress";
 import { BookingNavigation } from "@/components/booking/BookingNavigation";
@@ -112,7 +113,6 @@ export const BookingStepManager = ({
   const currentStepIndex = STEPS.indexOf(currentStep as BookingStep);
   const shouldShowNavigation = currentStep === 'details';
   const shouldShowSummaryBar = selectedServices.length > 0 && currentStep !== 'details';
-  const transformedServices = transformServicesForDisplay(selectedServices, language === 'ar' ? 'ar' : 'en');
 
   const employeeWorkingHours = selectedEmployee?.working_hours ? 
     transformWorkingHours(selectedEmployee.working_hours) : null;
@@ -185,7 +185,7 @@ export const BookingStepManager = ({
 
       {shouldShowSummaryBar && (
         <ServiceSummaryWrapper 
-          transformedServices={transformedServices}
+          transformedServices={selectedServices}
           totalDuration={totalDuration}
           totalPrice={totalPrice}
           language={language}
