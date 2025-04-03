@@ -67,33 +67,6 @@
   transition: height var(--transition-medium) ease;
 }
 
-/* Main content container */
-.app-container {
-  width: 100%;
-  max-width: var(--app-max-width);
-  margin: 0 auto;
-  padding: 0 calc(var(--content-spacing) + var(--sal)) var(--content-spacing) calc(var(--content-spacing) + var(--sar));
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-}
-
-/* Content area with proper spacing */
-.content-area {
-  flex: 1;
-  width: 100%;
-  padding-bottom: calc(var(--sab) + var(--content-spacing));
-  /* Improve scroll performance */
-  will-change: transform;
-  /* Enable momentum scrolling on iOS */
-  -webkit-overflow-scrolling: touch;
-  /* Center content properly */
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  min-height: 100vh;
-}
-
 /* Form element enhancements for mobile */
 input, button, select, textarea {
   /* Prevent zoom on focus in iOS */
@@ -117,12 +90,6 @@ html {
   .app-header {
     padding-top: max(var(--sat), 20px);
     height: calc(var(--header-height) + max(var(--sat), 20px));
-  }
-  
-  .content-area {
-    padding-bottom: calc(var(--sab) + var(--bottom-nav-height));
-    /* Smooth scrolling but better performance */
-    scroll-behavior: smooth;
   }
   
   /* Hide browser UI elements in standalone mode */
@@ -155,13 +122,6 @@ html {
 [dir="rtl"] .language-switcher-container {
   right: auto;
   left: calc(var(--sal) + var(--content-spacing));
-}
-
-/* Safe area footer */
-.page-footer {
-  height: var(--sab);
-  width: 100%;
-  min-height: 0.5rem;
 }
 
 /* Enhanced touch targets */
