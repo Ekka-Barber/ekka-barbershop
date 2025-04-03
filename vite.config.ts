@@ -10,17 +10,15 @@ export default defineConfig(({ mode }) => ({
     host: "::",
     port: 8080,
     proxy: {
-      '/api/places/reviews': {
-        target: 'https://maps.googleapis.com/maps/api',
+      '/api/places': {
+        target: 'https://maps.googleapis.com',
         changeOrigin: true,
         rewrite: (path) => {
-          // Get language from the request URL if available, default to 'en'
           const url = new URL(path, 'http://example.com');
           const placeId = url.searchParams.get('placeId');
           const apiKey = url.searchParams.get('apiKey');
-          const lang = url.searchParams.get('language') || 'en'; // Get language param
-          // Pass language to the Google API
-          return `/place/details/json?place_id=${placeId}&fields=reviews&key=${apiKey}&language=${lang}`;
+          const language = url.searchParams.get('language') || 'en';
+          return `/maps/api/place/details/json?place_id=${placeId}&fields=reviews,reviews_sort&key=${apiKey}&language=${language}&reviews_sort=newest`;
         }
       }
     }

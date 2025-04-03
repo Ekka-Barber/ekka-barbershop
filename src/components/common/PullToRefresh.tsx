@@ -28,6 +28,7 @@ export const PullToRefresh: React.FC<PullToRefreshProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const startYRef = useRef<number | null>(null);
   const currentYRef = useRef<number | null>(null);
+  const scrollStartPosRef = useRef(0);
   const reducedMotion = prefersReducedMotion();
 
   useEffect(() => {
@@ -35,23 +36,34 @@ export const PullToRefresh: React.FC<PullToRefreshProps> = ({
     if (!container) return;
 
     const handleTouchStart = (e: TouchEvent) => {
+      // Store the initial scroll position
+      scrollStartPosRef.current = container.scrollTop;
+      
+      // Only allow pull-to-refresh when at the top of the content
       if (container.scrollTop <= 0) {
         startYRef.current = e.touches[0].clientY;
       }
     };
 
     const handleTouchMove = (e: TouchEvent) => {
-      if (startYRef.current !== null) {
+      // Immediately allow normal scrolling if we're not at the top
+      if (container.scrollTop > 0) {
+        return;
+      }
+
+      // If we started a pull gesture and still at the top
+      if (startYRef.current !== null && container.scrollTop <= 0) {
         currentYRef.current = e.touches[0].clientY;
         const delta = currentYRef.current - startYRef.current;
         
-        // Only activate pull-to-refresh if scrolled to top and pulling down
-        if (delta > 0 && container.scrollTop <= 0) {
-          const newDistance = Math.min(delta * 0.5, maxPullDownDistance);
+        // Only activate pull-to-refresh if pulling down
+        if (delta > 0) {
+          // Apply resistance to the pull (makes it harder to pull down)
+          const newDistance = Math.min(delta * 0.4, maxPullDownDistance);
           setPullDistance(newDistance);
           setIsPulling(true);
           
-          // Prevent default scrolling
+          // Prevent default scrolling behavior only when pulling down
           e.preventDefault();
         }
       }
@@ -79,16 +91,31 @@ export const PullToRefresh: React.FC<PullToRefreshProps> = ({
       }
     };
 
+    // Function to handle regular scrolling without refresh behavior
+    const handleScroll = () => {
+      // If we're scrolling away from the top, reset the pull state
+      if (container.scrollTop > 10 && startYRef.current !== null) {
+        startYRef.current = null;
+        currentYRef.current = null;
+        if (isPulling) {
+          setPullDistance(0);
+          setIsPulling(false);
+        }
+      }
+    };
+
     container.addEventListener('touchstart', handleTouchStart, { passive: true });
     container.addEventListener('touchmove', handleTouchMove, { passive: false });
     container.addEventListener('touchend', handleTouchEnd);
     container.addEventListener('touchcancel', handleTouchEnd);
+    container.addEventListener('scroll', handleScroll, { passive: true });
 
     return () => {
       container.removeEventListener('touchstart', handleTouchStart);
       container.removeEventListener('touchmove', handleTouchMove);
       container.removeEventListener('touchend', handleTouchEnd);
       container.removeEventListener('touchcancel', handleTouchEnd);
+      container.removeEventListener('scroll', handleScroll);
     };
   }, [isPulling, pullDistance, pullDownThreshold, maxPullDownDistance, onRefresh]);
 
@@ -127,11 +154,12 @@ export const PullToRefresh: React.FC<PullToRefreshProps> = ({
       
       <div
         ref={containerRef}
-        className="h-full w-full overflow-y-auto"
+        className="h-full w-full overflow-y-auto overscroll-contain"
         style={{
           transition: reducedMotion ? 'none' : 'transform 0.2s ease',
           transform: isPulling ? `translateY(${pullDistance}px)` : 
                     isRefreshing ? 'translateY(60px)' : 'translateY(0px)',
+          WebkitOverflowScrolling: 'touch', // Smooth scrolling on iOS
         }}
       >
         {children}
