@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { BookingStep } from '@/components/booking/BookingProgress';
 import { calculateTotalPrice, calculateTotalDuration } from '@/utils/bookingCalculations';
@@ -103,8 +102,8 @@ export const useBooking = (initialBranch: any) => {
   };
 
   // Calculate total price and duration
-  const totalPrice = calculateTotalPrice(selectedServices as Service[]);
-  const totalDuration = calculateTotalDuration(selectedServices as Service[]);
+  const totalPrice = calculateTotalPrice(selectedServices as unknown as Service[]);
+  const totalDuration = calculateTotalDuration(selectedServices as unknown as Service[]);
 
   // Find base service
   const baseService = selectedServices.find(s => 

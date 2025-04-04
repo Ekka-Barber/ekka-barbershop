@@ -6,6 +6,7 @@ import {
   calculateTotalSavings, 
   roundPrice 
 } from '../bookingCalculations';
+import { Service } from '@/types/service';
 
 // Explicit imports for Jest functions
 // import { describe, expect, it } from '@jest/globals';

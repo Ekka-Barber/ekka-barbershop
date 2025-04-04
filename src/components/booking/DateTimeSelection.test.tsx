@@ -56,7 +56,7 @@ const mockBookingContextValue = {
       id: 'barber1',
       name: 'John Doe',
       name_ar: 'جون دو',
-      role: 'barber' as const,
+      role: 'barber',
       branch_id: 'branch1',
       // Add required properties for the test
       created_at: '2023-01-01T00:00:00Z',
@@ -75,7 +75,7 @@ const mockBookingContextValue = {
     id: 'barber1',
     name: 'John Doe',
     name_ar: 'جون دو',
-    role: 'barber' as const,
+    role: 'barber',
     branch_id: 'branch1',
     // Add required properties for the test
     created_at: '2023-01-01T00:00:00Z',

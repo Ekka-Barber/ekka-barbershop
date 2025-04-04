@@ -1,3 +1,4 @@
+
 import { ServicesSkeleton } from "../ServicesSkeleton";
 import { AlertTriangle } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -58,7 +59,7 @@ interface SelectionState {
   packageEnabled: boolean;
   packageSettings: PackageSettings | null | undefined; // Use imported type
   hasBaseService: boolean;
-  availablePackageServices: Service[];
+  availablePackageServices: any[]; // Changed from Service[] to any[]
   baseService: Service | undefined;
   totalDuration: number;
   totalPrice: number;
