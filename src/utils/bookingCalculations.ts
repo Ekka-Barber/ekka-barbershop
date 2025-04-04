@@ -1,3 +1,4 @@
+
 /**
  * Utility functions for price and discount calculations in the booking process
  */
@@ -6,7 +7,7 @@
 interface Service {
   price: number;
   originalPrice?: number;
-  discount_type?: 'percentage' | 'amount';
+  discount_type?: 'percentage' | 'amount' | string;
   discount_value?: number;
   duration?: number;
 }

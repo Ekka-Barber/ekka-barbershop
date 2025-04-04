@@ -69,7 +69,7 @@ const mockBookingContextValue = {
       off_days: [],
       photo_url: null
     }
-  ] as unknown as Employee[],
+  ] as Employee[], // Use the updated Employee type
   employeesLoading: false,
   selectedEmployee: {
     id: 'barber1',
@@ -87,7 +87,7 @@ const mockBookingContextValue = {
     nationality: null,
     off_days: [],
     photo_url: null
-  } as unknown as Employee,
+  } as Employee, // Use the updated Employee type
   handlePackageServiceUpdate: vi.fn(),
   isUpdatingPackage: false,
   packageEnabled: false,

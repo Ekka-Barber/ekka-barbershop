@@ -40,7 +40,8 @@ export const ServiceSelection = ({
   // Make sure selectedServices is included in the object passed to ServiceSelectionView
   const enhancedSelectionState = {
     ...selectionState,
-    selectedServices // Add selectedServices explicitly
+    selectedServices, // Add selectedServices explicitly
+    pendingNextStep: Boolean(selectionState.pendingNextStep) // Ensure it's a boolean
   };
   
   return (

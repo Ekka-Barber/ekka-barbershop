@@ -21,7 +21,10 @@ export const transformServiceToSelected = (
     discount_type: service.discount_type as "amount" | "percentage"
   };
   
-  const finalPrice = skipDiscountCalculation ? service.price : calculateDiscountedPrice(serviceWithCorrectTypes);
+  const finalPrice = skipDiscountCalculation ? service.price : calculateDiscountedPrice({
+    ...service,
+    discount_type: service.discount_type as "amount" | "percentage"
+  });
   
   return {
     ...service,

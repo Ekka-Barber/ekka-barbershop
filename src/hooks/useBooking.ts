@@ -103,8 +103,8 @@ export const useBooking = (initialBranch: any) => {
   };
 
   // Calculate total price and duration
-  const totalPrice = calculateTotalPrice(selectedServices);
-  const totalDuration = calculateTotalDuration(selectedServices);
+  const totalPrice = calculateTotalPrice(selectedServices as Service[]);
+  const totalDuration = calculateTotalDuration(selectedServices as Service[]);
 
   // Find base service
   const baseService = selectedServices.find(s => 

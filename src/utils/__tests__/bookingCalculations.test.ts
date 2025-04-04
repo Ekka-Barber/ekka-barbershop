@@ -1,3 +1,4 @@
+
 import { 
   calculateDiscountedPrice, 
   calculateTotalPrice, 
@@ -12,14 +13,14 @@ import {
 describe('Booking Calculations Utility', () => {
   describe('calculateDiscountedPrice', () => {
     it('should return original price when no discount is applied', () => {
-      const service = { price: 100 };
+      const service = { price: 100 } as any;
       expect(calculateDiscountedPrice(service)).toBe(100);
     });
 
     it('should apply percentage discount correctly', () => {
       const service = { 
         price: 100, 
-        discount_type: 'percentage', 
+        discount_type: 'percentage' as "percentage", 
         discount_value: 20 
       };
       expect(calculateDiscountedPrice(service)).toBe(80);
@@ -28,7 +29,7 @@ describe('Booking Calculations Utility', () => {
     it('should apply amount discount correctly', () => {
       const service = { 
         price: 100, 
-        discount_type: 'amount', 
+        discount_type: 'amount' as "amount", 
         discount_value: 25 
       };
       expect(calculateDiscountedPrice(service)).toBe(75);
@@ -57,7 +58,7 @@ describe('Booking Calculations Utility', () => {
         { price: 100 },
         { price: 150 },
         { price: 200 }
-      ];
+      ] as Service[];
       expect(calculateTotalPrice(services)).toBe(450);
     });
 
@@ -68,9 +69,9 @@ describe('Booking Calculations Utility', () => {
     it('should handle services without price', () => {
       const services = [
         { price: 100 },
-        { },
+        { } as any,
         { price: 200 }
-      ];
+      ] as Service[];
       expect(calculateTotalPrice(services)).toBe(300);
     });
   });
@@ -78,10 +79,10 @@ describe('Booking Calculations Utility', () => {
   describe('calculateTotalDuration', () => {
     it('should sum durations of all selected services', () => {
       const services = [
-        { duration: 30 },
-        { duration: 45 },
-        { duration: 60 }
-      ];
+        { duration: 30, price: 0 },
+        { duration: 45, price: 0 },
+        { duration: 60, price: 0 }
+      ] as Service[];
       expect(calculateTotalDuration(services)).toBe(135);
     });
 
@@ -91,10 +92,10 @@ describe('Booking Calculations Utility', () => {
 
     it('should handle services without duration', () => {
       const services = [
-        { duration: 30 },
-        { },
-        { duration: 60 }
-      ];
+        { duration: 30, price: 0 },
+        { price: 0 } as any,
+        { duration: 60, price: 0 }
+      ] as Service[];
       expect(calculateTotalDuration(services)).toBe(90);
     });
   });
