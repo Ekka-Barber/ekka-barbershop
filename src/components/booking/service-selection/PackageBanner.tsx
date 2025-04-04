@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Package, Info } from 'lucide-react';
+import { Package } from 'lucide-react';
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -8,6 +8,10 @@ import { cn } from "@/lib/utils";
 import { logger } from "@/utils/logger";
 import { ValidationOverlay } from "@/components/booking/steps/components/ValidationOverlay";
 
+/**
+ * Interface for PackageBanner component props
+ * @interface PackageBannerProps
+ */
 interface PackageBannerProps {
   isVisible: boolean;
   onInfoClick: () => void;
@@ -16,6 +20,13 @@ interface PackageBannerProps {
   isLoading?: boolean;
 }
 
+/**
+ * Displays a promotional banner for package offerings
+ * Provides info button and package building functionality
+ * 
+ * @param {PackageBannerProps} props - Component props
+ * @returns {JSX.Element | null} The PackageBanner component or null if not visible
+ */
 export const PackageBanner = ({
   isVisible,
   onInfoClick,
@@ -28,13 +39,19 @@ export const PackageBanner = ({
   const isRTL = language === 'ar';
   const [showSuccess, setShowSuccess] = useState(false);
   
-  // Log when package info is requested
+  /**
+   * Handles package info button click
+   * Logs the event and calls the provided callback
+   */
   const handleInfoClick = () => {
     logger.info("Package info requested by user");
     onInfoClick();
   };
   
-  // Log when package building is initiated
+  /**
+   * Handles package building button click
+   * Shows success state temporarily and calls the provided callback
+   */
   const handleBuildPackage = () => {
     logger.info("Package building initiated by user");
     if (onBuildPackage) {

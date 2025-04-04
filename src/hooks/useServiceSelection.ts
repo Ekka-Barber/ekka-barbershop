@@ -7,10 +7,9 @@ import { usePackageDiscount } from '@/hooks/usePackageDiscount';
 
 /**
  * Hook for managing service selection in the booking flow
- * This is a wrapper around more specialized hooks for better maintainability
- * @see useServiceToggle - Handles toggling service selection
- * @see usePackageServiceUpdate - Handles package-specific updates
- * @see usePackageDiscount - Handles discount calculations
+ * Coordinates between specialized hooks for toggling, package updates, and discounts
+ * 
+ * @returns {Object} Selection state and handler functions
  */
 export const useServiceSelection = () => {
   const [selectedServices, setSelectedServices] = useState<SelectedService[]>([]);

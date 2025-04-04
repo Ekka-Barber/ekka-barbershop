@@ -9,6 +9,10 @@ import { logger } from "@/utils/logger";
 import { ValidationOverlay } from "@/components/booking/steps/components/ValidationOverlay";
 import { cn } from "@/lib/utils";
 
+/**
+ * Interface for ServiceGrid component props
+ * @interface ServiceGridProps
+ */
 interface ServiceGridProps {
   services: Service[];
   selectedServices: Array<{ id: string; name: string; price: number; duration: number; }>;
@@ -20,6 +24,13 @@ interface ServiceGridProps {
   onRetry?: () => void;
 }
 
+/**
+ * Displays a responsive grid of service cards
+ * Handles loading states, errors, and empty states
+ * 
+ * @param {ServiceGridProps} props - Component props
+ * @returns {JSX.Element} The ServiceGrid component
+ */
 export const ServiceGrid = ({
   services,
   selectedServices,

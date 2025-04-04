@@ -8,9 +8,6 @@ import {
 } from '../bookingCalculations';
 import { Service } from '@/types/service';
 
-// Explicit imports for Jest functions
-// import { describe, expect, it } from '@jest/globals';
-
 describe('Booking Calculations Utility', () => {
   describe('calculateDiscountedPrice', () => {
     it('should return original price when no discount is applied', () => {
@@ -35,6 +32,23 @@ describe('Booking Calculations Utility', () => {
       };
       expect(calculateDiscountedPrice(service)).toBe(75);
     });
+    
+    it('should handle zero discount value', () => {
+      const service = { 
+        price: 100, 
+        discount_type: 'percentage' as "percentage", 
+        discount_value: 0 
+      };
+      expect(calculateDiscountedPrice(service)).toBe(100);
+    });
+    
+    it('should handle undefined discount type', () => {
+      const service = { 
+        price: 100, 
+        discount_value: 20 
+      };
+      expect(calculateDiscountedPrice(service)).toBe(100);
+    });
   });
 
   describe('roundPrice', () => {
@@ -50,6 +64,15 @@ describe('Booking Calculations Utility', () => {
 
     it('should not change integer prices', () => {
       expect(roundPrice(100)).toBe(100);
+    });
+    
+    it('should handle edge case of exactly 0.5', () => {
+      expect(roundPrice(100.5)).toBe(101);
+    });
+    
+    it('should handle negative numbers correctly', () => {
+      expect(roundPrice(-100.3)).toBe(-100);
+      expect(roundPrice(-100.7)).toBe(-100); // Note: Math.ceil(-100.7) is -100
     });
   });
 
@@ -75,6 +98,15 @@ describe('Booking Calculations Utility', () => {
       ] as Service[];
       expect(calculateTotalPrice(services)).toBe(300);
     });
+    
+    it('should handle zero prices', () => {
+      const services = [
+        { price: 0 },
+        { price: 100 },
+        { price: 0 }
+      ] as Service[];
+      expect(calculateTotalPrice(services)).toBe(100);
+    });
   });
 
   describe('calculateTotalDuration', () => {
@@ -99,6 +131,15 @@ describe('Booking Calculations Utility', () => {
       ] as Service[];
       expect(calculateTotalDuration(services)).toBe(90);
     });
+    
+    it('should handle zero durations', () => {
+      const services = [
+        { duration: 0, price: 0 },
+        { duration: 30, price: 0 },
+        { duration: 0, price: 0 }
+      ] as Service[];
+      expect(calculateTotalDuration(services)).toBe(30);
+    });
   });
 
   describe('calculateTotalSavings', () => {
@@ -121,6 +162,21 @@ describe('Booking Calculations Utility', () => {
         { originalPrice: 200, price: 160 }
       ];
       expect(calculateTotalSavings(services)).toBe(40);
+    });
+    
+    it('should return zero when originalPrice equals price', () => {
+      const services = [
+        { originalPrice: 100, price: 100 },
+        { originalPrice: 200, price: 200 }
+      ];
+      expect(calculateTotalSavings(services)).toBe(0);
+    });
+    
+    it('should handle negative savings (price increase)', () => {
+      const services = [
+        { originalPrice: 100, price: 120 } // Unusual case, price increased
+      ];
+      expect(calculateTotalSavings(services)).toBe(-20);
     });
   });
 });

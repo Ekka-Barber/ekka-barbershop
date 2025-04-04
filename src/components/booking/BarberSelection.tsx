@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -6,7 +7,12 @@ import { TimeSlotPicker } from "./barber/TimeSlotPicker";
 import { useTimeSlots } from "@/hooks/useTimeSlots";
 import { TimeSlot } from "@/utils/timeSlotTypes";
 import { useToast } from "@/hooks/use-toast";
+import { logger } from "@/utils/logger";
 
+/**
+ * Interface for Employee data
+ * @interface Employee
+ */
 interface Employee {
   id: string;
   name: string;
@@ -18,6 +24,10 @@ interface Employee {
   off_days?: string[];
 }
 
+/**
+ * Interface for BarberSelection component props
+ * @interface BarberSelectionProps
+ */
 interface BarberSelectionProps {
   employees: Employee[] | undefined;
   isLoading: boolean;
@@ -28,6 +38,10 @@ interface BarberSelectionProps {
   onTimeSelect: (time: string) => void;
 }
 
+/**
+ * Skeleton component for loading state
+ * @returns {JSX.Element} Skeleton UI for BarberSelection
+ */
 const BarberSelectionSkeleton = () => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
@@ -38,6 +52,13 @@ const BarberSelectionSkeleton = () => {
   );
 };
 
+/**
+ * Component for selecting a barber and time slot
+ * Displays available barbers and their time slots based on the selected date
+ * 
+ * @param {BarberSelectionProps} props - Component properties
+ * @returns {JSX.Element} The BarberSelection component
+ */
 export const BarberSelection = ({
   employees,
   isLoading,
@@ -54,12 +75,16 @@ export const BarberSelection = ({
   const [employeeTimeSlots, setEmployeeTimeSlots] = useState<TimeSlot[]>([]);
   const [isLoadingSlots, setIsLoadingSlots] = useState(false);
 
+  // Filter employees to show only barbers and managers
   const filteredEmployees = useMemo(() => 
     employees?.filter(employee => 
       employee.role === 'barber' || employee.role === 'manager'
     ) || [],
   [employees]);
 
+  /**
+   * Updates time slots based on selected barber and date
+   */
   const updateTimeSlots = useCallback(async () => {
     if (selectedBarber && selectedDate) {
       const selectedEmployee = employees?.find(emp => emp.id === selectedBarber);
@@ -73,6 +98,7 @@ export const BarberSelection = ({
           setEmployeeTimeSlots(slots);
           
           if (availableSlots.length === 0) {
+            logger.warn(`No available slots for barber ${selectedBarber} on ${selectedDate}`);
             toast({
               title: language === 'ar' ? 'لا توجد مواعيد متاحة' : 'No available time slots',
               description: language === 'ar' 
@@ -84,6 +110,7 @@ export const BarberSelection = ({
           
           if (selectedTime && !slots.some(slot => slot.time === selectedTime && slot.isAvailable)) {
             onTimeSelect('');
+            logger.warn(`Previously selected time ${selectedTime} is no longer available`);
             toast({
               title: language === 'ar' ? 'الوقت لم يعد متاحًا' : 'Time no longer available',
               description: language === 'ar' ? 'يرجى اختيار وقت آخر' : 'Please select another time',
@@ -91,7 +118,7 @@ export const BarberSelection = ({
             });
           }
         } catch (error) {
-          console.error("Error fetching time slots:", error);
+          logger.error("Error fetching time slots:", error);
           toast({
             title: language === 'ar' ? 'خطأ في جلب المواعيد' : 'Error loading time slots',
             description: language === 'ar' ? 'يرجى المحاولة مرة أخرى' : 'Please try again',
@@ -109,19 +136,32 @@ export const BarberSelection = ({
     }
   }, [selectedBarber, selectedDate, employees, getAvailableTimeSlots, isEmployeeAvailable, toast, language, selectedTime, onTimeSelect]);
 
+  /**
+   * Toggles showing all time slots or only available ones
+   */
   const handleToggleShowAll = useCallback(() => {
     setShowAllSlots(prev => !prev);
   }, []);
 
+  // Update time slots when barber or date changes
   useEffect(() => {
     updateTimeSlots();
   }, [updateTimeSlots]);
 
+  /**
+   * Handles barber selection if the barber is available
+   * 
+   * @param {string} barberId - ID of the selected barber
+   * @param {boolean} isAvailable - Whether the barber is available on the selected date
+   */
   const handleBarberSelect = useCallback((barberId: string, isAvailable: boolean) => {
     if (isAvailable) {
+      logger.debug(`Selected barber: ${barberId}`);
       onBarberSelect(barberId);
       onTimeSelect('');
       setShowAllSlots(false);
+    } else {
+      logger.debug(`Attempted to select unavailable barber: ${barberId}`);
     }
   }, [onBarberSelect, onTimeSelect]);
 

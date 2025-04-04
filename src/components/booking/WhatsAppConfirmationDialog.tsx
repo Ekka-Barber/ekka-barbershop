@@ -9,6 +9,10 @@ import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { cn } from "@/lib/utils";
 
+/**
+ * Interface for WhatsAppConfirmationDialog component props
+ * @interface WhatsAppConfirmationDialogProps
+ */
 interface WhatsAppConfirmationDialogProps {
   isOpen: boolean;
   onClose: () => void;
@@ -19,6 +23,13 @@ interface WhatsAppConfirmationDialogProps {
   customerDetails: CustomerDetails;
 }
 
+/**
+ * Displays a confirmation dialog before redirecting to WhatsApp
+ * Shows booking summary and handles the WhatsApp redirection
+ * 
+ * @param {WhatsAppConfirmationDialogProps} props - Component props
+ * @returns {JSX.Element} The WhatsAppConfirmationDialog component
+ */
 export const WhatsAppConfirmationDialog = ({
   isOpen,
   onClose,
@@ -32,6 +43,10 @@ export const WhatsAppConfirmationDialog = ({
   const [isLoading, setIsLoading] = useState(false);
   const isRtl = language === 'ar';
   
+  /**
+   * Handles confirmation button click
+   * Shows loading state and processes the redirection
+   */
   const handleConfirm = () => {
     setIsLoading(true);
     // Allow UI to update before proceeding

@@ -6,6 +6,10 @@ import { useCategoryState } from "./service-selection/useCategoryState";
 import { usePackageInteraction } from "./service-selection/usePackageInteraction";
 import { useServiceCalculation } from "./service-selection/useServiceCalculation";
 
+/**
+ * Interface for useServiceSelectionState hook props
+ * @interface UseServiceSelectionStateProps
+ */
 interface UseServiceSelectionStateProps {
   categories: any[] | undefined;
   isLoading: boolean;
@@ -17,6 +21,13 @@ interface UseServiceSelectionStateProps {
   branchId?: string;
 }
 
+/**
+ * Manages the state for service selection UI components
+ * Coordinates between multiple specialized hooks for different aspects of service selection
+ * 
+ * @param {UseServiceSelectionStateProps} props - Hook parameters
+ * @returns {Object} Aggregated state and handler functions for service selection
+ */
 export const useServiceSelectionState = ({
   categories,
   isLoading,
