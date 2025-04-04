@@ -1,4 +1,3 @@
-
 import { useNavigate } from "react-router-dom";
 import { BookingStep } from "./BookingProgress";
 import { Button } from "@/components/ui/button";
@@ -15,7 +14,7 @@ interface BookingNavigationProps {
   isNextDisabled: boolean;
   customerDetails: CustomerDetails;
   branch?: Branch;
-  isFormValid?: boolean; // Form validation prop
+  isFormValid?: boolean;
 }
 
 export const BookingNavigation = ({ 
@@ -26,19 +25,16 @@ export const BookingNavigation = ({
   isNextDisabled, 
   customerDetails,
   branch,
-  isFormValid = false // Default to false for backward compatibility
+  isFormValid = false
 }: BookingNavigationProps) => {
   const navigate = useNavigate();
   const { t } = useLanguage();
   
-  // Import additional required props from context
   const { selectedServices, selectedDate, selectedTime, selectedBarber, totalPrice, employees } = 
     useBookingContext();
 
-  // Get the barber name from the employee list instead of using useEmployeeData
   const selectedBarberName = employees?.find(e => e.id === selectedBarber)?.name || '';
   
-  // Log current form validation state for debugging
   console.log('BookingNavigation isFormValid:', isFormValid);
   
   const handlePrevClick = () => {
@@ -57,12 +53,8 @@ export const BookingNavigation = ({
   
   return (
     <div 
-      className="sticky bottom-0 left-0 w-full bg-white/95 backdrop-blur-sm shadow-md border-t border-gray-200 flex flex-col gap-4 z-10 pb-safe"
+      className="sticky bottom-0 left-0 w-full bg-white/95 backdrop-blur-sm shadow-md border-t border-gray-200 flex flex-col gap-4 z-10 p-4 pb-[max(env(safe-area-inset-bottom),1rem)]"
       style={{
-        paddingTop: '1rem',
-        paddingLeft: '1rem',
-        paddingRight: '1rem',
-        paddingBottom: `max(env(safe-area-inset-bottom, 0.5rem), 1rem)`,
         WebkitBackdropFilter: 'blur(8px)'
       }}
     >
@@ -75,7 +67,7 @@ export const BookingNavigation = ({
           selectedBarberName={selectedBarberName}
           customerDetails={customerDetails}
           branch={branch}
-          isFormValid={isFormValid} // Pass the form validation state
+          isFormValid={isFormValid}
         />
       )}
       
