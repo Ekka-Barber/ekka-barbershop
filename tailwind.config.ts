@@ -97,12 +97,37 @@ const config: Config = {
           '45%': { transform: 'scale(1.05)' },
           '60%': { transform: 'scale(1)' },
         },
+        shimmer: {
+          '0%': { backgroundPosition: '-200% 0' },
+          '100%': { backgroundPosition: '200% 0' },
+        },
+        fadeIn: {
+          from: { opacity: '0', transform: 'translateY(5px)' },
+          to: { opacity: '1', transform: 'translateY(0)' },
+        },
+        scale: {
+          from: { transform: 'scale(0.95)' },
+          to: { transform: 'scale(1)' },
+        },
+        pulse: {
+          '0%, 100%': { opacity: '1' },
+          '50%': { opacity: '0.5' },
+        },
+        bounce: {
+          '0%, 100%': { transform: 'translateY(0)' },
+          '50%': { transform: 'translateY(-6px)' },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
         "pulse-once": "pulse-once 0.5s ease-in-out",
-        'heart-beat': 'heart-beat 1s ease-in-out infinite',
+        'heart-beat': 'heart-beat 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+        shimmer: 'shimmer 1.5s infinite',
+        'fade-in': 'fadeIn 0.3s ease-in-out',
+        scale: 'scale 0.2s ease-out',
+        pulse: 'pulse 1.5s infinite',
+        'bounce-slow': 'bounce 2s ease-in-out infinite',
       },
     },
   },
