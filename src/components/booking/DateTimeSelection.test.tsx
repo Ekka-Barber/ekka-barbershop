@@ -1,4 +1,3 @@
-
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { DateTimeSelection } from './DateTimeSelection';
@@ -69,13 +68,13 @@ const mockBookingContextValue = {
       off_days: [],
       photo_url: null
     }
-  ] as Employee[], // Use the updated Employee type
+  ] as Employee[],
   employeesLoading: false,
   selectedEmployee: {
     id: 'barber1',
     name: 'John Doe',
     name_ar: 'جون دو',
-    role: 'barber',
+    role: 'manager', // Corrected to match allowed types
     branch_id: 'branch1',
     // Add required properties for the test
     created_at: '2023-01-01T00:00:00Z',
@@ -87,7 +86,7 @@ const mockBookingContextValue = {
     nationality: null,
     off_days: [],
     photo_url: null
-  } as Employee, // Use the updated Employee type
+  } as Employee,
   handlePackageServiceUpdate: vi.fn(),
   isUpdatingPackage: false,
   packageEnabled: false,
@@ -120,4 +119,4 @@ describe('DateTimeSelection Component', () => {
   });
 
   // Add more tests here
-}); 
+});

@@ -5,7 +5,7 @@ export interface Employee {
   id: string;
   name: string;
   name_ar: string | null;
-  role: "barber" | "branch_manager" | "massage_therapist" | "hammam_specialist";
+  role: "barber" | "manager" | "massage_therapist" | "hammam_specialist";
   photo_url: string | null;
   nationality: string | null;
   branch_id: string;
