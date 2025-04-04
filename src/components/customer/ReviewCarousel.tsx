@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { useLanguage } from "@/contexts/LanguageContext";
-import { Star } from 'lucide-react';
+import { Star, Quote } from 'lucide-react';
 import { 
   Carousel,
   CarouselContent,
@@ -38,7 +38,7 @@ export const ReviewCarousel = ({ reviews, onReadMore }: ReviewCarouselProps) => 
         align: "start",
         loop: true,
       }}
-      className="w-full max-w-5xl mx-auto"
+      className="w-full relative"
     >
       <CarouselContent>
         {reviews.map((review, index) => {
@@ -50,8 +50,11 @@ export const ReviewCarousel = ({ reviews, onReadMore }: ReviewCarouselProps) => 
               key={`${review.author_name}-${index}-${review.time}`}
               className="md:basis-1/2 lg:basis-1/3 pl-4"
             >
-              <Card className="bg-white border border-gray-100 shadow-md hover:shadow-lg transition-shadow duration-300">
-                <CardContent className="p-6">
+              <Card className="bg-white border border-gray-100 shadow-md hover:shadow-lg transition-shadow duration-300 h-full flex flex-col rounded-xl overflow-hidden">
+                <div className="h-1.5 bg-[#C4A36F]"></div>
+                <CardContent className="p-6 flex-1">
+                  <Quote className="w-8 h-8 text-[#C4A36F]/20 mb-2" />
+                  
                   <div className="flex items-start space-x-4 rtl:space-x-reverse mb-4">
                     <Avatar className="w-14 h-14 border-2 border-gray-200">
                       <AvatarImage 
@@ -59,7 +62,7 @@ export const ReviewCarousel = ({ reviews, onReadMore }: ReviewCarouselProps) => 
                         alt={review.author_name}
                         className="object-cover"
                       />
-                      <AvatarFallback>{review.author_name ? review.author_name.charAt(0) : '?'}</AvatarFallback>
+                      <AvatarFallback className="bg-[#C4A36F]/10 text-[#C4A36F]">{review.author_name ? review.author_name.charAt(0) : '?'}</AvatarFallback>
                     </Avatar>
                     <div className="flex-1">
                       <h4 className="font-semibold text-gray-800">{review.author_name}</h4>
@@ -77,18 +80,19 @@ export const ReviewCarousel = ({ reviews, onReadMore }: ReviewCarouselProps) => 
                     </div>
                   </div>
 
-                  <p className={cn("text-gray-600 text-sm leading-relaxed flex-grow", 
+                  <p className={cn("text-gray-600 text-sm leading-relaxed mb-4", 
                     isLongReview ? "line-clamp-4" : ""
                   )}>
-                    {review.text || (language === 'ar' ? 'مراجعة إيجابية' : 'Positive review')}
+                    "{review.text || (language === 'ar' ? 'مراجعة إيجابية' : 'Positive review')}"
                   </p>
 
                   {isLongReview && (
                     <button 
                       onClick={() => onReadMore(review)}
-                      className="text-sm text-[#C4A36F] hover:text-[#A3845A] font-medium mt-2 self-start"
+                      className="text-sm text-[#C4A36F] hover:text-[#A3845A] font-medium mt-auto inline-flex items-center"
                     >
-                      {language === 'ar' ? 'اقرأ المزيد' : 'Read More'}
+                      {language === 'ar' ? 'اقرأ المزيد' : 'Read More'} 
+                      <span className="ml-1 rtl:mr-1 rtl:ml-0">&rarr;</span>
                     </button>
                   )}
                 </CardContent>
@@ -97,9 +101,9 @@ export const ReviewCarousel = ({ reviews, onReadMore }: ReviewCarouselProps) => 
           );
         })}
       </CarouselContent>
-      <div className="flex justify-center mt-4 space-x-2">
-        <CarouselPrevious className="relative static left-0 translate-y-0 h-8 w-8" />
-        <CarouselNext className="relative static right-0 translate-y-0 h-8 w-8" />
+      <div className="flex justify-center mt-6 space-x-4">
+        <CarouselPrevious className="static h-10 w-10 border-[#C4A36F] bg-white text-[#C4A36F] hover:bg-[#C4A36F] hover:text-white transition-colors" />
+        <CarouselNext className="static h-10 w-10 border-[#C4A36F] bg-white text-[#C4A36F] hover:bg-[#C4A36F] hover:text-white transition-colors" />
       </div>
     </Carousel>
   );

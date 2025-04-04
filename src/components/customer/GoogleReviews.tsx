@@ -1,3 +1,4 @@
+
 import { useEffect, useState, useCallback } from 'react';
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Star } from 'lucide-react';
@@ -16,8 +17,9 @@ interface Review extends GoogleReview {
 }
 
 // Skeleton loader for reviews
-const ReviewSkeleton = () => <div className="flex-grow-0 flex-shrink-0 basis-[90%] sm:basis-[45%] md:basis-[31%]">
-    <div className="bg-white rounded-xl shadow-lg p-6 h-full flex flex-col border border-gray-100">
+const ReviewSkeleton = () => (
+  <div className="flex-grow-0 flex-shrink-0 basis-[90%] sm:basis-[45%] md:basis-[31%]">
+    <div className="bg-white rounded-xl shadow-md p-6 h-full flex flex-col border border-gray-100">
       <div className="flex items-start space-x-4 rtl:space-x-reverse mb-4">
         <Skeleton className="w-14 h-14 rounded-full" />
         <div className="flex-1">
@@ -32,14 +34,16 @@ const ReviewSkeleton = () => <div className="flex-grow-0 flex-shrink-0 basis-[90
       <Skeleton className="h-4 w-full mb-2" />
       <Skeleton className="h-4 w-3/4" />
     </div>
-  </div>;
+  </div>
+);
 
 // Empty state component when no reviews are found
 const NoReviews = ({
   language
 }: {
   language: string;
-}) => <div className="w-full py-8 text-center">
+}) => (
+  <div className="w-full py-8 text-center">
     <div className="bg-gray-50 rounded-lg p-8 max-w-md mx-auto">
       <Star className="w-12 h-12 text-gray-300 mx-auto mb-4" />
       <h3 className="text-lg font-medium text-gray-700 mb-2">
@@ -49,7 +53,8 @@ const NoReviews = ({
         {language === 'ar' ? 'لم نتمكن من العثور على أي مراجعات في الوقت الحالي. الرجاء المحاولة مرة أخرى لاحقًا.' : 'We couldn\'t find any reviews at the moment. Please check back later.'}
       </p>
     </div>
-  </div>;
+  </div>
+);
 
 // Error state component
 const ErrorState = ({
@@ -58,7 +63,8 @@ const ErrorState = ({
 }: {
   error: string;
   language: string;
-}) => <div className="w-full py-8 text-center">
+}) => (
+  <div className="w-full py-8 text-center">
     <div className="bg-red-50 rounded-lg p-8 max-w-md mx-auto">
       <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
         <Star className="w-6 h-6 text-red-500" />
@@ -73,11 +79,11 @@ const ErrorState = ({
         {error}
       </div>
     </div>
-  </div>;
+  </div>
+);
+
 export default function GoogleReviews() {
-  const {
-    language
-  } = useLanguage();
+  const { language } = useLanguage();
   const [reviews, setReviews] = useState<Review[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedReview, setSelectedReview] = useState<Review | null>(null);
@@ -163,6 +169,7 @@ export default function GoogleReviews() {
       setReviews([]);
     }
   }, [reviewsData]);
+  
   useEffect(() => {
     if (reviewsError) {
       const errorMessage = reviewsError instanceof Error ? reviewsError.message : 'Unknown error fetching reviews';
@@ -180,17 +187,39 @@ export default function GoogleReviews() {
     setSelectedReview(review);
     setIsModalOpen(true);
   };
+  
   const isLoading = isBranchesLoading || isReviewsLoading;
-  return <div className="w-full bg-gray-50 rounded-lg py-0">
-      <div className="max-w-6xl mx-auto px-4">
-        <h2 className="text-3xl font-bold text-center mb-8 text-[#222222]">
-          {language === 'ar' ? 'آراء عملائنا' : 'What Our Clients Say'}
-        </h2>
+  
+  return (
+    <div className="w-full bg-gradient-to-b from-gray-50 to-white py-16 overflow-hidden">
+      <div className="max-w-5xl mx-auto px-4 relative">
+        {/* Decorative elements */}
+        <div className="absolute -top-10 -left-10 w-40 h-40 bg-[#C4A36F]/10 rounded-full blur-3xl"></div>
+        <div className="absolute -bottom-20 -right-20 w-60 h-60 bg-[#C4A36F]/10 rounded-full blur-3xl"></div>
+        
+        {/* Section header with gold accent */}
+        <div className="text-center mb-10">
+          <div className="inline-block">
+            <h2 className="text-3xl md:text-4xl font-bold text-center text-[#222222] relative">
+              <span className="relative z-10">
+                {language === 'ar' ? 'آراء عملائنا' : 'What Our Clients Say'}
+              </span>
+              <span className="absolute -bottom-2 left-0 right-0 h-3 bg-[#C4A36F]/20 transform -rotate-1 z-0"></span>
+            </h2>
+          </div>
+          <p className="mt-4 text-gray-600 max-w-lg mx-auto">
+            {language === 'ar' 
+              ? 'اكتشف تجارب عملائنا الحقيقية وآرائهم الصادقة حول خدماتنا' 
+              : 'Discover authentic experiences and honest feedback from our valued customers'}
+          </p>
+        </div>
 
         {/* Loading State */}
-        {isLoading && <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {isLoading && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {[...Array(3)].map((_, index) => <ReviewSkeleton key={`skeleton-${index}`} />)}
-          </div>}
+          </div>
+        )}
 
         {/* Error State */}
         {error && !isLoading && <ErrorState error={error} language={language} />}
@@ -224,5 +253,6 @@ export default function GoogleReviews() {
           </DialogContent>
         </Dialog>
       </div>
-    </div>;
+    </div>
+  );
 }
