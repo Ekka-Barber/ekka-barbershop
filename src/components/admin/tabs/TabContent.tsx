@@ -12,6 +12,7 @@ const BookingManagement = lazy(() => import('@/components/admin/booking-manageme
 const PackageManagement = lazy(() => import('@/components/admin/package-management/PackageManagement').then(mod => ({ default: mod.PackageManagement })));
 const EmployeeTab = lazy(() => import('@/components/admin/employee-management/EmployeeTab').then(mod => ({ default: mod.EmployeeTab })));
 const UiElementsManager = lazy(() => import('@/components/admin/ui-elements/UiElementsManager').then(mod => ({ default: mod.UiElementsManager })));
+const BranchesTab = lazy(() => import('@/components/admin/branch-management/BranchesTab').then(mod => ({ default: mod.BranchesTab })));
 
 // Loading component for Suspense
 const TabLoader = () => (
@@ -47,6 +48,18 @@ export const TabContent = () => {
         <ErrorBoundary>
           <Suspense fallback={<TabLoader />}>
             <EmployeeTab />
+          </Suspense>
+        </ErrorBoundary>
+      </TabsContent>
+
+      <TabsContent value="branches" className="space-y-4">
+        <h2 className="text-2xl font-bold">
+          Branch Management
+        </h2>
+        <Separator />
+        <ErrorBoundary>
+          <Suspense fallback={<TabLoader />}>
+            <BranchesTab />
           </Suspense>
         </ErrorBoundary>
       </TabsContent>
