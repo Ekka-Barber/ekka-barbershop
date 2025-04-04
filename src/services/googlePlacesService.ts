@@ -1,4 +1,3 @@
-
 import { supabase } from '@/types/supabase';
 
 // Interface for Google Reviews
@@ -30,7 +29,19 @@ export async function fetchBranchReviews(placeId: string, apiKey: string, langua
     const apiUrl = `/api/places?placeId=${encodeURIComponent(placeId)}&apiKey=${encodeURIComponent(apiKey)}&language=${language}`;
 
     console.log(`Making request to: ${apiUrl}`);
-    const response = await fetch(apiUrl);
+
+    // Get the anon key securely (ideally from env vars, avoid hardcoding)
+    const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+    if (!supabaseAnonKey) {
+      console.error("Supabase anon key is missing from environment variables (VITE_SUPABASE_ANON_KEY)!");
+      return { status: 'ERROR', error: 'Configuration error', error_message: 'Supabase anon key missing.' };
+    }
+
+    const response = await fetch(apiUrl, {
+      headers: {
+        'apikey': supabaseAnonKey // Add Supabase anon key header
+      }
+    });
     
     // Log response status for debugging
     console.log(`Response status: ${response.status} ${response.statusText}`);
