@@ -4,7 +4,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { useState, useEffect, useRef, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client"; // Using the standardized client
+import { supabase } from "@/integrations/supabase/client";
 import { MapPin } from "lucide-react";
 import * as Icons from "lucide-react";
 import type { LucideIcon } from 'lucide-react';
@@ -28,7 +28,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import AppLayout from '@/components/layout/AppLayout';
-import { Tables } from "@/types/supabase"; // Use proper typing
+import { Tables } from "@/types/supabase";
 
 interface Branch {
   id: string;

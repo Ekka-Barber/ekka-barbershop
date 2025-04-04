@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/types/supabase';
 import { Switch } from '@/components/ui/switch';
@@ -162,6 +161,10 @@ export const UiElementsManager = () => {
       const updates = elements.map((element, index) => ({
         id: element.id,
         display_order: index,
+        type: element.type,
+        name: element.name,
+        display_name: element.display_name,
+        display_name_ar: element.display_name_ar
       }));
 
       const { error } = await supabase
