@@ -1,4 +1,3 @@
-
 import { ServicesSkeleton } from "../ServicesSkeleton";
 import { AlertTriangle } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -10,16 +9,68 @@ import { ServiceDetailSheet } from "./ServiceDetailSheet";
 import { ServicesSummary } from "./ServicesSummary";
 import { PackageInfoDialog } from "./PackageInfoDialog";
 import { PackageBuilderDialog } from "../package-builder/PackageBuilderDialog";
-import { SelectedService } from "@/types/service";
-import "../ServiceSelection.css";
+import { SelectedService, Service } from "@/types/service";
+import { PackageSettings } from "@/types/admin";
 
 // Import the constant for base service ID from usePackageDiscount
 import { BASE_SERVICE_ID } from "@/hooks/usePackageDiscount";
 
+// Define inferred Category type locally (consider moving to types file)
+interface Category {
+  id: string;
+  name_en: string;
+  name_ar: string;
+  display_order: number;
+  services: Service[];
+}
+
+// Define inferred DisplayService type locally
+interface DisplayService {
+  id: string;
+  name: string;
+  price: number;
+  duration: number;
+  originalPrice?: number;
+  isBasePackageService?: boolean;
+  isPackageAddOn?: boolean;
+}
+
+// Define inferred SelectionState type locally (consider moving to types file)
+// Note: transformServicesForDisplay still uses 'any' return type - needs check
+interface SelectionState {
+  activeCategory: string | null;
+  setActiveCategory: React.Dispatch<React.SetStateAction<string | null>>;
+  sortedCategories: Category[] | undefined;
+  activeCategoryServices: Service[] | undefined;
+  selectedService: Service | null;
+  isSheetOpen: boolean;
+  setIsSheetOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  handleServiceClick: (service: Service) => void;
+  showPackageInfo: boolean;
+  setShowPackageInfo: React.Dispatch<React.SetStateAction<boolean>>;
+  showPackageBuilder: boolean;
+  setShowPackageBuilder: React.Dispatch<React.SetStateAction<boolean>>;
+  pendingNextStep: boolean;
+  handleServiceToggleWrapper: (service: Service) => void;
+  handlePackageConfirm: (selectedPackageServices: Service[]) => void;
+  handleSkipPackage: () => void;
+  handleStepChange: ((step: string) => void) | undefined;
+  packageEnabled: boolean;
+  packageSettings: PackageSettings | null | undefined; // Use imported type
+  hasBaseService: boolean;
+  availablePackageServices: Service[];
+  baseService: Service | undefined;
+  totalDuration: number;
+  totalPrice: number;
+  displayServices: DisplayService[]; // Use defined DisplayService type
+  transformServicesForDisplay: (services: SelectedService[], lang: 'en' | 'ar') => DisplayService[]; // Use defined DisplayService type
+  selectedServices: SelectedService[]; // Renamed from selectedServices in hook, keep for clarity here
+}
+
 interface ServiceSelectionViewProps {
   isLoading: boolean;
-  categories: any[] | undefined;
-  selectionState: any;
+  categories: Category[] | undefined;
+  selectionState: SelectionState;
 }
 
 export const ServiceSelectionView = ({
@@ -74,6 +125,7 @@ export const ServiceSelectionView = ({
     sortedCategories,
     totalDuration,
     totalPrice,
+    selectedServices: originalSelectedServices
   } = selectionState;
 
   // Calculate package savings for the ServicesSummary
@@ -89,7 +141,7 @@ export const ServiceSelectionView = ({
   const packageSavings = calculatePackageSavings();
 
   return (
-    <div className="space-y-6 pb-8 service-selection-container">
+    <div className="space-y-6 pb-8 px-2 md:px-4">
       <PackageBanner 
         isVisible={true} 
         onInfoClick={() => setShowPackageInfo(true)}
@@ -153,7 +205,7 @@ export const ServiceSelectionView = ({
         packageSettings={packageSettings}
         baseService={baseService}
         availableServices={availablePackageServices}
-        currentlySelectedServices={displayServices as SelectedService[]}
+        currentlySelectedServices={originalSelectedServices}
       />
     </div>
   );
