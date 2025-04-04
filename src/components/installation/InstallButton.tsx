@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { CustomBadge } from "@/components/ui/custom-badge";
 import { X } from 'lucide-react';
@@ -11,8 +12,8 @@ interface InstallButtonProps {
   onClick: () => void;
   isInstalling?: boolean;
   onDismiss: () => void;
-  showInstructions: boolean;
-  handleInstallClick: () => void;
+  showInstructions?: boolean;
+  handleInstallClick?: () => void;
 }
 
 export const InstallButton = ({ 
@@ -21,11 +22,14 @@ export const InstallButton = ({
   onClick, 
   isInstalling = false,
   onDismiss,
-  showInstructions,
+  showInstructions = false,
   handleInstallClick
 }: InstallButtonProps) => {
   const Icon = platform === 'ios' ? AppleIcon : AndroidIcon;
   const isRTL = language === 'ar';
+  
+  // Use the provided handleInstallClick function or fallback to onClick
+  const onClickHandler = handleInstallClick || onClick;
 
   return (
     <div className="flex flex-col items-center text-center">
@@ -63,7 +67,7 @@ export const InstallButton = ({
         </div>
         <Button
           className="w-full flex items-center justify-center gap-3 py-6 text-lg font-medium bg-gradient-to-r from-[#8B5CF6] via-[#D946EF] to-[#F97316] hover:opacity-90 text-white transition-all duration-300 group shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:opacity-70"
-          onClick={handleInstallClick}
+          onClick={onClickHandler}
           disabled={isInstalling}
         >
           <div className={`flex items-center justify-center gap-6 ${isRTL ? 'flex-row-reverse' : 'flex-row'}`}>

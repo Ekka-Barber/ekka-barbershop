@@ -1,3 +1,4 @@
+
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { DateTimeSelection } from './DateTimeSelection';
@@ -5,7 +6,7 @@ import { useBooking } from '@/hooks/useBooking';
 import { SelectedService } from '@/types/service';
 import { CustomerDetails } from '@/types/booking';
 import { BookingStep } from '@/components/booking/BookingProgress';
-import { Employee } from '@/types/employee';
+import { type Employee } from '@/types/employee';
 
 // Mock the useBooking hook
 vi.mock('@/hooks/useBooking');
@@ -56,8 +57,18 @@ const mockBookingContextValue = {
       name_ar: 'جون دو',
       role: 'barber',
       branch_id: 'branch1',
+      // Add required properties for the test
+      created_at: '2023-01-01T00:00:00Z',
+      updated_at: '2023-01-01T00:00:00Z',
+      previous_working_hours: {},
+      salary_plan_id: '',
+      working_hours: {},
+      // Optional props with default values
+      nationality: null,
+      off_days: [],
+      photo_url: null
     }
-  ] as Employee[],
+  ] as unknown as Employee[],
   employeesLoading: false,
   selectedEmployee: {
     id: 'barber1',
@@ -65,7 +76,17 @@ const mockBookingContextValue = {
     name_ar: 'جون دو',
     role: 'barber',
     branch_id: 'branch1',
-  } as Employee,
+    // Add required properties for the test
+    created_at: '2023-01-01T00:00:00Z',
+    updated_at: '2023-01-01T00:00:00Z',
+    previous_working_hours: {},
+    salary_plan_id: '',
+    working_hours: {},
+    // Optional props with default values
+    nationality: null,
+    off_days: [],
+    photo_url: null
+  } as unknown as Employee,
   handlePackageServiceUpdate: vi.fn(),
   isUpdatingPackage: false,
   packageEnabled: false,

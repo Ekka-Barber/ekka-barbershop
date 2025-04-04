@@ -9,7 +9,7 @@ export interface Service {
   duration: number;
   category_id: string;
   display_order: number;
-  discount_type?: string;
+  discount_type?: "amount" | "percentage" | string;
   discount_value?: number;
 }
 

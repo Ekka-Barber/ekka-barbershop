@@ -15,7 +15,13 @@ export const transformServiceToSelected = (
   skipDiscountCalculation: boolean = false,
   isBasePackageService: boolean = false
 ): SelectedService => {
-  const finalPrice = skipDiscountCalculation ? service.price : calculateDiscountedPrice(service);
+  // Ensure service is treated as a valid Service type for calculateDiscountedPrice
+  const serviceWithCorrectTypes = {
+    ...service,
+    discount_type: service.discount_type as "amount" | "percentage"
+  };
+  
+  const finalPrice = skipDiscountCalculation ? service.price : calculateDiscountedPrice(serviceWithCorrectTypes);
   
   return {
     ...service,

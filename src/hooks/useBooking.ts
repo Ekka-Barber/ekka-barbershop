@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { BookingStep } from '@/components/booking/BookingProgress';
 import { calculateTotalPrice, calculateTotalDuration } from '@/utils/bookingCalculations';
@@ -7,7 +8,7 @@ import { useCategoryData } from './useCategoryData';
 import { useEmployeeData } from './useEmployeeData';
 import { transformServicesForDisplay } from '@/utils/serviceTransformation';
 import { usePackageDiscount } from './usePackageDiscount';
-import { SelectedService } from '@/types/service';
+import { SelectedService, Service } from '@/types/service';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/contexts/LanguageContext';
 
@@ -112,6 +113,12 @@ export const useBooking = (initialBranch: any) => {
 
   // Transform selected services for display based on language
   const getTransformedServices = (language: 'en' | 'ar') => {
+    // Cast the selected services to the correct type to avoid TS errors
+    const servicesWithCorrectTypes = selectedServices.map(service => ({
+      ...service,
+      discount_type: service.discount_type as "amount" | "percentage"
+    })) as Service[];
+    
     return transformServicesForDisplay(selectedServices, language);
   };
 

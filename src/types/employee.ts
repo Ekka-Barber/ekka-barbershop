@@ -1,22 +1,18 @@
-import { WorkingHours } from './service';
+
+import { Json } from './supabase-generated';
 
 export interface Employee {
   id: string;
   name: string;
-  name_ar?: string;
-  branch_id?: string;
-  role: 'barber' | 'manager' | 'cashier' | 'other';
-  working_hours?: WorkingHours;
-  off_days?: string[];
-  photo_url?: string;
-  nationality?: string;
-}
-
-export interface EmployeeSales {
-  id: string;
-  employee_name: string;
-  month: string; // Format: 'YYYY-MM-DD' for the first day of the month
-  sales_amount: number;
-  created_at?: string;
-  updated_at?: string;
+  name_ar: string | null;
+  role: "barber" | "receptionist" | "manager" | "admin" | "cashier" | "hammam_specialist";
+  photo_url: string | null;
+  nationality: string | null;
+  branch_id: string;
+  working_hours: Json;
+  previous_working_hours: Json;
+  off_days: string[];
+  created_at: string;
+  updated_at: string;
+  salary_plan_id: string;
 }

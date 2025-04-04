@@ -29,7 +29,7 @@ export const ServiceSelection = ({
   const selectionState = useServiceSelectionState({
     categories,
     isLoading,
-    selectedServices,
+    selectedServices, // Make sure this is passed to the state
     onServiceToggle,
     onStepChange,
     isUpdatingPackage,

@@ -12,11 +12,11 @@ export interface FileMetadata {
   display_order?: number;
   branch_name?: string;
   branch_id?: string;
-  is_all_branches?: boolean; // Added missing property
+  is_all_branches?: boolean;
   end_date?: string | null;
-  end_time?: string | null; // Added missing property
+  end_time?: string | null;
   created_at?: string;
-  file_url?: string; // Added missing property
+  file_url?: string;
 }
 
 // Preview for uploaded files
@@ -24,7 +24,7 @@ export interface FilePreview {
   url: string;
   type: 'menu' | 'offers';
   fileType: 'image' | 'pdf';
-  name: string; // Added missing property
+  name: string;
 }
 
 // Parameters for file operations
@@ -45,7 +45,7 @@ export interface FileToggleParams {
 
 export interface FileEndDateParams {
   id: string;
-  endDate: Date | null;
+  endDate: string | null;
   endTime: string | null;
 }
 
