@@ -18,7 +18,7 @@ export interface FileToggleParams {
 
 export interface FileEndDateParams {
   id: string;
-  endDate: string | null;
+  endDate: string | null; // Changed from Date to string to match usage
   endTime: string | null;
 }
 

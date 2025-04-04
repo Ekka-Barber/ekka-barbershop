@@ -37,12 +37,18 @@ export const ServiceSelection = ({
     branchId
   });
   
+  // Make sure selectedServices is included in the object passed to ServiceSelectionView
+  const enhancedSelectionState = {
+    ...selectionState,
+    selectedServices // Add selectedServices explicitly
+  };
+  
   return (
     <ErrorBoundary>
       <ServiceSelectionView 
         isLoading={isLoading}
         categories={categories}
-        selectionState={selectionState}
+        selectionState={enhancedSelectionState}
       />
     </ErrorBoundary>
   );

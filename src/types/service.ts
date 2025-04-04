@@ -43,7 +43,7 @@ export interface WorkingHours {
   [day: string]: {
     start: string;
     end: string;
-  };
+  } | string[];
 }
 
 export type ValidService = Service | null;

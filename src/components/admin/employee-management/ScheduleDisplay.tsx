@@ -5,7 +5,7 @@ import { WorkingHours } from '@/types/service';
 import { isValidWorkingHours } from '@/utils/workingHoursUtils';
 
 interface ScheduleDisplayProps {
-  workingHours: WorkingHours;
+  workingHours: any; // Use any for now to handle Json type from Employee
   offDays: string[];
 }
 
@@ -21,16 +21,28 @@ export const ScheduleDisplay = ({ workingHours, offDays = [] }: ScheduleDisplayP
     { key: 'friday', label: 'Fri' }
   ];
 
-  // Validate working hours format
-  const validWorkingHours = isValidWorkingHours(workingHours) ? workingHours : {};
+  // Safely parse working hours
+  const parsedWorkingHours: WorkingHours = typeof workingHours === 'object' ? workingHours : {};
 
   return (
     <div className="grid grid-cols-7 gap-1 text-center">
       {daysOfWeek.map((day) => {
         const isOffDay = offDays.includes(day.key);
-        const hours = validWorkingHours[day.key] || [];
-        const hasHours = Array.isArray(hours) && hours.length > 0;
-        const hoursText = hasHours ? hours.join(', ') : 'Off';
+        const dayHours = parsedWorkingHours[day.key] || [];
+        
+        // Handle both string[] and object formats
+        const hasHours = Array.isArray(dayHours) 
+          ? dayHours.length > 0 
+          : (dayHours && typeof dayHours === 'object' && 'start' in dayHours);
+        
+        let hoursText = 'Off';
+        if (hasHours) {
+          if (Array.isArray(dayHours)) {
+            hoursText = dayHours.join(', ');
+          } else if (typeof dayHours === 'object' && 'start' in dayHours && 'end' in dayHours) {
+            hoursText = `${dayHours.start} - ${dayHours.end}`;
+          }
+        }
         
         return (
           <TooltipProvider key={day.key}>

@@ -37,7 +37,7 @@ export interface FilePreview {
   url: string;
   type: 'menu' | 'offers';
   fileType: 'image' | 'pdf';
-  name: string;
+  name: string; // This was missing
 }
 
 // Blocked dates types

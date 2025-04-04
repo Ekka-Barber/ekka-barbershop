@@ -7,6 +7,7 @@ import { SelectedService } from '@/types/service';
 import { CustomerDetails } from '@/types/booking';
 import { BookingStep } from '@/components/booking/BookingProgress';
 import { type Employee } from '@/types/employee';
+import { Json } from '@/types/supabase-generated';
 
 // Mock the useBooking hook
 vi.mock('@/hooks/useBooking');
@@ -55,14 +56,14 @@ const mockBookingContextValue = {
       id: 'barber1',
       name: 'John Doe',
       name_ar: 'جون دو',
-      role: 'barber',
+      role: 'barber' as const,
       branch_id: 'branch1',
       // Add required properties for the test
       created_at: '2023-01-01T00:00:00Z',
       updated_at: '2023-01-01T00:00:00Z',
-      previous_working_hours: {},
+      previous_working_hours: {} as Json,
       salary_plan_id: '',
-      working_hours: {},
+      working_hours: {} as Json,
       // Optional props with default values
       nationality: null,
       off_days: [],
@@ -74,14 +75,14 @@ const mockBookingContextValue = {
     id: 'barber1',
     name: 'John Doe',
     name_ar: 'جون دو',
-    role: 'barber',
+    role: 'barber' as const,
     branch_id: 'branch1',
     // Add required properties for the test
     created_at: '2023-01-01T00:00:00Z',
     updated_at: '2023-01-01T00:00:00Z',
-    previous_working_hours: {},
+    previous_working_hours: {} as Json,
     salary_plan_id: '',
-    working_hours: {},
+    working_hours: {} as Json,
     // Optional props with default values
     nationality: null,
     off_days: [],

@@ -175,7 +175,7 @@ export const EmployeeCard = ({
               Weekly Schedule
             </Label>
             <ScheduleDisplay 
-              workingHours={employee.working_hours || {}} 
+              workingHours={employee.working_hours} 
               offDays={employee.off_days || []}
             />
           </div>
