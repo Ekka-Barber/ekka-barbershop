@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { CustomerDetails } from "@/types/booking";
 import { useCustomerFormValidation } from "@/hooks/useCustomerFormValidation";
-import { FormField, FormItem, FormLabel, FormControl, FormMessage, Form } from "@/components/ui/form";
+import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { useEffect } from "react";
 
 interface CustomerFormProps {
@@ -27,7 +27,8 @@ export const CustomerForm = ({
     handleSubmit,
     handleFieldChange,
     formValues,
-    trigger
+    trigger,
+    form
   } = useCustomerFormValidation(customerDetails, onCustomerDetailsChange, onValidationChange);
   
   // Run validation once when component mounts to update parent validation state
@@ -43,104 +44,106 @@ export const CustomerForm = ({
   }, [isValid, onValidationChange]);
 
   return (
-    <Form onSubmit={(e) => { e.preventDefault(); handleSubmit(e); }}>
-      <form className="space-y-6">
-        <div className="space-y-4">
-          <FormField
-            name="name"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>
-                  {t('name')} <span className="text-destructive">*</span>
-                </FormLabel>
-                <FormControl>
-                  <Input
-                    {...register('name')}
-                    value={formValues.name}
-                    onChange={(e) => handleFieldChange('name', e.target.value)}
-                    placeholder={language === 'ar' ? 'ادخل الاسم' : 'Enter name'}
-                    className={errors.name ? "border-destructive" : ""}
-                  />
-                </FormControl>
-                {errors.name && (
-                  <FormMessage>{errors.name.message}</FormMessage>
-                )}
-              </FormItem>
-            )}
-          />
-          
-          <FormField
-            name="phone"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>
-                  {t('phone')} <span className="text-destructive">*</span>
-                </FormLabel>
-                <FormControl>
-                  <Input
-                    {...register('phone')}
-                    value={formValues.phone}
-                    onChange={(e) => handleFieldChange('phone', e.target.value)}
-                    type="tel"
-                    maxLength={10}
-                    placeholder="05XXXXXXXX"
-                    className={errors.phone ? "border-destructive" : ""}
-                  />
-                </FormControl>
-                {errors.phone && (
-                  <FormMessage>{errors.phone.message}</FormMessage>
-                )}
-              </FormItem>
-            )}
-          />
-          
-          <FormField
-            name="email"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>
-                  {t('email')} <span className="text-destructive">*</span> 
-                  <span className="text-sm text-muted-foreground ml-1">
-                    {language === 'ar' ? '( لغرض تنبيهات الحجز )' : '(for appointment notifications)'}
-                  </span>
-                </FormLabel>
-                <FormControl>
-                  <Input
-                    {...register('email')}
-                    value={formValues.email}
-                    onChange={(e) => handleFieldChange('email', e.target.value)}
-                    type="email"
-                    placeholder={language === 'ar' ? 'البريد الإلكتروني' : 'Email address'}
-                    className={errors.email ? "border-destructive" : ""}
-                  />
-                </FormControl>
-                {errors.email && (
-                  <FormMessage>{errors.email.message}</FormMessage>
-                )}
-              </FormItem>
-            )}
-          />
-          
-          <FormField
-            name="notes"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>
-                  {t('notes')} ({language === 'ar' ? 'اختياري' : 'optional'})
-                </FormLabel>
-                <FormControl>
-                  <Input
-                    {...register('notes')}
-                    value={formValues.notes}
-                    onChange={(e) => handleFieldChange('notes', e.target.value)}
-                    placeholder={language === 'ar' ? 'ملاحظات إضافية' : 'Additional notes'}
-                  />
-                </FormControl>
-              </FormItem>
-            )}
-          />
-        </div>
-      </form>
-    </Form>
+    <div className="space-y-6">
+      <div className="space-y-4">
+        <FormField
+          name="name"
+          control={form.control}
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>
+                {t('name')} <span className="text-destructive">*</span>
+              </FormLabel>
+              <FormControl>
+                <Input
+                  {...field}
+                  value={formValues.name}
+                  onChange={(e) => handleFieldChange('name', e.target.value)}
+                  placeholder={language === 'ar' ? 'ادخل الاسم' : 'Enter name'}
+                  className={errors.name ? "border-destructive" : ""}
+                />
+              </FormControl>
+              {errors.name && (
+                <FormMessage>{errors.name.message}</FormMessage>
+              )}
+            </FormItem>
+          )}
+        />
+        
+        <FormField
+          name="phone"
+          control={form.control}
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>
+                {t('phone')} <span className="text-destructive">*</span>
+              </FormLabel>
+              <FormControl>
+                <Input
+                  {...field}
+                  value={formValues.phone}
+                  onChange={(e) => handleFieldChange('phone', e.target.value)}
+                  type="tel"
+                  maxLength={10}
+                  placeholder="05XXXXXXXX"
+                  className={errors.phone ? "border-destructive" : ""}
+                />
+              </FormControl>
+              {errors.phone && (
+                <FormMessage>{errors.phone.message}</FormMessage>
+              )}
+            </FormItem>
+          )}
+        />
+        
+        <FormField
+          name="email"
+          control={form.control}
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>
+                {t('email')} <span className="text-destructive">*</span> 
+                <span className="text-sm text-muted-foreground ml-1">
+                  {language === 'ar' ? '( لغرض تنبيهات الحجز )' : '(for appointment notifications)'}
+                </span>
+              </FormLabel>
+              <FormControl>
+                <Input
+                  {...field}
+                  value={formValues.email}
+                  onChange={(e) => handleFieldChange('email', e.target.value)}
+                  type="email"
+                  placeholder={language === 'ar' ? 'البريد الإلكتروني' : 'Email address'}
+                  className={errors.email ? "border-destructive" : ""}
+                />
+              </FormControl>
+              {errors.email && (
+                <FormMessage>{errors.email.message}</FormMessage>
+              )}
+            </FormItem>
+          )}
+        />
+        
+        <FormField
+          name="notes"
+          control={form.control}
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>
+                {t('notes')} ({language === 'ar' ? 'اختياري' : 'optional'})
+              </FormLabel>
+              <FormControl>
+                <Input
+                  {...field}
+                  value={formValues.notes}
+                  onChange={(e) => handleFieldChange('notes', e.target.value)}
+                  placeholder={language === 'ar' ? 'ملاحظات إضافية' : 'Additional notes'}
+                />
+              </FormControl>
+            </FormItem>
+          )}
+        />
+      </div>
+    </div>
   );
 };

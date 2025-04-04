@@ -45,18 +45,21 @@ export const useCustomerFormValidation = (
   const customerSchema = createCustomerSchema(language);
   
   // Set up the form with React Hook Form
-  const {
-    register,
-    handleSubmit,
-    formState: { errors, isValid, isDirty, isValidating },
-    watch,
-    trigger,
-    setValue
-  } = useForm<CustomerDetails>({
+  const form = useForm<CustomerDetails>({
     resolver: zodResolver(customerSchema),
     mode: 'onChange',
     defaultValues: initialData
   });
+  
+  const {
+    register,
+    formState: { errors, isValid, isDirty, isValidating },
+    watch,
+    trigger,
+    setValue,
+    control,
+    handleSubmit
+  } = form;
   
   // Watch all form values for changes
   const formValues = watch();
@@ -99,6 +102,7 @@ export const useCustomerFormValidation = (
     handleSubmit: handleSubmit(onSubmit),
     formValues,
     handleFieldChange,
-    trigger
+    trigger,
+    form // Expose the form object for use with FormField components
   };
 };

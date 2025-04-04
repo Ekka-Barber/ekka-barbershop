@@ -215,6 +215,16 @@ export const usePackageDiscount = (
     };
   }, [addOnServices, forcePackageEnabled, hasBaseService, selectedServices]);
 
+  // Add the missing calculatePackageSavings function
+  const calculatePackageSavings = useCallback(() => {
+    if (!hasBaseService && !forcePackageEnabled) {
+      return 0;
+    }
+    
+    const metrics = calculatePackageMetrics;
+    return metrics.savings;
+  }, [calculatePackageMetrics, hasBaseService, forcePackageEnabled]);
+
   // Track base service selection
   useEffect(() => {
     // Force package mode to stay enabled during updates if forcePackageEnabled is true
@@ -253,6 +263,7 @@ export const usePackageDiscount = (
     // Discount management and utilities
     applyPackageDiscounts,
     calculatePackageMetrics,
+    calculatePackageSavings,  // Added the missing function
     getDiscountPercentage,
     setForcePackageEnabled,
     
