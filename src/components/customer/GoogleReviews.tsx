@@ -103,8 +103,8 @@ export default function GoogleReviews() {
     
     try {
       for (const branch of branches) {
-        if (!branch.google_place_id || !branch.google_places_api_key) {
-          console.warn(`Skipping branch ${branch.name} due to missing Place ID or API Key`);
+        if (!branch.google_place_id) {
+          console.warn(`Skipping branch ${branch.name} due to missing Place ID`);
           continue;
         }
 
