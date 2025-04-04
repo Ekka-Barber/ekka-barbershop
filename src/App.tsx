@@ -1,5 +1,5 @@
 
-import { lazy, Suspense, useEffect } from "react";
+import React, { lazy, Suspense, useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -13,7 +13,6 @@ import { OfflineNotification } from "./components/common/OfflineNotification";
 import { ErrorBoundary } from "./components/common/ErrorBoundary";
 import { registerServiceWorker } from "./services/offlineSupport";
 import { logger } from "@/utils/logger";
-import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
 // Configure logger based on environment
 logger.configure({
@@ -68,10 +67,10 @@ const App = () => {
   logger.info(`App initializing in ${process.env.NODE_ENV} mode`);
   
   return (
-    <LanguageProvider>
-      <TooltipProvider>
-        <ServiceWorkerRegistration />
-        <ErrorBoundary>
+    <ErrorBoundary>
+      <LanguageProvider>
+        <TooltipProvider>
+          <ServiceWorkerRegistration />
           <Routes>
             {/* Redirect root to customer page */}
             <Route path="/" element={<Navigate to="/customer" replace />} />
@@ -104,13 +103,12 @@ const App = () => {
             {/* Catch all other routes and redirect to customer page */}
             <Route path="*" element={<Navigate to="/customer" replace />} />
           </Routes>
-        </ErrorBoundary>
-        <Toaster />
-        <Sonner />
-        <OfflineNotification />
-        <LanguageSwitcher />
-      </TooltipProvider>
-    </LanguageProvider>
+          <Toaster />
+          <Sonner />
+          <OfflineNotification />
+        </TooltipProvider>
+      </LanguageProvider>
+    </ErrorBoundary>
   );
 };
 

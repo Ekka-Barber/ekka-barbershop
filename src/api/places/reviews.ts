@@ -8,6 +8,7 @@ if (!supabaseUrl || !supabaseAnonKey) {
   console.error('Missing Supabase environment variables');
 }
 
+// Create a single instance of the Supabase client
 const supabase = createClient(supabaseUrl || '', supabaseAnonKey || '');
 
 export async function GET(request: Request) {
