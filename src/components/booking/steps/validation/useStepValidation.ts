@@ -13,6 +13,7 @@ interface UseStepValidationProps {
   selectedTime?: string;
   customerDetails: any;
   validateStep?: () => boolean;
+  validateCustomerDetails?: () => boolean; // Added missing property
 }
 
 export const useStepValidation = ({
@@ -22,7 +23,8 @@ export const useStepValidation = ({
   selectedBarber,
   selectedTime,
   customerDetails,
-  validateStep
+  validateStep,
+  validateCustomerDetails
 }: UseStepValidationProps) => {
   const { language } = useLanguage();
   const { toast } = useToast();
@@ -35,10 +37,16 @@ export const useStepValidation = ({
   };
 
   const isNextDisabled = () => {
+    if (currentStep === 'details') {
+      // Use validateCustomerDetails if provided, otherwise fallback to formValid
+      if (validateCustomerDetails) {
+        return !validateCustomerDetails();
+      }
+      return !formValid;
+    }
     if (currentStep === 'services') return selectedServices.length === 0;
     if (currentStep === 'datetime') return !selectedDate;
     if (currentStep === 'barber') return !selectedBarber || !selectedTime;
-    if (currentStep === 'details') return !formValid;
     return false;
   };
 

@@ -13,7 +13,7 @@ interface UseStepValidationProps {
   selectedTime?: string;
   customerDetails: CustomerDetails;
   validateStep?: () => boolean;
-  validateCustomerDetails?: () => boolean;
+  validateCustomerDetails?: () => boolean;  // Added this property to fix the error
 }
 
 export const useStepValidation = ({
