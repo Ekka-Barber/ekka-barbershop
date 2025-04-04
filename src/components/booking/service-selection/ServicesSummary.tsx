@@ -1,4 +1,3 @@
-
 import { motion, AnimatePresence } from "framer-motion";
 import { MetricsGroup } from "./summary/MetricsGroup";
 import { ActionButton } from "./summary/ActionButton";
@@ -54,9 +53,11 @@ export const ServicesSummary = ({
   return (
     <AnimatePresence>
       <motion.div 
-        className="fixed inset-x-0 bottom-0 bg-white/95 backdrop-blur-sm border-t border-gray-200 shadow-lg z-40 pb-safe"
+        className={`
+          sticky bottom-0 left-0 w-full bg-white/95 backdrop-blur-sm shadow-md border-t border-gray-200 flex flex-col gap-4 z-10 p-4
+          pb-[max(env(safe-area-inset-bottom),0.5rem)]
+        `}
         style={{ 
-          paddingBottom: `max(env(safe-area-inset-bottom, 0.5rem), 0.5rem)`,
           WebkitBackdropFilter: 'blur(8px)'
         }}
         initial={{ y: 100, opacity: 0 }}
