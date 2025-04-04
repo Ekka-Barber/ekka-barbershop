@@ -4,6 +4,9 @@ import { BookingStep } from '@/components/booking/BookingProgress';
 import { CustomerDetails } from '@/types/booking';
 import { SelectedService } from '@/types/service';
 import { logger } from '@/utils/logger';
+import { useToast } from '@/hooks/use-toast';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { VALIDATION_MESSAGES } from '@/constants/bookingConstants';
 
 interface UseStepValidationProps {
   currentStep: string;
@@ -13,7 +16,7 @@ interface UseStepValidationProps {
   selectedTime?: string;
   customerDetails: CustomerDetails;
   validateStep?: () => boolean;
-  validateCustomerDetails?: () => boolean;  // Added this property to fix the error
+  validateCustomerDetails?: () => boolean;
 }
 
 export const useStepValidation = ({
@@ -26,6 +29,8 @@ export const useStepValidation = ({
   validateStep,
   validateCustomerDetails
 }: UseStepValidationProps) => {
+  const { language } = useLanguage();
+  const { toast } = useToast();
   const [isValidating, setIsValidating] = useState(false);
   const [formValid, setFormValid] = useState(false);
 
@@ -34,6 +39,20 @@ export const useStepValidation = ({
     logger.debug(`Step validation changed to: ${isValid}`);
     setFormValid(isValid);
   }, []);
+
+  // Display toast with validation error
+  const showValidationError = useCallback((step: string) => {
+    // Get message from validation constants
+    const message = VALIDATION_MESSAGES[step as keyof typeof VALIDATION_MESSAGES]?.[language as 'en' | 'ar'] || 
+      (language === 'ar' ? 'يرجى التحقق من جميع الحقول المطلوبة' : 'Please check all required fields');
+      
+    toast({
+      title: language === 'ar' ? 'تنبيه' : 'Validation Error',
+      description: message,
+      variant: "destructive",
+      duration: 3000
+    });
+  }, [language, toast]);
 
   // Check if next button should be disabled
   const isNextDisabled = useCallback(() => {
@@ -67,16 +86,17 @@ export const useStepValidation = ({
     setIsValidating(true);
     
     // Use the validateStep from context if available, otherwise use local validation
-    const isValid = validateStep ? validateStep() : !isNextDisabled();
+    const isStepValid = validateStep ? validateStep() : !isNextDisabled();
     
-    setIsValidating(false);
-    
-    if (isValid) {
-      return steps[currentIndex + 1];
+    if (!isStepValid) {
+      showValidationError(currentStep);
+      setIsValidating(false);
+      return null;
     }
     
-    return null;
-  }, [currentStep, isNextDisabled, validateStep]);
+    setIsValidating(false);
+    return steps[currentIndex + 1];
+  }, [currentStep, isNextDisabled, validateStep, showValidationError]);
 
   // Handle previous step transition (no validation needed)
   const handlePrevStep = useCallback((steps: BookingStep[]) => {
@@ -94,6 +114,7 @@ export const useStepValidation = ({
     handleValidationChange,
     isNextDisabled,
     handleNextStep,
-    handlePrevStep
+    handlePrevStep,
+    showValidationError
   };
 };

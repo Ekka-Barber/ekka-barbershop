@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { CustomerDetails } from '@/types/booking';
 import { logger } from '@/utils/logger';
+import { VALIDATION_REGEX } from '@/constants/bookingConstants';
 
 export const useCustomerDetails = () => {
   const [customerDetails, setCustomerDetails] = useState<CustomerDetails>({
@@ -13,14 +14,15 @@ export const useCustomerDetails = () => {
   
   const [isFormValid, setIsFormValid] = useState<boolean>(false);
   
-  // Validate customer details
+  /**
+   * Validate customer details using regex patterns from central constants
+   */
   const validateCustomerDetails = () => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    const phoneRegex = /^05\d{8}$/;
+    const { phone, email, name } = customerDetails;
     
-    const isNameValid = customerDetails.name.trim() !== '';
-    const isPhoneValid = phoneRegex.test(customerDetails.phone);
-    const isEmailValid = emailRegex.test(customerDetails.email);
+    const isNameValid = name.trim() !== '';
+    const isPhoneValid = VALIDATION_REGEX.phone.test(phone);
+    const isEmailValid = VALIDATION_REGEX.email.test(email);
     
     // Log validation at debug level only
     logger.debug('Customer form validation states:', { 
@@ -50,10 +52,21 @@ export const useCustomerDetails = () => {
     }));
   };
 
+  /**
+   * Set all customer details at once (useful for form reset or initialization)
+   */
+  const setCustomerDetailsAll = (details: Partial<CustomerDetails>) => {
+    setCustomerDetails(prev => ({
+      ...prev,
+      ...details
+    }));
+  };
+
   return {
     customerDetails,
-    setCustomerDetails,
+    setCustomerDetails: setCustomerDetailsAll,
     handleCustomerDetailsChange,
-    isFormValid
+    isFormValid,
+    validateCustomerDetails
   };
 };

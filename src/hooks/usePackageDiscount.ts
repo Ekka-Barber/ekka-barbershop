@@ -1,10 +1,11 @@
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { SelectedService } from '@/types/service';
 import { PackageSettings } from '@/types/admin';
-import { createPackageService } from '@/utils/serviceTransformation';
+import { logger } from '@/utils/logger';
+import { PackageCalculation, NextTierThreshold } from '@/types/package';
 
 // Base service ID - export it so it can be imported elsewhere
 export const BASE_SERVICE_ID = 'a3dbfd63-be5d-4465-af99-f25c21d578a0';
@@ -16,7 +17,7 @@ export const usePackageDiscount = (
   const [packageEnabled, setPackageEnabled] = useState(false);
   const [forcePackageEnabled, setForcePackageEnabled] = useState(forceEnabled);
   
-  // Fetch package settings
+  // Fetch package settings with proper caching
   const { data: packageSettings } = useQuery({
     queryKey: ['package_settings'],
     queryFn: async () => {
@@ -27,7 +28,7 @@ export const usePackageDiscount = (
         .single();
         
       if (error) {
-        console.error('Error fetching package settings:', error);
+        logger.error('Error fetching package settings:', error);
         return null;
       }
       
@@ -40,10 +41,11 @@ export const usePackageDiscount = (
         },
         maxServices: data.max_services
       } as PackageSettings;
-    }
+    },
+    staleTime: 1000 * 60 * 5 // Cache for 5 minutes
   });
 
-  // Fetch enabled services with display_order
+  // Fetch enabled services with display_order, optimized with caching
   const { data: enabledPackageServices } = useQuery({
     queryKey: ['package_available_services'],
     queryFn: async () => {
@@ -54,7 +56,7 @@ export const usePackageDiscount = (
         .order('display_order', { ascending: true });
         
       if (error) {
-        console.error('Error fetching package available services:', error);
+        logger.error('Error fetching package available services:', error);
         return [];
       }
       
@@ -62,17 +64,18 @@ export const usePackageDiscount = (
         id: item.service_id,
         display_order: item.display_order
       }));
-    }
+    },
+    staleTime: 1000 * 60 * 5 // Cache for 5 minutes
   });
 
-  // Check if base service is selected
+  // Check if base service is selected (memoized)
   const hasBaseService = useMemo(() => {
     return selectedServices.some(service => 
       service.id === BASE_SERVICE_ID || service.isBasePackageService
     );
   }, [selectedServices]);
 
-  // Get add-on services
+  // Get add-on services (memoized)
   const addOnServices = useMemo(() => {
     if (!hasBaseService && !forcePackageEnabled) return [];
     return selectedServices.filter(service => 
@@ -82,8 +85,8 @@ export const usePackageDiscount = (
     );
   }, [selectedServices, hasBaseService, forcePackageEnabled]);
 
-  // Simplified discount calculation based on current number of add-on services
-  const getDiscountPercentage = (count: number): number => {
+  // Discount calculation based on current number of add-on services (memoized)
+  const getDiscountPercentage = useCallback((count: number): number => {
     if (!packageSettings) return 0;
     
     if (count >= 3) {
@@ -94,15 +97,39 @@ export const usePackageDiscount = (
       return packageSettings.discountTiers.oneService;
     }
     return 0;
-  };
+  }, [packageSettings]);
 
-  // Get current discount tier based on add-on count
-  const getCurrentDiscountTier = useMemo(() => {
+  // Get current discount tier based on add-on count (memoized)
+  const currentDiscountTier = useMemo(() => {
     return getDiscountPercentage(addOnServices.length);
+  }, [addOnServices.length, getDiscountPercentage]);
+  
+  // Calculate info needed for the next discount tier (memoized)
+  const nextTierThreshold = useMemo((): NextTierThreshold | null => {
+    if (!packageSettings || addOnServices.length >= 3) return null;
+    
+    if (addOnServices.length === 0) {
+      return {
+        servicesNeeded: 1,
+        newPercentage: packageSettings.discountTiers.oneService
+      };
+    } else if (addOnServices.length === 1) {
+      return {
+        servicesNeeded: 1,
+        newPercentage: packageSettings.discountTiers.twoServices
+      };
+    } else if (addOnServices.length === 2) {
+      return {
+        servicesNeeded: 1,
+        newPercentage: packageSettings.discountTiers.threeOrMore
+      };
+    }
+    
+    return null;
   }, [addOnServices.length, packageSettings]);
 
-  // Apply discounts to services with simplified tier calculation
-  const applyPackageDiscounts = (services: SelectedService[]): SelectedService[] => {
+  // Apply discounts to services with optimized calculation (memoized)
+  const applyPackageDiscounts = useCallback((services: SelectedService[]): SelectedService[] => {
     if ((!hasBaseService && !forcePackageEnabled) || !packageSettings) {
       return services;
     }
@@ -111,9 +138,9 @@ export const usePackageDiscount = (
     if (addonCount === 0) return services;
 
     // Use the current discount tier based on the number of add-ons
-    const discountPercentage = getCurrentDiscountTier;
+    const discountPercentage = currentDiscountTier;
     
-    console.log(`Applying ${discountPercentage}% discount based on ${addonCount} add-on services`);
+    logger.debug(`Applying ${discountPercentage}% discount based on ${addonCount} add-on services`);
     
     return services.map(service => {
       // Skip base service, upsell items, and non-package services
@@ -144,24 +171,56 @@ export const usePackageDiscount = (
         discountPercentage: discountPercentage
       };
     });
-  };
+  }, [addOnServices.length, currentDiscountTier, enabledPackageServices, forcePackageEnabled, hasBaseService, packageSettings]);
 
-  // Calculate total savings from package discounts
-  const calculatePackageSavings = (): number => {
-    if (!hasBaseService && !forcePackageEnabled) return 0;
+  // Calculate total package metrics (memoized)
+  const calculatePackageMetrics = useMemo((): PackageCalculation => {
+    if (!hasBaseService && !forcePackageEnabled) {
+      return {
+        originalTotal: 0,
+        discountedTotal: 0,
+        savings: 0,
+        discountPercentage: 0,
+        totalWithBase: 0
+      };
+    }
     
-    return addOnServices.reduce((total, service) => {
-      if (!service.originalPrice) return total;
-      return total + (service.originalPrice - service.price);
-    }, 0);
-  };
+    const originalTotal = addOnServices.reduce(
+      (total, service) => total + (service.originalPrice || service.price), 0
+    );
+    
+    const discountedTotal = addOnServices.reduce(
+      (total, service) => total + service.price, 0
+    );
+    
+    const savings = originalTotal - discountedTotal;
+    
+    const discountPercentage = originalTotal > 0 
+      ? Math.round((savings / originalTotal) * 100) 
+      : 0;
+      
+    // Include base service in total if present
+    const baseServicePrice = selectedServices.find(
+      s => s.isBasePackageService || s.id === BASE_SERVICE_ID
+    )?.price || 0;
+    
+    const totalWithBase = discountedTotal + baseServicePrice;
+    
+    return {
+      originalTotal,
+      discountedTotal,
+      savings,
+      discountPercentage,
+      totalWithBase
+    };
+  }, [addOnServices, forcePackageEnabled, hasBaseService, selectedServices]);
 
   // Track base service selection
   useEffect(() => {
     // Force package mode to stay enabled during updates if forcePackageEnabled is true
     if (forcePackageEnabled) {
       if (!packageEnabled) {
-        console.log('Package mode forced enabled during update');
+        logger.debug('Package mode forced enabled during update');
         setPackageEnabled(true);
       }
       return;
@@ -169,28 +228,36 @@ export const usePackageDiscount = (
     
     // Enable package mode when base service is selected
     if (hasBaseService && !packageEnabled) {
-      console.log('Package mode enabled - base service detected');
+      logger.debug('Package mode enabled - base service detected');
       setPackageEnabled(true);
     }
     
     // Disable package mode when base service is deselected
     if (!hasBaseService && packageEnabled) {
-      console.log('Package mode disabled - base service removed');
+      logger.debug('Package mode disabled - base service removed');
       setPackageEnabled(false);
     }
   }, [hasBaseService, packageEnabled, forcePackageEnabled]);
 
   return {
+    // Core package state
     BASE_SERVICE_ID,
     packageEnabled,
     packageSettings,
     hasBaseService,
+    
+    // Related services
     addOnServices,
     enabledPackageServices,
+    
+    // Discount management and utilities
     applyPackageDiscounts,
-    calculatePackageSavings,
+    calculatePackageMetrics,
     getDiscountPercentage,
     setForcePackageEnabled,
-    currentDiscountTier: getCurrentDiscountTier
+    
+    // Current discount information
+    currentDiscountTier,
+    nextTierThreshold
   };
 };
