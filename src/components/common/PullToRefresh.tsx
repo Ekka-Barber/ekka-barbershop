@@ -89,7 +89,7 @@ export const PullToRefresh: React.FC<PullToRefreshProps> = ({
       {isPulling && (
         <RefreshIndicator 
           pullDistance={pullDistance} 
-          threshold={pullDownThreshold} 
+          pullDownThreshold={pullDownThreshold} 
           isRefreshing={isRefreshing}
           color={refreshIndicatorColor}
           backgroundColor={backgroundColor}
