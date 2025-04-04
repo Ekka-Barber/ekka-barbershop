@@ -1,6 +1,5 @@
 
 import { useState, useCallback, useEffect } from "react";
-import { BookingProgress, BookingStep } from "@/components/booking/BookingProgress";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
@@ -9,8 +8,7 @@ import { UpsellManager } from "./upsell/UpsellManager";
 import { PackageManager } from "./package/PackageManager";
 import { BookingStepManager } from "./steps/BookingStepManager";
 import { useBookingContext } from "@/contexts/BookingContext";
-
-const STEPS: BookingStep[] = ['services', 'datetime', 'barber', 'details'];
+import { logger } from "@/utils/logger";
 
 interface BookingStepsProps {
   branch: any;
@@ -27,13 +25,10 @@ export const RefactoredBookingSteps = ({
   const {
     currentStep,
     setCurrentStep,
-    hasBaseService,
-    packageSettings,
-    enabledPackageServices,
     validateStep
   } = useBookingContext();
 
-  const handleStepChange = useCallback((step: BookingStep) => {
+  const handleStepChange = useCallback((step: string) => {
     // Show optimistic update for better user experience
     setIsOptimisticUpdate(true);
     
@@ -66,7 +61,12 @@ export const RefactoredBookingSteps = ({
     };
 
     window.addEventListener('beforeunload', handleBeforeUnload);
-    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+    logger.debug('Added beforeunload event listener');
+    
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      logger.debug('Removed beforeunload event listener');
+    };
   }, [currentStep]);
   
   return (

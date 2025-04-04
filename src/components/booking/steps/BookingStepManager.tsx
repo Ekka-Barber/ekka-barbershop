@@ -11,8 +11,7 @@ import { transformServicesForDisplay } from "@/utils/serviceTransformation";
 import { transformWorkingHours } from "@/utils/workingHoursUtils";
 import { SkeletonLoader } from "@/components/common/SkeletonLoader";
 import { useStepValidation } from "./validation/useStepValidation";
-
-const STEPS: BookingStep[] = ['services', 'datetime', 'barber', 'details'];
+import { logger } from "@/utils/logger";
 
 interface BookingStepManagerProps {
   branch: any;
@@ -48,7 +47,9 @@ export const BookingStepManager = ({
     isUpdatingPackage,
     handlePackageServiceUpdate,
     packageEnabled,
-    packageSettings
+    packageSettings,
+    bookingSteps, // Use the bookingSteps from context
+    validateCustomerDetails
   } = useBookingContext();
   
   // Use the extracted validation hook
@@ -68,12 +69,13 @@ export const BookingStepManager = ({
     selectedBarber,
     selectedTime,
     customerDetails,
-    validateStep
+    validateStep,
+    validateCustomerDetails
   });
 
   useEffect(() => {
     if (currentStep === 'details') {
-      console.log("BookingStepManager: On details step, current form validity:", formValid);
+      logger.debug("BookingStepManager: On details step, current form validity:", formValid);
     }
   }, [currentStep, formValid]);
   
@@ -96,20 +98,20 @@ export const BookingStepManager = ({
   };
 
   const onNextStep = async () => {
-    const nextStep = await handleNextStep(STEPS);
+    const nextStep = await handleNextStep(bookingSteps);
     if (nextStep) {
       handleStepChange(nextStep);
     }
   };
 
   const onPrevStep = () => {
-    const prevStep = handlePrevStep(STEPS);
+    const prevStep = handlePrevStep(bookingSteps);
     if (prevStep) {
       setCurrentStep(prevStep);
     }
   };
 
-  const currentStepIndex = STEPS.indexOf(currentStep as BookingStep);
+  const currentStepIndex = bookingSteps.indexOf(currentStep as BookingStep);
   const shouldShowNavigation = currentStep === 'details';
   const shouldShowSummaryBar = selectedServices.length > 0 && currentStep !== 'details';
   const transformedServices = transformServicesForDisplay(selectedServices, language);
@@ -125,13 +127,13 @@ export const BookingStepManager = ({
     return <SkeletonLoader />;
   }
 
-  console.log("BookingStepManager: Rendering with formValid =", formValid);
+  logger.debug("BookingStepManager: Rendering with formValid =", formValid);
 
   return (
     <ErrorBoundary>
       <BookingProgress 
         currentStep={currentStep as BookingStep} 
-        steps={STEPS} 
+        steps={bookingSteps} 
         onStepClick={setCurrentStep} 
         currentStepIndex={currentStepIndex} 
       />
@@ -182,7 +184,7 @@ export const BookingStepManager = ({
         <ErrorBoundary>
           <BookingNavigation 
             currentStepIndex={currentStepIndex} 
-            steps={STEPS} 
+            steps={bookingSteps} 
             currentStep={currentStep as BookingStep} 
             setCurrentStep={setCurrentStep}
             isNextDisabled={isNextDisabled()}

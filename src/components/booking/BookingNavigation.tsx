@@ -6,6 +6,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { WhatsAppIntegration } from "./WhatsAppIntegration";
 import { CustomerDetails, Branch } from "@/types/booking";
 import { useBookingContext } from "@/contexts/BookingContext";
+import { logger } from "@/utils/logger";
 
 interface BookingNavigationProps {
   currentStepIndex: number;
@@ -37,6 +38,7 @@ export const BookingNavigation = ({
   const selectedBarberName = employees?.find(e => e.id === selectedBarber)?.name || '';
   
   const handlePrevClick = () => {
+    logger.debug(`Navigation: Moving from step ${currentStep} to previous step`);
     if (currentStepIndex > 0) {
       setCurrentStep(steps[currentStepIndex - 1]);
     } else {
@@ -45,6 +47,7 @@ export const BookingNavigation = ({
   };
   
   const handleNextClick = () => {
+    logger.debug(`Navigation: Moving from step ${currentStep} to next step`);
     if (currentStepIndex < steps.length - 1) {
       setCurrentStep(steps[currentStepIndex + 1]);
     }

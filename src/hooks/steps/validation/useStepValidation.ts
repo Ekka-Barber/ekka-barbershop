@@ -3,6 +3,7 @@ import { useState, useCallback } from 'react';
 import { BookingStep } from '@/components/booking/BookingProgress';
 import { CustomerDetails } from '@/types/booking';
 import { SelectedService } from '@/types/service';
+import { logger } from '@/utils/logger';
 
 interface UseStepValidationProps {
   currentStep: string;
@@ -12,6 +13,7 @@ interface UseStepValidationProps {
   selectedTime?: string;
   customerDetails: CustomerDetails;
   validateStep?: () => boolean;
+  validateCustomerDetails?: () => boolean;
 }
 
 export const useStepValidation = ({
@@ -21,14 +23,15 @@ export const useStepValidation = ({
   selectedBarber,
   selectedTime,
   customerDetails,
-  validateStep
+  validateStep,
+  validateCustomerDetails
 }: UseStepValidationProps) => {
   const [isValidating, setIsValidating] = useState(false);
   const [formValid, setFormValid] = useState(false);
 
   // Handle validation changes from child components
   const handleValidationChange = useCallback((isValid: boolean) => {
-    console.log(`Step validation changed to: ${isValid}`);
+    logger.debug(`Step validation changed to: ${isValid}`);
     setFormValid(isValid);
   }, []);
 
@@ -36,6 +39,9 @@ export const useStepValidation = ({
   const isNextDisabled = useCallback(() => {
     // If we're on the details step, check form validity
     if (currentStep === 'details') {
+      if (validateCustomerDetails) {
+        return !validateCustomerDetails();
+      }
       return !formValid;
     }
     
@@ -50,7 +56,7 @@ export const useStepValidation = ({
       default:
         return false;
     }
-  }, [currentStep, selectedServices, selectedDate, selectedBarber, selectedTime, formValid]);
+  }, [currentStep, selectedServices, selectedDate, selectedBarber, selectedTime, formValid, validateCustomerDetails]);
 
   // Handle next step transition with validation
   const handleNextStep = useCallback(async (steps: BookingStep[]) => {
