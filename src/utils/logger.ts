@@ -17,12 +17,14 @@ const VISIBLE_LOG_LEVELS: Record<LogLevel, boolean> = {
 interface LoggerConfig {
   minLevel?: LogLevel;
   enabled?: boolean;
+  maskSensitiveData?: boolean;
 }
 
 // Default configuration
 let config: LoggerConfig = {
   minLevel: 'debug',
-  enabled: true
+  enabled: true,
+  maskSensitiveData: true
 };
 
 // Log level priorities (higher number = more important)
@@ -31,6 +33,49 @@ const LOG_LEVEL_PRIORITY: Record<LogLevel, number> = {
   info: 1,
   warn: 2,
   error: 3
+};
+
+// Patterns to detect sensitive data (API keys, tokens, etc.)
+const SENSITIVE_PATTERNS = [
+  /(api[_-]?key|apikey|key|token|secret|password|auth)[:=]["']?\w{20,}["']?/gi,
+  /AIza[0-9A-Za-z\-_]{35}/g, // Google API Key pattern
+  /sk_live_[0-9a-zA-Z]{24}/g, // Stripe Secret Key pattern
+];
+
+/**
+ * Mask sensitive data in objects or strings
+ */
+const maskSensitiveData = (data: any): any => {
+  if (!config.maskSensitiveData) return data;
+  
+  if (typeof data === 'string') {
+    return data.replace(SENSITIVE_PATTERNS[0], '$1: "***REDACTED***"')
+               .replace(SENSITIVE_PATTERNS[1], '***REDACTED_GOOGLE_API_KEY***')
+               .replace(SENSITIVE_PATTERNS[2], '***REDACTED_STRIPE_KEY***');
+  }
+  
+  if (data === null || data === undefined) {
+    return data;
+  }
+  
+  if (typeof data === 'object') {
+    if (Array.isArray(data)) {
+      return data.map(item => maskSensitiveData(item));
+    }
+    
+    const maskedObject: Record<string, any> = {};
+    for (const [key, value] of Object.entries(data)) {
+      // Mask values for keys that may contain sensitive information
+      if (/api[_-]?key|apikey|key|token|secret|password|auth/i.test(key)) {
+        maskedObject[key] = '***REDACTED***';
+      } else {
+        maskedObject[key] = maskSensitiveData(value);
+      }
+    }
+    return maskedObject;
+  }
+  
+  return data;
 };
 
 /**
@@ -56,7 +101,7 @@ export const logger = {
       `%c[DEBUG]%c ${message}`,
       'color: #6b7280; font-weight: bold;',
       'color: #6b7280;',
-      data !== undefined ? data : ''
+      data !== undefined ? maskSensitiveData(data) : ''
     );
   },
   
@@ -71,7 +116,7 @@ export const logger = {
       `%c[INFO]%c ${message}`,
       'color: #3b82f6; font-weight: bold;',
       'color: inherit;',
-      data !== undefined ? data : ''
+      data !== undefined ? maskSensitiveData(data) : ''
     );
   },
   
@@ -86,7 +131,7 @@ export const logger = {
       `%c[WARN]%c ${message}`,
       'color: #f59e0b; font-weight: bold;',
       'color: inherit;',
-      data !== undefined ? data : ''
+      data !== undefined ? maskSensitiveData(data) : ''
     );
   },
   
@@ -101,7 +146,7 @@ export const logger = {
       `%c[ERROR]%c ${message}`,
       'color: #ef4444; font-weight: bold;',
       'color: inherit;',
-      error !== undefined ? error : ''
+      error !== undefined ? maskSensitiveData(error) : ''
     );
   },
   

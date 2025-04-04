@@ -4,6 +4,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from "@/components/ui/use-toast";
+import { logger } from "@/utils/logger";
 
 interface Branch {
   id: string;
@@ -32,7 +33,8 @@ export default function GooglePlacesSettings() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('branches')
-        .select('*');
+        .select('id, name, name_ar, address, address_ar, is_main, created_at, updated_at, whatsapp_number, google_maps_url, working_hours, google_place_id');
+      
       if (error) throw error;
       return data as Branch[];
     }
@@ -46,6 +48,8 @@ export default function GooglePlacesSettings() {
 
   const updateBranchMutation = useMutation({
     mutationFn: async (variables: { id: string; google_place_id: string }) => {
+      logger.info(`Updating branch ${variables.id} with place ID: ${variables.google_place_id}`);
+      
       const { error } = await supabase
         .from('branches')
         .update({
@@ -64,7 +68,7 @@ export default function GooglePlacesSettings() {
       });
     },
     onError: (error) => {
-      console.error('Error updating branch:', error);
+      logger.error('Error updating branch:', error);
       toast({
         title: language === 'ar' ? 'حدث خطأ' : 'Error',
         description: language === 'ar' ? 'فشل حفظ الإعدادات' : 'Failed to save settings',

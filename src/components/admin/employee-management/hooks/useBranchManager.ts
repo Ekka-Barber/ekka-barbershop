@@ -1,5 +1,7 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from "@/integrations/supabase/client";
+import { logger } from "@/utils/logger";
 
 interface Branch {
   id: string;
@@ -18,17 +20,18 @@ export const useBranchManager = () => {
   const fetchBranches = async () => {
     setIsLoading(true);
     try {
+      // Explicitly select only the fields we need
       const { data, error } = await supabase.from('branches').select('id, name');
       
       if (error) throw error;
       
-      console.log('Fetched branches:', data);
+      logger.info('Fetched branches count:', data?.length || 0);
       setBranches(data || []);
       
       // Don't automatically select the first branch
       // Let the user choose to see all employees or filter by branch
     } catch (error) {
-      console.error('Error fetching branches:', error);
+      logger.error('Error fetching branches:', error);
     } finally {
       setIsLoading(false);
     }

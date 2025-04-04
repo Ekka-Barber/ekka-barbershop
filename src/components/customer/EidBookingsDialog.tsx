@@ -26,8 +26,8 @@ export const EidBookingsDialog = ({
 }: EidBookingsDialogProps) => {
   const { language, t } = useLanguage();
 
-  // Enhanced logging with proper serialization
-  console.log("Branches in EidBookingsDialog:", branches ? JSON.stringify(branches) : "undefined");
+  // Enhanced logging without sensitive data
+  console.log("Number of branches in EidBookingsDialog:", branches?.length || 0);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

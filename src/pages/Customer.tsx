@@ -36,6 +36,11 @@ interface Branch {
   name_ar: string;
   address: string;
   address_ar: string;
+  is_main: boolean;
+  whatsapp_number: string;
+  google_maps_url: string;
+  working_hours: string;
+  google_place_id: string;
 }
 
 const renderIcon = (iconName: string | null) => {
@@ -91,8 +96,12 @@ const Customer = () => {
   const { data: branches, refetch } = useQuery({
     queryKey: ['branches'],
     queryFn: async () => {
-      const { data, error } = await supabase.from('branches').select('*');
+      const { data, error } = await supabase
+        .from('branches')
+        .select('id, name, name_ar, address, address_ar, is_main, whatsapp_number, google_maps_url, working_hours, google_place_id');
       if (error) throw error;
+      
+      logger.info(`Fetched ${data?.length || 0} branches`);
       return data;
     }
   });
