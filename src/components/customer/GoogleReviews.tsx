@@ -1,5 +1,5 @@
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Star } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
@@ -18,7 +18,7 @@ interface Review extends GoogleReview {
 
 // Skeleton loader for reviews
 const ReviewSkeleton = () => (
-  <div className="flex-grow-0 flex-shrink-0 basis-[90%] sm:basis-[45%] md:basis-[31%]">
+  <div className="flex-grow-0 flex-shrink-0 basis-[90%] sm:basis-[45%] md:basis-[31%] pl-4">
     <div className="bg-white rounded-xl shadow-md p-6 h-full flex flex-col border border-gray-100">
       <div className="flex items-start space-x-4 rtl:space-x-reverse mb-4">
         <Skeleton className="w-14 h-14 rounded-full" />
@@ -88,6 +88,11 @@ export default function GoogleReviews() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedReview, setSelectedReview] = useState<Review | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [displayedReviews, setDisplayedReviews] = useState<Review[]>([]);
+  const allReviewsPool = useRef<Review[]>([]);
+  
+  // Set a higher stale time for better caching (15 minutes)
+  const CACHE_STALE_TIME = 15 * 60 * 1000;
 
   // Fetch branches with Google Places configuration
   const {
@@ -97,7 +102,7 @@ export default function GoogleReviews() {
   } = useQuery({
     queryKey: ['branches-with-google-places'],
     queryFn: fetchBranchesWithGooglePlaces,
-    staleTime: 60 * 1000 // 1 minute
+    staleTime: CACHE_STALE_TIME
   });
 
   // Function to fetch reviews for all branches
@@ -118,16 +123,18 @@ export default function GoogleReviews() {
         logger.debug(`Fetching reviews for branch: ${branch.name}`);
         const response = await fetchBranchReviews(branch.google_place_id, language);
         if (response.status === 'OK' && response.reviews && response.reviews.length > 0) {
-          // Filter for 5-star reviews only
-          const branchReviews = response.reviews.filter(review => review.rating === 5).map(review => ({
-            ...review,
-            branch_name: branch.name,
-            branch_name_ar: branch.name_ar
-          }));
-          logger.debug(`Found ${branchReviews.length} five-star reviews for branch ${branch.name}`);
+          // Don't filter for 5-star reviews only, get all 4+ star reviews
+          const branchReviews = response.reviews
+            .filter(review => review.rating >= 4)
+            .map(review => ({
+              ...review,
+              branch_name: branch.name,
+              branch_name_ar: branch.name_ar
+            }));
+          logger.debug(`Found ${branchReviews.length} quality reviews for branch ${branch.name}`);
           allReviews.push(...branchReviews);
         } else {
-          logger.debug(`No 5-star reviews or error for branch ${branch.name}: ${response.error || response.error_message || 'No reviews returned'}`);
+          logger.debug(`No quality reviews or error for branch ${branch.name}: ${response.error || response.error_message || 'No reviews returned'}`);
         }
       }
       return allReviews;
@@ -139,7 +146,7 @@ export default function GoogleReviews() {
     }
   }, [branches, language]);
 
-  // Query for fetching all reviews
+  // Query for fetching all reviews with increased cache time
   const {
     data: reviewsData,
     isLoading: isReviewsLoading,
@@ -148,27 +155,47 @@ export default function GoogleReviews() {
     queryKey: ['google-reviews', language, branches],
     queryFn: fetchAllBranchReviews,
     enabled: !!branches && branches.length > 0,
-    staleTime: 0,
-    // Always refetch fresh data
-    refetchOnWindowFocus: true,
-    // Refetch when window gains focus
-    refetchOnMount: true // Refetch every time the component mounts
+    staleTime: CACHE_STALE_TIME,
+    refetchOnWindowFocus: false,
+    refetchOnMount: true
   });
 
-  // Process and shuffle reviews when data changes
+  // Get a random selection of reviews from the pool
+  const getRandomReviews = useCallback((pool: Review[], count: number) => {
+    if (pool.length <= count) return [...pool];
+    
+    // Create a copy of the pool
+    const shuffled = [...pool];
+    
+    // Fisher-Yates shuffle algorithm
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    
+    return shuffled.slice(0, count);
+  }, []);
+
+  // Process and store all reviews when data changes
   useEffect(() => {
     if (reviewsData && reviewsData.length > 0) {
-      logger.debug(`Total 5-star reviews fetched: ${reviewsData.length}`);
-      // Shuffle the reviews randomly
-      const shuffledReviews = [...reviewsData].sort(() => 0.5 - Math.random());
-      // Take the top 8
-      const randomReviews = shuffledReviews.slice(0, 8);
-      setReviews(randomReviews);
+      logger.debug(`Total quality reviews fetched: ${reviewsData.length}`);
+      
+      // Store all reviews in our pool
+      allReviewsPool.current = reviewsData;
+      
+      // Get 8 random reviews for the initial display
+      const randomSelection = getRandomReviews(reviewsData, 12);
+      setReviews(randomSelection);
+      
+      // Set initial display reviews
+      setDisplayedReviews(randomSelection);
     } else if (reviewsData) {
-      logger.debug("No 5-star reviews found across all branches.");
+      logger.debug("No quality reviews found across all branches.");
       setReviews([]);
+      setDisplayedReviews([]);
     }
-  }, [reviewsData]);
+  }, [reviewsData, getRandomReviews]);
   
   useEffect(() => {
     if (reviewsError) {
@@ -191,12 +218,8 @@ export default function GoogleReviews() {
   const isLoading = isBranchesLoading || isReviewsLoading;
   
   return (
-    <div className="w-full bg-gradient-to-b from-gray-50 to-white py-16 overflow-hidden">
+    <div className="w-full py-16">
       <div className="max-w-5xl mx-auto px-4 relative">
-        {/* Decorative elements */}
-        <div className="absolute -top-10 -left-10 w-40 h-40 bg-[#C4A36F]/10 rounded-full blur-3xl"></div>
-        <div className="absolute -bottom-20 -right-20 w-60 h-60 bg-[#C4A36F]/10 rounded-full blur-3xl"></div>
-        
         {/* Section header with gold accent */}
         <div className="text-center mb-10">
           <div className="inline-block">
@@ -216,8 +239,10 @@ export default function GoogleReviews() {
 
         {/* Loading State */}
         {isLoading && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {[...Array(3)].map((_, index) => <ReviewSkeleton key={`skeleton-${index}`} />)}
+          <div className="overflow-x-auto -mx-4 px-4">
+            <div className="flex gap-4 pb-4">
+              {[...Array(3)].map((_, index) => <ReviewSkeleton key={`skeleton-${index}`} />)}
+            </div>
           </div>
         )}
 
@@ -225,10 +250,12 @@ export default function GoogleReviews() {
         {error && !isLoading && <ErrorState error={error} language={language} />}
 
         {/* Empty State */}
-        {!isLoading && !error && reviews.length === 0 && <NoReviews language={language} />}
+        {!isLoading && !error && displayedReviews.length === 0 && <NoReviews language={language} />}
 
         {/* Reviews Display */}
-        {!isLoading && !error && reviews.length > 0 && <ReviewCarousel reviews={reviews} onReadMore={handleReadMoreClick} />}
+        {!isLoading && !error && displayedReviews.length > 0 && (
+          <ReviewCarousel reviews={displayedReviews} onReadMore={handleReadMoreClick} />
+        )}
         
         {/* Read More Modal */}      
         <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
@@ -237,7 +264,7 @@ export default function GoogleReviews() {
               <DialogTitle className="flex items-center">
                 <div className="flex-1">{selectedReview?.author_name}</div>
                 <div className="flex items-center">
-                  {[...Array(5)].map((_, i) => <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400 mr-1" />)}
+                  {[...Array(selectedReview?.rating || 5)].map((_, i) => <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400 mr-1" />)}
                 </div>
               </DialogTitle>
               <p className="text-xs text-gray-500 mt-1">

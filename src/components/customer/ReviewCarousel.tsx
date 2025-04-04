@@ -6,8 +6,6 @@ import {
   Carousel,
   CarouselContent,
   CarouselItem,
-  CarouselNext,
-  CarouselPrevious
 } from "@/components/ui/carousel";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -37,10 +35,11 @@ export const ReviewCarousel = ({ reviews, onReadMore }: ReviewCarouselProps) => 
       opts={{
         align: "start",
         loop: true,
+        dragFree: true,
       }}
-      className="w-full relative"
+      className="w-full relative -mx-4 px-4"
     >
-      <CarouselContent>
+      <CarouselContent className="-ml-4">
         {reviews.map((review, index) => {
           const isLongReview = review.text && review.text.length > MAX_CHARS_BEFORE_TRUNCATE;
           const rating = review.rating || 5;
@@ -48,9 +47,9 @@ export const ReviewCarousel = ({ reviews, onReadMore }: ReviewCarouselProps) => 
           return (
             <CarouselItem 
               key={`${review.author_name}-${index}-${review.time}`}
-              className="md:basis-1/2 lg:basis-1/3 pl-4"
+              className="pl-4 md:basis-1/2 lg:basis-1/3"
             >
-              <Card className="bg-white border border-gray-100 shadow-md hover:shadow-lg transition-shadow duration-300 h-full flex flex-col rounded-xl overflow-hidden">
+              <Card className="bg-white border border-gray-100 shadow-sm hover:shadow-md transition-shadow duration-300 h-full flex flex-col rounded-xl overflow-hidden">
                 <div className="h-1.5 bg-[#C4A36F]"></div>
                 <CardContent className="p-6 flex-1">
                   <Quote className="w-8 h-8 text-[#C4A36F]/20 mb-2" />
@@ -101,10 +100,6 @@ export const ReviewCarousel = ({ reviews, onReadMore }: ReviewCarouselProps) => 
           );
         })}
       </CarouselContent>
-      <div className="flex justify-center mt-6 space-x-4">
-        <CarouselPrevious className="static h-10 w-10 border-[#C4A36F] bg-white text-[#C4A36F] hover:bg-[#C4A36F] hover:text-white transition-colors" />
-        <CarouselNext className="static h-10 w-10 border-[#C4A36F] bg-white text-[#C4A36F] hover:bg-[#C4A36F] hover:text-white transition-colors" />
-      </div>
     </Carousel>
   );
 };
