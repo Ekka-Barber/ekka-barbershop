@@ -1,4 +1,6 @@
 
+import { logger } from '@/utils/logger';
+
 /**
  * Functions for managing offline capabilities and service worker registration
  */
@@ -24,7 +26,7 @@ export const registerServiceWorker = async (): Promise<ServiceWorkerRegistration
       });
       
       // Log successful registration
-      console.log('Service Worker registered with scope:', registration.scope);
+      logger.info('Service Worker registered with scope:', registration.scope);
       
       // Event handler for when a new service worker is waiting
       registration.addEventListener('updatefound', () => {
@@ -32,7 +34,7 @@ export const registerServiceWorker = async (): Promise<ServiceWorkerRegistration
         if (newWorker) {
           newWorker.addEventListener('statechange', () => {
             if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-              console.log('New Service Worker installed and waiting to activate');
+              logger.info('New Service Worker installed and waiting to activate');
               // Could show UI to prompt user to refresh
             }
           });
@@ -41,24 +43,24 @@ export const registerServiceWorker = async (): Promise<ServiceWorkerRegistration
       
       return registration;
     } catch (error) {
-      console.error('Service Worker registration failed:', error);
+      logger.error('Service Worker registration failed:', error);
       
       // Try to unregister any problematic service workers
       try {
         const existingRegistration = await navigator.serviceWorker.getRegistration();
         if (existingRegistration) {
           await existingRegistration.unregister();
-          console.log('Unregistered problematic service worker, please reload the page');
+          logger.warn('Unregistered problematic service worker, please reload the page');
         }
       } catch (unregError) {
-        console.error('Failed to unregister service worker:', unregError);
+        logger.error('Failed to unregister service worker:', unregError);
       }
       
       return null;
     }
   }
   
-  console.warn('Service workers are not supported in this browser');
+  logger.warn('Service workers are not supported in this browser');
   return null;
 };
 
@@ -75,7 +77,7 @@ export const updateServiceWorker = async (): Promise<boolean> => {
         return true;
       }
     } catch (error) {
-      console.error('Service Worker update failed:', error);
+      logger.error('Service Worker update failed:', error);
     }
   }
   
@@ -123,16 +125,16 @@ export const prefetchResources = async (resources: string[]): Promise<void> => {
       const addPromises = resources.map(async (resource) => {
         try {
           await cache.add(resource);
-          console.log(`Resource prefetched: ${resource}`);
+          logger.debug(`Resource prefetched: ${resource}`);
         } catch (error) {
-          console.warn(`Failed to prefetch resource: ${resource}`, error);
+          logger.warn(`Failed to prefetch resource: ${resource}`, error);
         }
       });
       
       await Promise.allSettled(addPromises);
-      console.log('Resources prefetched successfully');
+      logger.info('Resources prefetched successfully');
     } catch (error) {
-      console.error('Failed to prefetch resources:', error);
+      logger.error('Failed to prefetch resources:', error);
     }
   }
 };
@@ -148,7 +150,7 @@ export const sendMessageToServiceWorker = async (message: any): Promise<void> =>
       await navigator.serviceWorker.ready;
       navigator.serviceWorker.controller.postMessage(message);
     } catch (error) {
-      console.error('Failed to send message to service worker:', error);
+      logger.error('Failed to send message to service worker:', error);
     }
   }
 };
@@ -170,7 +172,7 @@ export const forceServiceWorkerUpdate = async (): Promise<boolean> => {
       window.location.reload();
       return true;
     } catch (error) {
-      console.error('Failed to update service worker:', error);
+      logger.error('Failed to update service worker:', error);
     }
   }
   return false;
@@ -196,7 +198,7 @@ export const getStorageEstimation = async (): Promise<{
         };
       }
     } catch (error) {
-      console.error('Failed to estimate storage:', error);
+      logger.error('Failed to estimate storage:', error);
     }
   }
   
@@ -232,7 +234,7 @@ export const registerPeriodicSync = async (
         return true;
       }
     } catch (error) {
-      console.error('Periodic background sync failed:', error);
+      logger.error('Periodic background sync failed:', error);
     }
   }
   

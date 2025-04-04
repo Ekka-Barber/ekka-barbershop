@@ -8,6 +8,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { generateWhatsAppMessage } from "@/utils/formatters";
 import { WhatsAppConfirmationDialog } from "./WhatsAppConfirmationDialog";
 import { useToast } from "@/hooks/use-toast";
+import { logger } from "@/utils/logger";
 
 interface WhatsAppIntegrationProps {
   selectedServices: SelectedService[];
@@ -39,9 +40,9 @@ export const WhatsAppIntegration = ({
   // Get the correct display date by adjusting for after-midnight slots
   const displayDate = getBookingDisplayDate(selectedDate, selectedTime);
 
-  // Log form validation and customer details for debugging
-  console.log('WhatsAppIntegration isFormValid:', isFormValid);
-  console.log('WhatsAppIntegration customerDetails:', customerDetails);
+  // Log validation details at debug level only
+  logger.debug('WhatsAppIntegration isFormValid:', isFormValid);
+  logger.debug('WhatsAppIntegration customerDetails:', customerDetails);
 
   // Directly check form validation
   const [directFormValid, setDirectFormValid] = useState(false);
@@ -57,7 +58,7 @@ export const WhatsAppIntegration = ({
       const isEmailValid = customerDetails.email && emailRegex.test(customerDetails.email);
       
       const isValid = isNameValid && isPhoneValid && isEmailValid;
-      console.log('WhatsAppIntegration: Direct validation check:', { 
+      logger.debug('WhatsAppIntegration: Direct validation check:', { 
         name: isNameValid, 
         phone: isPhoneValid, 
         email: isEmailValid,

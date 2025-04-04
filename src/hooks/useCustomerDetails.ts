@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { CustomerDetails } from '@/types/booking';
+import { logger } from '@/utils/logger';
 
 export const useCustomerDetails = () => {
   const [customerDetails, setCustomerDetails] = useState<CustomerDetails>({
@@ -21,8 +22,8 @@ export const useCustomerDetails = () => {
     const isPhoneValid = phoneRegex.test(customerDetails.phone);
     const isEmailValid = emailRegex.test(customerDetails.email);
     
-    // Log validation states for debugging
-    console.log('Validation states:', { 
+    // Log validation at debug level only
+    logger.debug('Customer form validation states:', { 
       name: isNameValid, 
       phone: isPhoneValid, 
       email: isEmailValid,
@@ -36,7 +37,7 @@ export const useCustomerDetails = () => {
   useEffect(() => {
     const valid = validateCustomerDetails();
     setIsFormValid(valid);
-    console.log('Form validity updated:', valid);
+    logger.debug('Customer form validity updated:', valid);
   }, [customerDetails]);
 
   /**

@@ -12,6 +12,13 @@ import Bookings from "./pages/Bookings";
 import { OfflineNotification } from "./components/common/OfflineNotification";
 import { ErrorBoundary } from "./components/common/ErrorBoundary";
 import { registerServiceWorker } from "./services/offlineSupport";
+import { logger } from "@/utils/logger";
+
+// Configure logger based on environment
+logger.configure({
+  minLevel: process.env.NODE_ENV === 'production' ? 'warn' : 'debug',
+  enabled: true
+});
 
 // Lazy load Admin component
 const Admin = lazy(() => import("./pages/Admin"));
@@ -43,6 +50,9 @@ const ServiceWorkerRegistration = () => {
 
 // Main App Component
 const App = () => {
+  // Log initialization in production (only useful warnings/errors) and more verbose in development
+  logger.info(`App initializing in ${process.env.NODE_ENV} mode`);
+  
   return (
     <LanguageProvider>
       <TooltipProvider>

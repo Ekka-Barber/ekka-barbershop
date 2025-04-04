@@ -6,12 +6,13 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import App from './App.tsx';
 import './index.css';
 import { registerServiceWorker } from '@/services/offlineSupport';
+import { logger } from '@/utils/logger';
 
 // Register service worker for offline support
 // We'll register it after a slight delay to prioritize initial rendering
 setTimeout(() => {
   registerServiceWorker().catch(error => {
-    console.error('Service worker registration failed:', error);
+    logger.error('Service worker registration failed:', error);
   });
 }, 3000);
 

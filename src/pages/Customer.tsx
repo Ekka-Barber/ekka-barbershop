@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -17,6 +16,7 @@ import { InstallAppPrompt } from "@/components/installation/InstallAppPrompt";
 import { PullToRefresh } from "@/components/common/PullToRefresh";
 import { useToast } from "@/components/ui/use-toast";
 import { isRunningAsStandalone, getViewportDimensions } from "@/services/platformDetection";
+import { logger } from "@/utils/logger";
 import freshaLogo from "@/assets/fresha-logo.svg";
 import boonusLogo from "@/assets/boonus-logo.svg";
 import GoogleReviews from "@/components/customer/GoogleReviews";
@@ -29,7 +29,6 @@ import {
 } from "@/components/ui/dialog";
 import AppLayout from '@/components/layout/AppLayout';
 
-// Define Branch interface directly in this file
 interface Branch {
   id: string;
   name: string;
@@ -106,19 +105,16 @@ const Customer = () => {
         .order('display_order', { ascending: true });
       
       if (error) {
-        console.error("Error fetching UI elements:", error);
+        logger.error("Error fetching UI elements:", error);
         throw error;
       }
-      console.log("[Customer Page] Raw UI Elements Fetched:", data);
       return data as Database['public']['Tables']['ui_elements']['Row'][];
     }
   });
 
   const visibleElements = useMemo(() => {
     if (!uiElements) return [];
-    const filtered = uiElements.filter(el => el.is_visible);
-    console.log("[Customer Page] Visible UI Elements (After Filter):", filtered);
-    return filtered;
+    return uiElements.filter(el => el.is_visible);
   }, [uiElements]);
 
   useEffect(() => {
@@ -207,15 +203,14 @@ const Customer = () => {
     });
   };
 
-  // Detect if it's an iOS device
   const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
 
   return (
     <AppLayout>
       <PullToRefresh 
         onRefresh={handleRefresh}
-        pullDownThreshold={100} // Make it harder to trigger
-        disabled={isIOS} // Disable on iOS devices that have native refresh
+        pullDownThreshold={100}
+        disabled={isIOS}
       >
         <div className="flex flex-1 flex-col justify-start items-center max-w-md mx-auto">
           <div className="text-center flex-shrink-0 mx-auto pt-safe w-full">
@@ -366,7 +361,6 @@ const Customer = () => {
 
             <div className="h-px w-full max-w-xs mx-auto bg-gray-200"></div>
 
-            {/* Social Media / External Links Section */}
             <div className="flex justify-center items-center space-x-6 mt-8">
               {visibleElements.map((el) => {
                 if (el.type === 'section' && (el.name === 'loyalty_program' || el.name === 'eid_bookings')) {

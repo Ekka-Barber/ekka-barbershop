@@ -1,5 +1,6 @@
 
 import { supabase } from '@/types/supabase';
+import { logger } from '@/utils/logger';
 
 // Interface for Google Reviews
 export interface GoogleReview {
@@ -24,7 +25,7 @@ export interface ReviewsResponse {
  */
 export async function fetchBranchReviews(placeId: string, language: string = 'en'): Promise<ReviewsResponse> {
   try {
-    console.log(`Fetching reviews for Place ID: ${placeId}, language: ${language}`);
+    logger.debug(`Fetching reviews for Place ID: ${placeId}, language: ${language}`);
     
     // Get the Google Places API key
     const { data: branchData, error: branchError } = await supabase
@@ -34,7 +35,7 @@ export async function fetchBranchReviews(placeId: string, language: string = 'en
       .single();
       
     if (branchError) {
-      console.error('Error fetching branch API key:', branchError);
+      logger.error('Error fetching branch API key:', branchError);
       return { 
         status: 'ERROR', 
         error: 'Failed to fetch branch data',
@@ -45,7 +46,7 @@ export async function fetchBranchReviews(placeId: string, language: string = 'en
     const apiKey = branchData?.google_places_api_key;
     
     if (!apiKey) {
-      console.error("No Google Places API key found for this branch!");
+      logger.error("No Google Places API key found for this branch!");
       return { 
         status: 'ERROR', 
         error: 'Configuration error',
@@ -63,7 +64,7 @@ export async function fetchBranchReviews(placeId: string, language: string = 'en
     });
     
     if (error) {
-      console.error("Error calling Google Places edge function:", error);
+      logger.error("Error calling Google Places edge function:", error);
       return { 
         status: 'ERROR', 
         error: 'API call failed',
@@ -71,7 +72,7 @@ export async function fetchBranchReviews(placeId: string, language: string = 'en
       };
     }
     
-    console.log("Successfully fetched reviews:", data);
+    logger.debug("Successfully fetched reviews");
     
     // Return the response
     return { 
@@ -80,7 +81,7 @@ export async function fetchBranchReviews(placeId: string, language: string = 'en
     };
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-    console.error("Error fetching Google reviews:", error);
+    logger.error("Error fetching Google reviews:", error);
     
     return { 
       status: 'ERROR', 
@@ -100,7 +101,7 @@ export async function fetchBranchReviews(placeId: string, language: string = 'en
  */
 export async function fetchBranchesWithGooglePlaces() {
   try {
-    console.log("Fetching branches with Google Places configuration");
+    logger.debug("Fetching branches with Google Places configuration");
     
     const { data, error } = await supabase
       .from('branches')
@@ -108,21 +109,15 @@ export async function fetchBranchesWithGooglePlaces() {
       .not('google_place_id', 'is', null);
       
     if (error) {
-      console.error("Error fetching branches:", error);
+      logger.error("Error fetching branches:", error);
       throw error;
     }
     
-    console.log(`Found ${data.length} branches with Google Places configuration`);
-    
-    data.forEach((branch, index) => {
-      if (!branch.google_place_id) {
-        console.warn(`Branch ${branch.name} (${index}) is missing Google Place ID`);
-      }
-    });
+    logger.debug(`Found ${data.length} branches with Google Places configuration`);
     
     return data;
   } catch (error) {
-    console.error("Error in fetchBranchesWithGooglePlaces:", error);
+    logger.error("Error in fetchBranchesWithGooglePlaces:", error);
     throw error;
   }
 }
@@ -144,11 +139,11 @@ export async function retryWithBackoff<T>(
     } catch (error) {
       retries++;
       if (retries >= maxRetries) {
-        console.error(`Max retries (${maxRetries}) reached. Giving up.`);
+        logger.error(`Max retries (${maxRetries}) reached. Giving up.`);
         throw error;
       }
       
-      console.log(`Attempt ${retries} failed. Retrying in ${delay}ms...`);
+      logger.debug(`Attempt ${retries} failed. Retrying in ${delay}ms...`);
       await new Promise(resolve => setTimeout(resolve, delay));
       delay *= 2; // Exponential backoff
     }

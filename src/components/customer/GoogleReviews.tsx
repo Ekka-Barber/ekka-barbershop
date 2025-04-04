@@ -7,6 +7,7 @@ import { Dialog, DialogContent, DialogTrigger, DialogHeader, DialogTitle, Dialog
 import { Button } from "@/components/ui/button";
 import { fetchBranchesWithGooglePlaces, fetchBranchReviews, GoogleReview } from '@/services/googlePlacesService';
 import { Skeleton } from '@/components/ui/skeleton';
+import { logger } from '@/utils/logger';
 
 // Interface for a review with branch information
 interface Review extends GoogleReview {
@@ -77,7 +78,6 @@ const ErrorState = ({ error, language }: { error: string, language: string }) =>
 const MAX_CHARS_BEFORE_TRUNCATE = 150;
 
 export default function GoogleReviews() {
-  console.log("GoogleReviews: Component file loaded");
   const { language } = useLanguage();
   const [reviews, setReviews] = useState<Review[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -94,22 +94,22 @@ export default function GoogleReviews() {
   // Function to fetch reviews for all branches
   const fetchAllBranchReviews = useCallback(async () => {
     if (!branches || branches.length === 0) {
-      console.log("No branches with Google Places configuration found");
+      logger.debug("No branches with Google Places configuration found");
       return [];
     }
 
-    console.log(`GoogleReviews: Fetching reviews for ${branches.length} branches... Lang: ${language}`);
+    logger.debug(`Fetching reviews for ${branches.length} branches... Lang: ${language}`);
     setError(null);
     const allReviews: Review[] = [];
     
     try {
       for (const branch of branches) {
         if (!branch.google_place_id) {
-          console.warn(`Skipping branch ${branch.name} due to missing Place ID`);
+          logger.warn(`Skipping branch ${branch.name} due to missing Place ID`);
           continue;
         }
 
-        console.log(`Fetching reviews for branch: ${branch.name} with place ID: ${branch.google_place_id}`);
+        logger.debug(`Fetching reviews for branch: ${branch.name}`);
         const response = await fetchBranchReviews(
           branch.google_place_id,
           language
@@ -125,17 +125,17 @@ export default function GoogleReviews() {
               branch_name_ar: branch.name_ar,
             }));
             
-          console.log(`Found ${branchReviews.length} five-star reviews for branch ${branch.name}`);
+          logger.debug(`Found ${branchReviews.length} five-star reviews for branch ${branch.name}`);
           allReviews.push(...branchReviews);
         } else {
-          console.log(`No 5-star reviews or error for branch ${branch.name}: ${response.error || response.error_message || 'No reviews returned'}`);
+          logger.debug(`No 5-star reviews or error for branch ${branch.name}: ${response.error || response.error_message || 'No reviews returned'}`);
         }
       }
 
       return allReviews;
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch reviews';
-      console.error('Error fetching all branch reviews:', errorMessage);
+      logger.error('Error fetching all branch reviews:', errorMessage);
       setError(errorMessage);
       return [];
     }
@@ -156,14 +156,14 @@ export default function GoogleReviews() {
   // Process and shuffle reviews when data changes
   useEffect(() => {
     if (reviewsData && reviewsData.length > 0) {
-      console.log(`Total 5-star reviews fetched: ${reviewsData.length}`);
+      logger.debug(`Total 5-star reviews fetched: ${reviewsData.length}`);
       // Shuffle the reviews randomly
       const shuffledReviews = [...reviewsData].sort(() => 0.5 - Math.random());
       // Take the top 8
       const randomReviews = shuffledReviews.slice(0, 8);
       setReviews(randomReviews);
     } else if (reviewsData) {
-      console.log("No 5-star reviews found across all branches.");
+      logger.debug("No 5-star reviews found across all branches.");
       setReviews([]);
     }
   }, [reviewsData]);
@@ -174,29 +174,17 @@ export default function GoogleReviews() {
         ? reviewsError.message 
         : 'Unknown error fetching reviews';
       setError(errorMessage);
-      console.error('Reviews error:', errorMessage);
+      logger.error('Reviews error:', errorMessage);
     } else if (branchesError) {
       const errorMessage = branchesError instanceof Error 
         ? branchesError.message 
         : 'Unknown error fetching branches';
       setError(errorMessage);
-      console.error('Branches error:', errorMessage);
+      logger.error('Branches error:', errorMessage);
     }
   }, [reviewsError, branchesError]);
 
-  // Debug output for branches and language
-  useEffect(() => {
-    console.log(`GoogleReviews: useEffect triggered, branches: ${branches?.length} language: ${language}`);
-  }, [branches, language]);
-
-  // Component mount debug
-  useEffect(() => {
-    console.log("GoogleReviews: Component Mounted");
-    return () => console.log("GoogleReviews: Component Unmounted");
-  }, []);
-
-  console.log(`GoogleReviews: Rendering - Loading: ${isBranchesLoading || isReviewsLoading} Error: ${error} Reviews Count: ${reviews.length}`);
-
+  // Handle read more button click
   const handleReadMoreClick = (review: Review) => {
     setSelectedReview(review);
     setIsModalOpen(true);
