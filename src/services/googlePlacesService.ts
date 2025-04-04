@@ -55,6 +55,7 @@ export async function fetchBranchReviews(placeId: string, language: string = 'en
     }
     
     // Call the Supabase Edge Function directly with all required parameters
+    // Make sure to explicitly pass the language parameter
     const { data, error } = await supabase.functions.invoke('google-places', {
       body: { 
         placeId, 
@@ -72,7 +73,7 @@ export async function fetchBranchReviews(placeId: string, language: string = 'en
       };
     }
     
-    logger.debug("Successfully fetched reviews");
+    logger.debug(`Successfully fetched reviews for language: ${language}, count: ${data.reviews?.length || 0}`);
     
     // Return the response
     return { 
@@ -89,6 +90,7 @@ export async function fetchBranchReviews(placeId: string, language: string = 'en
       error_message: errorMessage,
       debug_info: {
         place_id: placeId,
+        language: language,
         error_name: error instanceof Error ? error.name : 'Unknown',
         error_stack: error instanceof Error ? error.stack : undefined
       }

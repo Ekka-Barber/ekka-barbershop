@@ -17,8 +17,8 @@ export const useReviews = (language: Language) => {
   const [displayedReviews, setDisplayedReviews] = useState<Review[]>([]);
   const allReviewsPool = useRef<Review[]>([]);
   
-  // Set a higher stale time for better caching (30 minutes)
-  const CACHE_STALE_TIME = 30 * 60 * 1000;
+  // Set cache time to 10 minutes as requested (changed from 30 minutes)
+  const CACHE_STALE_TIME = 10 * 60 * 1000;
 
   // Fetch branches with Google Places configuration
   const {
@@ -50,10 +50,11 @@ export const useReviews = (language: Language) => {
         }
         
         logger.debug(`Fetching reviews for branch: ${branch.name}`);
+        // Make sure we pass the language parameter correctly
         const response = await fetchBranchReviews(branch.google_place_id, language);
         
         if (response.status === 'OK' && response.reviews && response.reviews.length > 0) {
-          // Get only 5-star reviews (changed from 4+ to exactly 5)
+          // Get only 5-star reviews
           const branchReviews = response.reviews
             .filter(review => review.rating === 5)
             .map(review => ({
@@ -69,6 +70,7 @@ export const useReviews = (language: Language) => {
         }
       }
       
+      logger.debug(`Total reviews after fetching all branches: ${allReviews.length}`);
       return allReviews;
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch reviews';
@@ -78,7 +80,7 @@ export const useReviews = (language: Language) => {
     }
   }, [branches, language]);
 
-  // Query for fetching all reviews with increased cache time
+  // Query for fetching all reviews with updated cache time (10 minutes)
   const {
     data: reviewsData,
     isLoading: isReviewsLoading,
@@ -111,7 +113,7 @@ export const useReviews = (language: Language) => {
   // Process and store all reviews when data changes
   useEffect(() => {
     if (reviewsData && reviewsData.length > 0) {
-      logger.debug(`Total 5-star reviews fetched: ${reviewsData.length}`);
+      logger.debug(`Total 5-star reviews fetched: ${reviewsData.length}, Language: ${language}`);
       
       // Store all reviews in our pool
       allReviewsPool.current = reviewsData;
@@ -120,15 +122,15 @@ export const useReviews = (language: Language) => {
       const reviewsToDisplay = Math.min(15, reviewsData.length);
       const randomSelection = getRandomReviews(reviewsData, reviewsToDisplay);
       
-      logger.debug(`Displaying ${randomSelection.length} reviews out of ${reviewsData.length} available`);
+      logger.debug(`Displaying ${randomSelection.length} reviews out of ${reviewsData.length} available with language: ${language}`);
       setReviews(randomSelection);
       setDisplayedReviews(randomSelection);
     } else if (reviewsData) {
-      logger.debug("No 5-star reviews found across all branches.");
+      logger.debug(`No 5-star reviews found across all branches for language: ${language}`);
       setReviews([]);
       setDisplayedReviews([]);
     }
-  }, [reviewsData, getRandomReviews]);
+  }, [reviewsData, getRandomReviews, language]);
   
   useEffect(() => {
     if (reviewsError) {
