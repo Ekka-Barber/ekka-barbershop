@@ -13,10 +13,9 @@ const supabase = createClient(supabaseUrl || '', supabaseAnonKey || '');
 export async function GET(request: Request) {
   const url = new URL(request.url);
   const placeId = url.searchParams.get('placeId');
-  const apiKey = url.searchParams.get('apiKey');
   const language = url.searchParams.get('language') || 'en'; // Default to English if no language specified
 
-  if (!placeId || !apiKey) {
+  if (!placeId) {
     return new Response(JSON.stringify({ error: 'Missing required parameters' }), {
       status: 400,
       headers: { 'Content-Type': 'application/json' }
@@ -24,6 +23,20 @@ export async function GET(request: Request) {
   }
 
   try {
+    // Using environment variable on the server instead of passing API key in request
+    const apiKey = process.env.GOOGLE_PLACES_API_KEY;
+    
+    if (!apiKey) {
+      console.error('Missing Google Places API key in environment variables');
+      return new Response(JSON.stringify({ 
+        error: 'Server configuration error',
+        details: 'Missing API key'
+      }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+    
     // Add language parameter to the Google Places API request
     const response = await fetch(
       `https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&fields=reviews&language=${language}&key=${apiKey}`

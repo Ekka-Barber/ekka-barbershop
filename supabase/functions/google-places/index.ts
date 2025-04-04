@@ -17,33 +17,47 @@ serve(async (req) => {
   }
   
   try {
+    // Get API key from environment variables instead of request
+    const apiKey = Deno.env.get('GOOGLE_PLACES_API_KEY');
+    
+    if (!apiKey) {
+      console.error('Missing GOOGLE_PLACES_API_KEY environment variable');
+      return new Response(JSON.stringify({
+        status: 'ERROR',
+        error: 'Server configuration error: Missing API key'
+      }), {
+        headers: {
+          'Content-Type': 'application/json',
+          ...corsHeaders
+        },
+        status: 500
+      });
+    }
+    
     // Parse the request body for POST requests or URL for GET requests
-    let placeId, apiKey, language;
+    let placeId, language;
     
     if (req.method === 'POST') {
       const body = await req.json();
       placeId = body.placeId;
-      apiKey = body.apiKey;
       language = body.language || 'en';
       console.log('Received POST request with body:', JSON.stringify({
         placeId,
-        language,
-        hasApiKey: !!apiKey
+        language
       }));
     } else {
       // Parse the request URL to extract query parameters
       const url = new URL(req.url);
       placeId = url.searchParams.get('placeId');
-      apiKey = url.searchParams.get('apiKey');
       language = url.searchParams.get('language') || 'en';
       console.log('Received GET request with query params:', placeId, language);
     }
 
     // Validate required parameters
-    if (!placeId || !apiKey) {
+    if (!placeId) {
       return new Response(JSON.stringify({
         status: 'ERROR',
-        error: 'Missing required parameters: placeId or apiKey'
+        error: 'Missing required parameter: placeId'
       }), {
         headers: {
           'Content-Type': 'application/json',
