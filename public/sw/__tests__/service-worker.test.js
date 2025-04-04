@@ -6,7 +6,7 @@ describe('ServiceWorker', () => {
   beforeEach(() => {
     // Mock fetch API
     originalFetch = global.fetch;
-    global.fetch = jest.fn(() => 
+    global.fetch = vi.fn(() => 
       Promise.resolve({
         ok: true,
         clone: () => ({
@@ -19,27 +19,27 @@ describe('ServiceWorker', () => {
     // Mock caches API
     originalCaches = global.caches;
     global.caches = {
-      open: jest.fn(() => Promise.resolve({
-        add: jest.fn(() => Promise.resolve()),
-        put: jest.fn(() => Promise.resolve()),
-        match: jest.fn(() => Promise.resolve({})),
-        delete: jest.fn(() => Promise.resolve(true))
+      open: vi.fn(() => Promise.resolve({
+        add: vi.fn(() => Promise.resolve()),
+        put: vi.fn(() => Promise.resolve()),
+        match: vi.fn(() => Promise.resolve({})),
+        delete: vi.fn(() => Promise.resolve(true))
       })),
-      match: jest.fn(() => Promise.resolve({})),
-      keys: jest.fn(() => Promise.resolve(['old-cache', 'ekka-v1'])),
-      delete: jest.fn(() => Promise.resolve(true))
+      match: vi.fn(() => Promise.resolve({})),
+      keys: vi.fn(() => Promise.resolve(['old-cache', 'ekka-v1'])),
+      delete: vi.fn(() => Promise.resolve(true))
     };
     
     // Mock ServiceWorkerGlobalScope
     global.self = {
-      skipWaiting: jest.fn(() => Promise.resolve()),
-      addEventListener: jest.fn(),
+      skipWaiting: vi.fn(() => Promise.resolve()),
+      addEventListener: vi.fn(),
       clients: {
-        claim: jest.fn(() => Promise.resolve()),
-        matchAll: jest.fn(() => Promise.resolve([]))
+        claim: vi.fn(() => Promise.resolve()),
+        matchAll: vi.fn(() => Promise.resolve([]))
       },
       registration: {
-        showNotification: jest.fn(() => Promise.resolve())
+        showNotification: vi.fn(() => Promise.resolve())
       }
     };
   });
@@ -48,7 +48,7 @@ describe('ServiceWorker', () => {
     // Restore original globals
     global.fetch = originalFetch;
     global.caches = originalCaches;
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
   
   test('Service Worker is properly structured', () => {
