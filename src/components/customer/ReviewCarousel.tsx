@@ -10,12 +10,7 @@ import {
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
-import { GoogleReview } from '@/services/googlePlacesService';
-
-interface Review extends GoogleReview {
-  branch_name: string;
-  branch_name_ar: string;
-}
+import { Review } from './hooks/useReviews';
 
 interface ReviewCarouselProps {
   reviews: Review[];

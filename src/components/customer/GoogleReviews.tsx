@@ -38,7 +38,7 @@ export default function GoogleReviews() {
         )}
 
         {/* Error State */}
-        {error && !isLoading && <ErrorState error={error} language={language} />}
+        {error && !isLoading && <ErrorState error={error instanceof Error ? error.message : String(error)} language={language} />}
 
         {/* Empty State */}
         {!isLoading && !error && displayedReviews.length === 0 && <NoReviews language={language} />}
