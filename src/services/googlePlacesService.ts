@@ -1,5 +1,4 @@
-
-import { supabase } from '@/integrations/supabase/client'; // Use standardized client
+import { supabase } from '@/integrations/supabase/client';
 import { logger } from '@/utils/logger';
 
 // Interface for Google Reviews
@@ -27,39 +26,10 @@ export async function fetchBranchReviews(placeId: string, language: string = 'en
   try {
     logger.debug(`Fetching reviews for Place ID: ${placeId}, language: ${language}`);
     
-    // Get the Google Places API key
-    const { data: branchData, error: branchError } = await supabase
-      .from('branches')
-      .select('google_places_api_key')
-      .eq('google_place_id', placeId)
-      .single();
-      
-    if (branchError) {
-      logger.error('Error fetching branch API key:', branchError);
-      return { 
-        status: 'ERROR', 
-        error: 'Failed to fetch branch data',
-        error_message: branchError.message
-      };
-    }
-      
-    const apiKey = branchData?.google_places_api_key;
-    
-    if (!apiKey) {
-      logger.error("No Google Places API key found for this branch!");
-      return { 
-        status: 'ERROR', 
-        error: 'Configuration error',
-        error_message: 'No Google Places API key configured for this branch.' 
-      };
-    }
-    
-    // Call the Supabase Edge Function directly with all required parameters
-    // Make sure to explicitly pass the language parameter
+    // Call the Supabase Edge Function directly without passing an API key
     const { data, error } = await supabase.functions.invoke('google-places', {
       body: { 
         placeId, 
-        apiKey,
         language 
       },
     });
