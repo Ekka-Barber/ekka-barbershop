@@ -9,6 +9,7 @@ import { generateWhatsAppMessage } from "@/utils/formatters";
 import { WhatsAppConfirmationDialog } from "./WhatsAppConfirmationDialog";
 import { useToast } from "@/hooks/use-toast";
 import { logger } from "@/utils/logger";
+import { ValidationOverlay } from "@/components/booking/steps/components/ValidationOverlay";
 
 interface WhatsAppIntegrationProps {
   selectedServices: SelectedService[];
@@ -34,6 +35,9 @@ export const WhatsAppIntegration = ({
   const [whatsappMessage, setWhatsappMessage] = useState("");
   const [isWhatsAppAvailable, setIsWhatsAppAvailable] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isValidating, setIsValidating] = useState(false);
+  const [validationError, setValidationError] = useState<string | null>(null);
+  const [isSuccess, setIsSuccess] = useState(false);
   const { language, t } = useLanguage();
   const { toast } = useToast();
   
@@ -94,43 +98,60 @@ export const WhatsAppIntegration = ({
   }, [customerDetails, selectedServices, displayDate, selectedTime, selectedBarberName, totalPrice, branch]);
 
   const handleOpenWhatsApp = () => {
-    if (branch?.whatsapp_number && whatsappMessage) {
-      // Format the WhatsApp number
-      const formattedNumber = branch.whatsapp_number.startsWith('+') 
-        ? branch.whatsapp_number.substring(1) 
-        : branch.whatsapp_number;
-        
-      // Create the WhatsApp URL
-      const whatsappUrl = `https://wa.me/${formattedNumber}?text=${whatsappMessage}`;
+    setIsValidating(true);
+    
+    if (!branch?.whatsapp_number) {
+      setValidationError(language === 'ar' 
+        ? 'رقم الواتساب غير متوفر' 
+        : 'WhatsApp number is missing');
+      setIsValidating(false);
+      return;
+    }
+    
+    if (!whatsappMessage) {
+      setValidationError(language === 'ar' 
+        ? 'تفاصيل الحجز غير مكتملة' 
+        : 'Booking details are incomplete');
+      setIsValidating(false);
+      return;
+    }
+    
+    // Format the WhatsApp number
+    const formattedNumber = branch.whatsapp_number.startsWith('+') 
+      ? branch.whatsapp_number.substring(1) 
+      : branch.whatsapp_number;
       
-      try {
-        // Open WhatsApp in a new tab
-        window.open(whatsappUrl, '_blank');
-        
-        // Show success toast
-        toast({
-          title: language === 'ar' ? 'تم الفتح' : 'Opened',
-          description: language === 'ar' 
-            ? 'تم فتح واتساب لتأكيد حجزك' 
-            : 'WhatsApp opened to confirm your booking',
-        });
-      } catch (error) {
-        // Show error toast if WhatsApp couldn't be opened
-        toast({
-          title: language === 'ar' ? 'خطأ' : 'Error',
-          description: language === 'ar' 
-            ? 'حدث خطأ أثناء فتح واتساب' 
-            : 'Error opening WhatsApp',
-          variant: "destructive",
-        });
-      }
+    // Create the WhatsApp URL
+    const whatsappUrl = `https://wa.me/${formattedNumber}?text=${whatsappMessage}`;
+    
+    try {
+      // Open WhatsApp in a new tab
+      window.open(whatsappUrl, '_blank');
+      
+      setIsSuccess(true);
+      setTimeout(() => setIsSuccess(false), 2000);
+      
+      // Show success toast
+      toast({
+        title: language === 'ar' ? 'تم الفتح' : 'Opened',
+        description: language === 'ar' 
+          ? 'تم فتح واتساب لتأكيد حجزك' 
+          : 'WhatsApp opened to confirm your booking',
+      });
+    } catch (error) {
+      // Show error toast if WhatsApp couldn't be opened
+      setValidationError(language === 'ar' 
+        ? 'حدث خطأ أثناء فتح واتساب' 
+        : 'Error opening WhatsApp');
     }
     
     // Close the dialog
     setIsDialogOpen(false);
+    setIsValidating(false);
   };
 
   const handleWhatsAppClick = () => {
+    // Validate before showing dialog
     if (!branch?.whatsapp_number) {
       toast({
         title: language === 'ar' ? 'تنبيه' : 'Alert',
@@ -153,8 +174,12 @@ export const WhatsAppIntegration = ({
       return;
     }
     
-    // Open the confirmation dialog instead of immediately opening WhatsApp
+    // Open the confirmation dialog
     setIsDialogOpen(true);
+  };
+  
+  const handleRetry = () => {
+    setValidationError(null);
   };
 
   if (!isWhatsAppAvailable) return null;
@@ -163,12 +188,36 @@ export const WhatsAppIntegration = ({
   const buttonEnabled = isFormValid || directFormValid;
 
   return (
-    <>
+    <div className="relative">
+      {isValidating && (
+        <ValidationOverlay 
+          isValidating={true}
+          message={language === 'ar' ? 'جاري فتح واتساب...' : 'Opening WhatsApp...'}
+        />
+      )}
+      
+      {validationError && (
+        <ValidationOverlay 
+          hasError={true}
+          errorMessage={validationError}
+          onRetry={handleRetry}
+        />
+      )}
+      
+      {isSuccess && (
+        <ValidationOverlay 
+          isSuccess={true}
+          successMessage={language === 'ar' 
+            ? 'تم فتح واتساب بنجاح' 
+            : 'WhatsApp opened successfully'}
+        />
+      )}
+      
       <Button 
         onClick={handleWhatsAppClick}
         className="w-full bg-[#25D366] hover:bg-[#128C7E] text-white"
         size="lg"
-        disabled={!buttonEnabled}
+        disabled={!buttonEnabled || isValidating}
       >
         {language === 'ar' ? 'تأكيد تفاصيل الحجز' : t('whatsapp.button')}
       </Button>
@@ -182,6 +231,6 @@ export const WhatsAppIntegration = ({
         selectedServices={selectedServices}
         customerDetails={customerDetails}
       />
-    </>
+    </div>
   );
 };

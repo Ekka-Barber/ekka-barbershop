@@ -1,7 +1,8 @@
 
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { AlertTriangle, MessageSquare } from "lucide-react";
+import { AlertTriangle, MessageSquare, Loader2 } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface BookingConfirmDialogProps {
   isOpen: boolean;
@@ -22,7 +23,13 @@ export const BookingConfirmDialog = ({
   
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md bg-gradient-to-b from-[#f8f8f8] to-white" aria-describedby="booking-confirm-description">
+      <DialogContent 
+        className={cn(
+          "sm:max-w-md bg-gradient-to-b from-[#f8f8f8] to-white",
+          isRtl ? "rtl" : ""
+        )}
+        aria-describedby="booking-confirm-description"
+      >
         <DialogHeader className="space-y-4">
           <div className="mx-auto w-12 h-12 rounded-full bg-yellow-50 flex items-center justify-center">
             <AlertTriangle className="h-6 w-6 text-yellow-600" />
@@ -30,7 +37,7 @@ export const BookingConfirmDialog = ({
           <DialogTitle className="text-center text-xl">
             {isRtl ? 'تأكيد الحجز' : 'Confirm Booking'}
           </DialogTitle>
-          <DialogDescription id="booking-confirm-description" className={`text-center space-y-2 ${isRtl ? 'rtl' : 'ltr'}`}>
+          <DialogDescription id="booking-confirm-description" className="text-center space-y-2">
             {isRtl ? (
               <>
                 <p className="text-base">
@@ -50,19 +57,36 @@ export const BookingConfirmDialog = ({
             )}
           </DialogDescription>
         </DialogHeader>
-        <div className="flex flex-col gap-2 sm:flex-row sm:justify-center mt-2">
-          <Button variant="outline" onClick={() => onOpenChange(false)} className={`sm:order-${isRtl ? '2' : '1'}`}>
+        <div className={cn(
+          "flex flex-col gap-2 sm:flex-row sm:justify-center mt-2",
+          isRtl ? "space-x-reverse" : ""
+        )}>
+          <Button 
+            variant="outline" 
+            onClick={() => onOpenChange(false)} 
+            className={isRtl ? "sm:order-2" : "sm:order-1"}
+          >
             {isRtl ? 'إلغاء' : 'Cancel'}
           </Button>
           <Button 
             onClick={onConfirm} 
             disabled={isLoading} 
-            className={`bg-[#25D366] hover:bg-[#128C7E] sm:order-${isRtl ? '1' : '2'} flex items-center gap-2`}
+            className={cn(
+              "bg-[#25D366] hover:bg-[#128C7E] flex items-center gap-2",
+              isRtl ? "sm:order-1" : "sm:order-2"
+            )}
           >
-            <MessageSquare className="h-4 w-4" />
-            {isLoading 
-              ? isRtl ? 'جاري التأكيد...' : 'Confirming...' 
-              : isRtl ? 'تأكيد' : 'Confirm'}
+            {isLoading ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                {isRtl ? 'جاري التأكيد...' : 'Confirming...'}
+              </>
+            ) : (
+              <>
+                <MessageSquare className="h-4 w-4" />
+                {isRtl ? 'تأكيد' : 'Confirm'}
+              </>
+            )}
           </Button>
         </div>
       </DialogContent>

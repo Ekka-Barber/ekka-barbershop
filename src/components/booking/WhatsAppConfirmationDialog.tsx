@@ -1,11 +1,14 @@
+
 import { useState } from "react";
-import { AlertCircle, Send } from "lucide-react";
+import { AlertCircle, Send, Loader2 } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Branch, CustomerDetails } from "@/types/booking";
 import { SelectedService } from "@/types/service";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { cn } from "@/lib/utils";
+
 interface WhatsAppConfirmationDialogProps {
   isOpen: boolean;
   onClose: () => void;
@@ -15,6 +18,7 @@ interface WhatsAppConfirmationDialogProps {
   selectedServices: SelectedService[];
   customerDetails: CustomerDetails;
 }
+
 export const WhatsAppConfirmationDialog = ({
   isOpen,
   onClose,
@@ -24,22 +28,26 @@ export const WhatsAppConfirmationDialog = ({
   selectedServices,
   customerDetails
 }: WhatsAppConfirmationDialogProps) => {
-  const {
-    language
-  } = useLanguage();
+  const { language } = useLanguage();
   const [isLoading, setIsLoading] = useState(false);
+  const isRtl = language === 'ar';
+  
   const handleConfirm = () => {
     setIsLoading(true);
-    onConfirm();
-    setIsLoading(false);
+    // Allow UI to update before proceeding
+    setTimeout(() => {
+      onConfirm();
+      setIsLoading(false);
+    }, 500);
   };
-  return <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md">
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className={cn("max-w-md", isRtl ? "rtl" : "")}>
         <DialogHeader>
           <DialogTitle className="text-center">
             {language === 'ar' ? 'تأكيد الحجز' : 'Booking Confirmation'}
           </DialogTitle>
-          
         </DialogHeader>
         
         <Alert className="bg-amber-50 border-amber-200">
@@ -49,15 +57,47 @@ export const WhatsAppConfirmationDialog = ({
           </AlertDescription>
         </Alert>
         
+        <div className="border rounded-md p-3 bg-gray-50">
+          <h4 className="text-sm font-medium mb-1">
+            {language === 'ar' ? 'معلومات الحجز:' : 'Booking information:'}
+          </h4>
+          <div className="text-xs text-muted-foreground space-y-1">
+            <p><strong>{language === 'ar' ? 'الاسم:' : 'Name:'}</strong> {customerDetails.name}</p>
+            {selectedServices.length > 0 && (
+              <p>
+                <strong>{language === 'ar' ? 'الخدمات:' : 'Services:'}</strong> 
+                {selectedServices.map(s => s.name).join(', ')}
+              </p>
+            )}
+            {branch && (
+              <p><strong>{language === 'ar' ? 'الفرع:' : 'Branch:'}</strong> {isRtl ? branch.name_ar : branch.name}</p>
+            )}
+          </div>
+        </div>
+        
         <DialogFooter className="flex flex-col sm:flex-row gap-2 mt-4">
           <Button variant="outline" onClick={onClose} className="sm:flex-1">
             {language === 'ar' ? 'إلغاء' : 'Cancel'}
           </Button>
-          <Button onClick={handleConfirm} className="sm:flex-1 gap-2 bg-[#25D366] hover:bg-[#128C7E]" disabled={isLoading}>
-            <Send className="w-4 h-4" />
-            {language === 'ar' ? 'متابعة إلى واتساب' : 'Continue to WhatsApp'}
+          <Button 
+            onClick={handleConfirm} 
+            className="sm:flex-1 gap-2 bg-[#25D366] hover:bg-[#128C7E]" 
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                {language === 'ar' ? 'جاري التحويل...' : 'Redirecting...'}
+              </>
+            ) : (
+              <>
+                <Send className="w-4 h-4" />
+                {language === 'ar' ? 'متابعة إلى واتساب' : 'Continue to WhatsApp'}
+              </>
+            )}
           </Button>
         </DialogFooter>
       </DialogContent>
-    </Dialog>;
+    </Dialog>
+  );
 };

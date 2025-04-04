@@ -1,7 +1,7 @@
 
 import React from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { Loader2, AlertTriangle } from "lucide-react";
+import { Loader2, AlertTriangle, CheckCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { logger } from "@/utils/logger";
 
@@ -11,6 +11,8 @@ interface ValidationOverlayProps {
   hasError?: boolean;
   errorMessage?: string;
   onRetry?: () => void;
+  isSuccess?: boolean;
+  successMessage?: string;
 }
 
 export const ValidationOverlay: React.FC<ValidationOverlayProps> = ({ 
@@ -18,7 +20,9 @@ export const ValidationOverlay: React.FC<ValidationOverlayProps> = ({
   message,
   hasError = false,
   errorMessage,
-  onRetry
+  onRetry,
+  isSuccess = false,
+  successMessage
 }) => {
   const { language, t } = useLanguage();
   const isRTL = language === 'ar';
@@ -27,14 +31,17 @@ export const ValidationOverlay: React.FC<ValidationOverlayProps> = ({
   React.useEffect(() => {
     if (hasError && errorMessage) {
       logger.error(`Validation error: ${errorMessage}`);
+    } else if (isSuccess && successMessage) {
+      logger.info(`Validation success: ${successMessage}`);
     }
-  }, [hasError, errorMessage]);
+  }, [hasError, errorMessage, isSuccess, successMessage]);
 
-  if (!isValidating && !hasError) return null;
+  if (!isValidating && !hasError && !isSuccess) return null;
 
   // Default messages with proper translations
   const defaultValidatingMessage = t('validation.processing');
   const defaultErrorMessage = t('validation.error');
+  const defaultSuccessMessage = t('validation.success');
 
   return (
     <div 
@@ -43,20 +50,24 @@ export const ValidationOverlay: React.FC<ValidationOverlayProps> = ({
     >
       <div className={cn(
         "flex flex-col items-center p-6 rounded-lg shadow-sm",
-        hasError ? "bg-red-50" : "animate-pulse"
+        hasError ? "bg-red-50" : isSuccess ? "bg-green-50" : "animate-pulse"
       )}>
         {hasError ? (
           <AlertTriangle className="h-8 w-8 text-red-500 mb-2" />
+        ) : isSuccess ? (
+          <CheckCircle className="h-8 w-8 text-green-500 mb-2" />
         ) : (
           <Loader2 className="h-8 w-8 text-primary animate-spin mb-2" />
         )}
         <span className={cn(
           "text-sm font-medium text-center",
-          hasError ? "text-red-700" : "text-gray-700"
+          hasError ? "text-red-700" : isSuccess ? "text-green-700" : "text-gray-700"
         )}>
           {hasError 
             ? (errorMessage || defaultErrorMessage)
-            : (message || defaultValidatingMessage)
+            : isSuccess
+              ? (successMessage || defaultSuccessMessage)
+              : (message || defaultValidatingMessage)
           }
         </span>
         
