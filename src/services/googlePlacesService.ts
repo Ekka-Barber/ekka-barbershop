@@ -1,3 +1,4 @@
+
 import { supabase } from '@/types/supabase';
 
 // Interface for Google Reviews
@@ -25,82 +26,57 @@ export async function fetchBranchReviews(placeId: string, language: string = 'en
   try {
     console.log(`Fetching reviews for Place ID: ${placeId}, language: ${language}`);
     
-    // Use the Supabase Edge Function to avoid CORS issues
-    const apiUrl = `/api/places?placeId=${encodeURIComponent(placeId)}&language=${language}`;
-
-    console.log(`Making request to: ${apiUrl}`);
-
-    // Get the anon key securely (ideally from env vars, avoid hardcoding)
-    const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-    if (!supabaseAnonKey) {
-      console.error("Supabase anon key is missing from environment variables (VITE_SUPABASE_ANON_KEY)!");
-      return { status: 'ERROR', error: 'Configuration error', error_message: 'Supabase anon key missing.' };
-    }
-
-    const response = await fetch(apiUrl, {
-      headers: {
-        'apikey': supabaseAnonKey // Add Supabase anon key header
-      }
-    });
-    
-    // Log response status for debugging
-    console.log(`Response status: ${response.status} ${response.statusText}`);
-
-    // Get the response text first to check if it's valid JSON
-    const responseText = await response.text();
-    
-    // Check if response is not JSON (like HTML error page)
-    let responseData: any;
-    try {
-      responseData = JSON.parse(responseText);
-    } catch (parseError) {
-      console.error('Failed to parse response as JSON:', parseError);
-      console.log('Response text first 100 chars:', responseText.substring(0, 100));
+    // Get the Google Places API key
+    const { data: branchData, error: branchError } = await supabase
+      .from('branches')
+      .select('google_places_api_key')
+      .eq('google_place_id', placeId)
+      .single();
       
-      // Check if we received HTML instead of JSON (common when API key referrer restrictions issue)
-      if (responseText.startsWith('<!DOCTYPE') || responseText.includes('<html')) {
-        return { 
-          status: 'ERROR', 
-          error: 'API access error',
-          error_message: 'Received HTML instead of JSON. Check API Key restrictions (HTTP Referrers) in Google Cloud Console.',
-          debug_info: {
-            response_preview: responseText.substring(0, 200),
-            status: response.status,
-            statusText: response.statusText
-          }
-        };
-      }
-      
+    if (branchError) {
+      console.error('Error fetching branch API key:', branchError);
       return { 
         status: 'ERROR', 
-        error: 'Response parsing error',
-        error_message: `Failed to parse API response: ${parseError.message}`,
-        debug_info: {
-          response_preview: responseText.substring(0, 200)
-        }
+        error: 'Failed to fetch branch data',
+        error_message: branchError.message
+      };
+    }
+      
+    const apiKey = branchData?.google_places_api_key;
+    
+    if (!apiKey) {
+      console.error("No Google Places API key found for this branch!");
+      return { 
+        status: 'ERROR', 
+        error: 'Configuration error',
+        error_message: 'No Google Places API key configured for this branch.' 
       };
     }
     
-    // Now that we have valid JSON, check for API-level errors
-    if (responseData.status !== 'OK') {
-      console.warn(`Google Places API responded with non-OK status: ${responseData.status}`);
-      console.warn('Error details:', responseData.error_message || 'No specific error message');
-      
+    // Call the Supabase Edge Function directly with all required parameters
+    const { data, error } = await supabase.functions.invoke('google-places', {
+      body: { 
+        placeId, 
+        apiKey,
+        language 
+      },
+    });
+    
+    if (error) {
+      console.error("Error calling Google Places edge function:", error);
       return { 
-        status: responseData.status || 'ERROR', 
-        error_message: responseData.error_message || 'Unknown Google API error',
-        debug_info: {
-          api_status: responseData.status,
-          api_response: responseData
-        }
+        status: 'ERROR', 
+        error: 'API call failed',
+        error_message: error.message
       };
     }
-
-    // Success case
-    console.log(`Successfully fetched ${responseData.reviews?.length || 0} reviews for Place ID: ${placeId}`);
+    
+    console.log("Successfully fetched reviews:", data);
+    
+    // Return the response
     return { 
-      status: 'OK',
-      reviews: responseData.reviews || []
+      status: data.status || 'OK',
+      reviews: data.reviews || []
     };
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';

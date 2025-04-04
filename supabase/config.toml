@@ -1,3 +1,4 @@
+
 project_id = "jfnjvphxhzxojxgptmtu"
 
 [functions.google-places]
@@ -5,3 +6,4 @@ project_id = "jfnjvphxhzxojxgptmtu"
 
 [functions.qr-redirect]
    verify_jwt = false # Default: JWT verification is enabled. Uncomment and set to 'false' to disable.
+
