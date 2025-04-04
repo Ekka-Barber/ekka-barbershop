@@ -4,7 +4,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { useState, useEffect, useRef, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { supabase, Database } from "@/types/supabase";
+import { supabase } from "@/integrations/supabase/client"; // Using the standardized client
 import { MapPin } from "lucide-react";
 import * as Icons from "lucide-react";
 import type { LucideIcon } from 'lucide-react';
@@ -203,6 +203,7 @@ const Customer = () => {
     });
   };
 
+  // Determine if we're on iOS
   const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
 
   return (
@@ -210,7 +211,7 @@ const Customer = () => {
       <PullToRefresh 
         onRefresh={handleRefresh}
         pullDownThreshold={100}
-        disabled={isIOS}
+        disabled={isIOS}  // Disable on iOS to prevent scrolling resistance
       >
         <div className="flex flex-1 flex-col justify-start items-center max-w-md mx-auto">
           <div className="text-center flex-shrink-0 mx-auto pt-safe w-full">

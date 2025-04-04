@@ -1,5 +1,5 @@
 
-import { supabase } from '@/types/supabase';
+import { supabase } from '@/integrations/supabase/client'; // Use standardized client
 import { logger } from '@/utils/logger';
 
 // Interface for Google Reviews

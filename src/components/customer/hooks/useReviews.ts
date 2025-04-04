@@ -1,4 +1,3 @@
-
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { fetchBranchesWithGooglePlaces, fetchBranchReviews, GoogleReview } from '@/services/googlePlacesService';
@@ -17,7 +16,7 @@ export const useReviews = (language: Language) => {
   const [displayedReviews, setDisplayedReviews] = useState<Review[]>([]);
   const allReviewsPool = useRef<Review[]>([]);
   
-  // Set cache time to 10 minutes as requested (changed from 30 minutes)
+  // Set cache time to 10 minutes as requested
   const CACHE_STALE_TIME = 10 * 60 * 1000;
 
   // Fetch branches with Google Places configuration
@@ -54,7 +53,7 @@ export const useReviews = (language: Language) => {
         const response = await fetchBranchReviews(branch.google_place_id, language);
         
         if (response.status === 'OK' && response.reviews && response.reviews.length > 0) {
-          // Get only 5-star reviews
+          // Get 5-star reviews and add branch information
           const branchReviews = response.reviews
             .filter(review => review.rating === 5)
             .map(review => ({
@@ -63,14 +62,21 @@ export const useReviews = (language: Language) => {
               branch_name_ar: branch.name_ar
             }));
             
-          logger.debug(`Found ${branchReviews.length} 5-star reviews for branch ${branch.name}`);
+          logger.debug(`Found ${branchReviews.length} 5-star reviews for branch ${branch.name} in ${language}`);
           allReviews.push(...branchReviews);
         } else {
           logger.debug(`No 5-star reviews or error for branch ${branch.name}: ${response.error || response.error_message || 'No reviews returned'}`);
         }
       }
       
-      logger.debug(`Total reviews after fetching all branches: ${allReviews.length}`);
+      logger.debug(`Total reviews after fetching all branches: ${allReviews.length} for language: ${language}`);
+      
+      // If we don't have enough reviews in the current language (less than 3), keep the existing pool
+      if (allReviews.length < 3 && allReviewsPool.current.length > 0) {
+        logger.debug(`Not enough ${language} reviews (${allReviews.length}), keeping existing review pool`);
+        return allReviewsPool.current;
+      }
+      
       return allReviews;
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch reviews';
@@ -84,7 +90,8 @@ export const useReviews = (language: Language) => {
   const {
     data: reviewsData,
     isLoading: isReviewsLoading,
-    error: reviewsError
+    error: reviewsError,
+    refetch
   } = useQuery({
     queryKey: ['google-reviews', language, branches],
     queryFn: fetchAllBranchReviews,
@@ -147,6 +154,7 @@ export const useReviews = (language: Language) => {
   return {
     displayedReviews,
     isLoading: isBranchesLoading || isReviewsLoading,
-    error
+    error,
+    refetch
   };
 };
