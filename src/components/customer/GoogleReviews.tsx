@@ -1,4 +1,3 @@
-
 import { useEffect, useState, useCallback } from 'react';
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Star } from 'lucide-react';
@@ -111,8 +110,7 @@ export default function GoogleReviews() {
 
         console.log(`Fetching reviews for branch: ${branch.name}`);
         const response = await fetchBranchReviews(
-          branch.google_place_id, 
-          branch.google_places_api_key,
+          branch.google_place_id,
           language
         );
 
