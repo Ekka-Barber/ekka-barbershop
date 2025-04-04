@@ -3,6 +3,7 @@ import React, { useMemo } from "react";
 import { ServiceCard } from "./ServiceCard";
 import { Service } from "@/types/service";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { LoadingState } from "@/components/booking/LoadingState";
 
 interface ServiceGridProps {
   services: Service[];
@@ -25,6 +26,23 @@ export const ServiceGrid = ({
 
   // Memoize service cards to prevent unnecessary re-renders
   const serviceCards = useMemo(() => {
+    if (isLoading) {
+      return Array(4).fill(0).map((_, index) => (
+        <div 
+          key={`skeleton-${index}`} 
+          className="border rounded-lg p-4 h-[120px] animate-pulse bg-gray-100"
+        />
+      ));
+    }
+    
+    if (services.length === 0) {
+      return (
+        <div className="col-span-full text-center py-8">
+          <p className="text-muted-foreground">No services available</p>
+        </div>
+      );
+    }
+    
     return services.map((service: Service) => (
       <ServiceCard
         key={service.id}
@@ -35,10 +53,28 @@ export const ServiceGrid = ({
         className="h-full" // Ensure consistent height
       />
     ));
-  }, [services, selectedServices, onServiceToggle, baseServiceId]);
+  }, [services, selectedServices, onServiceToggle, baseServiceId, isLoading]);
+
+  if (isLoading) {
+    return (
+      <div className="mt-4 space-y-4">
+        <LoadingState size="sm" message="Loading services..." />
+      </div>
+    );
+  }
 
   return (
-    <div className={`grid gap-4 ${isMobile ? 'grid-cols-1' : 'sm:grid-cols-1 md:grid-cols-2'}`}>
+    <div 
+      className={`
+        grid gap-4 
+        ${isMobile ? 'grid-cols-1' : 'sm:grid-cols-1 md:grid-cols-2'}
+        animate-fade-in
+      `}
+      style={{
+        opacity: isLoading ? 0.6 : 1,
+        transition: 'opacity 0.3s ease'
+      }}
+    >
       {serviceCards}
     </div>
   );

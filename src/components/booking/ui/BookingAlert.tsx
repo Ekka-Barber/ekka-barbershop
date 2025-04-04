@@ -3,6 +3,7 @@ import React from 'react';
 import { AlertCircle, CheckCircle, AlertTriangle, InfoIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 type AlertVariant = 'error' | 'success' | 'warning' | 'info';
 
@@ -11,14 +12,21 @@ interface BookingAlertProps {
   message: string;
   variant: AlertVariant;
   className?: string;
+  onClose?: () => void;
+  compact?: boolean;
 }
 
 export const BookingAlert = ({
   title,
   message,
   variant = 'info',
-  className
+  className,
+  onClose,
+  compact = false
 }: BookingAlertProps) => {
+  const { language } = useLanguage();
+  const isRTL = language === 'ar';
+  
   // Icon and color based on variant
   const variantConfig = {
     error: {
@@ -51,16 +59,29 @@ export const BookingAlert = ({
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -5 }}
       className={cn(
-        'p-4 rounded-lg border flex items-start space-x-3 shadow-sm',
+        'p-4 rounded-lg border flex items-start space-x-3 rtl:space-x-reverse shadow-sm',
         variantConfig[variant].containerClass,
+        compact ? 'p-3' : 'p-4',
         className
       )}
+      dir={isRTL ? 'rtl' : 'ltr'}
     >
-      <IconComponent className={cn('w-5 h-5 mt-0.5', variantConfig[variant].iconClass)} />
+      <IconComponent className={cn('flex-shrink-0', variantConfig[variant].iconClass, compact ? 'w-4 h-4 mt-0.5' : 'w-5 h-5 mt-0.5')} />
       <div className="flex-1">
-        {title && <p className="font-medium">{title}</p>}
-        <p className="text-sm">{message}</p>
+        {title && <p className={cn("font-medium", compact ? 'text-sm' : '')}>{title}</p>}
+        <p className={cn(compact ? "text-xs" : "text-sm")}>{message}</p>
       </div>
+      {onClose && (
+        <button 
+          onClick={onClose} 
+          className="flex-shrink-0 text-gray-500 hover:text-gray-700 transition-colors"
+          aria-label="Close"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      )}
     </motion.div>
   );
 };

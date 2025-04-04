@@ -16,6 +16,7 @@ interface ActionButtonProps {
   showNextIcon?: boolean;
   className?: string;
   fullWidth?: boolean;
+  children?: React.ReactNode;
 }
 
 export const ActionButton = ({
@@ -28,7 +29,8 @@ export const ActionButton = ({
   showPrevIcon = false,
   showNextIcon = false,
   className,
-  fullWidth = false
+  fullWidth = false,
+  children
 }: ActionButtonProps) => {
   const { language } = useLanguage();
   const isRTL = language === 'ar';
@@ -58,7 +60,8 @@ export const ActionButton = ({
       className={cn(
         variantClasses[variant],
         sizeClasses[size],
-        "relative transition-all shadow-sm",
+        "relative transition-all shadow-sm rounded-md",
+        isDisabled && "opacity-50 cursor-not-allowed",
         fullWidth && "w-full",
         className
       )}
@@ -73,7 +76,7 @@ export const ActionButton = ({
             {label || (language === 'ar' ? 'جاري التحميل...' : 'Loading...')}
           </span>
         ) : (
-          <span>{label}</span>
+          <span>{label || children}</span>
         )}
         
         {showNextIcon && !isLoading && <NextIcon className="w-4 h-4" />}
