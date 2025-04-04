@@ -17,18 +17,20 @@ export const LanguageSwitcher = () => {
     setLanguage(nextLanguage);
   };
 
+  // Restore original button structure and apply Tailwind top/right classes
   return (
     <button 
       onClick={handleLanguageToggle}
-      className="fixed top-5 right-5 z-50 flex items-center justify-center w-12 h-12 rounded-full bg-[#C4A36F] text-white shadow-lg hover:bg-[#B39260] transition-colors duration-300"
+      className={`
+        fixed z-50 flex items-center justify-center w-12 h-12 rounded-full 
+        bg-[#C4A36F] text-white shadow-lg hover:bg-[#B39260] 
+        transition-colors duration-300
+        top-[calc(1.25rem+env(safe-area-inset-top))] 
+        right-[calc(1.25rem+env(safe-area-inset-right))]
+      `}
       aria-label={language === 'ar' ? "Switch to English" : "التحويل الى العربية"}
-      style={{ 
-        // Use safe-area-inset-top and right for notch compatibility
-        top: `calc(1.25rem + env(safe-area-inset-top, 0px))`,
-        right: `calc(1.25rem + env(safe-area-inset-right, 0px))` 
-      }}
+      // Removed inline style
     >
-      {/* Replaced language text with Globe icon */}
       <Globe className="w-6 h-6" />
     </button>
   );
