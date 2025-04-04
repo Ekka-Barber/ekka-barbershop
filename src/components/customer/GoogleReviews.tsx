@@ -3,11 +3,12 @@ import { useEffect, useState, useCallback } from 'react';
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Star } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
-import { Dialog, DialogContent, DialogTrigger, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { fetchBranchesWithGooglePlaces, fetchBranchReviews, GoogleReview } from '@/services/googlePlacesService';
 import { Skeleton } from '@/components/ui/skeleton';
 import { logger } from '@/utils/logger';
+import { ReviewCarousel } from './ReviewCarousel';
 
 // Interface for a review with branch information
 interface Review extends GoogleReview {
@@ -75,8 +76,6 @@ const ErrorState = ({ error, language }: { error: string, language: string }) =>
   </div>
 );
 
-const MAX_CHARS_BEFORE_TRUNCATE = 150;
-
 export default function GoogleReviews() {
   const { language } = useLanguage();
   const [reviews, setReviews] = useState<Review[]>([]);
@@ -88,7 +87,7 @@ export default function GoogleReviews() {
   const { data: branches, isLoading: isBranchesLoading, error: branchesError } = useQuery({
     queryKey: ['branches-with-google-places'],
     queryFn: fetchBranchesWithGooglePlaces,
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 60 * 1000, // 1 minute
   });
 
   // Function to fetch reviews for all branches
@@ -150,7 +149,9 @@ export default function GoogleReviews() {
     queryKey: ['google-reviews', language, branches],
     queryFn: fetchAllBranchReviews,
     enabled: !!branches && branches.length > 0,
-    staleTime: 10 * 60 * 1000, // 10 minutes
+    staleTime: 0, // Always refetch fresh data
+    refetchOnWindowFocus: true, // Refetch when window gains focus
+    refetchOnMount: true, // Refetch every time the component mounts
   });
 
   // Process and shuffle reviews when data changes
@@ -193,97 +194,57 @@ export default function GoogleReviews() {
   const isLoading = isBranchesLoading || isReviewsLoading;
 
   return (
-    <div className="w-full max-w-6xl mx-auto px-4 py-12">
-      <h2 className="text-3xl font-bold text-center mb-8 text-[#222222]">
-        {language === 'ar' ? 'آراء عملائنا' : 'What Our Clients Say'}
-      </h2>
+    <div className="w-full py-12 bg-gray-50 rounded-lg">
+      <div className="max-w-6xl mx-auto px-4">
+        <h2 className="text-3xl font-bold text-center mb-8 text-[#222222]">
+          {language === 'ar' ? 'آراء عملائنا' : 'What Our Clients Say'}
+        </h2>
 
-      {/* Loading State */}
-      {isLoading && (
-        <div className="flex overflow-x-auto space-x-4 py-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 -mx-4 px-4">
-          {[...Array(4)].map((_, index) => (
-            <ReviewSkeleton key={`skeleton-${index}`} />
-          ))}
-        </div>
-      )}
+        {/* Loading State */}
+        {isLoading && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {[...Array(3)].map((_, index) => (
+              <ReviewSkeleton key={`skeleton-${index}`} />
+            ))}
+          </div>
+        )}
 
-      {/* Error State */}
-      {error && !isLoading && <ErrorState error={error} language={language} />}
+        {/* Error State */}
+        {error && !isLoading && <ErrorState error={error} language={language} />}
 
-      {/* Empty State */}
-      {!isLoading && !error && reviews.length === 0 && <NoReviews language={language} />}
+        {/* Empty State */}
+        {!isLoading && !error && reviews.length === 0 && <NoReviews language={language} />}
 
-      {/* Reviews Display */}
-      {!isLoading && !error && reviews.length > 0 && (
-        <div className="flex overflow-x-auto space-x-4 scroll-smooth py-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 -mx-4 px-4">
-          {reviews.map((review, index) => {
-            const isLongReview = review.text.length > MAX_CHARS_BEFORE_TRUNCATE;
-            return (
-              <div className="flex-grow-0 flex-shrink-0 basis-[90%] sm:basis-[45%] md:basis-[31%]" key={`${review.author_name}-${index}-${review.time}`}>
-                <div className="bg-white rounded-xl shadow-lg p-6 h-full flex flex-col border border-gray-100">
-                  <div className="flex items-start space-x-4 rtl:space-x-reverse mb-4">
-                    <img
-                      src={review.profile_photo_url}
-                      alt={review.author_name}
-                      className="w-14 h-14 rounded-full object-cover border-2 border-gray-200"
-                      loading="lazy"
-                    />
-                    <div className="flex-1">
-                      <h4 className="font-semibold text-gray-800">{review.author_name}</h4>
-                      <p className="text-xs text-gray-500">
-                        {language === 'ar' ? review.branch_name_ar : review.branch_name}
-                      </p>
-                      <div className="flex items-center mt-1">
-                        {[...Array(5)].map((_, i) => (
-                          <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-
-                  <p className={`text-gray-600 text-sm leading-relaxed flex-grow ${isLongReview ? 'line-clamp-4' : ''}`}>
-                    {review.text}
-                  </p>
-
-                  {isLongReview && (
-                    <button 
-                      onClick={() => handleReadMoreClick(review)}
-                      className="text-sm text-[#C4A36F] hover:text-[#A3845A] font-medium mt-2 self-start"
-                    >
-                      {language === 'ar' ? 'اقرأ المزيد' : 'Read More'}
-                    </button>
-                  )}
+        {/* Reviews Display */}
+        {!isLoading && !error && reviews.length > 0 && (
+          <ReviewCarousel reviews={reviews} onReadMore={handleReadMoreClick} />
+        )}
+        
+        {/* Read More Modal */}      
+        <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+          <DialogContent className="max-h-[80vh] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+            <DialogHeader>
+              <DialogTitle className="flex items-center">
+                <div className="flex-1">{selectedReview?.author_name}</div>
+                <div className="flex items-center">
+                  {[...Array(5)].map((_, i) => (
+                    <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400 mr-1" />
+                  ))}
                 </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
-
-      {/* Read More Modal */}      
-      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="max-h-[80vh] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
-          <DialogHeader>
-            <DialogTitle>
-              {selectedReview?.author_name}
-              <span className="text-xs text-gray-500 font-normal ml-2">
-                ({language === 'ar' ? selectedReview?.branch_name_ar : selectedReview?.branch_name})
-              </span>
-            </DialogTitle>
-             <div className="flex items-center pt-1">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                ))}
-              </div>
-          </DialogHeader>
-          <DialogDescription className="mt-4 whitespace-pre-wrap text-gray-700">
-            {selectedReview?.text}
-          </DialogDescription>
-          <Button onClick={() => setIsModalOpen(false)} className="mt-4 w-full sm:w-auto sm:ml-auto">
-            {language === 'ar' ? 'إغلاق' : 'Close'}
-          </Button>
-        </DialogContent>
-      </Dialog>
+              </DialogTitle>
+              <p className="text-xs text-gray-500 mt-1">
+                {language === 'ar' ? selectedReview?.branch_name_ar : selectedReview?.branch_name}
+              </p>
+            </DialogHeader>
+            <DialogDescription className="mt-4 whitespace-pre-wrap text-gray-700">
+              {selectedReview?.text}
+            </DialogDescription>
+            <Button onClick={() => setIsModalOpen(false)} className="mt-4 w-full sm:w-auto sm:ml-auto bg-[#C4A36F] hover:bg-[#A3845A]">
+              {language === 'ar' ? 'إغلاق' : 'Close'}
+            </Button>
+          </DialogContent>
+        </Dialog>
+      </div>
     </div>
   );
 }

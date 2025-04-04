@@ -25,7 +25,11 @@ serve(async (req) => {
       placeId = body.placeId;
       apiKey = body.apiKey;
       language = body.language || 'en';
-      console.log('Received POST request with body:', JSON.stringify(body));
+      console.log('Received POST request with body:', JSON.stringify({
+        placeId,
+        language,
+        hasApiKey: !!apiKey
+      }));
     } else {
       // Parse the request URL to extract query parameters
       const url = new URL(req.url);
@@ -58,7 +62,7 @@ serve(async (req) => {
     googlePlacesUrl.searchParams.set('key', apiKey);
     googlePlacesUrl.searchParams.set('language', language);
 
-    console.log(`Calling Google Places API at: ${googlePlacesUrl.toString()}`);
+    console.log(`Calling Google Places API at: ${googlePlacesUrl.toString().replace(apiKey, 'API_KEY_REDACTED')}`);
     
     // Fetch reviews from Google Places API
     const response = await fetch(googlePlacesUrl.toString(), {
