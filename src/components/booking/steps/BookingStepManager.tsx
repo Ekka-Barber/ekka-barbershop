@@ -1,17 +1,19 @@
 
 import { useState, useEffect } from "react";
-import { BookingProgress, BookingStep } from "@/components/booking/BookingProgress";
-import { BookingNavigation } from "@/components/booking/BookingNavigation";
+import { BookingStep } from "@/components/booking/BookingProgress";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { ErrorBoundary } from "@/components/common/ErrorBoundary";
-import { StepRenderer } from "./StepRenderer";
 import { useBookingContext } from "@/contexts/BookingContext";
-import { ServicesSummary } from "../service-selection/ServicesSummary";
-import { transformServicesForDisplay } from "@/utils/serviceTransformation";
 import { transformWorkingHours } from "@/utils/workingHoursUtils";
 import { SkeletonLoader } from "@/components/common/SkeletonLoader";
 import { useStepValidation } from "./validation/useStepValidation";
 import { logger } from "@/utils/logger";
+
+// Import refactored components
+import { BookingProgressContainer } from "./components/BookingProgressContainer";
+import { StepContentContainer } from "./components/StepContentContainer";
+import { NavigationContainer } from "./components/NavigationContainer";
+import { SummaryContainer } from "./components/SummaryContainer";
 
 interface BookingStepManagerProps {
   branch: any;
@@ -48,7 +50,7 @@ export const BookingStepManager = ({
     handlePackageServiceUpdate,
     packageEnabled,
     packageSettings,
-    bookingSteps, // Use the bookingSteps from context
+    bookingSteps,
     validateCustomerDetails
   } = useBookingContext();
   
@@ -114,7 +116,6 @@ export const BookingStepManager = ({
   const currentStepIndex = bookingSteps.indexOf(currentStep as BookingStep);
   const shouldShowNavigation = currentStep === 'details';
   const shouldShowSummaryBar = selectedServices.length > 0 && currentStep !== 'details';
-  const transformedServices = transformServicesForDisplay(selectedServices, language);
 
   const employeeWorkingHours = selectedEmployee?.working_hours ? 
     transformWorkingHours(selectedEmployee.working_hours) : null;
@@ -131,87 +132,69 @@ export const BookingStepManager = ({
 
   return (
     <ErrorBoundary>
-      <BookingProgress 
-        currentStep={currentStep as BookingStep} 
-        steps={bookingSteps} 
-        onStepClick={setCurrentStep} 
-        currentStepIndex={currentStepIndex} 
+      <BookingProgressContainer 
+        currentStep={currentStep as BookingStep}
+        steps={bookingSteps}
+        onStepClick={setCurrentStep}
+        currentStepIndex={currentStepIndex}
       />
 
-      <div className="mb-8 relative">
-        {isValidating && (
-          <div className="absolute inset-0 bg-white/70 flex items-center justify-center z-10">
-            <div className="animate-pulse flex flex-col items-center">
-              <div className="h-8 w-8 rounded-full border-2 border-primary border-t-transparent animate-spin mb-2"></div>
-              <span className="text-sm text-gray-500">
-                {language === 'ar' ? "جاري التحقق..." : "Validating..."}
-              </span>
-            </div>
-          </div>
-        )}
-        
-        <ErrorBoundary>
-          <StepRenderer 
-            currentStep={currentStep}
-            categories={categories}
-            categoriesLoading={categoriesLoading}
-            selectedServices={selectedServices}
-            handleServiceToggle={handleServiceToggle}
-            handleStepChange={handleStepChange}
-            employees={employees}
-            employeesLoading={employeesLoading}
-            selectedBarber={selectedBarber}
-            setSelectedBarber={setSelectedBarber}
-            selectedDate={selectedDate}
-            selectedTime={selectedTime}
-            setSelectedDate={setSelectedDate}
-            setSelectedTime={setSelectedTime}
-            employeeWorkingHours={employeeWorkingHours}
-            customerDetails={customerDetails}
-            handleCustomerDetailsChange={handleCustomerDetailsChange}
-            totalPrice={totalPrice}
-            language={language}
-            branch={branch}
-            isUpdatingPackage={isUpdatingPackage}
-            handlePackageServiceUpdate={handlePackageServiceUpdate}
-            onRemoveService={handleServiceRemove}
-            onValidationChange={handleValidationChange}
-          />
-        </ErrorBoundary>
-      </div>
+      <StepContentContainer 
+        isValidating={isValidating}
+        currentStep={currentStep}
+        categories={categories}
+        categoriesLoading={categoriesLoading}
+        selectedServices={selectedServices}
+        handleServiceToggle={handleServiceToggle}
+        handleStepChange={handleStepChange}
+        employees={employees}
+        employeesLoading={employeesLoading}
+        selectedBarber={selectedBarber}
+        setSelectedBarber={setSelectedBarber}
+        selectedDate={selectedDate}
+        selectedTime={selectedTime}
+        setSelectedDate={setSelectedDate}
+        setSelectedTime={setSelectedTime}
+        employeeWorkingHours={employeeWorkingHours}
+        customerDetails={customerDetails}
+        handleCustomerDetailsChange={handleCustomerDetailsChange}
+        totalPrice={totalPrice}
+        language={language}
+        branch={branch}
+        isUpdatingPackage={isUpdatingPackage}
+        handlePackageServiceUpdate={handlePackageServiceUpdate}
+        onRemoveService={handleServiceRemove}
+        onValidationChange={handleValidationChange}
+      />
 
       {shouldShowNavigation && (
-        <ErrorBoundary>
-          <BookingNavigation 
-            currentStepIndex={currentStepIndex} 
-            steps={bookingSteps} 
-            currentStep={currentStep as BookingStep} 
-            setCurrentStep={setCurrentStep}
-            isNextDisabled={isNextDisabled()}
-            customerDetails={customerDetails}
-            branch={branch}
-            isFormValid={formValid}
-          />
-        </ErrorBoundary>
+        <NavigationContainer 
+          currentStepIndex={currentStepIndex}
+          steps={bookingSteps}
+          currentStep={currentStep as BookingStep}
+          setCurrentStep={setCurrentStep}
+          isNextDisabled={isNextDisabled()}
+          customerDetails={customerDetails}
+          branch={branch}
+          isFormValid={formValid}
+        />
       )}
 
       {shouldShowSummaryBar && (
-        <ErrorBoundary>
-          <ServicesSummary 
-            selectedServices={transformedServices} 
-            totalDuration={totalDuration} 
-            totalPrice={totalPrice} 
-            language={language} 
-            onNextStep={onNextStep} 
-            onPrevStep={onPrevStep} 
-            isFirstStep={currentStepIndex === 0} 
-            packageEnabled={packageEnabled}
-            packageSettings={packageSettings}
-            availableServices={[]} 
-            onAddService={(service) => handleServiceToggle(service)}
-            isValidating={isValidating}
-          />
-        </ErrorBoundary>
+        <SummaryContainer 
+          selectedServices={selectedServices}
+          totalDuration={totalDuration}
+          totalPrice={totalPrice}
+          language={language}
+          onNextStep={onNextStep}
+          onPrevStep={onPrevStep}
+          isFirstStep={currentStepIndex === 0}
+          packageEnabled={packageEnabled}
+          packageSettings={packageSettings}
+          availableServices={[]}
+          onAddService={handleServiceToggle}
+          isValidating={isValidating}
+        />
       )}
     </ErrorBoundary>
   );
