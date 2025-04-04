@@ -13,16 +13,44 @@ const VISIBLE_LOG_LEVELS: Record<LogLevel, boolean> = {
   error: true            // Always show error logs
 };
 
+// Logger configuration
+interface LoggerConfig {
+  minLevel?: LogLevel;
+  enabled?: boolean;
+}
+
+// Default configuration
+let config: LoggerConfig = {
+  minLevel: 'debug',
+  enabled: true
+};
+
+// Log level priorities (higher number = more important)
+const LOG_LEVEL_PRIORITY: Record<LogLevel, number> = {
+  debug: 0,
+  info: 1,
+  warn: 2,
+  error: 3
+};
+
 /**
  * Structured logger that provides consistent formatting
  * and can be centrally configured to filter log levels
  */
 export const logger = {
   /**
+   * Configure the logger
+   */
+  configure: (newConfig: LoggerConfig) => {
+    config = { ...config, ...newConfig };
+  },
+  
+  /**
    * Log debug information (only visible in development)
    */
   debug: (message: string, data?: any) => {
-    if (!VISIBLE_LOG_LEVELS.debug) return;
+    if (!VISIBLE_LOG_LEVELS.debug || !config.enabled || 
+        LOG_LEVEL_PRIORITY.debug < LOG_LEVEL_PRIORITY[config.minLevel || 'debug']) return;
     
     console.debug(
       `%c[DEBUG]%c ${message}`,
@@ -36,7 +64,8 @@ export const logger = {
    * Log informational messages
    */
   info: (message: string, data?: any) => {
-    if (!VISIBLE_LOG_LEVELS.info) return;
+    if (!VISIBLE_LOG_LEVELS.info || !config.enabled ||
+        LOG_LEVEL_PRIORITY.info < LOG_LEVEL_PRIORITY[config.minLevel || 'debug']) return;
     
     console.info(
       `%c[INFO]%c ${message}`,
@@ -50,7 +79,8 @@ export const logger = {
    * Log warning messages
    */
   warn: (message: string, data?: any) => {
-    if (!VISIBLE_LOG_LEVELS.warn) return;
+    if (!VISIBLE_LOG_LEVELS.warn || !config.enabled ||
+        LOG_LEVEL_PRIORITY.warn < LOG_LEVEL_PRIORITY[config.minLevel || 'debug']) return;
     
     console.warn(
       `%c[WARN]%c ${message}`,
@@ -64,7 +94,8 @@ export const logger = {
    * Log error messages
    */
   error: (message: string, error?: any) => {
-    if (!VISIBLE_LOG_LEVELS.error) return;
+    if (!VISIBLE_LOG_LEVELS.error || !config.enabled ||
+        LOG_LEVEL_PRIORITY.error < LOG_LEVEL_PRIORITY[config.minLevel || 'debug']) return;
     
     console.error(
       `%c[ERROR]%c ${message}`,
@@ -78,6 +109,8 @@ export const logger = {
    * Group related logs together
    */
   group: (label: string, collapsed = false, fn: () => void) => {
+    if (!config.enabled) return;
+    
     if (collapsed) {
       console.groupCollapsed(label);
     } else {
