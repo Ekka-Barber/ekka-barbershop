@@ -29,7 +29,7 @@ export const ServiceSelection = ({
   const selectionState = useServiceSelectionState({
     categories,
     isLoading,
-    selectedServices, // Make sure this is passed to the state
+    selectedServices,
     onServiceToggle,
     onStepChange,
     isUpdatingPackage,
@@ -37,11 +37,16 @@ export const ServiceSelection = ({
     branchId
   });
   
-  // Make sure selectedServices is included in the object passed to ServiceSelectionView
+  // Transform selectedServices to have proper 'name' property for displayServices
   const enhancedSelectionState = {
     ...selectionState,
-    selectedServices, // Add selectedServices explicitly
-    pendingNextStep: Boolean(selectionState.pendingNextStep) // Ensure it's a boolean
+    selectedServices,
+    pendingNextStep: Boolean(selectionState.pendingNextStep),
+    // Explicitly transform the services to match DisplayService type
+    displayServices: selectionState.transformServicesForDisplay(
+      selectedServices, 
+      selectionState.language === 'ar' ? 'ar' : 'en'
+    )
   };
   
   return (

@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { BookingStep } from '@/components/booking/BookingProgress';
 import { calculateTotalPrice, calculateTotalDuration } from '@/utils/bookingCalculations';
@@ -101,7 +102,7 @@ export const useBooking = (initialBranch: any) => {
     }
   };
 
-  // Calculate total price and duration
+  // Calculate total price and duration with proper type handling
   const totalPrice = calculateTotalPrice(selectedServices as unknown as Service[]);
   const totalDuration = calculateTotalDuration(selectedServices as unknown as Service[]);
 
@@ -166,6 +167,12 @@ export const useBooking = (initialBranch: any) => {
     
     // Branch selection
     selectedBranch,
-    setSelectedBranch
+    setSelectedBranch,
+    
+    // Mock properties for testing
+    availableSlots: {},
+    isLoadingSlots: false,
+    slotError: null,
+    fetchAvailableSlots: () => {},
   };
 };

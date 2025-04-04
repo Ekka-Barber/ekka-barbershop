@@ -114,10 +114,16 @@ export const useServiceSelectionState = ({
     // Service calculations
     totalDuration,
     totalPrice,
-    displayServices: selectedServices,
+    displayServices,
+    
+    // Export the language for use in components
+    language,
     
     // Re-export nested functions for backward compatibility
     // (this ensures no functionality is broken)
-    transformServicesForDisplay
+    transformServicesForDisplay,
+    
+    // Also add selectedServices back for compatibility
+    selectedServices
   };
 };

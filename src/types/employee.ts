@@ -17,7 +17,7 @@ export interface Employee {
   salary_plan_id: string;
 }
 
-// Add the EmployeeSales interface that was missing
+// Employee sales interface
 export interface EmployeeSales {
   id: string;
   employee_name: string;

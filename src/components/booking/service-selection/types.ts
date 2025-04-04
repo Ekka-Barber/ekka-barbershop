@@ -2,6 +2,17 @@
 import { SelectedService, Service, Category } from "@/types/service";
 import { PackageSettings } from "@/types/admin";
 
+// Add DisplayService interface to match what's used in ServiceSelectionView
+export interface DisplayService {
+  id: string;
+  name: string;
+  price: number;
+  duration: number;
+  originalPrice?: number;
+  isBasePackageService?: boolean;
+  isPackageAddOn?: boolean;
+}
+
 export interface SelectionState {
   activeCategory: string | null;
   setActiveCategory: React.Dispatch<React.SetStateAction<string | null>>;
@@ -22,8 +33,15 @@ export interface SelectionState {
   handleStepChange: ((step: string) => void) | undefined;
   packageEnabled: boolean;
   packageSettings: PackageSettings | undefined;
+  hasBaseService: boolean;
+  availablePackageServices: any[];
+  baseService: Service | undefined;
+  totalDuration: number;
+  totalPrice: number;
   selectedServices: SelectedService[];
-  // Add any additional properties needed by ServiceSelectionView
+  displayServices: DisplayService[];
+  language?: string;
+  transformServicesForDisplay: (services: SelectedService[], lang: 'en' | 'ar') => DisplayService[];
 }
 
 export interface ServiceSelectionViewProps {
