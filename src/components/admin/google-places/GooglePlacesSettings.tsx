@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from 'react';
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -16,7 +17,6 @@ interface Branch {
   whatsapp_number: string;
   google_maps_url: string;
   working_hours: Record<string, string[]>;
-  google_places_api_key: string | null;
   google_place_id: string | null;
 }
 
@@ -25,7 +25,6 @@ export default function GooglePlacesSettings() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [selectedBranch, setSelectedBranch] = useState<Branch | null>(null);
-  const [apiKey, setApiKey] = useState('');
   const [placeId, setPlaceId] = useState('');
 
   const { data: branches } = useQuery({
@@ -41,17 +40,15 @@ export default function GooglePlacesSettings() {
 
   useEffect(() => {
     if (selectedBranch) {
-      setApiKey(selectedBranch.google_places_api_key || '');
       setPlaceId(selectedBranch.google_place_id || '');
     }
   }, [selectedBranch]);
 
   const updateBranchMutation = useMutation({
-    mutationFn: async (variables: { id: string; google_places_api_key: string; google_place_id: string }) => {
+    mutationFn: async (variables: { id: string; google_place_id: string }) => {
       const { error } = await supabase
         .from('branches')
         .update({
-          google_places_api_key: variables.google_places_api_key,
           google_place_id: variables.google_place_id,
           updated_at: new Date().toISOString()
         })
@@ -82,7 +79,6 @@ export default function GooglePlacesSettings() {
 
     updateBranchMutation.mutate({
       id: selectedBranch.id,
-      google_places_api_key: apiKey,
       google_place_id: placeId
     });
   };
@@ -114,19 +110,6 @@ export default function GooglePlacesSettings() {
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-4">
             <label className="block text-sm font-medium">
-              {language === 'ar' ? 'مفتاح API' : 'API Key'}
-            </label>
-            <input
-              type="text"
-              className="w-full p-2 border rounded-md"
-              value={apiKey}
-              onChange={(e) => setApiKey(e.target.value)}
-              placeholder={language === 'ar' ? 'أدخل مفتاح API' : 'Enter API key'}
-            />
-          </div>
-
-          <div className="space-y-4">
-            <label className="block text-sm font-medium">
               {language === 'ar' ? 'معرف المكان' : 'Place ID'}
             </label>
             <input
@@ -136,6 +119,21 @@ export default function GooglePlacesSettings() {
               onChange={(e) => setPlaceId(e.target.value)}
               placeholder={language === 'ar' ? 'أدخل معرف المكان' : 'Enter Place ID'}
             />
+            <p className="text-xs text-muted-foreground">
+              {language === 'ar' 
+                ? 'معرف المكان من Google Maps غير سري ويمكن استخدامه للوصول إلى معلومات المكان' 
+                : 'The Place ID from Google Maps is not sensitive and can be used to access location information'}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              <a 
+                href="https://developers.google.com/maps/documentation/places/web-service/place-id" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-blue-600 hover:underline"
+              >
+                {language === 'ar' ? 'كيفية العثور على معرف المكان' : 'How to find a Place ID'}
+              </a>
+            </p>
           </div>
 
           <button
@@ -151,4 +149,4 @@ export default function GooglePlacesSettings() {
       )}
     </div>
   );
-} 
+}
