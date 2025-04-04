@@ -116,6 +116,7 @@ export const UiElementsManager = () => {
   const [editingElement, setEditingElement] = useState<UiElement | null>(null);
   const [iconElement, setIconElement] = useState<UiElement | null>(null);
 
+  // Fetch UI elements
   const { data: elements, isLoading } = useQuery({
     queryKey: ['ui-elements'],
     queryFn: async () => {
@@ -129,6 +130,7 @@ export const UiElementsManager = () => {
     }
   });
 
+  // Update visibility mutation
   const updateVisibilityMutation = useMutation({
     mutationFn: async ({ id, is_visible }: { id: string; is_visible: boolean }) => {
       const { error } = await supabase
@@ -155,16 +157,19 @@ export const UiElementsManager = () => {
     },
   });
 
+  // Update display order mutation
   const updateOrderMutation = useMutation({
-    mutationFn: async (items: UiElement[]) => {
-      for (let i = 0; i < items.length; i++) {
-        const { error } = await supabase
-          .from('ui_elements')
-          .update({ display_order: i })
-          .eq('id', items[i].id);
-          
-        if (error) throw error;
-      }
+    mutationFn: async (elements: UiElement[]) => {
+      const updates = elements.map((element, index) => ({
+        id: element.id,
+        display_order: index,
+      }));
+
+      const { error } = await supabase
+        .from('ui_elements')
+        .upsert(updates, { onConflict: 'id' });
+      
+      if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['ui-elements'] });
@@ -183,6 +188,7 @@ export const UiElementsManager = () => {
     },
   });
 
+  // Handle drag end
   const handleDragEnd = (result: DropResult) => {
     if (!result.destination || !elements) return;
 
@@ -263,4 +269,4 @@ export const UiElementsManager = () => {
       />
     </div>
   );
-};
+}; 

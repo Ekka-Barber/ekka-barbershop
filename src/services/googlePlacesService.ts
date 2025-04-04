@@ -73,16 +73,7 @@ export async function fetchBranchReviews(placeId: string, language: string = 'en
       };
     }
     
-    // Enhanced logging to debug the Arabic reviews issue
-    logger.info(`Reviews for language '${language}':`, {
-      status: data.status,
-      reviewCount: data.reviews?.length || 0,
-      reviews: data.reviews?.map(r => ({
-        author: r.author_name,
-        text_length: r.text?.length || 0,
-        rating: r.rating
-      }))
-    });
+    logger.debug(`Successfully fetched reviews for language: ${language}, count: ${data.reviews?.length || 0}`);
     
     // Return the response
     return { 

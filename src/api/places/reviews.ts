@@ -8,7 +8,6 @@ if (!supabaseUrl || !supabaseAnonKey) {
   console.error('Missing Supabase environment variables');
 }
 
-// Create a single instance of the Supabase client
 const supabase = createClient(supabaseUrl || '', supabaseAnonKey || '');
 
 export async function GET(request: Request) {
@@ -25,8 +24,6 @@ export async function GET(request: Request) {
   }
 
   try {
-    console.log(`Fetching Google Reviews for Place ID: ${placeId}, Language: ${language}`);
-    
     // Add language parameter to the Google Places API request
     const response = await fetch(
       `https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&fields=reviews&language=${language}&key=${apiKey}`
@@ -37,11 +34,6 @@ export async function GET(request: Request) {
     }
 
     const data = await response.json();
-    
-    console.log(`Google Places API response for language '${language}':`, { 
-      status: data.status,
-      reviewCount: data.result?.reviews?.length || 0
-    });
 
     if (data.status !== 'OK') {
       return new Response(JSON.stringify({ 
@@ -56,7 +48,7 @@ export async function GET(request: Request) {
 
     return new Response(JSON.stringify({ 
       reviews: data.result.reviews || [],
-      language: language 
+      language: language // Include language in response for debugging
     }), {
       status: 200,
       headers: { 'Content-Type': 'application/json' }
@@ -72,4 +64,4 @@ export async function GET(request: Request) {
       headers: { 'Content-Type': 'application/json' }
     });
   }
-}
+} 
