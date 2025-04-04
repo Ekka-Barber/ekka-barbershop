@@ -21,12 +21,12 @@ export interface ReviewsResponse {
 /**
  * Fetches Google Reviews for a given branch
  */
-export async function fetchBranchReviews(placeId: string, apiKey: string, language: string = 'en'): Promise<ReviewsResponse> {
+export async function fetchBranchReviews(placeId: string, language: string = 'en'): Promise<ReviewsResponse> {
   try {
     console.log(`Fetching reviews for Place ID: ${placeId}, language: ${language}`);
     
     // Use the Supabase Edge Function to avoid CORS issues
-    const apiUrl = `/api/places?placeId=${encodeURIComponent(placeId)}&apiKey=${encodeURIComponent(apiKey)}&language=${language}`;
+    const apiUrl = `/api/places?placeId=${encodeURIComponent(placeId)}&language=${language}`;
 
     console.log(`Making request to: ${apiUrl}`);
 
@@ -128,8 +128,7 @@ export async function fetchBranchesWithGooglePlaces() {
     
     const { data, error } = await supabase
       .from('branches')
-      .select('*')
-      .not('google_places_api_key', 'is', null)
+      .select('id, name, google_place_id, name_ar')
       .not('google_place_id', 'is', null);
       
     if (error) {
@@ -139,10 +138,9 @@ export async function fetchBranchesWithGooglePlaces() {
     
     console.log(`Found ${data.length} branches with Google Places configuration`);
     
-    // Verify that API keys and place IDs are present
     data.forEach((branch, index) => {
-      if (!branch.google_places_api_key || !branch.google_place_id) {
-        console.warn(`Branch ${branch.name} (${index}) has incomplete Google Places configuration`);
+      if (!branch.google_place_id) {
+        console.warn(`Branch ${branch.name} (${index}) is missing Google Place ID`);
       }
     });
     
