@@ -28,6 +28,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import AppLayout from '@/components/layout/AppLayout';
+import { Tables } from "@/types/supabase"; // Use proper typing
 
 interface Branch {
   id: string;
@@ -108,7 +109,7 @@ const Customer = () => {
         logger.error("Error fetching UI elements:", error);
         throw error;
       }
-      return data as Database['public']['Tables']['ui_elements']['Row'][];
+      return data as Tables['public']['Tables']['ui_elements']['Row'][];
     }
   });
 
@@ -203,7 +204,6 @@ const Customer = () => {
     });
   };
 
-  // Determine if we're on iOS
   const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
 
   return (
@@ -211,7 +211,7 @@ const Customer = () => {
       <PullToRefresh 
         onRefresh={handleRefresh}
         pullDownThreshold={100}
-        disabled={isIOS}  // Disable on iOS to prevent scrolling resistance
+        autoDisableOnPlatforms={true}
       >
         <div className="flex flex-1 flex-col justify-start items-center max-w-md mx-auto">
           <div className="text-center flex-shrink-0 mx-auto pt-safe w-full">

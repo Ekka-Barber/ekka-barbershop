@@ -167,7 +167,7 @@ export const UiElementsManager = () => {
 
       const { error } = await supabase
         .from('ui_elements')
-        .upsert(updates, { onConflict: 'id' });
+        .upsert(updates as Tables<'ui_elements'>[]);
       
       if (error) throw error;
     },
@@ -269,4 +269,4 @@ export const UiElementsManager = () => {
       />
     </div>
   );
-}; 
+};

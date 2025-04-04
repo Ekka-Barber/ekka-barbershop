@@ -1,0 +1,53 @@
+
+import React from 'react';
+import { ArrowDownUp } from 'lucide-react';
+
+interface RefreshIndicatorProps {
+  isPulling: boolean;
+  isRefreshing: boolean;
+  pullDistance: number;
+  pullDownThreshold: number;
+  pullingContent?: React.ReactNode;
+  refreshingContent?: React.ReactNode;
+}
+
+export const RefreshIndicator: React.FC<RefreshIndicatorProps> = ({
+  isPulling,
+  isRefreshing,
+  pullDistance,
+  pullDownThreshold,
+  pullingContent,
+  refreshingContent,
+}) => {
+  // Default pulling content
+  const defaultPullingContent = (
+    <div className="flex items-center justify-center text-gray-500">
+      <ArrowDownUp className={`mr-2 ${pullDistance >= pullDownThreshold ? 'text-green-500' : ''}`} />
+      <span>{pullDistance >= pullDownThreshold ? 'Release to refresh' : 'Pull down to refresh'}</span>
+    </div>
+  );
+
+  // Default refreshing content
+  const defaultRefreshingContent = (
+    <div className="flex items-center justify-center text-gray-500">
+      <div className="animate-spin h-5 w-5 border-2 border-t-transparent border-primary rounded-full mr-2" />
+      <span>Refreshing...</span>
+    </div>
+  );
+
+  if (!isPulling && !isRefreshing) return null;
+
+  return (
+    <div
+      className="absolute w-full flex items-center justify-center z-10 pointer-events-none overflow-hidden transition-all duration-200"
+      style={{ 
+        height: isPulling ? `${pullDistance}px` : isRefreshing ? '60px' : '0px',
+        top: 0
+      }}
+    >
+      {isPulling ? 
+        (pullingContent || defaultPullingContent) : 
+        (refreshingContent || defaultRefreshingContent)}
+    </div>
+  );
+};

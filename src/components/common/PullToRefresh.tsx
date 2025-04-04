@@ -1,7 +1,8 @@
 
-import React, { useState, useEffect, useRef } from 'react';
-import { ArrowDownUp } from 'lucide-react';
-import { prefersReducedMotion } from '@/services/platformDetection';
+import React, { useMemo } from 'react';
+import { usePullToRefresh } from '@/hooks/usePullToRefresh';
+import { RefreshIndicator } from './pull-to-refresh/RefreshIndicator';
+import { getPlatformPullSettings } from '@/utils/platformUtils';
 
 interface PullToRefreshProps {
   onRefresh: () => Promise<void>;
@@ -11,7 +12,9 @@ interface PullToRefreshProps {
   backgroundColor?: string;
   pullingContent?: React.ReactNode;
   refreshingContent?: React.ReactNode;
-  disabled?: boolean; // New prop to disable pull-to-refresh
+  disabled?: boolean;
+  pullResistance?: number;
+  autoDisableOnPlatforms?: boolean;
 }
 
 export const PullToRefresh: React.FC<PullToRefreshProps> = ({
@@ -22,155 +25,37 @@ export const PullToRefresh: React.FC<PullToRefreshProps> = ({
   backgroundColor = 'white',
   pullingContent,
   refreshingContent,
-  disabled = false,
+  disabled: userDisabled = false,
+  pullResistance,
+  autoDisableOnPlatforms = true,
 }) => {
-  const [isPulling, setIsPulling] = useState(false);
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const [pullDistance, setPullDistance] = useState(0);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const startYRef = useRef<number | null>(null);
-  const currentYRef = useRef<number | null>(null);
-  const reducedMotion = prefersReducedMotion();
-  // Track if user intended to scroll rather than pull
-  const isScrollingRef = useRef(false);
-  // Track the initial touch to determine pull vs scroll intent
-  const initialTouchTimeRef = useRef<number | null>(null);
-  // Minimum travel distance before determining it's a deliberate pull
-  const minPullDistance = 15;
-  // Add a strict tolerance for what's considered "top" of the page
-  const topScrollThreshold = 1; // Only activate when scrollTop <= 1px
+  // Get platform-specific settings
+  const platformSettings = useMemo(() => 
+    autoDisableOnPlatforms ? getPlatformPullSettings() : {}, 
+  [autoDisableOnPlatforms]);
 
-  useEffect(() => {
-    const container = containerRef.current;
-    if (!container || disabled) return;
+  // Combine user settings with platform defaults
+  const finalPullResistance = pullResistance ?? platformSettings.pullResistance ?? 0.3;
+  const finalDisabled = userDisabled || (platformSettings.disabled ?? false);
+  const finalTopScrollThreshold = platformSettings.topScrollThreshold ?? 1;
 
-    const handleTouchStart = (e: TouchEvent) => {
-      // Skip if we're in the process of refreshing
-      if (isRefreshing) return;
-      
-      // Store the initial touch time to determine intent
-      initialTouchTimeRef.current = Date.now();
-      
-      // Store the initial scroll position
-      const scrollTop = Math.max(0, container.scrollTop);
-      
-      // Only allow pull-to-refresh when exactly at the top of the content
-      // Using a strict threshold (1px) to ensure we're really at the top
-      if (scrollTop <= topScrollThreshold) {
-        startYRef.current = e.touches[0].clientY;
-        isScrollingRef.current = false;
-      } else {
-        // If not at the top, mark as scrolling
-        isScrollingRef.current = true;
-        
-        // Reset any pull state that might be lingering
-        if (isPulling) {
-          setPullDistance(0);
-          setIsPulling(false);
-        }
-      }
-    };
-
-    const handleTouchMove = (e: TouchEvent) => {
-      // Skip if already scrolling, refreshing, or pull-to-refresh is disabled
-      if (isScrollingRef.current || isRefreshing || disabled) return;
-      
-      const scrollTop = Math.max(0, container.scrollTop);
-      
-      // Only continue with pull gesture if we're exactly at the top
-      if (scrollTop > topScrollThreshold) {
-        // If even slightly scrolled down, treat as regular scroll
-        isScrollingRef.current = true;
-        
-        // Reset any pull state
-        if (isPulling) {
-          setPullDistance(0);
-          setIsPulling(false);
-          startYRef.current = null;
-        }
-        return;
-      }
-
-      // If we started a pull gesture and are still at the top
-      if (startYRef.current !== null && scrollTop <= topScrollThreshold) {
-        currentYRef.current = e.touches[0].clientY;
-        const delta = currentYRef.current - startYRef.current;
-        
-        // Only activate pull-to-refresh if pulling down and moved enough distance
-        if (delta > minPullDistance) {
-          // Apply more resistance to the pull (makes it harder to pull down)
-          const newDistance = Math.min(delta * 0.3, maxPullDownDistance);
-          setPullDistance(newDistance);
-          setIsPulling(true);
-          
-          // Prevent default scrolling behavior only when explicitly pulling down
-          e.preventDefault();
-        }
-      }
-    };
-
-    const handleTouchEnd = async () => {
-      // Skip if not pulling or pull-to-refresh is disabled
-      if (!isPulling || disabled) return;
-      
-      // Check if the pull was intentional by evaluating pull distance and time
-      const touchDuration = initialTouchTimeRef.current ? Date.now() - initialTouchTimeRef.current : 0;
-      const wasIntentionalPull = pullDistance >= pullDownThreshold && touchDuration > 100;
-      
-      if (wasIntentionalPull) {
-        setIsRefreshing(true);
-        setPullDistance(0);
-        setIsPulling(false);
-        
-        try {
-          await onRefresh();
-        } finally {
-          setIsRefreshing(false);
-        }
-      } else {
-        // Not an intentional pull, reset
-        setPullDistance(0);
-        setIsPulling(false);
-      }
-      
-      // Reset all refs
-      startYRef.current = null;
-      currentYRef.current = null;
-      initialTouchTimeRef.current = null;
-      isScrollingRef.current = false;
-    };
-
-    // Function to handle regular scrolling without refresh behavior
-    const handleScroll = () => {
-      // If we're scrolling away from the top, reset the pull state
-      if (container.scrollTop > topScrollThreshold && startYRef.current !== null) {
-        startYRef.current = null;
-        currentYRef.current = null;
-        isScrollingRef.current = true;
-        if (isPulling) {
-          setPullDistance(0);
-          setIsPulling(false);
-        }
-      }
-    };
-
-    container.addEventListener('touchstart', handleTouchStart, { passive: true });
-    container.addEventListener('touchmove', handleTouchMove, { passive: false });
-    container.addEventListener('touchend', handleTouchEnd);
-    container.addEventListener('touchcancel', handleTouchEnd);
-    container.addEventListener('scroll', handleScroll, { passive: true });
-
-    return () => {
-      container.removeEventListener('touchstart', handleTouchStart);
-      container.removeEventListener('touchmove', handleTouchMove);
-      container.removeEventListener('touchend', handleTouchEnd);
-      container.removeEventListener('touchcancel', handleTouchEnd);
-      container.removeEventListener('scroll', handleScroll);
-    };
-  }, [isPulling, pullDistance, pullDownThreshold, maxPullDownDistance, onRefresh, isRefreshing, disabled]);
+  const {
+    containerRef,
+    isPulling,
+    isRefreshing,
+    pullDistance,
+    reducedMotion
+  } = usePullToRefresh({
+    onRefresh,
+    pullDownThreshold,
+    maxPullDownDistance,
+    disabled: finalDisabled,
+    topScrollThreshold: finalTopScrollThreshold,
+    pullResistance: finalPullResistance
+  });
 
   // If disabled, just render children directly
-  if (disabled) {
+  if (finalDisabled) {
     return (
       <div className="h-full w-full overflow-auto overscroll-contain" ref={containerRef}>
         {children}
@@ -178,38 +63,16 @@ export const PullToRefresh: React.FC<PullToRefreshProps> = ({
     );
   }
 
-  // Default pulling content
-  const defaultPullingContent = (
-    <div className="flex items-center justify-center text-gray-500">
-      <ArrowDownUp className={`mr-2 ${pullDistance >= pullDownThreshold ? 'text-green-500' : ''}`} />
-      <span>{pullDistance >= pullDownThreshold ? 'Release to refresh' : 'Pull down to refresh'}</span>
-    </div>
-  );
-
-  // Default refreshing content
-  const defaultRefreshingContent = (
-    <div className="flex items-center justify-center text-gray-500">
-      <div className="animate-spin h-5 w-5 border-2 border-t-transparent border-primary rounded-full mr-2" />
-      <span>Refreshing...</span>
-    </div>
-  );
-
   return (
     <div className="h-full w-full overflow-hidden" style={{ position: 'relative', backgroundColor }}>
-      {(isPulling || isRefreshing) && (
-        <div
-          className="absolute w-full flex items-center justify-center z-10 pointer-events-none overflow-hidden transition-all duration-200"
-          style={{ 
-            height: isPulling ? `${pullDistance}px` : isRefreshing ? '60px' : '0px',
-            top: 0,
-            transform: reducedMotion ? 'none' : undefined,
-          }}
-        >
-          {isPulling ? 
-            (pullingContent || defaultPullingContent) : 
-            (refreshingContent || defaultRefreshingContent)}
-        </div>
-      )}
+      <RefreshIndicator
+        isPulling={isPulling}
+        isRefreshing={isRefreshing}
+        pullDistance={pullDistance}
+        pullDownThreshold={pullDownThreshold}
+        pullingContent={pullingContent}
+        refreshingContent={refreshingContent}
+      />
       
       <div
         ref={containerRef}
