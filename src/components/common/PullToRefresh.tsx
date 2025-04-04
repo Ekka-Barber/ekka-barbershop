@@ -89,7 +89,7 @@ export const PullToRefresh: React.FC<PullToRefreshProps> = ({
         // Only activate pull-to-refresh if pulling down and moved enough distance
         if (delta > minPullDistance) {
           // Apply more resistance to the pull (makes it harder to pull down)
-          const newDistance = Math.min(delta * 0.3, maxPullDistance);
+          const newDistance = Math.min(delta * 0.3, maxPullDownDistance);
           setPullDistance(newDistance);
           setIsPulling(true);
           
@@ -156,7 +156,7 @@ export const PullToRefresh: React.FC<PullToRefreshProps> = ({
       container.removeEventListener('touchcancel', handleTouchEnd);
       container.removeEventListener('scroll', handleScroll);
     };
-  }, [isPulling, pullDistance, pullDownThreshold, maxPullDistance, onRefresh, isRefreshing, disabled]);
+  }, [isPulling, pullDistance, pullDownThreshold, maxPullDownDistance, onRefresh, isRefreshing, disabled]);
 
   // If disabled, just render children directly
   if (disabled) {
