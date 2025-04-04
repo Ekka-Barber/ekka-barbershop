@@ -1,10 +1,24 @@
-
 type PlatformType = 'ios' | 'android' | 'desktop' | 'unsupported';
 type InstallationStatus = 'not-installed' | 'installed' | 'installing' | 'unsupported';
 type DeviceModel = 'iPhone' | 'iPad' | 'Android' | 'Desktop' | 'Unknown';
 type BrowserType = 'safari' | 'chrome' | 'firefox' | 'edge' | 'opera' | 'samsung' | 'other';
 type iOSVersion = { major: number; minor: number; patch: number } | null;
 type ConnectionType = 'wifi' | 'cellular' | 'unknown' | 'none';
+
+// Define interfaces for non-standard or experimental APIs
+interface NavigatorWithStandalone extends Navigator {
+  standalone?: boolean;
+}
+
+interface NetworkInformation {
+  type?: ConnectionType;
+  effectiveType?: string;
+  saveData?: boolean;
+}
+
+interface NavigatorWithConnection extends Navigator {
+  connection?: NetworkInformation;
+}
 
 /**
  * Detects the user's platform (iOS, Android, Desktop, etc.)
@@ -88,7 +102,7 @@ export const getiOSVersion = (): iOSVersion => {
  */
 export const isRunningAsStandalone = (): boolean => {
   return window.matchMedia('(display-mode: standalone)').matches ||
-    (window.navigator as any).standalone === true ||
+    (window.navigator as NavigatorWithStandalone).standalone === true ||
     document.referrer.includes('android-app://');
 };
 
@@ -136,7 +150,7 @@ export const isServiceWorkerSupported = (): boolean => {
  */
 export const getConnectionInfo = (): { type: ConnectionType, effectiveType?: string, saveData?: boolean } => {
   if ('connection' in navigator) {
-    const connection = (navigator as any).connection;
+    const connection = (navigator as NavigatorWithConnection).connection;
     
     if (connection) {
       let type: ConnectionType = 'unknown';
@@ -157,97 +171,18 @@ export const getConnectionInfo = (): { type: ConnectionType, effectiveType?: str
 };
 
 /**
- * Checks if the device has a notch (iPhone X and newer)
- * @returns True if the device likely has a notch
- */
-export const hasNotch = (): boolean => {
-  // Check if the device is an iPhone
-  const userAgent = navigator.userAgent.toLowerCase();
-  const isIphone = /iphone/.test(userAgent);
-  
-  if (!isIphone) return false;
-  
-  // More reliable notch detection for iPhones
-  // iPhone X and newer have a notch
-  // Check for iOS version 11 or higher (which introduced the notch with iPhone X)
-  const iosVersion = getiOSVersion();
-  
-  if (iosVersion && iosVersion.major >= 11) {
-    // Check if the environment supports safe area insets
-    if (CSS.supports('padding-top: env(safe-area-inset-top)')) {
-      // Get computed style of an element with safe area padding
-      const testDiv = document.createElement('div');
-      testDiv.style.cssText = `
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        padding-top: env(safe-area-inset-top);
-        z-index: -1;
-      `;
-      document.body.appendChild(testDiv);
-      const computedStyle = window.getComputedStyle(testDiv);
-      const safeAreaTop = parseFloat(computedStyle.paddingTop);
-      document.body.removeChild(testDiv);
-      
-      // If the safe area inset is greater than 20px, the device likely has a notch
-      // Most notched iPhones have a safe area top of at least 44px
-      return safeAreaTop > 20;
-    }
-  }
-  
-  // Fallback detection based on device model string in user agent
-  // These models are known to have notches
-  const notchedModels = [
-    'iphone x', 'iphone xs', 'iphone xr', 'iphone 11', 'iphone 12', 'iphone 13', 'iphone 14'
-  ];
-  
-  return notchedModels.some(model => userAgent.includes(model));
-};
-
-/**
- * Get detailed information about safe area insets
- * @returns Object with safe area inset values
- */
-export const getSafeAreaInsets = () => {
-  const testDiv = document.createElement('div');
-  Object.assign(testDiv.style, {
-    position: 'fixed',
-    width: '100%',
-    height: '100%',
-    paddingTop: 'env(safe-area-inset-top)',
-    paddingRight: 'env(safe-area-inset-right)',
-    paddingBottom: 'env(safe-area-inset-bottom)',
-    paddingLeft: 'env(safe-area-inset-left)',
-    visibility: 'hidden',
-    zIndex: '-1'
-  });
-  
-  document.body.appendChild(testDiv);
-  const computedStyle = window.getComputedStyle(testDiv);
-  
-  const insets = {
-    top: computedStyle.paddingTop,
-    right: computedStyle.paddingRight,
-    bottom: computedStyle.paddingBottom,
-    left: computedStyle.paddingLeft
-  };
-  
-  document.body.removeChild(testDiv);
-  return insets;
-};
-
-/**
  * Checks if the device supports specific features like
  * vibration, touch, etc.
  * @returns Object with support flags
  */
 export const getDeviceCapabilities = () => {
+  const typedWindow = window as Window & typeof globalThis;
   return {
     vibration: 'vibrate' in navigator,
-    touch: 'ontouchstart' in window,
+    touch: 'ontouchstart' in typedWindow,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     orientation: 'orientation' in window || 'orientation' in (window as any).screen,
-    motion: 'DeviceMotionEvent' in window,
+    motion: 'DeviceMotionEvent' in typedWindow,
     geolocation: 'geolocation' in navigator,
     notification: 'Notification' in window,
     share: 'share' in navigator,
@@ -305,6 +240,5 @@ export const getViewportDimensions = () => {
   return {
     width: window.innerWidth,
     height: window.innerHeight,
-    safeAreaInsets: getSafeAreaInsets()
   };
 };
