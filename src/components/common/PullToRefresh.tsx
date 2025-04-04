@@ -30,7 +30,6 @@ export const PullToRefresh: React.FC<PullToRefreshProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const startYRef = useRef<number | null>(null);
   const currentYRef = useRef<number | null>(null);
-  const scrollStartPosRef = useRef(0);
   const reducedMotion = prefersReducedMotion();
   // Track if user intended to scroll rather than pull
   const isScrollingRef = useRef(false);
@@ -38,6 +37,8 @@ export const PullToRefresh: React.FC<PullToRefreshProps> = ({
   const initialTouchTimeRef = useRef<number | null>(null);
   // Minimum travel distance before determining it's a deliberate pull
   const minPullDistance = 15;
+  // Add a strict tolerance for what's considered "top" of the page
+  const topScrollThreshold = 1; // Only activate when scrollTop <= 1px
 
   useEffect(() => {
     const container = containerRef.current;
@@ -51,15 +52,22 @@ export const PullToRefresh: React.FC<PullToRefreshProps> = ({
       initialTouchTimeRef.current = Date.now();
       
       // Store the initial scroll position
-      scrollStartPosRef.current = container.scrollTop;
+      const scrollTop = Math.max(0, container.scrollTop);
       
-      // Only allow pull-to-refresh when at the top of the content
-      if (container.scrollTop <= 0) {
+      // Only allow pull-to-refresh when exactly at the top of the content
+      // Using a strict threshold (1px) to ensure we're really at the top
+      if (scrollTop <= topScrollThreshold) {
         startYRef.current = e.touches[0].clientY;
         isScrollingRef.current = false;
       } else {
         // If not at the top, mark as scrolling
         isScrollingRef.current = true;
+        
+        // Reset any pull state that might be lingering
+        if (isPulling) {
+          setPullDistance(0);
+          setIsPulling(false);
+        }
       }
     };
 
@@ -67,9 +75,11 @@ export const PullToRefresh: React.FC<PullToRefreshProps> = ({
       // Skip if already scrolling, refreshing, or pull-to-refresh is disabled
       if (isScrollingRef.current || isRefreshing || disabled) return;
       
-      // Check if we're not at the top
-      if (container.scrollTop > 5) {
-        // If scrolled down even a bit, assume user wants to scroll, not pull
+      const scrollTop = Math.max(0, container.scrollTop);
+      
+      // Only continue with pull gesture if we're exactly at the top
+      if (scrollTop > topScrollThreshold) {
+        // If even slightly scrolled down, treat as regular scroll
         isScrollingRef.current = true;
         
         // Reset any pull state
@@ -81,8 +91,8 @@ export const PullToRefresh: React.FC<PullToRefreshProps> = ({
         return;
       }
 
-      // If we started a pull gesture and still at the top
-      if (startYRef.current !== null && container.scrollTop <= 0) {
+      // If we started a pull gesture and are still at the top
+      if (startYRef.current !== null && scrollTop <= topScrollThreshold) {
         currentYRef.current = e.touches[0].clientY;
         const delta = currentYRef.current - startYRef.current;
         
@@ -127,12 +137,13 @@ export const PullToRefresh: React.FC<PullToRefreshProps> = ({
       startYRef.current = null;
       currentYRef.current = null;
       initialTouchTimeRef.current = null;
+      isScrollingRef.current = false;
     };
 
     // Function to handle regular scrolling without refresh behavior
     const handleScroll = () => {
       // If we're scrolling away from the top, reset the pull state
-      if (container.scrollTop > 10 && startYRef.current !== null) {
+      if (container.scrollTop > topScrollThreshold && startYRef.current !== null) {
         startYRef.current = null;
         currentYRef.current = null;
         isScrollingRef.current = true;
