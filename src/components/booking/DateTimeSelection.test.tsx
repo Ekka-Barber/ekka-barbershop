@@ -1,3 +1,4 @@
+
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { DateTimeSelection } from './DateTimeSelection';
@@ -102,7 +103,18 @@ const mockBookingContextValue = {
   isLoadingSlots: false,
   slotError: null,
   fetchAvailableSlots: vi.fn(),
-  getTransformedServices: vi.fn(() => mockBookingContextValue.selectedServices),
+  // Fix the getTransformedServices implementation to return objects with the expected shape
+  getTransformedServices: vi.fn((language) => [
+    {
+      id: '1',
+      name: language === 'ar' ? 'قص شعر' : 'Haircut',
+      price: 30,
+      duration: 30,
+      originalPrice: undefined,
+      isBasePackageService: false,
+      isPackageAddOn: false
+    }
+  ]),
 };
 
 describe('DateTimeSelection Component', () => {
