@@ -1,0 +1,91 @@
+
+import { lazy, Suspense } from 'react';
+import { TabsContent } from '@/components/ui/tabs';
+import { Separator } from '@/components/ui/separator';
+import { ErrorBoundary } from '@/components/common/ErrorBoundary';
+import { ServicesTab } from './ServicesTab';
+
+// Lazy-loaded components
+const FileManagement = lazy(() => import('@/components/admin/FileManagement').then(mod => ({ default: mod.FileManagement })));
+const QRCodeManager = lazy(() => import('@/components/admin/QRCodeManager'));
+const BookingManagement = lazy(() => import('@/components/admin/booking-management/BookingManagement').then(mod => ({ default: mod.BookingManagement })));
+const PackageManagement = lazy(() => import('@/components/admin/package-management/PackageManagement').then(mod => ({ default: mod.PackageManagement })));
+const EmployeeTab = lazy(() => import('@/components/admin/employee-management/EmployeeTab').then(mod => ({ default: mod.EmployeeTab })));
+const UiElementsManager = lazy(() => import('@/components/admin/ui-elements/UiElementsManager').then(mod => ({ default: mod.UiElementsManager })));
+
+// Loading component for Suspense
+const TabLoader = () => (
+  <div className="flex items-center justify-center p-8">
+    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+  </div>
+);
+
+export const TabContent = () => {
+  return (
+    <>
+      <TabsContent value="services" className="space-y-6">
+        <ServicesTab />
+      </TabsContent>
+
+      <TabsContent value="packages" className="space-y-4">
+        <ErrorBoundary>
+          <Suspense fallback={<TabLoader />}>
+            <PackageManagement />
+          </Suspense>
+        </ErrorBoundary>
+      </TabsContent>
+
+      <TabsContent value="bookings" className="space-y-4">
+        <ErrorBoundary>
+          <Suspense fallback={<TabLoader />}>
+            <BookingManagement />
+          </Suspense>
+        </ErrorBoundary>
+      </TabsContent>
+      
+      <TabsContent value="employee" className="space-y-4">
+        <ErrorBoundary>
+          <Suspense fallback={<TabLoader />}>
+            <EmployeeTab />
+          </Suspense>
+        </ErrorBoundary>
+      </TabsContent>
+
+      <TabsContent value="files" className="space-y-4">
+        <h2 className="text-2xl font-bold">
+          File Management
+        </h2>
+        <Separator />
+        <ErrorBoundary>
+          <Suspense fallback={<TabLoader />}>
+            <FileManagement />
+          </Suspense>
+        </ErrorBoundary>
+      </TabsContent>
+
+      <TabsContent value="qrcodes" className="space-y-4">
+        <h2 className="text-2xl font-bold">
+          QR Code Management
+        </h2>
+        <Separator />
+        <ErrorBoundary>
+          <Suspense fallback={<TabLoader />}>
+            <QRCodeManager />
+          </Suspense>
+        </ErrorBoundary>
+      </TabsContent>
+
+      <TabsContent value="ui-elements" className="space-y-4">
+        <h2 className="text-2xl font-bold">
+          UI Elements Management
+        </h2>
+        <Separator />
+        <ErrorBoundary>
+          <Suspense fallback={<TabLoader />}>
+            <UiElementsManager />
+          </Suspense>
+        </ErrorBoundary>
+      </TabsContent>
+    </>
+  );
+};
