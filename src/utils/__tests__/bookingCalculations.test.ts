@@ -1,4 +1,3 @@
-
 import { 
   calculateDiscountedPrice, 
   calculateTotalPrice, 
@@ -8,7 +7,7 @@ import {
 } from '../bookingCalculations';
 
 // Explicit imports for Jest functions
-import { describe, expect, it } from '@jest/globals';
+// import { describe, expect, it } from '@jest/globals';
 
 describe('Booking Calculations Utility', () => {
   describe('calculateDiscountedPrice', () => {
