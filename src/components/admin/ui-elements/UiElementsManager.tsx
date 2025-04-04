@@ -13,6 +13,7 @@ import { IconSelectorDialog } from './IconSelectorDialog';
 import * as LucideIcons from 'lucide-react';
 import React from 'react';
 import type { LucideIcon } from 'lucide-react';
+import { Tables } from '@/types/supabase';
 
 interface UiElement {
   id: string;
@@ -116,7 +117,6 @@ export const UiElementsManager = () => {
   const [editingElement, setEditingElement] = useState<UiElement | null>(null);
   const [iconElement, setIconElement] = useState<UiElement | null>(null);
 
-  // Fetch UI elements
   const { data: elements, isLoading } = useQuery({
     queryKey: ['ui-elements'],
     queryFn: async () => {
@@ -130,7 +130,6 @@ export const UiElementsManager = () => {
     }
   });
 
-  // Update visibility mutation
   const updateVisibilityMutation = useMutation({
     mutationFn: async ({ id, is_visible }: { id: string; is_visible: boolean }) => {
       const { error } = await supabase
@@ -157,7 +156,6 @@ export const UiElementsManager = () => {
     },
   });
 
-  // Update display order mutation
   const updateOrderMutation = useMutation({
     mutationFn: async (elements: UiElement[]) => {
       const updates = elements.map((element, index) => ({
@@ -167,7 +165,7 @@ export const UiElementsManager = () => {
 
       const { error } = await supabase
         .from('ui_elements')
-        .upsert(updates as Tables<'ui_elements'>[]);
+        .upsert(updates as any);
       
       if (error) throw error;
     },
@@ -188,7 +186,6 @@ export const UiElementsManager = () => {
     },
   });
 
-  // Handle drag end
   const handleDragEnd = (result: DropResult) => {
     if (!result.destination || !elements) return;
 

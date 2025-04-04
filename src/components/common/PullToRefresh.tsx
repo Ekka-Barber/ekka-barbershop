@@ -2,7 +2,7 @@
 import React, { useMemo } from 'react';
 import { usePullToRefresh } from '@/hooks/usePullToRefresh';
 import { RefreshIndicator } from './pull-to-refresh/RefreshIndicator';
-import { getPlatformPullSettings } from '@/utils/platformUtils';
+import { getPlatformPullSettings, PlatformPullSettings } from '@/utils/platformUtils';
 
 interface PullToRefreshProps {
   onRefresh: () => Promise<void>;
@@ -30,7 +30,7 @@ export const PullToRefresh: React.FC<PullToRefreshProps> = ({
   autoDisableOnPlatforms = true,
 }) => {
   // Get platform-specific settings
-  const platformSettings = useMemo(() => 
+  const platformSettings: PlatformPullSettings = useMemo(() => 
     autoDisableOnPlatforms ? getPlatformPullSettings() : {}, 
   [autoDisableOnPlatforms]);
 

@@ -1,4 +1,3 @@
-
 /**
  * Detects if the current device is running iOS
  */
@@ -30,9 +29,18 @@ export const hasOverscrollBehaviorSupport = (): boolean => {
 };
 
 /**
+ * Platform-specific pull-to-refresh settings type
+ */
+export interface PlatformPullSettings {
+  disabled?: boolean;
+  pullResistance?: number;
+  topScrollThreshold?: number;
+}
+
+/**
  * Provides appropriate pull-to-refresh settings based on the platform
  */
-export const getPlatformPullSettings = () => {
+export const getPlatformPullSettings = (): PlatformPullSettings => {
   if (isIOS()) {
     return {
       // iOS has native pull-to-refresh that conflicts with custom implementations
