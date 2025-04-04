@@ -1,3 +1,4 @@
+
 /**
  * Functions for managing offline capabilities and service worker registration
  */
@@ -9,10 +10,17 @@
 export const registerServiceWorker = async (): Promise<ServiceWorkerRegistration | null> => {
   if ('serviceWorker' in navigator) {
     try {
+      // Unregister any existing service workers first to ensure clean installation
+      const existingRegistrations = await navigator.serviceWorker.getRegistrations();
+      for (const registration of existingRegistrations) {
+        await registration.unregister();
+      }
+      
       // Use the updated registration method with more options
       const registration = await navigator.serviceWorker.register('/service-worker.js', {
         scope: '/',
-        updateViaCache: 'none' // Ensure fresh service worker checks
+        updateViaCache: 'none', // Ensure fresh service worker checks
+        type: 'classic'
       });
       
       // Log successful registration
@@ -152,15 +160,15 @@ export const sendMessageToServiceWorker = async (message: any): Promise<void> =>
 export const forceServiceWorkerUpdate = async (): Promise<boolean> => {
   if ('serviceWorker' in navigator) {
     try {
-      const registration = await navigator.serviceWorker.getRegistration();
-      if (registration) {
-        await registration.update();
-        if (registration.waiting) {
-          // Tell the waiting service worker to activate
-          registration.waiting.postMessage({ type: 'SKIP_WAITING' });
-          return true;
-        }
+      // Unregister any existing service workers
+      const registrations = await navigator.serviceWorker.getRegistrations();
+      for (const registration of registrations) {
+        await registration.unregister();
       }
+      
+      // Reload the page to get the new service worker
+      window.location.reload();
+      return true;
     } catch (error) {
       console.error('Failed to update service worker:', error);
     }

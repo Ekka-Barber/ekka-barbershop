@@ -8,15 +8,29 @@ import './index.css';
 import { registerServiceWorker } from '@/services/offlineSupport';
 
 // Register service worker for offline support
-registerServiceWorker().catch(error => {
-  console.error('Service worker registration failed:', error);
-});
+// We'll register it after a slight delay to prioritize initial rendering
+setTimeout(() => {
+  registerServiceWorker().catch(error => {
+    console.error('Service worker registration failed:', error);
+  });
+}, 3000);
 
 // Create a client
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false, // Prevent refetch on window focus
+      retry: 1, // Limit retries to reduce network activity
+      staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
+    },
+  },
+});
 
 const rootElement = document.getElementById('root');
 if (!rootElement) throw new Error('Failed to find the root element');
+
+// Apply momentum scrolling to root element
+rootElement.classList.add('momentum-scroll');
 
 const root = createRoot(rootElement);
 

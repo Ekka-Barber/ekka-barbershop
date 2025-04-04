@@ -11,6 +11,7 @@ interface PullToRefreshProps {
   backgroundColor?: string;
   pullingContent?: React.ReactNode;
   refreshingContent?: React.ReactNode;
+  disabled?: boolean; // New prop to disable pull-to-refresh
 }
 
 export const PullToRefresh: React.FC<PullToRefreshProps> = ({
@@ -21,6 +22,7 @@ export const PullToRefresh: React.FC<PullToRefreshProps> = ({
   backgroundColor = 'white',
   pullingContent,
   refreshingContent,
+  disabled = false,
 }) => {
   const [isPulling, setIsPulling] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -30,24 +32,52 @@ export const PullToRefresh: React.FC<PullToRefreshProps> = ({
   const currentYRef = useRef<number | null>(null);
   const scrollStartPosRef = useRef(0);
   const reducedMotion = prefersReducedMotion();
+  // Track if user intended to scroll rather than pull
+  const isScrollingRef = useRef(false);
+  // Track the initial touch to determine pull vs scroll intent
+  const initialTouchTimeRef = useRef<number | null>(null);
+  // Minimum travel distance before determining it's a deliberate pull
+  const minPullDistance = 15;
 
   useEffect(() => {
     const container = containerRef.current;
-    if (!container) return;
+    if (!container || disabled) return;
 
     const handleTouchStart = (e: TouchEvent) => {
+      // Skip if we're in the process of refreshing
+      if (isRefreshing) return;
+      
+      // Store the initial touch time to determine intent
+      initialTouchTimeRef.current = Date.now();
+      
       // Store the initial scroll position
       scrollStartPosRef.current = container.scrollTop;
       
       // Only allow pull-to-refresh when at the top of the content
       if (container.scrollTop <= 0) {
         startYRef.current = e.touches[0].clientY;
+        isScrollingRef.current = false;
+      } else {
+        // If not at the top, mark as scrolling
+        isScrollingRef.current = true;
       }
     };
 
     const handleTouchMove = (e: TouchEvent) => {
-      // Immediately allow normal scrolling if we're not at the top
-      if (container.scrollTop > 0) {
+      // Skip if already scrolling, refreshing, or pull-to-refresh is disabled
+      if (isScrollingRef.current || isRefreshing || disabled) return;
+      
+      // Check if we're not at the top
+      if (container.scrollTop > 5) {
+        // If scrolled down even a bit, assume user wants to scroll, not pull
+        isScrollingRef.current = true;
+        
+        // Reset any pull state
+        if (isPulling) {
+          setPullDistance(0);
+          setIsPulling(false);
+          startYRef.current = null;
+        }
         return;
       }
 
@@ -56,39 +86,47 @@ export const PullToRefresh: React.FC<PullToRefreshProps> = ({
         currentYRef.current = e.touches[0].clientY;
         const delta = currentYRef.current - startYRef.current;
         
-        // Only activate pull-to-refresh if pulling down
-        if (delta > 0) {
-          // Apply resistance to the pull (makes it harder to pull down)
-          const newDistance = Math.min(delta * 0.4, maxPullDownDistance);
+        // Only activate pull-to-refresh if pulling down and moved enough distance
+        if (delta > minPullDistance) {
+          // Apply more resistance to the pull (makes it harder to pull down)
+          const newDistance = Math.min(delta * 0.3, maxPullDistance);
           setPullDistance(newDistance);
           setIsPulling(true);
           
-          // Prevent default scrolling behavior only when pulling down
+          // Prevent default scrolling behavior only when explicitly pulling down
           e.preventDefault();
         }
       }
     };
 
     const handleTouchEnd = async () => {
-      if (isPulling) {
-        if (pullDistance >= pullDownThreshold) {
-          setIsRefreshing(true);
-          setPullDistance(0);
-          setIsPulling(false);
-          
-          try {
-            await onRefresh();
-          } finally {
-            setIsRefreshing(false);
-          }
-        } else {
-          setPullDistance(0);
-          setIsPulling(false);
-        }
+      // Skip if not pulling or pull-to-refresh is disabled
+      if (!isPulling || disabled) return;
+      
+      // Check if the pull was intentional by evaluating pull distance and time
+      const touchDuration = initialTouchTimeRef.current ? Date.now() - initialTouchTimeRef.current : 0;
+      const wasIntentionalPull = pullDistance >= pullDownThreshold && touchDuration > 100;
+      
+      if (wasIntentionalPull) {
+        setIsRefreshing(true);
+        setPullDistance(0);
+        setIsPulling(false);
         
-        startYRef.current = null;
-        currentYRef.current = null;
+        try {
+          await onRefresh();
+        } finally {
+          setIsRefreshing(false);
+        }
+      } else {
+        // Not an intentional pull, reset
+        setPullDistance(0);
+        setIsPulling(false);
       }
+      
+      // Reset all refs
+      startYRef.current = null;
+      currentYRef.current = null;
+      initialTouchTimeRef.current = null;
     };
 
     // Function to handle regular scrolling without refresh behavior
@@ -97,6 +135,7 @@ export const PullToRefresh: React.FC<PullToRefreshProps> = ({
       if (container.scrollTop > 10 && startYRef.current !== null) {
         startYRef.current = null;
         currentYRef.current = null;
+        isScrollingRef.current = true;
         if (isPulling) {
           setPullDistance(0);
           setIsPulling(false);
@@ -117,7 +156,16 @@ export const PullToRefresh: React.FC<PullToRefreshProps> = ({
       container.removeEventListener('touchcancel', handleTouchEnd);
       container.removeEventListener('scroll', handleScroll);
     };
-  }, [isPulling, pullDistance, pullDownThreshold, maxPullDownDistance, onRefresh]);
+  }, [isPulling, pullDistance, pullDownThreshold, maxPullDistance, onRefresh, isRefreshing, disabled]);
+
+  // If disabled, just render children directly
+  if (disabled) {
+    return (
+      <div className="h-full w-full overflow-auto overscroll-contain" ref={containerRef}>
+        {children}
+      </div>
+    );
+  }
 
   // Default pulling content
   const defaultPullingContent = (
@@ -154,7 +202,7 @@ export const PullToRefresh: React.FC<PullToRefreshProps> = ({
       
       <div
         ref={containerRef}
-        className="h-full w-full overflow-y-auto overscroll-contain"
+        className="h-full w-full overflow-y-auto overscroll-contain momentum-scroll"
         style={{
           transition: reducedMotion ? 'none' : 'transform 0.2s ease',
           transform: isPulling ? `translateY(${pullDistance}px)` : 

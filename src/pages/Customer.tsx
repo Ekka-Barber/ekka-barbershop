@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -206,9 +207,16 @@ const Customer = () => {
     });
   };
 
+  // Detect if it's an iOS device
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
+
   return (
     <AppLayout>
-      <PullToRefresh onRefresh={handleRefresh}>
+      <PullToRefresh 
+        onRefresh={handleRefresh}
+        pullDownThreshold={100} // Make it harder to trigger
+        disabled={isIOS} // Disable on iOS devices that have native refresh
+      >
         <div className="flex flex-1 flex-col justify-start items-center max-w-md mx-auto">
           <div className="text-center flex-shrink-0 mx-auto pt-safe w-full">
             <img 

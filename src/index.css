@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -10,6 +11,34 @@
   .hide-scrollbar::-webkit-scrollbar {
     display: none;  /* Safari and Chrome */
   }
+  
+  /* Add momentum scrolling utility class */
+  .momentum-scroll {
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+    overscroll-behavior-y: contain;
+  }
+}
+
+/* Prevent pull-to-refresh on the body level */
+html, body {
+  overscroll-behavior-y: contain;
+  overscroll-behavior-x: none;
+  -webkit-overflow-scrolling: touch;
+  height: 100%;
+  position: fixed;
+  width: 100%;
+  overflow: hidden;
+}
+
+/* Make the root div scrollable instead */
+#root {
+  height: 100%;
+  width: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
 }
 
 @layer base {
@@ -81,7 +110,7 @@
     @apply border-border font-sans;
   }
   body {
-    @apply bg-background text-foreground font-sans min-h-screen overflow-x-hidden;
+    @apply bg-background text-foreground font-sans overflow-x-hidden;
   }
   html {
     @apply h-full;

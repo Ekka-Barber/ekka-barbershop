@@ -1,9 +1,9 @@
 
 // Service Worker for Ekka Barbershop PWA
-// Version: 1.0.0
+// Version: 1.0.1 - Fixed scroll refreshes
 
 // Cache name - update this when making significant changes
-const CACHE_NAME = 'ekka-v1';
+const CACHE_NAME = 'ekka-v1.1';
 
 // Resources to cache immediately on service worker install
 const INITIAL_CACHED_RESOURCES = [
@@ -43,27 +43,48 @@ const cleanupOldCaches = async () => {
   return Promise.all(cacheCleanupPromises);
 };
 
-// Handle fetch requests with a network-first, cache-fallback strategy
+// Handle fetch requests with a cache-first, network-fallback strategy
+// Changed from network-first to cache-first for improved mobile experience
 const handleFetch = async (event) => {
   // Skip caching for non-GET requests (POST, DELETE, etc.)
   if (event.request.method !== 'GET') {
     return fetch(event.request);
   }
   
-  // For navigation requests, try network first then fallback to cache
+  // First check if the request is a navigation request
   if (event.request.mode === 'navigate') {
     try {
-      // Try network first
-      const networkResponse = await fetch(event.request);
-      return networkResponse;
-    } catch (error) {
-      // Network failed, try cache
+      // Check cache first
       const cachedResponse = await caches.match(event.request);
       if (cachedResponse) {
+        // Return cached response and update cache in background
+        fetch(event.request)
+          .then(networkResponse => {
+            if (networkResponse.ok) {
+              const clonedResponse = networkResponse.clone();
+              caches.open(CACHE_NAME).then(cache => {
+                cache.put(event.request, clonedResponse);
+              });
+            }
+          })
+          .catch(() => {/* ignore fetch errors */});
+        
         return cachedResponse;
       }
       
-      // If cache fails too, show offline page
+      // If not in cache, use network
+      const networkResponse = await fetch(event.request);
+      
+      // Cache the response for next time
+      if (networkResponse.ok) {
+        const clonedResponse = networkResponse.clone();
+        const cache = await caches.open(CACHE_NAME);
+        cache.put(event.request, clonedResponse);
+      }
+      
+      return networkResponse;
+    } catch (error) {
+      // Both cache and network failed, show offline page
       return caches.match('/offline.html');
     }
   }
@@ -74,17 +95,19 @@ const handleFetch = async (event) => {
     if (!event.request.url.includes('/api/')) {
       const cachedResponse = await caches.match(event.request);
       if (cachedResponse) {
-        // Return cached response and update cache in background
-        fetch(event.request)
-          .then(response => {
-            if (response.ok) {
-              const clonedResponse = response.clone();
-              caches.open(CACHE_NAME).then(cache => {
-                cache.put(event.request, clonedResponse);
-              });
-            }
-          })
-          .catch(() => {/* ignore fetch errors */});
+        // Return cached response and update cache in background (only if not navigating)
+        if (navigator.onLine && event.request.mode !== 'navigate') {
+          fetch(event.request)
+            .then(response => {
+              if (response.ok) {
+                const clonedResponse = response.clone();
+                caches.open(CACHE_NAME).then(cache => {
+                  cache.put(event.request, clonedResponse);
+                });
+              }
+            })
+            .catch(() => {/* ignore fetch errors */});
+        }
         
         return cachedResponse;
       }
