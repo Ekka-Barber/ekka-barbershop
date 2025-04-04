@@ -53,19 +53,19 @@ export const useReviews = (language: Language) => {
         const response = await fetchBranchReviews(branch.google_place_id, language);
         
         if (response.status === 'OK' && response.reviews && response.reviews.length > 0) {
-          // Get all 4+ star reviews
+          // Get only 5-star reviews (changed from 4+ to exactly 5)
           const branchReviews = response.reviews
-            .filter(review => review.rating >= 4)
+            .filter(review => review.rating === 5)
             .map(review => ({
               ...review,
               branch_name: branch.name,
               branch_name_ar: branch.name_ar
             }));
             
-          logger.debug(`Found ${branchReviews.length} quality reviews for branch ${branch.name}`);
+          logger.debug(`Found ${branchReviews.length} 5-star reviews for branch ${branch.name}`);
           allReviews.push(...branchReviews);
         } else {
-          logger.debug(`No quality reviews or error for branch ${branch.name}: ${response.error || response.error_message || 'No reviews returned'}`);
+          logger.debug(`No 5-star reviews or error for branch ${branch.name}: ${response.error || response.error_message || 'No reviews returned'}`);
         }
       }
       
@@ -111,19 +111,20 @@ export const useReviews = (language: Language) => {
   // Process and store all reviews when data changes
   useEffect(() => {
     if (reviewsData && reviewsData.length > 0) {
-      logger.debug(`Total quality reviews fetched: ${reviewsData.length}`);
+      logger.debug(`Total 5-star reviews fetched: ${reviewsData.length}`);
       
       // Store all reviews in our pool
       allReviewsPool.current = reviewsData;
       
-      // Get 12 random reviews for display (increased from 8)
-      const randomSelection = getRandomReviews(reviewsData, 12);
-      setReviews(randomSelection);
+      // Make sure we display at least all available reviews up to 15
+      const reviewsToDisplay = Math.min(15, reviewsData.length);
+      const randomSelection = getRandomReviews(reviewsData, reviewsToDisplay);
       
-      // Set display reviews
+      logger.debug(`Displaying ${randomSelection.length} reviews out of ${reviewsData.length} available`);
+      setReviews(randomSelection);
       setDisplayedReviews(randomSelection);
     } else if (reviewsData) {
-      logger.debug("No quality reviews found across all branches.");
+      logger.debug("No 5-star reviews found across all branches.");
       setReviews([]);
       setDisplayedReviews([]);
     }
