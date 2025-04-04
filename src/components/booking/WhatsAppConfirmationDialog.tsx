@@ -66,7 +66,7 @@ export const WhatsAppConfirmationDialog = ({
             {selectedServices.length > 0 && (
               <p>
                 <strong>{language === 'ar' ? 'الخدمات:' : 'Services:'}</strong> 
-                {selectedServices.map(s => s.name).join(', ')}
+                {selectedServices.map(s => language === 'ar' ? s.name_ar : s.name_en).join(', ')}
               </p>
             )}
             {branch && (

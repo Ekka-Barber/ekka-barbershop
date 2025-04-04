@@ -57,6 +57,7 @@ export const PackageBanner = ({
       
       {showSuccess && (
         <ValidationOverlay 
+          isValidating={false}
           isSuccess={true} 
           successMessage={t('package.added')}
         />

@@ -7,6 +7,7 @@ import { LoadingState } from "@/components/booking/LoadingState";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { logger } from "@/utils/logger";
 import { ValidationOverlay } from "@/components/booking/steps/components/ValidationOverlay";
+import { cn } from "@/lib/utils";
 
 interface ServiceGridProps {
   services: Service[];
@@ -75,6 +76,7 @@ export const ServiceGrid = ({
       
       {error && (
         <ValidationOverlay 
+          isValidating={false}
           hasError={true} 
           errorMessage={error.message || t('services.error')} 
           onRetry={onRetry} 
@@ -99,6 +101,3 @@ export const ServiceGrid = ({
     </div>
   );
 };
-
-// Add the import for cn utility
-import { cn } from "@/lib/utils";

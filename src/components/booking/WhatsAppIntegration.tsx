@@ -198,6 +198,7 @@ export const WhatsAppIntegration = ({
       
       {validationError && (
         <ValidationOverlay 
+          isValidating={false}
           hasError={true}
           errorMessage={validationError}
           onRetry={handleRetry}
@@ -206,6 +207,7 @@ export const WhatsAppIntegration = ({
       
       {isSuccess && (
         <ValidationOverlay 
+          isValidating={false}
           isSuccess={true}
           successMessage={language === 'ar' 
             ? 'تم فتح واتساب بنجاح' 
