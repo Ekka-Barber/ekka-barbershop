@@ -55,7 +55,7 @@ serve(async (req) => {
 
     console.log(`Processing request for placeId: ${placeId}, language: ${language}`);
     
-    // Construct the Google Places API URL
+    // Construct the Google Places API URL with explicit language parameter
     const googlePlacesUrl = new URL('https://maps.googleapis.com/maps/api/place/details/json');
     googlePlacesUrl.searchParams.set('place_id', placeId);
     googlePlacesUrl.searchParams.set('fields', 'reviews');
@@ -96,7 +96,8 @@ serve(async (req) => {
     
     return new Response(JSON.stringify({
       status: data.status,
-      reviews: data.result?.reviews || []
+      reviews: data.result?.reviews || [],
+      language: language // Include language in response for debugging
     }), {
       headers: {
         'Content-Type': 'application/json',

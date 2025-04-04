@@ -49,8 +49,9 @@ export const useReviews = (language: Language) => {
           continue;
         }
         
-        logger.debug(`Fetching reviews for branch: ${branch.name}`);
-        // Make sure we pass the language parameter correctly
+        logger.debug(`Fetching reviews for branch: ${branch.name}, language: ${language}`);
+        
+        // Explicitly pass the language parameter to ensure it's used in the API call
         const response = await fetchBranchReviews(branch.google_place_id, language);
         
         if (response.status === 'OK' && response.reviews && response.reviews.length > 0) {
@@ -63,18 +64,18 @@ export const useReviews = (language: Language) => {
               branch_name_ar: branch.name_ar
             }));
             
-          logger.debug(`Found ${branchReviews.length} 5-star reviews for branch ${branch.name}`);
+          logger.debug(`Found ${branchReviews.length} 5-star reviews for branch ${branch.name} in ${language}`);
           allReviews.push(...branchReviews);
         } else {
-          logger.debug(`No 5-star reviews or error for branch ${branch.name}: ${response.error || response.error_message || 'No reviews returned'}`);
+          logger.debug(`No 5-star reviews or error for branch ${branch.name} in ${language}: ${response.error || response.error_message || 'No reviews returned'}`);
         }
       }
       
-      logger.debug(`Total reviews after fetching all branches: ${allReviews.length}`);
+      logger.debug(`Total reviews after fetching all branches for ${language}: ${allReviews.length}`);
       return allReviews;
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch reviews';
-      logger.error('Error fetching all branch reviews:', errorMessage);
+      logger.error(`Error fetching all branch reviews for ${language}:`, errorMessage);
       setError(errorMessage);
       return [];
     }
@@ -84,7 +85,8 @@ export const useReviews = (language: Language) => {
   const {
     data: reviewsData,
     isLoading: isReviewsLoading,
-    error: reviewsError
+    error: reviewsError,
+    refetch
   } = useQuery({
     queryKey: ['google-reviews', language, branches],
     queryFn: fetchAllBranchReviews,
@@ -113,7 +115,7 @@ export const useReviews = (language: Language) => {
   // Process and store all reviews when data changes
   useEffect(() => {
     if (reviewsData && reviewsData.length > 0) {
-      logger.debug(`Total 5-star reviews fetched: ${reviewsData.length}, Language: ${language}`);
+      logger.info(`Total 5-star reviews fetched for ${language}: ${reviewsData.length}`);
       
       // Store all reviews in our pool
       allReviewsPool.current = reviewsData;
@@ -122,11 +124,11 @@ export const useReviews = (language: Language) => {
       const reviewsToDisplay = Math.min(15, reviewsData.length);
       const randomSelection = getRandomReviews(reviewsData, reviewsToDisplay);
       
-      logger.debug(`Displaying ${randomSelection.length} reviews out of ${reviewsData.length} available with language: ${language}`);
+      logger.info(`Displaying ${randomSelection.length} reviews out of ${reviewsData.length} available with language: ${language}`);
       setReviews(randomSelection);
       setDisplayedReviews(randomSelection);
     } else if (reviewsData) {
-      logger.debug(`No 5-star reviews found across all branches for language: ${language}`);
+      logger.warn(`No 5-star reviews found across all branches for language: ${language}`);
       setReviews([]);
       setDisplayedReviews([]);
     }
@@ -147,6 +149,7 @@ export const useReviews = (language: Language) => {
   return {
     displayedReviews,
     isLoading: isBranchesLoading || isReviewsLoading,
-    error
+    error,
+    refetch
   };
 };

@@ -8,18 +8,31 @@ import { ErrorState } from './review-states/ErrorState';
 import { ReviewModal } from './review-modal/ReviewModal';
 import { useReviews, Review } from './hooks/useReviews';
 import { ReviewsHeader } from './review-section/ReviewsHeader';
+import { PullToRefresh } from "@/components/common/PullToRefresh";
+import { useToast } from "@/components/ui/use-toast";
 
 export default function GoogleReviews() {
   const { language } = useLanguage();
+  const { toast } = useToast();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedReview, setSelectedReview] = useState<Review | null>(null);
   
-  const { displayedReviews, isLoading, error } = useReviews(language);
+  const { displayedReviews, isLoading, error, refetch } = useReviews(language);
 
   // Handle read more button click
   const handleReadMoreClick = (review: Review) => {
     setSelectedReview(review);
     setIsModalOpen(true);
+  };
+  
+  // Handle refresh
+  const handleRefresh = async () => {
+    await refetch();
+    toast({
+      title: language === 'ar' ? 'تم التحديث' : 'Refreshed',
+      description: language === 'ar' ? 'تم تحديث التقييمات' : 'Reviews have been updated',
+      duration: 2000,
+    });
   };
   
   return (
@@ -28,25 +41,33 @@ export default function GoogleReviews() {
         {/* Section header */}
         <ReviewsHeader />
 
-        {/* Loading State */}
-        {isLoading && (
-          <div className="overflow-x-auto -mx-4 px-4">
-            <div className="flex gap-4 pb-4">
-              {[...Array(3)].map((_, index) => <ReviewSkeleton key={`skeleton-${index}`} />)}
+        {/* Reviews Content with PullToRefresh */}
+        <PullToRefresh 
+          onRefresh={handleRefresh}
+          pullDownThreshold={80}
+          maxPullDownDistance={120}
+          disabled={false}
+        >
+          {/* Loading State */}
+          {isLoading && (
+            <div className="overflow-x-auto -mx-4 px-4">
+              <div className="flex gap-4 pb-4">
+                {[...Array(3)].map((_, index) => <ReviewSkeleton key={`skeleton-${index}`} />)}
+              </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* Error State */}
-        {error && !isLoading && <ErrorState error={error} language={language} />}
+          {/* Error State */}
+          {error && !isLoading && <ErrorState error={error} language={language} />}
 
-        {/* Empty State */}
-        {!isLoading && !error && displayedReviews.length === 0 && <NoReviews language={language} />}
+          {/* Empty State */}
+          {!isLoading && !error && displayedReviews.length === 0 && <NoReviews language={language} />}
 
-        {/* Reviews Display */}
-        {!isLoading && !error && displayedReviews.length > 0 && (
-          <ReviewCarousel reviews={displayedReviews} onReadMore={handleReadMoreClick} />
-        )}
+          {/* Reviews Display */}
+          {!isLoading && !error && displayedReviews.length > 0 && (
+            <ReviewCarousel reviews={displayedReviews} onReadMore={handleReadMoreClick} />
+          )}
+        </PullToRefresh>
         
         {/* Read More Modal */}      
         <ReviewModal 
