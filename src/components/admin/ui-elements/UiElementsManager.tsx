@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/types/supabase';
 import { Switch } from '@/components/ui/switch';
@@ -126,7 +127,7 @@ export const UiElementsManager = () => {
         .order('display_order', { ascending: true });
       
       if (error) throw error;
-      return data as unknown as UiElement[];
+      return data as UiElement[];
     }
   });
 
@@ -165,7 +166,7 @@ export const UiElementsManager = () => {
 
       const { error } = await supabase
         .from('ui_elements')
-        .upsert(updates as any);
+        .upsert(updates);
       
       if (error) throw error;
     },

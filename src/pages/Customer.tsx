@@ -109,7 +109,7 @@ const Customer = () => {
         logger.error("Error fetching UI elements:", error);
         throw error;
       }
-      return data as Tables<'ui_elements'>;
+      return data as Tables<'ui_elements'>[];
     }
   });
 
