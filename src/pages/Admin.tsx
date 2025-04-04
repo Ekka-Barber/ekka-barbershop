@@ -41,7 +41,7 @@ const Admin = () => {
   const tabNavigation = useMemo(() => {
     if (isMobile) {
       return (
-        <div className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t shadow-lg" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
+        <div className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t shadow-lg pb-[env(safe-area-inset-bottom)]">
           <TabsList className="w-full grid grid-cols-7 gap-1 p-2">
             <TabsTrigger value="services" className="flex flex-col items-center py-2 h-auto">
               <Home className="h-5 w-5 mb-1" />
