@@ -1,8 +1,8 @@
-
 import React from 'react';
-import { Package } from 'lucide-react';
+import { Package, Info } from 'lucide-react';
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useToast } from "@/hooks/use-toast";
+import { Button } from "@/components/ui/button";
 
 interface PackageBannerProps {
   isVisible: boolean;
