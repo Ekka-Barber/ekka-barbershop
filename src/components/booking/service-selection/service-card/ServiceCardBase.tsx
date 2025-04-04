@@ -27,10 +27,10 @@ export const ServiceCardBase = ({
   return (
     <motion.div 
       className={cn(
-        "border rounded-lg p-4 relative cursor-pointer",
-        "transition-all duration-150",
+        "border rounded-lg p-4 relative cursor-pointer shadow-sm",
+        "transition-all duration-150 hover:shadow-md",
         isSelected 
-          ? "border-[#e7bd71] bg-[#FDF9EF]" 
+          ? "border-[#e7bd71] bg-[#FDF9EF] shadow-[0_0_0_1px_rgba(231,189,113,0.3)]" 
           : "border-border hover:border-[#e7bd71]",
         className
       )}

@@ -215,15 +215,22 @@ export const usePackageDiscount = (
     };
   }, [addOnServices, forcePackageEnabled, hasBaseService, selectedServices]);
 
-  // Add the missing calculatePackageSavings function
+  // Calculate package savings function
   const calculatePackageSavings = useCallback(() => {
     if (!hasBaseService && !forcePackageEnabled) {
       return 0;
     }
     
-    const metrics = calculatePackageMetrics;
-    return metrics.savings;
-  }, [calculatePackageMetrics, hasBaseService, forcePackageEnabled]);
+    const originalTotal = addOnServices.reduce(
+      (total, service) => total + (service.originalPrice || service.price), 0
+    );
+    
+    const discountedTotal = addOnServices.reduce(
+      (total, service) => total + service.price, 0
+    );
+    
+    return originalTotal - discountedTotal;
+  }, [addOnServices, forcePackageEnabled, hasBaseService]);
 
   // Track base service selection
   useEffect(() => {
@@ -263,7 +270,7 @@ export const usePackageDiscount = (
     // Discount management and utilities
     applyPackageDiscounts,
     calculatePackageMetrics,
-    calculatePackageSavings,  // Added the missing function
+    calculatePackageSavings,
     getDiscountPercentage,
     setForcePackageEnabled,
     

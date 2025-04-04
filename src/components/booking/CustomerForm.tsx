@@ -6,17 +6,20 @@ import { CustomerDetails } from "@/types/booking";
 import { useCustomerFormValidation } from "@/hooks/useCustomerFormValidation";
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { useEffect } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface CustomerFormProps {
   customerDetails: CustomerDetails;
   onCustomerDetailsChange: (field: keyof CustomerDetails, value: string) => void;
   onValidationChange?: (isValid: boolean) => void;
+  isLoading?: boolean;
 }
 
 export const CustomerForm = ({
   customerDetails,
   onCustomerDetailsChange,
-  onValidationChange
+  onValidationChange,
+  isLoading = false
 }: CustomerFormProps) => {
   const { t, language } = useLanguage();
   
@@ -43,8 +46,12 @@ export const CustomerForm = ({
     }
   }, [isValid, onValidationChange]);
 
+  if (isLoading) {
+    return <CustomerFormSkeleton />;
+  }
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 px-1 md:px-4">
       <div className="space-y-4">
         <FormField
           name="name"
@@ -103,7 +110,7 @@ export const CustomerForm = ({
             <FormItem>
               <FormLabel>
                 {t('email')} <span className="text-destructive">*</span> 
-                <span className="text-sm text-muted-foreground ml-1">
+                <span className="text-xs text-muted-foreground ml-1">
                   {language === 'ar' ? '( لغرض تنبيهات الحجز )' : '(for appointment notifications)'}
                 </span>
               </FormLabel>
@@ -144,6 +151,20 @@ export const CustomerForm = ({
           )}
         />
       </div>
+    </div>
+  );
+};
+
+// Create a skeleton loader for the CustomerForm
+export const CustomerFormSkeleton = () => {
+  return (
+    <div className="space-y-6 animate-pulse px-1 md:px-4">
+      {[1, 2, 3, 4].map((i) => (
+        <div key={i} className="space-y-2">
+          <Skeleton className="h-4 w-20" />
+          <Skeleton className="h-10 w-full" />
+        </div>
+      ))}
     </div>
   );
 };

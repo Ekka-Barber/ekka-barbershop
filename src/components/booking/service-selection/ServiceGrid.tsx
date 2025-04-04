@@ -10,6 +10,7 @@ interface ServiceGridProps {
   onServiceClick: (service: Service) => void;
   onServiceToggle: (service: Service) => void;
   baseServiceId?: string;
+  isLoading?: boolean;
 }
 
 export const ServiceGrid = ({
@@ -17,7 +18,8 @@ export const ServiceGrid = ({
   selectedServices,
   onServiceClick,
   onServiceToggle,
-  baseServiceId
+  baseServiceId,
+  isLoading = false
 }: ServiceGridProps) => {
   const isMobile = useIsMobile();
 
@@ -30,7 +32,7 @@ export const ServiceGrid = ({
         isSelected={selectedServices.some(s => s.id === service.id)}
         onSelect={onServiceToggle}
         isBasePackageService={service.id === baseServiceId}
-        className=""
+        className="h-full" // Ensure consistent height
       />
     ));
   }, [services, selectedServices, onServiceToggle, baseServiceId]);
