@@ -1,45 +1,56 @@
 
-import { createContext, useContext, ReactNode } from 'react';
+import { createContext, useContext, ReactNode, useState } from 'react';
 import { useBooking } from '@/hooks/useBooking';
 import { SelectedService } from '@/types/service';
 import { CustomerDetails } from '@/types/booking';
 import { BookingStep } from '@/components/booking/BookingProgress';
 
 interface BookingContextType {
+  // Step management
   currentStep: string;
   setCurrentStep: (step: any) => void;
+  validateStep: () => boolean;
+  
+  // Service selection
   selectedServices: SelectedService[];
   setSelectedServices: (services: SelectedService[]) => void;
+  handleServiceToggle: (service: any, isPackageOperation?: boolean) => void;
+  handleServiceRemove: (serviceId: string) => void;
+  handleUpsellServiceAdd: (services: any[]) => void;
+  handlePackageServiceUpdate: (services: SelectedService[]) => void;
+  isUpdatingPackage: boolean;
+  
+  // Date & time selection
   selectedDate?: Date;
   setSelectedDate: (date: Date) => void;
   selectedTime?: string;
   setSelectedTime: (time: string) => void;
+  
+  // Barber selection
   selectedBarber?: string;
   setSelectedBarber: (barberId: string) => void;
+  selectedEmployee: any;
+  
+  // Customer details
   customerDetails: CustomerDetails;
   handleCustomerDetailsChange: (field: string, value: string) => void;
+  
+  // Calculations
   totalPrice: number;
   totalDuration: number;
-  handleServiceToggle: (service: any, isPackageOperation?: boolean) => void;
-  handleUpsellServiceAdd: (services: any[]) => void;
   
-  // Additional properties needed by BookingSteps and BookingNavigation
+  // Data
   categories: any[] | undefined;
   categoriesLoading: boolean;
   employees: any[] | undefined;
   employeesLoading: boolean;
-  selectedEmployee: any;
-  handlePackageServiceUpdate: (services: SelectedService[]) => void;
-  isUpdatingPackage: boolean;
   
-  // New properties for the refactored components
+  // Package related
   packageEnabled?: boolean;
   packageSettings?: any;
   hasBaseService?: boolean;
   enabledPackageServices?: any[];
   baseService?: any;
-  validateStep?: () => boolean;
-  handleServiceRemove?: (serviceId: string) => void;
   
   // Selected branch
   selectedBranch?: any;

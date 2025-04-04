@@ -63,42 +63,6 @@ export const StepRenderer: React.FC<StepRendererProps> = ({
   onRemoveService,
   onValidationChange
 }) => {
-  const [isFormValid, setIsFormValid] = useState(false);
-  
-  const handleFormValidationChange = (isValid: boolean) => {
-    console.log("StepRenderer: Form validation changed to:", isValid);
-    setIsFormValid(isValid);
-    
-    if (onValidationChange) {
-      console.log("StepRenderer: Calling parent onValidationChange with:", isValid);
-      onValidationChange(isValid);
-    }
-  };
-  
-  useEffect(() => {
-    if (currentStep === 'details' && customerDetails) {
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      const phoneRegex = /^05\d{8}$/;
-      
-      const isNameValid = customerDetails.name && customerDetails.name.trim() !== '';
-      const isPhoneValid = customerDetails.phone && phoneRegex.test(customerDetails.phone);
-      const isEmailValid = customerDetails.email && emailRegex.test(customerDetails.email);
-      
-      const isValid = isNameValid && isPhoneValid && isEmailValid;
-      
-      console.log("StepRenderer: Direct validation check:", { 
-        name: isNameValid, 
-        phone: isPhoneValid, 
-        email: isEmailValid,
-        overall: isValid
-      });
-      
-      if (isValid !== isFormValid) {
-        handleFormValidationChange(isValid);
-      }
-    }
-  }, [currentStep, customerDetails, isFormValid]);
-
   const renderStep = () => {
     switch (currentStep) {
       case 'services':
@@ -162,7 +126,7 @@ export const StepRenderer: React.FC<StepRendererProps> = ({
             <CustomerForm
               customerDetails={customerDetails}
               onCustomerDetailsChange={handleCustomerDetailsChange}
-              onValidationChange={handleFormValidationChange}
+              onValidationChange={onValidationChange}
             />
           </div>
         );

@@ -2,7 +2,7 @@
 import { useNavigate, useLocation } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { BookingHeader } from "@/components/booking/BookingHeader";
-import { BookingSteps } from "@/components/booking/BookingSteps";
+import { RefactoredBookingSteps } from "@/components/booking/RefactoredBookingSteps";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button"
@@ -111,7 +111,7 @@ export const BookingContainer = () => {
         
         {!branchLoading && branch && (
           <BookingProvider branch={branch}>
-            <BookingSteps branch={branch} />
+            <RefactoredBookingSteps branch={branch} />
           </BookingProvider>
         )}
         

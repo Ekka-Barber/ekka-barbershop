@@ -1,3 +1,4 @@
+
 import { useNavigate } from "react-router-dom";
 import { BookingStep } from "./BookingProgress";
 import { Button } from "@/components/ui/button";
@@ -34,8 +35,6 @@ export const BookingNavigation = ({
     useBookingContext();
 
   const selectedBarberName = employees?.find(e => e.id === selectedBarber)?.name || '';
-  
-  console.log('BookingNavigation isFormValid:', isFormValid);
   
   const handlePrevClick = () => {
     if (currentStepIndex > 0) {

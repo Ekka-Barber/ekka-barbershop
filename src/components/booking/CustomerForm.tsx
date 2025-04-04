@@ -1,12 +1,11 @@
+
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useState, useEffect } from "react";
 import { CustomerDetails } from "@/types/booking";
-import { identifyCustomer } from "@/utils/tiktokTracking";
 import { Check, AlertCircle } from "lucide-react";
-import { logger } from "@/utils/logger";
 
 interface CustomerFormProps {
   customerDetails: CustomerDetails;
@@ -53,23 +52,10 @@ export const CustomerForm = ({
     
     setErrors(newErrors);
     const isValid = Object.keys(newErrors).length === 0;
-
-    // Log validation results at debug level
-    logger.debug('CustomerForm validation:', { errors: newErrors, isValid });
     
     // Update parent component with validation state
     if (onValidationChange) {
-      logger.debug('Calling onValidationChange with:', isValid);
       onValidationChange(isValid);
-    }
-    
-    // If form is valid, identify customer for TikTok tracking
-    if (isValid) {
-      identifyCustomer({
-        email: customerDetails.email,
-        phone: customerDetails.phone,
-        id: `${customerDetails.email}_${customerDetails.phone}`
-      });
     }
     
     return isValid;

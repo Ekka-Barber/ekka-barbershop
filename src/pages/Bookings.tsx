@@ -1,3 +1,4 @@
+
 import { BookingContainer } from "@/components/booking/BookingContainer";
 import { ErrorBoundary } from "@/components/common/ErrorBoundary";
 import { useToast } from "@/hooks/use-toast";
@@ -19,7 +20,6 @@ const Bookings = () => {
   }, []);
 
   const handleError = (error: Error) => {
-    // Error handling is done through the UI toast
     toast({
       title: "An error occurred",
       description: "We encountered an issue while loading the booking interface. Please try again.",

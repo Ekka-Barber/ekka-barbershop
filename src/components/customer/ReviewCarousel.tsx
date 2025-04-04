@@ -42,7 +42,8 @@ export const ReviewCarousel = ({ reviews, onReadMore }: ReviewCarouselProps) => 
     >
       <CarouselContent>
         {reviews.map((review, index) => {
-          const isLongReview = review.text.length > MAX_CHARS_BEFORE_TRUNCATE;
+          const isLongReview = review.text && review.text.length > MAX_CHARS_BEFORE_TRUNCATE;
+          const rating = review.rating || 5;
           
           return (
             <CarouselItem 
@@ -58,7 +59,7 @@ export const ReviewCarousel = ({ reviews, onReadMore }: ReviewCarouselProps) => 
                         alt={review.author_name}
                         className="object-cover"
                       />
-                      <AvatarFallback>{review.author_name.charAt(0)}</AvatarFallback>
+                      <AvatarFallback>{review.author_name ? review.author_name.charAt(0) : '?'}</AvatarFallback>
                     </Avatar>
                     <div className="flex-1">
                       <h4 className="font-semibold text-gray-800">{review.author_name}</h4>
@@ -66,8 +67,11 @@ export const ReviewCarousel = ({ reviews, onReadMore }: ReviewCarouselProps) => 
                         {language === 'ar' ? review.branch_name_ar : review.branch_name}
                       </p>
                       <div className="flex items-center mt-1">
-                        {[...Array(5)].map((_, i) => (
+                        {[...Array(rating)].map((_, i) => (
                           <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                        ))}
+                        {[...Array(5 - rating)].map((_, i) => (
+                          <Star key={i + rating} className="w-4 h-4 text-gray-300" />
                         ))}
                       </div>
                     </div>
@@ -76,7 +80,7 @@ export const ReviewCarousel = ({ reviews, onReadMore }: ReviewCarouselProps) => 
                   <p className={cn("text-gray-600 text-sm leading-relaxed flex-grow", 
                     isLongReview ? "line-clamp-4" : ""
                   )}>
-                    {review.text}
+                    {review.text || (language === 'ar' ? 'مراجعة إيجابية' : 'Positive review')}
                   </p>
 
                   {isLongReview && (
