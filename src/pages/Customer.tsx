@@ -15,7 +15,7 @@ import { trackViewContent, trackButtonClick, trackLocationView } from "@/utils/t
 import { InstallAppPrompt } from "@/components/installation/InstallAppPrompt";
 import { PullToRefresh } from "@/components/common/PullToRefresh";
 import { useToast } from "@/components/ui/use-toast";
-import { hasNotch, isRunningAsStandalone, getSafeAreaInsets, getViewportDimensions } from "@/services/platformDetection";
+import { isRunningAsStandalone, getViewportDimensions } from "@/services/platformDetection";
 import freshaLogo from "@/assets/fresha-logo.svg";
 import boonusLogo from "@/assets/boonus-logo.svg";
 import GoogleReviews from "@/components/customer/GoogleReviews";
@@ -51,10 +51,8 @@ const Customer = () => {
   const [eidBookingsDialogOpen, setEidBookingsDialogOpen] = useState(false);
   const [locationDialogOpen, setLocationDialogOpen] = useState(false);
   const [viewportHeight, setViewportHeight] = useState(window.innerHeight);
-  const [safeAreaInsets, setSafeAreaInsets] = useState({ top: 0, bottom: 0 });
   const contentRef = useRef<HTMLDivElement>(null);
   const isStandalone = isRunningAsStandalone();
-  const deviceHasNotch = hasNotch();
   const [mapDialogOpen, setMapDialogOpen] = useState(false);
   const [selectedBranch, setSelectedBranch] = useState<Branch | null>(null);
 
@@ -62,12 +60,6 @@ const Customer = () => {
     const handleResize = () => {
       const { height } = getViewportDimensions();
       setViewportHeight(height);
-      
-      const insets = getSafeAreaInsets();
-      setSafeAreaInsets({
-        top: parseInt(insets.top || '0', 10),
-        bottom: parseInt(insets.bottom || '0', 10)
-      });
     };
 
     handleResize();
@@ -86,7 +78,7 @@ const Customer = () => {
       window.removeEventListener('orientationchange', handleResize);
       timeoutIds.forEach(id => clearTimeout(id));
     };
-  }, [deviceHasNotch, isStandalone]);
+  }, [isStandalone]);
 
   useEffect(() => {
     trackViewContent({
