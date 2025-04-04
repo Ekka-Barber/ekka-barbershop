@@ -13,6 +13,7 @@ import { OfflineNotification } from "./components/common/OfflineNotification";
 import { ErrorBoundary } from "./components/common/ErrorBoundary";
 import { registerServiceWorker } from "./services/offlineSupport";
 import { logger } from "@/utils/logger";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
 // Configure logger based on environment
 logger.configure({
@@ -30,6 +31,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const access = searchParams.get('access');
 
   if (access !== 'owner123') {
+    logger.warn("Unauthorized access attempt to admin route");
     return <Navigate to="/customer" replace />;
   }
 
@@ -40,7 +42,12 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 const ServiceWorkerRegistration = () => {
   useEffect(() => {
     const registerSW = async () => {
-      await registerServiceWorker();
+      try {
+        await registerServiceWorker();
+        logger.info("Service worker registered successfully");
+      } catch (error) {
+        logger.error("Failed to register service worker:", error);
+      }
     };
     registerSW();
   }, []);
@@ -50,6 +57,13 @@ const ServiceWorkerRegistration = () => {
 
 // Main App Component
 const App = () => {
+  const location = useLocation();
+  
+  // Log page navigation
+  useEffect(() => {
+    logger.info(`Page navigation: ${location.pathname}${location.search}`);
+  }, [location]);
+  
   // Log initialization in production (only useful warnings/errors) and more verbose in development
   logger.info(`App initializing in ${process.env.NODE_ENV} mode`);
   
@@ -73,7 +87,14 @@ const App = () => {
               path="/admin" 
               element={
                 <ProtectedRoute>
-                  <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
+                  <Suspense fallback={
+                    <div className="min-h-screen flex items-center justify-center">
+                      <div className="flex flex-col items-center">
+                        <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+                        <p className="mt-4 text-muted-foreground">Loading admin panel...</p>
+                      </div>
+                    </div>
+                  }>
                     <Admin />
                   </Suspense>
                 </ProtectedRoute>
@@ -87,6 +108,7 @@ const App = () => {
         <Toaster />
         <Sonner />
         <OfflineNotification />
+        <LanguageSwitcher />
       </TooltipProvider>
     </LanguageProvider>
   );

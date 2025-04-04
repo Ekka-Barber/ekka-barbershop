@@ -4,6 +4,7 @@ import { AlertCircle, CheckCircle, AlertTriangle, InfoIcon } from "lucide-react"
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { logger } from "@/utils/logger";
 
 type AlertVariant = 'error' | 'success' | 'warning' | 'info';
 
@@ -14,6 +15,8 @@ interface BookingAlertProps {
   className?: string;
   onClose?: () => void;
   compact?: boolean;
+  logLevel?: 'error' | 'warn' | 'info' | 'debug' | 'none';
+  logDetails?: Record<string, any>;
 }
 
 export const BookingAlert = ({
@@ -22,10 +25,35 @@ export const BookingAlert = ({
   variant = 'info',
   className,
   onClose,
-  compact = false
+  compact = false,
+  logLevel = 'info',
+  logDetails
 }: BookingAlertProps) => {
   const { language } = useLanguage();
   const isRTL = language === 'ar';
+  
+  // Log alert messages based on their variant and specified log level
+  React.useEffect(() => {
+    if (logLevel === 'none') return;
+    
+    const logMessage = `[${variant.toUpperCase()}] ${title ? `${title}: ` : ''}${message}`;
+    
+    switch (logLevel) {
+      case 'error':
+        logger.error(logMessage, logDetails);
+        break;
+      case 'warn':
+        logger.warn(logMessage, logDetails);
+        break;
+      case 'debug':
+        logger.debug(logMessage, logDetails);
+        break;
+      case 'info':
+      default:
+        logger.info(logMessage, logDetails);
+        break;
+    }
+  }, [variant, title, message, logLevel, logDetails]);
   
   // Icon and color based on variant
   const variantConfig = {
@@ -73,7 +101,10 @@ export const BookingAlert = ({
       </div>
       {onClose && (
         <button 
-          onClick={onClose} 
+          onClick={() => {
+            logger.debug(`Alert closed: ${variant} - ${message}`);
+            onClose();
+          }} 
           className="flex-shrink-0 text-gray-500 hover:text-gray-700 transition-colors"
           aria-label="Close"
         >
