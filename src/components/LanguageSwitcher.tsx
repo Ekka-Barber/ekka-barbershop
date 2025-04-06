@@ -1,3 +1,4 @@
+
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Globe } from "lucide-react";
 import { useEffect } from "react";
@@ -17,7 +18,6 @@ export const LanguageSwitcher = () => {
     setLanguage(nextLanguage);
   };
 
-  // Restore original button structure and apply Tailwind top/right classes
   return (
     <button 
       onClick={handleLanguageToggle}
@@ -29,7 +29,6 @@ export const LanguageSwitcher = () => {
         right-[calc(1.25rem+env(safe-area-inset-right))]
       `}
       aria-label={language === 'ar' ? "Switch to English" : "التحويل الى العربية"}
-      // Removed inline style
     >
       <Globe className="w-6 h-6" />
     </button>

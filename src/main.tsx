@@ -5,16 +5,7 @@ import { BrowserRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import App from './App.tsx';
 import './index.css';
-import { registerServiceWorker } from '@/services/offlineSupport';
 import { logger } from '@/utils/logger';
-
-// Register service worker for offline support
-// We'll register it after a slight delay to prioritize initial rendering
-setTimeout(() => {
-  registerServiceWorker().catch(error => {
-    logger.error('Service worker registration failed:', error);
-  });
-}, 3000);
 
 // Create a client
 const queryClient = new QueryClient({
@@ -35,6 +26,7 @@ rootElement.classList.add('momentum-scroll');
 
 const root = createRoot(rootElement);
 
+// Wrap App with React.StrictMode, QueryClientProvider, and BrowserRouter
 root.render(
   <React.StrictMode>
     <QueryClientProvider client={queryClient}>
@@ -44,3 +36,12 @@ root.render(
     </QueryClientProvider>
   </React.StrictMode>
 );
+
+// Register service worker after rendering for better initial load performance
+setTimeout(() => {
+  import('@/services/offlineSupport').then(({ registerServiceWorker }) => {
+    registerServiceWorker().catch(error => {
+      logger.error('Service worker registration failed:', error);
+    });
+  });
+}, 3000);

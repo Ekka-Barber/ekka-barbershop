@@ -38,7 +38,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
-// Create ServiceWorkerRegistration component
+// App component
 const App = () => {
   const location = useLocation();
   
