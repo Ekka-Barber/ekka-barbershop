@@ -1,5 +1,5 @@
 
-import { lazy, Suspense, useEffect } from "react";
+import { lazy, Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -11,7 +11,7 @@ import Offers from "./pages/Offers";
 import Bookings from "./pages/Bookings";
 import { OfflineNotification } from "./components/common/OfflineNotification";
 import { ErrorBoundary } from "./components/common/ErrorBoundary";
-import { registerServiceWorker } from "./services/offlineSupport";
+import { ServiceWorkerRegistration } from "./components/ServiceWorkerRegistration";
 import { logger } from "@/utils/logger";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
@@ -38,31 +38,12 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
-// Register service worker
-const ServiceWorkerRegistration = () => {
-  useEffect(() => {
-    const registerSW = async () => {
-      try {
-        await registerServiceWorker();
-        logger.info("Service worker registered successfully");
-      } catch (error) {
-        logger.error("Failed to register service worker:", error);
-      }
-    };
-    registerSW();
-  }, []);
-
-  return null;
-};
-
-// Main App Component
+// Create ServiceWorkerRegistration component
 const App = () => {
   const location = useLocation();
   
   // Log page navigation
-  useEffect(() => {
-    logger.info(`Page navigation: ${location.pathname}${location.search}`);
-  }, [location]);
+  logger.info(`Page navigation: ${location.pathname}${location.search}`);
   
   // Log initialization in production (only useful warnings/errors) and more verbose in development
   logger.info(`App initializing in ${process.env.NODE_ENV} mode`);
