@@ -339,12 +339,14 @@ const Customer = () => {
               )}
             </div>
 
-            <div className="w-full max-w-xs mx-auto my-4">
-              <Separator 
-                orientation="horizontal" 
-                className="bg-[#C4A36F]/30 h-[1px] w-full" 
-              />
-            </div>
+            {visibleElements.some(el => el.type === 'section' && el.name === 'google_reviews') && (
+              <div className="w-full max-w-xs mx-auto my-4">
+                <Separator 
+                  orientation="horizontal" 
+                  className="bg-[#C4A36F]/30 h-[1px] w-full" 
+                />
+              </div>
+            )}
 
             <div className="flex justify-center items-center space-x-6 mt-2">
               {visibleElements.map((el) => {
