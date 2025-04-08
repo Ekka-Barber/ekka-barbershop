@@ -128,6 +128,7 @@ const config: Config = {
         scale: 'scale 0.2s ease-out',
         pulse: 'pulse 1.5s infinite',
         'bounce-slow': 'bounce 2s ease-in-out infinite',
+        'fadeIn': 'fadeIn 0.3s ease-in-out',
       },
     },
   },
