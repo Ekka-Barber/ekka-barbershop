@@ -8,6 +8,7 @@ import { ReviewModal } from './review-modal/ReviewModal';
 import { useReviews, Review } from './hooks/useReviews';
 import { ReviewsHeader } from './review-section/ReviewsHeader';
 import { logger } from '@/utils/logger';
+import { motion } from 'framer-motion';
 
 export default function GoogleReviews() {
   const { language } = useLanguage();
@@ -30,8 +31,21 @@ export default function GoogleReviews() {
   };
   
   return (
-    <div className="w-full pt-2 pb-0 mb-0">
-      <div className="max-w-5xl mx-auto px-4 relative">
+    <motion.div 
+      className="w-full pt-2 pb-0 mb-0"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ 
+        duration: 0.6, 
+        ease: "easeOut"
+      }}
+    >
+      <motion.div 
+        className="max-w-5xl mx-auto px-4 relative"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.2, duration: 0.5 }}
+      >
         {/* Section header */}
         <ReviewsHeader />
 
@@ -66,8 +80,8 @@ export default function GoogleReviews() {
           selectedReview={selectedReview}
           language={language}
         />
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 }
 
