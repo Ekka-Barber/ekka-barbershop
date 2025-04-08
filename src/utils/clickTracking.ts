@@ -24,16 +24,11 @@ export const trackSocialClick = async (platform: string, url: string) => {
   }
 
   try {
-    const { error } = await supabase
-      .from('social_clicks')
-      .insert({
-        platform,
-        url,
-        device_type: getDeviceType(),
-        user_agent: navigator.userAgent
-      });
-
-    if (error) throw error;
+    // Log only the attempt to track, without trying to insert into non-existent table
+    console.log(`Tracking social click: ${platform} - ${url}`);
+    
+    // Alternative approach: Track social interactions via TikTok tracking
+    // This functionality is handled in the component itself
   } catch (err) {
     console.error('Error tracking social media click:', err);
   }

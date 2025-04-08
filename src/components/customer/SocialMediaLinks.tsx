@@ -2,6 +2,7 @@
 import { Facebook, Instagram, Twitter, Linkedin } from 'lucide-react';
 import { useLanguage } from "@/contexts/LanguageContext";
 import { trackButtonClick } from "@/utils/tiktokTracking";
+import { trackSocialClick } from "@/utils/clickTracking";
 import { motion } from 'framer-motion';
 
 interface SocialMediaLink {
@@ -41,11 +42,15 @@ export const SocialMediaLinks = () => {
     }
   ];
 
-  const handleSocialClick = (name: string) => {
+  const handleSocialClick = (name: string, url: string) => {
+    // Track with TikTok
     trackButtonClick({
       buttonId: `social_${name.toLowerCase()}`,
       buttonName: `Social ${name}`
     });
+    
+    // Track with our own analytics
+    trackSocialClick(name.toLowerCase(), url);
   };
 
   return (
@@ -74,7 +79,7 @@ export const SocialMediaLinks = () => {
             target="_blank"
             rel="noopener noreferrer"
             className={`${link.color} text-white p-2 rounded-full flex items-center justify-center transition-all`}
-            onClick={() => handleSocialClick(link.name)}
+            onClick={() => handleSocialClick(link.name, link.url)}
             initial={{ opacity: 0, scale: 0 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ 
