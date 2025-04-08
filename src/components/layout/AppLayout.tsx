@@ -1,4 +1,3 @@
-
 import React from 'react';
 
 type AppLayoutProps = {
@@ -13,7 +12,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
       {/* Removed max-w-md to allow content width to be page-specific */}
       <div className="w-full flex flex-1 flex-col">
         {/* Main content area with padding for safe areas */}
-        <main className="flex-1 w-full px-[calc(1rem+var(--sal))] pr-[calc(1rem+var(--sar))] pb-[calc(1rem+var(--sab))]">
+        <main className="flex-1 w-full px-[calc(1rem+var(--sal))] pr-[calc(1rem+var(--sar))] pb-[calc(0.5rem+var(--sab))]">
           {children}
         </main>
       </div>
