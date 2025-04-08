@@ -4,6 +4,27 @@
  * with different log levels and formatting
  */
 
+// Define log types and configuration
+type LogLevel = 'debug' | 'info' | 'warn' | 'error';
+type LoggerConfig = {
+  minLevel: LogLevel;
+  enabled: boolean;
+};
+
+// Default configuration
+let config: LoggerConfig = {
+  minLevel: 'debug',
+  enabled: true
+};
+
+// Log level priority (higher number = higher priority)
+const LOG_LEVEL_PRIORITY: Record<LogLevel, number> = {
+  debug: 0,
+  info: 1,
+  warn: 2,
+  error: 3
+};
+
 // Define log levels with corresponding styles for better visual distinction in the console
 const LOG_STYLES = {
   debug: 'color: #6c757d; font-weight: normal;',
@@ -12,14 +33,27 @@ const LOG_STYLES = {
   error: 'color: #dc3545; font-weight: bold;'
 };
 
+// Check if log level should be displayed based on config
+const shouldLog = (level: LogLevel): boolean => {
+  if (!config.enabled) return false;
+  return LOG_LEVEL_PRIORITY[level] >= LOG_LEVEL_PRIORITY[config.minLevel];
+};
+
 // Create the logger object with methods for each log level
 export const logger = {
   /**
+   * Configure the logger settings
+   */
+  configure: (options: Partial<LoggerConfig>) => {
+    config = { ...config, ...options };
+  },
+
+  /**
    * Debug level logging for development information
-   * Only outputs when in non-production environments
+   * Only outputs when in non-production environments and enabled in config
    */
   debug: (message: string, ...data: any[]) => {
-    if (process.env.NODE_ENV !== 'production') {
+    if (shouldLog('debug') && (process.env.NODE_ENV !== 'production')) {
       console.log(`%c[DEBUG] ${message}`, LOG_STYLES.debug, ...data);
     }
   },
@@ -28,20 +62,26 @@ export const logger = {
    * Standard info logging for general application flow information
    */
   info: (message: string, ...data: any[]) => {
-    console.log(`%c[INFO] ${message}`, LOG_STYLES.info, ...data);
+    if (shouldLog('info')) {
+      console.log(`%c[INFO] ${message}`, LOG_STYLES.info, ...data);
+    }
   },
 
   /**
    * Warning level logging for non-critical issues that should be addressed
    */
   warn: (message: string, ...data: any[]) => {
-    console.warn(`%c[WARN] ${message}`, LOG_STYLES.warn, ...data);
+    if (shouldLog('warn')) {
+      console.warn(`%c[WARN] ${message}`, LOG_STYLES.warn, ...data);
+    }
   },
 
   /**
    * Error level logging for critical issues that affect functionality
    */
   error: (message: string, ...data: any[]) => {
-    console.error(`%c[ERROR] ${message}`, LOG_STYLES.error, ...data);
+    if (shouldLog('error')) {
+      console.error(`%c[ERROR] ${message}`, LOG_STYLES.error, ...data);
+    }
   }
 };
