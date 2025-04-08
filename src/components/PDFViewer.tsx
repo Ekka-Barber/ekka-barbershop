@@ -1,12 +1,10 @@
-
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Document, Page, pdfjs } from 'react-pdf';
 import 'react-pdf/dist/esm/Page/AnnotationLayer.css';
 import 'react-pdf/dist/esm/Page/TextLayer.css';
-import { useIsMobile } from '@/hooks/use-mobile';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
 import PDFWorker from 'pdfjs-dist/build/pdf.worker.min.js?url';
+import { motion, animate } from 'framer-motion';
 
 // Configure PDF.js to use the bundled worker
 pdfjs.GlobalWorkerOptions.workerSrc = PDFWorker;
@@ -22,6 +20,13 @@ const PDFViewer = ({ pdfUrl }: PDFViewerProps) => {
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const { language } = useLanguage();
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragDistance, setDragDistance] = useState(0);
+  
+  // Reference for tracking touch events
+  const touchStartRef = useRef<number | null>(null);
+  const viewerRef = useRef<HTMLDivElement>(null);
+  const dragConstraintsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const updatePageWidth = () => {
@@ -48,6 +53,69 @@ const PDFViewer = ({ pdfUrl }: PDFViewerProps) => {
       return;
     }
   }, [pdfUrl]);
+
+  // Navigation functions
+  const nextPage = () => {
+    if (numPages && pageNumber < numPages) {
+      setPageNumber(prev => prev + 1);
+    }
+  };
+
+  const prevPage = () => {
+    if (pageNumber > 1) {
+      setPageNumber(prev => prev - 1);
+    }
+  };
+
+  // Touch event handlers for swipe gestures
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setIsDragging(true);
+    touchStartRef.current = e.touches[0].clientX;
+    setDragDistance(0);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (touchStartRef.current === null || !isDragging) return;
+    
+    const touchX = e.touches[0].clientX;
+    const diff = touchStartRef.current - touchX;
+    
+    // Only allow dragging in valid directions 
+    // (can't go left at first page, can't go right at last page)
+    if ((pageNumber <= 1 && diff < 0) || (pageNumber >= (numPages || 1) && diff > 0)) {
+      // Add some resistance to overscrolling
+      setDragDistance(-diff * 0.3);
+    } else {
+      setDragDistance(-diff);
+    }
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartRef.current === null) return;
+    
+    const touchEnd = e.changedTouches[0].clientX;
+    const diff = touchStartRef.current - touchEnd;
+    
+    // Smooth animation back to center if not swiping far enough
+    setIsDragging(false);
+    animate(dragDistance, 0, {
+      duration: 0.3,
+      onUpdate: latest => setDragDistance(latest)
+    });
+    
+    // Determine swipe direction (larger threshold for page change: 80px)
+    if (Math.abs(diff) > 80) {
+      if (diff > 0 && pageNumber < (numPages || 1)) {
+        // Swiped left (go to next page)
+        nextPage();
+      } else if (diff < 0 && pageNumber > 1) {
+        // Swiped right (go to previous page)
+        prevPage();
+      }
+    }
+    
+    touchStartRef.current = null;
+  };
 
   function onDocumentLoadSuccess({ numPages }: { numPages: number }) {
     console.log('PDF loaded successfully', { pdfUrl, numPages });
@@ -79,58 +147,124 @@ const PDFViewer = ({ pdfUrl }: PDFViewerProps) => {
     );
   }
 
+  // Should we show the previous page preview?
+  const showPrevPagePreview = pageNumber > 1 && !isLoading && numPages !== null;
+  
+  // Should we show the next page preview?
+  const showNextPagePreview = numPages !== null && pageNumber < numPages && !isLoading;
+
   return (
-    <div className="pdf-viewer w-full mx-auto">
+    <div className="pdf-viewer w-full mx-auto" ref={viewerRef}>
       <Document
         file={pdfUrl}
         onLoadSuccess={onDocumentLoadSuccess}
         onLoadError={onDocumentLoadError}
         className="flex flex-col items-center"
         loading={
-          <div className="text-center py-4">
+          <div className="text-center py-4 h-[500px] flex items-center justify-center bg-gray-50 rounded-lg">
             <div className="animate-pulse">Loading PDF...</div>
           </div>
         }
       >
-        {!isLoading && (
-          <Page 
-            pageNumber={pageNumber} 
-            width={pageWidth}
-            renderTextLayer={false}
-            renderAnnotationLayer={false}
-            className="max-w-full shadow-lg rounded-lg"
-            loading={
-              <div className="text-center py-4">
-                <div className="animate-pulse">Loading page...</div>
-              </div>
-            }
-          />
-        )}
+        <div 
+          ref={dragConstraintsRef}
+          className="overflow-hidden relative"
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+          style={{ touchAction: 'pan-y' }}
+        >
+          {!isLoading && numPages !== null && (
+            <div className="relative">
+              {/* Current page with drag effect */}
+              <motion.div
+                style={{ 
+                  x: dragDistance,
+                  position: 'relative',
+                  zIndex: 10
+                }}
+                transition={{ 
+                  type: 'spring', 
+                  stiffness: 1000, 
+                  damping: 100,
+                  restDelta: 0.001
+                }}
+              >
+                <Page 
+                  key={`page_${pageNumber}`}
+                  pageNumber={pageNumber} 
+                  width={pageWidth}
+                  renderTextLayer={false}
+                  renderAnnotationLayer={false}
+                  className="max-w-full shadow-lg rounded-lg"
+                  loading={
+                    <div className="h-[500px] flex items-center justify-center">
+                      <div className="animate-pulse">Loading page...</div>
+                    </div>
+                  }
+                />
+              </motion.div>
+              
+              {/* Next page preview (right side edge) */}
+              {showNextPagePreview && (
+                <motion.div 
+                  style={{ 
+                    position: 'absolute',
+                    top: 0,
+                    right: -pageWidth,
+                    x: dragDistance < 0 ? 0 : Math.min(pageWidth + dragDistance, 0),
+                    zIndex: 8,
+                    opacity: dragDistance < 0 ? Math.min(Math.abs(dragDistance) / 150, 1) : 0,
+                    boxShadow: '-5px 0 15px rgba(0,0,0,0.1)'
+                  }}
+                >
+                  <Page 
+                    key={`next_page_${pageNumber + 1}`}
+                    pageNumber={pageNumber + 1}
+                    width={pageWidth} 
+                    renderTextLayer={false}
+                    renderAnnotationLayer={false}
+                    className="max-w-full rounded-lg"
+                    loading={null}
+                  />
+                </motion.div>
+              )}
+              
+              {/* Previous page preview (left side edge) */}
+              {showPrevPagePreview && (
+                <motion.div 
+                  style={{ 
+                    position: 'absolute',
+                    top: 0,
+                    left: -pageWidth,
+                    x: dragDistance > 0 ? 0 : Math.max(-pageWidth + dragDistance, -pageWidth),
+                    zIndex: 8,
+                    opacity: dragDistance > 0 ? Math.min(Math.abs(dragDistance) / 150, 1) : 0,
+                    boxShadow: '5px 0 15px rgba(0,0,0,0.1)'
+                  }}
+                >
+                  <Page 
+                    key={`prev_page_${pageNumber - 1}`}
+                    pageNumber={pageNumber - 1}
+                    width={pageWidth}
+                    renderTextLayer={false}
+                    renderAnnotationLayer={false}
+                    className="max-w-full rounded-lg"
+                    loading={null}
+                  />
+                </motion.div>
+              )}
+            </div>
+          )}
+        </div>
       </Document>
       
+      {/* Only show page indicator */}
       {numPages && numPages > 1 && (
-        <div className="flex items-center justify-between px-4 mt-6 max-w-[400px] mx-auto">
-          <button
-            onClick={() => setPageNumber(page => Math.max(1, page - 1))}
-            disabled={pageNumber <= 1}
-            className="p-3 rounded-full bg-[#C4A36F] hover:bg-[#B39260] text-white transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg transform hover:-translate-y-0.5 flex items-center justify-center"
-            aria-label="Previous page"
-          >
-            <ChevronLeft className="w-6 h-6" />
-          </button>
-          
-          <p className="text-center text-[#222222] font-medium min-w-[100px]">
+        <div className="flex justify-center mt-4">
+          <p className="text-center px-4 py-2 bg-[#C4A36F]/10 rounded-full text-[#222222] font-medium">
             {`${pageNumber} / ${numPages}`}
           </p>
-          
-          <button
-            onClick={() => setPageNumber(page => Math.min(numPages, page + 1))}
-            disabled={pageNumber >= numPages}
-            className="p-3 rounded-full bg-[#C4A36F] hover:bg-[#B39260] text-white transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg transform hover:-translate-y-0.5 flex items-center justify-center"
-            aria-label="Next page"
-          >
-            <ChevronRight className="w-6 h-6" />
-          </button>
         </div>
       )}
     </div>
