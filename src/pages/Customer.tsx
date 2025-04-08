@@ -18,6 +18,7 @@ import { logger } from "@/utils/logger";
 import freshaLogo from "@/assets/fresha-logo.svg";
 import boonusLogo from "@/assets/boonus-logo.svg";
 import GoogleReviews from "@/components/customer/GoogleReviews";
+import { motion, stagger, useAnimate } from "framer-motion";
 import {
   Dialog,
   DialogContent,
@@ -57,6 +58,7 @@ const Customer = () => {
   const [locationDialogOpen, setLocationDialogOpen] = useState(false);
   const [mapDialogOpen, setMapDialogOpen] = useState(false);
   const [selectedBranch] = useState<Branch | null>(null);
+  const [scope, animate] = useAnimate();
 
   useEffect(() => {
     trackViewContent({
@@ -64,6 +66,45 @@ const Customer = () => {
       pageName: 'Home'
     });
   }, []);
+
+  // Animation sequence for the buttons
+  useEffect(() => {
+    const animateButtons = async () => {
+      if (scope.current) {
+        await animate(
+          ".logo-animation",
+          { opacity: [0, 1], y: [-20, 0] },
+          { duration: 0.6, ease: "easeOut" }
+        );
+        
+        await animate(
+          ".headline-animation",
+          { opacity: [0, 1], y: [-10, 0] },
+          { duration: 0.5, delay: 0.2 }
+        );
+        
+        await animate(
+          ".divider-animation",
+          { scaleX: [0, 1], opacity: [0, 1] },
+          { duration: 0.4, delay: 0.1 }
+        );
+        
+        await animate(
+          ".button-animation",
+          { opacity: [0, 1], y: [10, 0] },
+          { duration: 0.4, delay: stagger(0.1) }
+        );
+        
+        await animate(
+          ".section-animation",
+          { opacity: [0, 1], y: [15, 0] },
+          { duration: 0.5, delay: stagger(0.15) }
+        );
+      }
+    };
+    
+    animateButtons();
+  }, [animate, scope]);
 
   const { data: branches, refetch } = useQuery({
     queryKey: ['branches'],
@@ -192,25 +233,35 @@ const Customer = () => {
         pullDownThreshold={100}
         autoDisableOnPlatforms={true}
       >
-        <div className="flex flex-1 flex-col justify-start items-center w-full max-w-md mx-auto pb-40">
+        <div 
+          className="flex flex-1 flex-col justify-start items-center w-full max-w-md mx-auto pb-40"
+          ref={scope}
+        >
           <div className="text-center flex-shrink-0 mx-auto pt-safe w-full">
-            <img 
+            <motion.img 
               src="lovable-uploads/7eb81221-fbf5-4b1d-8327-eb0e707236d8.png" 
               alt="Ekka Barbershop Logo" 
-              className="h-28 md:h-32 mx-auto mb-4 md:mb-6 object-contain"
+              className="h-28 md:h-32 mx-auto mb-4 md:mb-6 object-contain logo-animation"
               loading="eager"
               width="320" 
               height="128"
             />
             <div className="space-y-1 md:space-y-2">
-              <h2 className="text-xl font-medium text-[#222222]">
+              <motion.h2 
+                className="text-xl font-medium text-[#222222] headline-animation"
+              >
                 {t('welcome.line1')}
-              </h2>
-              <h1 className="text-2xl md:text-3xl font-bold text-[#222222]">
+              </motion.h2>
+              <motion.h1
+                className="text-2xl md:text-3xl font-bold text-[#222222] headline-animation"
+              >
                 {t('welcome.line2')}
-              </h1>
+              </motion.h1>
             </div>
-            <div className="h-1 w-24 bg-[#C4A36F] mx-auto mt-3 md:mt-4 mb-6"></div>
+            <motion.div 
+              className="h-1 w-24 bg-[#C4A36F] mx-auto mt-3 md:mt-4 mb-6 divider-animation"
+              style={{ originX: 0.5 }}
+            ></motion.div>
             <div className="w-full max-w-xs mx-auto space-y-4">
               {isLoadingUiElements ? (
                 <>
@@ -222,50 +273,71 @@ const Customer = () => {
                 visibleElements.map((el) => {
                   if (el.type === 'button') {
                     return (
-                      <Button
+                      <motion.div
                         key={el.id}
-                        className={`w-full h-auto min-h-[56px] text-lg font-medium flex items-center justify-center px-4 py-3 ${
-                          el.name === 'view_menu' || el.name === 'book_now'
-                            ? 'bg-[#C4A36F] hover:bg-[#B39260]'
-                            : 'bg-[#4A4A4A] hover:bg-[#3A3A3A]'
-                        } text-white transition-all duration-300 shadow-lg hover:shadow-xl touch-target`}
-                        onClick={() => {
-                          trackButtonClick({
-                            buttonId: el.name,
-                            buttonName: language === 'ar' ? el.display_name_ar : el.display_name
-                          });
-
-                          if (el.action?.startsWith('http')) {
-                            window.open(el.action, '_blank');
-                          } else if (el.action === 'openBranchDialog') {
-                            setBranchDialogOpen(true);
-                          } else if (el.action === 'openLocationDialog') {
-                            handleLocationDialog();
-                          } else if (el.action === 'openEidBookingsDialog') {
-                            setEidBookingsDialogOpen(true);
-                          } else if (el.action) {
-                            navigate(el.action);
-                          }
+                        className="button-animation"
+                        whileHover={{ 
+                          scale: 1.03, 
+                          boxShadow: "0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.05)" 
                         }}
+                        whileTap={{ scale: 0.97 }}
+                        transition={{ type: "spring", stiffness: 400, damping: 17 }}
                       >
-                        {renderIcon(el.icon)}
-                        <div className="flex flex-col text-center">
-                           <span className="text-lg font-medium">
-                             {language === 'ar' ? el.display_name_ar : el.display_name}
-                           </span>
-                           {el.description && (
-                             <span className="text-xs font-normal text-gray-200 mt-1">
-                               {language === 'ar' ? el.description_ar : el.description}
+                        <Button
+                          className={`w-full h-auto min-h-[56px] text-lg font-medium flex items-center justify-center px-4 py-3 ${
+                            el.name === 'view_menu' || el.name === 'book_now'
+                              ? 'bg-[#C4A36F] hover:bg-[#B39260]'
+                              : 'bg-[#4A4A4A] hover:bg-[#3A3A3A]'
+                          } text-white transition-all duration-300 shadow-lg hover:shadow-xl touch-target`}
+                          onClick={() => {
+                            trackButtonClick({
+                              buttonId: el.name,
+                              buttonName: language === 'ar' ? el.display_name_ar : el.display_name
+                            });
+
+                            if (el.action?.startsWith('http')) {
+                              window.open(el.action, '_blank');
+                            } else if (el.action === 'openBranchDialog') {
+                              setBranchDialogOpen(true);
+                            } else if (el.action === 'openLocationDialog') {
+                              handleLocationDialog();
+                            } else if (el.action === 'openEidBookingsDialog') {
+                              setEidBookingsDialogOpen(true);
+                            } else if (el.action) {
+                              navigate(el.action);
+                            }
+                          }}
+                        >
+                          <motion.div 
+                            whileHover={{ rotate: [0, -10, 10, -10, 0] }}
+                            transition={{ duration: 0.5, ease: "easeInOut" }}
+                          >
+                            {renderIcon(el.icon)}
+                          </motion.div>
+                          <div className="flex flex-col text-center">
+                             <span className="text-lg font-medium">
+                               {language === 'ar' ? el.display_name_ar : el.display_name}
                              </span>
-                           )}
-                        </div>
-                      </Button>
+                             {el.description && (
+                               <span className="text-xs font-normal text-gray-200 mt-1">
+                                 {language === 'ar' ? el.description_ar : el.description}
+                               </span>
+                             )}
+                          </div>
+                        </Button>
+                      </motion.div>
                     );
                   } else if (el.type === 'section' && el.name === 'eid_bookings') {
                      return (
-                       <div
+                       <motion.div
                          key={el.id}
-                         className="mt-3 bg-white rounded-lg shadow-md border border-gray-200 p-4 cursor-pointer hover:shadow-lg transition-shadow duration-200"
+                         className="section-animation"
+                         whileHover={{ 
+                           scale: 1.02, 
+                           boxShadow: "0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.05)" 
+                         }}
+                         whileTap={{ scale: 0.98 }}
+                         transition={{ type: "spring", stiffness: 400, damping: 17 }}
                          onClick={() => {
                            trackButtonClick({
                              buttonId: 'eid_bookings',
@@ -278,58 +350,93 @@ const Customer = () => {
                          aria-label={language === 'ar' ? el.display_name_ar : el.display_name}
                          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setEidBookingsDialogOpen(true); }}
                        >
-                         <div className="flex items-center justify-between">
-                           <div className={`flex-1 ${language === 'ar' ? 'ml-3' : 'mr-3'}`}>
-                             <h2 className={`text-lg font-bold text-[#222222] mb-1 ${language === 'ar' ? 'text-right' : 'text-left'}`}>
-                               {language === 'ar' ? el.display_name_ar : el.display_name}
-                             </h2>
-                             {el.description && (
-                               <p className={`text-gray-600 text-xs ${language === 'ar' ? 'text-right' : 'text-left'}`}>
-                                 {language === 'ar' ? el.description_ar : el.description}
-                               </p>
-                             )}
-                           </div>
-                           <div className="h-10 w-px bg-gray-200 mx-3"></div>
-                           <div className="flex-shrink-0">
-                             <img src={freshaLogo} alt="Fresha Logo" className="h-8 w-auto" />
+                         <div className="mt-3 bg-white rounded-lg shadow-md border border-gray-200 p-4 cursor-pointer hover:shadow-lg transition-shadow duration-200">
+                           <div className="flex items-center justify-between">
+                             <div className={`flex-1 ${language === 'ar' ? 'ml-3' : 'mr-3'}`}>
+                               <h2 className={`text-lg font-bold text-[#222222] mb-1 ${language === 'ar' ? 'text-right' : 'text-left'}`}>
+                                 {language === 'ar' ? el.display_name_ar : el.display_name}
+                               </h2>
+                               {el.description && (
+                                 <p className={`text-gray-600 text-xs ${language === 'ar' ? 'text-right' : 'text-left'}`}>
+                                   {language === 'ar' ? el.description_ar : el.description}
+                                 </p>
+                               )}
+                             </div>
+                             <div className="h-10 w-px bg-gray-200 mx-3"></div>
+                             <motion.div 
+                               className="flex-shrink-0"
+                               whileHover={{ y: -2, rotate: 2 }}
+                               transition={{ type: "spring", stiffness: 300, damping: 10 }}
+                             >
+                               <img src={freshaLogo} alt="Fresha Logo" className="h-8 w-auto" />
+                             </motion.div>
                            </div>
                          </div>
-                       </div>
+                       </motion.div>
                      );
                   } else if (el.type === 'section' && el.name === 'loyalty_program') {
                      return (
-                       <div
-                         key={el.id}
-                         className="mt-3 bg-white rounded-lg shadow-md border border-gray-200 p-4 cursor-pointer hover:shadow-lg transition-shadow duration-200"
-                         onClick={() => {
-                           trackButtonClick({
-                             buttonId: 'loyalty_program',
-                             buttonName: language === 'ar' ? el.display_name_ar : el.display_name
-                           });
-                           window.open('https://enroll.boonus.app/64b7c34953090f001de0fb6c/wallet/64b7efed53090f001de815b4', '_blank');
-                         }}
-                         role="button"
-                         tabIndex={0}
-                         aria-label={language === 'ar' ? el.display_name_ar : el.display_name}
-                         onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') window.open('https://enroll.boonus.app/64b7c34953090f001de0fb6c/wallet/64b7efed53090f001de815b4', '_blank'); }}
-                       >
-                         <div className="flex items-center justify-between">
-                            <div className={`flex-1 ${language === 'ar' ? 'ml-3' : 'mr-3'}`}>
-                             <h2 className={`text-lg font-bold text-[#222222] ${language === 'ar' ? 'text-right' : 'text-left'}`}>
-                               {language === 'ar' ? el.display_name_ar : el.display_name}
-                             </h2>
-                             {el.description && (
-                               <p className={`text-gray-600 text-xs mt-1 ${language === 'ar' ? 'text-right' : 'text-left'}`}>
-                                 {language === 'ar' ? el.description_ar : el.description}
-                               </p>
-                             )}
+                       <>
+                         <motion.div
+                           key={el.id}
+                           className="section-animation"
+                           whileHover={{ 
+                             scale: 1.02, 
+                             boxShadow: "0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.05)" 
+                           }}
+                           whileTap={{ scale: 0.98 }}
+                           transition={{ type: "spring", stiffness: 400, damping: 17 }}
+                           onClick={() => {
+                             trackButtonClick({
+                               buttonId: 'loyalty_program',
+                               buttonName: language === 'ar' ? el.display_name_ar : el.display_name
+                             });
+                             window.open('https://enroll.boonus.app/64b7c34953090f001de0fb6c/wallet/64b7efed53090f001de815b4', '_blank');
+                           }}
+                           role="button"
+                           tabIndex={0}
+                           aria-label={language === 'ar' ? el.display_name_ar : el.display_name}
+                           onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') window.open('https://enroll.boonus.app/64b7c34953090f001de0fb6c/wallet/64b7efed53090f001de815b4', '_blank'); }}
+                         >
+                           <div className="mt-3 bg-white rounded-lg shadow-md border border-gray-200 p-4 cursor-pointer hover:shadow-lg transition-shadow duration-200">
+                             <div className="flex items-center justify-between">
+                                <div className={`flex-1 ${language === 'ar' ? 'ml-3' : 'mr-3'}`}>
+                                 <h2 className={`text-lg font-bold text-[#222222] ${language === 'ar' ? 'text-right' : 'text-left'}`}>
+                                   {language === 'ar' ? el.display_name_ar : el.display_name}
+                                 </h2>
+                                 {el.description && (
+                                   <p className={`text-gray-600 text-xs mt-1 ${language === 'ar' ? 'text-right' : 'text-left'}`}>
+                                     {language === 'ar' ? el.description_ar : el.description}
+                                   </p>
+                                 )}
+                               </div>
+                               <div className="h-10 w-px bg-gray-200 mx-3"></div>
+                               <motion.div 
+                                 className="flex-shrink-0 flex flex-col items-center justify-center"
+                                 whileHover={{ y: -2, rotate: -2 }}
+                                 transition={{ type: "spring", stiffness: 300, damping: 10 }}
+                               >
+                                 <img src={boonusLogo} alt="Boonus Logo" className="h-8 w-auto" />
+                               </motion.div>
+                             </div>
                            </div>
-                           <div className="h-10 w-px bg-gray-200 mx-3"></div>
-                           <div className="flex-shrink-0 flex flex-col items-center justify-center">
-                             <img src={boonusLogo} alt="Boonus Logo" className="h-8 w-auto" />
-                           </div>
-                         </div>
-                       </div>
+                         </motion.div>
+                         <motion.div 
+                           className="w-full max-w-xs mx-auto my-4 section-animation"
+                           initial={{ scaleX: 0, opacity: 0 }}
+                           animate={{ scaleX: 1, opacity: 1 }}
+                           transition={{ 
+                             duration: 0.5,
+                             delay: 0.2,
+                             ease: "easeOut"
+                           }}
+                         >
+                            <Separator
+                              orientation="horizontal"
+                              className="bg-[#C4A36F]/30 h-[1px] w-full"
+                            />
+                          </motion.div>
+                       </>
                      );
                    } else if (el.type === 'section' && el.name === 'google_reviews') {
                      return <GoogleReviews key={el.id} />;
@@ -337,63 +444,6 @@ const Customer = () => {
                   return null;
                 })
               )}
-            </div>
-
-            {visibleElements.some(el => el.type === 'section' && el.name === 'google_reviews') && (
-              <div className="w-full max-w-xs mx-auto my-4">
-                <Separator 
-                  orientation="horizontal" 
-                  className="bg-[#C4A36F]/30 h-[1px] w-full" 
-                />
-              </div>
-            )}
-
-            <div className="flex justify-center items-center space-x-6 mt-2">
-              {visibleElements.map((el) => {
-                if (el.type === 'section' && (el.name === 'loyalty_program' || el.name === 'eid_bookings')) {
-                  let imgSrc = '';
-                  let altText = '';
-                  let isDialogTrigger = false;
-
-                  if (el.name === 'eid_bookings') {
-                    imgSrc = freshaLogo;
-                    altText = 'Fresha';
-                    isDialogTrigger = true;
-                  } else if (el.name === 'loyalty_program') {
-                    return null;
-                  }
-
-                  if (imgSrc) {
-                    if (isDialogTrigger) {
-                      return null;
-                    }
-
-                    const linkUrl = el.action ?? '#';
-                    const trackingId = `social_${el.icon || el.name}`;
-                    const trackingName = `Social ${altText}`;
-
-                    return (
-                      <a
-                        key={el.id}
-                        href={linkUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="transition-opacity hover:opacity-80 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#C4A36F] rounded-md"
-                        aria-label={`Visit our ${altText} page`}
-                        onClick={() => {
-                          trackButtonClick({
-                            buttonId: trackingId,
-                            buttonName: trackingName,
-                          });
-                        }}
-                      >
-                        <img src={imgSrc} alt={altText} className="h-10 w-auto" />
-                      </a>
-                    );
-                  }
-                }
-                return null;
-              })}
             </div>
           </div>
         </div>
