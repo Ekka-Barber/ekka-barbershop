@@ -1,17 +1,39 @@
 import { useLanguage } from "@/contexts/LanguageContext";
+import { motion } from "framer-motion";
+
 export const ReviewsHeader = () => {
-  const {
-    language
-  } = useLanguage();
-  return <div className="text-center mb-6">
-      <div className="inline-block">
+  const { language } = useLanguage();
+  
+  return (
+    <div className="text-center mb-6">
+      <motion.div 
+        className="inline-block"
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.1 }}
+      >
         <h2 className="text-2xl md:text-3xl font-bold text-center text-[#222222] relative">
-          <span className="relative z-10">
+          <motion.span 
+            className="relative z-10"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5, delay: 0.3 }}
+          >
             {language === 'ar' ? 'آراء عملائنا' : 'What Our Clients Say'}
-          </span>
-          <span className="absolute -bottom-2 left-0 right-0 h-3 bg-[#C4A36F]/20 transform -rotate-1 z-0"></span>
+          </motion.span>
+          <motion.span 
+            className="absolute -bottom-2 left-0 right-0 h-3 bg-[#C4A36F]/20 transform -rotate-1 z-0"
+            initial={{ scaleX: 0 }}
+            animate={{ scaleX: 1 }}
+            transition={{ 
+              duration: 0.5, 
+              delay: 0.4,
+              ease: "easeOut"
+            }}
+            style={{ originX: language === 'ar' ? 1 : 0 }}
+          />
         </h2>
-      </div>
-      
-    </div>;
+      </motion.div>
+    </div>
+  );
 };
