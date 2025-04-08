@@ -1,3 +1,5 @@
+/* Import IBM Plex Sans Arabic font */
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@100;200;300;400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -29,6 +31,7 @@ html, body {
   position: fixed;
   width: 100%;
   overflow: hidden;
+  font-family: 'IBM Plex Sans Arabic', sans-serif;
 }
 
 /* Make the root div scrollable instead */
@@ -72,6 +75,9 @@ html, body {
     --ring: 38 45% 60%;
 
     --radius: 0.5rem;
+    
+    /* Font family variable */
+    --font-sans: 'IBM Plex Sans Arabic', sans-serif;
   }
 
   .dark {
