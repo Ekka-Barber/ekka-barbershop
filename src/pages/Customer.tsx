@@ -2,10 +2,9 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from "@/contexts/LanguageContext";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { MapPin } from "lucide-react";
 import * as Icons from "lucide-react";
 import type { LucideIcon } from 'lucide-react';
 import { BranchDialog } from "@/components/customer/BranchDialog";
@@ -15,7 +14,6 @@ import { trackViewContent, trackButtonClick, trackLocationView } from "@/utils/t
 import { InstallAppPrompt } from "@/components/installation/InstallAppPrompt";
 import { PullToRefresh } from "@/components/common/PullToRefresh";
 import { useToast } from "@/components/ui/use-toast";
-import { isRunningAsStandalone, getViewportDimensions } from "@/services/platformDetection";
 import { logger } from "@/utils/logger";
 import freshaLogo from "@/assets/fresha-logo.svg";
 import boonusLogo from "@/assets/boonus-logo.svg";
@@ -56,35 +54,8 @@ const Customer = () => {
   const [branchDialogOpen, setBranchDialogOpen] = useState(false);
   const [eidBookingsDialogOpen, setEidBookingsDialogOpen] = useState(false);
   const [locationDialogOpen, setLocationDialogOpen] = useState(false);
-  const [viewportHeight, setViewportHeight] = useState(window.innerHeight);
-  const contentRef = useRef<HTMLDivElement>(null);
-  const isStandalone = isRunningAsStandalone();
   const [mapDialogOpen, setMapDialogOpen] = useState(false);
-  const [selectedBranch, setSelectedBranch] = useState<Branch | null>(null);
-
-  useEffect(() => {
-    const handleResize = () => {
-      const { height } = getViewportDimensions();
-      setViewportHeight(height);
-    };
-
-    handleResize();
-
-    window.addEventListener('resize', handleResize);
-    window.addEventListener('orientationchange', handleResize);
-
-    const timeoutIds = [
-      setTimeout(handleResize, 100),
-      setTimeout(handleResize, 500),
-      setTimeout(handleResize, 1000)
-    ];
-
-    return () => {
-      window.removeEventListener('resize', handleResize);
-      window.removeEventListener('orientationchange', handleResize);
-      timeoutIds.forEach(id => clearTimeout(id));
-    };
-  }, [isStandalone]);
+  const [selectedBranch] = useState<Branch | null>(null);
 
   useEffect(() => {
     trackViewContent({
@@ -213,16 +184,14 @@ const Customer = () => {
     });
   };
 
-  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
-
   return (
     <AppLayout>
-      <PullToRefresh 
+      <PullToRefresh
         onRefresh={handleRefresh}
         pullDownThreshold={100}
         autoDisableOnPlatforms={true}
       >
-        <div className="flex flex-1 flex-col justify-start items-center max-w-md mx-auto">
+        <div className="flex flex-1 flex-col justify-start items-center w-full max-w-md mx-auto pb-40">
           <div className="text-center flex-shrink-0 mx-auto pt-safe w-full">
             <img 
               src="lovable-uploads/7eb81221-fbf5-4b1d-8327-eb0e707236d8.png" 
@@ -369,9 +338,8 @@ const Customer = () => {
               )}
             </div>
 
-            <div className="h-px w-full max-w-xs mx-auto bg-gray-200"></div>
-
-            <div className="flex justify-center items-center space-x-6 mt-8">
+            {/* Social icons if needed but without divider and reduced spacing */}
+            <div className="flex justify-center items-center space-x-6 mt-2">
               {visibleElements.map((el) => {
                 if (el.type === 'section' && (el.name === 'loyalty_program' || el.name === 'eid_bookings')) {
                   let imgSrc = '';
