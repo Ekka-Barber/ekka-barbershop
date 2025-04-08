@@ -27,6 +27,7 @@ import {
 } from "@/components/ui/dialog";
 import AppLayout from '@/components/layout/AppLayout';
 import { Tables } from "@/types/supabase";
+import { Separator } from "@/components/ui/separator";
 
 interface Branch {
   id: string;
@@ -338,7 +339,13 @@ const Customer = () => {
               )}
             </div>
 
-            {/* Social icons if needed but without divider and reduced spacing */}
+            <div className="w-full max-w-xs mx-auto my-4">
+              <Separator 
+                orientation="horizontal" 
+                className="bg-[#C4A36F]/30 h-[1px] w-full" 
+              />
+            </div>
+
             <div className="flex justify-center items-center space-x-6 mt-2">
               {visibleElements.map((el) => {
                 if (el.type === 'section' && (el.name === 'loyalty_program' || el.name === 'eid_bookings')) {
