@@ -58,13 +58,14 @@ export const SocialMediaLinks = () => {
       className="w-full max-w-xs mx-auto my-6 section-animation"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, delay: 0.2 }}
+      // Increased delay to ensure it appears after all other UI elements
+      transition={{ duration: 0.5, delay: 1.2 }}
     >
       <motion.div 
         className="text-center mb-3"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ delay: 0.3, duration: 0.4 }}
+        transition={{ delay: 1.3, duration: 0.4 }}
       >
         <h3 className="text-sm font-medium text-gray-500">
           {language === 'ar' ? 'تابعنا على وسائل التواصل الاجتماعي' : 'Follow us on social media'}
@@ -83,7 +84,8 @@ export const SocialMediaLinks = () => {
             initial={{ opacity: 0, scale: 0 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ 
-              delay: 0.4 + (index * 0.1),
+              // Staggered delay that starts after all UI elements
+              delay: 1.4 + (index * 0.1),
               type: "spring",
               stiffness: 300,
               damping: 15
