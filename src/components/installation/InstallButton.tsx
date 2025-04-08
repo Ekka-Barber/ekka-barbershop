@@ -1,4 +1,4 @@
-
+import React from 'react';
 import { Button } from "@/components/ui/button";
 import { CustomBadge } from "@/components/ui/custom-badge";
 import { X } from 'lucide-react';
@@ -16,15 +16,18 @@ interface InstallButtonProps {
   handleInstallClick?: () => void;
 }
 
-export const InstallButton = ({ 
-  platform, 
-  language, 
-  onClick, 
-  isInstalling = false,
-  onDismiss,
-  showInstructions = false,
-  handleInstallClick
-}: InstallButtonProps) => {
+export const InstallButton = React.forwardRef<HTMLDivElement, InstallButtonProps>((
+  { 
+    platform, 
+    language, 
+    onClick, 
+    isInstalling = false,
+    onDismiss,
+    showInstructions = false,
+    handleInstallClick
+  },
+  ref
+) => {
   const Icon = platform === 'ios' ? AppleIcon : AndroidIcon;
   const isRTL = language === 'ar';
   
@@ -32,7 +35,7 @@ export const InstallButton = ({
   const onClickHandler = handleInstallClick || onClick;
 
   return (
-    <div className="flex flex-col items-center text-center">
+    <div ref={ref} className="flex flex-col items-center text-center">
       {showInstructions && platform === 'ios' && (
         <div className="mb-4 p-3 bg-blue-100 border border-blue-300 rounded-md text-blue-800 text-sm">
           {language === 'ar' ? (
@@ -46,7 +49,7 @@ export const InstallButton = ({
           )}
         </div>
       )}
-      <div className="relative space-y-2 mt-6 mb-3 transform-gpu">
+      <div className="relative space-y-1 mt-1 mb-1 transform-gpu">
         <div className="absolute -top-3 -right-3 z-10 flex items-center justify-center">
           <CustomBadge 
             variant="secondary" 
@@ -87,4 +90,6 @@ export const InstallButton = ({
       </div>
     </div>
   );
-};
+});
+
+InstallButton.displayName = "InstallButton";
