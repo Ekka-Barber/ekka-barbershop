@@ -140,7 +140,7 @@ export const ReviewCarousel = ({
       </div>
       
       {/* Modern dot indicators - centered and larger for mobile */}
-      {totalPages > 1 && <div className="flex justify-center items-center gap-2 mb-0 py-0 my-[6px]">
+      {totalPages > 1 && <div className="flex justify-center items-center gap-2 mb-0 my-[9px]">
           {[...Array(totalPages)].map((_, i) => <button key={`page-${i}`} onClick={() => setCurrentPage(i)} className={cn("w-2 h-2 rounded-full transition-all duration-300 focus:outline-none", i === currentPage ? "bg-[#C4A36F] w-3" // Active dot is larger
       : "bg-gray-300 opacity-70 hover:opacity-100")} aria-label={`${language === 'ar' ? "الصفحة" : "Page"} ${i + 1}`} />)}
         </div>}
