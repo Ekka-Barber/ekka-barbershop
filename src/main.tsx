@@ -38,10 +38,4 @@ root.render(
 );
 
 // Register service worker after rendering for better initial load performance
-setTimeout(() => {
-  import('@/services/offlineSupport').then(({ registerServiceWorker }) => {
-    registerServiceWorker().catch(error => {
-      logger.error('Service worker registration failed:', error);
-    });
-  });
-}, 3000);
+// We don't need this here since we're using the ServiceWorkerRegistration component

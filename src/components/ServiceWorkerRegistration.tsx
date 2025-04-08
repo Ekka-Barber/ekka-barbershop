@@ -1,9 +1,9 @@
 
-import { useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { registerServiceWorker } from "@/services/offlineSupport";
 import { logger } from "@/utils/logger";
 
-export const ServiceWorkerRegistration = () => {
+export const ServiceWorkerRegistration: React.FC = () => {
   useEffect(() => {
     const registerSW = async () => {
       try {

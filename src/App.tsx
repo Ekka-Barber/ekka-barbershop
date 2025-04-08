@@ -51,7 +51,6 @@ const App = () => {
   return (
     <LanguageProvider>
       <TooltipProvider>
-        <ServiceWorkerRegistration />
         <ErrorBoundary>
           <Routes>
             {/* Redirect root to customer page */}
@@ -89,6 +88,7 @@ const App = () => {
         <Toaster />
         <Sonner />
         <OfflineNotification />
+        <ServiceWorkerRegistration />
         <LanguageSwitcher />
       </TooltipProvider>
     </LanguageProvider>
