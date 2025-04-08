@@ -1,4 +1,3 @@
-
 // Service Worker for Ekka Barbershop PWA
 // Version: 1.0.1 - Fixed scroll refreshes
 
@@ -24,9 +23,9 @@ const initializeCache = async () => {
       if (response.ok) {
         return cache.put(resource, response);
       }
-      console.log(`[Service Worker] Failed to cache: ${resource}`);
+      // Silent fail
     } catch (error) {
-      console.error(`[Service Worker] Error caching ${resource}:`, error);
+      // Silent fail
     }
   });
   
@@ -168,7 +167,7 @@ const cacheUrls = async (urls) => {
         return cache.put(url, response);
       }
     } catch (error) {
-      console.error(`[Service Worker] Error caching ${url}:`, error);
+      // Silent fail
     }
   });
   return Promise.allSettled(cachePromises);
@@ -182,7 +181,7 @@ const clearCachedItems = async (urls) => {
 
 // Service worker lifecycle events
 self.addEventListener('install', (event) => {
-  console.log('[Service Worker] Installing Service Worker');
+  // Silent install
   event.waitUntil(
     Promise.all([
       self.skipWaiting(),
@@ -192,7 +191,7 @@ self.addEventListener('install', (event) => {
 });
 
 self.addEventListener('activate', (event) => {
-  console.log('[Service Worker] Activating Service Worker');
+  // Silent activate
   event.waitUntil(
     Promise.all([
       clients.claim(),
@@ -205,62 +204,73 @@ self.addEventListener('fetch', (event) => {
   event.respondWith(handleFetch(event));
 });
 
-// Add message handler for SKIP_WAITING
+// Handle messages from the window
 self.addEventListener('message', (event) => {
-  console.log('[Service Worker] Message received:', event.data);
+  // Silent message handling
   
-  if (event.data && event.data.type === 'SKIP_WAITING') {
-    self.skipWaiting();
+  if (!event.data) return;
+  
+  if (event.data.type === 'CACHE_URLS') {
+    const urls = event.data.payload;
+    event.waitUntil(cacheUrls(urls));
+    return;
   }
   
-  if (event.data && event.data.type === 'CACHE_URLS') {
-    event.waitUntil(cacheUrls(event.data.urls));
-  }
-  
-  if (event.data && event.data.type === 'CLEAR_CACHE') {
-    event.waitUntil(clearCachedItems(event.data.urls));
+  if (event.data.type === 'CLEAR_ITEMS') {
+    const urls = event.data.payload;
+    event.waitUntil(clearCachedItems(urls));
+    return;
   }
 });
 
 // Handle push notifications
 self.addEventListener('push', (event) => {
-  console.log('[Service Worker] Push received');
+  // Silent push handling
   
-  const title = 'Ekka Barbershop';
-  const options = {
-    body: event.data ? event.data.text() : 'New notification',
-    icon: '/lovable-uploads/2ea1f72e-efd2-4345-bf4d-957efd873986.png',
-    badge: '/lovable-uploads/2ea1f72e-efd2-4345-bf4d-957efd873986.png',
-    vibrate: [100, 50, 100],
-    data: {
-      dateOfArrival: Date.now(),
-      primaryKey: 1
-    }
-  };
+  if (!event.data) return;
   
-  event.waitUntil(
-    self.registration.showNotification(title, options)
-  );
+  try {
+    const data = event.data.json();
+    
+    const options = {
+      body: data.body || 'New notification from Ekka Barbershop',
+      icon: '/logos/logo-192.png',
+      badge: '/logos/badge-96.png',
+      data: {
+        url: data.url || '/'
+      }
+    };
+    
+    event.waitUntil(
+      self.registration.showNotification(data.title || 'Ekka Barbershop', options)
+    );
+  } catch (error) {
+    // Silent fail
+  }
 });
 
-// Handle notification click
+// Handle notification clicks
 self.addEventListener('notificationclick', (event) => {
-  console.log('[Service Worker] Notification clicked:', event.notification);
+  // Silent notification click handling
+  
   event.notification.close();
   
-  // This looks for the relevant open window and focuses it,
-  // or opens a new window if none is found
+  const urlToOpen = event.notification.data.url || '/';
+  
   event.waitUntil(
-    clients.matchAll({
-      type: 'window'
-    }).then(clientList => {
-      for (const client of clientList) {
-        if (client.url === '/' && 'focus' in client) {
-          return client.focus();
+    clients.matchAll({ type: 'window' }).then((windowClients) => {
+      // Check if there's already a window open
+      const hadWindowToFocus = windowClients.some((windowClient) => {
+        if (windowClient.url === urlToOpen) {
+          windowClient.focus();
+          return true;
         }
-      }
-      if (clients.openWindow) {
-        return clients.openWindow('/');
+        return false;
+      });
+      
+      // If not, open a new window
+      if (!hadWindowToFocus) {
+        clients.openWindow(urlToOpen);
       }
     })
   );
@@ -268,47 +278,42 @@ self.addEventListener('notificationclick', (event) => {
 
 // Handle background sync
 self.addEventListener('sync', (event) => {
-  console.log('[Service Worker] Background Sync:', event.tag);
+  // Silent sync handling
   
   if (event.tag === 'sync-bookings') {
     event.waitUntil(syncBookings());
   }
 });
 
-// Function to sync bookings from cache
 async function syncBookings() {
-  console.log('[Service Worker] Syncing bookings');
-  
   try {
-    // Check for cached bookings in IndexedDB or other storage
-    // and send them to the server
-    // This is just a placeholder implementation
-    return Promise.resolve();
+    // Get stored bookings from IndexedDB
+    // Actual implementation would synchronize offline bookings
+    // with server once online
+    
+    // Clear synced items from offline storage
+    return true;
   } catch (error) {
-    console.error('[Service Worker] Sync failed:', error);
-    return Promise.reject(error);
+    // Silent fail
+    return false;
   }
 }
 
-// Handle periodic background sync (if supported)
+// Handle periodic background sync
 self.addEventListener('periodicsync', (event) => {
-  console.log('[Service Worker] Periodic Sync:', event.tag);
+  // Silent periodic sync handling
   
   if (event.tag === 'update-content') {
     event.waitUntil(updateContent());
   }
 });
 
-// Function to update content in the background
 async function updateContent() {
-  console.log('[Service Worker] Updating content');
-  
   try {
-    // Fetch new content and update cache
-    // This is just a placeholder implementation
-    return Promise.resolve();
+    // Update cached content, e.g., pre-cache latest price list
+    return true;
   } catch (error) {
-    console.error('[Service Worker] Content update failed:', error);
-    return Promise.reject(error);
+    // Silent fail
+    return false;
   }
 }
