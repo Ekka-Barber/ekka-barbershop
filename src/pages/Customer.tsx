@@ -29,6 +29,7 @@ import {
 import AppLayout from '@/components/layout/AppLayout';
 import { Tables } from "@/types/supabase";
 import { Separator } from "@/components/ui/separator";
+import { SocialMediaLinks } from "@/components/customer/SocialMediaLinks";
 
 interface Branch {
   id: string;
@@ -67,7 +68,6 @@ const Customer = () => {
     });
   }, []);
 
-  // Animation sequence for the buttons
   useEffect(() => {
     const animateButtons = async () => {
       if (scope.current) {
@@ -445,6 +445,8 @@ const Customer = () => {
                 })
               )}
             </div>
+            
+            <SocialMediaLinks />
           </div>
         </div>
       </PullToRefresh>

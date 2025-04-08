@@ -1,132 +1,99 @@
 
-import crypto from 'crypto-js';
+import { logger } from "./logger";
 
-// Hash sensitive data using SHA-256 as required by TikTok
-const hashData = (data: string) => {
-  return crypto.SHA256(data).toString();
-};
-
-// Generate unique event ID for deduplication
-const generateEventId = () => {
-  return `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-};
-
-interface ViewContentParams {
+interface ViewContentEvent {
   pageId: string;
   pageName: string;
   value?: number;
-  currency?: string;
 }
 
-interface ButtonClickParams {
+interface ButtonClickEvent {
   buttonId: string;
   buttonName: string;
   value?: number;
-  currency?: string;
 }
 
-interface ServiceParams {
-  id: string;
-  name_en: string;
-  price: number;
-}
-
-interface LocationParams {
+interface LocationViewEvent {
   id: string;
   name_en: string;
   value?: number;
 }
 
-interface CustomerParams {
-  email: string;
-  phone: string;
-  id: string | number;
+interface SocialMediaClickEvent {
+  platform: string;
+  url: string;
+  value?: number;
 }
 
-export const trackViewContent = ({ pageId, pageName, value, currency = "SAR" }: ViewContentParams) => {
-  if (typeof window === 'undefined' || !window.ttq) return;
-  
-  window.ttq.track('ViewContent', {
-    contents: [{
-      content_id: pageId,
-      content_type: "page",
-      content_name: pageName
-    }],
-    ...(value && { value, currency })
-  });
+export const trackViewContent = (params: ViewContentEvent) => {
+  try {
+    const ttq = (window as any).ttq;
+    if (ttq) {
+      logger.debug("Tracking view_content:", params);
+      ttq.track('ViewContent', {
+        content_id: params.pageId,
+        content_name: params.pageName,
+        content_type: 'product',
+        value: params.value || 0,
+      });
+    } else {
+      logger.debug("TikTok pixel not loaded, view_content event not fired");
+    }
+  } catch (error) {
+    logger.error("Error tracking view_content:", error);
+  }
 };
 
-export const trackServiceSelection = (service: ServiceParams) => {
-  if (typeof window === 'undefined' || !window.ttq) return;
-  
-  window.ttq.track('AddToCart', {
-    contents: [{
-      content_id: service.id,
-      content_type: "service",
-      content_name: service.name_en,
-    }],
-    value: service.price,
-    currency: "SAR"
-  });
+export const trackButtonClick = (params: ButtonClickEvent) => {
+  try {
+    const ttq = (window as any).ttq;
+    if (ttq) {
+      logger.debug("Tracking button_click:", params);
+      ttq.track('ClickButton', {
+        button_id: params.buttonId,
+        button_name: params.buttonName,
+        value: params.value || 0,
+      });
+    } else {
+      logger.debug("TikTok pixel not loaded, button_click event not fired");
+    }
+  } catch (error) {
+    logger.error("Error tracking button_click:", error);
+  }
 };
 
-export const trackLocationView = (branch: LocationParams) => {
-  if (typeof window === 'undefined' || !window.ttq) return;
-  
-  window.ttq.track('FindLocation', {
-    contents: [{
-      content_id: branch.id,
-      content_type: "branch",
-      content_name: branch.name_en
-    }],
-    ...(branch.value && { value: branch.value, currency: "SAR" })
-  });
+export const trackLocationView = (params: LocationViewEvent) => {
+  try {
+    const ttq = (window as any).ttq;
+    if (ttq) {
+      logger.debug("Tracking location_view:", params);
+      ttq.track('ViewLocation', {
+        location_id: params.id,
+        location_name: params.name_en,
+        value: params.value || 0,
+      });
+    } else {
+      logger.debug("TikTok pixel not loaded, location_view event not fired");
+    }
+  } catch (error) {
+    logger.error("Error tracking location_view:", error);
+  }
 };
 
-export const trackButtonClick = ({ buttonId, buttonName, value, currency = "SAR" }: ButtonClickParams) => {
-  if (typeof window === 'undefined' || !window.ttq) return;
-  
-  window.ttq.track('ClickButton', {
-    contents: [{
-      content_id: buttonId,
-      content_type: "button",
-      content_name: buttonName
-    }],
-    ...(value && { value, currency })
-  });
+export const trackSocialMediaClick = (params: SocialMediaClickEvent) => {
+  try {
+    const ttq = (window as any).ttq;
+    if (ttq) {
+      logger.debug("Tracking social_media_click:", params);
+      ttq.track('SocialInteraction', {
+        platform: params.platform,
+        url: params.url,
+        value: params.value || 0,
+      });
+    } else {
+      logger.debug("TikTok pixel not loaded, social_media_click event not fired");
+    }
+  } catch (error) {
+    logger.error("Error tracking social_media_click:", error);
+  }
 };
-
-export const identifyCustomer = (customer: CustomerParams) => {
-  if (typeof window === 'undefined' || !window.ttq) return;
-
-  // Hash sensitive data as required by TikTok
-  const hashedEmail = hashData(customer.email);
-  const hashedPhone = hashData(customer.phone);
-  const hashedId = hashData(customer.id.toString());
-
-  window.ttq.identify({
-    email: hashedEmail,
-    phone_number: hashedPhone,
-    external_id: hashedId
-  });
-};
-
-export const trackBookingCompletion = (booking: any, customerDetails: CustomerParams) => {
-  if (typeof window === 'undefined' || !window.ttq) return;
-
-  // First identify the customer
-  identifyCustomer(customerDetails);
-
-  // Then track the order completion
-  window.ttq.track('PlaceAnOrder', {
-    contents: booking.services.map((service: ServiceParams) => ({
-      content_id: service.id,
-      content_type: "service",
-      content_name: service.name_en,
-    })),
-    value: booking.totalPrice,
-    currency: "SAR",
-    event_id: generateEventId()
-  });
-};
-
