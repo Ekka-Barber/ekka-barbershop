@@ -1,6 +1,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { logger } from "@/utils/logger";
 
 // Detect device type
 const getDeviceType = (): 'mobile' | 'tablet' | 'desktop' => {
@@ -25,12 +26,12 @@ export const trackSocialClick = async (platform: string, url: string) => {
 
   try {
     // Log only the attempt to track, without trying to insert into non-existent table
-    console.log(`Tracking social click: ${platform} - ${url}`);
+    logger.info(`Tracking social click: ${platform} - ${url}`);
     
     // Alternative approach: Track social interactions via TikTok tracking
     // This functionality is handled in the component itself
   } catch (err) {
-    console.error('Error tracking social media click:', err);
+    logger.error('Error tracking social media click:', err);
   }
 };
 

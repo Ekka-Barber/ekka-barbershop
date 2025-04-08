@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
@@ -40,6 +41,3 @@ root.render(
     </QueryClientProvider>
   </React.StrictMode>
 );
-
-// Register service worker after rendering for better initial load performance
-// We don't need this here since we're using the ServiceWorkerRegistration component
