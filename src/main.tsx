@@ -1,11 +1,15 @@
-
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import App from './App.tsx';
 import './index.css';
-import { logger } from '@/utils/logger';
+import { disableConsoleLogging } from '@/utils/disableConsoleLogging';
+import { disableErrorLogging } from '@/utils/disableErrorLogging';
+
+// Disable all console and error logging
+disableConsoleLogging();
+disableErrorLogging();
 
 // Create a client
 const queryClient = new QueryClient({
