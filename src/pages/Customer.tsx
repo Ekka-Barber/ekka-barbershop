@@ -18,7 +18,7 @@ import { logger } from "@/utils/logger";
 import freshaLogo from "@/assets/fresha-logo.svg";
 import boonusLogo from "@/assets/boonus-logo.svg";
 import GoogleReviews from "@/components/customer/GoogleReviews";
-import { motion, stagger, useAnimate } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Dialog,
   DialogContent,
@@ -29,7 +29,6 @@ import {
 import AppLayout from '@/components/layout/AppLayout';
 import { Tables } from "@/types/supabase";
 import { Separator } from "@/components/ui/separator";
-import { SocialMediaLinks } from "@/components/customer/SocialMediaLinks";
 
 interface Branch {
   id: string;
@@ -59,7 +58,8 @@ const Customer = () => {
   const [locationDialogOpen, setLocationDialogOpen] = useState(false);
   const [mapDialogOpen, setMapDialogOpen] = useState(false);
   const [selectedBranch] = useState<Branch | null>(null);
-  const [scope, animate] = useAnimate();
+  const [animationComplete, setAnimationComplete] = useState(false);
+  const [animatingElements, setAnimatingElements] = useState<string[]>([]);
 
   useEffect(() => {
     trackViewContent({
@@ -68,43 +68,42 @@ const Customer = () => {
     });
   }, []);
 
-  useEffect(() => {
-    const animateButtons = async () => {
-      if (scope.current) {
-        await animate(
-          ".logo-animation",
-          { opacity: [0, 1], y: [-20, 0] },
-          { duration: 0.6, ease: "easeOut" }
-        );
-        
-        await animate(
-          ".headline-animation",
-          { opacity: [0, 1], y: [-10, 0] },
-          { duration: 0.5, delay: 0.2 }
-        );
-        
-        await animate(
-          ".divider-animation",
-          { scaleX: [0, 1], opacity: [0, 1] },
-          { duration: 0.4, delay: 0.1 }
-        );
-        
-        await animate(
-          ".button-animation",
-          { opacity: [0, 1], y: [10, 0] },
-          { duration: 0.4, delay: stagger(0.1) }
-        );
-        
-        await animate(
-          ".section-animation",
-          { opacity: [0, 1], y: [15, 0] },
-          { duration: 0.5, delay: stagger(0.15) }
-        );
-      }
-    };
+  // Helper function to trigger element animations in sequence
+  const startElementAnimation = (elements: Tables<'ui_elements'>[]) => {
+    setAnimatingElements([]);
+    setAnimationComplete(false);
     
-    animateButtons();
-  }, [animate, scope]);
+    // Step 1: Start with empty animating elements
+    setTimeout(() => {
+      // Step 2: Add logo
+      setAnimatingElements(['logo']);
+      
+      // Step 3: Add headings after delay
+      setTimeout(() => {
+        setAnimatingElements(prev => [...prev, 'headings']);
+        
+        // Step 4: Add divider after delay
+        setTimeout(() => {
+          setAnimatingElements(prev => [...prev, 'divider']);
+          
+          // Step 5: Add UI elements one by one with delays
+          const sortedElements = [...elements].sort((a, b) => a.display_order - b.display_order);
+          
+          let delay = 300;
+          sortedElements.forEach((element, index) => {
+            setTimeout(() => {
+              setAnimatingElements(prev => [...prev, element.id]);
+              
+              // Set animation complete when the last element is added
+              if (index === sortedElements.length - 1) {
+                setAnimationComplete(true);
+              }
+            }, delay * (index + 1));
+          });
+        }, 300);
+      }, 300);
+    }, 100);
+  };
 
   const { data: branches, refetch } = useQuery({
     queryKey: ['branches'],
@@ -114,7 +113,6 @@ const Customer = () => {
         .select('id, name, name_ar, address, address_ar, is_main, whatsapp_number, google_maps_url, working_hours, google_place_id');
       if (error) throw error;
       
-      logger.info(`Fetched ${data?.length || 0} branches`);
       return data;
     }
   });
@@ -128,7 +126,6 @@ const Customer = () => {
         .order('display_order', { ascending: true });
       
       if (error) {
-        logger.error("Error fetching UI elements:", error);
         throw error;
       }
       return data as Tables<'ui_elements'>[];
@@ -139,6 +136,13 @@ const Customer = () => {
     if (!uiElements) return [];
     return uiElements.filter(el => el.is_visible);
   }, [uiElements]);
+  
+  // Start animation when visible elements are loaded
+  useEffect(() => {
+    if (visibleElements.length > 0) {
+      startElementAnimation(visibleElements);
+    }
+  }, [visibleElements]);
 
   useEffect(() => {
     const channel = supabase
@@ -224,6 +228,22 @@ const Customer = () => {
       description: language === 'ar' ? 'تم تحديث المحتوى' : 'Content has been updated',
       duration: 2000,
     });
+    // Restart animations on refresh
+    if (visibleElements.length > 0) {
+      startElementAnimation(visibleElements);
+    }
+  };
+
+  // Animation variants
+  const fadeUpVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { 
+      opacity: 1, 
+      y: 0,
+      transition: {
+        duration: 0.5
+      }
+    }
   };
 
   return (
@@ -233,35 +253,57 @@ const Customer = () => {
         pullDownThreshold={100}
         autoDisableOnPlatforms={true}
       >
-        <div 
-          className="flex flex-1 flex-col justify-start items-center w-full max-w-md mx-auto pb-40"
-          ref={scope}
-        >
+        <div className="flex flex-1 flex-col justify-start items-center w-full max-w-md mx-auto pb-40">
           <div className="text-center flex-shrink-0 mx-auto pt-safe w-full">
-            <motion.img 
-              src="lovable-uploads/7eb81221-fbf5-4b1d-8327-eb0e707236d8.png" 
-              alt="Ekka Barbershop Logo" 
-              className="h-28 md:h-32 mx-auto mb-4 md:mb-6 object-contain logo-animation"
-              loading="eager"
-              width="320" 
-              height="128"
-            />
-            <div className="space-y-1 md:space-y-2">
-              <motion.h2 
-                className="text-xl font-medium text-[#222222] headline-animation"
-              >
-                {t('welcome.line1')}
-              </motion.h2>
-              <motion.h1
-                className="text-2xl md:text-3xl font-bold text-[#222222] headline-animation"
-              >
-                {t('welcome.line2')}
-              </motion.h1>
-            </div>
-            <motion.div 
-              className="h-1 w-24 bg-[#C4A36F] mx-auto mt-3 md:mt-4 mb-6 divider-animation"
-              style={{ originX: 0.5 }}
-            ></motion.div>
+            <AnimatePresence>
+              {animatingElements.includes('logo') && (
+                <motion.img 
+                  key="logo"
+                  src="lovable-uploads/7eb81221-fbf5-4b1d-8327-eb0e707236d8.png" 
+                  alt="Ekka Barbershop Logo" 
+                  className="h-28 md:h-32 mx-auto mb-4 md:mb-6 object-contain"
+                  loading="eager"
+                  width="320" 
+                  height="128"
+                  initial={{ opacity: 0, y: -20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6 }}
+                />
+              )}
+            </AnimatePresence>
+
+            <AnimatePresence>
+              {animatingElements.includes('headings') && (
+                <motion.div 
+                  className="space-y-1 md:space-y-2"
+                  key="headings"
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5 }}
+                >
+                  <h2 className="text-xl font-medium text-[#222222]">
+                    {t('welcome.line1')}
+                  </h2>
+                  <h1 className="text-2xl md:text-3xl font-bold text-[#222222]">
+                    {t('welcome.line2')}
+                  </h1>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            <AnimatePresence>
+              {animatingElements.includes('divider') && (
+                <motion.div 
+                  key="divider"
+                  className="h-1 w-24 bg-[#C4A36F] mx-auto mt-3 md:mt-4 mb-6"
+                  initial={{ scaleX: 0, opacity: 0 }}
+                  animate={{ scaleX: 1, opacity: 1 }}
+                  transition={{ duration: 0.5 }}
+                  style={{ originX: 0.5 }}
+                />
+              )}
+            </AnimatePresence>
+
             <div className="w-full max-w-xs mx-auto space-y-4">
               {isLoadingUiElements ? (
                 <>
@@ -271,182 +313,206 @@ const Customer = () => {
                 </>
               ) : (
                 visibleElements.map((el) => {
+                  // Check if this element should be animated in yet
+                  const isVisible = animatingElements.includes(el.id);
+                  
                   if (el.type === 'button') {
                     return (
-                      <motion.div
-                        key={el.id}
-                        className="button-animation"
-                        whileHover={{ 
-                          scale: 1.03, 
-                          boxShadow: "0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.05)" 
-                        }}
-                        whileTap={{ scale: 0.97 }}
-                        transition={{ type: "spring", stiffness: 400, damping: 17 }}
-                      >
-                        <Button
-                          className={`w-full h-auto min-h-[56px] text-lg font-medium flex items-center justify-center px-4 py-3 ${
-                            el.name === 'view_menu' || el.name === 'book_now'
-                              ? 'bg-[#C4A36F] hover:bg-[#B39260]'
-                              : 'bg-[#4A4A4A] hover:bg-[#3A3A3A]'
-                          } text-white transition-all duration-300 shadow-lg hover:shadow-xl touch-target`}
-                          onClick={() => {
-                            trackButtonClick({
-                              buttonId: el.name,
-                              buttonName: language === 'ar' ? el.display_name_ar : el.display_name
-                            });
-
-                            if (el.action?.startsWith('http')) {
-                              window.open(el.action, '_blank');
-                            } else if (el.action === 'openBranchDialog') {
-                              setBranchDialogOpen(true);
-                            } else if (el.action === 'openLocationDialog') {
-                              handleLocationDialog();
-                            } else if (el.action === 'openEidBookingsDialog') {
-                              setEidBookingsDialogOpen(true);
-                            } else if (el.action) {
-                              navigate(el.action);
-                            }
-                          }}
-                        >
-                          <motion.div 
-                            whileHover={{ rotate: [0, -10, 10, -10, 0] }}
-                            transition={{ duration: 0.5, ease: "easeInOut" }}
+                      <AnimatePresence key={el.id}>
+                        {isVisible && (
+                          <motion.div
+                            variants={fadeUpVariants}
+                            initial="hidden"
+                            animate="visible"
+                            whileHover={{ 
+                              scale: 1.03, 
+                              boxShadow: "0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.05)" 
+                            }}
+                            whileTap={{ scale: 0.97 }}
+                            transition={{ type: "spring", stiffness: 400, damping: 17 }}
                           >
-                            {renderIcon(el.icon)}
+                            <Button
+                              className={`w-full h-auto min-h-[56px] text-lg font-medium flex items-center justify-center px-4 py-3 ${
+                                el.name === 'view_menu' || el.name === 'book_now'
+                                  ? 'bg-[#C4A36F] hover:bg-[#B39260]'
+                                  : 'bg-[#4A4A4A] hover:bg-[#3A3A3A]'
+                              } text-white transition-all duration-300 shadow-lg hover:shadow-xl touch-target`}
+                              onClick={() => {
+                                trackButtonClick({
+                                  buttonId: el.name,
+                                  buttonName: language === 'ar' ? el.display_name_ar : el.display_name
+                                });
+    
+                                if (el.action?.startsWith('http')) {
+                                  window.open(el.action, '_blank');
+                                } else if (el.action === 'openBranchDialog') {
+                                  setBranchDialogOpen(true);
+                                } else if (el.action === 'openLocationDialog') {
+                                  handleLocationDialog();
+                                } else if (el.action === 'openEidBookingsDialog') {
+                                  setEidBookingsDialogOpen(true);
+                                } else if (el.action) {
+                                  navigate(el.action);
+                                }
+                              }}
+                            >
+                              <motion.div 
+                                whileHover={{ rotate: [0, -10, 10, -10, 0] }}
+                                transition={{ duration: 0.5, ease: "easeInOut" }}
+                              >
+                                {renderIcon(el.icon)}
+                              </motion.div>
+                              <div className="flex flex-col text-center">
+                                 <span className="text-lg font-medium">
+                                   {language === 'ar' ? el.display_name_ar : el.display_name}
+                                 </span>
+                                 {el.description && (
+                                   <span className="text-xs font-normal text-gray-200 mt-1">
+                                     {language === 'ar' ? el.description_ar : el.description}
+                                   </span>
+                                 )}
+                              </div>
+                            </Button>
                           </motion.div>
-                          <div className="flex flex-col text-center">
-                             <span className="text-lg font-medium">
-                               {language === 'ar' ? el.display_name_ar : el.display_name}
-                             </span>
-                             {el.description && (
-                               <span className="text-xs font-normal text-gray-200 mt-1">
-                                 {language === 'ar' ? el.description_ar : el.description}
-                               </span>
-                             )}
-                          </div>
-                        </Button>
-                      </motion.div>
+                        )}
+                      </AnimatePresence>
                     );
                   } else if (el.type === 'section' && el.name === 'eid_bookings') {
                      return (
-                       <motion.div
-                         key={el.id}
-                         className="section-animation"
-                         whileHover={{ 
-                           scale: 1.02, 
-                           boxShadow: "0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.05)" 
-                         }}
-                         whileTap={{ scale: 0.98 }}
-                         transition={{ type: "spring", stiffness: 400, damping: 17 }}
-                         onClick={() => {
-                           trackButtonClick({
-                             buttonId: 'eid_bookings',
-                             buttonName: language === 'ar' ? el.display_name_ar : el.display_name
-                           });
-                           setEidBookingsDialogOpen(true);
-                         }}
-                         role="button"
-                         tabIndex={0}
-                         aria-label={language === 'ar' ? el.display_name_ar : el.display_name}
-                         onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setEidBookingsDialogOpen(true); }}
-                       >
-                         <div className="mt-3 bg-white rounded-lg shadow-md border border-gray-200 p-4 cursor-pointer hover:shadow-lg transition-shadow duration-200">
-                           <div className="flex items-center justify-between">
-                             <div className={`flex-1 ${language === 'ar' ? 'ml-3' : 'mr-3'}`}>
-                               <h2 className={`text-lg font-bold text-[#222222] mb-1 ${language === 'ar' ? 'text-right' : 'text-left'}`}>
-                                 {language === 'ar' ? el.display_name_ar : el.display_name}
-                               </h2>
-                               {el.description && (
-                                 <p className={`text-gray-600 text-xs ${language === 'ar' ? 'text-right' : 'text-left'}`}>
-                                   {language === 'ar' ? el.description_ar : el.description}
-                                 </p>
-                               )}
+                       <AnimatePresence key={el.id}>
+                         {isVisible && (
+                           <motion.div
+                             variants={fadeUpVariants}
+                             initial="hidden"
+                             animate="visible"
+                             whileHover={{ 
+                               scale: 1.02, 
+                               boxShadow: "0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.05)" 
+                             }}
+                             whileTap={{ scale: 0.98 }}
+                             transition={{ type: "spring", stiffness: 400, damping: 17 }}
+                             onClick={() => {
+                               trackButtonClick({
+                                 buttonId: 'eid_bookings',
+                                 buttonName: language === 'ar' ? el.display_name_ar : el.display_name
+                               });
+                               setEidBookingsDialogOpen(true);
+                             }}
+                             role="button"
+                             tabIndex={0}
+                             aria-label={language === 'ar' ? el.display_name_ar : el.display_name}
+                             onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setEidBookingsDialogOpen(true); }}
+                           >
+                             <div className="mt-3 bg-white rounded-lg shadow-md border border-gray-200 p-4 cursor-pointer hover:shadow-lg transition-shadow duration-200">
+                               <div className="flex items-center justify-between">
+                                 <div className={`flex-1 ${language === 'ar' ? 'ml-3' : 'mr-3'}`}>
+                                   <h2 className={`text-lg font-bold text-[#222222] mb-1 ${language === 'ar' ? 'text-right' : 'text-left'}`}>
+                                     {language === 'ar' ? el.display_name_ar : el.display_name}
+                                   </h2>
+                                   {el.description && (
+                                     <p className={`text-gray-600 text-xs ${language === 'ar' ? 'text-right' : 'text-left'}`}>
+                                       {language === 'ar' ? el.description_ar : el.description}
+                                     </p>
+                                   )}
+                                 </div>
+                                 <div className="h-10 w-px bg-gray-200 mx-3"></div>
+                                 <motion.div 
+                                   className="flex-shrink-0"
+                                   whileHover={{ y: -2, rotate: 2 }}
+                                   transition={{ type: "spring", stiffness: 300, damping: 10 }}
+                                 >
+                                   <img src={freshaLogo} alt="Fresha Logo" className="h-8 w-auto" />
+                                 </motion.div>
+                               </div>
                              </div>
-                             <div className="h-10 w-px bg-gray-200 mx-3"></div>
-                             <motion.div 
-                               className="flex-shrink-0"
-                               whileHover={{ y: -2, rotate: 2 }}
-                               transition={{ type: "spring", stiffness: 300, damping: 10 }}
-                             >
-                               <img src={freshaLogo} alt="Fresha Logo" className="h-8 w-auto" />
-                             </motion.div>
-                           </div>
-                         </div>
-                       </motion.div>
+                           </motion.div>
+                         )}
+                       </AnimatePresence>
                      );
                   } else if (el.type === 'section' && el.name === 'loyalty_program') {
                      return (
-                       <>
-                         <motion.div
-                           key={el.id}
-                           className="section-animation"
-                           whileHover={{ 
-                             scale: 1.02, 
-                             boxShadow: "0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.05)" 
-                           }}
-                           whileTap={{ scale: 0.98 }}
-                           transition={{ type: "spring", stiffness: 400, damping: 17 }}
-                           onClick={() => {
-                             trackButtonClick({
-                               buttonId: 'loyalty_program',
-                               buttonName: language === 'ar' ? el.display_name_ar : el.display_name
-                             });
-                             window.open('https://enroll.boonus.app/64b7c34953090f001de0fb6c/wallet/64b7efed53090f001de815b4', '_blank');
-                           }}
-                           role="button"
-                           tabIndex={0}
-                           aria-label={language === 'ar' ? el.display_name_ar : el.display_name}
-                           onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') window.open('https://enroll.boonus.app/64b7c34953090f001de0fb6c/wallet/64b7efed53090f001de815b4', '_blank'); }}
-                         >
-                           <div className="mt-3 bg-white rounded-lg shadow-md border border-gray-200 p-4 cursor-pointer hover:shadow-lg transition-shadow duration-200">
-                             <div className="flex items-center justify-between">
-                                <div className={`flex-1 ${language === 'ar' ? 'ml-3' : 'mr-3'}`}>
-                                 <h2 className={`text-lg font-bold text-[#222222] ${language === 'ar' ? 'text-right' : 'text-left'}`}>
-                                   {language === 'ar' ? el.display_name_ar : el.display_name}
-                                 </h2>
-                                 {el.description && (
-                                   <p className={`text-gray-600 text-xs mt-1 ${language === 'ar' ? 'text-right' : 'text-left'}`}>
-                                     {language === 'ar' ? el.description_ar : el.description}
-                                   </p>
-                                 )}
+                       <AnimatePresence key={el.id}>
+                         {isVisible && (
+                           <>
+                             <motion.div
+                               variants={fadeUpVariants}
+                               initial="hidden"
+                               animate="visible"
+                               whileHover={{ 
+                                 scale: 1.02, 
+                                 boxShadow: "0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.05)" 
+                               }}
+                               whileTap={{ scale: 0.98 }}
+                               transition={{ type: "spring", stiffness: 400, damping: 17 }}
+                               onClick={() => {
+                                 trackButtonClick({
+                                   buttonId: 'loyalty_program',
+                                   buttonName: language === 'ar' ? el.display_name_ar : el.display_name
+                                 });
+                                 window.open('https://enroll.boonus.app/64b7c34953090f001de0fb6c/wallet/64b7efed53090f001de815b4', '_blank');
+                               }}
+                               role="button"
+                               tabIndex={0}
+                               aria-label={language === 'ar' ? el.display_name_ar : el.display_name}
+                               onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') window.open('https://enroll.boonus.app/64b7c34953090f001de0fb6c/wallet/64b7efed53090f001de815b4', '_blank'); }}
+                             >
+                               <div className="mt-3 bg-white rounded-lg shadow-md border border-gray-200 p-4 cursor-pointer hover:shadow-lg transition-shadow duration-200">
+                                 <div className="flex items-center justify-between">
+                                    <div className={`flex-1 ${language === 'ar' ? 'ml-3' : 'mr-3'}`}>
+                                     <h2 className={`text-lg font-bold text-[#222222] ${language === 'ar' ? 'text-right' : 'text-left'}`}>
+                                       {language === 'ar' ? el.display_name_ar : el.display_name}
+                                     </h2>
+                                     {el.description && (
+                                       <p className={`text-gray-600 text-xs mt-1 ${language === 'ar' ? 'text-right' : 'text-left'}`}>
+                                         {language === 'ar' ? el.description_ar : el.description}
+                                       </p>
+                                     )}
+                                   </div>
+                                   <div className="h-10 w-px bg-gray-200 mx-3"></div>
+                                   <motion.div 
+                                     className="flex-shrink-0 flex flex-col items-center justify-center"
+                                     whileHover={{ y: -2, rotate: -2 }}
+                                     transition={{ type: "spring", stiffness: 300, damping: 10 }}
+                                   >
+                                     <img src={boonusLogo} alt="Boonus Logo" className="h-8 w-auto" />
+                                   </motion.div>
+                                 </div>
                                </div>
-                               <div className="h-10 w-px bg-gray-200 mx-3"></div>
-                               <motion.div 
-                                 className="flex-shrink-0 flex flex-col items-center justify-center"
-                                 whileHover={{ y: -2, rotate: -2 }}
-                                 transition={{ type: "spring", stiffness: 300, damping: 10 }}
-                               >
-                                 <img src={boonusLogo} alt="Boonus Logo" className="h-8 w-auto" />
-                               </motion.div>
-                             </div>
-                           </div>
-                         </motion.div>
-                         <motion.div 
-                           className="w-full max-w-xs mx-auto my-4 section-animation"
-                           initial={{ scaleX: 0, opacity: 0 }}
-                           animate={{ scaleX: 1, opacity: 1 }}
-                           transition={{ 
-                             duration: 0.5,
-                             delay: 0.2,
-                             ease: "easeOut"
-                           }}
-                         >
-                            <Separator
-                              orientation="horizontal"
-                              className="bg-[#C4A36F]/30 h-[1px] w-full"
-                            />
-                          </motion.div>
-                       </>
+                             </motion.div>
+                             <motion.div 
+                               className="w-full max-w-xs mx-auto my-4"
+                               variants={fadeUpVariants}
+                               initial="hidden"
+                               animate="visible"
+                             >
+                                <Separator
+                                  orientation="horizontal"
+                                  className="bg-[#C4A36F]/30 h-[1px] w-full"
+                                />
+                              </motion.div>
+                           </>
+                         )}
+                       </AnimatePresence>
                      );
                    } else if (el.type === 'section' && el.name === 'google_reviews') {
-                     return <GoogleReviews key={el.id} />;
+                     return (
+                       <AnimatePresence key={el.id}>
+                         {isVisible && (
+                           <motion.div 
+                             variants={fadeUpVariants}
+                             initial="hidden"
+                             animate="visible"
+                           >
+                             <GoogleReviews />
+                           </motion.div>
+                         )}
+                       </AnimatePresence>
+                     );
                    }
                   return null;
                 })
               )}
             </div>
-            
-            <SocialMediaLinks />
           </div>
         </div>
       </PullToRefresh>
