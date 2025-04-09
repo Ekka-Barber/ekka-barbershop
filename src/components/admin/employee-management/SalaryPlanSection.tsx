@@ -213,11 +213,6 @@ export const SalaryPlanSection = ({
     );
   }
 
-  // Debug logs to help identify the issue
-  console.log('Current plan:', currentPlan);
-  console.log('Sales amount:', salesAmount);
-  console.log('Calculated compensation:', compensation);
-
   return (
     <div className="space-y-4">
       <div>
