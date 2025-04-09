@@ -33,9 +33,10 @@ export class CommissionCalculator extends BaseCalculator {
           
           // Handle commission block
           if (block.type === 'commission' && block.config) {
+            // Extract commission rate and ensure it's a proper decimal value (e.g., 0.2 for 20%)
             commissionRate = Number(block.config.rate || 0);
             threshold = Number(block.config.threshold || 0);
-            console.log(`Found commission block: rate=${commissionRate} (${commissionRate * 100}%), threshold=${threshold} SAR`);
+            console.log(`Found commission block: rate=${commissionRate}, threshold=${threshold} SAR`);
           }
         }
       } else {
@@ -45,16 +46,19 @@ export class CommissionCalculator extends BaseCalculator {
         threshold = Number(config.threshold || 0);
       }
       
-      // Calculate commission if threshold is met
-      if (params.salesAmount > threshold && commissionRate > 0) {
+      // Calculate commission if threshold is met or exceeded
+      if (params.salesAmount >= threshold && commissionRate > 0) {
         const commissionableAmount = params.salesAmount - threshold;
+        
+        // Ensure commissionRate is properly applied as a decimal (0.2 = 20%)
         commission = Math.round(commissionableAmount * commissionRate);
+        
         console.log(`Calculated commission for ${params.employee.name}: ${commission} SAR`);
         console.log(`  Sales: ${params.salesAmount} SAR`);
         console.log(`  Threshold: ${threshold} SAR`);
         console.log(`  Commissionable Amount: ${commissionableAmount} SAR`);
-        console.log(`  Rate: ${commissionRate * 100}%`);
-        console.log(`  Formula: (${params.salesAmount} - ${threshold}) × ${commissionRate * 100}% = ${commission} SAR`);
+        console.log(`  Rate: ${commissionRate}`);
+        console.log(`  Formula: (${params.salesAmount} - ${threshold}) × ${commissionRate} = ${commission} SAR`);
       }
       
       // Calculate bonus, deductions, and loans
