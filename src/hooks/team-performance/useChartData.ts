@@ -1,6 +1,6 @@
 
 import { useMemo } from 'react';
-import { ChartOptions } from 'chart.js';
+import { ChartData, ChartOptions } from 'chart.js';
 import { EmployeePerformance, MetricType } from './useTeamPerformanceData';
 
 export const useChartData = (
@@ -23,7 +23,8 @@ export const useChartData = (
     };
   }, [sortedPerformanceData, selectedMetric]);
 
-  const chartOptions: ChartOptions<'bar'> = {
+  // Chart options that work with both bar and line charts
+  const chartOptions: ChartOptions<'bar' | 'line'> = {
     responsive: true,
     plugins: {
       legend: {

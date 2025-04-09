@@ -61,7 +61,10 @@ export const PerformanceFilters = ({
       <Button 
         variant="outline" 
         size="icon"
-        onClick={() => setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc')}
+        onClick={() => {
+          // Fixed: Using direct value assignment instead of a function
+          setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+        }}
         title={`Sort ${sortDirection === 'asc' ? 'Descending' : 'Ascending'}`}
       >
         <ArrowUpDown className="h-4 w-4" />
