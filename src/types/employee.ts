@@ -1,19 +1,22 @@
-
 import { Json } from './supabase-generated';
-import { WorkingHours } from './service';
+
+export type TimeRange = string; // Format: "HH:mm-HH:mm"
+
+export interface WorkingHours {
+  [day: string]: TimeRange[];
+}
 
 export interface Employee {
   id: string;
   name: string;
-  name_ar?: string;
-  role: 'barber' | 'receptionist' | 'manager';
+  email: string;
+  phone?: string;
+  role: string;
   branch_id?: string;
   photo_url?: string;
-  working_hours: Json;
+  working_hours: WorkingHours;
   off_days?: string[];
   nationality?: string;
-  previous_working_hours?: Json;
-  salary_plan_id?: string;
   created_at?: string;
   updated_at?: string;
 }
