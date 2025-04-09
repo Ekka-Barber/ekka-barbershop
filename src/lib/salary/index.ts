@@ -1,3 +1,4 @@
+
 // Export types
 export * from './types/salary';
 
@@ -9,4 +10,4 @@ export * from './calculators/CommissionCalculator';
 export * from './calculators/TieredCommissionCalculator';
 
 // Export hooks
-export * from './hooks/useSalaryCalculation'; 
+export * from './hooks/useSalaryCalculation';

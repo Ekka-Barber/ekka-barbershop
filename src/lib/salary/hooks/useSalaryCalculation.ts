@@ -11,7 +11,8 @@ import {
   EmployeeDeduction,
   EmployeeLoan,
   SalaryPlanType,
-  SalaryDetail
+  SalaryDetail,
+  CalculationResult
 } from '../types/salary';
 
 interface UseSalaryCalculationParams {
@@ -146,17 +147,15 @@ export const useSalaryCalculation = ({
       const calculator = factory.getCalculator(salaryPlan.type as SalaryPlanType);
       
       // Perform calculation
-      // Make sure we're casting the arrays to any to avoid TypeScript errors
-      // The calculator will handle the type conversions internally
       const result = await calculator.calculate({
         employee,
         plan: salaryPlan,
         salesAmount,
-        bonuses: bonuses as any,
-        deductions: deductions as any,
-        loans: loans as any,
+        bonuses: bonuses as EmployeeBonus[],
+        deductions: deductions as EmployeeDeduction[],
+        loans: loans as EmployeeLoan[],
         selectedMonth
-      });
+      }) as CalculationResult;
       
       // Make sure the result matches SalaryCalculationResult structure
       setCalculationResult({

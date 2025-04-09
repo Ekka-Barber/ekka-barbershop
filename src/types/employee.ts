@@ -8,7 +8,7 @@ export interface WorkingHours {
 export interface Employee {
   id: string;
   name: string;
-  name_ar?: string;
+  name_ar: string; // Changed from optional to required
   email: string;
   phone?: string;
   role: string;
