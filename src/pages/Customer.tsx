@@ -32,19 +32,6 @@ import { Separator } from "@/components/ui/separator";
 import { Branch } from "@/types/branch";
 import { transformWorkingHours } from "@/utils/workingHoursUtils";
 
-interface Branch {
-  id: string;
-  name: string;
-  name_ar: string;
-  address: string;
-  address_ar: string;
-  is_main: boolean;
-  whatsapp_number: string;
-  google_maps_url: string;
-  working_hours: string;
-  google_place_id: string;
-}
-
 const renderIcon = (iconName: string | null) => {
   if (!iconName) return null;
   const Icon = Icons[iconName as keyof typeof Icons] as LucideIcon;

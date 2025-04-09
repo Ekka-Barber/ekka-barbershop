@@ -17,3 +17,12 @@ export interface Employee {
   created_at?: string;
   updated_at?: string;
 }
+
+export interface EmployeeSales {
+  id: string;
+  employee_name: string;
+  month: string;
+  sales_amount: number;
+  created_at?: string;
+  updated_at?: string;
+}
