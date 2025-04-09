@@ -4,6 +4,7 @@ import { SalaryCalculator } from './BaseCalculator';
 import { FixedCalculator } from './FixedCalculator';
 import { CommissionCalculator } from './CommissionCalculator';
 import { TieredCommissionCalculator } from './TieredCommissionCalculator';
+import { logger } from '@/utils/logger';
 
 export class SalaryCalculatorFactory {
   private static instance: SalaryCalculatorFactory;
@@ -27,19 +28,25 @@ export class SalaryCalculatorFactory {
     this.calculators.set('commission', new CommissionCalculator());
     this.calculators.set('tiered_commission', new TieredCommissionCalculator());
     
-    // Fix: Map dynamic_basic to CommissionCalculator instead of FixedCalculator
+    // Map all commission-based plan types to the CommissionCalculator
     this.calculators.set('dynamic_basic', new CommissionCalculator());
     this.calculators.set('commission_only', new CommissionCalculator());
     this.calculators.set('team_commission', new CommissionCalculator());
+    
+    logger.info('Registered salary calculators:', 
+      Array.from(this.calculators.keys()).join(', '));
   }
 
   public getCalculator(planType: SalaryPlanType): SalaryCalculator {
     const calculator = this.calculators.get(planType);
     
     if (!calculator) {
-      throw new Error(`No calculator found for plan type: ${planType}`);
+      const error = `No calculator found for plan type: ${planType}`;
+      logger.error(error);
+      throw new Error(error);
     }
     
+    logger.info(`Retrieved calculator for plan type: ${planType}`);
     return calculator;
   }
-} 
+}
