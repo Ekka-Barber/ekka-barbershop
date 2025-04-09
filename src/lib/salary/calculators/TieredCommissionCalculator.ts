@@ -1,4 +1,4 @@
-import { BaseCalculator, CalculationParameters } from './BaseCalculator';
+import { BaseCalculator, CalculationParams, CalculationResult } from './BaseCalculator';
 import { SalaryCalculationResult, SalaryDetail } from '../types/salary';
 
 interface TierConfig {
@@ -16,11 +16,19 @@ interface TieredCommissionConfig {
 }
 
 export class TieredCommissionCalculator extends BaseCalculator {
-  async calculate(params: CalculationParameters): Promise<SalaryCalculationResult> {
+  async calculate(params: CalculationParams): Promise<CalculationResult> {
     // Check cache first
     const cachedResult = this.getFromCache(params);
     if (cachedResult) {
-      return cachedResult;
+      return {
+        baseSalary: cachedResult.baseSalary,
+        commission: cachedResult.commission,
+        bonus: cachedResult.targetBonus,
+        deductions: cachedResult.deductions,
+        loans: cachedResult.loans,
+        total: cachedResult.totalSalary,
+        calculationStatus: { success: true }
+      };
     }
     
     const { plan, salesAmount, bonuses = [], deductions = [], loans = [], selectedMonth } = params;
@@ -51,12 +59,15 @@ export class TieredCommissionCalculator extends BaseCalculator {
         // Support both formats: threshold/rate and min_sales/max_sales/commission_rate
         const minSales = tier.min_sales !== undefined ? tier.min_sales : tier.threshold || 0;
         const maxSales = tier.max_sales !== undefined ? tier.max_sales : Infinity;
+        
+        // Get the rate from either commission_rate or rate field, ensuring it's a decimal value
         const rate = tier.commission_rate !== undefined ? tier.commission_rate : tier.rate || 0;
         
         if (salesAmount >= minSales && salesAmount <= maxSales) {
+          // Apply the commission rate directly - it should already be in decimal form (e.g., 0.2 for 20%)
           commission = salesAmount * rate;
           appliedTier = tier;
-          console.debug(`Applied tier: ${minSales}-${maxSales} with rate ${rate * 100}% = ${commission}`);
+          console.debug(`Applied tier: ${minSales}-${maxSales} with rate ${rate} = ${commission}`);
           break; // Early exit once we find the applicable tier
         }
       }
@@ -71,14 +82,28 @@ export class TieredCommissionCalculator extends BaseCalculator {
     // Calculate bonus total
     const bonusesFromDb = bonuses.reduce((sum, bonus) => sum + bonus.amount, 0);
     
-    // Combine all calculated values
-    const result: SalaryCalculationResult = {
+    // Calculate the total
+    const total = baseSalary + Math.round(commission) + bonusesFromDb - deductionsTotal - loansTotal;
+    
+    // Create the result object in the format expected by the BaseCalculator
+    const result: CalculationResult = {
       baseSalary,
       commission: Math.round(commission),
-      targetBonus: 0,
+      bonus: bonusesFromDb,
       deductions: deductionsTotal,
       loans: loansTotal,
-      totalSalary: baseSalary + Math.round(commission) + bonusesFromDb - deductionsTotal - loansTotal,
+      total,
+      calculationStatus: { success: true }
+    };
+    
+    // Also save to cache in SalaryCalculationResult format
+    const fullResult: SalaryCalculationResult = {
+      baseSalary,
+      commission: Math.round(commission),
+      targetBonus: bonusesFromDb,
+      deductions: deductionsTotal,
+      loans: loansTotal,
+      totalSalary: total,
       planType: plan.type,
       planName: plan.name,
       isLoading: false,
@@ -96,7 +121,7 @@ export class TieredCommissionCalculator extends BaseCalculator {
     };
     
     // Save to cache and return
-    this.saveToCache(params, result);
+    this.saveToCache(params, fullResult);
     return result;
   }
   
@@ -120,7 +145,7 @@ export class TieredCommissionCalculator extends BaseCalculator {
       details.push({
         type: 'Tiered Commission',
         amount: Math.round(result.commission),
-        description: `${(rate * 100).toFixed(1)}% ${tier.name ? `(${tier.name})` : tier.min_sales !== undefined ? 
+        description: `${rate} ${tier.name ? `(${tier.name})` : tier.min_sales !== undefined ? 
           `for sales between ${tier.min_sales.toLocaleString()} and ${(tier.max_sales || 'unlimited').toString().replace('Infinity', 'unlimited').toLocaleString()} SAR` :
           `for sales above ${tier.threshold?.toLocaleString() || 0} SAR`}`
       });
