@@ -25,7 +25,7 @@ export type {
 export { BaseCalculator, SalaryCalculator } from './calculators/BaseCalculator';
 
 // Export calculator implementations
-export * from './calculators/CalculatorFactory';
+export { CalculatorFactory } from './calculators/CalculatorFactory';
 export type { FixedCalculator } from './calculators/FixedCalculator';
 export type { CommissionCalculator } from './calculators/CommissionCalculator';
 export type { TieredCommissionCalculator } from './calculators/TieredCommissionCalculator';

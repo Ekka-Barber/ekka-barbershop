@@ -4,6 +4,8 @@ import { SalesInput } from './SalesInput';
 import { BranchSelector } from './BranchSelector';
 import { ScheduleDisplay } from '../ScheduleDisplay';
 import { transformWorkingHours } from '@/utils/workingHoursUtils';
+import { SalesStatistics } from '../components/SalesStatistics';
+import { SalaryPlanSection } from '../components/SalaryPlanSection';
 
 interface InfoTabContentProps {
   employee: Employee;
@@ -64,13 +66,11 @@ export const StatsTabContent = ({
     <div className="space-y-6">
       <div>
         <h3 className="text-sm font-medium mb-3">Sales Performance</h3>
-        {/* Import this component dynamically when needed */}
         <SalesStatistics employee={employee} />
       </div>
       
       <div className="border-t pt-6">
         <h3 className="text-sm font-medium mb-3">Salary & Compensation</h3>
-        {/* Import this component dynamically when needed */}
         <SalaryPlanSection 
           employee={employee} 
           salesAmount={salesAmount}
@@ -80,7 +80,3 @@ export const StatsTabContent = ({
     </div>
   );
 };
-
-// Need to add these imports at the top of the file when needed
-// import { SalesStatistics } from './components/SalesStatistics';
-// import { SalaryPlanSection } from './components/SalaryPlanSection';
