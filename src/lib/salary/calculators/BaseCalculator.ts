@@ -1,7 +1,8 @@
-
 import { Employee } from '@/types/employee';
 import { SalaryPlan, Transaction } from '../types/salary';
 import { logger } from '@/utils/logger';
+
+export type { Transaction };
 
 export interface SalesData {
   sales_amount: number;
@@ -45,6 +46,13 @@ export interface CalculatorResult {
 export abstract class BaseCalculator {
   
   abstract calculate(params: CalculationParams): Promise<CalculatorResult>;
+  
+  protected getFromCache(params: CalculationParams): null {
+    return null;
+  }
+  
+  protected saveToCache(params: CalculationParams, result: any): void {
+  }
   
   protected validateInput(params: CalculationParams): void {
     if (!params.employee) {
@@ -99,5 +107,4 @@ export abstract class BaseCalculator {
   }
 }
 
-// Defines the abstract SalaryCalculator interface
 export abstract class SalaryCalculator extends BaseCalculator {}

@@ -4,8 +4,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { Employee } from '@/types/employee';
 import { getMonthDateRange } from '../SalaryUtils';
 import { SalaryCalculatorFactory } from '@/lib/salary/calculators/CalculatorFactory';
-import { SalaryPlanType, SalaryPlan } from '@/lib/salary/types/salary';
-import { Transaction, SalesData } from '@/lib/salary/calculators/BaseCalculator';
+import { SalaryPlanType, SalaryPlan, Transaction } from '@/lib/salary/types/salary';
+import { SalesData } from '@/lib/salary/calculators/BaseCalculator';
 
 interface EmployeeSalary {
   id: string;
@@ -52,10 +52,8 @@ export const useSalaryData = ({ employees, selectedMonth }: UseSalaryDataProps):
     details?: Record<string, unknown>;
   }[]>([]);
   
-  // Get date range for the selected month
   const { startDate, endDate } = getMonthDateRange(selectedMonth);
   
-  // Fetch employee sales data for the selected month
   const salesQuery = useQuery({
     queryKey: ['employee-sales', selectedMonth],
     queryFn: async () => {
@@ -70,7 +68,6 @@ export const useSalaryData = ({ employees, selectedMonth }: UseSalaryDataProps):
     }
   });
   
-  // Fetch salary plans
   const { data: salaryPlans = [], isLoading: isPlansLoading, refetch: refetchPlans } = useQuery({
     queryKey: ['salary-plans'],
     queryFn: async () => {
@@ -83,7 +80,6 @@ export const useSalaryData = ({ employees, selectedMonth }: UseSalaryDataProps):
     }
   });
   
-  // Fetch bonuses for the selected month
   const bonusesQuery = useQuery({
     queryKey: ['employee-bonuses', selectedMonth],
     queryFn: async () => {
@@ -98,7 +94,6 @@ export const useSalaryData = ({ employees, selectedMonth }: UseSalaryDataProps):
     }
   });
   
-  // Fetch deductions for the selected month
   const deductionsQuery = useQuery({
     queryKey: ['employee-deductions', selectedMonth],
     queryFn: async () => {
@@ -113,7 +108,6 @@ export const useSalaryData = ({ employees, selectedMonth }: UseSalaryDataProps):
     }
   });
   
-  // Fetch loans for the selected month
   const loansQuery = useQuery({
     queryKey: ['employee-loans', selectedMonth],
     queryFn: async () => {
@@ -128,7 +122,6 @@ export const useSalaryData = ({ employees, selectedMonth }: UseSalaryDataProps):
     }
   });
   
-  // Force a refresh of the data
   const refreshData = () => {
     salesQuery.refetch();
     refetchPlans();
@@ -137,9 +130,7 @@ export const useSalaryData = ({ employees, selectedMonth }: UseSalaryDataProps):
     loansQuery.refetch();
   };
   
-  // Calculate salary data when dependencies change
   useEffect(() => {
-    // Skip calculation if any data is still loading
     if (
       salesQuery.isLoading ||
       isPlansLoading ||
@@ -156,18 +147,13 @@ export const useSalaryData = ({ employees, selectedMonth }: UseSalaryDataProps):
       setCalculationErrors([]);
       
       try {
-        // Create an instance of the calculator factory
         const factory = SalaryCalculatorFactory.getInstance();
         
-        // Calculate salaries for each employee
         const salaries = await Promise.all(
           employees.map(async (employee) => {
-            // Find employee's sales amount
             const employeeSales = salesQuery.data.find(
               sale => 
-                // Prioritize matching by name since employee_name is the reliable field in the employee_sales table
                 (sale.employee_name === employee.name) || 
-                // Fall back to ID match if available
                 (sale.id === employee.id)
             );
             
@@ -181,25 +167,20 @@ export const useSalaryData = ({ employees, selectedMonth }: UseSalaryDataProps):
               salesRecord: employeeSales
             });
             
-            // Find employee's salary plan
             const salaryPlan = salaryPlans.find(plan => plan.id === employee.salary_plan_id);
             
-            // Find employee's bonuses, deductions, and loans
             const employeeBonuses = bonusesQuery.data?.filter(bonus => bonus.employee_id === employee.id) || [];
             const employeeDeductions = deductionsQuery.data?.filter(deduction => deduction.employee_id === employee.id) || [];
             const employeeLoans = loansQuery.data?.filter(loan => loan.employee_id === employee.id) || [];
             
-            // Calculate totals
             const bonusTotal = employeeBonuses.reduce((sum, bonus) => sum + bonus.amount, 0);
             const deductionsTotal = employeeDeductions.reduce((sum, deduction) => sum + deduction.amount, 0);
             const loansTotal = employeeLoans.reduce((sum, loan) => sum + loan.amount, 0);
             
-            // Default values if no salary plan
             let baseSalary = 0;
             let commission = 0;
             let calculationError = undefined;
             
-            // Calculate salary if the employee has a salary plan
             if (salaryPlan) {
               try {
                 const calculator = factory.getCalculator(salaryPlan.type as SalaryPlanType);
@@ -217,11 +198,9 @@ export const useSalaryData = ({ employees, selectedMonth }: UseSalaryDataProps):
                 baseSalary = result.baseSalary;
                 commission = result.commission;
                 
-                // Check for calculation errors
                 if (result.calculationStatus && !result.calculationStatus.success) {
                   calculationError = result.calculationStatus.error;
                   
-                  // Add to the errors list
                   setCalculationErrors(prev => [
                     ...prev,
                     {
@@ -239,7 +218,6 @@ export const useSalaryData = ({ employees, selectedMonth }: UseSalaryDataProps):
                   ? error.message 
                   : 'Unknown calculation error';
                 
-                // Add to the errors list
                 setCalculationErrors(prev => [
                   ...prev,
                   {
@@ -251,10 +229,8 @@ export const useSalaryData = ({ employees, selectedMonth }: UseSalaryDataProps):
                 ]);
               }
             } else {
-              // No salary plan assigned error
               calculationError = 'No salary plan assigned';
               
-              // Add to the errors list
               setCalculationErrors(prev => [
                 ...prev,
                 {
@@ -269,7 +245,6 @@ export const useSalaryData = ({ employees, selectedMonth }: UseSalaryDataProps):
               ]);
             }
             
-            // Calculate total salary
             const total = baseSalary + commission + bonusTotal - deductionsTotal - loansTotal;
             
             return {
@@ -317,20 +292,24 @@ export const useSalaryData = ({ employees, selectedMonth }: UseSalaryDataProps):
     loansQuery.isLoading || 
     isCalculating;
   
-  // Get bonuses, deductions, and loans for a specific employee
   const getEmployeeTransactions = (employeeId: string) => {
-    const bonuses = (bonusesQuery.data || []);
-    const deductions = (deductionsQuery.data || []);
-    const loans = (loansQuery.data || []);
-    const salesData = (salesQuery.data || []);
+    const bonuses = (bonusesQuery.data || []).filter(bonus => bonus.employee_id === employeeId) as Transaction[];
+    const deductions = (deductionsQuery.data || []).filter(deduction => deduction.employee_id === employeeId) as Transaction[];
+    const loans = (loansQuery.data || []).filter(loan => loan.employee_id === employeeId) as Transaction[];
+    const sale = (salesQuery.data || []).find(sale => 
+      ('employee_id' in sale ? sale.employee_id === employeeId : 
+       'employee_name' in sale && employees.find(e => e.id === employeeId)?.name === sale.employee_name));
+    
+    const salesData: SalesData | null = sale ? {
+      sales_amount: Number(sale.sales_amount),
+      date: sale.month
+    } : null;
     
     return {
-      bonuses: bonuses.filter(bonus => bonus.employee_id === employeeId),
-      deductions: deductions.filter(deduction => deduction.employee_id === employeeId),
-      loans: loans.filter(loan => loan.employee_id === employeeId),
-      salesData: salesData.find(sale => 
-        ('employee_id' in sale ? sale.employee_id === employeeId : 
-         'employee_name' in sale && employees.find(e => e.id === employeeId)?.name === sale.employee_name))
+      bonuses,
+      deductions,
+      loans,
+      salesData
     };
   };
   
@@ -341,4 +320,4 @@ export const useSalaryData = ({ employees, selectedMonth }: UseSalaryDataProps):
     calculationErrors,
     refreshData
   };
-}; 
+};
