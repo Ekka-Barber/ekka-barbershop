@@ -1,4 +1,3 @@
-
 import { BaseCalculator, CalculationParams, CalculatorResult } from './BaseCalculator';
 import { SalaryDetail } from '../types/salary';
 
@@ -11,7 +10,7 @@ export class TieredCommissionCalculator extends BaseCalculator {
   /**
    * Override getFromCache to provide tiered commission specific caching
    */
-  getFromCache(params: CalculationParams): CalculatorResult | null {
+  override getFromCache(params: CalculationParams): CalculatorResult | null {
     if (!params.selectedMonth || !params.employee.id) return null;
     
     const key = `${this.cacheKey}-${params.employee.id}-${params.selectedMonth}`;
@@ -21,7 +20,7 @@ export class TieredCommissionCalculator extends BaseCalculator {
   /**
    * Override saveToCache for tiered commission specific caching
    */
-  saveToCache(key: string, result: CalculatorResult): void {
+  override saveToCache(key: string, result: CalculatorResult): void {
     this.cache.set(key, result);
   }
   
@@ -132,17 +131,7 @@ export class TieredCommissionCalculator extends BaseCalculator {
    * Helper to parse the plan configuration safely
    */
   private parsePlanConfig(config: any): any {
-    if (!config) return {};
-    
-    if (typeof config === 'string') {
-      try {
-        return JSON.parse(config);
-      } catch {
-        return {};
-      }
-    }
-    
-    return config;
+    return this.parseConfig(config);
   }
   
   /**

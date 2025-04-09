@@ -1,7 +1,8 @@
 
-import { Employee } from '@/types/employee';
 import { Transaction } from '@/lib/salary/types/salary';
 import { SalesData } from '@/lib/salary/calculators/BaseCalculator';
+import { Employee } from '@/types/employee';
+import { transformSalesData, mapTransactions } from './utils/transformUtils';
 
 interface UseEmployeeTransactionsProps {
   bonuses: any[];
@@ -11,44 +12,56 @@ interface UseEmployeeTransactionsProps {
   employees: Employee[];
 }
 
-/**
- * Hook to manage and retrieve employee transactions
- */
+interface EmployeeTransactions {
+  bonuses: Transaction[];
+  deductions: Transaction[];
+  loans: Transaction[];
+  salesData: SalesData;
+}
+
 export const useEmployeeTransactions = ({
-  bonuses, 
-  deductions, 
-  loans, 
+  bonuses,
+  deductions,
+  loans,
   salesData,
   employees
 }: UseEmployeeTransactionsProps) => {
   
-  const getEmployeeTransactions = (employeeId: string) => {
-    const filteredBonuses = (bonuses || [])
-      .filter(bonus => bonus.employee_id === employeeId) as Transaction[];
-      
-    const filteredDeductions = (deductions || [])
-      .filter(deduction => deduction.employee_id === employeeId) as Transaction[];
-      
-    const filteredLoans = (loans || [])
-      .filter(loan => loan.employee_id === employeeId) as Transaction[];
-      
-    const sale = (salesData || []).find(sale => 
-      ('employee_id' in sale ? sale.employee_id === employeeId : 
-       'employee_name' in sale && employees.find(e => e.id === employeeId)?.name === sale.employee_name));
+  /**
+   * Gets all transaction data for a specific employee
+   */
+  const getEmployeeTransactions = (employeeId: string): EmployeeTransactions => {
+    // Filter transaction data for the employee
+    const employeeBonuses = bonuses?.filter(bonus => bonus.employee_id === employeeId) || [];
+    const employeeDeductions = deductions?.filter(deduction => deduction.employee_id === employeeId) || [];
+    const employeeLoans = loans?.filter(loan => loan.employee_id === employeeId) || [];
     
-    // Convert the sales data to match the SalesData type
-    const formattedSalesData: SalesData | null = sale ? {
-      sales_amount: Number(sale.sales_amount),
-      date: sale.month
-    } : null;
+    // Find sales data for the employee
+    const employeeSales = salesData.find(
+      sale => 
+        (sale.employee_id === employeeId) || 
+        (getEmployeeIdFromName(sale.employee_name, employees) === employeeId)
+    ) || { sales_amount: 0, month: '' };
     
     return {
-      bonuses: filteredBonuses,
-      deductions: filteredDeductions,
-      loans: filteredLoans,
-      salesData: formattedSalesData
+      bonuses: mapTransactions(employeeBonuses),
+      deductions: mapTransactions(employeeDeductions),
+      loans: mapTransactions(employeeLoans),
+      salesData: transformSalesData(employeeSales)
     };
   };
   
-  return { getEmployeeTransactions };
+  return {
+    getEmployeeTransactions
+  };
+};
+
+/**
+ * Helper function to find employee ID from name
+ */
+const getEmployeeIdFromName = (name: string, employees: Employee[]): string | null => {
+  if (!name || !employees?.length) return null;
+  
+  const employee = employees.find(emp => emp.name === name);
+  return employee?.id || null;
 };

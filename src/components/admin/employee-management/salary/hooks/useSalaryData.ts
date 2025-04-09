@@ -4,6 +4,8 @@ import { useSalaryQueries } from './useSalaryQueries';
 import { useSalaryCalculation } from './useSalaryCalculation';
 import { useEmployeeTransactions } from './useEmployeeTransactions';
 import { UseSalaryDataProps, UseSalaryDataResult } from './utils/salaryTypes';
+import { SalesData } from '@/lib/salary/calculators/BaseCalculator';
+import { Transaction } from '@/lib/salary/types/salary';
 
 /**
  * Main hook for salary data management
