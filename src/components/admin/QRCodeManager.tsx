@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -106,16 +105,18 @@ const QRCodeManager = () => {
   return (
     <div className="space-y-6 pb-20 md:pb-0">
       <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'management' | 'analytics')} className="w-full">
-        <TabsList className="grid w-full grid-cols-2 mb-4">
-          <TabsTrigger value="management" className="flex items-center gap-2">
-            <QrCode className="h-4 w-4" />
-            QR Management
-          </TabsTrigger>
-          <TabsTrigger value="analytics" className="flex items-center gap-2">
-            <PieChart className="h-4 w-4" />
-            Analytics
-          </TabsTrigger>
-        </TabsList>
+        <div className="overflow-x-auto pb-2">
+          <TabsList className="grid w-full grid-cols-2 mb-4">
+            <TabsTrigger value="management" className="flex items-center gap-2">
+              <QrCode className="h-4 w-4" />
+              QR Management
+            </TabsTrigger>
+            <TabsTrigger value="analytics" className="flex items-center gap-2">
+              <PieChart className="h-4 w-4" />
+              Analytics
+            </TabsTrigger>
+          </TabsList>
+        </div>
         
         <TabsContent value="management" className="space-y-6">
           <div className="space-y-2">
