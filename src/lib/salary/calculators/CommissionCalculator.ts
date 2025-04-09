@@ -22,6 +22,7 @@ export class CommissionCalculator extends BaseCalculator {
       let commission = 0;
       let commissionRate = 0;
       let threshold = 0;
+      let targetBonus = 0; // Added target bonus value
       
       // Log the full config for debugging
       logger.debug('Full salary plan config:', JSON.stringify(config, null, 2));
@@ -49,6 +50,12 @@ export class CommissionCalculator extends BaseCalculator {
             threshold = Number(block.config.threshold || 0);
             logger.info(`Found commission block: rate=${commissionRate}, threshold=${threshold} SAR`);
           }
+          
+          // Handle target bonus block
+          if (block.type === 'target_bonus' && block.config) {
+            targetBonus = Number(block.config.amount || block.config.bonus_amount || 0);
+            logger.info(`Found target bonus in block: ${targetBonus}`);
+          }
         }
       } else {
         logger.info('Using legacy/flat salary plan structure');
@@ -56,11 +63,12 @@ export class CommissionCalculator extends BaseCalculator {
         baseSalary = Number(config.base_salary || config.base_amount || config.amount || 0);
         commissionRate = Number(config.commission_rate || config.rate || 0);
         threshold = Number(config.threshold || 0);
+        targetBonus = Number(config.target_bonus || config.bonus_amount || 0);
         
-        logger.info(`Extracted from flat config: baseSalary=${baseSalary}, commissionRate=${commissionRate}, threshold=${threshold}`);
+        logger.info(`Extracted from flat config: baseSalary=${baseSalary}, commissionRate=${commissionRate}, threshold=${threshold}, targetBonus=${targetBonus}`);
       }
       
-      logger.info(`Final commission calculation values: baseSalary=${baseSalary}, commissionRate=${commissionRate}, threshold=${threshold}, salesAmount=${params.salesAmount}`);
+      logger.info(`Final commission calculation values: baseSalary=${baseSalary}, commissionRate=${commissionRate}, threshold=${threshold}, targetBonus=${targetBonus}, salesAmount=${params.salesAmount}`);
       
       // Calculate commission if threshold is met or exceeded
       if (params.salesAmount >= threshold && commissionRate > 0) {
@@ -81,18 +89,26 @@ export class CommissionCalculator extends BaseCalculator {
         logger.info(`No commission awarded to ${params.employee.name}. Sales amount ${params.salesAmount} < threshold ${threshold} or rate ${commissionRate} is zero.`);
       }
       
-      // Calculate bonus, deductions, and loans
-      const bonusTotal = params.bonuses.reduce((sum, bonus) => sum + bonus.amount, 0);
+      // Calculate bonus from transactions, deductions, and loans
+      const regularBonusTotal = params.bonuses.reduce((sum, bonus) => sum + bonus.amount, 0);
       const deductionsTotal = params.deductions.reduce((sum, deduction) => sum + deduction.amount, 0);
       const loansTotal = params.loans.reduce((sum, loan) => sum + loan.amount, 0);
       
+      // Log both bonus types
+      logger.info(`Bonus calculation for ${params.employee.name}:`, {
+        targetBonus,
+        regularBonusTotal,
+        totalBonusAmount: targetBonus + regularBonusTotal
+      });
+      
       // Calculate total salary
-      const total = baseSalary + commission + bonusTotal - deductionsTotal - loansTotal;
+      const total = baseSalary + commission + targetBonus + regularBonusTotal - deductionsTotal - loansTotal;
       
       logger.info(`Final salary calculation for ${params.employee.name}:`, {
         baseSalary,
         commission,
-        bonusTotal,
+        targetBonus,
+        regularBonusTotal,
         deductionsTotal,
         loansTotal,
         total
@@ -102,7 +118,8 @@ export class CommissionCalculator extends BaseCalculator {
       const details = this.generateDetails({ 
         baseSalary, 
         commission, 
-        targetBonus: bonusTotal, 
+        targetBonus,
+        regularBonusTotal,
         deductions: deductionsTotal, 
         loans: loansTotal, 
         totalSalary: total 
@@ -111,7 +128,8 @@ export class CommissionCalculator extends BaseCalculator {
       return {
         baseSalary,
         commission,
-        bonus: bonusTotal,
+        bonus: regularBonusTotal,
+        targetBonus, // Added separate targetBonus field
         deductions: deductionsTotal,
         loans: loansTotal,
         total,
@@ -126,7 +144,15 @@ export class CommissionCalculator extends BaseCalculator {
     }
   }
   
-  generateDetails(result: Partial<SalaryCalculationResult>): SalaryDetail[] {
+  generateDetails(result: { 
+    baseSalary: number; 
+    commission: number; 
+    targetBonus: number; 
+    regularBonusTotal: number;
+    deductions: number;
+    loans: number;
+    totalSalary: number;
+  }): SalaryDetail[] {
     const details: SalaryDetail[] = [];
     
     if (result.baseSalary && result.baseSalary > 0) {
@@ -145,11 +171,21 @@ export class CommissionCalculator extends BaseCalculator {
       });
     }
     
+    // Add target bonus from salary plan if available
     if (result.targetBonus && result.targetBonus > 0) {
       details.push({
-        type: 'Performance Bonus',
+        type: 'Target Bonus',
         amount: result.targetBonus,
-        description: 'Monthly performance bonus'
+        description: 'Monthly target performance bonus from salary plan'
+      });
+    }
+    
+    // Add regular bonuses if available
+    if (result.regularBonusTotal && result.regularBonusTotal > 0) {
+      details.push({
+        type: 'Additional Bonuses',
+        amount: result.regularBonusTotal,
+        description: 'Additional bonuses from transactions'
       });
     }
     

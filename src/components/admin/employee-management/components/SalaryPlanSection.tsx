@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Employee } from '@/types/employee';
 import { Card, CardContent } from '@/components/ui/card';
@@ -115,6 +116,9 @@ export const SalaryPlanSection = ({
   };
 
   const isLoading = isPlansLoading || salaryCalculation.isLoading;
+  
+  // Calculate total bonuses for display
+  const totalBonuses = (salaryCalculation.targetBonus || 0) + (salaryCalculation.regularBonus || 0);
 
   if (isLoading) {
     return (
@@ -188,12 +192,23 @@ export const SalaryPlanSection = ({
                 <p className="text-xs text-muted-foreground">Commission</p>
                 <p className="font-semibold">{safeToLocaleString(salaryCalculation.commission)} SAR</p>
               </div>
+              
+              {/* Display target bonus from plan if available */}
               {(salaryCalculation.targetBonus ?? 0) > 0 && (
-                <div className="text-center p-2 bg-muted/20 rounded-md">
-                  <p className="text-xs text-muted-foreground">Bonus</p>
-                  <p className="font-semibold">{safeToLocaleString(salaryCalculation.targetBonus)} SAR</p>
+                <div className="text-center p-2 bg-green-50 rounded-md">
+                  <p className="text-xs text-muted-foreground">Target Bonus</p>
+                  <p className="font-semibold text-green-600">{safeToLocaleString(salaryCalculation.targetBonus)} SAR</p>
                 </div>
               )}
+              
+              {/* Display regular bonuses from transactions if available */}
+              {(salaryCalculation.regularBonus ?? 0) > 0 && (
+                <div className="text-center p-2 bg-green-50 rounded-md">
+                  <p className="text-xs text-muted-foreground">Additional Bonuses</p>
+                  <p className="font-semibold text-green-600">{safeToLocaleString(salaryCalculation.regularBonus)} SAR</p>
+                </div>
+              )}
+              
               {(salaryCalculation.deductions ?? 0) > 0 && (
                 <div className="text-center p-2 bg-muted/20 rounded-md">
                   <p className="text-xs text-muted-foreground">Deductions</p>
@@ -224,7 +239,7 @@ export const SalaryPlanSection = ({
                     <div key={index} className="flex justify-between text-xs">
                       <span>{detail.type}</span>
                       <div className="flex items-center gap-1">
-                        {detail.type === 'Performance Bonus' && (
+                        {(['Target Bonus', 'Additional Bonuses', 'Performance Bonus'].includes(detail.type)) && (
                           <ChevronUp className="h-3 w-3 text-green-500" />
                         )}
                         <span>{safeToLocaleString(detail.amount)} SAR</span>

@@ -25,6 +25,7 @@ const INITIAL_RESULT: SalaryCalculationResult = {
   baseSalary: 0,
   commission: 0,
   targetBonus: 0,
+  regularBonus: 0, // Add separate field for regular bonuses
   deductions: 0,
   loans: 0,
   totalSalary: 0,
@@ -161,7 +162,8 @@ export const useSalaryCalculation = ({
       setCalculationResult({
         baseSalary: result.baseSalary,
         commission: result.commission,
-        targetBonus: result.bonus || 0, // Map bonus to targetBonus
+        targetBonus: result.targetBonus || 0, // Handle target bonus from plan
+        regularBonus: result.bonus || 0, // Handle regular bonuses from transactions
         deductions: result.deductions || 0,
         loans: result.loans || 0,
         totalSalary: result.total || 0,

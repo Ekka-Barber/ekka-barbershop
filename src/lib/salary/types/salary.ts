@@ -58,7 +58,8 @@ export interface EmployeeLoan {
 export interface SalaryCalculationResult {
   baseSalary: number;
   commission: number;
-  targetBonus: number;
+  targetBonus: number; // Target bonus from salary plan
+  regularBonus?: number; // Regular bonuses from transactions
   deductions: number;
   loans: number;
   totalSalary: number;

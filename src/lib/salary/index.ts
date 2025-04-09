@@ -10,6 +10,7 @@ export type {
   EmployeeLoan,
   SalaryCalculationResult,
   SalaryDetail,
+  Transaction // Fix: Adding explicit export type for Transaction
 } from './types/salary';
 
 // Base calculator exports - using 'export type' for all types
@@ -18,8 +19,8 @@ export type {
   BaseCalculator, 
   CalculationParams, 
   CalculatorResult, 
-  SalesData,
-  Transaction  // Only export Transaction from here
+  SalesData
+  // Removed Transaction from here to fix re-export error
 } from './calculators/BaseCalculator';
 
 // Export calculator implementations
