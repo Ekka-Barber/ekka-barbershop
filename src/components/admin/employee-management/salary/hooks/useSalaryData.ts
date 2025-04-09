@@ -165,17 +165,20 @@ export const useSalaryData = ({ employees, selectedMonth }: UseSalaryDataProps):
             // Find employee's sales amount
             const employeeSales = salesQuery.data.find(
               sale => 
-                // Check if sale.id matches employee.id 
-                (sale.id === employee.id) ||
-                // Check if employee_name matches
-                (sale.employee_name === employee.name)
+                // Prioritize matching by name since employee_name is the reliable field in the employee_sales table
+                (sale.employee_name === employee.name) || 
+                // Fall back to ID match if available
+                (sale.id === employee.id)
             );
-            const salesAmount = employeeSales ? employeeSales.sales_amount : 0;
+            
+            const salesAmount = employeeSales ? Number(employeeSales.sales_amount) : 0;
             
             console.log(`Sales lookup for ${employee.name}:`, {
               found: !!employeeSales,
               salesAmount,
-              employeeId: employee.id
+              employeeId: employee.id,
+              employeeName: employee.name,
+              salesRecord: employeeSales
             });
             
             // Find employee's salary plan
