@@ -1,5 +1,3 @@
-import { Json } from './supabase-generated';
-
 export type TimeRange = string; // Format: "HH:mm-HH:mm"
 
 export interface WorkingHours {
