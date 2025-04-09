@@ -17,6 +17,7 @@ export interface Employee {
   working_hours: WorkingHours;
   off_days?: string[];
   nationality?: string;
+  salary_plan_id?: string;
   created_at?: string;
   updated_at?: string;
 }
