@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useToast } from "@/components/ui/use-toast";
-import { Calendar, BarChart2, Users, Clock } from 'lucide-react';
+import { Calendar, BarChart2, Users, Clock, DollarSign } from 'lucide-react';
 import { useEmployeeSales } from './hooks/useEmployeeSales';
 import { useBranchManager } from './hooks/useBranchManager';
 import { useEmployeeManager } from './hooks/useEmployeeManager';
@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { EmployeeAnalyticsDashboard } from './EmployeeAnalyticsDashboard';
 import { ScheduleInterface } from './components/ScheduleInterface';
 import { TeamPerformanceComparison } from './components/TeamPerformanceComparison';
+import { SalaryDashboard } from './salary/SalaryDashboard';
 
 export const EmployeeTab = () => {
   const { toast } = useToast();
@@ -86,6 +87,10 @@ export const EmployeeTab = () => {
                 <Users className="h-4 w-4" />
                 <span>Team</span>
               </TabsTrigger>
+              <TabsTrigger value="salary" className="flex items-center gap-1">
+                <DollarSign className="h-4 w-4" />
+                <span>Salary</span>
+              </TabsTrigger>
             </TabsList>
           </div>
         </div>
@@ -137,6 +142,14 @@ export const EmployeeTab = () => {
           <TeamPerformanceComparison
             employees={employees}
             selectedBranch={selectedBranch}
+          />
+        </TabsContent>
+        
+        <TabsContent value="salary">
+          <SalaryDashboard
+            employees={employees}
+            selectedBranch={selectedBranch}
+            refetchEmployees={fetchEmployees}
           />
         </TabsContent>
       </Tabs>
