@@ -16,6 +16,12 @@ function getCurrentMonth(): string {
   return `${now.getFullYear()}-${(now.getMonth() + 1).toString().padStart(2, '0')}`;
 }
 
+// Helper function to safely format numbers with toLocaleString
+function safeToLocaleString(value: number | undefined | null): string {
+  if (value === undefined || value === null) return '0';
+  return value.toLocaleString();
+}
+
 interface SalaryPlanSectionProps {
   employee: Employee;
   salesAmount: number;
@@ -176,38 +182,38 @@ export const SalaryPlanSection = ({
             <div className="grid grid-cols-2 gap-2">
               <div className="text-center p-2 bg-muted/20 rounded-md">
                 <p className="text-xs text-muted-foreground">Base Salary</p>
-                <p className="font-semibold">{salaryCalculation.baseSalary.toLocaleString()} SAR</p>
+                <p className="font-semibold">{safeToLocaleString(salaryCalculation.baseSalary)} SAR</p>
               </div>
               <div className="text-center p-2 bg-muted/20 rounded-md">
                 <p className="text-xs text-muted-foreground">Commission</p>
-                <p className="font-semibold">{salaryCalculation.commission.toLocaleString()} SAR</p>
+                <p className="font-semibold">{safeToLocaleString(salaryCalculation.commission)} SAR</p>
               </div>
-              {salaryCalculation.targetBonus > 0 && (
+              {(salaryCalculation.targetBonus ?? 0) > 0 && (
                 <div className="text-center p-2 bg-muted/20 rounded-md">
                   <p className="text-xs text-muted-foreground">Bonus</p>
-                  <p className="font-semibold">{salaryCalculation.targetBonus.toLocaleString()} SAR</p>
+                  <p className="font-semibold">{safeToLocaleString(salaryCalculation.targetBonus)} SAR</p>
                 </div>
               )}
-              {salaryCalculation.deductions > 0 && (
+              {(salaryCalculation.deductions ?? 0) > 0 && (
                 <div className="text-center p-2 bg-muted/20 rounded-md">
                   <p className="text-xs text-muted-foreground">Deductions</p>
-                  <p className="font-semibold text-red-500">-{salaryCalculation.deductions.toLocaleString()} SAR</p>
+                  <p className="font-semibold text-red-500">-{safeToLocaleString(salaryCalculation.deductions)} SAR</p>
                 </div>
               )}
-              {salaryCalculation.loans > 0 && (
+              {(salaryCalculation.loans ?? 0) > 0 && (
                 <div className="text-center p-2 bg-muted/20 rounded-md">
                   <p className="text-xs text-muted-foreground">Loans</p>
-                  <p className="font-semibold text-red-500">-{salaryCalculation.loans.toLocaleString()} SAR</p>
+                  <p className="font-semibold text-red-500">-{safeToLocaleString(salaryCalculation.loans)} SAR</p>
                 </div>
               )}
               <div className="text-center p-2 bg-primary/10 rounded-md col-span-full">
                 <p className="text-xs text-muted-foreground">Total</p>
-                <p className="font-semibold">{salaryCalculation.totalSalary.toLocaleString()} SAR</p>
+                <p className="font-semibold">{safeToLocaleString(salaryCalculation.totalSalary)} SAR</p>
               </div>
             </div>
             
             <div className="text-xs text-muted-foreground mt-2">
-              <p>Based on {salesAmount.toLocaleString()} SAR in sales</p>
+              <p>Based on {safeToLocaleString(salesAmount)} SAR in sales</p>
             </div>
             
             {salaryCalculation.details && salaryCalculation.details.length > 0 && (
@@ -221,7 +227,7 @@ export const SalaryPlanSection = ({
                         {detail.type === 'Performance Bonus' && (
                           <ChevronUp className="h-3 w-3 text-green-500" />
                         )}
-                        <span>{detail.amount.toLocaleString()} SAR</span>
+                        <span>{safeToLocaleString(detail.amount)} SAR</span>
                       </div>
                     </div>
                   ))}
