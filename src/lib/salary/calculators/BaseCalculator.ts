@@ -1,4 +1,3 @@
-
 import { Employee } from '@/types/employee';
 import { SalaryPlan, Transaction, SalaryDetail } from '../types/salary';
 
@@ -122,7 +121,7 @@ export abstract class BaseCalculator {
 }
 
 // Export Transaction type for use in other files
-export { Transaction };
+export type { Transaction };
 
 // Alias SalaryCalculator to BaseCalculator for backward compatibility
 export type SalaryCalculator = BaseCalculator;

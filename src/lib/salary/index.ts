@@ -13,15 +13,16 @@ export type {
   Transaction
 } from './types/salary';
 
-// Base calculator exports - using 'export type' for all types
-export { BaseCalculator, SalaryCalculator } from './calculators/BaseCalculator';
+// Export type for BaseCalculator types
 export type { 
   CalculationParams, 
   CalculatorResult, 
   SalesData,
   CalculationStatus
 } from './calculators/BaseCalculator';
-export { Transaction as BaseTransaction } from './calculators/BaseCalculator';
+
+// Base calculator exports
+export { BaseCalculator, SalaryCalculator } from './calculators/BaseCalculator';
 
 // Export calculator implementations
 export * from './calculators/CalculatorFactory';
