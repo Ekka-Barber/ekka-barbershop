@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { trackButtonClick, trackLocationView } from "@/utils/tiktokTracking";
 import { useNavigate } from 'react-router-dom';
@@ -37,10 +36,16 @@ export const useDialogState = (branches: Branch[] | undefined) => {
       
       if (selectedBranch) {
         if (selectedBranch.name === "Ash-Sharai" || selectedBranch.name_ar === "الشرائع") {
-          window.open("https://www.fresha.com/ar/book-now/ekka-gspkudll/all-offer?id=1532757&share&pId=881059", '_blank');
+          const url = language === 'ar' 
+            ? "https://www.fresha.com/ar/book-now/ekka-gspkudll/all-offer?id=1532757&share&pId=881059"
+            : "https://www.fresha.com/book-now/ekka-gspkudll/all-offer?id=1532757&share&pId=881059";
+          window.open(url, '_blank');
           return;
         } else if (selectedBranch.name === "Al-Waslyia" || selectedBranch.name_ar === "الوصلية") {
-          window.open("https://www.fresha.com/ar/book-now/ekka-gspkudll/all-offer?id=935949&share&pId=881059", '_blank');
+          const url = language === 'ar' 
+            ? "https://www.fresha.com/ar/book-now/ekka-gspkudll/all-offer?id=935949&share&pId=881059"
+            : "https://www.fresha.com/book-now/ekka-gspkudll/all-offer?id=935949&share&pId=881059";
+          window.open(url, '_blank');
           return;
         }
       }
