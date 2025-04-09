@@ -1,3 +1,4 @@
+
 export type SalaryPlanType = 
   | "fixed" 
   | "commission" 
@@ -47,8 +48,11 @@ export interface EmployeeSales {
 }
 
 export interface EmployeeLoan {
+  id?: string;
   amount: number;
   date: string;
+  employee_id?: string;
+  description?: string;
 }
 
 export interface SalaryCalculationResult {
@@ -74,3 +78,11 @@ export interface SalaryDetail {
   amount: number;
   description: string;
 } 
+
+export interface Transaction {
+  id: string;
+  amount: number;
+  date: string;
+  description: string;
+  employee_id: string;
+}
