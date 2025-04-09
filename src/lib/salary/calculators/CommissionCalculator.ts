@@ -1,106 +1,111 @@
-import { BaseCalculator, CalculationParameters } from './BaseCalculator';
-import { SalaryCalculationResult, SalaryDetail } from '../types/salary';
-
-interface CommissionConfig {
-  base_salary: number;
-  threshold: number;
-  rate: number;
-}
+import { BaseCalculator, CalculationParams, CalculationResult } from './BaseCalculator';
+import { SalaryDetail, SalaryCalculationResult } from '../types/salary';
 
 export class CommissionCalculator extends BaseCalculator {
-  async calculate(params: CalculationParameters): Promise<SalaryCalculationResult> {
-    // Check cache first
-    const cachedResult = this.getFromCache(params);
-    if (cachedResult) {
-      return cachedResult;
-    }
-    
-    const { plan, salesAmount, bonuses = [], deductions = [], loans = [], selectedMonth } = params;
-    const planConfig = this.parseConfig(plan.config) as { config?: CommissionConfig };
-    
-    // Log the month-specific data for debugging
-    if (selectedMonth) {
-      console.debug(`Calculating commission for month: ${selectedMonth}`);
-      console.debug(`Bonuses count: ${bonuses.length}`);
-      console.debug(`Deductions count: ${deductions.length}`);
-      console.debug(`Loans count: ${loans.length}`);
-    }
-    
-    // Extract configuration
-    const config = planConfig.config || { base_salary: 0, threshold: 0, rate: 0 };
-    
-    // Calculate base salary
-    const baseSalary = config.base_salary || 0;
-    
-    // Calculate commission
-    let commission = 0;
-    const threshold = config.threshold || 0;
-    const rate = config.rate || 0;
-    
-    if (salesAmount > threshold) {
-      const commissionableAmount = salesAmount - threshold;
-      commission = commissionableAmount * rate;
-    }
-    
-    // Calculate deductions total
-    const deductionsTotal = deductions.reduce((sum, deduction) => sum + deduction.amount, 0);
-    
-    // Calculate loans total
-    const loansTotal = loans.reduce((sum, loan) => sum + loan.amount, 0);
-    
-    // Calculate bonus total
-    const bonusesFromDb = bonuses.reduce((sum, bonus) => sum + bonus.amount, 0);
-    
-    // Combine all calculated values
-    const result: SalaryCalculationResult = {
-      baseSalary,
-      commission: Math.round(commission),
-      targetBonus: 0,
-      deductions: deductionsTotal,
-      loans: loansTotal,
-      totalSalary: baseSalary + Math.round(commission) + bonusesFromDb - deductionsTotal - loansTotal,
-      planType: plan.type,
-      planName: plan.name,
-      isLoading: false,
-      error: null,
-      calculate: async () => {},
-      calculationDone: true,
-      bonusList: bonuses,
-      deductionsList: deductions,
-      details: this.generateDetails({
+  async calculate(params: CalculationParams): Promise<CalculationResult> {
+    try {
+      // Validate input parameters
+      this.validateInput(params);
+      
+      // Parse the plan configuration
+      const config = this.parseConfig(params.plan.config);
+      console.log(`Calculating commission for ${params.employee.name} with plan ID ${params.plan.id}`, {
+        planType: params.plan.type,
+        salesAmount: params.salesAmount,
+        config
+      });
+      
+      // Initialize values
+      let baseSalary = 0;
+      let commission = 0;
+      let commissionRate = 0;
+      let threshold = 0;
+      
+      // Process plan based on structure
+      if (config.blocks && Array.isArray(config.blocks)) {
+        // Process each block in the config
+        for (const block of config.blocks) {
+          // Handle base salary block
+          if (block.type === 'basic_salary' && block.config) {
+            baseSalary = Number(block.config.base_salary || block.config.amount || block.config.base_amount || 0);
+            console.log(`Found base salary in block: ${baseSalary}`);
+          }
+          
+          // Handle commission block
+          if (block.type === 'commission' && block.config) {
+            commissionRate = Number(block.config.rate || 0);
+            threshold = Number(block.config.threshold || 0);
+            console.log(`Found commission block: rate=${commissionRate} (${commissionRate * 100}%), threshold=${threshold} SAR`);
+          }
+        }
+      } else {
+        // Legacy format - direct properties
+        baseSalary = Number(config.base_salary || config.base_amount || config.amount || 0);
+        commissionRate = Number(config.commission_rate || config.rate || 0);
+        threshold = Number(config.threshold || 0);
+      }
+      
+      // Calculate commission if threshold is met
+      if (params.salesAmount > threshold && commissionRate > 0) {
+        const commissionableAmount = params.salesAmount - threshold;
+        commission = Math.round(commissionableAmount * commissionRate);
+        console.log(`Calculated commission for ${params.employee.name}: ${commission} SAR`);
+        console.log(`  Sales: ${params.salesAmount} SAR`);
+        console.log(`  Threshold: ${threshold} SAR`);
+        console.log(`  Commissionable Amount: ${commissionableAmount} SAR`);
+        console.log(`  Rate: ${commissionRate * 100}%`);
+        console.log(`  Formula: (${params.salesAmount} - ${threshold}) × ${commissionRate * 100}% = ${commission} SAR`);
+      }
+      
+      // Calculate bonus, deductions, and loans
+      const bonusTotal = params.bonuses.reduce((sum, bonus) => sum + bonus.amount, 0);
+      const deductionsTotal = params.deductions.reduce((sum, deduction) => sum + deduction.amount, 0);
+      const loansTotal = params.loans.reduce((sum, loan) => sum + loan.amount, 0);
+      
+      // Calculate total salary
+      const total = baseSalary + commission + bonusTotal - deductionsTotal - loansTotal;
+      
+      console.log(`Final salary calculation for ${params.employee.name}:`, {
         baseSalary,
         commission,
-        threshold,
-        rate,
-        salesAmount
-      })
-    };
-    
-    // Save to cache and return
-    this.saveToCache(params, result);
-    return result;
+        bonusTotal,
+        deductionsTotal,
+        loansTotal,
+        total
+      });
+      
+      return {
+        baseSalary,
+        commission,
+        bonus: bonusTotal,
+        deductions: deductionsTotal,
+        loans: loansTotal,
+        total,
+        calculationStatus: {
+          success: true
+        }
+      };
+    } catch (error) {
+      return this.handleCalculationError(error, params);
+    }
   }
   
-  generateDetails(result: Partial<SalaryCalculationResult> & { 
-    threshold?: number;
-    rate?: number;
-    salesAmount?: number;
-  }): SalaryDetail[] {
+  generateDetails(result: Partial<SalaryCalculationResult>): SalaryDetail[] {
     const details: SalaryDetail[] = [];
     
-    if (result.baseSalary) {
+    if (result.baseSalary && result.baseSalary > 0) {
       details.push({
         type: 'Base Salary',
         amount: result.baseSalary,
-        description: 'Fixed base salary'
+        description: 'Base monthly salary'
       });
     }
     
     if (result.commission && result.commission > 0) {
       details.push({
         type: 'Commission',
-        amount: Math.round(result.commission),
-        description: `${((result.rate || 0) * 100).toFixed(1)}% on sales above ${(result.threshold || 0).toLocaleString()} SAR`
+        amount: result.commission,
+        description: 'Sales commission'
       });
     }
     
