@@ -6,8 +6,8 @@ export type {
   SalaryBlock,
   EmployeeBonus,
   EmployeeDeduction,
-  EmployeeSales,
   EmployeeLoan,
+  EmployeeSales,
   SalaryCalculationResult,
   SalaryDetail,
   Transaction
@@ -26,9 +26,9 @@ export { BaseCalculator, SalaryCalculator } from './calculators/BaseCalculator';
 
 // Export calculator implementations
 export * from './calculators/CalculatorFactory';
-export type * from './calculators/FixedCalculator';
-export type * from './calculators/CommissionCalculator';
-export type * from './calculators/TieredCommissionCalculator';
+export type { FixedCalculator } from './calculators/FixedCalculator';
+export type { CommissionCalculator } from './calculators/CommissionCalculator';
+export type { TieredCommissionCalculator } from './calculators/TieredCommissionCalculator';
 
 // Export hooks
 export * from './hooks/useSalaryCalculation';
