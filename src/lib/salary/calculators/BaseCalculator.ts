@@ -1,27 +1,47 @@
 import { Employee } from '@/types/employee';
-import { 
-  SalaryPlan, 
-  SalaryCalculationResult, 
-  EmployeeBonus, 
-  EmployeeDeduction,
-  EmployeeSales,
-  EmployeeLoan,
-  SalaryDetail
-} from '../types/salary';
+import { SalaryPlan, SalaryCalculationResult, SalaryDetail } from '../types/salary';
 
-export interface CalculationParameters {
+export interface Transaction {
+  id: string;
+  employee_id: string;
+  date: string;
+  amount: number;
+  description: string;
+}
+
+export interface SalesData {
+  sales_amount: number;
+  commission_rate?: number;
+  employee_id?: string;
+  employee_name?: string;
+}
+
+export interface CalculationParams {
   employee: Employee;
   plan: SalaryPlan;
   salesAmount: number;
-  bonuses?: EmployeeBonus[];
-  deductions?: EmployeeDeduction[];
-  loans?: EmployeeLoan[];
-  salesHistory?: EmployeeSales[];
-  selectedMonth?: string; // Format: YYYY-MM
+  bonuses: Transaction[];
+  deductions: Transaction[];
+  loans: Transaction[];
+  selectedMonth: string;
+}
+
+export interface CalculationResult {
+  baseSalary: number;
+  commission: number;
+  bonus: number;
+  deductions: number;
+  loans: number;
+  total: number;
+  calculationStatus?: {
+    success: boolean;
+    error?: string;
+    details?: Record<string, unknown>;
+  };
 }
 
 export interface SalaryCalculator {
-  calculate(params: CalculationParameters): Promise<SalaryCalculationResult>;
+  calculate(params: CalculationParams): Promise<CalculationResult>;
   parseConfig(config: Record<string, unknown>): Record<string, unknown>;
   generateDetails(result: Partial<SalaryCalculationResult>): SalaryDetail[];
 }
@@ -29,7 +49,7 @@ export interface SalaryCalculator {
 export abstract class BaseCalculator implements SalaryCalculator {
   protected cache: Map<string, SalaryCalculationResult> = new Map();
 
-  abstract calculate(params: CalculationParameters): Promise<SalaryCalculationResult>;
+  abstract calculate(params: CalculationParams): Promise<CalculationResult>;
 
   parseConfig(config: Record<string, unknown>): Record<string, unknown> {
     if (!config) return {};
@@ -46,17 +66,17 @@ export abstract class BaseCalculator implements SalaryCalculator {
     return config;
   }
 
-  protected getCacheKey(params: CalculationParameters): string {
+  protected getCacheKey(params: CalculationParams): string {
     const { employee, plan, salesAmount, selectedMonth = '' } = params;
     return `${employee.id}-${plan.id}-${salesAmount}-${selectedMonth}`;
   }
 
-  protected getFromCache(params: CalculationParameters): SalaryCalculationResult | null {
+  protected getFromCache(params: CalculationParams): SalaryCalculationResult | null {
     const key = this.getCacheKey(params);
     return this.cache.has(key) ? this.cache.get(key) || null : null;
   }
 
-  protected saveToCache(params: CalculationParameters, result: SalaryCalculationResult): void {
+  protected saveToCache(params: CalculationParams, result: SalaryCalculationResult): void {
     const key = this.getCacheKey(params);
     this.cache.set(key, result);
   }
@@ -67,4 +87,54 @@ export abstract class BaseCalculator implements SalaryCalculator {
   }
 
   abstract generateDetails(result: Partial<SalaryCalculationResult>): SalaryDetail[];
+
+  protected handleCalculationError(error: unknown, params: CalculationParams): CalculationResult {
+    // Log error details for debugging
+    console.error(`Salary calculation error for ${params.employee.name}:`, error);
+    
+    let errorMessage = 'Unknown calculation error';
+    
+    if (error instanceof Error) {
+      errorMessage = error.message;
+    } else if (typeof error === 'string') {
+      errorMessage = error;
+    }
+    
+    return {
+      baseSalary: 0,
+      commission: 0,
+      bonus: 0,
+      deductions: 0,
+      loans: 0,
+      total: 0,
+      calculationStatus: {
+        success: false,
+        error: errorMessage,
+        details: {
+          employeeId: params.employee.id,
+          employeeName: params.employee.name,
+          planId: params.plan.id,
+          planType: params.plan.type,
+          planConfig: params.plan.config,
+          salesAmount: params.salesAmount
+        }
+      }
+    };
+  }
+  
+  protected validateInput(params: CalculationParams): boolean {
+    if (!params.employee) {
+      throw new Error('Employee data is missing');
+    }
+    
+    if (!params.plan) {
+      throw new Error(`No salary plan found for employee ${params.employee.name}`);
+    }
+    
+    if (!params.plan.config) {
+      throw new Error(`Salary plan ${params.plan.id} has no configuration`);
+    }
+    
+    return true;
+  }
 } 
