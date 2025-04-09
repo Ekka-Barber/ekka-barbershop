@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -11,9 +10,9 @@ import {
   EmployeeDeduction,
   EmployeeLoan,
   SalaryPlanType,
-  SalaryDetail,
-  CalculationResult
+  SalaryDetail
 } from '../types/salary';
+import { CalculatorResult } from '../calculators/BaseCalculator';
 
 interface UseSalaryCalculationParams {
   employee: Employee;
@@ -151,27 +150,29 @@ export const useSalaryCalculation = ({
         employee,
         plan: salaryPlan,
         salesAmount,
-        bonuses: bonuses as EmployeeBonus[],
-        deductions: deductions as EmployeeDeduction[],
-        loans: loans as EmployeeLoan[],
+        bonuses: bonuses as unknown as Transaction[],
+        deductions: deductions as unknown as Transaction[],
+        loans: loans as unknown as Transaction[],
         selectedMonth
-      }) as CalculationResult;
+      });
       
-      // Make sure the result matches SalaryCalculationResult structure
+      // Transform CalculatorResult to SalaryCalculationResult
       setCalculationResult({
         baseSalary: result.baseSalary,
         commission: result.commission,
-        targetBonus: result.targetBonus || 0,
+        targetBonus: result.bonus || 0, // Map bonus to targetBonus
         deductions: result.deductions || 0,
         loans: result.loans || 0,
-        totalSalary: result.totalSalary || 0,
-        planType: result.planType,
-        planName: result.planName,
+        totalSalary: result.total || 0,
+        planType: (result.planType as SalaryPlanType) || salaryPlan.type,
+        planName: result.planName || salaryPlan.name,
         isLoading: false,
-        error: result.error,
+        error: result.error || null,
         calculate,
         calculationDone: true,
-        details: result.details || []
+        details: result.details || [],
+        bonusList: bonuses,
+        deductionsList: deductions
       });
     } catch (error) {
       console.error('Error calculating salary:', error);
@@ -205,4 +206,4 @@ export const useSalaryCalculation = ({
   }, [isLoading]);
   
   return calculationResult;
-}; 
+};

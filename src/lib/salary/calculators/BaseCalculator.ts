@@ -1,3 +1,4 @@
+
 import { Employee } from '@/types/employee';
 import { SalaryPlan, SalaryCalculationResult, SalaryDetail } from '../types/salary';
 
@@ -26,13 +27,17 @@ export interface CalculationParams {
   selectedMonth: string;
 }
 
-export interface CalculationResult {
+export interface CalculatorResult {
   baseSalary: number;
   commission: number;
   bonus: number;
   deductions: number;
   loans: number;
   total: number;
+  planType?: string | null;
+  planName?: string | null;
+  error?: string | null;
+  details?: SalaryDetail[];
   calculationStatus?: {
     success: boolean;
     error?: string;
@@ -41,7 +46,7 @@ export interface CalculationResult {
 }
 
 export interface SalaryCalculator {
-  calculate(params: CalculationParams): Promise<CalculationResult>;
+  calculate(params: CalculationParams): Promise<CalculatorResult>;
   parseConfig(config: Record<string, unknown>): Record<string, unknown>;
   generateDetails(result: Partial<SalaryCalculationResult>): SalaryDetail[];
 }
@@ -49,7 +54,7 @@ export interface SalaryCalculator {
 export abstract class BaseCalculator implements SalaryCalculator {
   protected cache: Map<string, SalaryCalculationResult> = new Map();
 
-  abstract calculate(params: CalculationParams): Promise<CalculationResult>;
+  abstract calculate(params: CalculationParams): Promise<CalculatorResult>;
 
   parseConfig(config: Record<string, unknown>): Record<string, unknown> {
     if (!config) return {};
@@ -88,7 +93,7 @@ export abstract class BaseCalculator implements SalaryCalculator {
 
   abstract generateDetails(result: Partial<SalaryCalculationResult>): SalaryDetail[];
 
-  protected handleCalculationError(error: unknown, params: CalculationParams): CalculationResult {
+  protected handleCalculationError(error: unknown, params: CalculationParams): CalculatorResult {
     // Log error details for debugging
     console.error(`Salary calculation error for ${params.employee.name}:`, error);
     
@@ -107,6 +112,7 @@ export abstract class BaseCalculator implements SalaryCalculator {
       deductions: 0,
       loans: 0,
       total: 0,
+      error: errorMessage,
       calculationStatus: {
         success: false,
         error: errorMessage,
@@ -137,4 +143,4 @@ export abstract class BaseCalculator implements SalaryCalculator {
     
     return true;
   }
-} 
+}
