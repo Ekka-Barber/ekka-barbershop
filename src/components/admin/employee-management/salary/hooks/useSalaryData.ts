@@ -5,6 +5,7 @@ import { Employee } from '@/types/employee';
 import { getMonthDateRange } from '../SalaryUtils';
 import { SalaryCalculatorFactory } from '@/lib/salary/calculators/CalculatorFactory';
 import { SalaryPlanType, SalaryPlan } from '@/lib/salary/types/salary';
+import { Transaction, SalesData } from '@/lib/salary/calculators/BaseCalculator';
 
 interface EmployeeSalary {
   id: string;
@@ -15,6 +16,7 @@ interface EmployeeSalary {
   deductions: number;
   loans: number;
   total: number;
+  calculationError?: string;
 }
 
 interface UseSalaryDataProps {
@@ -22,9 +24,33 @@ interface UseSalaryDataProps {
   selectedMonth: string;
 }
 
-export const useSalaryData = ({ employees, selectedMonth }: UseSalaryDataProps) => {
+interface UseSalaryDataResult {
+  salaryData: EmployeeSalary[];
+  isLoading: boolean;
+  getEmployeeTransactions: (employeeId: string) => {
+    bonuses: Transaction[];
+    deductions: Transaction[];
+    loans: Transaction[];
+    salesData: SalesData | null | undefined;
+  };
+  calculationErrors: {
+    employeeId: string;
+    employeeName: string;
+    error: string;
+    details?: Record<string, unknown>;
+  }[];
+  refreshData: () => void;
+}
+
+export const useSalaryData = ({ employees, selectedMonth }: UseSalaryDataProps): UseSalaryDataResult => {
   const [salaryData, setSalaryData] = useState<EmployeeSalary[]>([]);
   const [isCalculating, setIsCalculating] = useState(false);
+  const [calculationErrors, setCalculationErrors] = useState<{
+    employeeId: string;
+    employeeName: string;
+    error: string;
+    details?: Record<string, unknown>;
+  }[]>([]);
   
   // Get date range for the selected month
   const { startDate, endDate } = getMonthDateRange(selectedMonth);
@@ -45,7 +71,7 @@ export const useSalaryData = ({ employees, selectedMonth }: UseSalaryDataProps) 
   });
   
   // Fetch salary plans
-  const { data: salaryPlans = [], isLoading: isPlansLoading } = useQuery({
+  const { data: salaryPlans = [], isLoading: isPlansLoading, refetch: refetchPlans } = useQuery({
     queryKey: ['salary-plans'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -102,6 +128,15 @@ export const useSalaryData = ({ employees, selectedMonth }: UseSalaryDataProps) 
     }
   });
   
+  // Force a refresh of the data
+  const refreshData = () => {
+    salesQuery.refetch();
+    refetchPlans();
+    bonusesQuery.refetch();
+    deductionsQuery.refetch();
+    loansQuery.refetch();
+  };
+  
   // Calculate salary data when dependencies change
   useEffect(() => {
     // Skip calculation if any data is still loading
@@ -118,6 +153,7 @@ export const useSalaryData = ({ employees, selectedMonth }: UseSalaryDataProps) 
     
     const calculateSalaries = async () => {
       setIsCalculating(true);
+      setCalculationErrors([]);
       
       try {
         // Create an instance of the calculator factory
@@ -128,11 +164,19 @@ export const useSalaryData = ({ employees, selectedMonth }: UseSalaryDataProps) 
           employees.map(async (employee) => {
             // Find employee's sales amount
             const employeeSales = salesQuery.data.find(
-              sale => 'employee_id' in sale 
-                ? sale.employee_id === employee.id
-                : sale.employee_name === employee.name
+              sale => 
+                // Check if sale.id matches employee.id 
+                (sale.id === employee.id) ||
+                // Check if employee_name matches
+                (sale.employee_name === employee.name)
             );
             const salesAmount = employeeSales ? employeeSales.sales_amount : 0;
+            
+            console.log(`Sales lookup for ${employee.name}:`, {
+              found: !!employeeSales,
+              salesAmount,
+              employeeId: employee.id
+            });
             
             // Find employee's salary plan
             const salaryPlan = salaryPlans.find(plan => plan.id === employee.salary_plan_id);
@@ -150,6 +194,7 @@ export const useSalaryData = ({ employees, selectedMonth }: UseSalaryDataProps) 
             // Default values if no salary plan
             let baseSalary = 0;
             let commission = 0;
+            let calculationError = undefined;
             
             // Calculate salary if the employee has a salary plan
             if (salaryPlan) {
@@ -168,9 +213,57 @@ export const useSalaryData = ({ employees, selectedMonth }: UseSalaryDataProps) 
                 
                 baseSalary = result.baseSalary;
                 commission = result.commission;
+                
+                // Check for calculation errors
+                if (result.calculationStatus && !result.calculationStatus.success) {
+                  calculationError = result.calculationStatus.error;
+                  
+                  // Add to the errors list
+                  setCalculationErrors(prev => [
+                    ...prev,
+                    {
+                      employeeId: employee.id,
+                      employeeName: employee.name,
+                      error: result.calculationStatus.error || 'Unknown calculation error',
+                      details: result.calculationStatus.details
+                    }
+                  ]);
+                }
               } catch (error) {
                 console.error(`Error calculating salary for ${employee.name}:`, error);
+                
+                calculationError = error instanceof Error 
+                  ? error.message 
+                  : 'Unknown calculation error';
+                
+                // Add to the errors list
+                setCalculationErrors(prev => [
+                  ...prev,
+                  {
+                    employeeId: employee.id,
+                    employeeName: employee.name,
+                    error: calculationError,
+                    details: { error }
+                  }
+                ]);
               }
+            } else {
+              // No salary plan assigned error
+              calculationError = 'No salary plan assigned';
+              
+              // Add to the errors list
+              setCalculationErrors(prev => [
+                ...prev,
+                {
+                  employeeId: employee.id,
+                  employeeName: employee.name,
+                  error: 'No salary plan assigned',
+                  details: { 
+                    salary_plan_id: employee.salary_plan_id,
+                    available_plans: salaryPlans.length
+                  }
+                }
+              ]);
             }
             
             // Calculate total salary
@@ -184,7 +277,8 @@ export const useSalaryData = ({ employees, selectedMonth }: UseSalaryDataProps) 
               bonus: bonusTotal,
               deductions: deductionsTotal,
               loans: loansTotal,
-              total
+              total,
+              calculationError
             };
           })
         );
@@ -240,6 +334,8 @@ export const useSalaryData = ({ employees, selectedMonth }: UseSalaryDataProps) 
   return {
     salaryData,
     isLoading,
-    getEmployeeTransactions
+    getEmployeeTransactions,
+    calculationErrors,
+    refreshData
   };
 }; 
