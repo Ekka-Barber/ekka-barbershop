@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useToast } from "@/components/ui/use-toast";
-import { Calendar, BarChart2, Users } from 'lucide-react';
+import { Calendar, BarChart2, Users, Clock } from 'lucide-react';
 import { useEmployeeSales } from './hooks/useEmployeeSales';
 import { useBranchManager } from './hooks/useBranchManager';
 import { useEmployeeManager } from './hooks/useEmployeeManager';
@@ -8,6 +8,8 @@ import { EmployeeSalesHeader } from './components/EmployeeSalesHeader';
 import { EmployeeGrid } from './components/EmployeeGrid';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { EmployeeAnalyticsDashboard } from './EmployeeAnalyticsDashboard';
+import { ScheduleInterface } from './components/ScheduleInterface';
+import { TeamPerformanceComparison } from './components/TeamPerformanceComparison';
 
 export const EmployeeTab = () => {
   const { toast } = useToast();
@@ -66,16 +68,26 @@ export const EmployeeTab = () => {
     <div className="space-y-6">
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         <div className="flex justify-between items-center">
-          <TabsList>
-            <TabsTrigger value="employee-grid" className="flex items-center gap-1">
-              <Users className="h-4 w-4" />
-              <span>Employees</span>
-            </TabsTrigger>
-            <TabsTrigger value="analytics" className="flex items-center gap-1">
-              <BarChart2 className="h-4 w-4" />
-              <span>Analytics</span>
-            </TabsTrigger>
-          </TabsList>
+          <div className="overflow-x-auto pb-2 w-full">
+            <TabsList className="w-full inline-flex">
+              <TabsTrigger value="employee-grid" className="flex items-center gap-1">
+                <Users className="h-4 w-4" />
+                <span>Employees</span>
+              </TabsTrigger>
+              <TabsTrigger value="analytics" className="flex items-center gap-1">
+                <BarChart2 className="h-4 w-4" />
+                <span>Analytics</span>
+              </TabsTrigger>
+              <TabsTrigger value="schedule" className="flex items-center gap-1">
+                <Clock className="h-4 w-4" />
+                <span>Scheduling</span>
+              </TabsTrigger>
+              <TabsTrigger value="team" className="flex items-center gap-1">
+                <Users className="h-4 w-4" />
+                <span>Team</span>
+              </TabsTrigger>
+            </TabsList>
+          </div>
         </div>
         
         <TabsContent value="employee-grid" className="space-y-6">
@@ -108,6 +120,21 @@ export const EmployeeTab = () => {
         
         <TabsContent value="analytics">
           <EmployeeAnalyticsDashboard 
+            employees={employees}
+            selectedBranch={selectedBranch}
+          />
+        </TabsContent>
+        
+        <TabsContent value="schedule">
+          <ScheduleInterface 
+            employees={employees}
+            selectedBranch={selectedBranch}
+            onScheduleUpdate={fetchEmployees}
+          />
+        </TabsContent>
+        
+        <TabsContent value="team">
+          <TeamPerformanceComparison
             employees={employees}
             selectedBranch={selectedBranch}
           />
