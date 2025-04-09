@@ -1,4 +1,5 @@
-import { BaseCalculator, CalculationParams, CalculationResult } from './BaseCalculator';
+
+import { BaseCalculator, CalculationParams, CalculatorResult } from './BaseCalculator';
 import { SalaryCalculationResult, SalaryDetail } from '../types/salary';
 
 interface TierConfig {
@@ -16,7 +17,7 @@ interface TieredCommissionConfig {
 }
 
 export class TieredCommissionCalculator extends BaseCalculator {
-  async calculate(params: CalculationParams): Promise<CalculationResult> {
+  async calculate(params: CalculationParams): Promise<CalculatorResult> {
     // Check cache first
     const cachedResult = this.getFromCache(params);
     if (cachedResult) {
@@ -86,7 +87,7 @@ export class TieredCommissionCalculator extends BaseCalculator {
     const total = baseSalary + Math.round(commission) + bonusesFromDb - deductionsTotal - loansTotal;
     
     // Create the result object in the format expected by the BaseCalculator
-    const result: CalculationResult = {
+    const result: CalculatorResult = {
       baseSalary,
       commission: Math.round(commission),
       bonus: bonusesFromDb,
@@ -153,4 +154,4 @@ export class TieredCommissionCalculator extends BaseCalculator {
     
     return details;
   }
-} 
+}

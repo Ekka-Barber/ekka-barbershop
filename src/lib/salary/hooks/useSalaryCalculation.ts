@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -12,7 +13,7 @@ import {
   SalaryPlanType,
   SalaryDetail
 } from '../types/salary';
-import { CalculatorResult } from '../calculators/BaseCalculator';
+import { CalculatorResult, Transaction } from '../calculators/BaseCalculator';
 
 interface UseSalaryCalculationParams {
   employee: Employee;

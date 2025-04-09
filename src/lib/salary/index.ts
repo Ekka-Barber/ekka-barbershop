@@ -3,12 +3,13 @@
 export * from './types/salary';
 
 // Export calculators with explicit re-exports to avoid naming conflicts
-export { 
-  SalaryCalculator, 
+export { SalaryCalculator } from './calculators/BaseCalculator';
+export type { 
   BaseCalculator, 
   CalculationParams, 
   CalculatorResult, // Renamed from CalculationResult
-  SalesData
+  SalesData,
+  Transaction
 } from './calculators/BaseCalculator';
 
 // Export calculator implementations

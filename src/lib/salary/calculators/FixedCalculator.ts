@@ -1,8 +1,9 @@
-import { BaseCalculator, CalculationParams, CalculationResult } from './BaseCalculator';
+
+import { BaseCalculator, CalculationParams, CalculatorResult } from './BaseCalculator';
 import { SalaryDetail, SalaryCalculationResult } from '../types/salary';
 
 export class FixedCalculator extends BaseCalculator {
-  async calculate(params: CalculationParams): Promise<CalculationResult> {
+  async calculate(params: CalculationParams): Promise<CalculatorResult> {
     try {
       // Validate input parameters
       this.validateInput(params);
@@ -105,4 +106,4 @@ export class FixedCalculator extends BaseCalculator {
       }
     ];
   }
-} 
+}
