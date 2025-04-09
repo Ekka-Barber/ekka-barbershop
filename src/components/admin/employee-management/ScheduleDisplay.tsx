@@ -1,11 +1,9 @@
-
 import { CheckCircle, XCircle } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { WorkingHours } from '@/types/service';
-import { isValidWorkingHours } from '@/utils/workingHoursUtils';
 
 interface ScheduleDisplayProps {
-  workingHours: any; // Use any for now to handle Json type from Employee
+  workingHours: WorkingHours | Record<string, string[] | { start: string; end: string }>;
   offDays: string[];
 }
 
