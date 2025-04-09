@@ -8,7 +8,8 @@ export interface EmployeeSalary {
   name: string;
   baseSalary: number;
   commission: number;
-  bonus: number;
+  bonus: number;        // Regular bonus from transactions
+  targetBonus: number;  // Target bonus from salary plan
   deductions: number;
   loans: number;
   total: number;

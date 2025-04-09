@@ -8,6 +8,7 @@ export interface EmployeeSalary {
   baseSalary: number;
   commission: number;
   bonus: number;
+  targetBonus: number;
   deductions: number;
   loans: number;
   total: number;
@@ -34,7 +35,8 @@ export const SalaryTable = ({ salaryData, isLoading, onEmployeeSelect }: SalaryT
               <th className="text-left py-2 px-2">Employee</th>
               <th className="text-right py-2 px-2">Base Salary</th>
               <th className="text-right py-2 px-2">Commission</th>
-              <th className="text-right py-2 px-2">Bonuses</th>
+              <th className="text-right py-2 px-2">Regular Bonuses</th>
+              <th className="text-right py-2 px-2">Target Bonuses</th>
               <th className="text-right py-2 px-2">Deductions</th>
               <th className="text-right py-2 px-2">Loans</th>
               <th className="text-right py-2 px-2">Total</th>
@@ -60,6 +62,7 @@ export const SalaryTable = ({ salaryData, isLoading, onEmployeeSelect }: SalaryT
                   <td className="text-right py-3 px-2">{formatCurrency(salary.baseSalary)}</td>
                   <td className="text-right py-3 px-2">{formatCurrency(salary.commission)}</td>
                   <td className="text-right py-3 px-2">{formatCurrency(salary.bonus)}</td>
+                  <td className="text-right py-3 px-2">{formatCurrency(salary.targetBonus)}</td>
                   <td className="text-right py-3 px-2 text-red-600">
                     {salary.deductions > 0 ? `-${formatCurrency(salary.deductions)}` : formatCurrency(0)}
                   </td>
@@ -73,7 +76,7 @@ export const SalaryTable = ({ salaryData, isLoading, onEmployeeSelect }: SalaryT
               ))
             ) : (
               <tr>
-                <td colSpan={7} className="text-center py-4 text-muted-foreground">
+                <td colSpan={8} className="text-center py-4 text-muted-foreground">
                   No employees match the current filters
                 </td>
               </tr>

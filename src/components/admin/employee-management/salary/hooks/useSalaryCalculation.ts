@@ -66,6 +66,7 @@ export const useSalaryCalculation = () => {
           
           let baseSalary = 0;
           let commission = 0;
+          let targetBonus = 0;
           let calculationError = undefined;
           
           if (salaryPlan) {
@@ -84,6 +85,7 @@ export const useSalaryCalculation = () => {
               
               baseSalary = result.baseSalary;
               commission = result.commission;
+              targetBonus = result.targetBonus || 0;
               
               if (result.calculationStatus && !result.calculationStatus.success) {
                 calculationError = result.calculationStatus.error;
@@ -132,7 +134,8 @@ export const useSalaryCalculation = () => {
             ]);
           }
           
-          const total = baseSalary + commission + bonusTotal - deductionsTotal - loansTotal;
+          // Include both bonuses in the total calculation
+          const total = baseSalary + commission + targetBonus + bonusTotal - deductionsTotal - loansTotal;
           
           return {
             id: employee.id,
@@ -140,6 +143,7 @@ export const useSalaryCalculation = () => {
             baseSalary,
             commission,
             bonus: bonusTotal,
+            targetBonus,
             deductions: deductionsTotal,
             loans: loansTotal,
             total,
