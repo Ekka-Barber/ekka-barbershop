@@ -1,5 +1,5 @@
 
-// Export types from salary.ts 
+// Export types from salary.ts using export type
 export type * from './types/salary';
 
 // Export calculators with explicit re-exports to avoid naming conflicts
@@ -20,4 +20,3 @@ export * from './calculators/TieredCommissionCalculator';
 
 // Export hooks
 export * from './hooks/useSalaryCalculation';
-
