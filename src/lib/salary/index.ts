@@ -1,13 +1,13 @@
 
 // Export types from salary.ts 
-export * from './types/salary';
+export type * from './types/salary';
 
 // Export calculators with explicit re-exports to avoid naming conflicts
 export { SalaryCalculator } from './calculators/BaseCalculator';
 export type { 
   BaseCalculator, 
   CalculationParams, 
-  CalculatorResult, // Renamed from CalculationResult
+  CalculatorResult, 
   SalesData,
   Transaction
 } from './calculators/BaseCalculator';
