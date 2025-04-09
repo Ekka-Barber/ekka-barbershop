@@ -1,14 +1,17 @@
-
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
+import { TimeRange, WorkingHours } from '@/types/employee';
+import { Json } from '@/types/supabase-generated';
 
 export const useScheduleManager = (onScheduleUpdate?: () => void) => {
   const { toast } = useToast();
   const [selectedEmployee, setSelectedEmployee] = useState<string | null>(null);
   const [isUpdating, setIsUpdating] = useState(false);
-  const [viewMode, setViewMode] = useState<'day' | 'week'>('week');
-  const [workSchedule, setWorkSchedule] = useState<Record<string, { isWorkingDay: boolean; startTime: string; endTime: string }>>({});
+  const [workSchedule, setWorkSchedule] = useState<WorkingHours>({});
+  const [offDays, setOffDays] = useState<string[]>([]);
+  // Keep track of the last known working hours for each day
+  const [lastKnownSchedule, setLastKnownSchedule] = useState<WorkingHours>({});
 
   // Days of the week
   const daysOfWeek = [
@@ -21,8 +24,50 @@ export const useScheduleManager = (onScheduleUpdate?: () => void) => {
     { key: 'saturday', label: 'Sat' }
   ];
 
+  // Parse and normalize the working hours from the database
+  const parseWorkingHours = useCallback((dbWorkingHours: Json): WorkingHours => {
+    const result: WorkingHours = {};
+    
+    if (!dbWorkingHours || typeof dbWorkingHours !== 'object' || Array.isArray(dbWorkingHours)) {
+      return result;
+    }
+
+    // Safe type cast since we've already checked it's an object and not an array
+    const workingHoursObj = dbWorkingHours as Record<string, Json>;
+
+    daysOfWeek.forEach(day => {
+      const dayKey = day.key;
+      result[dayKey] = [];
+
+      // Get working hours for the current day
+      const dayHours = workingHoursObj[dayKey];
+      
+      // Skip if no hours for this day
+      if (!dayHours) return;
+      
+      // Handle array of strings (DB format: ["09:00-17:00", "18:00-20:00"])
+      if (Array.isArray(dayHours)) {
+        // Filter out non-string values and map to TimeRange
+        result[dayKey] = dayHours
+          .filter(item => typeof item === 'string')
+          .map(item => item as TimeRange);
+      } 
+      // Handle object format with start/end (DB format: { start: "09:00", end: "17:00" })
+      else if (typeof dayHours === 'object' && dayHours !== null) {
+        const hourObj = dayHours as { start?: string; end?: string };
+        if (hourObj.start && hourObj.end) {
+          result[dayKey] = [`${hourObj.start}-${hourObj.end}`];
+        }
+      }
+    });
+    
+    return result;
+  }, [daysOfWeek]);
+
   // Fetch employee schedule when an employee is selected
-  const fetchEmployeeSchedule = async (employeeId: string) => {
+  const fetchEmployeeSchedule = useCallback(async (employeeId: string) => {
+    if (!employeeId) return;
+    
     try {
       setIsUpdating(true);
       const { data, error } = await supabase
@@ -33,59 +78,14 @@ export const useScheduleManager = (onScheduleUpdate?: () => void) => {
 
       if (error) throw error;
 
-      // Initialize schedule based on employee data
-      const newSchedule: Record<string, { isWorkingDay: boolean; startTime: string; endTime: string }> = {};
+      // Parse working hours from database
+      const parsedWorkingHours = parseWorkingHours(data.working_hours);
       
-      // Default times
-      const defaultStart = '09:00';
-      const defaultEnd = '17:00';
+      setWorkSchedule(parsedWorkingHours);
+      setLastKnownSchedule({...parsedWorkingHours});
+      setOffDays(Array.isArray(data.off_days) ? data.off_days : []);
       
-      // Initialize all days with default values
-      daysOfWeek.forEach(day => {
-        newSchedule[day.key] = {
-          isWorkingDay: true,
-          startTime: defaultStart,
-          endTime: defaultEnd
-        };
-      });
-      
-      // Update from working_hours if they exist
-      if (data.working_hours) {
-        const workingHours = typeof data.working_hours === 'string' 
-          ? JSON.parse(data.working_hours) 
-          : data.working_hours;
-          
-        Object.entries(workingHours).forEach(([day, hours]: [string, unknown]) => {
-          if (hours) {
-            // Handle different formats of working hours
-            if (Array.isArray(hours) && hours.length >= 2) {
-              newSchedule[day] = {
-                isWorkingDay: true,
-                startTime: hours[0] as string,
-                endTime: hours[1] as string
-              };
-            } else if (typeof hours === 'object' && hours !== null && 'start' in hours && 'end' in hours) {
-              const typedHours = hours as { start: string; end: string };
-              newSchedule[day] = {
-                isWorkingDay: true,
-                startTime: typedHours.start,
-                endTime: typedHours.end
-              };
-            }
-          }
-        });
-      }
-      
-      // Mark off days
-      if (data.off_days && Array.isArray(data.off_days)) {
-        data.off_days.forEach(day => {
-          if (newSchedule[day]) {
-            newSchedule[day].isWorkingDay = false;
-          }
-        });
-      }
-      
-      setWorkSchedule(newSchedule);
+      console.log('Fetched schedule:', parsedWorkingHours);
     } catch (error) {
       console.error("Error fetching employee schedule:", error);
       toast({
@@ -96,12 +96,12 @@ export const useScheduleManager = (onScheduleUpdate?: () => void) => {
     } finally {
       setIsUpdating(false);
     }
-  };
+  }, [parseWorkingHours, toast]);
 
-  const handleEmployeeSelect = (employeeId: string) => {
+  const handleEmployeeSelect = useCallback((employeeId: string) => {
     setSelectedEmployee(employeeId);
     fetchEmployeeSchedule(employeeId);
-  };
+  }, [fetchEmployeeSchedule]);
 
   const updateSchedule = async () => {
     if (!selectedEmployee) return;
@@ -109,27 +109,31 @@ export const useScheduleManager = (onScheduleUpdate?: () => void) => {
     try {
       setIsUpdating(true);
       
-      // Prepare working hours object
-      const workingHours: Record<string, [string, string]> = {};
-      const offDays: string[] = [];
-      
-      Object.entries(workSchedule).forEach(([day, schedule]) => {
-        if (schedule.isWorkingDay) {
-          workingHours[day] = [schedule.startTime, schedule.endTime];
-        } else {
-          offDays.push(day);
+      // Filter out empty arrays from the schedule
+      const cleanedSchedule: Record<string, string[]> = {};
+      Object.entries(workSchedule).forEach(([day, ranges]) => {
+        if (ranges.length > 0) {
+          cleanedSchedule[day] = ranges;
         }
       });
+      
+      console.log('Saving schedule:', cleanedSchedule);
       
       const { error } = await supabase
         .from('employees')
         .update({
-          working_hours: workingHours,
+          working_hours: cleanedSchedule,
           off_days: offDays
         })
         .eq('id', selectedEmployee);
       
       if (error) throw error;
+
+      // Update last known schedule after successful save
+      setLastKnownSchedule(prev => ({
+        ...prev,
+        ...workSchedule
+      }));
       
       toast({
         title: "Schedule updated",
@@ -151,25 +155,67 @@ export const useScheduleManager = (onScheduleUpdate?: () => void) => {
     }
   };
 
-  const updateDaySchedule = (day: string, key: keyof typeof workSchedule[string], value: boolean | string) => {
-    setWorkSchedule(prev => ({
-      ...prev,
-      [day]: {
-        ...prev[day],
-        [key]: value
+  const updateDaySchedule = useCallback((day: string, timeRanges: TimeRange[], isWorkingDay: boolean) => {
+    // Update working hours
+    setWorkSchedule(prev => {
+      const newSchedule = { ...prev };
+      
+      if (isWorkingDay) {
+        // If toggling to working, use last known hours or default
+        if (timeRanges.length === 0) {
+          const lastKnownHours = lastKnownSchedule[day];
+          newSchedule[day] = lastKnownHours?.length > 0 
+            ? [...lastKnownHours]  // Use last known hours if available
+            : ["09:00-17:00"];  // Default hours if no previous hours
+        } else {
+          newSchedule[day] = [...timeRanges];
+        }
+      } else {
+        // If toggling to off, save current hours to last known before clearing
+        if (prev[day]?.length > 0) {
+          setLastKnownSchedule(lastKnown => ({
+            ...lastKnown,
+            [day]: [...prev[day]]
+          }));
+        }
+        newSchedule[day] = [];
       }
-    }));
-  };
+      
+      return newSchedule;
+    });
+
+    // Update off days
+    setOffDays(prev => {
+      const newOffDays = [...prev];
+      const dayIndex = newOffDays.indexOf(day);
+      
+      if (!isWorkingDay && dayIndex === -1) {
+        newOffDays.push(day);
+      } else if (isWorkingDay && dayIndex !== -1) {
+        newOffDays.splice(dayIndex, 1);
+      }
+      
+      return newOffDays;
+    });
+  }, [lastKnownSchedule]);
+
+  const isDayWorking = useCallback((day: string): boolean => {
+    return workSchedule[day]?.length > 0 && !offDays.includes(day);
+  }, [workSchedule, offDays]);
+
+  const getDayTimeRanges = useCallback((day: string): TimeRange[] => {
+    return workSchedule[day] || [];
+  }, [workSchedule]);
 
   return {
     selectedEmployee,
-    viewMode, 
     workSchedule,
     isUpdating,
     daysOfWeek,
-    setViewMode,
     handleEmployeeSelect,
     updateSchedule,
-    updateDaySchedule
+    updateDaySchedule,
+    isDayWorking,
+    getDayTimeRanges
   };
 };
