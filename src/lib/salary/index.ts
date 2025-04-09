@@ -26,9 +26,9 @@ export { BaseCalculator, SalaryCalculator } from './calculators/BaseCalculator';
 
 // Export calculator implementations
 export * from './calculators/CalculatorFactory';
-export * from './calculators/FixedCalculator';
-export * from './calculators/CommissionCalculator';
-export * from './calculators/TieredCommissionCalculator';
+export type * from './calculators/FixedCalculator';
+export type * from './calculators/CommissionCalculator';
+export type * from './calculators/TieredCommissionCalculator';
 
 // Export hooks
 export * from './hooks/useSalaryCalculation';
