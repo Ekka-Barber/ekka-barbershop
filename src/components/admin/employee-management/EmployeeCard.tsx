@@ -15,6 +15,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { SalesStatistics } from './components/SalesStatistics';
 import { SalaryPlanSection } from './components/SalaryPlanSection';
 import { Separator } from '@/components/ui/separator';
+import { transformWorkingHours } from '@/utils/workingHoursUtils';
 
 interface EmployeeCardProps {
   employee: Employee;
@@ -49,7 +50,6 @@ export const EmployeeCard = ({
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    // Only allow empty string or whole numbers
     if (value === '' || /^\d+$/.test(value)) {
       onSalesChange(value);
     }
@@ -73,7 +73,6 @@ export const EmployeeCard = ({
         description: `${employee.name} has been assigned to a new branch.`,
       });
 
-      // Refetch employees list if provided
       if (refetchEmployees) {
         refetchEmployees();
       }
@@ -191,7 +190,7 @@ export const EmployeeCard = ({
                 Weekly Schedule
               </Label>
               <ScheduleDisplay 
-                workingHours={employee.working_hours} 
+                workingHours={transformWorkingHours(employee.working_hours) || {}} 
                 offDays={employee.off_days || []}
               />
             </div>

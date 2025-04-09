@@ -29,6 +29,8 @@ import {
 import AppLayout from '@/components/layout/AppLayout';
 import { Tables } from "@/types/supabase";
 import { Separator } from "@/components/ui/separator";
+import { Branch } from "@/types/branch";
+import { transformWorkingHours } from "@/utils/workingHoursUtils";
 
 interface Branch {
   id: string;
@@ -68,25 +70,19 @@ const Customer = () => {
     });
   }, []);
 
-  // Helper function to trigger element animations in sequence
   const startElementAnimation = (elements: Tables<'ui_elements'>[]) => {
     setAnimatingElements([]);
     setAnimationComplete(false);
     
-    // Step 1: Start with empty animating elements
     setTimeout(() => {
-      // Step 2: Add logo
       setAnimatingElements(['logo']);
       
-      // Step 3: Add headings after delay
       setTimeout(() => {
         setAnimatingElements(prev => [...prev, 'headings']);
         
-        // Step 4: Add divider after delay
         setTimeout(() => {
           setAnimatingElements(prev => [...prev, 'divider']);
           
-          // Step 5: Add UI elements one by one with delays
           const sortedElements = [...elements].sort((a, b) => a.display_order - b.display_order);
           
           let delay = 300;
@@ -94,7 +90,6 @@ const Customer = () => {
             setTimeout(() => {
               setAnimatingElements(prev => [...prev, element.id]);
               
-              // Set animation complete when the last element is added
               if (index === sortedElements.length - 1) {
                 setAnimationComplete(true);
               }
@@ -113,7 +108,10 @@ const Customer = () => {
         .select('id, name, name_ar, address, address_ar, is_main, whatsapp_number, google_maps_url, working_hours, google_place_id');
       if (error) throw error;
       
-      return data;
+      return data?.map(branch => ({
+        ...branch,
+        working_hours: transformWorkingHours(branch.working_hours) || {}
+      })) as Branch[];
     }
   });
 
@@ -137,7 +135,6 @@ const Customer = () => {
     return uiElements.filter(el => el.is_visible);
   }, [uiElements]);
   
-  // Start animation when visible elements are loaded
   useEffect(() => {
     if (visibleElements.length > 0) {
       startElementAnimation(visibleElements);
@@ -228,13 +225,11 @@ const Customer = () => {
       description: language === 'ar' ? 'تم تحديث المحتوى' : 'Content has been updated',
       duration: 2000,
     });
-    // Restart animations on refresh
     if (visibleElements.length > 0) {
       startElementAnimation(visibleElements);
     }
   };
 
-  // Animation variants
   const fadeUpVariants = {
     hidden: { opacity: 0, y: 20 },
     visible: { 
@@ -313,7 +308,6 @@ const Customer = () => {
                 </>
               ) : (
                 visibleElements.map((el) => {
-                  // Check if this element should be animated in yet
                   const isVisible = animatingElements.includes(el.id);
                   
                   if (el.type === 'button') {
