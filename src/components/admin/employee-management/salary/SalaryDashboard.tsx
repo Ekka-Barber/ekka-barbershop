@@ -6,17 +6,24 @@ import { MonthYearPicker } from '../MonthYearPicker';
 import { useSalaryData } from './hooks/useSalaryData';
 import { formatCurrency, getMonthDisplayName } from './SalaryUtils';
 import { Loader2 } from 'lucide-react';
+import { SalaryBreakdown } from './SalaryBreakdown';
 
 interface SalaryDashboardProps {
   employees: Employee[];
+  // These props are kept for future implementation phases
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   selectedBranch: string | null;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   refetchEmployees: () => void;
 }
 
 export const SalaryDashboard = ({ 
   employees, 
-  selectedBranch: _selectedBranch,
-  refetchEmployees: _refetchEmployees
+  // These props are kept for future implementation phases
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  selectedBranch,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  refetchEmployees
 }: SalaryDashboardProps) => {
   // Get current date for the default month selection
   const currentDate = new Date();
@@ -31,8 +38,11 @@ export const SalaryDashboard = ({
     `${currentYear}-${(currentMonth + 1).toString().padStart(2, '0')}`
   );
   
+  // State for the selected employee
+  const [selectedEmployeeId, setSelectedEmployeeId] = useState<string | null>(null);
+  
   // Fetch salary data using the hook
-  const { salaryData, isLoading } = useSalaryData({
+  const { salaryData, isLoading, getEmployeeTransactions } = useSalaryData({
     employees,
     selectedMonth
   });
@@ -43,7 +53,51 @@ export const SalaryDashboard = ({
     const year = date.getFullYear();
     const month = date.getMonth() + 1;
     setSelectedMonth(`${year}-${month.toString().padStart(2, '0')}`);
+    // Reset selected employee when month changes
+    setSelectedEmployeeId(null);
   };
+  
+  // Get selected employee data
+  const selectedEmployee = selectedEmployeeId 
+    ? employees.find(emp => emp.id === selectedEmployeeId) 
+    : null;
+  
+  const selectedSalaryData = selectedEmployeeId 
+    ? salaryData.find(salary => salary.id === selectedEmployeeId) 
+    : null;
+  
+  // Get transaction data for the selected employee
+  const transactions = selectedEmployeeId 
+    ? getEmployeeTransactions(selectedEmployeeId) 
+    : { bonuses: [], deductions: [], loans: [], salesData: null };
+  
+  // Handle click on an employee row
+  const handleEmployeeSelect = (employeeId: string) => {
+    setSelectedEmployeeId(employeeId);
+  };
+  
+  // Handle back button click
+  const handleBack = () => {
+    setSelectedEmployeeId(null);
+  };
+  
+  // If an employee is selected, show their detailed breakdown
+  if (selectedEmployeeId) {
+    return (
+      <SalaryBreakdown 
+        selectedEmployeeId={selectedEmployeeId}
+        employeeName={selectedEmployee?.name || ''}
+        salaryData={selectedSalaryData}
+        selectedMonth={selectedMonth}
+        onBack={handleBack}
+        isLoading={isLoading}
+        bonusTransactions={transactions.bonuses}
+        deductionTransactions={transactions.deductions}
+        loanTransactions={transactions.loans}
+        salesData={transactions.salesData}
+      />
+    );
+  }
   
   return (
     <div className="space-y-6">
@@ -90,7 +144,19 @@ export const SalaryDashboard = ({
                   <tbody>
                     {salaryData.length > 0 ? (
                       salaryData.map((salary) => (
-                        <tr key={salary.id} className="border-b hover:bg-gray-50">
+                        <tr 
+                          key={salary.id} 
+                          className="border-b hover:bg-gray-50 cursor-pointer" 
+                          onClick={() => handleEmployeeSelect(salary.id)}
+                          tabIndex={0}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              handleEmployeeSelect(salary.id);
+                              e.preventDefault();
+                            }
+                          }}
+                          aria-label={`View ${salary.name}'s salary details`}
+                        >
                           <td className="py-3 px-2">{salary.name}</td>
                           <td className="text-right py-3 px-2">{formatCurrency(salary.baseSalary)}</td>
                           <td className="text-right py-3 px-2">{formatCurrency(salary.commission)}</td>
