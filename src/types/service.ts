@@ -22,6 +22,8 @@ export interface Category {
   name_ar: string;
   display_order?: number;
   services?: Service[];
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface SelectedService extends Service {
