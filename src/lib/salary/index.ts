@@ -24,8 +24,8 @@ export type {
 // Base calculator exports
 export { BaseCalculator, SalaryCalculator } from './calculators/BaseCalculator';
 
-// Export calculator implementations - fix the import path here
-export { SalaryCalculatorFactory as CalculatorFactory } from './calculators/CalculatorFactory';
+// Export calculator implementations
+export { SalaryCalculatorFactory } from './calculators/CalculatorFactory';
 export type { FixedCalculator } from './calculators/FixedCalculator';
 export type { CommissionCalculator } from './calculators/CommissionCalculator';
 export type { TieredCommissionCalculator } from './calculators/TieredCommissionCalculator';
