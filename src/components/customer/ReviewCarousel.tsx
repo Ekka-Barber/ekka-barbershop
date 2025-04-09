@@ -245,20 +245,23 @@ export const ReviewCarousel = ({
                         animate={{ opacity: 1 }}
                         transition={{ delay: 0.5 }}
                       >
-                        <motion.button 
+                        <button 
                           onClick={() => onReadMore(review)} 
-                          className="text-xs text-[#C4A36F] hover:text-[#A3845A] font-medium inline-flex items-center"
-                          whileHover={{ 
-                            scale: 1.05,
-                            transition: { duration: 0.2 }
-                          }}
-                          whileTap={{ scale: 0.95 }}
+                          className={cn(
+                            "text-xs py-1 px-2 rounded-md bg-[#4c4c4c]/10 hover:bg-[#4c4c4c]/15 font-medium inline-flex items-center transition-all",
+                            language === 'ar' ? "flex-row-reverse" : "flex-row"
+                          )}
                         >
-                          {language === 'ar' ? 'اقرأ المزيد' : 'Read More'} 
+                          <span className="text-[#4c4c4c]">
+                            {language === 'ar' ? 'اقرأ المزيد' : 'Read More'}
+                          </span>
                           <motion.span 
-                            className={cn(language === 'ar' ? "mr-1 ml-0 transform rotate-180" : "ml-1")}
+                            className={cn(
+                              "text-[#4c4c4c]",
+                              language === 'ar' ? "mr-1.5 transform rotate-180" : "ml-1.5"
+                            )}
                             initial={{ x: 0 }}
-                            animate={{ x: language === 'ar' ? 3 : 3 }}
+                            animate={{ x: language === 'ar' ? -3 : 3 }}
                             transition={{ 
                               repeat: Infinity, 
                               repeatType: "reverse", 
@@ -267,7 +270,7 @@ export const ReviewCarousel = ({
                           >
                             &rarr;
                           </motion.span>
-                        </motion.button>
+                        </button>
                       </motion.div>
                     )}
                   </CardContent>
