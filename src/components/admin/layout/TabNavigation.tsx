@@ -1,3 +1,5 @@
+
+import React from 'react';
 import { TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Home, Package, Calendar, Users, FileText, QrCode, Layout, Building } from 'lucide-react';
 
@@ -5,7 +7,7 @@ interface TabNavigationProps {
   isMobile: boolean;
 }
 
-export const TabNavigation = ({ isMobile }: TabNavigationProps) => {
+export const TabNavigation: React.FC<TabNavigationProps> = ({ isMobile }) => {
   if (isMobile) {
     return (
       <div className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t shadow-lg pb-[env(safe-area-inset-bottom)]">
