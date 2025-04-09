@@ -1,6 +1,16 @@
-
-// Export types from salary.ts using export type
-export type * from './types/salary';
+// Export all types from salary.ts using explicit exports
+export type { 
+  SalaryPlanType,
+  SalaryPlan,
+  SalaryBlock,
+  EmployeeBonus,
+  EmployeeDeduction,
+  EmployeeSales,
+  EmployeeLoan,
+  SalaryCalculationResult,
+  SalaryDetail,
+  Transaction
+} from './types/salary';
 
 // Export calculators with explicit re-exports to avoid naming conflicts
 export { SalaryCalculator } from './calculators/BaseCalculator';
