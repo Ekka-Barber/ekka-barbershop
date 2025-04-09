@@ -98,10 +98,12 @@ export const BookingManagement = React.memo(() => {
       </div>
       
       <Tabs value={activeTab} onValueChange={handleTabChange}>
-        <TabsList>
-          <TabsTrigger value="calendar" onClick={(e) => e.preventDefault()}>Calendar View</TabsTrigger>
-          <TabsTrigger value="list" onClick={(e) => e.preventDefault()}>Blocked Dates List</TabsTrigger>
-        </TabsList>
+        <div className="overflow-x-auto pb-2">
+          <TabsList>
+            <TabsTrigger value="calendar" onClick={(e) => e.preventDefault()}>Calendar View</TabsTrigger>
+            <TabsTrigger value="list" onClick={(e) => e.preventDefault()}>Blocked Dates List</TabsTrigger>
+          </TabsList>
+        </div>
         
         <TabsContent value="calendar" className="space-y-4">
           <div className="grid md:grid-cols-2 gap-6">
