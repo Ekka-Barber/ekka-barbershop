@@ -19,7 +19,7 @@ export type {
   CalculatorResult, 
   SalesData,
   CalculationStatus
-} from './calculators/BaseCalculator';
+} from './calculators/types/calculatorTypes';
 
 // Base calculator exports
 export { BaseCalculator, SalaryCalculator } from './calculators/BaseCalculator';
