@@ -1,18 +1,9 @@
-
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useTimeFormatting } from "@/hooks/useTimeFormatting";
 import { Clock } from "lucide-react";
-
-interface Branch {
-  id: string;
-  name: string;
-  name_ar: string;
-  address: string;
-  address_ar: string;
-  working_hours: any;
-}
+import { Branch } from "@/types/branch";
 
 interface BranchDialogProps {
   open: boolean;

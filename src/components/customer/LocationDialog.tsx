@@ -3,19 +3,7 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { motion } from "framer-motion";
 import { MapPin, ExternalLink, Building } from "lucide-react";
-
-// Define a proper type for working_hours
-type WorkingHoursType = Record<string, string[]> | null;
-
-interface Branch {
-  id: string;
-  name: string;
-  name_ar: string;
-  address: string;
-  address_ar: string;
-  working_hours: WorkingHoursType;
-  google_maps_url: string | null;
-}
+import { Branch } from "@/types/branch";
 
 interface LocationDialogProps {
   open: boolean;

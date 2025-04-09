@@ -3,15 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { useLanguage } from "@/contexts/LanguageContext";
 import { motion } from "framer-motion";
 import { MapPin } from "lucide-react";
-
-interface Branch {
-  id: string;
-  name: string;
-  name_ar: string;
-  address: string;
-  address_ar: string;
-  working_hours?: string | Record<string, string>;
-}
+import { Branch } from "@/types/branch";
 
 interface EidBookingsDialogProps {
   open: boolean;
@@ -29,7 +21,6 @@ export const EidBookingsDialog = ({
   const { language } = useLanguage();
   const isRTL = language === 'ar';
   
-  // Enhanced logging without sensitive data
   console.log("Number of branches in EidBookingsDialog:", branches?.length || 0);
 
   const fadeIn = {
@@ -70,7 +61,6 @@ export const EidBookingsDialog = ({
           variants={fadeIn}
           className="relative w-full"
         >
-          {/* Decorative top banner */}
           <div className="h-20 bg-gradient-to-r from-[#9490fa] to-[#756af8] flex items-center justify-center relative overflow-hidden">
             <motion.div 
               className="absolute inset-0 w-full h-full opacity-20"
