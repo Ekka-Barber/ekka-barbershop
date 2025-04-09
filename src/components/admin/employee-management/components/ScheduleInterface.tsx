@@ -1,10 +1,10 @@
-
+import React from 'react';
 import { Employee } from '@/types/employee';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Calendar } from 'lucide-react';
 import { useScheduleManager } from '../hooks/useScheduleManager';
 import { ScheduleHeader } from './schedule/ScheduleHeader';
-import { WeekScheduleGrid } from './schedule/WeekScheduleGrid';
+import { DayScheduleGrid } from './schedule/DayScheduleGrid';
 import { ScheduleActions } from './schedule/ScheduleActions';
 import { NoEmployeeSelected } from './schedule/NoEmployeeSelected';
 
@@ -21,14 +21,13 @@ export const ScheduleInterface = ({
 }: ScheduleInterfaceProps) => {
   const {
     selectedEmployee,
-    viewMode,
-    workSchedule,
     isUpdating,
     daysOfWeek,
-    setViewMode,
     handleEmployeeSelect,
     updateSchedule,
-    updateDaySchedule
+    updateDaySchedule,
+    isDayWorking,
+    getDayTimeRanges
   } = useScheduleManager(onScheduleUpdate);
 
   return (
@@ -43,19 +42,23 @@ export const ScheduleInterface = ({
         <ScheduleHeader
           employees={employees}
           selectedEmployee={selectedEmployee}
-          viewMode={viewMode}
           onEmployeeSelect={handleEmployeeSelect}
-          onViewModeChange={setViewMode}
           selectedBranch={selectedBranch}
         />
         
         {selectedEmployee ? (
           <>
-            <WeekScheduleGrid
-              daysOfWeek={daysOfWeek}
-              workSchedule={workSchedule}
-              onDayScheduleChange={updateDaySchedule}
-            />
+            <div className="grid grid-cols-1 md:grid-cols-7 gap-3">
+              {daysOfWeek.map(day => (
+                <DayScheduleGrid
+                  key={day.key}
+                  day={day}
+                  timeRanges={getDayTimeRanges(day.key)}
+                  isWorkingDay={isDayWorking(day.key)}
+                  onDayScheduleChange={updateDaySchedule}
+                />
+              ))}
+            </div>
             
             <ScheduleActions
               onSave={updateSchedule}
