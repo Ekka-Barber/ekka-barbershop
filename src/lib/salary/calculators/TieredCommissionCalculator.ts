@@ -1,184 +1,214 @@
 
 import { BaseCalculator, CalculationParams, CalculatorResult } from './BaseCalculator';
-import { SalaryCalculationResult, SalaryDetail } from '../types/salary';
+import { SalaryDetail } from '../types/salary';
 
-interface TierConfig {
-  threshold: number;
-  rate: number;
-  name?: string;
-  min_sales?: number;
-  max_sales?: number;
-  commission_rate?: number;
-}
-
-interface TieredCommissionConfig {
-  base_salary: number;
-  tiers: TierConfig[];
-}
-
+/**
+ * Tiered Commission Calculator - calculates salary based on tiered commission rates
+ */
 export class TieredCommissionCalculator extends BaseCalculator {
-  // Add cache for calculation results
-  private calculationCache: Map<string, SalaryCalculationResult> = new Map();
+  private readonly cacheKey = 'tiered-commission-calculation';
   
-  // Create cache key from params
-  private getCacheKey(params: CalculationParams): string {
-    return `${params.employee.id}-${params.plan.id}-${params.salesAmount}-${params.selectedMonth || ''}`;
+  /**
+   * Override getFromCache to provide tiered commission specific caching
+   */
+  getFromCache(params: CalculationParams): CalculatorResult | null {
+    if (!params.selectedMonth || !params.employee.id) return null;
+    
+    const key = `${this.cacheKey}-${params.employee.id}-${params.selectedMonth}`;
+    return this.cache.get(key) || null;
   }
   
-  // Implement required cache methods
-  protected getFromCache(params: CalculationParams): SalaryCalculationResult | null {
-    const cacheKey = this.getCacheKey(params);
-    const cachedResult = this.calculationCache.get(cacheKey);
-    
+  /**
+   * Override saveToCache for tiered commission specific caching
+   */
+  saveToCache(key: string, result: CalculatorResult): void {
+    this.cache.set(key, result);
+  }
+  
+  /**
+   * Calculate salary based on tiered commission structure
+   */
+  async calculate(params: CalculationParams): Promise<CalculatorResult> {
+    // Check if we have a cached result
+    const cachedResult = this.getFromCache(params);
     if (cachedResult) {
       return cachedResult;
     }
     
-    return null;
-  }
-  
-  protected saveToCache(params: CalculationParams, result: SalaryCalculationResult): void {
-    const cacheKey = this.getCacheKey(params);
-    this.calculationCache.set(cacheKey, result);
-  }
-
-  async calculate(params: CalculationParams): Promise<CalculatorResult> {
-    // Check cache first
-    const cachedResult = this.getFromCache(params);
-    if (cachedResult) {
-      return {
-        baseSalary: cachedResult.baseSalary,
-        commission: cachedResult.commission,
-        bonus: cachedResult.regularBonus || 0,
-        targetBonus: cachedResult.targetBonus,
-        deductions: cachedResult.deductions,
-        loans: cachedResult.loans,
-        total: cachedResult.totalSalary,
-        calculationStatus: { success: true }
-      };
-    }
-    
-    const { plan, salesAmount, bonuses = [], deductions = [], loans = [], selectedMonth } = params;
-    const planConfig = this.parseConfig(plan.config) as { config?: TieredCommissionConfig };
-    
-    // Log the month-specific data for debugging
-    if (selectedMonth) {
-      console.debug(`Calculating tiered commission for month: ${selectedMonth}`);
-      console.debug(`Bonuses count: ${bonuses.length}`);
-      console.debug(`Deductions count: ${deductions.length}`);
-      console.debug(`Loans count: ${loans.length}`);
-    }
-    
-    // Extract configuration
-    const config = planConfig.config || { base_salary: 0, tiers: [] };
+    const { employee, plan, salesAmount, bonuses, deductions, loans } = params;
+    const planConfig = this.parsePlanConfig(plan.config);
+    const details: SalaryDetail[] = [];
     
     // Calculate base salary
-    const baseSalary = config.base_salary || 0;
+    const baseSalary = planConfig.baseSalary || 0;
+    details.push({
+      type: 'Base Salary',
+      amount: baseSalary,
+      description: 'Base salary component'
+    });
     
-    // Calculate tiered commission
+    // Calculate commission based on tiers
     let commission = 0;
-    let appliedTier: TierConfig | null = null;
-    
-    if (config.tiers && Array.isArray(config.tiers)) {
-      // In the original implementation, each tier had min_sales and max_sales
-      // We'll check both formats for compatibility
-      for (const tier of config.tiers) {
-        // Support both formats: threshold/rate and min_sales/max_sales/commission_rate
-        const minSales = tier.min_sales !== undefined ? tier.min_sales : tier.threshold || 0;
-        const maxSales = tier.max_sales !== undefined ? tier.max_sales : Infinity;
-        
-        // Get the rate from either commission_rate or rate field, ensuring it's a decimal value
-        const rate = tier.commission_rate !== undefined ? tier.commission_rate : tier.rate || 0;
-        
-        if (salesAmount >= minSales && salesAmount <= maxSales) {
-          // Apply the commission rate directly - it should already be in decimal form (e.g., 0.2 for 20%)
-          commission = salesAmount * rate;
-          appliedTier = tier;
-          console.debug(`Applied tier: ${minSales}-${maxSales} with rate ${rate} = ${commission}`);
-          break; // Early exit once we find the applicable tier
-        }
-      }
+    if (planConfig.tiers && Array.isArray(planConfig.tiers) && salesAmount > 0) {
+      const tierDetails = this.calculateTieredCommission(salesAmount, planConfig.tiers);
+      commission = tierDetails.commission;
+      
+      // Add details for each tier contribution
+      tierDetails.tierContributions.forEach(tc => {
+        details.push({
+          type: `Tier Commission (${tc.tierName})`,
+          amount: tc.contribution,
+          description: `${tc.tierName}: ${tc.percentage}% of ${tc.amount} SAR`
+        });
+      });
     }
     
-    // Calculate deductions total
+    // Calculate bonuses from separate bonus transactions
+    const bonusTotal = bonuses.reduce((sum, bonus) => sum + bonus.amount, 0);
+    if (bonusTotal > 0) {
+      details.push({
+        type: 'Additional Bonuses',
+        amount: bonusTotal,
+        description: `${bonuses.length} bonus transaction(s)`
+      });
+    }
+    
+    // Calculate any target/performance bonuses from the plan
+    let targetBonus = 0;
+    if (planConfig.targetBonus && salesAmount >= planConfig.targetSales) {
+      targetBonus = planConfig.targetBonus;
+      details.push({
+        type: 'Target Bonus',
+        amount: targetBonus,
+        description: `Performance bonus for meeting sales target of ${planConfig.targetSales} SAR`
+      });
+    }
+    
+    // Calculate deductions
     const deductionsTotal = deductions.reduce((sum, deduction) => sum + deduction.amount, 0);
+    if (deductionsTotal > 0) {
+      details.push({
+        type: 'Deductions',
+        amount: deductionsTotal,
+        description: `${deductions.length} deduction transaction(s)`
+      });
+    }
     
-    // Calculate loans total
+    // Calculate loans
     const loansTotal = loans.reduce((sum, loan) => sum + loan.amount, 0);
+    if (loansTotal > 0) {
+      details.push({
+        type: 'Loan Payments',
+        amount: loansTotal,
+        description: `${loans.length} loan payment(s)`
+      });
+    }
     
-    // Calculate bonus total
-    const bonusesFromDb = bonuses.reduce((sum, bonus) => sum + bonus.amount, 0);
+    // Calculate total
+    const total = baseSalary + commission + targetBonus + bonusTotal - deductionsTotal - loansTotal;
     
-    // Calculate the total
-    const total = baseSalary + Math.round(commission) + bonusesFromDb - deductionsTotal - loansTotal;
-    
-    // Create the result object in the format expected by the BaseCalculator
+    // Create final result
     const result: CalculatorResult = {
       baseSalary,
-      commission: Math.round(commission),
-      bonus: bonusesFromDb,
+      commission,
+      targetBonus,
+      bonus: bonusTotal,
       deductions: deductionsTotal,
       loans: loansTotal,
       total,
-      calculationStatus: { success: true }
+      planType: 'tiered_commission',
+      planName: plan.name || 'Tiered Commission Plan',
+      details
     };
     
-    // Also save to cache in SalaryCalculationResult format
-    const fullResult: SalaryCalculationResult = {
-      baseSalary,
-      commission: Math.round(commission),
-      targetBonus: 0, // No target bonus in tiered commission
-      regularBonus: bonusesFromDb, // Use regularBonus instead of bonus
-      deductions: deductionsTotal,
-      loans: loansTotal,
-      totalSalary: total,
-      planType: plan.type,
-      planName: plan.name,
-      isLoading: false,
-      error: null,
-      calculate: async () => {},
-      calculationDone: true,
-      bonusList: bonuses,
-      deductionsList: deductions,
-      details: this.generateDetails({
-        baseSalary,
-        commission,
-        appliedTier,
-        salesAmount
-      })
-    };
+    // Cache the result
+    const cacheKey = `${this.cacheKey}-${employee.id}-${params.selectedMonth}`;
+    this.saveToCache(cacheKey, result);
     
-    // Save to cache and return
-    this.saveToCache(params, fullResult);
     return result;
   }
   
-  generateDetails(result: Partial<SalaryCalculationResult> & { 
-    appliedTier?: TierConfig | null;
-    salesAmount?: number;
-  }): SalaryDetail[] {
-    const details: SalaryDetail[] = [];
+  /**
+   * Helper to parse the plan configuration safely
+   */
+  private parsePlanConfig(config: any): any {
+    if (!config) return {};
     
-    if (result.baseSalary) {
-      details.push({
-        type: 'Base Salary',
-        amount: result.baseSalary,
-        description: 'Fixed base salary'
+    if (typeof config === 'string') {
+      try {
+        return JSON.parse(config);
+      } catch {
+        return {};
+      }
+    }
+    
+    return config;
+  }
+  
+  /**
+   * Calculate commission based on tiered structure
+   */
+  private calculateTieredCommission(salesAmount: number, tiers: any[]): {
+    commission: number;
+    tierContributions: Array<{
+      tierName: string;
+      amount: number;
+      percentage: number;
+      contribution: number;
+    }>;
+  } {
+    let commission = 0;
+    const tierContributions = [];
+    
+    // Sort tiers by thresholds in ascending order
+    const sortedTiers = [...tiers].sort((a, b) => a.threshold - b.threshold);
+    
+    let remainingSales = salesAmount;
+    let previousThreshold = 0;
+    
+    for (const tier of sortedTiers) {
+      const { threshold, percentage, name } = tier;
+      
+      if (salesAmount < threshold) {
+        break; // We haven't reached this tier yet
+      }
+      
+      // Calculate the sales amount that falls within this tier
+      const tierMax = threshold;
+      const tierMin = previousThreshold;
+      let tierSales = Math.min(remainingSales, tierMax - tierMin);
+      
+      // Calculate commission for this tier
+      const tierCommission = (tierSales * percentage) / 100;
+      commission += tierCommission;
+      
+      tierContributions.push({
+        tierName: name || `${threshold} SAR Tier`,
+        amount: tierSales,
+        percentage,
+        contribution: tierCommission
+      });
+      
+      remainingSales -= tierSales;
+      previousThreshold = threshold;
+      
+      if (remainingSales <= 0) break;
+    }
+    
+    // If we still have remaining sales, apply the highest tier
+    if (remainingSales > 0 && sortedTiers.length > 0) {
+      const highestTier = sortedTiers[sortedTiers.length - 1];
+      const tierCommission = (remainingSales * highestTier.percentage) / 100;
+      commission += tierCommission;
+      
+      tierContributions.push({
+        tierName: highestTier.name || 'Highest Tier',
+        amount: remainingSales,
+        percentage: highestTier.percentage,
+        contribution: tierCommission
       });
     }
     
-    if (result.commission && result.appliedTier) {
-      const tier = result.appliedTier;
-      const rate = tier.commission_rate !== undefined ? tier.commission_rate : tier.rate || 0;
-      details.push({
-        type: 'Tiered Commission',
-        amount: Math.round(result.commission),
-        description: `${rate} ${tier.name ? `(${tier.name})` : tier.min_sales !== undefined ? 
-          `for sales between ${tier.min_sales.toLocaleString()} and ${(tier.max_sales || 'unlimited').toString().replace('Infinity', 'unlimited').toLocaleString()} SAR` :
-          `for sales above ${tier.threshold?.toLocaleString() || 0} SAR`}`
-      });
-    }
-    
-    return details;
+    return { commission, tierContributions };
   }
 }
