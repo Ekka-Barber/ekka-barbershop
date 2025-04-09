@@ -112,16 +112,18 @@ export const EmployeeCard = ({
       </CardHeader>
       <CardContent className="pt-4">
         <Tabs defaultValue="info" onValueChange={setActiveTab} value={activeTab}>
-          <TabsList className="grid w-full grid-cols-2 mb-4">
-            <TabsTrigger value="info" className="flex items-center gap-1">
-              <Info className="h-4 w-4" />
-              <span>Info</span>
-            </TabsTrigger>
-            <TabsTrigger value="stats" className="flex items-center gap-1">
-              <BarChart className="h-4 w-4" />
-              <span>Statistics</span>
-            </TabsTrigger>
-          </TabsList>
+          <div className="overflow-x-auto pb-2">
+            <TabsList className="grid w-full grid-cols-2 mb-4">
+              <TabsTrigger value="info" className="flex items-center gap-1">
+                <Info className="h-4 w-4" />
+                <span>Info</span>
+              </TabsTrigger>
+              <TabsTrigger value="stats" className="flex items-center gap-1">
+                <BarChart className="h-4 w-4" />
+                <span>Statistics</span>
+              </TabsTrigger>
+            </TabsList>
+          </div>
           
           <TabsContent value="info" className="space-y-4">
             <div>
