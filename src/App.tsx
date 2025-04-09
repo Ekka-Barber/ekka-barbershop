@@ -1,4 +1,3 @@
-
 import { lazy, Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -13,7 +12,6 @@ import { OfflineNotification } from "./components/common/OfflineNotification";
 import { ErrorBoundary } from "./components/common/ErrorBoundary";
 import { ServiceWorkerRegistration } from "./components/ServiceWorkerRegistration";
 import { logger } from "@/utils/logger";
-import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
 // Configure logger based on environment
 logger.configure({
@@ -89,7 +87,6 @@ const App = () => {
         <Sonner />
         <OfflineNotification />
         <ServiceWorkerRegistration />
-        <LanguageSwitcher />
       </TooltipProvider>
     </LanguageProvider>
   );
