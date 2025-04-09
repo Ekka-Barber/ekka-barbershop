@@ -1,5 +1,5 @@
 
-// Export all types from salary.ts using explicit exports
+// Export types with explicit 'export type'
 export type { 
   SalaryPlanType,
   SalaryPlan,
@@ -10,17 +10,16 @@ export type {
   EmployeeLoan,
   SalaryCalculationResult,
   SalaryDetail,
-  // Don't export Transaction from here to avoid duplication
 } from './types/salary';
 
-// Export calculators with explicit re-exports to avoid naming conflicts
+// Base calculator exports - using 'export type' for all types
 export { SalaryCalculator } from './calculators/BaseCalculator';
 export type { 
   BaseCalculator, 
   CalculationParams, 
   CalculatorResult, 
   SalesData,
-  Transaction // Only export Transaction from BaseCalculator
+  Transaction  // Only export Transaction from here
 } from './calculators/BaseCalculator';
 
 // Export calculator implementations
