@@ -234,11 +234,14 @@ export const SalaryBreakdown = ({
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-sm font-medium">Commission Rate:</span>
-                      <span>{salesData?.commission_rate || 0}%</span>
+                      <span>{salesData?.commission_rate || 0}</span>
                     </div>
                     <div className="border-t pt-2 flex justify-between items-center">
                       <span className="text-sm font-medium">Total Commission:</span>
                       <span className="font-bold">{formatCurrency(salaryData.commission)}</span>
+                    </div>
+                    <div className="text-xs text-muted-foreground mt-2 border-t pt-2">
+                      <p>Commission is calculated using sales amount multiplied by the rate (shown as a decimal, e.g., 0.2 = 20%).</p>
                     </div>
                   </div>
                 </div>
