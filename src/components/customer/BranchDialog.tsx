@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -19,7 +20,6 @@ export const BranchDialog = ({
   onBranchSelect 
 }: BranchDialogProps) => {
   const { language, t } = useLanguage();
-  const { getCurrentDayHours } = useTimeFormatting();
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -44,14 +44,6 @@ export const BranchDialog = ({
                 <span className="w-full text-sm text-gray-600 group-hover:text-[#C4A36F]/70 transition-colors truncate mt-1">
                   {language === 'ar' ? branch.address_ar : branch.address}
                 </span>
-              </div>
-              <div className={`flex-shrink-0 ${language === 'ar' ? 'border-s' : 'border-e'} border-gray-200 ${language === 'ar' ? 'ps-3' : 'pe-3'}`}>
-                <div className="flex items-center gap-1.5 text-sm font-medium text-[#C4A36F]">
-                  <Clock className="w-4 h-4" />
-                  <span className="group-hover:text-[#C4A36F] transition-colors whitespace-nowrap">
-                    {getCurrentDayHours(branch.working_hours, language === 'ar')}
-                  </span>
-                </div>
               </div>
             </Button>
           ))}
