@@ -17,6 +17,31 @@ interface TieredCommissionConfig {
 }
 
 export class TieredCommissionCalculator extends BaseCalculator {
+  // Add cache for calculation results
+  private calculationCache: Map<string, SalaryCalculationResult> = new Map();
+  
+  // Create cache key from params
+  private getCacheKey(params: CalculationParams): string {
+    return `${params.employee.id}-${params.plan.id}-${params.salesAmount}-${params.selectedMonth || ''}`;
+  }
+  
+  // Implement required cache methods
+  protected getFromCache(params: CalculationParams): SalaryCalculationResult | null {
+    const cacheKey = this.getCacheKey(params);
+    const cachedResult = this.calculationCache.get(cacheKey);
+    
+    if (cachedResult) {
+      return cachedResult;
+    }
+    
+    return null;
+  }
+  
+  protected saveToCache(params: CalculationParams, result: SalaryCalculationResult): void {
+    const cacheKey = this.getCacheKey(params);
+    this.calculationCache.set(cacheKey, result);
+  }
+
   async calculate(params: CalculationParams): Promise<CalculatorResult> {
     // Check cache first
     const cachedResult = this.getFromCache(params);
@@ -24,7 +49,8 @@ export class TieredCommissionCalculator extends BaseCalculator {
       return {
         baseSalary: cachedResult.baseSalary,
         commission: cachedResult.commission,
-        bonus: cachedResult.targetBonus,
+        bonus: cachedResult.regularBonus || 0,
+        targetBonus: cachedResult.targetBonus,
         deductions: cachedResult.deductions,
         loans: cachedResult.loans,
         total: cachedResult.totalSalary,
@@ -101,7 +127,8 @@ export class TieredCommissionCalculator extends BaseCalculator {
     const fullResult: SalaryCalculationResult = {
       baseSalary,
       commission: Math.round(commission),
-      targetBonus: bonusesFromDb,
+      targetBonus: 0, // No target bonus in tiered commission
+      regularBonus: bonusesFromDb, // Use regularBonus instead of bonus
       deductions: deductionsTotal,
       loans: loansTotal,
       totalSalary: total,

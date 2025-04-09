@@ -1,317 +1,87 @@
+
 import { useState, useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { Employee } from '@/types/employee';
-import { getMonthDateRange } from '../SalaryUtils';
-import { SalaryCalculatorFactory } from '@/lib/salary/calculators/CalculatorFactory';
-import { SalaryPlanType, SalaryPlan, Transaction } from '@/lib/salary/types/salary';
-import { SalesData } from '@/lib/salary/calculators/BaseCalculator';
+import { useSalaryQueries } from './useSalaryQueries';
+import { useSalaryCalculation } from './useSalaryCalculation';
+import { useEmployeeTransactions } from './useEmployeeTransactions';
+import { UseSalaryDataProps, UseSalaryDataResult } from './utils/salaryTypes';
 
-interface EmployeeSalary {
-  id: string;
-  name: string;
-  baseSalary: number;
-  commission: number;
-  bonus: number;
-  deductions: number;
-  loans: number;
-  total: number;
-  calculationError?: string;
-}
-
-interface UseSalaryDataProps {
-  employees: Employee[];
-  selectedMonth: string;
-}
-
-interface UseSalaryDataResult {
-  salaryData: EmployeeSalary[];
-  isLoading: boolean;
-  getEmployeeTransactions: (employeeId: string) => {
-    bonuses: Transaction[];
-    deductions: Transaction[];
-    loans: Transaction[];
-    salesData: SalesData | null | undefined;
-  };
-  calculationErrors: {
-    employeeId: string;
-    employeeName: string;
-    error: string;
-    details?: Record<string, unknown>;
-  }[];
-  refreshData: () => void;
-}
-
-export const useSalaryData = ({ employees, selectedMonth }: UseSalaryDataProps): UseSalaryDataResult => {
-  const [salaryData, setSalaryData] = useState<EmployeeSalary[]>([]);
+/**
+ * Main hook for salary data management
+ * Composes smaller hooks for better maintainability
+ */
+export const useSalaryData = ({ 
+  employees, 
+  selectedMonth 
+}: UseSalaryDataProps): UseSalaryDataResult => {
+  const [salaryData, setSalaryData] = useState([]);
   const [isCalculating, setIsCalculating] = useState(false);
-  const [calculationErrors, setCalculationErrors] = useState<{
-    employeeId: string;
-    employeeName: string;
-    error: string;
-    details?: Record<string, unknown>;
-  }[]>([]);
   
-  const { startDate, endDate } = getMonthDateRange(selectedMonth);
+  // Use the extracted query hook
+  const { 
+    salesData, 
+    salaryPlans, 
+    bonuses, 
+    deductions, 
+    loans, 
+    isLoading: isDataLoading, 
+    refreshData 
+  } = useSalaryQueries(selectedMonth);
   
-  const salesQuery = useQuery({
-    queryKey: ['employee-sales', selectedMonth],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('employee_sales')
-        .select('*')
-        .gte('month', startDate)
-        .lte('month', endDate);
-        
-      if (error) throw error;
-      return data || [];
-    }
+  // Use the salary calculation hook
+  const { calculateSalaries, calculationErrors } = useSalaryCalculation();
+  
+  // Use the transactions hook
+  const { getEmployeeTransactions } = useEmployeeTransactions({
+    bonuses,
+    deductions,
+    loans,
+    salesData,
+    employees
   });
-  
-  const { data: salaryPlans = [], isLoading: isPlansLoading, refetch: refetchPlans } = useQuery({
-    queryKey: ['salary-plans'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('salary_plans')
-        .select('*');
-        
-      if (error) throw error;
-      return data || [];
-    }
-  });
-  
-  const bonusesQuery = useQuery({
-    queryKey: ['employee-bonuses', selectedMonth],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('employee_bonuses')
-        .select('*')
-        .gte('date', startDate)
-        .lte('date', endDate);
-        
-      if (error) throw error;
-      return data || [];
-    }
-  });
-  
-  const deductionsQuery = useQuery({
-    queryKey: ['employee-deductions', selectedMonth],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('employee_deductions')
-        .select('*')
-        .gte('date', startDate)
-        .lte('date', endDate);
-        
-      if (error) throw error;
-      return data || [];
-    }
-  });
-  
-  const loansQuery = useQuery({
-    queryKey: ['employee-loans', selectedMonth],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('employee_loans')
-        .select('*')
-        .gte('date', startDate)
-        .lte('date', endDate);
-        
-      if (error) throw error;
-      return data || [];
-    }
-  });
-  
-  const refreshData = () => {
-    salesQuery.refetch();
-    refetchPlans();
-    bonusesQuery.refetch();
-    deductionsQuery.refetch();
-    loansQuery.refetch();
-  };
   
   useEffect(() => {
     if (
-      salesQuery.isLoading ||
-      isPlansLoading ||
-      bonusesQuery.isLoading ||
-      deductionsQuery.isLoading ||
-      loansQuery.isLoading ||
+      isDataLoading || 
       employees.length === 0
     ) {
       return;
     }
     
-    const calculateSalaries = async () => {
+    const performCalculation = async () => {
       setIsCalculating(true);
-      setCalculationErrors([]);
       
       try {
-        const factory = SalaryCalculatorFactory.getInstance();
+        const calculatedSalaries = await calculateSalaries({
+          employees,
+          selectedMonth,
+          salesData,
+          salaryPlans,
+          bonuses,
+          deductions,
+          loans
+        });
         
-        const salaries = await Promise.all(
-          employees.map(async (employee) => {
-            const employeeSales = salesQuery.data.find(
-              sale => 
-                (sale.employee_name === employee.name) || 
-                (sale.id === employee.id)
-            );
-            
-            const salesAmount = employeeSales ? Number(employeeSales.sales_amount) : 0;
-            
-            console.log(`Sales lookup for ${employee.name}:`, {
-              found: !!employeeSales,
-              salesAmount,
-              employeeId: employee.id,
-              employeeName: employee.name,
-              salesRecord: employeeSales
-            });
-            
-            const salaryPlan = salaryPlans.find(plan => plan.id === employee.salary_plan_id);
-            
-            const employeeBonuses = bonusesQuery.data?.filter(bonus => bonus.employee_id === employee.id) || [];
-            const employeeDeductions = deductionsQuery.data?.filter(deduction => deduction.employee_id === employee.id) || [];
-            const employeeLoans = loansQuery.data?.filter(loan => loan.employee_id === employee.id) || [];
-            
-            const bonusTotal = employeeBonuses.reduce((sum, bonus) => sum + bonus.amount, 0);
-            const deductionsTotal = employeeDeductions.reduce((sum, deduction) => sum + deduction.amount, 0);
-            const loansTotal = employeeLoans.reduce((sum, loan) => sum + loan.amount, 0);
-            
-            let baseSalary = 0;
-            let commission = 0;
-            let calculationError = undefined;
-            
-            if (salaryPlan) {
-              try {
-                const calculator = factory.getCalculator(salaryPlan.type as SalaryPlanType);
-                
-                const result = await calculator.calculate({
-                  employee,
-                  plan: salaryPlan as unknown as SalaryPlan,
-                  salesAmount,
-                  bonuses: employeeBonuses,
-                  deductions: employeeDeductions,
-                  loans: employeeLoans,
-                  selectedMonth
-                });
-                
-                baseSalary = result.baseSalary;
-                commission = result.commission;
-                
-                if (result.calculationStatus && !result.calculationStatus.success) {
-                  calculationError = result.calculationStatus.error;
-                  
-                  setCalculationErrors(prev => [
-                    ...prev,
-                    {
-                      employeeId: employee.id,
-                      employeeName: employee.name,
-                      error: result.calculationStatus.error || 'Unknown calculation error',
-                      details: result.calculationStatus.details
-                    }
-                  ]);
-                }
-              } catch (error) {
-                console.error(`Error calculating salary for ${employee.name}:`, error);
-                
-                calculationError = error instanceof Error 
-                  ? error.message 
-                  : 'Unknown calculation error';
-                
-                setCalculationErrors(prev => [
-                  ...prev,
-                  {
-                    employeeId: employee.id,
-                    employeeName: employee.name,
-                    error: calculationError,
-                    details: { error }
-                  }
-                ]);
-              }
-            } else {
-              calculationError = 'No salary plan assigned';
-              
-              setCalculationErrors(prev => [
-                ...prev,
-                {
-                  employeeId: employee.id,
-                  employeeName: employee.name,
-                  error: 'No salary plan assigned',
-                  details: { 
-                    salary_plan_id: employee.salary_plan_id,
-                    available_plans: salaryPlans.length
-                  }
-                }
-              ]);
-            }
-            
-            const total = baseSalary + commission + bonusTotal - deductionsTotal - loansTotal;
-            
-            return {
-              id: employee.id,
-              name: employee.name,
-              baseSalary,
-              commission,
-              bonus: bonusTotal,
-              deductions: deductionsTotal,
-              loans: loansTotal,
-              total,
-              calculationError
-            };
-          })
-        );
-        
-        setSalaryData(salaries);
+        setSalaryData(calculatedSalaries);
       } catch (error) {
-        console.error('Error calculating salaries:', error);
+        console.error('Error in salary calculation process:', error);
       } finally {
         setIsCalculating(false);
       }
     };
     
-    calculateSalaries();
+    performCalculation();
   }, [
     employees,
     selectedMonth,
-    salesQuery.data,
+    salesData,
     salaryPlans,
-    bonusesQuery.data,
-    deductionsQuery.data,
-    loansQuery.data,
-    isPlansLoading,
-    bonusesQuery.isLoading,
-    deductionsQuery.isLoading,
-    loansQuery.isLoading
+    bonuses,
+    deductions,
+    loans,
+    isDataLoading
   ]);
   
-  const isLoading = 
-    salesQuery.isLoading || 
-    isPlansLoading || 
-    bonusesQuery.isLoading || 
-    deductionsQuery.isLoading || 
-    loansQuery.isLoading || 
-    isCalculating;
-  
-  const getEmployeeTransactions = (employeeId: string) => {
-    const bonuses = (bonusesQuery.data || []).filter(bonus => bonus.employee_id === employeeId) as Transaction[];
-    const deductions = (deductionsQuery.data || []).filter(deduction => deduction.employee_id === employeeId) as Transaction[];
-    const loans = (loansQuery.data || []).filter(loan => loan.employee_id === employeeId) as Transaction[];
-    const sale = (salesQuery.data || []).find(sale => 
-      ('employee_id' in sale ? sale.employee_id === employeeId : 
-       'employee_name' in sale && employees.find(e => e.id === employeeId)?.name === sale.employee_name));
-    
-    const salesData: SalesData | null = sale ? {
-      sales_amount: Number(sale.sales_amount),
-      date: sale.month
-    } : null;
-    
-    return {
-      bonuses,
-      deductions,
-      loans,
-      salesData
-    };
-  };
+  const isLoading = isDataLoading || isCalculating;
   
   return {
     salaryData,
