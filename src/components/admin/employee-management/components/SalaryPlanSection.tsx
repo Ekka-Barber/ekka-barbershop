@@ -8,17 +8,26 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 import { LoaderCircle, DollarSign, ChevronUp } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useSalaryCalculation } from '@/lib/salary/hooks/useSalaryCalculation';
+
+// Helper function to get current month in YYYY-MM format
+function getCurrentMonth(): string {
+  const now = new Date();
+  return `${now.getFullYear()}-${(now.getMonth() + 1).toString().padStart(2, '0')}`;
+}
 
 interface SalaryPlanSectionProps {
   employee: Employee;
   salesAmount: number;
   refetchEmployees?: () => void;
+  selectedMonth?: string; // Format: YYYY-MM
 }
 
 export const SalaryPlanSection = ({ 
   employee, 
   salesAmount,
-  refetchEmployees 
+  refetchEmployees, 
+  selectedMonth = getCurrentMonth() // Default to current month if not provided
 }: SalaryPlanSectionProps) => {
   const { toast } = useToast();
   const [isUpdating, setIsUpdating] = useState(false);
@@ -38,22 +47,11 @@ export const SalaryPlanSection = ({
     }
   });
 
-  // Fetch current salary plan details
-  const { data: currentPlan, isLoading: isPlanLoading } = useQuery({
-    queryKey: ['employee-salary-plan', employee.salary_plan_id],
-    queryFn: async () => {
-      if (!employee.salary_plan_id) return null;
-      
-      const { data, error } = await supabase
-        .from('salary_plans')
-        .select('*')
-        .eq('id', employee.salary_plan_id)
-        .single();
-      
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!employee.salary_plan_id
+  // Use the new salary calculation hook with selected month
+  const salaryCalculation = useSalaryCalculation({
+    employee,
+    salesAmount,
+    selectedMonth
   });
 
   const updateSalaryPlan = async () => {
@@ -91,7 +89,7 @@ export const SalaryPlanSection = ({
   };
 
   // Parse config safely
-  const parseConfig = (config) => {
+  const parseConfig = (config: unknown) => {
     if (!config) return {};
     
     if (typeof config === 'string') {
@@ -103,106 +101,14 @@ export const SalaryPlanSection = ({
       }
     }
     
-    return config;
-  };
-
-  // Calculate compensation based on the correct plan structure
-  const calculateCompensation = (plan, sales) => {
-    if (!plan) return { 
-      baseSalary: 0, 
-      commission: 0, 
-      bonus: 0, 
-      total: 0,
-      details: [] 
-    };
-    
-    let baseSalary = 0;
-    let commission = 0;
-    let bonus = 0;
-    const details = [];
-    
-    try {
-      const parsedConfig = parseConfig(plan.config);
-      
-      // If there are no blocks, return zeros
-      if (!parsedConfig.blocks || !Array.isArray(parsedConfig.blocks)) {
-        return { 
-          baseSalary: 0, 
-          commission: 0, 
-          bonus: 0, 
-          total: 0,
-          details: [] 
-        };
-      }
-      
-      // Process each block in the salary plan
-      parsedConfig.blocks.forEach(block => {
-        if (block.type === 'basic_salary' && block.config) {
-          baseSalary = block.config.base_salary || 0;
-          details.push({
-            type: 'Base Salary',
-            amount: baseSalary,
-            description: 'Fixed base salary'
-          });
-          
-          // Calculate tiered bonus if available
-          if (block.config.tiered_bonus && Array.isArray(block.config.tiered_bonus)) {
-            // Sort tiers by sales target (ascending)
-            const sortedTiers = [...block.config.tiered_bonus].sort((a, b) => 
-              a.sales_target - b.sales_target
-            );
-            
-            // Find the highest tier that was reached
-            let applicableTier = null;
-            for (const tier of sortedTiers) {
-              if (sales >= tier.sales_target) {
-                applicableTier = tier;
-              } else {
-                break;
-              }
-            }
-            
-            if (applicableTier) {
-              bonus = applicableTier.bonus;
-              details.push({
-                type: 'Performance Bonus',
-                amount: bonus,
-                description: `For reaching ${applicableTier.sales_target.toLocaleString()} SAR sales target`
-              });
-            }
-          }
-        }
-        
-        if (block.type === 'commission' && block.config) {
-          const threshold = block.config.threshold || 0;
-          const rate = block.config.rate || 0;
-          
-          if (sales > threshold) {
-            const commissionableAmount = sales - threshold;
-            commission = commissionableAmount * rate;
-            details.push({
-              type: 'Commission',
-              amount: Math.round(commission),
-              description: `${(rate * 100).toFixed(1)}% on sales above ${threshold.toLocaleString()} SAR`
-            });
-          }
-        }
-      });
-    } catch (error) {
-      console.error('Error calculating compensation:', error);
+    if (typeof config === 'object') {
+      return config as Record<string, unknown>;
     }
     
-    return {
-      baseSalary: Math.round(baseSalary),
-      commission: Math.round(commission),
-      bonus: Math.round(bonus),
-      total: Math.round(baseSalary + commission + bonus),
-      details
-    };
+    return {};
   };
 
-  const compensation = calculateCompensation(currentPlan, salesAmount);
-  const isLoading = isPlansLoading || isPlanLoading;
+  const isLoading = isPlansLoading || salaryCalculation.isLoading;
 
   if (isLoading) {
     return (
@@ -224,11 +130,14 @@ export const SalaryPlanSection = ({
             <SelectValue placeholder="Select salary plan" />
           </SelectTrigger>
           <SelectContent>
-            {salaryPlans.map((plan) => (
-              <SelectItem key={plan.id} value={plan.id}>
-                {parseConfig(plan.config).name || 'Unnamed Plan'}
-              </SelectItem>
-            ))}
+            {salaryPlans.map((plan) => {
+              const planConfig = parseConfig(plan.config);
+              return (
+                <SelectItem key={plan.id} value={plan.id}>
+                  {(planConfig as { name?: string })?.name || 'Unnamed Plan'}
+                </SelectItem>
+              );
+            })}
           </SelectContent>
         </Select>
         
@@ -251,7 +160,7 @@ export const SalaryPlanSection = ({
         )}
       </div>
       
-      {currentPlan && (
+      {employee.salary_plan_id && (
         <Card>
           <CardContent className="p-4 space-y-3">
             <div>
@@ -260,28 +169,40 @@ export const SalaryPlanSection = ({
                 Compensation Details
               </h3>
               <p className="text-xs text-muted-foreground">
-                Plan: {parseConfig(currentPlan.config).name || 'Unnamed Plan'}
+                Plan: {salaryCalculation.planName || 'Unnamed Plan'}
               </p>
             </div>
             
             <div className="grid grid-cols-2 gap-2">
               <div className="text-center p-2 bg-muted/20 rounded-md">
                 <p className="text-xs text-muted-foreground">Base Salary</p>
-                <p className="font-semibold">{compensation.baseSalary.toLocaleString()} SAR</p>
+                <p className="font-semibold">{salaryCalculation.baseSalary.toLocaleString()} SAR</p>
               </div>
               <div className="text-center p-2 bg-muted/20 rounded-md">
                 <p className="text-xs text-muted-foreground">Commission</p>
-                <p className="font-semibold">{compensation.commission.toLocaleString()} SAR</p>
+                <p className="font-semibold">{salaryCalculation.commission.toLocaleString()} SAR</p>
               </div>
-              {compensation.bonus > 0 && (
+              {salaryCalculation.targetBonus > 0 && (
                 <div className="text-center p-2 bg-muted/20 rounded-md">
                   <p className="text-xs text-muted-foreground">Bonus</p>
-                  <p className="font-semibold">{compensation.bonus.toLocaleString()} SAR</p>
+                  <p className="font-semibold">{salaryCalculation.targetBonus.toLocaleString()} SAR</p>
+                </div>
+              )}
+              {salaryCalculation.deductions > 0 && (
+                <div className="text-center p-2 bg-muted/20 rounded-md">
+                  <p className="text-xs text-muted-foreground">Deductions</p>
+                  <p className="font-semibold text-red-500">-{salaryCalculation.deductions.toLocaleString()} SAR</p>
+                </div>
+              )}
+              {salaryCalculation.loans > 0 && (
+                <div className="text-center p-2 bg-muted/20 rounded-md">
+                  <p className="text-xs text-muted-foreground">Loans</p>
+                  <p className="font-semibold text-red-500">-{salaryCalculation.loans.toLocaleString()} SAR</p>
                 </div>
               )}
               <div className="text-center p-2 bg-primary/10 rounded-md col-span-full">
                 <p className="text-xs text-muted-foreground">Total</p>
-                <p className="font-semibold">{compensation.total.toLocaleString()} SAR</p>
+                <p className="font-semibold">{salaryCalculation.totalSalary.toLocaleString()} SAR</p>
               </div>
             </div>
             
@@ -289,11 +210,11 @@ export const SalaryPlanSection = ({
               <p>Based on {salesAmount.toLocaleString()} SAR in sales</p>
             </div>
             
-            {compensation.details.length > 0 && (
+            {salaryCalculation.details && salaryCalculation.details.length > 0 && (
               <div className="mt-2 space-y-2">
                 <h4 className="text-xs font-medium">Compensation Breakdown</h4>
                 <div className="space-y-1">
-                  {compensation.details.map((detail, index) => (
+                  {salaryCalculation.details.map((detail, index) => (
                     <div key={index} className="flex justify-between text-xs">
                       <span>{detail.type}</span>
                       <div className="flex items-center gap-1">
