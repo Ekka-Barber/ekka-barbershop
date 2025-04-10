@@ -5,5 +5,4 @@ project_id = "jfnjvphxhzxojxgptmtu"
   verify_jwt = false  # Explicitly disable JWT verification for this function
 
 [functions.qr-redirect]
-   verify_jwt = false # Default: JWT verification is enabled. Uncomment and set to 'false' to disable.
-
+  verify_jwt = false  # Disable JWT verification for public QR redirection

@@ -1,9 +1,11 @@
+
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2, PieChart, QrCode } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useToast } from "@/components/ui/use-toast";
 import CreateQRCodeForm from "./CreateQRCodeForm";
 import QRCodeDisplay from "./QRCodeDisplay";
 import QRCodeList from "./qr-code/QRCodeList";
@@ -17,6 +19,7 @@ const QRCodeManager = () => {
   const [activeTab, setActiveTab] = useState<'management' | 'analytics'>('management');
   const { setOwnerAccess } = useOwnerAccess();
   const isMobile = useIsMobile();
+  const { toast } = useToast();
   
   // Debug mobile detection
   useEffect(() => {
@@ -46,20 +49,32 @@ const QRCodeManager = () => {
   });
 
   // Set the first QR code as selected when data is loaded
-  if (qrCodes && qrCodes.length > 0 && !selectedQrId) {
-    setSelectedQrId(qrCodes[0].id);
-  }
+  useEffect(() => {
+    if (qrCodes && qrCodes.length > 0 && !selectedQrId) {
+      setSelectedQrId(qrCodes[0].id);
+    }
+  }, [qrCodes, selectedQrId]);
 
   const selectedQrCode = qrCodes?.find(qr => qr.id === selectedQrId);
   
-  // Generate the edge function URL
+  // Generate the edge function URL with the correct format
   const edgeFunctionUrl = selectedQrId 
-    ? `https://jfnjvphxhzxojxgptmtu.supabase.co/functions/v1/qr-redirect?id=${selectedQrId}`
+    ? `https://jfnjvphxhzxojxgptmtu.functions.supabase.co/qr-redirect?id=${selectedQrId}`
     : '';
 
   const handleDownload = () => {
     const canvas = document.createElement("canvas");
     const svg = document.querySelector(".qr-code svg") as SVGElement;
+    
+    if (!svg) {
+      toast({
+        title: "Error",
+        description: "QR code SVG element not found",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     const svgData = new XMLSerializer().serializeToString(svg);
     const img = new Image();
     
