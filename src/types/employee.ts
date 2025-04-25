@@ -18,6 +18,8 @@ export interface Employee {
   off_days?: string[];
   nationality?: string;
   salary_plan_id?: string;
+  start_date?: string;
+  annual_leave_quota?: number;
   created_at?: string;
   updated_at?: string;
 }
