@@ -728,6 +728,44 @@ export type Database = {
           },
         ]
       }
+      employee_holidays: {
+        Row: {
+          created_at: string | null
+          date: string
+          duration_days: number | null
+          employee_id: string | null
+          end_date: string | null
+          id: string
+          reason: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          date: string
+          duration_days?: number | null
+          employee_id?: string | null
+          end_date?: string | null
+          id?: string
+          reason?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          date?: string
+          duration_days?: number | null
+          employee_id?: string | null
+          end_date?: string | null
+          id?: string
+          reason?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_holidays_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       employee_loans: {
         Row: {
           amount: number
@@ -903,6 +941,7 @@ export type Database = {
       }
       employees: {
         Row: {
+          annual_leave_quota: number | null
           branch_id: string | null
           created_at: string
           id: string
@@ -914,10 +953,12 @@ export type Database = {
           previous_working_hours: Json | null
           role: Database["public"]["Enums"]["employee_role"]
           salary_plan_id: string | null
+          start_date: string | null
           updated_at: string
           working_hours: Json | null
         }
         Insert: {
+          annual_leave_quota?: number | null
           branch_id?: string | null
           created_at?: string
           id?: string
@@ -929,10 +970,12 @@ export type Database = {
           previous_working_hours?: Json | null
           role: Database["public"]["Enums"]["employee_role"]
           salary_plan_id?: string | null
+          start_date?: string | null
           updated_at?: string
           working_hours?: Json | null
         }
         Update: {
+          annual_leave_quota?: number | null
           branch_id?: string | null
           created_at?: string
           id?: string
@@ -944,6 +987,7 @@ export type Database = {
           previous_working_hours?: Json | null
           role?: Database["public"]["Enums"]["employee_role"]
           salary_plan_id?: string | null
+          start_date?: string | null
           updated_at?: string
           working_hours?: Json | null
         }

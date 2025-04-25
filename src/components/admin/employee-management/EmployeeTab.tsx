@@ -1,6 +1,6 @@
-import { useState, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useToast } from "@/components/ui/use-toast";
-import { Calendar, BarChart2, Users, Clock, DollarSign } from 'lucide-react';
+import { Calendar, BarChart2, Users, Clock, DollarSign, Airplane } from 'lucide-react';
 import { useEmployeeSales } from './hooks/useEmployeeSales';
 import { useBranchManager } from './hooks/useBranchManager';
 import { useEmployeeManager } from './hooks/useEmployeeManager';
@@ -11,6 +11,7 @@ import { EmployeeAnalyticsDashboard } from './EmployeeAnalyticsDashboard';
 import { ScheduleInterface } from './components/ScheduleInterface';
 import { TeamPerformanceComparison } from './components/TeamPerformanceComparison';
 import { SalaryDashboard } from './salary/SalaryDashboard';
+import { LeaveManagement } from './LeaveManagement';
 
 export const EmployeeTab = () => {
   const { toast } = useToast();
@@ -91,6 +92,10 @@ export const EmployeeTab = () => {
                 <DollarSign className="h-4 w-4" />
                 <span>Salary</span>
               </TabsTrigger>
+              <TabsTrigger value="leave" className="flex items-center gap-1">
+                <Airplane className="h-4 w-4" />
+                <span>Leave</span>
+              </TabsTrigger>
             </TabsList>
           </div>
         </div>
@@ -151,6 +156,10 @@ export const EmployeeTab = () => {
             selectedBranch={selectedBranch}
             refetchEmployees={fetchEmployees}
           />
+        </TabsContent>
+        
+        <TabsContent value="leave" className="space-y-6">
+          <LeaveManagement employees={employees} />
         </TabsContent>
       </Tabs>
     </div>
