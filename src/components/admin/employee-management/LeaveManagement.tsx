@@ -30,13 +30,13 @@ export const LeaveManagement: React.FC<LeaveManagementProps> = ({ employees }) =
     }
 
     try {
-      // Format needs to be an array for .insert()
+      // Format dates as ISO strings since the database expects strings, not Date objects
       const { error } = await supabase
         .from('employee_holidays')
         .insert([{
           employee_id: selectedEmployee.id,
-          date: leaveRange.from,
-          end_date: leaveRange.to,
+          date: leaveRange.from.toISOString().split('T')[0], // Convert to YYYY-MM-DD format
+          end_date: leaveRange.to.toISOString().split('T')[0], // Convert to YYYY-MM-DD format
           reason: 'Annual Leave'
         }]);
 
