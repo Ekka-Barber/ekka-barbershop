@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Employee } from '@/types/employee';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -30,14 +30,15 @@ export const LeaveManagement: React.FC<LeaveManagementProps> = ({ employees }) =
     }
 
     try {
+      // Format needs to be an array for .insert()
       const { error } = await supabase
         .from('employee_holidays')
-        .insert({
+        .insert([{
           employee_id: selectedEmployee.id,
           date: leaveRange.from,
           end_date: leaveRange.to,
           reason: 'Annual Leave'
-        });
+        }]);
 
       if (error) throw error;
 
