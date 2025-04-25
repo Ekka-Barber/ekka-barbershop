@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useToast } from "@/components/ui/use-toast";
-import { Calendar, BarChart2, Users, Clock, DollarSign, Airplane } from 'lucide-react';
+import { Calendar, BarChart2, Users, Clock, DollarSign, Airplay } from 'lucide-react';
 import { useEmployeeSales } from './hooks/useEmployeeSales';
 import { useBranchManager } from './hooks/useBranchManager';
 import { useEmployeeManager } from './hooks/useEmployeeManager';
@@ -93,7 +93,7 @@ export const EmployeeTab = () => {
                 <span>Salary</span>
               </TabsTrigger>
               <TabsTrigger value="leave" className="flex items-center gap-1">
-                <Airplane className="h-4 w-4" />
+                <Airplay className="h-4 w-4" />
                 <span>Leave</span>
               </TabsTrigger>
             </TabsList>

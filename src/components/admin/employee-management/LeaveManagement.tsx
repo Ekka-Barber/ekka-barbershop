@@ -34,7 +34,6 @@ export const LeaveManagement: React.FC<LeaveManagementProps> = ({ employees }) =
         .from('employee_holidays')
         .insert({
           employee_id: selectedEmployee.id,
-          employee_name: selectedEmployee.name,
           date: leaveRange.from,
           end_date: leaveRange.to,
           reason: 'Annual Leave'
@@ -90,10 +89,8 @@ export const LeaveManagement: React.FC<LeaveManagementProps> = ({ employees }) =
                   </DialogHeader>
                   <div className="space-y-4">
                     <DateRangePicker
-                      initialFocus
-                      mode="range"
-                      selected={leaveRange}
-                      onSelect={setLeaveRange}
+                      date={leaveRange || { from: undefined, to: undefined }}
+                      onDateChange={setLeaveRange}
                     />
                     <Button 
                       onClick={handleAddLeave} 
