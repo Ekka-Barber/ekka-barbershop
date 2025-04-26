@@ -1,8 +1,7 @@
-
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { getMonthDisplayName } from '../SalaryUtils';
-import { RefreshCw, Loader2, CreditCard } from 'lucide-react';
+import { RefreshCw, Loader2 /*, CreditCard*/ } from 'lucide-react';
 import { MonthYearPicker } from '../../MonthYearPicker';
 
 interface SalaryDashboardHeaderProps {
@@ -11,8 +10,6 @@ interface SalaryDashboardHeaderProps {
   pickerDate: Date;
   handleRefresh: () => void;
   isLoading: boolean;
-  handleProcessPayments: () => void;
-  showProcessButton: boolean;
 }
 
 export const SalaryDashboardHeader = ({
@@ -21,8 +18,6 @@ export const SalaryDashboardHeader = ({
   pickerDate,
   handleRefresh,
   isLoading,
-  handleProcessPayments,
-  showProcessButton
 }: SalaryDashboardHeaderProps) => {
   return (
     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -60,16 +55,6 @@ export const SalaryDashboardHeader = ({
           selectedDate={pickerDate}
           onChange={handleMonthChange}
         />
-        
-        {showProcessButton && (
-          <Button 
-            onClick={handleProcessPayments}
-            className="flex items-center gap-1"
-          >
-            <CreditCard className="h-4 w-4 mr-1" />
-            Process Payments
-          </Button>
-        )}
       </div>
     </div>
   );
