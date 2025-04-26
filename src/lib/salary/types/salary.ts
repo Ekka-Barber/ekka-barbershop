@@ -117,7 +117,13 @@ export interface FormulaStep {
 }
 
 export interface FormulaPlan {
+  id?: string;
+  name?: string;
+  description?: string;
   variables: FormulaVariable[];
   steps: FormulaStep[];
   outputVariable: string; // The final variable that holds the result
+  version?: number;
+  createdAt?: string;
+  updatedAt?: string;
 }
