@@ -96,10 +96,15 @@ export interface FormulaVariable {
   defaultValue?: number;
   source?: 'employee' | 'sales' | 'transaction' | 'constant';
   path?: string; // For accessing nested properties
+  dataType?: 'number' | 'boolean' | 'date' | 'text';
+  category?: string; // For grouping variables by category
+  order?: number; // For custom ordering
 }
 
 export interface FormulaOperator {
-  type: 'add' | 'subtract' | 'multiply' | 'divide' | 'if' | 'min' | 'max';
+  type: 'add' | 'subtract' | 'multiply' | 'divide' | 'if' | 'min' | 'max' | 
+        'equal' | 'notEqual' | 'greaterThan' | 'lessThan' | 'greaterThanOrEqual' | 'lessThanOrEqual' |
+        'and' | 'or' | 'not' | 'round' | 'abs' | 'percent';
   parameters: (string | number | FormulaStep)[];
 }
 
