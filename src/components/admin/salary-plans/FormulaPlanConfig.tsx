@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { FormulaPlanBuilder } from './FormulaPlanBuilder';
@@ -8,16 +9,23 @@ import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { FormulaJsonEditor } from './FormulaJsonEditor';
 
-interface FormulaPlanConfigProps {
+// Define FormulaPlanData interface with index signature to allow boolean values
+export interface FormulaPlanData {
+  [key: string]: string | number | boolean | undefined | Record<string, unknown>;
+}
+
+export interface FormulaPlanConfigProps {
   planId?: string;
   initialConfig?: Record<string, unknown>;
   onSave?: (config: Record<string, unknown>) => Promise<void>;
   onCancel?: () => void;
+  defaultValues?: FormulaPlanData;
 }
 
 export const FormulaPlanConfig = ({
   planId,
   initialConfig,
+  defaultValues,
   onSave,
   onCancel
 }: FormulaPlanConfigProps) => {
@@ -185,4 +193,7 @@ export const FormulaPlanConfig = ({
       </CardContent>
     </Card>
   );
-}; 
+};
+
+// Add default export
+export default FormulaPlanConfig;

@@ -28,7 +28,7 @@ interface Plan {
   [key: string]: string | number | boolean | undefined;
 }
 
-interface FormulaSalaryPlanListProps {
+interface ExistingSalaryPlansListProps {
   plans?: Plan[];
   onSavePlan?: (plan: FormulaPlanData & { id?: string }) => void;
   onDeletePlan?: (planId: string) => void;
@@ -38,7 +38,7 @@ const ExistingSalaryPlansList = ({
   plans = [],
   onSavePlan,
   onDeletePlan,
-}: FormulaSalaryPlanListProps) => {
+}: ExistingSalaryPlansListProps) => {
   const [isCreating, setIsCreating] = useState(false);
   const [editingPlan, setEditingPlan] = useState<Plan | null>(null);
   const [planToDelete, setPlanToDelete] = useState<string | null>(null);
@@ -186,4 +186,3 @@ const ExistingSalaryPlansList = ({
 };
 
 export default ExistingSalaryPlansList;
-

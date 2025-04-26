@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,6 +15,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
+// Update Plan interface to include compatible index signature
 interface Plan {
   id: string;
   name: string;
@@ -24,7 +26,7 @@ interface Plan {
   maxAmount?: number;
   description?: string;
   isActive: boolean;
-  [key: string]: string | number | boolean | undefined; // Keep consistent with FormulaPlanData
+  [key: string]: string | number | boolean | undefined;
 }
 
 interface FormulaSalaryPlanListProps {
