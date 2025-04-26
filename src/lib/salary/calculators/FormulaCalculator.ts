@@ -125,24 +125,139 @@ export class FormulaCalculator extends BaseCalculator {
       switch (variable.source) {
         case 'employee':
           if (variable.path && params.employee) {
-            value = this.getNestedProperty(params.employee as unknown as Record<string, unknown>, variable.path) || value;
+            // Get the value from the employee object using the path
+            const rawValue = this.getNestedProperty(params.employee as unknown as Record<string, unknown>, variable.path);
+            
+            // Convert to appropriate numeric value based on data type
+            if (rawValue !== undefined) {
+              if (variable.dataType === 'boolean') {
+                // Convert boolean to 1/0
+                value = this.convertToBoolean(rawValue) ? 1 : 0;
+              } else if (variable.dataType === 'date') {
+                // Convert date to timestamp (milliseconds since epoch)
+                const dateValue = this.convertToDate(rawValue);
+                value = isNaN(dateValue.getTime()) ? value : dateValue.getTime();
+              } else if (typeof rawValue === 'number') {
+                // Use number directly
+                value = rawValue;
+              } else if (typeof rawValue === 'string' && !isNaN(parseFloat(rawValue))) {
+                // Try to parse string as number
+                value = parseFloat(rawValue);
+              }
+            }
           }
           break;
         case 'sales':
-          if (variable.name === 'salesAmount') {
-            value = params.salesAmount;
+          if (params.salesAmount !== undefined) {
+            if (variable.path) {
+              // For more complex sales data extraction
+              // This would require additional sales data structure in params
+              // Future enhancement
+            } else if (variable.name === 'salesAmount') {
+              value = params.salesAmount;
+            }
+          }
+          break;
+        case 'transaction':
+          // Handle specific transaction variables with improved path handling
+          if (variable.path) {
+            // Future: implement path-based extraction from transaction data
+          } else {
+            // Handle common transaction aggregates
+            switch (variable.name) {
+              case 'regularBonusTotal':
+                value = params.bonuses.reduce((sum, bonus) => sum + bonus.amount, 0);
+                break;
+              case 'deductionsTotal':
+                value = params.deductions.reduce((sum, deduction) => sum + deduction.amount, 0);
+                break;
+              case 'loansTotal':
+                value = params.loans.reduce((sum, loan) => sum + loan.amount, 0);
+                break;
+            }
           }
           break;
         case 'constant':
-          // Use the default value
+          // Use the default value, already set
           break;
         default:
           // Use default value if no source or unknown source
           break;
       }
       
+      // Store the final computed value in context
       context[variable.name] = value;
     }
+    
+    // Ensure we always have these critical values in the context
+    // even if not explicitly defined as variables
+    if (context['regularBonusTotal'] === undefined) {
+      context['regularBonusTotal'] = params.bonuses.reduce((sum, bonus) => sum + bonus.amount, 0);
+    }
+    if (context['deductionsTotal'] === undefined) {
+      context['deductionsTotal'] = params.deductions.reduce((sum, deduction) => sum + deduction.amount, 0);
+    }
+    if (context['loansTotal'] === undefined) {
+      context['loansTotal'] = params.loans.reduce((sum, loan) => sum + loan.amount, 0);
+    }
+    if (context['salesAmount'] === undefined && params.salesAmount !== undefined) {
+      context['salesAmount'] = params.salesAmount;
+    }
+  }
+  
+  /**
+   * Helper method to get a nested property from an object
+   */
+  private getNestedProperty(obj: Record<string, unknown>, path: string): unknown {
+    const parts = path.split('.');
+    let current: unknown = obj;
+    
+    for (const part of parts) {
+      if (current === null || current === undefined) {
+        return undefined;
+      }
+      
+      if (typeof current === 'object' && current !== null) {
+        current = (current as Record<string, unknown>)[part];
+      } else {
+        return undefined;
+      }
+    }
+    
+    return current;
+  }
+
+  /**
+   * Helper method to convert any value to a boolean
+   */
+  private convertToBoolean(value: unknown): boolean {
+    if (typeof value === 'boolean') {
+      return value;
+    }
+    if (typeof value === 'number') {
+      return value !== 0;
+    }
+    if (typeof value === 'string') {
+      const lowercased = value.toLowerCase();
+      return lowercased === 'true' || lowercased === 'yes' || lowercased === '1';
+    }
+    return !!value; // Default conversion to boolean
+  }
+
+  /**
+   * Helper method to convert any value to a Date object
+   */
+  private convertToDate(value: unknown): Date {
+    if (value instanceof Date) {
+      return value;
+    }
+    if (typeof value === 'number') {
+      return new Date(value);
+    }
+    if (typeof value === 'string') {
+      return new Date(value);
+    }
+    return new Date(); // Default to current date/time if invalid
   }
   
   /**
@@ -232,30 +347,71 @@ export class FormulaCalculator extends BaseCalculator {
           throw new Error('Max operator requires at least 1 parameter');
         }
         return Math.max(...evaluatedParams);
+      // Comparison operators
+      case 'equal':
+        if (evaluatedParams.length !== 2) {
+          throw new Error('Equal operator requires exactly 2 parameters');
+        }
+        return evaluatedParams[0] === evaluatedParams[1] ? 1 : 0;
+      case 'notEqual':
+        if (evaluatedParams.length !== 2) {
+          throw new Error('Not Equal operator requires exactly 2 parameters');
+        }
+        return evaluatedParams[0] !== evaluatedParams[1] ? 1 : 0;
+      case 'greaterThan':
+        if (evaluatedParams.length !== 2) {
+          throw new Error('Greater Than operator requires exactly 2 parameters');
+        }
+        return evaluatedParams[0] > evaluatedParams[1] ? 1 : 0;
+      case 'lessThan':
+        if (evaluatedParams.length !== 2) {
+          throw new Error('Less Than operator requires exactly 2 parameters');
+        }
+        return evaluatedParams[0] < evaluatedParams[1] ? 1 : 0;
+      case 'greaterThanOrEqual':
+        if (evaluatedParams.length !== 2) {
+          throw new Error('Greater Than Or Equal operator requires exactly 2 parameters');
+        }
+        return evaluatedParams[0] >= evaluatedParams[1] ? 1 : 0;
+      case 'lessThanOrEqual':
+        if (evaluatedParams.length !== 2) {
+          throw new Error('Less Than Or Equal operator requires exactly 2 parameters');
+        }
+        return evaluatedParams[0] <= evaluatedParams[1] ? 1 : 0;
+      // Logical operators
+      case 'and':
+        if (evaluatedParams.length < 2) {
+          throw new Error('And operator requires at least 2 parameters');
+        }
+        return evaluatedParams.every(param => !!param) ? 1 : 0;
+      case 'or':
+        if (evaluatedParams.length < 2) {
+          throw new Error('Or operator requires at least 2 parameters');
+        }
+        return evaluatedParams.some(param => !!param) ? 1 : 0;
+      case 'not':
+        if (evaluatedParams.length !== 1) {
+          throw new Error('Not operator requires exactly 1 parameter');
+        }
+        return !evaluatedParams[0] ? 1 : 0;
+      // Mathematical functions
+      case 'round':
+        if (evaluatedParams.length !== 1) {
+          throw new Error('Round operator requires exactly 1 parameter');
+        }
+        return Math.round(evaluatedParams[0]);
+      case 'abs':
+        if (evaluatedParams.length !== 1) {
+          throw new Error('Abs operator requires exactly 1 parameter');
+        }
+        return Math.abs(evaluatedParams[0]);
+      case 'percent':
+        if (evaluatedParams.length !== 2) {
+          throw new Error('Percent operator requires exactly 2 parameters: value, percentage');
+        }
+        return (evaluatedParams[0] * evaluatedParams[1]) / 100;
       default:
         throw new Error(`Unsupported operator type: ${operator.type}`);
     }
-  }
-  
-  /**
-   * Helper method to get a nested property from an object
-   */
-  private getNestedProperty(obj: Record<string, unknown>, path: string): number | undefined {
-    const parts = path.split('.');
-    let current: unknown = obj;
-    
-    for (const part of parts) {
-      if (current === null || current === undefined) {
-        return undefined;
-      }
-      
-      if (typeof current === 'object' && current !== null) {
-        current = (current as Record<string, unknown>)[part];
-      } else {
-        return undefined;
-      }
-    }
-    
-    return typeof current === 'number' ? current : undefined;
   }
 } 
