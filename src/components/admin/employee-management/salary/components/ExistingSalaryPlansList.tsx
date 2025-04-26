@@ -58,14 +58,18 @@ const ExistingSalaryPlansList = ({
     onDeletePlan?.(planId);
   };
 
-  const handleSave = (planData: FormulaPlanData) => {
-    if (editingPlan) {
-      onSavePlan?.({ ...planData, id: editingPlan.id });
-    } else {
-      onSavePlan?.(planData);
-    }
-    setEditingPlan(null);
-    setIsCreating(false);
+  // Update handleSave to return a Promise
+  const handleSave = async (planData: FormulaPlanData): Promise<void> => {
+    return new Promise<void>((resolve) => {
+      if (editingPlan) {
+        onSavePlan?.({ ...planData, id: editingPlan.id });
+      } else {
+        onSavePlan?.(planData);
+      }
+      setEditingPlan(null);
+      setIsCreating(false);
+      resolve();
+    });
   };
 
   const handleCancel = () => {
