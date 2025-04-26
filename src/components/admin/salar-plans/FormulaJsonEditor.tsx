@@ -28,7 +28,9 @@ export const FormulaJsonEditor = ({
         JSON.stringify(
           {
             type: "formula",
+            variables: [],
             steps: [],
+            outputVariable: "totalSalary"
           },
           null,
           2
@@ -48,13 +50,18 @@ export const FormulaJsonEditor = ({
         return false;
       }
       
-      if (parsed.type !== "formula") {
-        setError("Formula must have type 'formula'");
+      if (!Array.isArray(parsed.steps)) {
+        setError("Formula must contain a 'steps' array");
         return false;
       }
       
-      if (!Array.isArray(parsed.steps)) {
-        setError("Formula must contain a 'steps' array");
+      if (!Array.isArray(parsed.variables)) {
+        setError("Formula must contain a 'variables' array");
+        return false;
+      }
+      
+      if (!parsed.outputVariable) {
+        setError("Formula must specify an outputVariable");
         return false;
       }
       
@@ -87,17 +94,17 @@ export const FormulaJsonEditor = ({
   };
 
   return (
-    <div className="space-y-4">
-      <div className="space-y-2">
+    <div className="space-y-4 px-1">
+      <div className="space-y-3">
         <Textarea
           value={jsonValue}
           onChange={(e) => handleJsonChange(e.target.value)}
-          className="font-mono min-h-[400px] text-sm"
+          className="font-mono text-xs sm:text-sm w-full min-h-[300px] sm:min-h-[400px] h-[50vh] sm:h-[60vh] resize-y"
           placeholder="Enter formula JSON configuration..."
         />
         
         {error && (
-          <Alert variant="destructive">
+          <Alert variant="destructive" className="text-xs sm:text-sm">
             <AlertCircle className="h-4 w-4" />
             <AlertTitle>Invalid JSON</AlertTitle>
             <AlertDescription>{error}</AlertDescription>
@@ -105,7 +112,7 @@ export const FormulaJsonEditor = ({
         )}
         
         {isValid && !error && (
-          <Alert className="bg-green-50 border-green-200">
+          <Alert className="bg-green-50 border-green-200 text-xs sm:text-sm">
             <Check className="h-4 w-4 text-green-500" />
             <AlertTitle className="text-green-700">Valid JSON</AlertTitle>
             <AlertDescription className="text-green-600">
@@ -115,7 +122,7 @@ export const FormulaJsonEditor = ({
         )}
       </div>
 
-      <div className="flex justify-end">
+      <div className="flex justify-end mt-4">
         <Button
           onClick={handleSave}
           disabled={!isValid || isLoading}
