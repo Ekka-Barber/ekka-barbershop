@@ -1,4 +1,3 @@
-
 import { Employee } from '@/types/employee';
 import { SalesData } from '@/lib/salary/calculators/BaseCalculator';
 import { Transaction } from '@/lib/salary/types/salary';
@@ -6,6 +5,7 @@ import { Transaction } from '@/lib/salary/types/salary';
 export interface EmployeeSalary {
   id: string;
   name: string;
+  salesAmount?: number; // Add sales amount for the month
   baseSalary: number;
   commission: number;
   bonus: number;        // Regular bonus from transactions
