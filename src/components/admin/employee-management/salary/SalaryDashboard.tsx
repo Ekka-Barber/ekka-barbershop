@@ -1,14 +1,17 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Employee } from '@/types/employee';
 import { Separator } from '@/components/ui/separator';
 import { useSalaryData } from './hooks/useSalaryData';
 import { SalaryBreakdown } from './SalaryBreakdown';
-import { SalaryFilters } from './SalaryFilters';
+/* import { SalaryFilters } from './SalaryFilters'; */
 import { SalaryDashboardHeader } from './components/SalaryDashboardHeader';
 import { SalaryDashboardStats } from './components/SalaryDashboardStats';
 import { SalaryTable } from './components/SalaryTable';
-import { useSalaryFiltering } from './hooks/useSalaryFiltering';
+/* import { useSalaryFiltering } from './hooks/useSalaryFiltering'; */
 import { useDashboardStats } from './hooks/useDashboardStats';
+import { Button } from '@/components/ui/button';
+import { Download } from 'lucide-react';
+import { EmployeeSalary } from './hooks/utils/salaryTypes';
 
 interface SalaryDashboardProps {
   employees: Employee[];
@@ -29,15 +32,53 @@ export const SalaryDashboard = ({
   
   const [selectedEmployeeId, setSelectedEmployeeId] = useState<string | null>(null);
   
+  // Auto-refresh settings
+  const [autoRefresh, setAutoRefresh] = useState(false);
+  const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
+  
   const { salaryData, isLoading, getEmployeeTransactions, refreshData } = useSalaryData({
     employees,
     selectedMonth
   });
   
-  const [searchQuery, setSearchQuery] = useState('');
-  const [sortBy, setSortBy] = useState('salary_desc');
-  const [minSalary, setMinSalary] = useState<number | null>(null);
-  const [maxSalary, setMaxSalary] = useState<number | null>(null);
+  // Track historical data for comparison
+  const [historicalData, setHistoricalData] = useState<Record<string, EmployeeSalary[]>>({});
+  
+  // Set up auto-refresh
+  useEffect(() => {
+    let intervalId: NodeJS.Timeout | null = null;
+    
+    if (autoRefresh && !selectedEmployeeId) {
+      intervalId = setInterval(() => {
+        refreshData();
+        setLastRefresh(new Date());
+      }, 300000); // Every 5 minutes
+    }
+    
+    return () => {
+      if (intervalId) clearInterval(intervalId);
+    };
+  }, [autoRefresh, refreshData, selectedEmployeeId]);
+
+  // Toggle auto-refresh
+  const toggleAutoRefresh = () => {
+    setAutoRefresh(prev => !prev);
+    if (!autoRefresh) {
+      // Start with a refresh
+      refreshData();
+      setLastRefresh(new Date());
+    }
+  };
+  
+  // Update history when month changes and data loads
+  useEffect(() => {
+    if (salaryData.length > 0 && !isLoading) {
+      setHistoricalData(prev => ({
+        ...prev,
+        [selectedMonth]: salaryData
+      }));
+    }
+  }, [salaryData, selectedMonth, isLoading]);
   
   const handleMonthChange = (date: Date) => {
     setPickerDate(date);
@@ -67,25 +108,101 @@ export const SalaryDashboard = ({
     setSelectedEmployeeId(null);
   };
 
-  const { filteredSalaryData } = useSalaryFiltering({
+  /* const { filteredSalaryData } = useSalaryFiltering({
     salaryData,
     searchQuery,
     sortBy,
     minSalary,
     maxSalary
-  });
+  }); */
+  
+  // Export salary data to CSV
+  const exportSalaryData = () => {
+    // Create CSV content
+    const headers = ["Name", "Sales", "Base Salary", "Commission", "Bonuses", "Deductions", "Loans", "Total"];
+    const csvContent = [
+      headers.join(","),
+      ...salaryData.map(employee => [
+        `"${employee.name}"`, // Add quotes to handle names with commas
+        employee.salesAmount || 0,
+        employee.baseSalary,
+        employee.commission,
+        (employee.bonus || 0) + (employee.targetBonus || 0),
+        employee.deductions,
+        employee.loans,
+        employee.total
+      ].join(","))
+    ].join("\n");
+    
+    // Create and download file
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `salary-data-${selectedMonth}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+  
+  // Get previous month in YYYY-MM format
+  const getPreviousMonth = (monthStr: string): string => {
+    const [year, month] = monthStr.split('-').map(Number);
+    const prevDate = new Date(year, month - 2); // Months are 0-indexed in Date
+    return `${prevDate.getFullYear()}-${(prevDate.getMonth() + 1).toString().padStart(2, '0')}`;
+  };
+  
+  // Calculate month-over-month changes for an employee
+  const getMonthlyChange = (employeeId: string): number | null => {
+    const currentData = salaryData.find(s => s.id === employeeId);
+    const prevMonth = getPreviousMonth(selectedMonth);
+    const prevData = historicalData[prevMonth]?.find(s => s.id === employeeId);
+    
+    if (!currentData || !prevData) return null;
+    return currentData.total - prevData.total;
+  };
   
   const stats = useDashboardStats(salaryData);
   
   return (
     <div className="space-y-6">
-      <SalaryDashboardHeader
-        selectedMonth={selectedMonth}
-        handleMonthChange={handleMonthChange}
-        pickerDate={pickerDate}
-        handleRefresh={refreshData}
-        isLoading={isLoading}
-      />
+      <div className="flex justify-between items-center">
+        <SalaryDashboardHeader
+          selectedMonth={selectedMonth}
+          handleMonthChange={handleMonthChange}
+          pickerDate={pickerDate}
+          handleRefresh={refreshData}
+          isLoading={isLoading}
+        />
+        
+        <div className="flex items-center gap-2">
+          {!isLoading && salaryData.length > 0 && !selectedEmployeeId && (
+            <>
+              <Button 
+                variant={autoRefresh ? "default" : "outline"} 
+                className="flex items-center gap-1"
+                onClick={toggleAutoRefresh}
+              >
+                {autoRefresh ? "Auto-Refresh On" : "Auto-Refresh Off"}
+                {lastRefresh && autoRefresh && (
+                  <span className="text-xs ml-1">
+                    (Last: {lastRefresh.toLocaleTimeString()})
+                  </span>
+                )}
+              </Button>
+              
+              <Button 
+                variant="outline" 
+                className="flex items-center gap-1"
+                onClick={exportSalaryData}
+              >
+                <Download className="h-4 w-4 mr-1" />
+                Export
+              </Button>
+            </>
+          )}
+        </div>
+      </div>
       
       <Separator />
       
@@ -97,13 +214,6 @@ export const SalaryDashboard = ({
         />
       )}
       
-      <SalaryFilters
-        onSearchChange={setSearchQuery}
-        onSortChange={setSortBy}
-        onMinSalaryChange={setMinSalary}
-        onMaxSalaryChange={setMaxSalary}
-      />
-
       <div className="mt-4">
         {selectedEmployeeId && selectedEmployee && selectedSalaryData ? (
           <SalaryBreakdown 
@@ -120,9 +230,10 @@ export const SalaryDashboard = ({
           />
         ) : (
           <SalaryTable 
-            salaryData={filteredSalaryData}
+            salaryData={salaryData}
             isLoading={isLoading}
             onEmployeeSelect={handleEmployeeSelect}
+            getMonthlyChange={getMonthlyChange}
           />
         )}
       </div>
