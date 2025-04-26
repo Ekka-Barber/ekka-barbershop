@@ -1,11 +1,11 @@
-
 export type SalaryPlanType = 
   | "fixed" 
   | "commission" 
   | "dynamic_basic" 
   | "commission_only" 
   | "tiered_commission" 
-  | "team_commission";
+  | "team_commission"
+  | "formula";
 
 export interface SalaryPlan {
   id: string;
@@ -87,4 +87,32 @@ export interface Transaction {
   date: string;
   description: string;
   employee_id: string;
+}
+
+// Interfaces for formula-based salary configuration
+export interface FormulaVariable {
+  name: string;
+  description: string;
+  defaultValue?: number;
+  source?: 'employee' | 'sales' | 'transaction' | 'constant';
+  path?: string; // For accessing nested properties
+}
+
+export interface FormulaOperator {
+  type: 'add' | 'subtract' | 'multiply' | 'divide' | 'if' | 'min' | 'max';
+  parameters: (string | number | FormulaStep)[];
+}
+
+export interface FormulaStep {
+  id: string;
+  name: string;
+  description?: string;
+  operation: FormulaOperator | string; // String for variable references or literal values
+  result?: string; // Name of the result variable
+}
+
+export interface FormulaPlan {
+  variables: FormulaVariable[];
+  steps: FormulaStep[];
+  outputVariable: string; // The final variable that holds the result
 }
