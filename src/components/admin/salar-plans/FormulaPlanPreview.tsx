@@ -120,20 +120,20 @@ export const FormulaPlanPreview = ({
       </CardHeader>
       <CardContent>
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="mb-4">
-            <TabsTrigger value="validation">
+          <TabsList className="mb-4 flex flex-wrap w-full">
+            <TabsTrigger value="validation" className="flex-1 min-w-[115px] text-xs sm:text-sm">
               Validation 
               {validationResult.errors.length > 0 && (
-                <Badge variant="destructive" className="ml-2">{validationResult.errors.length}</Badge>
+                <Badge variant="destructive" className="ml-1 sm:ml-2">{validationResult.errors.length}</Badge>
               )}
               {validationResult.errors.length === 0 && validationResult.warnings.length > 0 && (
-                <Badge variant="outline" className="ml-2 bg-amber-100 text-amber-800 hover:bg-amber-100">
+                <Badge variant="outline" className="ml-1 sm:ml-2 bg-amber-100 text-amber-800 hover:bg-amber-100">
                   {validationResult.warnings.length}
                 </Badge>
               )}
             </TabsTrigger>
-            <TabsTrigger value="simulation">Simulation</TabsTrigger>
-            <TabsTrigger value="preview">Results Preview</TabsTrigger>
+            <TabsTrigger value="simulation" className="flex-1 min-w-[100px] text-xs sm:text-sm">Simulation</TabsTrigger>
+            <TabsTrigger value="preview" className="flex-1 min-w-[100px] text-xs sm:text-sm">Results</TabsTrigger>
           </TabsList>
 
           <TabsContent value="validation">
