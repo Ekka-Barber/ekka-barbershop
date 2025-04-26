@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,6 +14,7 @@ export interface FormulaPlanConfigProps {
   defaultValues?: Partial<FormulaPlanData>;
 }
 
+// Export as interface to avoid conflicts with module exports
 export interface FormulaPlanData {
   name: string;
   baseAmount: number;

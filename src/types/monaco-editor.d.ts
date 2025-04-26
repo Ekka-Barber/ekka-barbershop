@@ -8,6 +8,7 @@ declare module '@monaco-editor/react' {
     value?: string;
     defaultValue?: string;
     language?: string;
+    defaultLanguage?: string;
     theme?: string;
     options?: object;
     loading?: JSX.Element;

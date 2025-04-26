@@ -8,7 +8,7 @@ import { Edit, PenSquare, Code, FileText } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
-import FormulaPlanConfig from '@/components/admin/salary-plans/FormulaPlanConfig';
+import FormulaPlanConfig, { FormulaPlanData } from '@/components/admin/salary-plans/FormulaPlanConfig';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -579,7 +579,12 @@ export const ExistingSalaryPlansList = () => {
   }
 
   const handleFormulaPlanSave = (formData: FormulaPlanData) => {
-    handleSave(formData as unknown as Record<string, unknown>);
+    const configRecord = Object.entries(formData).reduce((acc, [key, value]) => {
+      acc[key] = value;
+      return acc;
+    }, {} as Record<string, unknown>);
+    
+    handleSave(configRecord);
   };
 
   return (
