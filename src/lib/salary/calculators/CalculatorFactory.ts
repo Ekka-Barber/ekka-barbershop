@@ -1,9 +1,9 @@
-
 import { SalaryPlanType } from '../types/salary';
 import { SalaryCalculator } from './BaseCalculator';
 import { FixedCalculator } from './FixedCalculator';
 import { CommissionCalculator } from './CommissionCalculator';
 import { TieredCommissionCalculator } from './TieredCommissionCalculator';
+import { FormulaCalculator } from './FormulaCalculator';
 import { logger } from '@/utils/logger';
 
 export class SalaryCalculatorFactory {
@@ -27,6 +27,7 @@ export class SalaryCalculatorFactory {
     this.calculators.set('fixed', new FixedCalculator());
     this.calculators.set('commission', new CommissionCalculator());
     this.calculators.set('tiered_commission', new TieredCommissionCalculator());
+    this.calculators.set('formula', new FormulaCalculator());
     
     // Map all commission-based plan types to the CommissionCalculator
     this.calculators.set('dynamic_basic', new CommissionCalculator());
