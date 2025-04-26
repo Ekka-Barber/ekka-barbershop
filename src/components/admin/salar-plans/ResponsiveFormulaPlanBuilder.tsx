@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { FormulaVariable, FormulaStep, FormulaPlan } from '@/lib/salary/types/salary';
+import { StoredFormulaPlan } from '@/lib/salary/api/formulaPlanService';
+import { useFormulaPlanApi } from '@/lib/salary/hooks/useFormulaPlanApi';
 import { v4 as uuidv4 } from 'uuid';
 import { 
   Sheet,
@@ -7,6 +9,7 @@ import {
   SheetDescription,
   SheetHeader,
   SheetTitle,
+  SheetFooter,
 } from "@/components/ui/sheet";
 import { 
   Card, 
@@ -14,9 +17,12 @@ import {
   CardHeader, 
   CardTitle, 
   CardDescription,
+  CardFooter,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import {
   Tabs,
   TabsContent,
@@ -29,7 +35,12 @@ import {
   Eye,
   Workflow,
   ListFilter,
-  Copy
+  Copy,
+  FileArchive,
+  MoreHorizontal,
+  Trash2,
+  Undo2,
+  History
 } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 import { DraggableStepList } from './DraggableStepList';
@@ -44,10 +55,26 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 interface ResponsiveFormulaPlanBuilderProps {
   initialPlan?: FormulaPlan;
-  onSave: (plan: FormulaPlan) => void;
+  onSave?: (plan: FormulaPlan) => void;
 }
 
 export const ResponsiveFormulaPlanBuilder = ({ 
@@ -69,6 +96,56 @@ export const ResponsiveFormulaPlanBuilder = ({
   const [activeTab, setActiveTab] = useState<string>('build');
   const [editingStepId, setEditingStepId] = useState<string | null>(null);
   const [validationErrors, setValidationErrors] = useState<{[key: string]: string[]}>({});
+  
+  // API integration
+  const {
+    templates,
+    selectedPlan,
+    versions,
+    isLoading,
+    loadPlans,
+    loadTemplates,
+    loadPlan,
+    loadVersions,
+    savePlan,
+    deletePlan,
+  } = useFormulaPlanApi();
+
+  // State for save dialog
+  const [isSaveDialogOpen, setIsSaveDialogOpen] = useState(false);
+  const [planName, setPlanName] = useState(initialPlan?.name || '');
+  const [planDescription, setPlanDescription] = useState(initialPlan?.description || '');
+  const [isTemplatesDialogOpen, setIsTemplatesDialogOpen] = useState(false);
+  const [isVersionsDialogOpen, setIsVersionsDialogOpen] = useState(false);
+  
+  // Load plans and templates on mount
+  useEffect(() => {
+    loadPlans();
+    loadTemplates();
+  }, [loadPlans, loadTemplates]);
+  
+  // Set the selected plan when it changes
+  useEffect(() => {
+    if (selectedPlan) {
+      setVariables(selectedPlan.variables);
+      setSteps(selectedPlan.steps);
+      setOutputVariable(selectedPlan.outputVariable);
+      setPlanName(selectedPlan.name);
+      setPlanDescription(selectedPlan.description || '');
+    }
+  }, [selectedPlan]);
+  
+  // Set initial name and description from props
+  useEffect(() => {
+    if (initialPlan) {
+      if ('name' in initialPlan) {
+        setPlanName(initialPlan.name as string);
+      }
+      if ('description' in initialPlan) {
+        setPlanDescription(initialPlan.description as string);
+      }
+    }
+  }, [initialPlan]);
   
   // Validate the formula plan
   useEffect(() => {
@@ -133,7 +210,7 @@ export const ResponsiveFormulaPlanBuilder = ({
       name: `variable${variables.length + 1}`,
       description: 'New variable',
       source: 'constant',
-      defaultValue: '0'
+      defaultValue: 0
     };
     
     setVariables([...variables, newVariable]);
@@ -195,8 +272,8 @@ export const ResponsiveFormulaPlanBuilder = ({
     setSteps(steps.filter(s => s.id !== stepId));
   };
   
-  // Save the formula plan
-  const handleSave = () => {
+  // Open save dialog
+  const handleOpenSaveDialog = () => {
     // Check if there are validation errors
     const hasErrors = Object.keys(validationErrors).length > 0;
     
@@ -209,17 +286,99 @@ export const ResponsiveFormulaPlanBuilder = ({
       return;
     }
     
-    // Save the plan
-    onSave({
+    setIsSaveDialogOpen(true);
+  };
+  
+  // Save the formula plan
+  const handleSave = async () => {
+    if (!planName.trim()) {
+      toast({
+        title: 'Name required',
+        description: 'Please provide a name for your formula plan',
+        variant: 'destructive'
+      });
+      return;
+    }
+    
+    // Create the plan object
+    const plan: FormulaPlan = {
+      id: selectedPlan?.id,
       variables,
       steps,
-      outputVariable
-    });
+      outputVariable,
+      version: selectedPlan?.version || 0,
+      createdAt: selectedPlan?.createdAt,
+    };
+    
+    try {
+      const saved = await savePlan(plan, planName, planDescription);
+      
+      if (saved) {
+        setIsSaveDialogOpen(false);
+        
+        toast({
+          title: 'Formula saved',
+          description: 'Your formula plan has been saved successfully'
+        });
+        
+        // Call the onSave callback if provided
+        if (onSave) {
+          onSave(saved);
+        }
+      } else {
+        toast({
+          title: 'Save failed',
+          description: 'There was an error saving your formula plan',
+          variant: 'destructive'
+        });
+      }
+    } catch (err) {
+      toast({
+        title: 'Save error',
+        description: err instanceof Error ? err.message : 'Unknown error',
+        variant: 'destructive'
+      });
+    }
+  };
+  
+  // Load a plan
+  const loadSelectedPlan = (id: string) => {
+    loadPlan(id);
+  };
+  
+  // Load a template
+  const handleLoadTemplate = (template: StoredFormulaPlan) => {
+    // Create a new plan from the template
+    const newPlan: FormulaPlan = {
+      variables: template.variables,
+      steps: template.steps,
+      outputVariable: template.outputVariable,
+    };
+    
+    setVariables(newPlan.variables);
+    setSteps(newPlan.steps);
+    setOutputVariable(newPlan.outputVariable);
+    setPlanName(`${template.name} (Copy)`);
+    setPlanDescription(template.description || '');
+    
+    setIsTemplatesDialogOpen(false);
     
     toast({
-      title: 'Formula saved',
-      description: 'Your formula plan has been saved successfully'
+      title: 'Template loaded',
+      description: `Template "${template.name}" has been loaded`
     });
+  };
+  
+  // Load a specific version
+  const handleLoadVersion = (version: StoredFormulaPlan) => {
+    loadPlan(version.id);
+    setIsVersionsDialogOpen(false);
+  };
+  
+  // View version history
+  const handleViewVersions = (id: string) => {
+    loadVersions(id);
+    setIsVersionsDialogOpen(true);
   };
   
   // Copy the formula as JSON
@@ -262,13 +421,53 @@ export const ResponsiveFormulaPlanBuilder = ({
             <Button 
               variant="outline" 
               size="sm"
-              onClick={handleCopyAsJson}
+              onClick={() => setIsTemplatesDialogOpen(true)}
             >
-              <Copy className="h-4 w-4 mr-2" />
-              Copy JSON
+              <FileArchive className="h-4 w-4 mr-2" />
+              Templates
             </Button>
+            
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                >
+                  <MoreHorizontal className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                <DropdownMenuItem onClick={handleCopyAsJson}>
+                  <Copy className="h-4 w-4 mr-2" />
+                  Copy as JSON
+                </DropdownMenuItem>
+                {selectedPlan && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={() => handleViewVersions(selectedPlan.id)}>
+                      <History className="h-4 w-4 mr-2" />
+                      Version History
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => loadSelectedPlan(selectedPlan.id)}>
+                      <Undo2 className="h-4 w-4 mr-2" />
+                      Revert Changes
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => {
+                      if (confirm(`Are you sure you want to delete "${selectedPlan.name}"?`)) {
+                        deletePlan(selectedPlan.id);
+                      }
+                    }}>
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Delete Plan
+                    </DropdownMenuItem>
+                  </>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+            
             <Button 
-              onClick={handleSave}
+              onClick={handleOpenSaveDialog}
             >
               <Save className="h-4 w-4 mr-2" />
               Save Formula
@@ -375,6 +574,13 @@ export const ResponsiveFormulaPlanBuilder = ({
                 </Select>
               </div>
             </CardContent>
+            {selectedPlan && (
+              <CardFooter className="pt-0">
+                <div className="text-sm text-muted-foreground">
+                  {selectedPlan.name} {selectedPlan.version ? `(v${selectedPlan.version})` : ''}
+                </div>
+              </CardFooter>
+            )}
           </Card>
         </TabsContent>
         
@@ -416,15 +622,158 @@ export const ResponsiveFormulaPlanBuilder = ({
                 </div>
               </div>
             </div>
-            <div className="flex justify-end mt-4">
-              <Button variant="outline" onClick={() => setEditingStepId(null)} className="mr-2">
+            <SheetFooter>
+              <Button variant="outline" onClick={() => setEditingStepId(null)}>
                 Cancel
               </Button>
               <Button>Save Changes</Button>
-            </div>
+            </SheetFooter>
           </SheetContent>
         </Sheet>
       )}
+      
+      {/* Save Dialog */}
+      <Dialog open={isSaveDialogOpen} onOpenChange={setIsSaveDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Save Formula Plan</DialogTitle>
+            <DialogDescription>
+              Provide a name and optional description for your formula plan.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4 space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="plan-name">Name</Label>
+              <Input 
+                id="plan-name" 
+                value={planName} 
+                onChange={(e) => setPlanName(e.target.value)} 
+                placeholder="Enter formula plan name" 
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="plan-description">Description (optional)</Label>
+              <Textarea 
+                id="plan-description" 
+                value={planDescription} 
+                onChange={(e) => setPlanDescription(e.target.value)} 
+                placeholder="Enter plan description" 
+                className="min-h-[100px]"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsSaveDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleSave}
+              disabled={isLoading || !planName.trim()}
+            >
+              {isLoading ? 'Saving...' : 'Save Plan'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Templates Dialog */}
+      <Dialog open={isTemplatesDialogOpen} onOpenChange={setIsTemplatesDialogOpen}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Formula Templates</DialogTitle>
+            <DialogDescription>
+              Select a template to use as a starting point for your formula plan.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4 max-h-[60vh] overflow-y-auto">
+            {templates.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                No templates available
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {templates.map((template) => (
+                  <Card key={template.id} className="hover:bg-slate-50 cursor-pointer" onClick={() => handleLoadTemplate(template)}>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-md">{template.name}</CardTitle>
+                    </CardHeader>
+                    <CardContent className="pb-4">
+                      <p className="text-sm text-muted-foreground">{template.description || 'No description available'}</p>
+                      <div className="flex gap-2 mt-2">
+                        <Badge variant="outline" className="text-xs">
+                          {template.variables.length} Variables
+                        </Badge>
+                        <Badge variant="outline" className="text-xs">
+                          {template.steps.length} Steps
+                        </Badge>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsTemplatesDialogOpen(false)}>
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Versions Dialog */}
+      <Dialog open={isVersionsDialogOpen} onOpenChange={setIsVersionsDialogOpen}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Version History</DialogTitle>
+            <DialogDescription>
+              View and restore previous versions of your formula plan.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4 max-h-[60vh] overflow-y-auto">
+            {versions.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                No version history available
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {versions
+                  .sort((a, b) => b.version - a.version)
+                  .map((version) => (
+                    <Card key={version.id} className="hover:bg-slate-50">
+                      <CardHeader className="pb-2">
+                        <div className="flex items-center justify-between">
+                          <CardTitle className="text-md">Version {version.version}</CardTitle>
+                          <Badge>{new Date(version.updatedAt).toLocaleDateString()}</Badge>
+                        </div>
+                      </CardHeader>
+                      <CardContent className="pb-2">
+                        <p className="text-sm text-muted-foreground">
+                          {version.variables.length} Variables, {version.steps.length} Steps
+                        </p>
+                      </CardContent>
+                      <CardFooter>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => handleLoadVersion(version)}
+                        >
+                          <Undo2 className="h-4 w-4 mr-2" />
+                          Restore
+                        </Button>
+                      </CardFooter>
+                    </Card>
+                  ))}
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsVersionsDialogOpen(false)}>
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }; 
