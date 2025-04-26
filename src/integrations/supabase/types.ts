@@ -2250,6 +2250,7 @@ export type Database = {
         | "commission_only"
         | "tiered_commission"
         | "team_commission"
+        | "formula"
       sales_payment_method:
         | "tabby"
         | "master_card"
@@ -2404,6 +2405,7 @@ export const Constants = {
         "commission_only",
         "tiered_commission",
         "team_commission",
+        "formula",
       ],
       sales_payment_method: [
         "tabby",

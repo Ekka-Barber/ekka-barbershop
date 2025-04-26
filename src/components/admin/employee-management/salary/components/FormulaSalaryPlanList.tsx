@@ -1,20 +1,10 @@
-/**
- * Formula Salary Plan List
- * 
- * Note: This component works with 'formula' as a salary calculation type,
- * which is defined in the database but not yet reflected in TypeScript type definitions.
- * We use type assertions to handle this discrepancy, and have disabled the ESLint rules
- * for explicit any types throughout this file.
- */
-/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Plus, Edit, Trash2, Calculator } from 'lucide-react';
-import { 
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { PlusCircle, Edit, Trash } from "lucide-react";
+import FormulaPlanConfig, { FormulaPlanData } from '@/components/admin/salary-plans/FormulaPlanConfig';
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -22,269 +12,176 @@ import {
   AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
-  AlertDialogTitle
-} from '@/components/ui/alert-dialog';
-import { FormulaPlanConfig } from '@/components/admin/salary-plans/FormulaPlanConfig';
-import { useToast } from '@/components/ui/use-toast';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Badge } from '@/components/ui/badge';
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
-interface SalaryPlan {
+interface Plan {
   id: string;
   name: string;
-  type: string;
-  config: Record<string, unknown>;
-  created_at: string;
-  updated_at: string;
+  baseAmount: number;
+  formulaType: string;
+  percentage: number;
+  minAmount?: number;
+  maxAmount?: number;
+  description?: string;
+  isActive: boolean;
 }
 
-export const FormulaSalaryPlanList = () => {
-  const { toast } = useToast();
-  const [selectedPlan, setSelectedPlan] = useState<SalaryPlan | null>(null);
-  const [isEditing, setIsEditing] = useState(false);
+interface FormulaSalaryPlanListProps {
+  plans?: Plan[];
+  onSavePlan?: (plan: FormulaPlanData & { id?: string }) => void;
+  onDeletePlan?: (planId: string) => void;
+}
+
+const FormulaSalaryPlanList = ({
+  plans = [],
+  onSavePlan,
+  onDeletePlan,
+}: FormulaSalaryPlanListProps) => {
   const [isCreating, setIsCreating] = useState(false);
-  const [deletingPlanId, setDeletingPlanId] = useState<string | null>(null);
+  const [editingPlan, setEditingPlan] = useState<Plan | null>(null);
+  const [planToDelete, setPlanToDelete] = useState<string | null>(null);
 
-  // Fetch salary plans
-  const { data: salaryPlans = [], isLoading, refetch } = useQuery({
-    queryKey: ['formula-salary-plans'],
-    queryFn: async () => {
-      // Using PostgrestFilterBuilder<unknown> to bypass type checking
-      // TS doesn't know about 'formula' type yet but it exists in the database
-      const query = supabase
-        .from('salary_plans')
-        .select('*') as any;
-      
-      const { data, error } = await query.eq('type', 'formula');
-      
-      if (error) throw error;
-      return data as SalaryPlan[] || [];
-    }
-  });
-
-  const handleEditPlan = (plan: SalaryPlan) => {
-    setSelectedPlan(plan);
-    setIsEditing(true);
-  };
-
-  const handleCreatePlan = () => {
-    setSelectedPlan(null);
+  const handleAddNew = () => {
     setIsCreating(true);
+    setEditingPlan(null);
   };
 
-  const handleDeletePlan = async (planId: string) => {
-    try {
-      const { error } = await supabase
-        .from('salary_plans')
-        .delete()
-        .eq('id', planId);
-      
-      if (error) throw error;
-      
-      toast({
-        title: 'Plan deleted',
-        description: 'The formula salary plan has been deleted successfully'
-      });
-      
-      refetch();
-    } catch (error) {
-      console.error('Error deleting plan:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to delete the salary plan',
-        variant: 'destructive'
-      });
-    } finally {
-      setDeletingPlanId(null);
-    }
+  const handleEdit = (plan: Plan) => {
+    setEditingPlan(plan);
+    setIsCreating(false);
   };
 
-  const handleSave = async (config: Record<string, unknown>) => {
-    try {
-      if (isCreating) {
-        // Create a new plan with the formula type
-        const query = supabase
-          .from('salary_plans')
-          .insert({
-            name: 'New Formula Plan',
-            type: 'formula',
-            config: config as any
-          }) as any;
-        
-        const { error } = await query;
-        
-        if (error) throw error;
-        
-        toast({
-          title: 'Plan created',
-          description: 'The formula salary plan has been created successfully'
-        });
-      } else if (isEditing && selectedPlan) {
-        // Update existing plan
-        const query = supabase
-          .from('salary_plans')
-          .update({ 
-            config: config as any 
-          })
-          .eq('id', selectedPlan.id) as any;
-          
-        const { error } = await query;
-        
-        if (error) throw error;
-        
-        toast({
-          title: 'Plan updated',
-          description: 'The formula salary plan has been updated successfully'
-        });
-      }
-      
-      // Reset state and refetch data
-      setIsCreating(false);
-      setIsEditing(false);
-      setSelectedPlan(null);
-      refetch();
-    } catch (error) {
-      console.error('Error saving plan:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to save the salary plan',
-        variant: 'destructive'
-      });
+  const handleDeleteConfirm = (planId: string) => {
+    setPlanToDelete(null);
+    onDeletePlan?.(planId);
+  };
+
+  const handleSave = (planData: FormulaPlanData) => {
+    if (editingPlan) {
+      onSavePlan?.({ ...planData, id: editingPlan.id });
+    } else {
+      onSavePlan?.(planData);
     }
+    setEditingPlan(null);
+    setIsCreating(false);
   };
 
   const handleCancel = () => {
+    setEditingPlan(null);
     setIsCreating(false);
-    setIsEditing(false);
-    setSelectedPlan(null);
   };
 
-  // Filter to just show formula plans
-  const formulaPlans = salaryPlans.filter(plan => plan.type === 'formula');
-
-  if (isCreating) {
+  if (isCreating || editingPlan) {
     return (
-      <Card className="w-full">
-        <CardHeader>
-          <CardTitle>Create Formula Salary Plan</CardTitle>
-          <CardDescription>Configure a new formula-based salary plan</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <FormulaPlanConfig 
-            onSave={handleSave}
-            onCancel={handleCancel}
-          />
-        </CardContent>
-      </Card>
-    );
-  }
-
-  if (isEditing && selectedPlan) {
-    return (
-      <Card className="w-full">
-        <CardHeader>
-          <CardTitle>Edit Formula Salary Plan</CardTitle>
-          <CardDescription>Update the formula for {selectedPlan.name}</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <FormulaPlanConfig 
-            planId={selectedPlan.id}
-            initialConfig={selectedPlan.config}
-            onSave={handleSave}
-            onCancel={handleCancel}
-          />
-        </CardContent>
-      </Card>
+      <FormulaPlanConfig
+        planId={editingPlan?.id}
+        defaultValues={editingPlan || {}}
+        onSave={handleSave}
+        onCancel={handleCancel}
+      />
     );
   }
 
   return (
-    <Card className="w-full">
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <div>
-          <CardTitle className="text-xl">Formula Salary Plans</CardTitle>
-          <CardDescription>Manage your formula-based salary calculation plans</CardDescription>
-        </div>
-        <Button onClick={handleCreatePlan} className="flex items-center">
-          <Plus className="mr-2 h-4 w-4" />
-          Create Plan
+    <div className="space-y-4">
+      <div className="flex justify-between items-center">
+        <h3 className="text-lg font-medium">Formula-based Salary Plans</h3>
+        <Button onClick={handleAddNew} size="sm">
+          <PlusCircle className="h-4 w-4 mr-2" /> Add Plan
         </Button>
-      </CardHeader>
-      <CardContent>
-        {isLoading ? (
-          <div className="space-y-2">
-            <Skeleton className="h-12 w-full" />
-            <Skeleton className="h-12 w-full" />
-            <Skeleton className="h-12 w-full" />
-          </div>
-        ) : formulaPlans.length === 0 ? (
-          <div className="text-center py-6">
-            <Calculator className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-            <p className="text-muted-foreground">No formula salary plans found</p>
-            <Button onClick={handleCreatePlan} variant="outline" className="mt-4">
-              Create your first plan
-            </Button>
-          </div>
-        ) : (
-          <ScrollArea className="h-[400px]">
-            <div className="space-y-2">
-              {formulaPlans.map((plan) => (
-                <div 
-                  key={plan.id} 
-                  className="flex items-center justify-between p-3 border rounded-md"
-                >
-                  <div>
-                    <div className="font-medium flex items-center">
-                      {plan.name}
-                      <Badge variant="outline" className="ml-2">Formula</Badge>
-                    </div>
-                    <div className="text-sm text-muted-foreground">
-                      Last updated: {new Date(plan.updated_at).toLocaleDateString()}
-                    </div>
-                  </div>
-                  <div className="flex space-x-2">
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      onClick={() => handleEditPlan(plan)}
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => setDeletingPlanId(plan.id)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </ScrollArea>
-        )}
+      </div>
 
-        <AlertDialog open={!!deletingPlanId} onOpenChange={(open) => !open && setDeletingPlanId(null)}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-              <AlertDialogDescription>
-                This action cannot be undone. This will permanently delete the formula salary plan
-                and remove it from our servers.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction
-                onClick={() => deletingPlanId && handleDeletePlan(deletingPlanId)}
-                className="bg-red-600 hover:bg-red-700"
-              >
-                Delete
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-      </CardContent>
-    </Card>
+      {plans.length === 0 ? (
+        <Card>
+          <CardContent className="flex flex-col items-center justify-center py-10">
+            <p className="text-muted-foreground mb-4">No formula plans created yet</p>
+            <Button onClick={handleAddNew} variant="outline">
+              Create First Plan
+            </Button>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+          {plans.map((plan) => (
+            <Card key={plan.id} className={plan.isActive ? "" : "opacity-60"}>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-md">{plan.name}</CardTitle>
+                <CardDescription>
+                  Base: {plan.baseAmount.toLocaleString()}
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="pb-2">
+                <div className="text-sm">
+                  <div className="flex justify-between mb-1">
+                    <span>Type:</span>
+                    <span className="font-medium capitalize">{plan.formulaType}</span>
+                  </div>
+                  {plan.formulaType === 'percentage' && (
+                    <div className="flex justify-between mb-1">
+                      <span>Percentage:</span>
+                      <span className="font-medium">{plan.percentage}%</span>
+                    </div>
+                  )}
+                  {(plan.minAmount !== undefined || plan.maxAmount !== undefined) && (
+                    <div className="flex justify-between">
+                      <span>Range:</span>
+                      <span className="font-medium">
+                        {plan.minAmount !== undefined ? plan.minAmount.toLocaleString() : 'No min'} - 
+                        {plan.maxAmount !== undefined ? plan.maxAmount.toLocaleString() : 'No max'}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+              <CardFooter className="flex justify-end space-x-2 pt-2">
+                <Button 
+                  size="sm" 
+                  variant="ghost"
+                  onClick={() => handleEdit(plan)}
+                >
+                  <Edit className="h-4 w-4 mr-1" />
+                  Edit
+                </Button>
+                <Button 
+                  size="sm" 
+                  variant="ghost" 
+                  className="text-destructive"
+                  onClick={() => setPlanToDelete(plan.id)}
+                >
+                  <Trash className="h-4 w-4 mr-1" />
+                  Delete
+                </Button>
+              </CardFooter>
+            </Card>
+          ))}
+        </div>
+      )}
+
+      <AlertDialog 
+        open={planToDelete !== null} 
+        onOpenChange={(isOpen) => !isOpen && setPlanToDelete(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete the salary plan and cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={() => planToDelete && handleDeleteConfirm(planToDelete)}
+              className="bg-destructive text-destructive-foreground"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
   );
-}; 
+};
+
+export default FormulaSalaryPlanList;
