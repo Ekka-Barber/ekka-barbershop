@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { 
   Card, 
   CardContent, 
@@ -16,7 +16,8 @@ import {
   Check, 
   AlertTriangle, 
   PlayCircle, 
-  RefreshCw
+  RefreshCw,
+  Clock
 } from 'lucide-react';
 import { 
   Alert, 
@@ -31,26 +32,15 @@ import {
   AccordionItem, 
   AccordionTrigger
 } from '@/components/ui/accordion';
-import { FormulaOperator, FormulaStep, FormulaPlan } from '@/lib/salary/types/salary';
+import { FormulaPlan } from '@/lib/salary/types/salary';
 import { FormulaValidator, ValidationResult } from '@/lib/salary/utils/FormulaValidator';
+import { FormulaEvaluator, FormulaEvaluationResult } from '@/lib/salary/utils/FormulaEvaluator';
 
 interface FormulaPlanPreviewProps {
   formulaPlan?: FormulaPlan;
   variables?: FormulaPlan['variables'];
   steps?: FormulaPlan['steps'];
   outputVariable?: string;
-}
-
-interface StepSimulationResult {
-  stepId: string;
-  stepName: string;
-  result: number;
-  resultVariable: string;
-  inputs: Record<string, number>;
-}
-
-interface SimulationContext {
-  [key: string]: number;
 }
 
 export const FormulaPlanPreview = ({ 
@@ -60,11 +50,11 @@ export const FormulaPlanPreview = ({
   outputVariable
 }: FormulaPlanPreviewProps) => {
   // Create a plan object if individual properties are provided
-  const plan: FormulaPlan = formulaPlan || {
+  const plan: FormulaPlan = useMemo(() => formulaPlan || {
     variables: variables || [],
     steps: steps || [],
     outputVariable: outputVariable || ''
-  };
+  }, [formulaPlan, variables, steps, outputVariable]);
   
   const [validationResult, setValidationResult] = useState<ValidationResult>({
     isValid: true,
@@ -73,8 +63,7 @@ export const FormulaPlanPreview = ({
   });
   
   const [sampleData, setSampleData] = useState<Record<string, number>>({});
-  const [calculationResults, setCalculationResults] = useState<StepSimulationResult[]>([]);
-  const [finalResult, setFinalResult] = useState<number | null>(null);
+  const [evaluationResult, setEvaluationResult] = useState<FormulaEvaluationResult | null>(null);
   const [activeTab, setActiveTab] = useState('validation');
   const [simulating, setSimulating] = useState(false);
   
@@ -100,47 +89,16 @@ export const FormulaPlanPreview = ({
     });
   };
   
-  // Run the formula simulation
+  // Run the formula simulation using the optimized evaluator
   const simulateFormula = () => {
     setSimulating(true);
     
     try {
-      // Initialize context with sample data
-      const context: SimulationContext = { ...sampleData };
-      const stepResults: StepSimulationResult[] = [];
-      
-      // Process each step in order
-      for (const step of plan.steps) {
-        // Get inputs for this step
-        const inputs = getStepInputs(step, context);
-        
-        // Calculate result for this step
-        const result = evaluateStep(step, context);
-        
-        // Store the result in the context
-        if (step.result) {
-          context[step.result] = result;
-        }
-        
-        // Record step results for display
-        stepResults.push({
-          stepId: step.id,
-          stepName: step.name,
-          result,
-          resultVariable: step.result || 'unknown',
-          inputs
-        });
-      }
+      // Use the FormulaEvaluator to evaluate the formula
+      const result = FormulaEvaluator.evaluateFormula(plan, sampleData);
       
       // Update state with results
-      setCalculationResults(stepResults);
-      
-      // Set final result
-      if (plan.outputVariable && context[plan.outputVariable] !== undefined) {
-        setFinalResult(context[plan.outputVariable]);
-      } else {
-        setFinalResult(null);
-      }
+      setEvaluationResult(result);
       
       // Switch to the preview tab
       setActiveTab('preview');
@@ -151,144 +109,21 @@ export const FormulaPlanPreview = ({
     }
   };
   
-  // Get inputs used by a step for display
-  const getStepInputs = (step: FormulaStep, context: SimulationContext): Record<string, number> => {
-    const inputs: Record<string, number> = {};
-    
-    // If operation is a string (variable reference)
-    if (typeof step.operation === 'string' && !isNumeric(step.operation)) {
-      inputs[step.operation] = context[step.operation] || 0;
-      return inputs;
-    }
-    
-    // If operation is a FormulaOperator
-    if (typeof step.operation === 'object') {
-      const operation = step.operation as FormulaOperator;
-      
-      // Process each parameter
-      for (const param of operation.parameters) {
-        if (typeof param === 'string' && !isNumeric(param)) {
-          // It's a variable reference
-          inputs[param] = context[param] || 0;
-        }
-        // Nested operations are handled recursively in the evaluateOperator function
-      }
-    }
-    
-    return inputs;
+  // Format a number as currency
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 2
+    }).format(amount);
   };
   
-  // Evaluate a formula step
-  const evaluateStep = (step: FormulaStep, context: SimulationContext): number => {
-    // If the operation is just a string (variable reference) or number
-    if (typeof step.operation === 'string') {
-      if (isNumeric(step.operation)) {
-        return parseFloat(step.operation);
-      }
-      return context[step.operation] || 0;
+  // Format execution time in milliseconds
+  const formatExecutionTime = (ms: number) => {
+    if (ms < 1) {
+      return '< 1 ms';
     }
-    
-    if (typeof step.operation === 'number') {
-      return step.operation;
-    }
-    
-    // Otherwise, it's an operation
-    const operation = step.operation as FormulaOperator;
-    return evaluateOperator(operation, context);
-  };
-  
-  // Evaluate a formula operator
-  const evaluateOperator = (operator: FormulaOperator, context: SimulationContext): number => {
-    const { type, parameters } = operator;
-    
-    // Evaluate parameters first (if they're nested operations)
-    const evaluatedParams = parameters.map(param => {
-      if (typeof param === 'object' && param !== null) {
-        if ('operation' in param) {
-          // This is a nested operation
-          const nestedStep = param as unknown as FormulaStep;
-          return evaluateStep(nestedStep, context);
-        }
-        return 0; // Default for unknown object types
-      }
-      
-      if (typeof param === 'string') {
-        return isNumeric(param) ? parseFloat(param) : (context[param] || 0);
-      }
-      
-      return param as number;
-    });
-    
-    // Execute the operation based on type
-    switch (type) {
-      case 'add':
-        return evaluatedParams.reduce((sum, val) => sum + val, 0);
-        
-      case 'subtract':
-        return evaluatedParams[0] - evaluatedParams.slice(1).reduce((sum, val) => sum + val, 0);
-        
-      case 'multiply':
-        return evaluatedParams.reduce((product, val) => product * val, 1);
-        
-      case 'divide':
-        if (evaluatedParams[1] === 0) {
-          throw new Error('Division by zero');
-        }
-        return evaluatedParams[0] / evaluatedParams[1];
-        
-      case 'percent':
-        return evaluatedParams[0] / 100;
-        
-      case 'round':
-        return Math.round(evaluatedParams[0]);
-        
-      case 'abs':
-        return Math.abs(evaluatedParams[0]);
-        
-      case 'min':
-        return Math.min(...evaluatedParams);
-        
-      case 'max':
-        return Math.max(...evaluatedParams);
-        
-      case 'equal':
-        return evaluatedParams[0] === evaluatedParams[1] ? 1 : 0;
-        
-      case 'notEqual':
-        return evaluatedParams[0] !== evaluatedParams[1] ? 1 : 0;
-        
-      case 'greaterThan':
-        return evaluatedParams[0] > evaluatedParams[1] ? 1 : 0;
-        
-      case 'lessThan':
-        return evaluatedParams[0] < evaluatedParams[1] ? 1 : 0;
-        
-      case 'greaterThanOrEqual':
-        return evaluatedParams[0] >= evaluatedParams[1] ? 1 : 0;
-        
-      case 'lessThanOrEqual':
-        return evaluatedParams[0] <= evaluatedParams[1] ? 1 : 0;
-        
-      case 'and':
-        return evaluatedParams.every(val => val !== 0) ? 1 : 0;
-        
-      case 'or':
-        return evaluatedParams.some(val => val !== 0) ? 1 : 0;
-        
-      case 'not':
-        return evaluatedParams[0] === 0 ? 1 : 0;
-        
-      case 'if':
-        return evaluatedParams[0] !== 0 ? evaluatedParams[1] : evaluatedParams[2];
-        
-      default:
-        return 0;
-    }
-  };
-  
-  // Helper to check if a string is numeric
-  const isNumeric = (value: string): boolean => {
-    return !isNaN(parseFloat(value)) && isFinite(Number(value));
+    return `${ms.toFixed(2)} ms`;
   };
   
   return (
@@ -428,7 +263,7 @@ export const FormulaPlanPreview = ({
           </TabsContent>
 
           <TabsContent value="preview">
-            {calculationResults.length === 0 ? (
+            {!evaluationResult ? (
               <div className="text-center py-8">
                 <PlayCircle className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
                 <p className="text-muted-foreground">
@@ -447,58 +282,64 @@ export const FormulaPlanPreview = ({
                 <div className="bg-blue-50 p-4 rounded-md">
                   <h3 className="font-medium mb-2">Final Result: {plan.outputVariable}</h3>
                   <div className="text-2xl font-bold">
-                    {finalResult !== null ? finalResult.toLocaleString(undefined, {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2
-                    }) : 'N/A'}
+                    {formatCurrency(evaluationResult.finalResult)}
+                  </div>
+                  <div className="flex items-center text-xs text-blue-500 mt-2">
+                    <Clock className="h-3 w-3 mr-1" />
+                    Execution time: {formatExecutionTime(evaluationResult.totalExecutionTimeMs)}
                   </div>
                 </div>
                 
-                <Accordion type="single" collapsible className="w-full">
-                  <AccordionItem value="step-by-step">
-                    <AccordionTrigger>Step-by-Step Calculation</AccordionTrigger>
-                    <AccordionContent>
-                      <div className="space-y-4">
-                        {calculationResults.map((stepResult, index) => (
-                          <Card key={stepResult.stepId} className="overflow-hidden">
-                            <CardHeader className="py-3 bg-gray-50">
-                              <div className="flex items-start">
-                                <Badge className="mr-2">{index + 1}</Badge>
-                                <div>
-                                  <CardTitle className="text-base">{stepResult.stepName}</CardTitle>
-                                  <CardDescription>Result stored in: <code>{stepResult.resultVariable}</code></CardDescription>
-                                </div>
-                              </div>
-                            </CardHeader>
-                            <CardContent className="py-3">
-                              <div className="grid grid-cols-2 gap-2 mb-2">
-                                <div className="text-sm font-medium">Input Variables:</div>
-                                <div className="text-sm">
-                                  {Object.entries(stepResult.inputs).length > 0 ? (
-                                    <div className="space-y-1">
-                                      {Object.entries(stepResult.inputs).map(([name, value]) => (
-                                        <div key={name} className="flex justify-between">
-                                          <span>{name}:</span>
-                                          <span className="font-mono">{value}</span>
-                                        </div>
-                                      ))}
-                                    </div>
-                                  ) : (
-                                    <span className="text-gray-500">No input variables</span>
-                                  )}
-                                </div>
-                              </div>
+                <div>
+                  <h3 className="text-sm font-medium mb-2">Calculation Steps</h3>
+                  <Accordion type="multiple" defaultValue={["0"]}>
+                    {evaluationResult.steps.map((step, index) => (
+                      <AccordionItem 
+                        key={step.stepId} 
+                        value={String(index)}
+                        className="border rounded-md mb-2 overflow-hidden"
+                      >
+                        <AccordionTrigger className="px-4 py-2 hover:bg-slate-50">
+                          <div className="flex items-center justify-between w-full">
+                            <div className="flex items-center">
+                              <Badge className="mr-2">{index + 1}</Badge>
+                              <span>{step.stepName}</span>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <Badge variant="outline" className="text-xs">
+                                Result: {formatCurrency(step.result)}
+                              </Badge>
+                              {step.executionTimeMs && (
+                                <Badge variant="outline" className="text-xs text-slate-500">
+                                  {formatExecutionTime(step.executionTimeMs)}
+                                </Badge>
+                              )}
+                            </div>
+                          </div>
+                        </AccordionTrigger>
+                        <AccordionContent className="px-4 pb-3 pt-1">
+                          <div className="space-y-2 text-sm">
+                            <div>
+                              <div className="mb-1 font-medium">Inputs:</div>
                               <div className="grid grid-cols-2 gap-2">
-                                <div className="text-sm font-medium">Result:</div>
-                                <div className="text-sm font-mono">{stepResult.result}</div>
+                                {Object.entries(step.inputs).map(([key, value]) => (
+                                  <div key={key} className="flex justify-between space-x-2 px-2 py-1 bg-gray-50 rounded">
+                                    <span>{key}:</span>
+                                    <span className="font-medium">{formatCurrency(value)}</span>
+                                  </div>
+                                ))}
                               </div>
-                            </CardContent>
-                          </Card>
-                        ))}
-                      </div>
-                    </AccordionContent>
-                  </AccordionItem>
-                </Accordion>
+                            </div>
+                            <div className="flex justify-between pt-2 border-t">
+                              <span>Stores result in:</span>
+                              <Badge variant="secondary">{step.resultVariable}</Badge>
+                            </div>
+                          </div>
+                        </AccordionContent>
+                      </AccordionItem>
+                    ))}
+                  </Accordion>
+                </div>
                 
                 <Button 
                   variant="outline" 
