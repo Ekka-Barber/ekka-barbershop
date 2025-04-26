@@ -292,6 +292,20 @@ export const SalaryDashboard = ({
                 Create and manage formula-based salary plans
               </p>
             </div>
+            
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+              <h3 className="text-lg font-semibold text-blue-800 mb-2">🆕 Enhanced Formula Builder</h3>
+              <p className="text-blue-700 mb-3">
+                The Formula Salary Plan builder has been upgraded with powerful new features:
+              </p>
+              <ul className="list-disc pl-6 text-blue-600 space-y-1">
+                <li>Interactive employee property selection with searchable paths</li>
+                <li>Real-time step dependency visualization to prevent circular references</li>
+                <li>Enhanced simulation with importable/exportable sample data</li>
+                <li>Improved step-by-step calculation preview with detailed execution breakdown</li>
+              </ul>
+            </div>
+            
             <Separator className="my-4" />
             <FormulaSalaryPlanList />
           </div>
