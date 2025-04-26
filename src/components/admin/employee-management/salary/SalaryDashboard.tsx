@@ -10,10 +10,11 @@ import { SalaryTable } from './components/SalaryTable';
 /* import { useSalaryFiltering } from './hooks/useSalaryFiltering'; */
 import { useDashboardStats } from './hooks/useDashboardStats';
 import { Button } from '@/components/ui/button';
-import { Download, Calculator } from 'lucide-react';
+import { Download, Calculator, List } from 'lucide-react';
 import { EmployeeSalary } from './hooks/utils/salaryTypes';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { FormulaSalaryPlanList } from './components/FormulaSalaryPlanList';
+import { ExistingSalaryPlansList } from './components/ExistingSalaryPlansList';
 
 interface SalaryDashboardProps {
   employees: Employee[];
@@ -193,6 +194,10 @@ export const SalaryDashboard = ({
               <TabsTrigger value="overview" className="flex items-center gap-1">
                 Overview
               </TabsTrigger>
+              <TabsTrigger value="existing-plans" className="flex items-center gap-1">
+                <List className="h-4 w-4 mr-1" />
+                Existing Salary Plans
+              </TabsTrigger>
               <TabsTrigger value="formula-plans" className="flex items-center gap-1">
                 <Calculator className="h-4 w-4 mr-1" />
                 Formula Salary Plans
@@ -273,6 +278,10 @@ export const SalaryDashboard = ({
               />
             )}
           </div>
+        </TabsContent>
+        
+        <TabsContent value="existing-plans">
+          <ExistingSalaryPlansList />
         </TabsContent>
         
         <TabsContent value="formula-plans">
