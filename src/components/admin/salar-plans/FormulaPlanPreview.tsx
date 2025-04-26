@@ -7,8 +7,6 @@ import {
   CardHeader, 
   CardTitle 
 } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { 
@@ -16,8 +14,8 @@ import {
   Check, 
   AlertTriangle, 
   PlayCircle, 
-  RefreshCw,
-  Clock
+  Clock,
+  Calculator
 } from 'lucide-react';
 import { 
   Alert, 
@@ -35,6 +33,8 @@ import {
 import { FormulaPlan } from '@/lib/salary/types/salary';
 import { FormulaValidator, ValidationResult } from '@/lib/salary/utils/FormulaValidator';
 import { FormulaEvaluator, FormulaEvaluationResult } from '@/lib/salary/utils/FormulaEvaluator';
+import { InteractiveSampleData } from './InteractiveSampleData';
+import { StepDependencyVisualizer } from './StepDependencyVisualizer';
 
 interface FormulaPlanPreviewProps {
   formulaPlan?: FormulaPlan;
@@ -65,7 +65,6 @@ export const FormulaPlanPreview = ({
   const [sampleData, setSampleData] = useState<Record<string, number>>({});
   const [evaluationResult, setEvaluationResult] = useState<FormulaEvaluationResult | null>(null);
   const [activeTab, setActiveTab] = useState('validation');
-  const [simulating, setSimulating] = useState(false);
   
   // Validate formula plan when it changes
   useEffect(() => {
@@ -80,19 +79,8 @@ export const FormulaPlanPreview = ({
     setSampleData(initialData);
   }, [plan]);
   
-  // Handle updating sample data
-  const handleSampleDataChange = (variableName: string, value: string) => {
-    const numValue = parseFloat(value) || 0;
-    setSampleData({
-      ...sampleData,
-      [variableName]: numValue
-    });
-  };
-  
   // Run the formula simulation using the optimized evaluator
   const simulateFormula = () => {
-    setSimulating(true);
-    
     try {
       // Use the FormulaEvaluator to evaluate the formula
       const result = FormulaEvaluator.evaluateFormula(plan, sampleData);
@@ -104,8 +92,6 @@ export const FormulaPlanPreview = ({
       setActiveTab('preview');
     } catch (error) {
       console.error('Simulation error:', error);
-    } finally {
-      setSimulating(false);
     }
   };
   
@@ -215,47 +201,30 @@ export const FormulaPlanPreview = ({
           </TabsContent>
 
           <TabsContent value="simulation">
-            <div className="space-y-4">
-              <div className="grid gap-4">
-                <h3 className="text-sm font-medium">Sample Data</h3>
-                <p className="text-sm text-muted-foreground">
-                  Enter sample values for the variables to simulate the formula calculation.
-                </p>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {plan.variables.map((variable) => (
-                    <div key={variable.name} className="flex items-center space-x-2">
-                      <Label htmlFor={`sim-${variable.name}`} className="w-1/3">{variable.name}:</Label>
-                      <Input
-                        id={`sim-${variable.name}`}
-                        type="number"
-                        value={sampleData[variable.name] || 0}
-                        onChange={(e) => handleSampleDataChange(variable.name, e.target.value)}
-                        className="w-2/3"
-                      />
-                    </div>
-                  ))}
-                </div>
-              </div>
-              
-              <Button 
-                onClick={simulateFormula} 
-                disabled={simulating || validationResult.errors.length > 0}
-                className="mt-4"
-              >
-                {simulating ? (
-                  <><RefreshCw className="mr-2 h-4 w-4 animate-spin" /> Simulating...</>
-                ) : (
-                  <><PlayCircle className="mr-2 h-4 w-4" /> Run Simulation</>
-                )}
-              </Button>
-              
-              {validationResult.errors.length > 0 && (
-                <Alert variant="destructive" className="mt-4">
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertTitle>Cannot Run Simulation</AlertTitle>
+            <div className="space-y-6">
+              {validationResult.isValid ? (
+                <>
+                  <InteractiveSampleData 
+                    variables={plan.variables}
+                    sampleData={sampleData}
+                    onUpdate={setSampleData}
+                    onSimulate={simulateFormula}
+                  />
+                  
+                  <div className="mt-4">
+                    <StepDependencyVisualizer
+                      steps={plan.steps}
+                      variables={plan.variables}
+                      outputVariable={plan.outputVariable}
+                    />
+                  </div>
+                </>
+              ) : (
+                <Alert className="bg-amber-50 text-amber-800 border-amber-200">
+                  <AlertTriangle className="h-4 w-4" />
+                  <AlertTitle>Formula Invalid</AlertTitle>
                   <AlertDescription>
-                    Please fix the validation errors before running the simulation.
+                    Please fix validation errors before simulating the formula.
                   </AlertDescription>
                 </Alert>
               )}
@@ -263,91 +232,113 @@ export const FormulaPlanPreview = ({
           </TabsContent>
 
           <TabsContent value="preview">
-            {!evaluationResult ? (
-              <div className="text-center py-8">
-                <PlayCircle className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                <p className="text-muted-foreground">
-                  Run a simulation first to see the calculation results.
-                </p>
-                <Button 
-                  variant="outline" 
-                  onClick={() => setActiveTab('simulation')} 
-                  className="mt-4"
-                >
-                  Go to Simulation
-                </Button>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                <div className="bg-blue-50 p-4 rounded-md">
-                  <h3 className="font-medium mb-2">Final Result: {plan.outputVariable}</h3>
-                  <div className="text-2xl font-bold">
-                    {formatCurrency(evaluationResult.finalResult)}
-                  </div>
-                  <div className="flex items-center text-xs text-blue-500 mt-2">
-                    <Clock className="h-3 w-3 mr-1" />
-                    Execution time: {formatExecutionTime(evaluationResult.totalExecutionTimeMs)}
+            {evaluationResult ? (
+              <>
+                <div className="mb-4 p-4 bg-muted/30 rounded-md">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <h3 className="text-lg font-medium flex items-center">
+                        <Calculator className="mr-2 h-5 w-5 text-primary" />
+                        Final Result
+                      </h3>
+                      <div className="mt-2 text-3xl font-bold">
+                        {formatCurrency(evaluationResult.finalResult)}
+                      </div>
+                      {evaluationResult.totalExecutionTimeMs && (
+                        <div className="mt-1 text-xs text-muted-foreground flex items-center">
+                          <Clock className="mr-1 h-3 w-3" />
+                          Calculated in {formatExecutionTime(evaluationResult.totalExecutionTimeMs)}
+                        </div>
+                      )}
+                    </div>
+                    <div className="border-l pl-4">
+                      <h3 className="text-sm font-medium mb-2">Output Variables</h3>
+                      {evaluationResult.steps
+                        .filter(step => step.resultVariable)
+                        .map(step => (
+                          <div key={step.stepId} className="flex items-center justify-between mb-1">
+                            <div className="flex items-center">
+                              <Badge variant="outline" className="mr-2">
+                                {step.resultVariable}
+                              </Badge>
+                              <span className="text-xs text-muted-foreground">{step.stepName}</span>
+                            </div>
+                            <span className="font-medium">{formatCurrency(step.result)}</span>
+                          </div>
+                        ))}
+                    </div>
                   </div>
                 </div>
                 
-                <div>
-                  <h3 className="text-sm font-medium mb-2">Calculation Steps</h3>
-                  <Accordion type="multiple" defaultValue={["0"]}>
+                <h3 className="text-base font-medium mb-2">Step-by-Step Execution</h3>
+                <ScrollArea className="h-[300px]">
+                  <Accordion type="multiple" className="w-full">
                     {evaluationResult.steps.map((step, index) => (
-                      <AccordionItem 
-                        key={step.stepId} 
-                        value={String(index)}
-                        className="border rounded-md mb-2 overflow-hidden"
-                      >
-                        <AccordionTrigger className="px-4 py-2 hover:bg-slate-50">
-                          <div className="flex items-center justify-between w-full">
+                      <AccordionItem key={step.stepId} value={step.stepId}>
+                        <AccordionTrigger className="hover:bg-muted/40 px-3">
+                          <div className="flex-1 flex items-center justify-between pr-4">
                             <div className="flex items-center">
                               <Badge className="mr-2">{index + 1}</Badge>
                               <span>{step.stepName}</span>
                             </div>
-                            <div className="flex items-center space-x-2">
-                              <Badge variant="outline" className="text-xs">
-                                Result: {formatCurrency(step.result)}
+                            <div className="flex items-center space-x-4">
+                              <Badge variant="outline" className="font-mono">
+                                {formatCurrency(step.result)}
                               </Badge>
-                              {step.executionTimeMs && (
-                                <Badge variant="outline" className="text-xs text-slate-500">
-                                  {formatExecutionTime(step.executionTimeMs)}
-                                </Badge>
-                              )}
+                              <div className="text-xs text-muted-foreground">
+                                {formatExecutionTime(step.executionTimeMs)}
+                              </div>
                             </div>
                           </div>
                         </AccordionTrigger>
-                        <AccordionContent className="px-4 pb-3 pt-1">
-                          <div className="space-y-2 text-sm">
+                        <AccordionContent className="px-4 pb-3">
+                          <div className="text-sm space-y-3">
                             <div>
-                              <div className="mb-1 font-medium">Inputs:</div>
+                              <h4 className="font-medium text-xs uppercase text-muted-foreground mb-1">Inputs</h4>
                               <div className="grid grid-cols-2 gap-2">
-                                {Object.entries(step.inputs).map(([key, value]) => (
-                                  <div key={key} className="flex justify-between space-x-2 px-2 py-1 bg-gray-50 rounded">
-                                    <span>{key}:</span>
-                                    <span className="font-medium">{formatCurrency(value)}</span>
+                                {Object.entries(step.inputs).map(([name, value]) => (
+                                  <div 
+                                    key={name} 
+                                    className="flex items-center justify-between p-2 rounded-md bg-muted/30 text-sm"
+                                  >
+                                    <Badge variant="outline" className="font-mono">{name}</Badge>
+                                    <span>{formatCurrency(value)}</span>
                                   </div>
                                 ))}
                               </div>
                             </div>
-                            <div className="flex justify-between pt-2 border-t">
-                              <span>Stores result in:</span>
-                              <Badge variant="secondary">{step.resultVariable}</Badge>
+                            
+                            <div>
+                              <h4 className="font-medium text-xs uppercase text-muted-foreground mb-1">Result</h4>
+                              <div className="p-2 rounded-md bg-green-50 border border-green-100 flex justify-between items-center">
+                                <div className="flex items-center">
+                                  <span className="mr-2">Stored as:</span>
+                                  <Badge variant="outline" className="font-mono">{step.resultVariable}</Badge>
+                                </div>
+                                <span className="font-medium">{formatCurrency(step.result)}</span>
+                              </div>
                             </div>
                           </div>
                         </AccordionContent>
                       </AccordionItem>
                     ))}
                   </Accordion>
-                </div>
-                
+                </ScrollArea>
+              </>
+            ) : (
+              <div className="text-center py-12">
+                <PlayCircle className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+                <h3 className="text-lg font-medium mb-2">No Simulation Results</h3>
+                <p className="text-muted-foreground mb-4">
+                  Run a simulation to see the step-by-step results of your formula calculation.
+                </p>
                 <Button 
                   variant="outline" 
-                  onClick={() => setActiveTab('simulation')}
-                  className="mt-2"
+                  onClick={() => {
+                    setActiveTab('simulation');
+                  }}
                 >
-                  <RefreshCw className="mr-2 h-4 w-4" />
-                  Modify Sample Data
+                  Go to Simulation
                 </Button>
               </div>
             )}
