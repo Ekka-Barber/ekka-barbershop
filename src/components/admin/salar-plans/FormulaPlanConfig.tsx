@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { FormulaJsonEditor } from './FormulaJsonEditor';
 
 interface FormulaPlanConfigProps {
   planId?: string;
@@ -100,6 +101,47 @@ export const FormulaPlanConfig = ({
     }
   };
   
+  const handleJsonSave = async (formula: FormulaPlan) => {
+    try {
+      setIsLoading(true);
+      
+      const updatedConfig = {
+        ...initialConfig,
+        formula: JSON.parse(JSON.stringify(formula)) // Convert to plain JSON object
+      };
+      
+      if (onSave) {
+        await onSave(updatedConfig);
+      } else if (planId) {
+        const { error } = await supabase
+          .from('salary_plans')
+          .update({ config: updatedConfig })
+          .eq('id', planId);
+        
+        if (error) {
+          throw error;
+        }
+      } else {
+        throw new Error('No plan ID or onSave callback provided');
+      }
+      
+      toast({
+        title: 'Formula saved',
+        description: 'The formula JSON has been saved successfully'
+      });
+    } catch (error) {
+      console.error('Error saving formula JSON:', error);
+      toast({
+        title: 'Error saving formula',
+        description: error instanceof Error ? error.message : 'An unknown error occurred',
+        variant: 'destructive'
+      });
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
   return (
     <Card className="w-full">
       <CardHeader>
@@ -112,7 +154,7 @@ export const FormulaPlanConfig = ({
         <Tabs defaultValue="visual" value={activeTab} onValueChange={setActiveTab}>
           <TabsList>
             <TabsTrigger value="visual">Visual Builder</TabsTrigger>
-            <TabsTrigger value="raw" disabled>Raw JSON (Coming soon)</TabsTrigger>
+            <TabsTrigger value="raw">Raw JSON</TabsTrigger>
           </TabsList>
           <TabsContent value="visual" className="pt-4">
             <FormulaPlanBuilder 
@@ -121,9 +163,10 @@ export const FormulaPlanConfig = ({
             />
           </TabsContent>
           <TabsContent value="raw" className="pt-4">
-            <div className="text-sm text-muted-foreground">
-              Advanced JSON editor for formula configuration (Coming in a future update)
-            </div>
+            <FormulaJsonEditor
+              initialValue={initialFormula}
+              onSave={handleJsonSave}
+            />
           </TabsContent>
         </Tabs>
         
