@@ -1,19 +1,32 @@
-
 import { useState } from 'react';
 import { Employee } from '@/types/employee';
-import { SalaryPlanType, SalaryPlan, Transaction } from '@/lib/salary/types/salary';
+import {
+  SalaryPlanType,
+  SalaryPlan,
+  Transaction,
+  EmployeeBonus,
+  EmployeeDeduction,
+  EmployeeLoan
+} from '@/lib/salary/types/salary';
 import { SalaryCalculatorFactory } from '@/lib/salary/calculators/CalculatorFactory';
-import { SalesData } from '@/lib/salary/calculators/BaseCalculator';
 import { EmployeeSalary, SalaryCalculationError } from './utils/salaryTypes';
+
+// Define a more specific type for sales data items
+interface MonthlySalesDataItem {
+  employee_name?: string;
+  id?: string;
+  sales_amount?: string | number; // Allow string or number, will be converted
+  // Add other relevant fields if they exist in your sales data
+}
 
 interface CalculateSalariesProps {
   employees: Employee[];
   selectedMonth: string;
-  salesData: any[];
-  salaryPlans: any[];
-  bonuses: any[];
-  deductions: any[];
-  loans: any[];
+  salesData: MonthlySalesDataItem[]; // Use specific type
+  salaryPlans: SalaryPlan[]; // Use imported type
+  bonuses: EmployeeBonus[]; // Use imported type
+  deductions: EmployeeDeduction[]; // Use imported type
+  loans: EmployeeLoan[]; // Use imported type
 }
 
 /**
@@ -46,13 +59,13 @@ export const useSalaryCalculation = () => {
           
           const salesAmount = employeeSales ? Number(employeeSales.sales_amount) : 0;
           
-          console.log(`Sales lookup for ${employee.name}:`, {
+          /* console.log(`Sales lookup for ${employee.name}:`, {
             found: !!employeeSales,
             salesAmount,
             employeeId: employee.id,
             employeeName: employee.name,
             salesRecord: employeeSales
-          });
+          }); */ // Commented out debug log
           
           const salaryPlan = salaryPlans.find(plan => plan.id === employee.salary_plan_id);
           
@@ -101,6 +114,7 @@ export const useSalaryCalculation = () => {
                 ]);
               }
             } catch (error) {
+              // Keep this error log as it indicates a calculation failure
               console.error(`Error calculating salary for ${employee.name}:`, error);
               
               calculationError = error instanceof Error 
@@ -140,6 +154,7 @@ export const useSalaryCalculation = () => {
           return {
             id: employee.id,
             name: employee.name,
+            salesAmount,
             baseSalary,
             commission,
             bonus: bonusTotal,
@@ -154,6 +169,7 @@ export const useSalaryCalculation = () => {
       
       return salaries;
     } catch (error) {
+      // Keep this top-level error log
       console.error('Error calculating salaries:', error);
       return [];
     }
