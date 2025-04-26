@@ -10,21 +10,24 @@ import { SalaryTable } from './components/SalaryTable';
 /* import { useSalaryFiltering } from './hooks/useSalaryFiltering'; */
 import { useDashboardStats } from './hooks/useDashboardStats';
 import { Button } from '@/components/ui/button';
-import { Download } from 'lucide-react';
+import { Download, Calculator } from 'lucide-react';
 import { EmployeeSalary } from './hooks/utils/salaryTypes';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { FormulaSalaryPlanList } from './components/FormulaSalaryPlanList';
 
 interface SalaryDashboardProps {
   employees: Employee[];
 }
 
 export const SalaryDashboard = ({ 
-  employees, 
+  employees
 }: SalaryDashboardProps) => {
   const currentDate = new Date();
   const currentYear = currentDate.getFullYear();
   const currentMonth = currentDate.getMonth();
   
   const [pickerDate, setPickerDate] = useState<Date>(new Date(currentYear, currentMonth));
+  const [salaryTab, setSalaryTab] = useState<string>("overview");
   
   const [selectedMonth, setSelectedMonth] = useState<string>(
     `${currentYear}-${(currentMonth + 1).toString().padStart(2, '0')}`
@@ -35,6 +38,23 @@ export const SalaryDashboard = ({
   // Auto-refresh settings
   const [autoRefresh, setAutoRefresh] = useState(false);
   const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
+  
+  // Check URL for view=formula-plans parameter when component mounts
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      const viewParam = urlParams.get('view');
+      
+      if (viewParam === 'formula-plans') {
+        setSalaryTab('formula-plans');
+        
+        // Update the URL to remove the view parameter to avoid sticking on formula plans tab
+        const newUrl = new URL(window.location.href);
+        newUrl.searchParams.delete('view');
+        window.history.replaceState({}, '', newUrl.toString());
+      }
+    }
+  }, []);
   
   const { salaryData, isLoading, getEmployeeTransactions, refreshData } = useSalaryData({
     employees,
@@ -166,77 +186,108 @@ export const SalaryDashboard = ({
   
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <SalaryDashboardHeader
-          selectedMonth={selectedMonth}
-          handleMonthChange={handleMonthChange}
-          pickerDate={pickerDate}
-          handleRefresh={refreshData}
-          isLoading={isLoading}
-        />
-        
-        <div className="flex items-center gap-2">
-          {!isLoading && salaryData.length > 0 && !selectedEmployeeId && (
-            <>
-              <Button 
-                variant={autoRefresh ? "default" : "outline"} 
-                className="flex items-center gap-1"
-                onClick={toggleAutoRefresh}
-              >
-                {autoRefresh ? "Auto-Refresh On" : "Auto-Refresh Off"}
-                {lastRefresh && autoRefresh && (
-                  <span className="text-xs ml-1">
-                    (Last: {lastRefresh.toLocaleTimeString()})
-                  </span>
-                )}
-              </Button>
-              
-              <Button 
-                variant="outline" 
-                className="flex items-center gap-1"
-                onClick={exportSalaryData}
-              >
-                <Download className="h-4 w-4 mr-1" />
-                Export
-              </Button>
-            </>
-          )}
+      <Tabs defaultValue="overview" value={salaryTab} onValueChange={setSalaryTab} className="space-y-6">
+        <div className="flex justify-between items-center">
+          <div className="flex-1">
+            <TabsList className="mb-4">
+              <TabsTrigger value="overview" className="flex items-center gap-1">
+                Overview
+              </TabsTrigger>
+              <TabsTrigger value="formula-plans" className="flex items-center gap-1">
+                <Calculator className="h-4 w-4 mr-1" />
+                Formula Salary Plans
+              </TabsTrigger>
+            </TabsList>
+          </div>
+          
+          <div className="flex items-center gap-2">
+            {salaryTab === "overview" && !isLoading && salaryData.length > 0 && !selectedEmployeeId && (
+              <>
+                <Button 
+                  variant={autoRefresh ? "default" : "outline"} 
+                  className="flex items-center gap-1"
+                  onClick={toggleAutoRefresh}
+                >
+                  {autoRefresh ? "Auto-Refresh On" : "Auto-Refresh Off"}
+                  {lastRefresh && autoRefresh && (
+                    <span className="text-xs ml-1">
+                      (Last: {lastRefresh.toLocaleTimeString()})
+                    </span>
+                  )}
+                </Button>
+                
+                <Button 
+                  variant="outline" 
+                  className="flex items-center gap-1"
+                  onClick={exportSalaryData}
+                >
+                  <Download className="h-4 w-4 mr-1" />
+                  Export
+                </Button>
+              </>
+            )}
+          </div>
         </div>
-      </div>
-      
-      <Separator />
-      
-      {!isLoading && salaryData.length > 0 && (
-        <SalaryDashboardStats
-          totalPayout={stats.totalPayout}
-          avgSalary={stats.avgSalary}
-          employeeCount={stats.employeeCount}
-        />
-      )}
-      
-      <div className="mt-4">
-        {selectedEmployeeId && selectedEmployee && selectedSalaryData ? (
-          <SalaryBreakdown 
-            selectedEmployeeId={selectedEmployeeId}
-            employeeName={selectedEmployee.name}
-            salaryData={selectedSalaryData}
-            isLoading={isLoading}
-            bonusTransactions={transactions.bonuses}
-            deductionTransactions={transactions.deductions}
-            loanTransactions={transactions.loans}
-            salesData={transactions.salesData}
-            onBack={handleBack}
-            selectedMonth={selectedMonth}
-          />
-        ) : (
-          <SalaryTable 
-            salaryData={salaryData}
-            isLoading={isLoading}
-            onEmployeeSelect={handleEmployeeSelect}
-            getMonthlyChange={getMonthlyChange}
-          />
-        )}
-      </div>
+        
+        <TabsContent value="overview">
+          <div className="flex justify-between items-center">
+            <SalaryDashboardHeader
+              selectedMonth={selectedMonth}
+              handleMonthChange={handleMonthChange}
+              pickerDate={pickerDate}
+              handleRefresh={refreshData}
+              isLoading={isLoading}
+            />
+          </div>
+          
+          <Separator className="my-4" />
+          
+          {!isLoading && salaryData.length > 0 && (
+            <SalaryDashboardStats
+              totalPayout={stats.totalPayout}
+              avgSalary={stats.avgSalary}
+              employeeCount={stats.employeeCount}
+            />
+          )}
+          
+          <div className="mt-4">
+            {selectedEmployeeId && selectedEmployee && selectedSalaryData ? (
+              <SalaryBreakdown 
+                selectedEmployeeId={selectedEmployeeId}
+                employeeName={selectedEmployee.name}
+                salaryData={selectedSalaryData}
+                isLoading={isLoading}
+                bonusTransactions={transactions.bonuses}
+                deductionTransactions={transactions.deductions}
+                loanTransactions={transactions.loans}
+                salesData={transactions.salesData}
+                onBack={handleBack}
+                selectedMonth={selectedMonth}
+              />
+            ) : (
+              <SalaryTable 
+                salaryData={salaryData}
+                isLoading={isLoading}
+                onEmployeeSelect={handleEmployeeSelect}
+                getMonthlyChange={getMonthlyChange}
+              />
+            )}
+          </div>
+        </TabsContent>
+        
+        <TabsContent value="formula-plans">
+          <div className="space-y-6">
+            <div className="flex items-center mb-4">
+              <h2 className="text-2xl font-bold">Formula Salary Plans</h2>
+              <p className="text-muted-foreground ml-4">
+                Create and manage formula-based salary plans
+              </p>
+            </div>
+            <Separator className="my-4" />
+            <FormulaSalaryPlanList />
+          </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
