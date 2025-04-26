@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -9,7 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from '@/components/ui/card';
 import { 
   Plus, 
   Trash2, 
@@ -19,7 +19,10 @@ import {
   Calculator,
   GripVertical,
   ArrowRight,
-  Layers
+  Layers,
+  Eye,
+  EyeOff,
+  AlertCircle
 } from 'lucide-react';
 import { FormulaVariable, FormulaStep, FormulaPlan, FormulaOperator } from '@/lib/salary/types/salary';
 import { toast } from '@/components/ui/use-toast';
@@ -46,6 +49,13 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { 
+  Alert,
+  AlertTitle,
+  AlertDescription
+} from "@/components/ui/alert";
+import { FormulaPlanPreview } from './FormulaPlanPreview';
+import { FormulaValidator } from '@/lib/salary/utils/FormulaValidator';
 
 interface FormulaPlanBuilderProps {
   initialPlan?: FormulaPlan;
@@ -252,6 +262,73 @@ export const FormulaPlanBuilder = ({ initialPlan, onSave }: FormulaPlanBuilderPr
     category: 'custom'
   });
   const [showNewVariableForm, setShowNewVariableForm] = useState(false);
+
+  const [showPreview, setShowPreview] = useState(false);
+
+  // Add validation state
+  const [validationErrors, setValidationErrors] = useState<Record<string, string[]>>({});
+  
+  // Validate the current formula whenever relevant parts change
+  useEffect(() => {
+    validateFormula();
+  }, [steps, variables, outputVariable]);
+  
+  // Helper to validate the formula and organize errors by step/variable
+  const validateFormula = () => {
+    const formulaPlan: FormulaPlan = {
+      variables,
+      steps,
+      outputVariable
+    };
+    
+    const validationResult = FormulaValidator.validateFormulaPlan(formulaPlan);
+    
+    // Group errors by step ID and variable name
+    const errors: Record<string, string[]> = {};
+    
+    // Process errors
+    for (const error of validationResult.errors) {
+      if (error.stepId) {
+        if (!errors[`step-${error.stepId}`]) {
+          errors[`step-${error.stepId}`] = [];
+        }
+        errors[`step-${error.stepId}`].push(error.message);
+      } else if (error.variableName) {
+        if (!errors[`var-${error.variableName}`]) {
+          errors[`var-${error.variableName}`] = [];
+        }
+        errors[`var-${error.variableName}`].push(error.message);
+      } else {
+        // General errors
+        if (!errors['general']) {
+          errors['general'] = [];
+        }
+        errors['general'].push(error.message);
+      }
+    }
+    
+    setValidationErrors(errors);
+  };
+  
+  // Helper to get errors for a specific step
+  const getStepErrors = (stepId: string): string[] => {
+    return validationErrors[`step-${stepId}`] || [];
+  };
+  
+  // Helper to get errors for a specific variable
+  const getVariableErrors = (variableName: string): string[] => {
+    return validationErrors[`var-${variableName}`] || [];
+  };
+  
+  // Helper to check if a step is valid
+  const isStepValid = (stepId: string): boolean => {
+    return !validationErrors[`step-${stepId}`] || validationErrors[`step-${stepId}`].length === 0;
+  };
+  
+  // Helper to check if a variable is valid
+  const isVariableValid = (variableName: string): boolean => {
+    return !validationErrors[`var-${variableName}`] || validationErrors[`var-${variableName}`].length === 0;
+  };
 
   // Add a new variable
   const addVariable = () => {
@@ -822,37 +899,44 @@ export const FormulaPlanBuilder = ({ initialPlan, onSave }: FormulaPlanBuilderPr
 
   // Save the formula plan
   const handleSave = () => {
-    if (!outputVariable) {
+    // Validate the formula
+    validateFormula();
+    
+    // Check if there are any general errors
+    if (validationErrors['general'] && validationErrors['general'].length > 0) {
       toast({
-        title: 'Output variable required',
-        description: 'Please select an output variable for the final result',
+        title: 'Cannot Save Formula',
+        description: validationErrors['general'].join('\n'),
         variant: 'destructive'
       });
       return;
     }
-
-    // Check if output variable exists among step results
-    const outputExists = steps.some(step => step.result === outputVariable);
-    if (!outputExists) {
+    
+    // Check if there are any step or variable errors
+    const hasErrors = Object.keys(validationErrors).some(key => 
+      validationErrors[key] && validationErrors[key].length > 0
+    );
+    
+    if (hasErrors) {
       toast({
-        title: 'Invalid output variable',
-        description: `The selected output variable "${outputVariable}" is not produced by any calculation step`,
+        title: 'Validation Errors',
+        description: 'Please fix all validation errors before saving',
         variant: 'destructive'
       });
       return;
     }
-
-    const formulaPlan: FormulaPlan = {
+    
+    // If no errors, proceed with save
+    onSave({
       variables,
       steps,
       outputVariable
-    };
-
-    onSave(formulaPlan);
+    });
     
     toast({
-      title: 'Formula saved',
-      description: 'The formula plan has been saved successfully',
+      title: 'Formula Saved',
+      description: 'The formula has been saved successfully',
+      variant: 'default'
     });
   };
 
@@ -1027,36 +1111,131 @@ export const FormulaPlanBuilder = ({ initialPlan, onSave }: FormulaPlanBuilderPr
           </div>
           
           <div className="space-y-4">
-            {getFilteredVariables().map((variable, index) => (
-              <div key={index} className="grid grid-cols-12 gap-2 items-center">
-                <div className="col-span-3">
-                  <div className="space-y-1">
-                    <Input
-                      placeholder="Name"
-                      value={variable.name}
-                      onChange={e => updateVariable(index, 'name', e.target.value)}
-                    />
-                    {variable.category && (
-                      <Badge className={`text-xs font-normal ${getCategoryColor(variable.category)}`}>
-                        {VARIABLE_CATEGORIES.find(c => c.id === variable.category)?.label || variable.category}
+            {/* Variable validation errors */}
+            {Object.keys(validationErrors)
+              .filter(key => key.startsWith('var-'))
+              .length > 0 && (
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle>Variable Errors</AlertTitle>
+                <AlertDescription>
+                  Please fix the following variable-related errors:
+                  <ul className="list-disc pl-4 mt-2">
+                    {Object.keys(validationErrors)
+                      .filter(key => key.startsWith('var-'))
+                      .flatMap(key => {
+                        const varName = key.replace('var-', '');
+                        return validationErrors[key].map((error, i) => (
+                          <li key={`${varName}-${i}`}>
+                            <strong>{varName}:</strong> {error}
+                          </li>
+                        ));
+                      })}
+                  </ul>
+                </AlertDescription>
+              </Alert>
+            )}
+            
+            {/* Variables table */}
+            <div className="border rounded-md">
+              <div className="grid grid-cols-12 gap-2 p-2 font-medium text-sm bg-muted">
+                <div className="col-span-3">Name</div>
+                <div className="col-span-3">Description</div>
+                <div className="col-span-2">Type</div>
+                <div className="col-span-2">Default</div>
+                <div className="col-span-2">Actions</div>
+              </div>
+              
+              {getFilteredVariables().map((variable, index) => {
+                const hasErrors = !isVariableValid(variable.name);
+                
+                return (
+                  <div 
+                    key={index} 
+                    className={`grid grid-cols-12 gap-2 p-2 items-center text-sm border-t ${
+                      hasErrors ? 'bg-red-50' : index % 2 === 0 ? 'bg-gray-50' : ''
+                    }`}
+                  >
+                    <div className="col-span-3 font-medium flex items-center gap-2">
+                      {variable.name}
+                      {hasErrors && (
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <AlertCircle className="h-4 w-4 text-red-500" />
+                            </TooltipTrigger>
+                            <TooltipContent className="max-w-[200px]">
+                              <ul className="list-disc pl-4">
+                                {getVariableErrors(variable.name).map((error, i) => (
+                                  <li key={i}>{error}</li>
+                                ))}
+                              </ul>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      )}
+                      <Badge 
+                        variant="outline" 
+                        className={getCategoryColor(variable.category || 'custom')}
+                      >
+                        {variable.category || 'custom'}
                       </Badge>
-                    )}
+                    </div>
+                    <div className="col-span-3 text-muted-foreground">
+                      {variable.description}
+                    </div>
+                    <div className="col-span-2">
+                      {variable.source || 'constant'}
+                    </div>
+                    <div className="col-span-2">
+                      {variable.defaultValue !== undefined ? variable.defaultValue.toString() : '—'}
+                    </div>
+                    <div className="col-span-2 flex items-center space-x-1">
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        onClick={() => removeVariable(index)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
-                </div>
-                <div className="col-span-4">
-                  <Input
-                    placeholder="Description"
-                    value={variable.description}
-                    onChange={e => updateVariable(index, 'description', e.target.value)}
-                  />
-                </div>
-                <div className="col-span-2">
-                  <div className="space-y-1">
+                );
+              })}
+            </div>
+            
+            {/* Variable form */}
+            {showNewVariableForm && (
+              <div className="mb-6 p-4 border rounded-md bg-muted/30">
+                <h4 className="text-sm font-medium mb-3">New Variable</h4>
+                <div className="grid grid-cols-12 gap-4">
+                  <div className="col-span-3">
+                    <Label htmlFor="new-var-name" className="text-xs mb-1 block">Name</Label>
+                    <Input
+                      id="new-var-name"
+                      placeholder="Variable name"
+                      value={newVariableData.name}
+                      onChange={e => updateNewVariable('name', e.target.value)}
+                      className="h-9"
+                    />
+                  </div>
+                  <div className="col-span-3">
+                    <Label htmlFor="new-var-description" className="text-xs mb-1 block">Description</Label>
+                    <Input
+                      id="new-var-description"
+                      placeholder="Description"
+                      value={newVariableData.description}
+                      onChange={e => updateNewVariable('description', e.target.value)}
+                      className="h-9"
+                    />
+                  </div>
+                  <div className="col-span-2">
+                    <Label htmlFor="new-var-source" className="text-xs mb-1 block">Source</Label>
                     <Select
-                      value={variable.source || 'constant'}
-                      onValueChange={value => updateVariable(index, 'source', value)}
+                      value={newVariableData.source || 'constant'}
+                      onValueChange={value => updateNewVariable('source', value)}
                     >
-                      <SelectTrigger>
+                      <SelectTrigger className="h-9">
                         <SelectValue placeholder="Source" />
                       </SelectTrigger>
                       <SelectContent>
@@ -1066,528 +1245,318 @@ export const FormulaPlanBuilder = ({ initialPlan, onSave }: FormulaPlanBuilderPr
                         <SelectItem value="transaction">Transaction</SelectItem>
                       </SelectContent>
                     </Select>
-                    {variable.dataType && (
-                      <Badge variant="outline" className="text-xs font-normal">
-                        {variable.dataType}
-                      </Badge>
-                    )}
                   </div>
-                </div>
-                
-                {variable.source === 'employee' && (
                   <div className="col-span-2">
-                    <Input
-                      placeholder="Property Path"
-                      value={variable.path || ''}
-                      onChange={e => updateVariable(index, 'path', e.target.value)}
-                    />
+                    <Label htmlFor="new-var-datatype" className="text-xs mb-1 block">Data Type</Label>
+                    <Select
+                      value={newVariableData.dataType || 'number'}
+                      onValueChange={value => updateNewVariable('dataType', value)}
+                    >
+                      <SelectTrigger className="h-9">
+                        <SelectValue placeholder="Data Type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="number">Number</SelectItem>
+                        <SelectItem value="boolean">Boolean</SelectItem>
+                        <SelectItem value="date">Date</SelectItem>
+                        <SelectItem value="text">Text</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
-                )}
-                
-                {variable.source === 'constant' && (
                   <div className="col-span-2">
-                    <Input
-                      type="number"
-                      placeholder="Default"
-                      value={variable.defaultValue?.toString() || '0'}
-                      onChange={e => updateVariable(index, 'defaultValue', e.target.value)}
-                    />
+                    <Label htmlFor="new-var-category" className="text-xs mb-1 block">Category</Label>
+                    <Select
+                      value={newVariableData.category || 'custom'}
+                      onValueChange={value => updateNewVariable('category', value)}
+                    >
+                      <SelectTrigger className="h-9">
+                        <SelectValue placeholder="Category" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {VARIABLE_CATEGORIES.map(category => (
+                          <SelectItem key={category.id} value={category.id}>
+                            {category.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
-                )}
-                
-                <div className="col-span-1 flex justify-end">
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button variant="ghost" size="icon">
-                        <GripVertical className="h-4 w-4" />
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-60">
-                      <div className="grid gap-4">
-                        <div className="space-y-2">
-                          <h4 className="font-medium leading-none">Variable Settings</h4>
-                          <p className="text-sm text-muted-foreground">
-                            Configure advanced settings for this variable
-                          </p>
-                        </div>
-                        
-                        <div className="grid gap-2">
-                          <div className="grid grid-cols-3 items-center gap-2">
-                            <Label htmlFor={`var-${index}-type`} className="text-xs">Type</Label>
-                            <Select
-                              value={variable.dataType || 'number'}
-                              onValueChange={value => updateVariable(index, 'dataType', value)}
-                            >
-                              <SelectTrigger id={`var-${index}-type`} className="col-span-2">
-                                <SelectValue placeholder="Type" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="number">Number</SelectItem>
-                                <SelectItem value="boolean">Boolean</SelectItem>
-                                <SelectItem value="date">Date</SelectItem>
-                                <SelectItem value="text">Text</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </div>
-                          
-                          <div className="grid grid-cols-3 items-center gap-2">
-                            <Label htmlFor={`var-${index}-category`} className="text-xs">Category</Label>
-                            <Select
-                              value={variable.category || 'custom'}
-                              onValueChange={value => updateVariable(index, 'category', value)}
-                            >
-                              <SelectTrigger id={`var-${index}-category`} className="col-span-2">
-                                <SelectValue placeholder="Category" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {VARIABLE_CATEGORIES.map(category => (
-                                  <SelectItem key={category.id} value={category.id}>
-                                    {category.label}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </div>
-                        </div>
-                        
-                        <Button
-                          variant="destructive"
-                          size="sm"
-                          onClick={() => removeVariable(index)}
-                        >
-                          <Trash2 className="h-3 w-3 mr-2" />
-                          Remove Variable
-                        </Button>
-                      </div>
-                    </PopoverContent>
-                  </Popover>
-                </div>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle>Calculation Steps</CardTitle>
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button onClick={addStep} variant="outline" size="sm">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Step
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Add a new calculation step</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {steps.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
-                <Calculator className="mx-auto h-12 w-12 opacity-20 mb-2" />
-                <p>No calculation steps defined yet</p>
-                <p className="text-sm">Add a step to define how the salary should be calculated</p>
-              </div>
-            ) : (
-              steps.map((step, index) => (
-                <Card key={index} className="border-muted">
-                  <CardHeader className="py-3 px-4 flex flex-row items-center justify-between space-y-0">
-                    <div className="flex items-center">
-                      <GripVertical className="h-5 w-5 text-muted-foreground mr-2" />
-                      <div>
-                        <Input
-                          className="font-medium border-none p-0 h-auto text-base"
-                          value={step.name}
-                          onChange={e => updateStepBasic(index, 'name', e.target.value)}
-                          placeholder="Step Name"
-                        />
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-1">
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button 
-                              variant="ghost" 
-                              size="icon"
-                              onClick={() => moveStep(index, 'up')}
-                              disabled={index === 0}
-                            >
-                              <ChevronUp className="h-4 w-4" />
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>Move step up</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                      
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button 
-                              variant="ghost" 
-                              size="icon"
-                              onClick={() => moveStep(index, 'down')}
-                              disabled={index === steps.length - 1}
-                            >
-                              <ChevronDown className="h-4 w-4" />
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>Move step down</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                      
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button 
-                              variant="ghost" 
-                              size="icon"
-                              onClick={() => removeStep(index)}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>Delete step</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="py-2 px-4 space-y-4">
-                    <Textarea
-                      placeholder="Description"
-                      value={step.description || ''}
-                      onChange={e => updateStepBasic(index, 'description', e.target.value)}
-                      className="resize-none h-16 text-sm"
-                    />
-                    
-                    {typeof step.operation === 'object' && (
-                      <div className="space-y-3 pt-1">
-                        <div className="flex items-center space-x-2">
-                          <span className="text-sm font-medium w-24">Operation:</span>
-                          <Select
-                            value={(step.operation as FormulaOperator).type}
-                            onValueChange={value => updateStepOperationType(index, value)}
-                          >
-                            <SelectTrigger className="w-40">
-                              <SelectValue placeholder="Select operation" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {OPERATION_GROUPS.map(group => (
-                                <div key={group.id}>
-                                  <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">
-                                    {group.label}
-                                  </div>
-                                  {OPERATION_TYPES
-                                    .filter(op => op.group === group.id)
-                                    .map(op => (
-                                      <SelectItem key={op.value} value={op.value}>
-                                        {op.label}
-                                      </SelectItem>
-                                    ))
-                                  }
-                                  {group.id !== OPERATION_GROUPS[OPERATION_GROUPS.length - 1].id && (
-                                    <div className="h-px bg-muted my-1" />
-                                  )}
-                                </div>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        
-                        <div className="space-y-2">
-                          {(step.operation as FormulaOperator).parameters.map((param, paramIndex) => (
-                            <div key={paramIndex} className="flex items-center space-x-2">
-                              <span className="text-sm font-medium w-24">
-                                {getParameterLabel((step.operation as FormulaOperator).type, paramIndex)}:
-                              </span>
-                              <div className="flex-1 flex items-center space-x-2">
-                                <Popover>
-                                  <PopoverTrigger asChild>
-                                    <Button
-                                      variant="outline"
-                                      className="w-full justify-between"
-                                    >
-                                      <span className="truncate">
-                                        {isNestedOperation(param) 
-                                          ? `[${param.name || 'Nested Operation'}]` 
-                                          : param.toString()}
-                                      </span>
-                                      <ArrowRight className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                                    </Button>
-                                  </PopoverTrigger>
-                                  <PopoverContent className="w-80 p-0" align="start">
-                                    <div className="grid gap-4 p-4">
-                                      <div className="space-y-2">
-                                        <h4 className="font-medium leading-none">Parameter Value</h4>
-                                        <p className="text-sm text-muted-foreground">
-                                          Set a value, variable, or create a nested operation
-                                        </p>
-                                      </div>
-                                      <div className="grid gap-2">
-                                        <div className="grid grid-cols-3 gap-2">
-                                          <Button 
-                                            variant="outline"
-                                            onClick={() => updateStepParameter(index, paramIndex, "0")}
-                                          >
-                                            Number
-                                          </Button>
-                                          <Button 
-                                            variant="outline"
-                                            onClick={() => createNestedOperation(index, paramIndex)}
-                                          >
-                                            <Layers className="mr-2 h-4 w-4" />
-                                            Nested
-                                          </Button>
-                                        </div>
-                                        
-                                        <div className="grid gap-2">
-                                          <h4 className="text-sm font-medium">Enter value or variable:</h4>
-                                          <Input
-                                            value={isNestedOperation(param) ? '' : param.toString()}
-                                            onChange={e => updateStepParameter(index, paramIndex, e.target.value)}
-                                            placeholder="Enter value"
-                                          />
-                                        </div>
-                                        
-                                        <div className="grid gap-2">
-                                          <h4 className="text-sm font-medium">Or select a variable:</h4>
-                                          <Select
-                                            onValueChange={value => updateStepParameter(index, paramIndex, value)}
-                                          >
-                                            <SelectTrigger>
-                                              <SelectValue placeholder="Select variable" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                              {/* Include variables from earlier steps as well */}
-                                              {steps.slice(0, index).map((prevStep, prevIndex) => 
-                                                prevStep.result && (
-                                                  <SelectItem 
-                                                    key={`step-${prevIndex}`} 
-                                                    value={prevStep.result || ''}
-                                                  >
-                                                    {prevStep.result} (from step {prevIndex + 1})
-                                                  </SelectItem>
-                                                )
-                                              )}
-                                              <div className="h-px bg-muted my-1" />
-                                              {variables.map((variable, varIndex) => (
-                                                <SelectItem key={varIndex} value={variable.name}>
-                                                  {variable.name}
-                                                </SelectItem>
-                                              ))}
-                                            </SelectContent>
-                                          </Select>
-                                        </div>
-                                        
-                                        {isNestedOperation(param) && (
-                                          <div className="grid gap-2">
-                                            <h4 className="text-sm font-medium">Current nested operation:</h4>
-                                            <div className="rounded-md border border-dashed p-2 text-sm">
-                                              {param.name || 'Unnamed'}: {getOperationLabel((param.operation as FormulaOperator).type)}
-                                              <div className="mt-1 text-xs">
-                                                Parameters: {(param.operation as FormulaOperator).parameters.map(renderParameterValue).join(', ')}
-                                              </div>
-                                            </div>
-                                            <Button 
-                                              variant="destructive" 
-                                              size="sm"
-                                              onClick={() => updateStepParameter(index, paramIndex, '0')}
-                                            >
-                                              <Trash2 className="mr-2 h-3 w-3" />
-                                              Remove Nested Operation
-                                            </Button>
-                                          </div>
-                                        )}
-                                      </div>
-                                    </div>
-                                  </PopoverContent>
-                                </Popover>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  onClick={() => removeStepParameter(index, paramIndex)}
-                                  disabled={(step.operation as FormulaOperator).parameters.length <= getMinParamsForOperationType((step.operation as FormulaOperator).type)}
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
-                              </div>
-                            </div>
-                          ))}
-                          
-                          {/* Only show add parameter button for operations that can have variable number of parameters */}
-                          {['add', 'multiply', 'max', 'min', 'and', 'or'].includes((step.operation as FormulaOperator).type) && (
-                            <Button 
-                              variant="outline" 
-                              size="sm" 
-                              onClick={() => addStepParameter(index)}
-                              className="mt-2"
-                            >
-                              <Plus className="h-3 w-3 mr-1" />
-                              Add Parameter
-                            </Button>
-                          )}
-                        </div>
-                      </div>
-                    )}
-                    
-                    <div className="flex items-center space-x-2 pt-2">
-                      <span className="text-sm font-medium w-24">Result Variable:</span>
+                  
+                  {(newVariableData.source === 'constant' && newVariableData.dataType === 'number') && (
+                    <div className="col-span-2">
+                      <Label htmlFor="new-var-default" className="text-xs mb-1 block">Default Value</Label>
                       <Input
-                        value={step.result || ''}
-                        onChange={e => updateStepBasic(index, 'result', e.target.value)}
-                        placeholder="Result variable name"
-                        className="flex-1"
+                        id="new-var-default"
+                        type="number"
+                        placeholder="Default"
+                        value={newVariableData.defaultValue?.toString() || '0'}
+                        onChange={e => updateNewVariable('defaultValue', e.target.value)}
+                        className="h-9"
                       />
                     </div>
-                  </CardContent>
-                </Card>
-              ))
+                  )}
+                  
+                  {newVariableData.source === 'employee' && (
+                    <div className="col-span-3">
+                      <Label htmlFor="new-var-path" className="text-xs mb-1 block">Property Path</Label>
+                      <Input
+                        id="new-var-path"
+                        placeholder="e.g., hire_date or salary.base"
+                        value={newVariableData.path || ''}
+                        onChange={e => updateNewVariable('path', e.target.value)}
+                        className="h-9"
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
             )}
           </div>
         </CardContent>
       </Card>
 
       <Card>
-        <CardHeader>
-          <CardTitle>Output</CardTitle>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle>Steps</CardTitle>
+          <div className="flex items-center space-x-2">
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    onClick={addStep}
+                    variant="outline"
+                    size="sm"
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Step
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Add a new calculation step</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
         </CardHeader>
         <CardContent>
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-medium">Final result:</span>
-            <Select 
-              value={outputVariable} 
-              onValueChange={setOutputVariable}
-            >
-              <SelectTrigger className="w-40">
-                <SelectValue placeholder="Select output" />
-              </SelectTrigger>
-              <SelectContent>
-                {steps
-                  .filter(step => step.result)
-                  .map((step, index) => (
-                    <SelectItem key={index} value={step.result || ''}>
+          <div className="space-y-4">
+            {/* Step validation errors */}
+            {Object.keys(validationErrors)
+              .filter(key => key.startsWith('step-'))
+              .length > 0 && (
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle>Step Errors</AlertTitle>
+                <AlertDescription>
+                  Please fix the following step-related errors:
+                  <ul className="list-disc pl-4 mt-2">
+                    {Object.keys(validationErrors)
+                      .filter(key => key.startsWith('step-'))
+                      .flatMap(key => {
+                        const stepId = key.replace('step-', '');
+                        return validationErrors[key].map((error, i) => (
+                          <li key={`${stepId}-${i}`}>
+                            <strong>{stepId}:</strong> {error}
+                          </li>
+                        ));
+                      })}
+                  </ul>
+                </AlertDescription>
+              </Alert>
+            )}
+            
+            {/* Steps table */}
+            <div className="border rounded-md">
+              <div className="grid grid-cols-12 gap-2 p-2 font-medium text-sm bg-muted">
+                <div className="col-span-3">Name</div>
+                <div className="col-span-3">Description</div>
+                <div className="col-span-2">Operation</div>
+                <div className="col-span-2">Result</div>
+                <div className="col-span-2">Actions</div>
+              </div>
+              
+              {steps.map((step, index) => {
+                const hasErrors = !isStepValid(step.id);
+                
+                return (
+                  <div 
+                    key={index} 
+                    className={`grid grid-cols-12 gap-2 p-2 items-center text-sm border-t ${
+                      hasErrors ? 'bg-red-50' : index % 2 === 0 ? 'bg-gray-50' : ''
+                    }`}
+                  >
+                    <div className="col-span-3 font-medium flex items-center gap-2">
+                      {step.name}
+                      {hasErrors && (
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <AlertCircle className="h-4 w-4 text-red-500" />
+                            </TooltipTrigger>
+                            <TooltipContent className="max-w-[200px]">
+                              <ul className="list-disc pl-4">
+                                {getStepErrors(step.id).map((error, i) => (
+                                  <li key={i}>{error}</li>
+                                ))}
+                              </ul>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      )}
+                    </div>
+                    <div className="col-span-3 text-muted-foreground">
+                      {step.description}
+                    </div>
+                    <div className="col-span-2">
+                      {step.operation ? getOperationLabel(step.operation.type) : '—'}
+                    </div>
+                    <div className="col-span-2">
                       {step.result}
-                    </SelectItem>
-                  ))}
-              </SelectContent>
-            </Select>
+                    </div>
+                    <div className="col-span-2 flex items-center space-x-1">
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        onClick={() => removeStep(index)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         </CardContent>
-        <CardFooter>
-          <Button onClick={handleSave} className="ml-auto">
-            <Save className="h-4 w-4 mr-2" />
-            Save Formula
-          </Button>
-        </CardFooter>
       </Card>
 
-      {/* Nested Operation Builder Dialog */}
-      <Dialog open={nestedBuilderOpen} onOpenChange={setNestedBuilderOpen}>
-        <DialogContent className="sm:max-w-[525px]">
-          <DialogHeader>
-            <DialogTitle>Build Nested Operation</DialogTitle>
-            <DialogDescription>
-              Create a complex nested operation for more advanced formulas
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="space-y-4 py-4">
-            <div className="grid grid-cols-4 gap-4">
-              <div className="col-span-1">
-                <span className="text-sm font-medium">Operation:</span>
-              </div>
-              <div className="col-span-3">
-                <Select
-                  value={nestedOperation.type}
-                  onValueChange={updateNestedOperationType}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select operation" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {OPERATION_GROUPS.map(group => (
-                      <div key={group.id}>
-                        <div className="px-2 py-1 text-xs font-semibold text-muted-foreground">
-                          {group.label}
-                        </div>
-                        {OPERATION_TYPES
-                          .filter(op => op.group === group.id)
-                          .map(op => (
-                            <SelectItem key={op.value} value={op.value}>
-                              {op.label}
-                            </SelectItem>
-                          ))
-                        }
-                        {group.id !== OPERATION_GROUPS[OPERATION_GROUPS.length - 1].id && (
-                          <div className="h-px bg-muted my-1" />
-                        )}
-                      </div>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle>Output Variable</CardTitle>
+          <div className="flex items-center space-x-2">
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    onClick={() => setShowPreview(true)}
+                    variant="outline"
+                    size="sm"
+                  >
+                    <Eye className="h-4 w-4 mr-2" />
+                    Preview
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Preview the formula</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {/* Output variable validation errors */}
+            {validationErrors['outputVariable'] && validationErrors['outputVariable'].length > 0 && (
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle>Output Variable Error</AlertTitle>
+                <AlertDescription>
+                  {validationErrors['outputVariable'].join('\n')}
+                </AlertDescription>
+              </Alert>
+            )}
             
-            <div className="space-y-2">
-              {nestedOperation.parameters.map((param, paramIndex) => (
-                <div key={paramIndex} className="grid grid-cols-4 gap-4 items-center">
-                  <div className="col-span-1">
-                    <span className="text-sm font-medium">
-                      {getParameterLabel(nestedOperation.type, paramIndex)}:
-                    </span>
-                  </div>
-                  <div className="col-span-2">
-                    <Input
-                      value={param.toString()}
-                      onChange={e => updateNestedParameter(paramIndex, e.target.value)}
-                      placeholder="Parameter value or variable"
-                    />
-                  </div>
-                  <div className="col-span-1">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => removeNestedParameter(paramIndex)}
-                      disabled={nestedOperation.parameters.length <= getMinParamsForOperationType(nestedOperation.type)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              ))}
-              
-              {/* Only show add parameter button for operations that can have variable number of parameters */}
-              {['add', 'multiply', 'max', 'min', 'and', 'or'].includes(nestedOperation.type) && (
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={addNestedParameter}
-                  className="mt-2"
-                >
-                  <Plus className="h-3 w-3 mr-1" />
-                  Add Parameter
-                </Button>
-              )}
+            {/* Output variable form */}
+            <div className="flex items-center space-x-4">
+              <Label htmlFor="output-variable" className="text-xs mb-1 block">Output Variable</Label>
+              <Input
+                id="output-variable"
+                placeholder="Output variable"
+                value={outputVariable}
+                onChange={e => setOutputVariable(e.target.value)}
+                className="h-9"
+              />
             </div>
           </div>
-          
-          <DialogFooter>
-            <Button variant="ghost" onClick={() => setNestedBuilderOpen(false)}>Cancel</Button>
-            <Button onClick={saveNestedOperation}>Apply</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle>Formula Preview</CardTitle>
+          <div className="flex items-center space-x-2">
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    onClick={() => setShowPreview(true)}
+                    variant="outline"
+                    size="sm"
+                  >
+                    <Eye className="h-4 w-4 mr-2" />
+                    Preview
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Preview the formula</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {/* Formula preview */}
+            {showPreview && (
+              <div className="p-4 border rounded-md">
+                <FormulaPlanPreview
+                  variables={variables}
+                  steps={steps}
+                  outputVariable={outputVariable}
+                />
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle>Actions</CardTitle>
+          <div className="flex items-center space-x-2">
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    onClick={handleSave}
+                    variant="outline"
+                    size="sm"
+                  >
+                    <Save className="h-4 w-4 mr-2" />
+                    Save
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Save the formula</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {/* Save button */}
+            <Button
+              onClick={handleSave}
+              variant="outline"
+              size="sm"
+            >
+              <Save className="h-4 w-4 mr-2" />
+              Save
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }; 
