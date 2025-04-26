@@ -23,6 +23,7 @@ export interface FormulaPlanData {
   minAmount?: number;
   maxAmount?: number;
   description?: string;
+  [key: string]: string | number | undefined; // Add index signature to make it assignable to Record<string, unknown>
 }
 
 const FormulaPlanConfig = ({
