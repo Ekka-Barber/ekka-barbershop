@@ -150,19 +150,19 @@ export const FormulaPlanConfig = ({
           Configure a custom formula to calculate employee salaries
         </CardDescription>
       </CardHeader>
-      <CardContent>
-        <Tabs defaultValue="visual" value={activeTab} onValueChange={setActiveTab}>
-          <TabsList>
-            <TabsTrigger value="visual">Visual Builder</TabsTrigger>
-            <TabsTrigger value="raw">Raw JSON</TabsTrigger>
+      <CardContent className="p-2 sm:p-6">
+        <Tabs defaultValue="visual" value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="w-full mb-4">
+            <TabsTrigger value="visual" className="flex-1">Visual Builder</TabsTrigger>
+            <TabsTrigger value="raw" className="flex-1">Raw JSON</TabsTrigger>
           </TabsList>
-          <TabsContent value="visual" className="pt-4">
+          <TabsContent value="visual" className="pt-2 sm:pt-4">
             <FormulaPlanBuilder 
               initialPlan={initialFormula}
               onSave={handleFormulaSave}
             />
           </TabsContent>
-          <TabsContent value="raw" className="pt-4">
+          <TabsContent value="raw" className="pt-2 sm:pt-4">
             <FormulaJsonEditor
               initialValue={initialFormula}
               onSave={handleJsonSave}
@@ -171,12 +171,12 @@ export const FormulaPlanConfig = ({
         </Tabs>
         
         {onCancel && (
-          <div className="flex justify-end mt-6">
+          <div className="flex justify-end mt-4 sm:mt-6">
             <Button 
               variant="outline" 
               onClick={onCancel}
               disabled={isLoading}
-              className="mr-2"
+              className="w-full sm:w-auto"
             >
               Cancel
             </Button>
