@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -25,7 +24,7 @@ interface Plan {
   maxAmount?: number;
   description?: string;
   isActive: boolean;
-  [key: string]: string | number | boolean | undefined; // Add index signature for compatibility with FormulaPlanData
+  [key: string]: string | number | boolean | undefined; // Keep consistent with FormulaPlanData
 }
 
 interface FormulaSalaryPlanListProps {

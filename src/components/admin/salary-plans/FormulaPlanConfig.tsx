@@ -24,7 +24,7 @@ export interface FormulaPlanData {
   minAmount?: number;
   maxAmount?: number;
   description?: string;
-  [key: string]: string | number | undefined; // Add index signature to make it assignable to Record<string, unknown>
+  [key: string]: string | number | boolean | undefined; // Updated to include boolean
 }
 
 const FormulaPlanConfig = ({
