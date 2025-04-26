@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useToast } from "@/components/ui/use-toast";
 import { Calendar, BarChart2, Users, Clock, DollarSign, Airplay } from 'lucide-react';
 import { useEmployeeSales } from './hooks/useEmployeeSales';
@@ -17,6 +17,18 @@ export const EmployeeTab = () => {
   const { toast } = useToast();
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [activeTab, setActiveTab] = useState<string>('employee-grid');
+  
+  // Check URL for section parameter when component mounts
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      const sectionParam = urlParams.get('section');
+      
+      if (sectionParam === 'salary') {
+        setActiveTab('salary');
+      }
+    }
+  }, []);
   
   // Branch management
   const { 
@@ -153,8 +165,6 @@ export const EmployeeTab = () => {
         <TabsContent value="salary">
           <SalaryDashboard
             employees={employees}
-            selectedBranch={selectedBranch}
-            refetchEmployees={fetchEmployees}
           />
         </TabsContent>
         
