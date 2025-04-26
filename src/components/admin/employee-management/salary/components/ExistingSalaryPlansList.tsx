@@ -505,8 +505,8 @@ export const ExistingSalaryPlansList = () => {
           {selectedPlan.type === 'formula' ? (
             <FormulaPlanConfig 
               planId={selectedPlan.id}
-              initialConfig={selectedPlan.config}
-              onSave={handleSave}
+              defaultValues={selectedPlan.config as Partial<FormulaPlanData>}
+              onSave={(formData) => handleSave(formData as unknown as Record<string, unknown>)}
               onCancel={handleCancel}
             />
           ) : (

@@ -25,6 +25,7 @@ interface Plan {
   maxAmount?: number;
   description?: string;
   isActive: boolean;
+  [key: string]: string | number | boolean | undefined; // Add index signature for compatibility with FormulaPlanData
 }
 
 interface FormulaSalaryPlanListProps {

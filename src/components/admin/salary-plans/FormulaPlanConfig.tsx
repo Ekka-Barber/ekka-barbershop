@@ -12,6 +12,7 @@ export interface FormulaPlanConfigProps {
   onSave?: (config: FormulaPlanData) => void;
   onCancel?: () => void;
   defaultValues?: Partial<FormulaPlanData>;
+  initialConfig?: Record<string, unknown>;
 }
 
 // Export as interface to avoid conflicts with module exports
@@ -31,6 +32,7 @@ const FormulaPlanConfig = ({
   onSave,
   onCancel,
   defaultValues = {},
+  initialConfig,
 }: FormulaPlanConfigProps) => {
   const [formData, setFormData] = useState<FormulaPlanData>({
     name: defaultValues.name || '',
