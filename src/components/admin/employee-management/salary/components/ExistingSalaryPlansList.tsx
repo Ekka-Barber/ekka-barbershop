@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -24,7 +25,7 @@ interface Plan {
   maxAmount?: number;
   description?: string;
   isActive: boolean;
-  [key: string]: string | number | boolean | undefined; // Keep consistent with FormulaPlanData
+  [key: string]: string | number | boolean | undefined;
 }
 
 interface FormulaSalaryPlanListProps {
@@ -33,7 +34,7 @@ interface FormulaSalaryPlanListProps {
   onDeletePlan?: (planId: string) => void;
 }
 
-const FormulaSalaryPlanList = ({
+const ExistingSalaryPlansList = ({
   plans = [],
   onSavePlan,
   onDeletePlan,
@@ -86,7 +87,7 @@ const FormulaSalaryPlanList = ({
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
-        <h3 className="text-lg font-medium">Formula-based Salary Plans</h3>
+        <h3 className="text-lg font-medium">Existing Salary Plans</h3>
         <Button onClick={handleAddNew} size="sm">
           <PlusCircle className="h-4 w-4 mr-2" /> Add Plan
         </Button>
@@ -95,7 +96,7 @@ const FormulaSalaryPlanList = ({
       {plans.length === 0 ? (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-10">
-            <p className="text-muted-foreground mb-4">No formula plans created yet</p>
+            <p className="text-muted-foreground mb-4">No existing salary plans</p>
             <Button onClick={handleAddNew} variant="outline">
               Create First Plan
             </Button>
@@ -184,4 +185,5 @@ const FormulaSalaryPlanList = ({
   );
 };
 
-export default FormulaSalaryPlanList;
+export default ExistingSalaryPlansList;
+
