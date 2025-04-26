@@ -1108,20 +1108,22 @@ export const FormulaPlanBuilder = ({ initialPlan, onSave }: FormulaPlanBuilderPr
             </div>
           )}
           
-          <div className="mb-4">
+          <div className="mb-4 overflow-hidden">
             <Tabs
               value={activeVarCategory}
               onValueChange={setActiveVarCategory}
               className="w-full"
             >
-              <TabsList className="grid grid-cols-8">
-                <TabsTrigger value="all" className="text-xs">All</TabsTrigger>
-                {VARIABLE_CATEGORIES.map(category => (
-                  <TabsTrigger key={category.id} value={category.id} className="text-xs">
-                    {category.label}
-                  </TabsTrigger>
-                ))}
-              </TabsList>
+              <div className="relative overflow-auto">
+                <TabsList className="flex w-max min-w-full px-1 py-1 sm:grid sm:grid-cols-8 sm:w-full">
+                  <TabsTrigger value="all" className="text-xs flex-shrink-0">All</TabsTrigger>
+                  {VARIABLE_CATEGORIES.map(category => (
+                    <TabsTrigger key={category.id} value={category.id} className="text-xs flex-shrink-0 whitespace-nowrap">
+                      {category.label}
+                    </TabsTrigger>
+                  ))}
+                </TabsList>
+              </div>
             </Tabs>
           </div>
           
@@ -1152,13 +1154,24 @@ export const FormulaPlanBuilder = ({ initialPlan, onSave }: FormulaPlanBuilderPr
             )}
             
             {/* Variables table */}
-            <div className="border rounded-md">
-              <div className="grid grid-cols-12 gap-2 p-2 font-medium text-sm bg-muted">
+            <div className="border rounded-md overflow-hidden">
+              {/* Table header - desktop view */}
+              <div className="hidden sm:grid grid-cols-12 gap-2 p-2 font-medium text-sm bg-muted">
                 <div className="col-span-3">Name</div>
                 <div className="col-span-3">Description</div>
                 <div className="col-span-2">Type</div>
                 <div className="col-span-2">Default</div>
                 <div className="col-span-2">Actions</div>
+              </div>
+              
+              {/* Mobile filter tabs */}
+              <div className="sm:hidden p-2 bg-muted">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="font-medium text-sm">Variables</div>
+                  <div className="text-xs text-muted-foreground">
+                    {getFilteredVariables().length} items
+                  </div>
+                </div>
               </div>
               
               {getFilteredVariables().map((variable, index) => {
@@ -1167,52 +1180,98 @@ export const FormulaPlanBuilder = ({ initialPlan, onSave }: FormulaPlanBuilderPr
                 return (
                   <div 
                     key={index} 
-                    className={`grid grid-cols-12 gap-2 p-2 items-center text-sm border-t ${
+                    className={`border-t ${
                       hasErrors ? 'bg-red-50' : index % 2 === 0 ? 'bg-gray-50' : ''
                     }`}
                   >
-                    <div className="col-span-3 font-medium flex items-center gap-2">
-                      {variable.name}
-                      {hasErrors && (
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <AlertCircle className="h-4 w-4 text-red-500" />
-                            </TooltipTrigger>
-                            <TooltipContent className="max-w-[200px]">
-                              <ul className="list-disc pl-4">
-                                {getVariableErrors(variable.name).map((error, i) => (
-                                  <li key={i}>{error}</li>
-                                ))}
-                              </ul>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                      )}
-                      <Badge 
-                        variant="outline" 
-                        className={getCategoryColor(variable.category || 'custom')}
-                      >
-                        {variable.category || 'custom'}
-                      </Badge>
+                    {/* Desktop view */}
+                    <div className="hidden sm:grid grid-cols-12 gap-2 p-2 items-center text-sm">
+                      <div className="col-span-3 font-medium flex items-center gap-2">
+                        {variable.name}
+                        {hasErrors && (
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <AlertCircle className="h-4 w-4 text-red-500" />
+                              </TooltipTrigger>
+                              <TooltipContent className="max-w-[200px]">
+                                <ul className="list-disc pl-4">
+                                  {getVariableErrors(variable.name).map((error, i) => (
+                                    <li key={i}>{error}</li>
+                                  ))}
+                                </ul>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        )}
+                        <Badge 
+                          variant="outline" 
+                          className={getCategoryColor(variable.category || 'custom')}
+                        >
+                          {variable.category || 'custom'}
+                        </Badge>
+                      </div>
+                      <div className="col-span-3 text-muted-foreground">
+                        {variable.description}
+                      </div>
+                      <div className="col-span-2">
+                        {variable.source || 'constant'}
+                      </div>
+                      <div className="col-span-2">
+                        {variable.defaultValue !== undefined ? variable.defaultValue.toString() : '—'}
+                      </div>
+                      <div className="col-span-2 flex items-center space-x-1">
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          onClick={() => removeVariable(index)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </div>
-                    <div className="col-span-3 text-muted-foreground">
-                      {variable.description}
-                    </div>
-                    <div className="col-span-2">
-                      {variable.source || 'constant'}
-                    </div>
-                    <div className="col-span-2">
-                      {variable.defaultValue !== undefined ? variable.defaultValue.toString() : '—'}
-                    </div>
-                    <div className="col-span-2 flex items-center space-x-1">
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        onClick={() => removeVariable(index)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                    
+                    {/* Mobile view */}
+                    <div className="sm:hidden p-3 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <div className="font-medium flex items-center gap-2">
+                          {variable.name}
+                          {hasErrors && (
+                            <AlertCircle className="h-4 w-4 text-red-500" />
+                          )}
+                        </div>
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          onClick={() => removeVariable(index)}
+                          className="h-8 w-8"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                      
+                      <div className="text-xs text-muted-foreground">
+                        {variable.description}
+                      </div>
+                      
+                      <div className="flex flex-wrap gap-2 pt-1">
+                        <Badge 
+                          variant="outline" 
+                          className={getCategoryColor(variable.category || 'custom')}
+                        >
+                          {variable.category || 'custom'}
+                        </Badge>
+                        
+                        <Badge variant="outline" className="bg-gray-50">
+                          {variable.source || 'constant'}
+                        </Badge>
+                        
+                        {variable.defaultValue !== undefined && (
+                          <Badge variant="outline" className="bg-gray-50">
+                            Default: {variable.defaultValue.toString()}
+                          </Badge>
+                        )}
+                      </div>
                     </div>
                   </div>
                 );
@@ -1273,14 +1332,31 @@ export const FormulaPlanBuilder = ({ initialPlan, onSave }: FormulaPlanBuilderPr
             )}
             
             {/* Steps table */}
-            <div className="border rounded-md">
-              <div className="grid grid-cols-12 gap-2 p-2 font-medium text-sm bg-muted">
+            <div className="border rounded-md overflow-hidden">
+              {/* Desktop header */}
+              <div className="hidden sm:grid grid-cols-12 gap-2 p-2 font-medium text-sm bg-muted">
                 <div className="col-span-3">Name</div>
                 <div className="col-span-3">Description</div>
                 <div className="col-span-2">Operation</div>
                 <div className="col-span-2">Result</div>
                 <div className="col-span-2">Actions</div>
               </div>
+              
+              {/* Mobile header */}
+              <div className="sm:hidden p-2 bg-muted">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="font-medium text-sm">Formula Steps</div>
+                  <div className="text-xs text-muted-foreground">
+                    {steps.length} steps
+                  </div>
+                </div>
+              </div>
+              
+              {steps.length === 0 && (
+                <div className="p-6 text-center text-muted-foreground">
+                  No steps defined yet. Click "Add Step" to create a calculation step.
+                </div>
+              )}
               
               {steps.map((step, index) => {
                 const hasErrors = !isStepValid(step.id);
@@ -1289,48 +1365,140 @@ export const FormulaPlanBuilder = ({ initialPlan, onSave }: FormulaPlanBuilderPr
                   <div 
                     key={step.id}
                     id={`step-${step.id}`}
-                    className={`space-y-6 border rounded-lg p-4 relative ${
-                      hasErrors ? 'bg-red-50 border-red-200' : 'border-gray-200'
+                    className={`border-t p-3 sm:p-4 ${
+                      hasErrors ? 'bg-red-50' : index % 2 === 0 ? 'bg-gray-50' : ''
                     }`}
                   >
-                    <div className="flex items-center gap-2">
-                      {step.name}
-                      {hasErrors && (
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <AlertCircle className="h-4 w-4 text-red-500" />
-                            </TooltipTrigger>
-                            <TooltipContent className="max-w-[200px]">
-                              <ul className="list-disc pl-4">
-                                {getStepErrors(step.id).map((error, i) => (
-                                  <li key={i}>{error}</li>
-                                ))}
-                              </ul>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
+                    {/* Mobile view */}
+                    <div className="sm:hidden space-y-3">
+                      <div className="flex items-center justify-between">
+                        <div className="font-medium flex items-center gap-2">
+                          {step.name || 'Unnamed Step'}
+                          {hasErrors && (
+                            <AlertCircle className="h-4 w-4 text-red-500" />
+                          )}
+                        </div>
+                        
+                        <div className="flex items-center space-x-1">
+                          <Button 
+                            variant="ghost" 
+                            size="icon"
+                            className="h-8 w-8" 
+                            onClick={() => moveStep(index, 'up')}
+                            disabled={index === 0}
+                          >
+                            <ChevronUp className="h-4 w-4" />
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="icon"
+                            className="h-8 w-8" 
+                            onClick={() => moveStep(index, 'down')}
+                            disabled={index === steps.length - 1}
+                          >
+                            <ChevronDown className="h-4 w-4" />
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="icon"
+                            className="h-8 w-8" 
+                            onClick={() => removeStep(index)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                      
+                      {step.description && (
+                        <div className="text-xs text-muted-foreground">
+                          {step.description}
+                        </div>
                       )}
+                      
+                      <div className="flex flex-wrap gap-2 pt-1">
+                        {typeof step.operation === 'object' && step.operation !== null && (
+                          <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                            {getOperationLabel(step.operation.type)}
+                          </Badge>
+                        )}
+                        
+                        {step.result && (
+                          <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                            Result: {step.result}
+                          </Badge>
+                        )}
+                      </div>
                     </div>
-                    <div className="text-muted-foreground">
-                      {step.description}
-                    </div>
-                    <div>
-                      {typeof step.operation === 'object' && step.operation !== null 
-                        ? getOperationLabel(step.operation.type) 
-                        : '—'}
-                    </div>
-                    <div>
-                      {step.result}
-                    </div>
-                    <div className="flex items-center space-x-1">
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        onClick={() => removeStep(index)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                    
+                    {/* Desktop view */}
+                    <div className="hidden sm:block">
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-medium">{step.name || 'Unnamed Step'}</h3>
+                        {hasErrors && (
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <AlertCircle className="h-4 w-4 text-red-500" />
+                              </TooltipTrigger>
+                              <TooltipContent className="max-w-[200px]">
+                                <ul className="list-disc pl-4">
+                                  {getStepErrors(step.id).map((error, i) => (
+                                    <li key={i}>{error}</li>
+                                  ))}
+                                </ul>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        )}
+                      </div>
+                      
+                      {step.description && (
+                        <div className="text-sm text-muted-foreground mt-1">
+                          {step.description}
+                        </div>
+                      )}
+                      
+                      <div className="grid grid-cols-12 gap-4 mt-3">
+                        <div className="col-span-4">
+                          <div className="text-xs font-medium mb-1">Operation</div>
+                          <div>
+                            {typeof step.operation === 'object' && step.operation !== null 
+                              ? getOperationLabel(step.operation.type) 
+                              : '—'}
+                          </div>
+                        </div>
+                        
+                        <div className="col-span-4">
+                          <div className="text-xs font-medium mb-1">Result Variable</div>
+                          <div>{step.result || '—'}</div>
+                        </div>
+                        
+                        <div className="col-span-4 flex items-start justify-end space-x-1">
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            onClick={() => moveStep(index, 'up')}
+                            disabled={index === 0}
+                          >
+                            <ChevronUp className="h-4 w-4" />
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            onClick={() => moveStep(index, 'down')}
+                            disabled={index === steps.length - 1}
+                          >
+                            <ChevronDown className="h-4 w-4" />
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            onClick={() => removeStep(index)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 );
