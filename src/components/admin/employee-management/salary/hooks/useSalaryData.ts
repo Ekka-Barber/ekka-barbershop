@@ -1,11 +1,8 @@
-
 import { useState, useEffect } from 'react';
 import { useSalaryQueries } from './useSalaryQueries';
 import { useSalaryCalculation } from './useSalaryCalculation';
 import { useEmployeeTransactions } from './useEmployeeTransactions';
-import { UseSalaryDataProps, UseSalaryDataResult } from './utils/salaryTypes';
-import { SalesData } from '@/lib/salary/calculators/BaseCalculator';
-import { Transaction } from '@/lib/salary/types/salary';
+import { UseSalaryDataProps, UseSalaryDataResult, EmployeeSalary } from './utils/salaryTypes';
 
 /**
  * Main hook for salary data management
@@ -17,6 +14,8 @@ export const useSalaryData = ({
 }: UseSalaryDataProps): UseSalaryDataResult => {
   const [salaryData, setSalaryData] = useState([]);
   const [isCalculating, setIsCalculating] = useState(false);
+  const [cachedSalaryData, setCachedSalaryData] = useState<Record<string, EmployeeSalary[]>>({});
+  const [lastCalculationTime, setLastCalculationTime] = useState<Record<string, number>>({});
   
   // Use the extracted query hook
   const { 
@@ -40,12 +39,34 @@ export const useSalaryData = ({
     salesData,
     employees
   });
+
+  // Custom refresh function that clears cache for the current month
+  const refreshWithCacheClear = () => {
+    // Clear cache for current month
+    setCachedSalaryData(prev => {
+      const newCache = {...prev};
+      delete newCache[selectedMonth];
+      return newCache;
+    });
+    // Call the original refresh function
+    refreshData();
+  };
   
   useEffect(() => {
     if (
       isDataLoading || 
       employees.length === 0
     ) {
+      return;
+    }
+    
+    // Check if we have cached data for this month that's less than 5 minutes old
+    const currentTime = Date.now();
+    const cacheAge = currentTime - (lastCalculationTime[selectedMonth] || 0);
+    const CACHE_VALIDITY = 5 * 60 * 1000; // 5 minutes in milliseconds
+    
+    if (cachedSalaryData[selectedMonth] && cacheAge < CACHE_VALIDITY) {
+      setSalaryData(cachedSalaryData[selectedMonth]);
       return;
     }
     
@@ -64,6 +85,18 @@ export const useSalaryData = ({
         });
         
         setSalaryData(calculatedSalaries);
+        
+        // Cache the results
+        setCachedSalaryData(prev => ({
+          ...prev,
+          [selectedMonth]: calculatedSalaries
+        }));
+        
+        // Record calculation time
+        setLastCalculationTime(prev => ({
+          ...prev,
+          [selectedMonth]: Date.now()
+        }));
       } catch (error) {
         console.error('Error in salary calculation process:', error);
       } finally {
@@ -90,6 +123,6 @@ export const useSalaryData = ({
     isLoading,
     getEmployeeTransactions,
     calculationErrors,
-    refreshData
+    refreshData: refreshWithCacheClear
   };
 };
