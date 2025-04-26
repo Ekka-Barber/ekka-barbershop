@@ -53,11 +53,11 @@ export const useSalaryCalculation = () => {
         employees.map(async (employee) => {
           const employeeSales = salesData.find(
             sale => 
-              (sale.employee_name === employee.name) || 
-              (sale.id === employee.id)
+              sale.id === employee.id || 
+              (sale.employee_name === employee.name && !salesData.some(s => s.id === employee.id))
           );
           
-          const salesAmount = employeeSales ? Number(employeeSales.sales_amount) : 0;
+          const salesAmount = employeeSales ? Number(employeeSales.sales_amount || 0) : 0;
           
           /* console.log(`Sales lookup for ${employee.name}:`, {
             found: !!employeeSales,
