@@ -56,6 +56,8 @@ import {
 } from "@/components/ui/alert";
 import { FormulaPlanPreview } from './FormulaPlanPreview';
 import { FormulaValidator } from '@/lib/salary/utils/FormulaValidator';
+import { EmployeePathBuilder } from './EmployeePathBuilder';
+import { StepDependencyVisualizer } from './StepDependencyVisualizer';
 
 interface FormulaPlanBuilderProps {
   initialPlan?: FormulaPlan;
@@ -395,6 +397,11 @@ export const FormulaPlanBuilder = ({ initialPlan, onSave }: FormulaPlanBuilderPr
       // Ensure source is one of the valid source types
       const sourceValue = value as 'constant' | 'employee' | 'sales' | 'transaction';
       newVariables[index][field] = sourceValue;
+      
+      // Clear path when changing source from employee to something else
+      if (sourceValue !== 'employee' && newVariables[index].path) {
+        newVariables[index].path = '';
+      }
     } else if (field === 'dataType') {
       // Ensure dataType is one of the valid types
       const dataTypeValue = value as 'number' | 'boolean' | 'date' | 'text';
@@ -1077,18 +1084,26 @@ export const FormulaPlanBuilder = ({ initialPlan, onSave }: FormulaPlanBuilderPr
                   </div>
                 )}
                 
-                {newVariableData.source === 'employee' && (
+                {newVariableData.source === 'employee' ? (
+                  <div className="col-span-3">
+                    <Label htmlFor="new-var-path" className="text-xs mb-1 block">Property Path</Label>
+                    <EmployeePathBuilder
+                      value={newVariableData.path || ''}
+                      onChange={(value) => updateNewVariable('path', value)}
+                    />
+                  </div>
+                ) : newVariableData.source === 'sales' || newVariableData.source === 'transaction' ? (
                   <div className="col-span-3">
                     <Label htmlFor="new-var-path" className="text-xs mb-1 block">Property Path</Label>
                     <Input
                       id="new-var-path"
-                      placeholder="e.g., hire_date or salary.base"
+                      placeholder={newVariableData.source === 'sales' ? 'e.g., amount or period' : 'e.g., bonus.type'}
                       value={newVariableData.path || ''}
                       onChange={e => updateNewVariable('path', e.target.value)}
                       className="h-9"
                     />
                   </div>
-                )}
+                ) : null}
               </div>
             </div>
           )}
@@ -1203,114 +1218,6 @@ export const FormulaPlanBuilder = ({ initialPlan, onSave }: FormulaPlanBuilderPr
                 );
               })}
             </div>
-            
-            {/* Variable form */}
-            {showNewVariableForm && (
-              <div className="mb-6 p-4 border rounded-md bg-muted/30">
-                <h4 className="text-sm font-medium mb-3">New Variable</h4>
-                <div className="grid grid-cols-12 gap-4">
-                  <div className="col-span-3">
-                    <Label htmlFor="new-var-name" className="text-xs mb-1 block">Name</Label>
-                    <Input
-                      id="new-var-name"
-                      placeholder="Variable name"
-                      value={newVariableData.name}
-                      onChange={e => updateNewVariable('name', e.target.value)}
-                      className="h-9"
-                    />
-                  </div>
-                  <div className="col-span-3">
-                    <Label htmlFor="new-var-description" className="text-xs mb-1 block">Description</Label>
-                    <Input
-                      id="new-var-description"
-                      placeholder="Description"
-                      value={newVariableData.description}
-                      onChange={e => updateNewVariable('description', e.target.value)}
-                      className="h-9"
-                    />
-                  </div>
-                  <div className="col-span-2">
-                    <Label htmlFor="new-var-source" className="text-xs mb-1 block">Source</Label>
-                    <Select
-                      value={newVariableData.source || 'constant'}
-                      onValueChange={value => updateNewVariable('source', value)}
-                    >
-                      <SelectTrigger className="h-9">
-                        <SelectValue placeholder="Source" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="constant">Constant</SelectItem>
-                        <SelectItem value="employee">Employee</SelectItem>
-                        <SelectItem value="sales">Sales</SelectItem>
-                        <SelectItem value="transaction">Transaction</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="col-span-2">
-                    <Label htmlFor="new-var-datatype" className="text-xs mb-1 block">Data Type</Label>
-                    <Select
-                      value={newVariableData.dataType || 'number'}
-                      onValueChange={value => updateNewVariable('dataType', value)}
-                    >
-                      <SelectTrigger className="h-9">
-                        <SelectValue placeholder="Data Type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="number">Number</SelectItem>
-                        <SelectItem value="boolean">Boolean</SelectItem>
-                        <SelectItem value="date">Date</SelectItem>
-                        <SelectItem value="text">Text</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="col-span-2">
-                    <Label htmlFor="new-var-category" className="text-xs mb-1 block">Category</Label>
-                    <Select
-                      value={newVariableData.category || 'custom'}
-                      onValueChange={value => updateNewVariable('category', value)}
-                    >
-                      <SelectTrigger className="h-9">
-                        <SelectValue placeholder="Category" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {VARIABLE_CATEGORIES.map(category => (
-                          <SelectItem key={category.id} value={category.id}>
-                            {category.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  {(newVariableData.source === 'constant' && newVariableData.dataType === 'number') && (
-                    <div className="col-span-2">
-                      <Label htmlFor="new-var-default" className="text-xs mb-1 block">Default Value</Label>
-                      <Input
-                        id="new-var-default"
-                        type="number"
-                        placeholder="Default"
-                        value={newVariableData.defaultValue?.toString() || '0'}
-                        onChange={e => updateNewVariable('defaultValue', e.target.value)}
-                        className="h-9"
-                      />
-                    </div>
-                  )}
-                  
-                  {newVariableData.source === 'employee' && (
-                    <div className="col-span-3">
-                      <Label htmlFor="new-var-path" className="text-xs mb-1 block">Property Path</Label>
-                      <Input
-                        id="new-var-path"
-                        placeholder="e.g., hire_date or salary.base"
-                        value={newVariableData.path || ''}
-                        onChange={e => updateNewVariable('path', e.target.value)}
-                        className="h-9"
-                      />
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
           </div>
         </CardContent>
       </Card>
@@ -1380,12 +1287,13 @@ export const FormulaPlanBuilder = ({ initialPlan, onSave }: FormulaPlanBuilderPr
                 
                 return (
                   <div 
-                    key={index} 
-                    className={`grid grid-cols-12 gap-2 p-2 items-center text-sm border-t ${
-                      hasErrors ? 'bg-red-50' : index % 2 === 0 ? 'bg-gray-50' : ''
+                    key={step.id}
+                    id={`step-${step.id}`}
+                    className={`space-y-6 border rounded-lg p-4 relative ${
+                      hasErrors ? 'bg-red-50 border-red-200' : 'border-gray-200'
                     }`}
                   >
-                    <div className="col-span-3 font-medium flex items-center gap-2">
+                    <div className="flex items-center gap-2">
                       {step.name}
                       {hasErrors && (
                         <TooltipProvider>
@@ -1404,16 +1312,18 @@ export const FormulaPlanBuilder = ({ initialPlan, onSave }: FormulaPlanBuilderPr
                         </TooltipProvider>
                       )}
                     </div>
-                    <div className="col-span-3 text-muted-foreground">
+                    <div className="text-muted-foreground">
                       {step.description}
                     </div>
-                    <div className="col-span-2">
-                      {step.operation ? getOperationLabel(step.operation.type) : '—'}
+                    <div>
+                      {typeof step.operation === 'object' && step.operation !== null 
+                        ? getOperationLabel(step.operation.type) 
+                        : '—'}
                     </div>
-                    <div className="col-span-2">
+                    <div>
                       {step.result}
                     </div>
-                    <div className="col-span-2 flex items-center space-x-1">
+                    <div className="flex items-center space-x-1">
                       <Button 
                         variant="ghost" 
                         size="icon" 
@@ -1555,6 +1465,56 @@ export const FormulaPlanBuilder = ({ initialPlan, onSave }: FormulaPlanBuilderPr
               Save
             </Button>
           </div>
+        </CardContent>
+      </Card>
+
+      {/* Step Dependencies Section */}
+      <Card className="mt-6">
+        <CardHeader className="pb-3">
+          <CardTitle>Step Dependencies</CardTitle>
+          <CardDescription>
+            Visualize how steps depend on each other and detect circular dependencies
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <StepDependencyVisualizer
+            steps={steps}
+            variables={variables}
+            outputVariable={outputVariable}
+            onStepClick={(stepId) => {
+              // Find the index of the step
+              const stepIndex = steps.findIndex(s => s.id === stepId);
+              if (stepIndex >= 0) {
+                // Scroll to that step's card
+                const stepEl = document.getElementById(`step-${stepId}`);
+                if (stepEl) {
+                  stepEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                  // Highlight the step temporarily
+                  stepEl.classList.add('ring-2', 'ring-primary', 'ring-opacity-50');
+                  setTimeout(() => {
+                    stepEl.classList.remove('ring-2', 'ring-primary', 'ring-opacity-50');
+                  }, 2000);
+                }
+              }
+            }}
+          />
+        </CardContent>
+      </Card>
+
+      {/* Preview Section */}
+      <Card className="mt-6">
+        <CardHeader className="pb-3">
+          <CardTitle>Formula Preview</CardTitle>
+          <CardDescription>
+            Preview and test your formula with sample data
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <FormulaPlanPreview
+            variables={variables}
+            steps={steps}
+            outputVariable={outputVariable}
+          />
         </CardContent>
       </Card>
     </div>
