@@ -1,6 +1,6 @@
 
 import { useMemo } from 'react';
-import { EmployeeSalary } from '../components/SalaryTable';
+import { EmployeeSalary } from './utils/salaryTypes';
 
 export interface DashboardStats {
   totalPayout: number;

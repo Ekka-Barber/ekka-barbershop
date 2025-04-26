@@ -1,42 +1,17 @@
-import { Employee } from '@/types/employee';
-import { SalesData } from '@/lib/salary/calculators/BaseCalculator';
-import { Transaction } from '@/lib/salary/types/salary';
 
+// Define types for salary calculations
 export interface EmployeeSalary {
   id: string;
   name: string;
-  salesAmount?: number; // Add sales amount for the month
+  salesAmount?: number;
   baseSalary: number;
   commission: number;
-  bonus: number;        // Regular bonus from transactions
-  targetBonus: number;  // Target bonus from salary plan
+  bonus?: number;
+  targetBonus?: number;
   deductions: number;
   loans: number;
   total: number;
   calculationError?: string;
-}
-
-export interface UseSalaryDataProps {
-  employees: Employee[];
-  selectedMonth: string;
-}
-
-export interface UseSalaryDataResult {
-  salaryData: EmployeeSalary[];
-  isLoading: boolean;
-  getEmployeeTransactions: (employeeId: string) => {
-    bonuses: Transaction[];
-    deductions: Transaction[];
-    loans: Transaction[];
-    salesData: SalesData | null;
-  };
-  calculationErrors: {
-    employeeId: string;
-    employeeName: string;
-    error: string;
-    details?: Record<string, unknown>;
-  }[];
-  refreshData: () => void;
 }
 
 export interface SalaryCalculationError {
@@ -45,3 +20,37 @@ export interface SalaryCalculationError {
   error: string;
   details?: Record<string, unknown>;
 }
+
+export interface UseSalaryDataProps {
+  employees: Array<{
+    id: string;
+    name: string;
+    salary_plan_id?: string;
+  }>;
+  selectedMonth: string;
+}
+
+export interface UseSalaryDataResult {
+  salaryData: EmployeeSalary[];
+  isLoading: boolean;
+  getEmployeeTransactions: (employeeId: string) => {
+    bonuses: any[];
+    deductions: any[];
+    loans: any[];
+    salesData: any | null;
+  };
+  calculationErrors: SalaryCalculationError[];
+  refreshData: () => void;
+}
+
+// Type cast helper for Supabase JSON
+export const asRecord = (json: unknown): Record<string, unknown> => {
+  if (typeof json === 'string') {
+    try {
+      return JSON.parse(json) as Record<string, unknown>;
+    } catch (e) {
+      return {};
+    }
+  }
+  return json as Record<string, unknown>;
+};

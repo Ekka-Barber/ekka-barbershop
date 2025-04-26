@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Employee } from '@/types/employee';
 import { Separator } from '@/components/ui/separator';
@@ -13,7 +14,7 @@ import { Button } from '@/components/ui/button';
 import { Download, Calculator, List } from 'lucide-react';
 import { EmployeeSalary } from './hooks/utils/salaryTypes';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { FormulaSalaryPlanList } from './components/FormulaSalaryPlanList';
+import FormulaSalaryPlanList from './components/FormulaSalaryPlanList';
 import { ExistingSalaryPlansList } from './components/ExistingSalaryPlansList';
 
 interface SalaryDashboardProps {

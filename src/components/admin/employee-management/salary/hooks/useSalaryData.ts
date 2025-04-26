@@ -1,8 +1,9 @@
+
 import { useState, useEffect } from 'react';
 import { useSalaryQueries } from './useSalaryQueries';
 import { useSalaryCalculation } from './useSalaryCalculation';
 import { useEmployeeTransactions } from './useEmployeeTransactions';
-import { UseSalaryDataProps, UseSalaryDataResult, EmployeeSalary } from './utils/salaryTypes';
+import { UseSalaryDataProps, UseSalaryDataResult, EmployeeSalary, asRecord } from './utils/salaryTypes';
 
 /**
  * Main hook for salary data management
@@ -12,7 +13,7 @@ export const useSalaryData = ({
   employees, 
   selectedMonth 
 }: UseSalaryDataProps): UseSalaryDataResult => {
-  const [salaryData, setSalaryData] = useState([]);
+  const [salaryData, setSalaryData] = useState<EmployeeSalary[]>([]);
   const [isCalculating, setIsCalculating] = useState(false);
   const [cachedSalaryData, setCachedSalaryData] = useState<Record<string, EmployeeSalary[]>>({});
   const [lastCalculationTime, setLastCalculationTime] = useState<Record<string, number>>({});
@@ -74,11 +75,17 @@ export const useSalaryData = ({
       setIsCalculating(true);
       
       try {
+        // Convert Supabase Json types to Record<string, unknown>
+        const typedSalaryPlans = salaryPlans.map(plan => ({
+          ...plan,
+          config: asRecord(plan.config)
+        }));
+        
         const calculatedSalaries = await calculateSalaries({
           employees,
           selectedMonth,
           salesData,
-          salaryPlans,
+          salaryPlans: typedSalaryPlans,
           bonuses,
           deductions,
           loans
