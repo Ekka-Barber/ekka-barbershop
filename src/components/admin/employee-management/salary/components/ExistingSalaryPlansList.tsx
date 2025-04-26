@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -579,6 +578,10 @@ export const ExistingSalaryPlansList = () => {
     );
   }
 
+  const handleFormulaPlanSave = (formData: FormulaPlanData) => {
+    handleSave(formData as unknown as Record<string, unknown>);
+  };
+
   return (
     <Card className="w-full">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -661,4 +664,4 @@ export const ExistingSalaryPlansList = () => {
       </CardContent>
     </Card>
   );
-}; 
+};

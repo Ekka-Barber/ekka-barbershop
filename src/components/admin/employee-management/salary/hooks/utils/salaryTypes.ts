@@ -6,7 +6,7 @@ export interface EmployeeSalary {
   salesAmount?: number;
   baseSalary: number;
   commission: number;
-  bonus?: number;
+  bonus: number; // Changed from optional to required
   targetBonus?: number;
   deductions: number;
   loans: number;
@@ -25,6 +25,10 @@ export interface UseSalaryDataProps {
   employees: Array<{
     id: string;
     name: string;
+    name_ar: string; // Added missing required fields
+    email: string;
+    role: string;
+    working_hours: Record<string, string[]>;
     salary_plan_id?: string;
   }>;
   selectedMonth: string;

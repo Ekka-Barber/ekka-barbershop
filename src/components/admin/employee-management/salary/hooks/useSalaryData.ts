@@ -4,6 +4,7 @@ import { useSalaryQueries } from './useSalaryQueries';
 import { useSalaryCalculation } from './useSalaryCalculation';
 import { useEmployeeTransactions } from './useEmployeeTransactions';
 import { UseSalaryDataProps, UseSalaryDataResult, EmployeeSalary, asRecord } from './utils/salaryTypes';
+import { Employee } from '@/types/employee';
 
 /**
  * Main hook for salary data management
@@ -38,7 +39,7 @@ export const useSalaryData = ({
     deductions,
     loans,
     salesData,
-    employees
+    employees: employees as Employee[] // Type assertion here as employees should match the required structure
   });
 
   // Custom refresh function that clears cache for the current month
@@ -82,7 +83,7 @@ export const useSalaryData = ({
         }));
         
         const calculatedSalaries = await calculateSalaries({
-          employees,
+          employees: employees as Employee[], // Type assertion here as employees should match the required structure
           selectedMonth,
           salesData,
           salaryPlans: typedSalaryPlans,

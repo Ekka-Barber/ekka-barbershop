@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Employee } from '@/types/employee';
 import {
@@ -59,14 +60,6 @@ export const useSalaryCalculation = () => {
           
           const salesAmount = employeeSales ? Number(employeeSales.sales_amount || 0) : 0;
           
-          /* console.log(`Sales lookup for ${employee.name}:`, {
-            found: !!employeeSales,
-            salesAmount,
-            employeeId: employee.id,
-            employeeName: employee.name,
-            salesRecord: employeeSales
-          }); */ // Commented out debug log
-          
           const salaryPlan = salaryPlans.find(plan => plan.id === employee.salary_plan_id);
           
           const employeeBonuses = bonuses?.filter(bonus => bonus.employee_id === employee.id) || [];
@@ -114,7 +107,6 @@ export const useSalaryCalculation = () => {
                 ]);
               }
             } catch (error) {
-              // Keep this error log as it indicates a calculation failure
               console.error(`Error calculating salary for ${employee.name}:`, error);
               
               calculationError = error instanceof Error 
@@ -157,7 +149,7 @@ export const useSalaryCalculation = () => {
             salesAmount,
             baseSalary,
             commission,
-            bonus: bonusTotal,
+            bonus: bonusTotal, // Ensure this is always a number, not optional
             targetBonus,
             deductions: deductionsTotal,
             loans: loansTotal,
@@ -169,7 +161,6 @@ export const useSalaryCalculation = () => {
       
       return salaries;
     } catch (error) {
-      // Keep this top-level error log
       console.error('Error calculating salaries:', error);
       return [];
     }
