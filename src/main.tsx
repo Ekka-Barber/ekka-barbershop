@@ -31,7 +31,6 @@ rootElement.classList.add('momentum-scroll');
 
 const root = createRoot(rootElement);
 
-// Wrap App with BrowserRouter and QueryClientProvider
 root.render(
   <React.StrictMode>
     <BrowserRouter>
