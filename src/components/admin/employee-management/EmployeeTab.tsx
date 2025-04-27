@@ -12,6 +12,7 @@ import { ScheduleInterface } from './components/ScheduleInterface';
 import { TeamPerformanceComparison } from './components/TeamPerformanceComparison';
 import { SalaryDashboard } from './salary/SalaryDashboard';
 import { LeaveManagement } from './LeaveManagement';
+import { Button } from '@/components/ui/button';
 
 export const EmployeeTab = () => {
   const { toast } = useToast();
@@ -34,7 +35,7 @@ export const EmployeeTab = () => {
   const { 
     branches, 
     selectedBranch, 
-    setSelectedBranch, 
+    setSelectedBranch,
     isLoading: isBranchLoading
   } = useBranchManager();
   
@@ -80,6 +81,30 @@ export const EmployeeTab = () => {
 
   return (
     <div className="space-y-6">
+      {/* Branch filter buttons */}
+      <div className="flex flex-wrap gap-2 mt-2">
+        <Button
+          variant={selectedBranch === null ? "default" : "outline"}
+          size="sm"
+          onClick={() => setSelectedBranch(null)}
+          aria-label="Show all branches"
+          tabIndex={0}
+        >
+          All Branches
+        </Button>
+        {branches.map(branch => (
+          <Button
+            key={branch.id}
+            variant={selectedBranch === branch.id ? "default" : "outline"}
+            size="sm"
+            onClick={() => setSelectedBranch(branch.id)}
+            aria-label={`Show ${branch.name} branch`}
+            tabIndex={0}
+          >
+            {branch.name}
+          </Button>
+        ))}
+      </div>
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         <div className="flex justify-between items-center">
           <div className="overflow-x-auto pb-2 w-full">
@@ -116,9 +141,6 @@ export const EmployeeTab = () => {
           <EmployeeSalesHeader
             selectedDate={selectedDate}
             setSelectedDate={setSelectedDate}
-            selectedBranch={selectedBranch}
-            setSelectedBranch={setSelectedBranch}
-            branches={branches}
             handleSubmit={handleSubmit}
             isSubmitting={isSubmitting}
           />

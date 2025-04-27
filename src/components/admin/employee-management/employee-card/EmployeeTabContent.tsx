@@ -7,7 +7,6 @@ import { SalesStatistics } from '../components/SalesStatistics';
 import { SalaryPlanSection } from '../components/SalaryPlanSection';
 import { EmployeeFinancials } from '../components/financials/EmployeeFinancials';
 
-// Define a Branch type to use instead of any
 interface Branch {
   id: string;
   name: string;
@@ -35,15 +34,13 @@ export const InfoTabContent = ({
         salesValue={salesValue}
         onSalesChange={onSalesChange}
       />
-      
-      <BranchSelector 
+      <BranchSelector
         employeeId={employee.id}
         employeeName={employee.name}
         initialBranchId={employee.branch_id || null}
         branches={branches}
         refetchEmployees={refetchEmployees}
       />
-      
       <div>
         <h3 className="text-sm font-medium mb-1.5 block">
           Weekly Schedule

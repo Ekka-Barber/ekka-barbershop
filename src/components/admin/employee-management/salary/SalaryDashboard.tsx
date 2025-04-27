@@ -62,6 +62,14 @@ export const SalaryDashboard = ({
     selectedMonth
   });
   
+  // Filter salaryData to only include employees in the current employees prop
+  const filteredSalaryData = salaryData.filter(salary =>
+    employees.some(emp => emp.id === salary.id)
+  );
+  
+  // Always call the hook at the top level
+  const filteredStats = useDashboardStats(filteredSalaryData);
+  
   // Track historical data for comparison
   const [historicalData, setHistoricalData] = useState<Record<string, EmployeeSalary[]>>({});
   
@@ -183,8 +191,6 @@ export const SalaryDashboard = ({
     return currentData.total - prevData.total;
   };
   
-  const stats = useDashboardStats(salaryData);
-  
   return (
     <div className="space-y-6">
       <Tabs defaultValue="overview" value={salaryTab} onValueChange={setSalaryTab} className="space-y-6">
@@ -243,11 +249,11 @@ export const SalaryDashboard = ({
           
           <Separator className="my-4" />
           
-          {!isLoading && salaryData.length > 0 && (
+          {!isLoading && filteredSalaryData.length > 0 && (
             <SalaryDashboardStats
-              totalPayout={stats.totalPayout}
-              avgSalary={stats.avgSalary}
-              employeeCount={stats.employeeCount}
+              totalPayout={filteredStats.totalPayout}
+              avgSalary={filteredStats.avgSalary}
+              employeeCount={filteredStats.employeeCount}
             />
           )}
           
@@ -267,7 +273,7 @@ export const SalaryDashboard = ({
               />
             ) : (
               <SalaryTable 
-                salaryData={salaryData}
+                salaryData={filteredSalaryData}
                 isLoading={isLoading}
                 onEmployeeSelect={handleEmployeeSelect}
                 getMonthlyChange={getMonthlyChange}
