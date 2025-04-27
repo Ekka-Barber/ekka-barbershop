@@ -1,4 +1,3 @@
-
 import { Employee } from '@/types/employee';
 import { SalesInput } from './SalesInput';
 import { BranchSelector } from './BranchSelector';
@@ -6,6 +5,7 @@ import { ScheduleDisplay } from '../ScheduleDisplay';
 import { transformWorkingHours } from '@/utils/workingHoursUtils';
 import { SalesStatistics } from '../components/SalesStatistics';
 import { SalaryPlanSection } from '../components/SalaryPlanSection';
+import { EmployeeFinancials } from '../components/financials/EmployeeFinancials';
 
 interface InfoTabContentProps {
   employee: Employee;
@@ -77,6 +77,25 @@ export const StatsTabContent = ({
           refetchEmployees={refetchEmployees}
         />
       </div>
+    </div>
+  );
+};
+
+interface FinancialsTabContentProps {
+  employee: Employee;
+  refetchEmployees?: () => void;
+}
+
+export const FinancialsTabContent = ({
+  employee,
+  refetchEmployees
+}: FinancialsTabContentProps) => {
+  return (
+    <div className="space-y-4">
+      <EmployeeFinancials 
+        employee={employee}
+        refetchEmployees={refetchEmployees}
+      />
     </div>
   );
 };

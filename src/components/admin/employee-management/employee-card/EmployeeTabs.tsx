@@ -1,9 +1,8 @@
-
 import { useState } from 'react';
 import { Employee } from '@/types/employee';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Info, BarChart } from 'lucide-react';
-import { InfoTabContent, StatsTabContent } from './EmployeeTabContent';
+import { Info, BarChart, DollarSign } from 'lucide-react';
+import { InfoTabContent, StatsTabContent, FinancialsTabContent } from './EmployeeTabContent';
 
 interface EmployeeTabsProps {
   employee: Employee;
@@ -25,7 +24,7 @@ export const EmployeeTabs = ({
   return (
     <Tabs defaultValue="info" onValueChange={setActiveTab} value={activeTab}>
       <div className="overflow-x-auto pb-2">
-        <TabsList className="grid w-full grid-cols-2 mb-4">
+        <TabsList className="grid w-full grid-cols-3 mb-4">
           <TabsTrigger value="info" className="flex items-center gap-1">
             <Info className="h-4 w-4" />
             <span>Info</span>
@@ -33,6 +32,10 @@ export const EmployeeTabs = ({
           <TabsTrigger value="stats" className="flex items-center gap-1">
             <BarChart className="h-4 w-4" />
             <span>Statistics</span>
+          </TabsTrigger>
+          <TabsTrigger value="financials" className="flex items-center gap-1">
+            <DollarSign className="h-4 w-4" />
+            <span>Financials</span>
           </TabsTrigger>
         </TabsList>
       </div>
@@ -51,6 +54,13 @@ export const EmployeeTabs = ({
         <StatsTabContent 
           employee={employee}
           salesAmount={parseInt(salesValue) || 0}
+          refetchEmployees={refetchEmployees}
+        />
+      </TabsContent>
+      
+      <TabsContent value="financials">
+        <FinancialsTabContent 
+          employee={employee}
           refetchEmployees={refetchEmployees}
         />
       </TabsContent>
