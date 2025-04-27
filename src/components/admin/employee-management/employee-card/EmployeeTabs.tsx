@@ -4,12 +4,19 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Info, BarChart, DollarSign } from 'lucide-react';
 import { InfoTabContent, StatsTabContent, FinancialsTabContent } from './EmployeeTabContent';
 
+// Define Branch interface
+interface Branch {
+  id: string;
+  name: string;
+}
+
 interface EmployeeTabsProps {
   employee: Employee;
   salesValue: string;
   onSalesChange: (value: string) => void;
-  branches: any[];
+  branches: Branch[];
   refetchEmployees?: () => void;
+  selectedMonth?: string;
 }
 
 export const EmployeeTabs = ({ 
@@ -17,7 +24,8 @@ export const EmployeeTabs = ({
   salesValue, 
   onSalesChange,
   branches,
-  refetchEmployees
+  refetchEmployees,
+  selectedMonth
 }: EmployeeTabsProps) => {
   const [activeTab, setActiveTab] = useState<string>('info');
   
@@ -62,6 +70,7 @@ export const EmployeeTabs = ({
         <FinancialsTabContent 
           employee={employee}
           refetchEmployees={refetchEmployees}
+          selectedMonth={selectedMonth}
         />
       </TabsContent>
     </Tabs>

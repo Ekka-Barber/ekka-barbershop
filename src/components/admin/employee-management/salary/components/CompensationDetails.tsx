@@ -1,4 +1,3 @@
-
 import { DollarSign } from 'lucide-react';
 import { formatPrice } from "@/utils/formatters";
 import { SalaryCalculationResult } from '@/lib/salary/types/salary';
@@ -60,7 +59,7 @@ export const CompensationDetails = ({
               </div>
               
               {/* Positive components - Base salary, commission, bonus */}
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-center">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-center w-full">
                 <div className="bg-blue-50 p-2 rounded-md">
                   <p className="text-xs text-gray-500">Base Salary</p>
                   <p className="text-lg font-semibold">{formatPrice(baseSalary)}</p>
@@ -83,7 +82,7 @@ export const CompensationDetails = ({
               {(deductions > 0 || loans > 0) && (
                 <div className="mt-3">
                   <h4 className="text-sm text-gray-600 mb-2">Subtractions:</h4>
-                  <div className="grid grid-cols-2 gap-4 text-center">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-center w-full">
                     {deductions > 0 && (
                       <div className="bg-red-50 p-2 rounded-md">
                         <p className="text-xs text-red-500">Deductions</p>
@@ -158,43 +157,42 @@ const CompensationBreakdown = ({
     {/* Detailed breakdown with all components */}
     <div className="mt-4 pt-4 border-t">
       <h4 className="text-sm font-semibold mb-3">Compensation Breakdown:</h4>
-      <div className="space-y-2 text-sm">
-        <div className="flex justify-between">
-          <span>Base Salary</span>
+      <div className="space-y-2 text-sm px-2 sm:px-0">
+        <div className="flex flex-wrap justify-between min-w-0">
+          <span className="truncate">Base Salary</span>
           <span className="font-medium">{formatPrice(baseSalary)}</span>
         </div>
         
         {commission > 0 && (
-          <div className="flex justify-between">
-            <span>Commission</span>
+          <div className="flex flex-wrap justify-between min-w-0">
+            <span className="truncate">Commission</span>
             <span className="font-medium">{formatPrice(commission)}</span>
           </div>
         )}
         
         {targetBonus > 0 && (
-          <div className="flex justify-between">
-            <span>Target Bonus</span>
+          <div className="flex flex-wrap justify-between min-w-0">
+            <span className="truncate">Target Bonus</span>
             <span className="font-medium text-green-600">{formatPrice(targetBonus)}</span>
           </div>
         )}
         
-        {/* Show deductions and loans even if they're zero */}
-        <div className="flex justify-between">
-          <span>Deductions</span>
+        <div className="flex flex-wrap justify-between min-w-0">
+          <span className="truncate">Deductions</span>
           <span className={deductions > 0 ? "font-medium text-red-600" : "font-medium"}>
             {deductions > 0 ? `-${formatPrice(deductions)}` : formatPrice(0)}
           </span>
         </div>
         
-        <div className="flex justify-between">
-          <span>Loans</span>
+        <div className="flex flex-wrap justify-between min-w-0">
+          <span className="truncate">Loans</span>
           <span className={loans > 0 ? "font-medium text-red-600" : "font-medium"}>
             {loans > 0 ? `-${formatPrice(loans)}` : formatPrice(0)}
           </span>
         </div>
         
-        <div className="flex justify-between pt-2 border-t font-semibold">
-          <span>Total</span>
+        <div className="flex flex-wrap justify-between min-w-0 pt-2 border-t font-semibold">
+          <span className="truncate">Total</span>
           <span>{formatPrice(totalSalary)}</span>
         </div>
       </div>

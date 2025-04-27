@@ -188,29 +188,26 @@ export const SalaryDashboard = ({
   return (
     <div className="space-y-6">
       <Tabs defaultValue="overview" value={salaryTab} onValueChange={setSalaryTab} className="space-y-6">
-        <div className="flex justify-between items-center">
-          <div className="flex-1">
-            <TabsList className="mb-4">
-              <TabsTrigger value="overview" className="flex items-center gap-1">
+        <div className="w-full overflow-x-auto">
+          <div className="flex flex-nowrap items-center gap-2 px-2 min-w-max">
+            <TabsList className="mb-4 flex flex-nowrap gap-2 min-w-max">
+              <TabsTrigger value="overview" className="flex items-center gap-1 min-w-max">
                 Overview
               </TabsTrigger>
-              <TabsTrigger value="existing-plans" className="flex items-center gap-1">
+              <TabsTrigger value="existing-plans" className="flex items-center gap-1 min-w-max">
                 <List className="h-4 w-4 mr-1" />
                 Existing Salary Plans
               </TabsTrigger>
-              <TabsTrigger value="formula-plans" className="flex items-center gap-1">
+              <TabsTrigger value="formula-plans" className="flex items-center gap-1 min-w-max">
                 <Calculator className="h-4 w-4 mr-1" />
                 Formula Salary Plans
               </TabsTrigger>
             </TabsList>
-          </div>
-          
-          <div className="flex items-center gap-2">
             {salaryTab === "overview" && !isLoading && salaryData.length > 0 && !selectedEmployeeId && (
               <>
                 <Button 
                   variant={autoRefresh ? "default" : "outline"} 
-                  className="flex items-center gap-1"
+                  className="flex items-center gap-1 min-w-max"
                   onClick={toggleAutoRefresh}
                 >
                   {autoRefresh ? "Auto-Refresh On" : "Auto-Refresh Off"}
@@ -220,10 +217,9 @@ export const SalaryDashboard = ({
                     </span>
                   )}
                 </Button>
-                
                 <Button 
                   variant="outline" 
-                  className="flex items-center gap-1"
+                  className="flex items-center gap-1 min-w-max"
                   onClick={exportSalaryData}
                 >
                   <Download className="h-4 w-4 mr-1" />

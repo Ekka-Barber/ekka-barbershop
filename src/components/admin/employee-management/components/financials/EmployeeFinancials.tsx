@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, Trash2, CircleDollarSign, Wallet, CreditCard } from 'lucide-react';
+import { Plus, Trash2, CircleDollarSign, Wallet, CreditCard, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { 
@@ -16,19 +16,32 @@ import {
   DialogTrigger
 } from '@/components/ui/dialog';
 import { EmployeeBonus, EmployeeDeduction, EmployeeLoan } from '@/lib/salary/types/salary';
-import { format } from 'date-fns';
+import { format, lastDayOfMonth } from 'date-fns';
+import { Calendar as CalendarComponent } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { cn } from '@/lib/utils';
+import { Badge } from '@/components/ui/badge';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface EmployeeFinancialsProps {
   employee: Employee;
   refetchEmployees?: () => void;
+  selectedMonth?: string;
 }
 
 export const EmployeeFinancials = ({
   employee,
-  refetchEmployees
+  refetchEmployees,
+  selectedMonth
 }: EmployeeFinancialsProps) => {
   const [activeTab, setActiveTab] = useState<string>('bonuses');
-  const currentMonth = format(new Date(), 'yyyy-MM');
+  const currentMonth = selectedMonth || format(new Date(), 'yyyy-MM');
+  
+  console.log('EmployeeFinancials component rendered with:', {
+    employeeId: employee.id,
+    selectedMonth,
+    currentMonth
+  });
 
   return (
     <div className="space-y-4">
@@ -84,17 +97,38 @@ interface FinancialTabProps {
 
 const BonusesTab = ({ employee, currentMonth, refetchEmployees }: FinancialTabProps) => {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const queryClient = useQueryClient();
+  
+  console.log('BonusesTab rendered with:', {
+    employeeId: employee.id,
+    currentMonth
+  });
   
   const { data: bonuses = [] } = useQuery({
     queryKey: ['employee-bonuses', employee.id, currentMonth],
     queryFn: async () => {
+      const startOfMonth = `${currentMonth}-01`;
+      const endOfMonth = format(lastDayOfMonth(new Date(currentMonth)), 'yyyy-MM-dd');
+      
+      console.log('Fetching bonuses with date range:', {
+        employeeId: employee.id,
+        startOfMonth,
+        endOfMonth
+      });
+      
       const { data, error } = await supabase
         .from('employee_bonuses')
         .select('*')
         .eq('employee_id', employee.id)
-        .eq('date', currentMonth)
+        .gte('date', startOfMonth)
+        .lte('date', endOfMonth)
         .order('created_at', { ascending: false });
+      
+      console.log('Bonuses fetch result:', {
+        data,
+        error
+      });
         
       if (error) throw error;
       return data as EmployeeBonus[];
@@ -156,14 +190,19 @@ const BonusesTab = ({ employee, currentMonth, refetchEmployees }: FinancialTabPr
       employee_name: employee.name,
       description,
       amount,
-      date: currentMonth
+      date: format(selectedDate, 'yyyy-MM-dd')
     });
   };
   
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-medium">Employee Bonuses</h3>
+        <div>
+          <h3 className="text-sm font-medium">Employee Bonuses</h3>
+          <p className="text-xs text-muted-foreground mt-1">
+            Total: {bonuses.reduce((sum, bonus) => sum + bonus.amount, 0).toFixed(2)} SAR
+          </p>
+        </div>
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
           <DialogTrigger asChild>
             <Button variant="outline" size="sm" className="h-8">
@@ -199,6 +238,31 @@ const BonusesTab = ({ employee, currentMonth, refetchEmployees }: FinancialTabPr
                   required 
                 />
               </div>
+              <div className="grid gap-2">
+                <label className="text-sm font-medium">Date</label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "w-full justify-start text-left font-normal",
+                        !selectedDate && "text-muted-foreground"
+                      )}
+                    >
+                      <Calendar className="mr-2 h-4 w-4" />
+                      {selectedDate ? format(selectedDate, "PPP") : <span>Pick a date</span>}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0">
+                    <CalendarComponent
+                      mode="single"
+                      selected={selectedDate}
+                      onSelect={(date) => date && setSelectedDate(date)}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
               <DialogFooter>
                 <Button type="button" variant="outline" onClick={() => setIsAddDialogOpen(false)}>
                   Cancel
@@ -217,28 +281,37 @@ const BonusesTab = ({ employee, currentMonth, refetchEmployees }: FinancialTabPr
           <p>No bonuses found for this month</p>
         </div>
       ) : (
-        <div className="space-y-3">
-          {bonuses.map((bonus) => (
-            <Card key={bonus.id} className="overflow-hidden">
-              <CardContent className="p-4">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <h4 className="font-medium">{bonus.description}</h4>
-                    <p className="text-2xl font-semibold mt-1">{bonus.amount.toFixed(2)}</p>
+        <ScrollArea className="h-[400px] pr-4">
+          <div className="space-y-3">
+            {bonuses.map((bonus) => (
+              <Card key={bonus.id} className="overflow-hidden">
+                <CardContent className="p-4">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <h4 className="font-medium">{bonus.description}</h4>
+                        <Badge variant="secondary" className="text-xs">
+                          {format(new Date(bonus.date), 'MMM d, yyyy')}
+                        </Badge>
+                      </div>
+                      <p className="text-2xl font-semibold mt-1 text-green-600">
+                        {bonus.amount.toFixed(2)} SAR
+                      </p>
+                    </div>
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="h-8 w-8 text-destructive"
+                      onClick={() => deleteBonusMutation.mutate(bonus.id)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
                   </div>
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    className="h-8 w-8 text-destructive"
-                    onClick={() => deleteBonusMutation.mutate(bonus.id)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </ScrollArea>
       )}
     </div>
   );
@@ -246,16 +319,21 @@ const BonusesTab = ({ employee, currentMonth, refetchEmployees }: FinancialTabPr
 
 const DeductionsTab = ({ employee, currentMonth, refetchEmployees }: FinancialTabProps) => {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const queryClient = useQueryClient();
   
   const { data: deductions = [] } = useQuery({
     queryKey: ['employee-deductions', employee.id, currentMonth],
     queryFn: async () => {
+      const startOfMonth = `${currentMonth}-01`;
+      const endOfMonth = format(lastDayOfMonth(new Date(currentMonth)), 'yyyy-MM-dd');
+      
       const { data, error } = await supabase
         .from('employee_deductions')
         .select('*')
         .eq('employee_id', employee.id)
-        .eq('date', currentMonth)
+        .gte('date', startOfMonth)
+        .lte('date', endOfMonth)
         .order('created_at', { ascending: false });
         
       if (error) throw error;
@@ -318,14 +396,19 @@ const DeductionsTab = ({ employee, currentMonth, refetchEmployees }: FinancialTa
       employee_name: employee.name,
       description,
       amount,
-      date: currentMonth
+      date: format(selectedDate, 'yyyy-MM-dd')
     });
   };
   
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-medium">Employee Deductions</h3>
+        <div>
+          <h3 className="text-sm font-medium">Employee Deductions</h3>
+          <p className="text-xs text-muted-foreground mt-1">
+            Total: {deductions.reduce((sum, deduction) => sum + deduction.amount, 0).toFixed(2)} SAR
+          </p>
+        </div>
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
           <DialogTrigger asChild>
             <Button variant="outline" size="sm" className="h-8">
@@ -361,6 +444,31 @@ const DeductionsTab = ({ employee, currentMonth, refetchEmployees }: FinancialTa
                   required 
                 />
               </div>
+              <div className="grid gap-2">
+                <label className="text-sm font-medium">Date</label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "w-full justify-start text-left font-normal",
+                        !selectedDate && "text-muted-foreground"
+                      )}
+                    >
+                      <Calendar className="mr-2 h-4 w-4" />
+                      {selectedDate ? format(selectedDate, "PPP") : <span>Pick a date</span>}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0">
+                    <CalendarComponent
+                      mode="single"
+                      selected={selectedDate}
+                      onSelect={(date) => date && setSelectedDate(date)}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
               <DialogFooter>
                 <Button type="button" variant="outline" onClick={() => setIsAddDialogOpen(false)}>
                   Cancel
@@ -379,28 +487,37 @@ const DeductionsTab = ({ employee, currentMonth, refetchEmployees }: FinancialTa
           <p>No deductions found for this month</p>
         </div>
       ) : (
-        <div className="space-y-3">
-          {deductions.map((deduction) => (
-            <Card key={deduction.id} className="overflow-hidden">
-              <CardContent className="p-4">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <h4 className="font-medium">{deduction.description}</h4>
-                    <p className="text-2xl font-semibold mt-1 text-destructive">{deduction.amount.toFixed(2)}</p>
+        <ScrollArea className="h-[400px] pr-4">
+          <div className="space-y-3">
+            {deductions.map((deduction) => (
+              <Card key={deduction.id} className="overflow-hidden">
+                <CardContent className="p-4">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <h4 className="font-medium">{deduction.description}</h4>
+                        <Badge variant="secondary" className="text-xs">
+                          {format(new Date(deduction.date), 'MMM d, yyyy')}
+                        </Badge>
+                      </div>
+                      <p className="text-2xl font-semibold mt-1 text-red-600">
+                        {deduction.amount.toFixed(2)} SAR
+                      </p>
+                    </div>
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="h-8 w-8 text-destructive"
+                      onClick={() => deleteDeductionMutation.mutate(deduction.id)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
                   </div>
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    className="h-8 w-8 text-destructive"
-                    onClick={() => deleteDeductionMutation.mutate(deduction.id)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </ScrollArea>
       )}
     </div>
   );
@@ -408,15 +525,21 @@ const DeductionsTab = ({ employee, currentMonth, refetchEmployees }: FinancialTa
 
 const LoansTab = ({ employee, currentMonth, refetchEmployees }: FinancialTabProps) => {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const queryClient = useQueryClient();
   
   const { data: loans = [] } = useQuery({
     queryKey: ['employee-loans', employee.id, currentMonth],
     queryFn: async () => {
+      const startOfMonth = `${currentMonth}-01`;
+      const endOfMonth = format(lastDayOfMonth(new Date(currentMonth)), 'yyyy-MM-dd');
+      
       const { data, error } = await supabase
         .from('employee_loans')
         .select('*')
         .eq('employee_id', employee.id)
+        .gte('date', startOfMonth)
+        .lte('date', endOfMonth)
         .order('date', { ascending: false });
         
       if (error) throw error;
@@ -473,7 +596,6 @@ const LoansTab = ({ employee, currentMonth, refetchEmployees }: FinancialTabProp
     
     const description = formData.get('description') as string;
     const amount = parseFloat(formData.get('amount') as string);
-    const date = formData.get('date') as string || currentMonth;
     
     if (!description || isNaN(amount)) return;
     
@@ -482,7 +604,7 @@ const LoansTab = ({ employee, currentMonth, refetchEmployees }: FinancialTabProp
       employee_name: employee.name,
       description,
       amount,
-      date,
+      date: format(selectedDate, 'yyyy-MM-dd'),
       source: 'manual',
       branch_id: employee.branch_id
     });
@@ -491,7 +613,12 @@ const LoansTab = ({ employee, currentMonth, refetchEmployees }: FinancialTabProp
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-medium">Employee Loans</h3>
+        <div>
+          <h3 className="text-sm font-medium">Employee Loans</h3>
+          <p className="text-xs text-muted-foreground mt-1">
+            Total: {loans.reduce((sum, loan) => sum + loan.amount, 0).toFixed(2)} SAR
+          </p>
+        </div>
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
           <DialogTrigger asChild>
             <Button variant="outline" size="sm" className="h-8">
@@ -528,16 +655,29 @@ const LoansTab = ({ employee, currentMonth, refetchEmployees }: FinancialTabProp
                 />
               </div>
               <div className="grid gap-2">
-                <label htmlFor="date" className="text-sm font-medium">
-                  Date
-                </label>
-                <Input 
-                  id="date" 
-                  name="date" 
-                  type="month" 
-                  defaultValue={currentMonth}
-                  required 
-                />
+                <label className="text-sm font-medium">Date</label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "w-full justify-start text-left font-normal",
+                        !selectedDate && "text-muted-foreground"
+                      )}
+                    >
+                      <Calendar className="mr-2 h-4 w-4" />
+                      {selectedDate ? format(selectedDate, "PPP") : <span>Pick a date</span>}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0">
+                    <CalendarComponent
+                      mode="single"
+                      selected={selectedDate}
+                      onSelect={(date) => date && setSelectedDate(date)}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
               </div>
               <DialogFooter>
                 <Button type="button" variant="outline" onClick={() => setIsAddDialogOpen(false)}>
@@ -554,36 +694,40 @@ const LoansTab = ({ employee, currentMonth, refetchEmployees }: FinancialTabProp
       
       {loans.length === 0 ? (
         <div className="text-center py-6 text-muted-foreground">
-          <p>No loans found</p>
+          <p>No loans found for this month</p>
         </div>
       ) : (
-        <div className="space-y-3">
-          {loans.map((loan) => (
-            <Card key={loan.id} className="overflow-hidden">
-              <CardContent className="p-4">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <h4 className="font-medium">{loan.description}</h4>
-                      <span className="text-xs text-muted-foreground">
-                        {loan.date}
-                      </span>
+        <ScrollArea className="h-[400px] pr-4">
+          <div className="space-y-3">
+            {loans.map((loan) => (
+              <Card key={loan.id} className="overflow-hidden">
+                <CardContent className="p-4">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <h4 className="font-medium">{loan.description}</h4>
+                        <Badge variant="secondary" className="text-xs">
+                          {format(new Date(loan.date), 'MMM d, yyyy')}
+                        </Badge>
+                      </div>
+                      <p className="text-2xl font-semibold mt-1 text-amber-600">
+                        {loan.amount.toFixed(2)} SAR
+                      </p>
                     </div>
-                    <p className="text-2xl font-semibold mt-1 text-amber-500">{loan.amount.toFixed(2)}</p>
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="h-8 w-8 text-destructive"
+                      onClick={() => deleteLoanMutation.mutate(loan.id)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
                   </div>
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    className="h-8 w-8 text-destructive"
-                    onClick={() => deleteLoanMutation.mutate(loan.id)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </ScrollArea>
       )}
     </div>
   );

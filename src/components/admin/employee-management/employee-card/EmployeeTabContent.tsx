@@ -7,11 +7,17 @@ import { SalesStatistics } from '../components/SalesStatistics';
 import { SalaryPlanSection } from '../components/SalaryPlanSection';
 import { EmployeeFinancials } from '../components/financials/EmployeeFinancials';
 
+// Define a Branch type to use instead of any
+interface Branch {
+  id: string;
+  name: string;
+}
+
 interface InfoTabContentProps {
   employee: Employee;
   salesValue: string;
   onSalesChange: (value: string) => void;
-  branches: any[];
+  branches: Branch[];
   refetchEmployees?: () => void;
 }
 
@@ -84,17 +90,20 @@ export const StatsTabContent = ({
 interface FinancialsTabContentProps {
   employee: Employee;
   refetchEmployees?: () => void;
+  selectedMonth?: string;
 }
 
 export const FinancialsTabContent = ({
   employee,
-  refetchEmployees
+  refetchEmployees,
+  selectedMonth
 }: FinancialsTabContentProps) => {
   return (
     <div className="space-y-4">
       <EmployeeFinancials 
         employee={employee}
         refetchEmployees={refetchEmployees}
+        selectedMonth={selectedMonth}
       />
     </div>
   );

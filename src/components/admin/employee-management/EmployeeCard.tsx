@@ -1,29 +1,35 @@
-
 import { Employee } from '@/types/employee';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { EmployeeCardHeader } from './employee-card/EmployeeCardHeader';
 import { EmployeeTabs } from './employee-card/EmployeeTabs';
-
-// Import the missing components
-import { SalesStatistics } from './components/SalesStatistics';
-import { SalaryPlanSection } from './components/SalaryPlanSection';
-// Add these to EmployeeTabContent.tsx at the top when it's processed
+import { format } from 'date-fns';
 
 interface EmployeeCardProps {
   employee: Employee;
   salesValue: string;
   onSalesChange: (value: string) => void;
   refetchEmployees?: () => void;
+  selectedDate?: Date;
 }
 
 export const EmployeeCard = ({ 
   employee, 
   salesValue, 
   onSalesChange,
-  refetchEmployees
+  refetchEmployees,
+  selectedDate = new Date()
 }: EmployeeCardProps) => {
+  // Format selected date as YYYY-MM for month filtering
+  const selectedMonth = format(selectedDate, 'yyyy-MM');
+  
+  console.log('EmployeeCard component with:', {
+    employeeId: employee.id,
+    selectedDate,
+    selectedMonth
+  });
+
   // Fetch branches for branch selection
   const { data: branches = [] } = useQuery({
     queryKey: ['branches-for-employee-assignment'],
@@ -52,6 +58,7 @@ export const EmployeeCard = ({
           onSalesChange={onSalesChange}
           branches={branches}
           refetchEmployees={refetchEmployees}
+          selectedMonth={selectedMonth}
         />
       </CardContent>
     </Card>

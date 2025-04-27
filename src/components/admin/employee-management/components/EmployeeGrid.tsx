@@ -1,8 +1,6 @@
-
 import { Employee } from '@/types/employee';
 import { EmployeeCard } from '../EmployeeCard';
 import { Card, CardContent } from "@/components/ui/card";
-import { LoaderCircle } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 
 interface EmployeeGridProps {
@@ -12,6 +10,7 @@ interface EmployeeGridProps {
   selectedBranch: string | null;
   onSalesChange: (employeeId: string, value: string) => void;
   refetchEmployees?: () => void;
+  selectedDate?: Date;
 }
 
 export const EmployeeGrid = ({
@@ -20,7 +19,8 @@ export const EmployeeGrid = ({
   salesInputs,
   selectedBranch,
   onSalesChange,
-  refetchEmployees
+  refetchEmployees,
+  selectedDate
 }: EmployeeGridProps) => {
   console.log('EmployeeGrid render:', { isLoading, employeesCount: employees.length });
   
@@ -65,6 +65,7 @@ export const EmployeeGrid = ({
           salesValue={salesInputs[employee.id] || ''}
           onSalesChange={(value) => onSalesChange(employee.id, value)}
           refetchEmployees={refetchEmployees}
+          selectedDate={selectedDate}
         />
       ))}
     </div>

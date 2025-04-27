@@ -137,6 +137,7 @@ export const EmployeeTab = () => {
             selectedBranch={selectedBranch}
             onSalesChange={handleSalesChange}
             refetchEmployees={fetchEmployees}
+            selectedDate={selectedDate}
           />
         </TabsContent>
         
