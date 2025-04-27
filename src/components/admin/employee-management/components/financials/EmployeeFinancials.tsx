@@ -95,9 +95,39 @@ interface FinancialTabProps {
   refetchEmployees?: () => void;
 }
 
-const BonusesTab = ({ employee, currentMonth, refetchEmployees }: FinancialTabProps) => {
+// Define interfaces for submission data
+interface SubmitBonusData {
+  employee_id: string;
+  employee_name: string;
+  description: string;
+  amount: number;
+  date: string;
+}
+
+interface SubmitDeductionData {
+  employee_id: string;
+  employee_name: string;
+  description: string;
+  amount: number;
+  date: string;
+}
+
+interface SubmitLoanData {
+  employee_id: string;
+  employee_name: string;
+  description: string;
+  amount: number;
+  date: string;
+  source: string;
+  branch_id: string | null;
+  cash_deposit_id: null;
+}
+
+const BonusesTab = ({ employee, currentMonth, refetchEmployees }: FinancialTabProps): JSX.Element => {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [isDatePopoverOpen, setIsDatePopoverOpen] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const queryClient = useQueryClient();
   
   console.log('BonusesTab rendered with:', {
@@ -136,26 +166,49 @@ const BonusesTab = ({ employee, currentMonth, refetchEmployees }: FinancialTabPr
   });
   
   const addBonusMutation = useMutation({
-    mutationFn: async (newBonus: {
-      employee_id: string;
-      employee_name: string;
-      description: string;
-      amount: number;
-      date: string;
-    }) => {
-      const { data, error } = await supabase
-        .from('employee_bonuses')
-        .insert([newBonus])
-        .select()
-        .single();
+    mutationFn: async (newBonus: SubmitBonusData) => {
+      console.log('Sending bonus data to Supabase:', newBonus);
+      setErrorMessage(null);
+      
+      try {
+        const { data, error } = await supabase
+          .from('employee_bonuses')
+          .insert([newBonus])
+          .select()
+          .single();
+          
+        if (error) {
+          console.error('Supabase error when adding bonus:', error);
+          setErrorMessage(`Error adding bonus: ${error.message}`);
+          throw error;
+        }
         
-      if (error) throw error;
-      return data;
+        console.log('Bonus added successfully:', data);
+        return data;
+      } catch (error) {
+        console.error('Exception when adding bonus:', error);
+        if (error instanceof Error) {
+          setErrorMessage(`Error: ${error.message}`);
+        } else {
+          setErrorMessage('An unknown error occurred');
+        }
+        throw error;
+      }
     },
     onSuccess: () => {
+      console.log('Bonus mutation successful, invalidating queries');
       queryClient.invalidateQueries({ queryKey: ['employee-bonuses', employee.id, currentMonth] });
       if (refetchEmployees) refetchEmployees();
       setIsAddDialogOpen(false);
+      setErrorMessage(null);
+    },
+    onError: (error) => {
+      console.error('Bonus mutation error in onError handler:', error);
+      if (error instanceof Error) {
+        setErrorMessage(`Error: ${error.message}`);
+      } else {
+        setErrorMessage('An unknown error occurred');
+      }
     }
   });
   
@@ -183,15 +236,44 @@ const BonusesTab = ({ employee, currentMonth, refetchEmployees }: FinancialTabPr
     const description = formData.get('description') as string;
     const amount = parseFloat(formData.get('amount') as string);
     
-    if (!description || isNaN(amount)) return;
-    
-    addBonusMutation.mutate({
-      employee_id: employee.id,
-      employee_name: employee.name,
+    console.log('Bonus submission data:', {
       description,
       amount,
-      date: format(selectedDate, 'yyyy-MM-dd')
+      date: selectedDate,
+      formattedDate: format(selectedDate, 'yyyy-MM-dd'),
+      employeeId: employee.id,
+      employeeName: employee.name
     });
+    
+    if (!description) {
+      console.error('Bonus submission error: Description is required');
+      return;
+    }
+    
+    if (isNaN(amount) || amount <= 0) {
+      console.error('Bonus submission error: Invalid amount');
+      return;
+    }
+    
+    try {
+      const bonusData: SubmitBonusData = {
+        employee_id: employee.id,
+        employee_name: employee.name,
+        description,
+        amount,
+        date: format(selectedDate, 'yyyy-MM-dd')
+      };
+      addBonusMutation.mutate(bonusData);
+    } catch (error) {
+      console.error('Bonus submission mutation error:', error);
+    }
+  };
+  
+  const handleSelectDate = (date: Date | undefined) => {
+    if (date) {
+      setSelectedDate(date);
+      setIsDatePopoverOpen(false);
+    }
   };
   
   return (
@@ -214,7 +296,16 @@ const BonusesTab = ({ employee, currentMonth, refetchEmployees }: FinancialTabPr
             <DialogHeader>
               <DialogTitle>Add Bonus</DialogTitle>
             </DialogHeader>
-            <form onSubmit={handleAddBonus} className="space-y-4 mt-2">
+            {errorMessage && (
+              <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+                <p className="text-sm">{errorMessage}</p>
+              </div>
+            )}
+            <form 
+              id="bonusForm"
+              onSubmit={handleAddBonus} 
+              className="space-y-4 mt-2"
+            >
               <div className="grid gap-2">
                 <label htmlFor="description" className="text-sm font-medium">
                   Description
@@ -240,7 +331,7 @@ const BonusesTab = ({ employee, currentMonth, refetchEmployees }: FinancialTabPr
               </div>
               <div className="grid gap-2">
                 <label className="text-sm font-medium">Date</label>
-                <Popover>
+                <Popover open={isDatePopoverOpen} onOpenChange={setIsDatePopoverOpen}>
                   <PopoverTrigger asChild>
                     <Button
                       variant="outline"
@@ -253,11 +344,11 @@ const BonusesTab = ({ employee, currentMonth, refetchEmployees }: FinancialTabPr
                       {selectedDate ? format(selectedDate, "PPP") : <span>Pick a date</span>}
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0">
+                  <PopoverContent className="w-auto p-0 z-50">
                     <CalendarComponent
                       mode="single"
                       selected={selectedDate}
-                      onSelect={(date) => date && setSelectedDate(date)}
+                      onSelect={handleSelectDate}
                       initialFocus
                     />
                   </PopoverContent>
@@ -267,7 +358,41 @@ const BonusesTab = ({ employee, currentMonth, refetchEmployees }: FinancialTabPr
                 <Button type="button" variant="outline" onClick={() => setIsAddDialogOpen(false)}>
                   Cancel
                 </Button>
-                <Button type="submit">
+                <Button 
+                  type="button" 
+                  className="bg-green-600 hover:bg-green-700 text-white"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    console.log('Bonus submit button clicked');
+                    
+                    const description = document.querySelector<HTMLInputElement>('#bonusForm input[name="description"]')?.value;
+                    const amountStr = document.querySelector<HTMLInputElement>('#bonusForm input[name="amount"]')?.value;
+                    const amount = amountStr ? parseFloat(amountStr) : NaN;
+                    
+                    if (!description) {
+                      console.error('Manual bonus submission: Description is required');
+                      return;
+                    }
+                    
+                    if (isNaN(amount) || amount <= 0) {
+                      console.error('Manual bonus submission: Invalid amount');
+                      return;
+                    }
+                    
+                    try {
+                      const bonusData: SubmitBonusData = {
+                        employee_id: employee.id,
+                        employee_name: employee.name,
+                        description,
+                        amount,
+                        date: format(selectedDate, 'yyyy-MM-dd')
+                      };
+                      addBonusMutation.mutate(bonusData);
+                    } catch (err) {
+                      console.error('Manual bonus submission error:', err);
+                    }
+                  }}
+                >
                   Add Bonus
                 </Button>
               </DialogFooter>
@@ -317,9 +442,11 @@ const BonusesTab = ({ employee, currentMonth, refetchEmployees }: FinancialTabPr
   );
 };
 
-const DeductionsTab = ({ employee, currentMonth, refetchEmployees }: FinancialTabProps) => {
+const DeductionsTab = ({ employee, currentMonth, refetchEmployees }: FinancialTabProps): JSX.Element => {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [isDatePopoverOpen, setIsDatePopoverOpen] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const queryClient = useQueryClient();
   
   const { data: deductions = [] } = useQuery({
@@ -342,26 +469,49 @@ const DeductionsTab = ({ employee, currentMonth, refetchEmployees }: FinancialTa
   });
   
   const addDeductionMutation = useMutation({
-    mutationFn: async (newDeduction: {
-      employee_id: string;
-      employee_name: string;
-      description: string;
-      amount: number;
-      date: string;
-    }) => {
-      const { data, error } = await supabase
-        .from('employee_deductions')
-        .insert([newDeduction])
-        .select()
-        .single();
+    mutationFn: async (newDeduction: SubmitDeductionData) => {
+      console.log('Sending deduction data to Supabase:', newDeduction);
+      setErrorMessage(null);
+      
+      try {
+        const { data, error } = await supabase
+          .from('employee_deductions')
+          .insert([newDeduction])
+          .select()
+          .single();
+          
+        if (error) {
+          console.error('Supabase error when adding deduction:', error);
+          setErrorMessage(`Error adding deduction: ${error.message}`);
+          throw error;
+        }
         
-      if (error) throw error;
-      return data;
+        console.log('Deduction added successfully:', data);
+        return data;
+      } catch (error) {
+        console.error('Exception when adding deduction:', error);
+        if (error instanceof Error) {
+          setErrorMessage(`Error: ${error.message}`);
+        } else {
+          setErrorMessage('An unknown error occurred');
+        }
+        throw error;
+      }
     },
     onSuccess: () => {
+      console.log('Deduction mutation successful, invalidating queries');
       queryClient.invalidateQueries({ queryKey: ['employee-deductions', employee.id, currentMonth] });
       if (refetchEmployees) refetchEmployees();
       setIsAddDialogOpen(false);
+      setErrorMessage(null);
+    },
+    onError: (error) => {
+      console.error('Deduction mutation error in onError handler:', error);
+      if (error instanceof Error) {
+        setErrorMessage(`Error: ${error.message}`);
+      } else {
+        setErrorMessage('An unknown error occurred');
+      }
     }
   });
   
@@ -389,15 +539,44 @@ const DeductionsTab = ({ employee, currentMonth, refetchEmployees }: FinancialTa
     const description = formData.get('description') as string;
     const amount = parseFloat(formData.get('amount') as string);
     
-    if (!description || isNaN(amount)) return;
-    
-    addDeductionMutation.mutate({
-      employee_id: employee.id,
-      employee_name: employee.name,
+    console.log('Deduction submission data:', {
       description,
       amount,
-      date: format(selectedDate, 'yyyy-MM-dd')
+      date: selectedDate,
+      formattedDate: format(selectedDate, 'yyyy-MM-dd'),
+      employeeId: employee.id,
+      employeeName: employee.name
     });
+    
+    if (!description) {
+      console.error('Deduction submission error: Description is required');
+      return;
+    }
+    
+    if (isNaN(amount) || amount <= 0) {
+      console.error('Deduction submission error: Invalid amount');
+      return;
+    }
+    
+    try {
+      const deductionData: SubmitDeductionData = {
+        employee_id: employee.id,
+        employee_name: employee.name,
+        description,
+        amount,
+        date: format(selectedDate, 'yyyy-MM-dd')
+      };
+      addDeductionMutation.mutate(deductionData);
+    } catch (error) {
+      console.error('Deduction submission mutation error:', error);
+    }
+  };
+  
+  const handleSelectDate = (date: Date | undefined) => {
+    if (date) {
+      setSelectedDate(date);
+      setIsDatePopoverOpen(false);
+    }
   };
   
   return (
@@ -420,7 +599,16 @@ const DeductionsTab = ({ employee, currentMonth, refetchEmployees }: FinancialTa
             <DialogHeader>
               <DialogTitle>Add Deduction</DialogTitle>
             </DialogHeader>
-            <form onSubmit={handleAddDeduction} className="space-y-4 mt-2">
+            {errorMessage && (
+              <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+                <p className="text-sm">{errorMessage}</p>
+              </div>
+            )}
+            <form 
+              id="deductionForm"
+              onSubmit={handleAddDeduction} 
+              className="space-y-4 mt-2"
+            >
               <div className="grid gap-2">
                 <label htmlFor="description" className="text-sm font-medium">
                   Description
@@ -446,7 +634,7 @@ const DeductionsTab = ({ employee, currentMonth, refetchEmployees }: FinancialTa
               </div>
               <div className="grid gap-2">
                 <label className="text-sm font-medium">Date</label>
-                <Popover>
+                <Popover open={isDatePopoverOpen} onOpenChange={setIsDatePopoverOpen}>
                   <PopoverTrigger asChild>
                     <Button
                       variant="outline"
@@ -459,11 +647,11 @@ const DeductionsTab = ({ employee, currentMonth, refetchEmployees }: FinancialTa
                       {selectedDate ? format(selectedDate, "PPP") : <span>Pick a date</span>}
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0">
+                  <PopoverContent className="w-auto p-0 z-50">
                     <CalendarComponent
                       mode="single"
                       selected={selectedDate}
-                      onSelect={(date) => date && setSelectedDate(date)}
+                      onSelect={handleSelectDate}
                       initialFocus
                     />
                   </PopoverContent>
@@ -473,7 +661,41 @@ const DeductionsTab = ({ employee, currentMonth, refetchEmployees }: FinancialTa
                 <Button type="button" variant="outline" onClick={() => setIsAddDialogOpen(false)}>
                   Cancel
                 </Button>
-                <Button type="submit">
+                <Button 
+                  type="button" 
+                  className="bg-red-600 hover:bg-red-700 text-white"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    console.log('Deduction submit button clicked');
+                    
+                    const description = document.querySelector<HTMLInputElement>('#deductionForm input[name="description"]')?.value;
+                    const amountStr = document.querySelector<HTMLInputElement>('#deductionForm input[name="amount"]')?.value;
+                    const amount = amountStr ? parseFloat(amountStr) : NaN;
+                    
+                    if (!description) {
+                      console.error('Manual deduction submission: Description is required');
+                      return;
+                    }
+                    
+                    if (isNaN(amount) || amount <= 0) {
+                      console.error('Manual deduction submission: Invalid amount');
+                      return;
+                    }
+                    
+                    try {
+                      const deductionData: SubmitDeductionData = {
+                        employee_id: employee.id,
+                        employee_name: employee.name,
+                        description,
+                        amount,
+                        date: format(selectedDate, 'yyyy-MM-dd')
+                      };
+                      addDeductionMutation.mutate(deductionData);
+                    } catch (err) {
+                      console.error('Manual deduction submission error:', err);
+                    }
+                  }}
+                >
                   Add Deduction
                 </Button>
               </DialogFooter>
@@ -523,9 +745,11 @@ const DeductionsTab = ({ employee, currentMonth, refetchEmployees }: FinancialTa
   );
 };
 
-const LoansTab = ({ employee, currentMonth, refetchEmployees }: FinancialTabProps) => {
+const LoansTab = ({ employee, currentMonth, refetchEmployees }: FinancialTabProps): JSX.Element => {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [isDatePopoverOpen, setIsDatePopoverOpen] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const queryClient = useQueryClient();
   
   const { data: loans = [] } = useQuery({
@@ -548,28 +772,54 @@ const LoansTab = ({ employee, currentMonth, refetchEmployees }: FinancialTabProp
   });
   
   const addLoanMutation = useMutation({
-    mutationFn: async (newLoan: {
-      employee_id: string;
-      employee_name: string;
-      description: string;
-      amount: number;
-      date: string;
-      source: string;
-      branch_id?: string;
-    }) => {
-      const { data, error } = await supabase
-        .from('employee_loans')
-        .insert([newLoan])
-        .select()
-        .single();
+    mutationFn: async (newLoan: Omit<SubmitLoanData, 'cash_deposit_id'>) => {
+      console.log('Sending loan data to Supabase:', newLoan);
+      setErrorMessage(null);
+      
+      try {
+        const loanData: SubmitLoanData = {
+          ...newLoan,
+          cash_deposit_id: null
+        };
+
+        const { data, error } = await supabase
+          .from('employee_loans')
+          .insert([loanData])
+          .select()
+          .single();
+          
+        if (error) {
+          console.error('Supabase error when adding loan:', error);
+          setErrorMessage(`Error adding loan: ${error.message}`);
+          throw error;
+        }
         
-      if (error) throw error;
-      return data;
+        console.log('Loan added successfully:', data);
+        return data;
+      } catch (error) {
+        console.error('Exception when adding loan:', error);
+        if (error instanceof Error) {
+          setErrorMessage(`Error: ${error.message}`);
+        } else {
+          setErrorMessage('An unknown error occurred');
+        }
+        throw error;
+      }
     },
     onSuccess: () => {
+      console.log('Loan mutation successful, invalidating queries');
       queryClient.invalidateQueries({ queryKey: ['employee-loans', employee.id, currentMonth] });
       if (refetchEmployees) refetchEmployees();
       setIsAddDialogOpen(false);
+      setErrorMessage(null);
+    },
+    onError: (error) => {
+      console.error('Loan mutation error in onError handler:', error);
+      if (error instanceof Error) {
+        setErrorMessage(`Error: ${error.message}`);
+      } else {
+        setErrorMessage('An unknown error occurred');
+      }
     }
   });
   
@@ -590,6 +840,7 @@ const LoansTab = ({ employee, currentMonth, refetchEmployees }: FinancialTabProp
   });
   
   const handleAddLoan = (e: FormEvent<HTMLFormElement>) => {
+    console.log('Form submission started:', e);
     e.preventDefault();
     const form = e.currentTarget;
     const formData = new FormData(form);
@@ -597,17 +848,49 @@ const LoansTab = ({ employee, currentMonth, refetchEmployees }: FinancialTabProp
     const description = formData.get('description') as string;
     const amount = parseFloat(formData.get('amount') as string);
     
-    if (!description || isNaN(amount)) return;
-    
-    addLoanMutation.mutate({
-      employee_id: employee.id,
-      employee_name: employee.name,
+    console.log('Loan submission data:', {
       description,
       amount,
-      date: format(selectedDate, 'yyyy-MM-dd'),
-      source: 'manual',
-      branch_id: employee.branch_id
+      date: selectedDate,
+      formattedDate: format(selectedDate, 'yyyy-MM-dd'),
+      employeeId: employee.id,
+      employeeName: employee.name,
+      branchId: employee.branch_id
     });
+    
+    if (!description) {
+      console.error('Loan submission error: Description is required');
+      return;
+    }
+    
+    if (isNaN(amount) || amount <= 0) {
+      console.error('Loan submission error: Invalid amount');
+      return;
+    }
+    
+    try {
+      console.log('Attempting to add loan...');
+      const loanData: Omit<SubmitLoanData, 'cash_deposit_id'> = {
+        employee_id: employee.id,
+        employee_name: employee.name,
+        description,
+        amount,
+        date: format(selectedDate, 'yyyy-MM-dd'),
+        source: 'manual',
+        branch_id: employee.branch_id || null
+      };
+      addLoanMutation.mutate(loanData);
+      console.log('Loan mutation triggered successfully');
+    } catch (error) {
+      console.error('Loan submission mutation error:', error);
+    }
+  };
+  
+  const handleSelectDate = (date: Date | undefined) => {
+    if (date) {
+      setSelectedDate(date);
+      setIsDatePopoverOpen(false);
+    }
   };
   
   return (
@@ -630,7 +913,16 @@ const LoansTab = ({ employee, currentMonth, refetchEmployees }: FinancialTabProp
             <DialogHeader>
               <DialogTitle>Add Loan</DialogTitle>
             </DialogHeader>
-            <form onSubmit={handleAddLoan} className="space-y-4 mt-2">
+            {errorMessage && (
+              <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+                <p className="text-sm">{errorMessage}</p>
+              </div>
+            )}
+            <form 
+              id="loanForm"
+              onSubmit={handleAddLoan} 
+              className="space-y-4 mt-2"
+            >
               <div className="grid gap-2">
                 <label htmlFor="description" className="text-sm font-medium">
                   Description
@@ -656,7 +948,7 @@ const LoansTab = ({ employee, currentMonth, refetchEmployees }: FinancialTabProp
               </div>
               <div className="grid gap-2">
                 <label className="text-sm font-medium">Date</label>
-                <Popover>
+                <Popover open={isDatePopoverOpen} onOpenChange={setIsDatePopoverOpen}>
                   <PopoverTrigger asChild>
                     <Button
                       variant="outline"
@@ -669,11 +961,11 @@ const LoansTab = ({ employee, currentMonth, refetchEmployees }: FinancialTabProp
                       {selectedDate ? format(selectedDate, "PPP") : <span>Pick a date</span>}
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0">
+                  <PopoverContent className="w-auto p-0 z-50">
                     <CalendarComponent
                       mode="single"
                       selected={selectedDate}
-                      onSelect={(date) => date && setSelectedDate(date)}
+                      onSelect={handleSelectDate}
                       initialFocus
                     />
                   </PopoverContent>
@@ -683,7 +975,47 @@ const LoansTab = ({ employee, currentMonth, refetchEmployees }: FinancialTabProp
                 <Button type="button" variant="outline" onClick={() => setIsAddDialogOpen(false)}>
                   Cancel
                 </Button>
-                <Button type="submit">
+                <Button 
+                  type="button" 
+                  className="bg-amber-600 hover:bg-amber-700 text-white"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    console.log('Submit button clicked, attempting manual submission');
+                    
+                    const description = document.querySelector<HTMLInputElement>('#loanForm input[name="description"]')?.value;
+                    const amountStr = document.querySelector<HTMLInputElement>('#loanForm input[name="amount"]')?.value;
+                    const amount = amountStr ? parseFloat(amountStr) : NaN;
+                    
+                    console.log('Manual form values:', { description, amountStr, amount });
+                    
+                    if (!description) {
+                      console.error('Manual submission: Description is required');
+                      return;
+                    }
+                    
+                    if (isNaN(amount) || amount <= 0) {
+                      console.error('Manual submission: Invalid amount');
+                      return;
+                    }
+                    
+                    try {
+                      console.log('Manual submission: Adding loan...');
+                      const loanData: Omit<SubmitLoanData, 'cash_deposit_id'> = {
+                        employee_id: employee.id,
+                        employee_name: employee.name,
+                        description,
+                        amount,
+                        date: format(selectedDate, 'yyyy-MM-dd'),
+                        source: 'manual',
+                        branch_id: employee.branch_id || null
+                      };
+                      addLoanMutation.mutate(loanData);
+                      console.log('Manual submission: Mutation triggered');
+                    } catch (err) {
+                      console.error('Manual submission error:', err);
+                    }
+                  }}
+                >
                   Add Loan
                 </Button>
               </DialogFooter>
