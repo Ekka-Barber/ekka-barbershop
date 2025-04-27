@@ -1,4 +1,4 @@
-import { useState, FormEvent } from 'react';
+import { useState, FormEvent, useEffect } from 'react';
 import { Employee } from '@/types/employee';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -22,6 +22,8 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
 
 interface EmployeeFinancialsProps {
   employee: Employee;
@@ -120,7 +122,7 @@ interface SubmitLoanData {
   date: string;
   source: string;
   branch_id: string | null;
-  cash_deposit_id: null;
+  cash_deposit_id: string | null;
 }
 
 const BonusesTab = ({ employee, currentMonth, refetchEmployees }: FinancialTabProps): JSX.Element => {
@@ -750,7 +752,53 @@ const LoansTab = ({ employee, currentMonth, refetchEmployees }: FinancialTabProp
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [isDatePopoverOpen, setIsDatePopoverOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [loanSource, setLoanSource] = useState<'other' | 'cash_deposit'>('other');
+  const [cashDeposits, setCashDeposits] = useState<Array<{ id: string, balance: number }>>([]);
+  const [selectedDepositId, setSelectedDepositId] = useState<string | null>(null);
+  const [isLoadingDeposits, setIsLoadingDeposits] = useState(false);
   const queryClient = useQueryClient();
+  
+  // Fetch cash deposits when source is 'cash_deposit' and dialog is open
+  useEffect(() => {
+    if (isAddDialogOpen && loanSource === 'cash_deposit') {
+      fetchCashDeposits();
+    }
+  }, [isAddDialogOpen, loanSource]);
+  
+  const fetchCashDeposits = async () => {
+    setIsLoadingDeposits(true);
+    setErrorMessage(null);
+    
+    try {
+      const { data, error } = await supabase
+        .from('cash_deposits')
+        .select('id, balance')
+        .gt('balance', 0)
+        .order('created_at', { ascending: false });
+      
+      if (error) {
+        console.error('Error fetching cash deposits:', error);
+        setErrorMessage(`Error fetching cash deposits: ${error.message}`);
+        setCashDeposits([]);
+        setSelectedDepositId(null);
+        return;
+      }
+      
+      setCashDeposits(data || []);
+      if (data && data.length > 0) {
+        setSelectedDepositId(data[0].id);
+      } else {
+        setSelectedDepositId(null);
+      }
+    } catch (err) {
+      console.error('Exception fetching cash deposits:', err);
+      setErrorMessage('Error fetching cash deposits');
+      setCashDeposits([]);
+      setSelectedDepositId(null);
+    } finally {
+      setIsLoadingDeposits(false);
+    }
+  };
   
   const { data: loans = [] } = useQuery({
     queryKey: ['employee-loans', employee.id, currentMonth],
@@ -777,25 +825,67 @@ const LoansTab = ({ employee, currentMonth, refetchEmployees }: FinancialTabProp
       setErrorMessage(null);
       
       try {
-        const loanData: SubmitLoanData = {
-          ...newLoan,
-          cash_deposit_id: null
-        };
-
-        const { data, error } = await supabase
-          .from('employee_loans')
-          .insert([loanData])
-          .select()
-          .single();
+        if (newLoan.source === 'cash_deposit') {
+          if (!selectedDepositId) {
+            throw new Error('No cash deposit selected');
+          }
           
-        if (error) {
-          console.error('Supabase error when adding loan:', error);
-          setErrorMessage(`Error adding loan: ${error.message}`);
-          throw error;
+          const selectedDeposit = cashDeposits.find(d => d.id === selectedDepositId);
+          if (!selectedDeposit) {
+            throw new Error('Selected deposit not found');
+          }
+          
+          if (selectedDeposit.balance < newLoan.amount) {
+            throw new Error(`Insufficient balance in deposit (${selectedDeposit.balance} SAR)`);
+          }
+          
+          // For cash deposit loans, we'll use RPC or a trigger in the database to handle the balance update
+          // Here we just attach the deposit ID
+          const loanData: SubmitLoanData = {
+            ...newLoan,
+            cash_deposit_id: selectedDepositId
+          };
+          
+          const { data, error } = await supabase
+            .from('employee_loans')
+            .insert([loanData])
+            .select()
+            .single();
+            
+          if (error) {
+            console.error('Supabase error when adding loan from deposit:', error);
+            setErrorMessage(`Error adding loan: ${error.message}`);
+            throw error;
+          }
+          
+          console.log('Loan from deposit added successfully:', data);
+          
+          // We would also need to update the deposit balance, if there's no trigger for this in the DB
+          // This could be done here or through a stored procedure
+          
+          return data;
+        } else {
+          // Regular loan (not from deposit)
+          const loanData: SubmitLoanData = {
+            ...newLoan,
+            cash_deposit_id: null
+          };
+
+          const { data, error } = await supabase
+            .from('employee_loans')
+            .insert([loanData])
+            .select()
+            .single();
+            
+          if (error) {
+            console.error('Supabase error when adding loan:', error);
+            setErrorMessage(`Error adding loan: ${error.message}`);
+            throw error;
+          }
+          
+          console.log('Loan added successfully:', data);
+          return data;
         }
-        
-        console.log('Loan added successfully:', data);
-        return data;
       } catch (error) {
         console.error('Exception when adding loan:', error);
         if (error instanceof Error) {
@@ -809,6 +899,10 @@ const LoansTab = ({ employee, currentMonth, refetchEmployees }: FinancialTabProp
     onSuccess: () => {
       console.log('Loan mutation successful, invalidating queries');
       queryClient.invalidateQueries({ queryKey: ['employee-loans', employee.id, currentMonth] });
+      // Also invalidate cash deposits query if needed
+      if (loanSource === 'cash_deposit') {
+        queryClient.invalidateQueries({ queryKey: ['cash-deposits'] });
+      }
       if (refetchEmployees) refetchEmployees();
       setIsAddDialogOpen(false);
       setErrorMessage(null);
@@ -855,7 +949,9 @@ const LoansTab = ({ employee, currentMonth, refetchEmployees }: FinancialTabProp
       formattedDate: format(selectedDate, 'yyyy-MM-dd'),
       employeeId: employee.id,
       employeeName: employee.name,
-      branchId: employee.branch_id
+      branchId: employee.branch_id,
+      source: loanSource,
+      selectedDepositId
     });
     
     if (!description) {
@@ -868,6 +964,24 @@ const LoansTab = ({ employee, currentMonth, refetchEmployees }: FinancialTabProp
       return;
     }
     
+    if (loanSource === 'cash_deposit') {
+      if (!selectedDepositId) {
+        setErrorMessage('No cash deposit selected');
+        return;
+      }
+      
+      const selectedDeposit = cashDeposits.find(d => d.id === selectedDepositId);
+      if (!selectedDeposit) {
+        setErrorMessage('Selected deposit not found');
+        return;
+      }
+      
+      if (selectedDeposit.balance < amount) {
+        setErrorMessage(`Insufficient balance in deposit (${selectedDeposit.balance} SAR)`);
+        return;
+      }
+    }
+    
     try {
       console.log('Attempting to add loan...');
       const loanData: Omit<SubmitLoanData, 'cash_deposit_id'> = {
@@ -876,7 +990,7 @@ const LoansTab = ({ employee, currentMonth, refetchEmployees }: FinancialTabProp
         description,
         amount,
         date: format(selectedDate, 'yyyy-MM-dd'),
-        source: 'manual',
+        source: loanSource,
         branch_id: employee.branch_id || null
       };
       addLoanMutation.mutate(loanData);
@@ -971,6 +1085,46 @@ const LoansTab = ({ employee, currentMonth, refetchEmployees }: FinancialTabProp
                   </PopoverContent>
                 </Popover>
               </div>
+              
+              <div className="grid gap-2">
+                <label className="text-sm font-medium">Source</label>
+                <RadioGroup
+                  value={loanSource}
+                  onValueChange={(value: 'other' | 'cash_deposit') => setLoanSource(value)}
+                  className="mt-2 space-y-2"
+                >
+                  <div className="flex items-center space-x-2 rtl:space-x-reverse">
+                    <RadioGroupItem value="cash_deposit" id="cash_deposit" />
+                    <Label htmlFor="cash_deposit">From Cash Deposit</Label>
+                  </div>
+                  <div className="flex items-center space-x-2 rtl:space-x-reverse">
+                    <RadioGroupItem value="other" id="other" />
+                    <Label htmlFor="other">Other Source</Label>
+                  </div>
+                </RadioGroup>
+              </div>
+              
+              {loanSource === 'cash_deposit' && !isLoadingDeposits && cashDeposits.length > 0 && (
+                <div className="mt-2 p-4 bg-green-50 rounded-lg">
+                  <Label className="block mb-2">Available Balance</Label>
+                  <div className="text-lg font-bold text-green-700">
+                    {cashDeposits[0].balance.toLocaleString()} SAR
+                  </div>
+                </div>
+              )}
+              
+              {loanSource === 'cash_deposit' && isLoadingDeposits && (
+                <div className="mt-2 p-4 bg-blue-50 rounded-lg text-blue-700">
+                  Loading available deposits...
+                </div>
+              )}
+              
+              {loanSource === 'cash_deposit' && !isLoadingDeposits && cashDeposits.length === 0 && (
+                <div className="mt-2 p-4 bg-yellow-50 rounded-lg text-yellow-800">
+                  No cash deposits available with sufficient balance
+                </div>
+              )}
+              
               <DialogFooter>
                 <Button type="button" variant="outline" onClick={() => setIsAddDialogOpen(false)}>
                   Cancel
@@ -978,6 +1132,10 @@ const LoansTab = ({ employee, currentMonth, refetchEmployees }: FinancialTabProp
                 <Button 
                   type="button" 
                   className="bg-amber-600 hover:bg-amber-700 text-white"
+                  disabled={loanSource === 'cash_deposit' && 
+                    (cashDeposits.length === 0 || 
+                     !selectedDepositId || 
+                     isLoadingDeposits)}
                   onClick={(e) => {
                     e.preventDefault();
                     console.log('Submit button clicked, attempting manual submission');
@@ -986,16 +1144,42 @@ const LoansTab = ({ employee, currentMonth, refetchEmployees }: FinancialTabProp
                     const amountStr = document.querySelector<HTMLInputElement>('#loanForm input[name="amount"]')?.value;
                     const amount = amountStr ? parseFloat(amountStr) : NaN;
                     
-                    console.log('Manual form values:', { description, amountStr, amount });
+                    console.log('Manual form values:', { 
+                      description, 
+                      amountStr, 
+                      amount,
+                      loanSource,
+                      selectedDepositId 
+                    });
                     
                     if (!description) {
                       console.error('Manual submission: Description is required');
+                      setErrorMessage('Description is required');
                       return;
                     }
                     
                     if (isNaN(amount) || amount <= 0) {
                       console.error('Manual submission: Invalid amount');
+                      setErrorMessage('Amount must be a positive number');
                       return;
+                    }
+                    
+                    if (loanSource === 'cash_deposit') {
+                      if (!selectedDepositId) {
+                        setErrorMessage('No cash deposit selected');
+                        return;
+                      }
+                      
+                      const selectedDeposit = cashDeposits.find(d => d.id === selectedDepositId);
+                      if (!selectedDeposit) {
+                        setErrorMessage('Selected deposit not found');
+                        return;
+                      }
+                      
+                      if (selectedDeposit.balance < amount) {
+                        setErrorMessage(`Insufficient balance in deposit (${selectedDeposit.balance} SAR)`);
+                        return;
+                      }
                     }
                     
                     try {
@@ -1006,7 +1190,7 @@ const LoansTab = ({ employee, currentMonth, refetchEmployees }: FinancialTabProp
                         description,
                         amount,
                         date: format(selectedDate, 'yyyy-MM-dd'),
-                        source: 'manual',
+                        source: loanSource,
                         branch_id: employee.branch_id || null
                       };
                       addLoanMutation.mutate(loanData);
