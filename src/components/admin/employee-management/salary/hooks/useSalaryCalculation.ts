@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Employee } from '@/types/employee';
 import {
@@ -77,34 +76,52 @@ export const useSalaryCalculation = () => {
           
           if (salaryPlan) {
             try {
-              const calculator = factory.getCalculator(salaryPlan.type as SalaryPlanType);
-              
-              const result = await calculator.calculate({
-                employee,
-                plan: salaryPlan as unknown as SalaryPlan,
-                salesAmount,
-                bonuses: employeeBonuses as unknown as Transaction[],
-                deductions: employeeDeductions as unknown as Transaction[],
-                loans: employeeLoans as unknown as Transaction[],
-                selectedMonth
-              });
-              
-              baseSalary = result.baseSalary;
-              commission = result.commission;
-              targetBonus = result.targetBonus || 0;
-              
-              if (result.calculationStatus && !result.calculationStatus.success) {
-                calculationError = result.calculationStatus.error;
+              // Check if plan type is undefined
+              if (!salaryPlan.type) {
+                calculationError = 'Salary plan has no defined type';
                 
                 setCalculationErrors(prev => [
                   ...prev,
                   {
                     employeeId: employee.id,
                     employeeName: employee.name,
-                    error: result.calculationStatus.error || 'Unknown calculation error',
-                    details: result.calculationStatus.details
+                    error: 'Salary plan has no defined type',
+                    details: { 
+                      plan_id: salaryPlan.id,
+                      plan_name: salaryPlan.name || 'Unnamed Plan'
+                    }
                   }
                 ]);
+              } else {
+                const calculator = factory.getCalculator(salaryPlan.type as SalaryPlanType);
+                
+                const result = await calculator.calculate({
+                  employee,
+                  plan: salaryPlan as unknown as SalaryPlan,
+                  salesAmount,
+                  bonuses: employeeBonuses as unknown as Transaction[],
+                  deductions: employeeDeductions as unknown as Transaction[],
+                  loans: employeeLoans as unknown as Transaction[],
+                  selectedMonth
+                });
+                
+                baseSalary = result.baseSalary;
+                commission = result.commission;
+                targetBonus = result.targetBonus || 0;
+                
+                if (result.calculationStatus && !result.calculationStatus.success) {
+                  calculationError = result.calculationStatus.error;
+                  
+                  setCalculationErrors(prev => [
+                    ...prev,
+                    {
+                      employeeId: employee.id,
+                      employeeName: employee.name,
+                      error: result.calculationStatus.error || 'Unknown calculation error',
+                      details: result.calculationStatus.details
+                    }
+                  ]);
+                }
               }
             } catch (error) {
               console.error(`Error calculating salary for ${employee.name}:`, error);

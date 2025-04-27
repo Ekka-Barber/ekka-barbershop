@@ -1,4 +1,4 @@
-import { Loader2, TrendingDown, TrendingUp } from 'lucide-react';
+import { Loader2, TrendingDown, TrendingUp, AlertTriangle } from 'lucide-react';
 import { formatCurrency } from '../SalaryUtils';
 import { EmployeeSalary } from '../hooks/utils/salaryTypes'; // Ensure type import includes salesAmount
 
@@ -64,11 +64,12 @@ export const SalaryTable = ({
                           {salary.name}
                           {salary.calculationError && (
                             <span 
-                              className="ml-2 text-red-500 cursor-help" 
+                              className="ml-2 text-red-500 cursor-help inline-flex items-center" 
                               title={salary.calculationError}
                               aria-label={`Error: ${salary.calculationError}`}
                             >
-                              ⚠️
+                              <AlertTriangle className="h-4 w-4 mr-1" />
+                              <span className="text-xs">Salary plan issue</span>
                             </span>
                           )}
                         </td>
@@ -155,11 +156,12 @@ export const SalaryTable = ({
                           {salary.name}
                           {salary.calculationError && (
                             <span 
-                              className="ml-2 text-red-500 cursor-help" 
+                              className="ml-2 text-red-500 cursor-help inline-flex items-center" 
                               title={salary.calculationError}
                               aria-label={`Error: ${salary.calculationError}`}
                             >
-                              ⚠️
+                              <AlertTriangle className="h-4 w-4 mr-1" />
+                              <span className="text-xs">Salary plan issue</span>
                             </span>
                           )}
                         </div>

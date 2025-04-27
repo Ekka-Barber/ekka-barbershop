@@ -1,7 +1,6 @@
-
 import { useState } from 'react';
 import { SalaryCalculatorFactory } from '../calculators/CalculatorFactory';
-import { SalaryPlanType, Transaction } from '../types/salary';
+import { SalaryPlanType, Transaction, SalaryPlan } from '../types/salary';
 import { UseSalaryCalculationParams, SalaryCalculationResult } from './utils/types';
 
 /**
@@ -15,7 +14,7 @@ export const useCalculator = ({
   selectedMonth
 }: {
   employee: UseSalaryCalculationParams['employee'];
-  plan: any;
+  plan: SalaryPlan | null;
   transactionData: {
     bonuses: Transaction[];
     deductions: Transaction[];
@@ -54,6 +53,18 @@ export const useCalculator = ({
           ...INITIAL_RESULT,
           isLoading: false,
           error: 'No salary plan found for this employee',
+          calculate,
+          calculationDone: true
+        });
+        return;
+      }
+      
+      // Add validation for plan type
+      if (!plan.type) {
+        setCalculationResult({
+          ...INITIAL_RESULT,
+          isLoading: false,
+          error: 'The salary plan has no defined type',
           calculate,
           calculationDone: true
         });
