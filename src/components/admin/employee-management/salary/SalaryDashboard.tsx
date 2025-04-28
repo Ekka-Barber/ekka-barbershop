@@ -10,11 +10,15 @@ import { SalaryTable } from './components/SalaryTable';
 /* import { useSalaryFiltering } from './hooks/useSalaryFiltering'; */
 import { useDashboardStats } from './hooks/useDashboardStats';
 import { Button } from '@/components/ui/button';
-import { Download, Calculator, List } from 'lucide-react';
+import { Download, Calculator, List, FileText } from 'lucide-react';
 import { EmployeeSalary } from './hooks/utils/salaryTypes';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import FormulaSalaryPlanList from './components/FormulaSalaryPlanList';
 import ExistingSalaryPlansList from './components/ExistingSalaryPlansList';
+import PayslipTemplateViewer from './components/PayslipTemplateViewer';
+import { samplePayslipData } from '../../../../../types/payslip';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
 interface SalaryDashboardProps {
   employees: Employee[];
@@ -191,11 +195,72 @@ export const SalaryDashboard = ({
     return currentData.total - prevData.total;
   };
   
+  // Fetch all branches
+  const { data: branches = [] } = useQuery({
+    queryKey: ['branches'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('branches')
+        .select('id, name_ar');
+      if (error) throw error;
+      return data || [];
+    },
+  });
+  
+  // Map branch_id to Arabic branch name
+  const getBranchNameAr = (branchId: string) => {
+    const branch = branches.find(b => b.id === branchId);
+    return branch ? branch.name_ar : '';
+  };
+
+  const selectedEmployeeSalary = salaryData.find(e => e.id === selectedEmployeeId);
+  const selectedEmployeeInfo = employees.find(e => e.id === selectedEmployeeId);
+
+  // Build payslip data
+  const buildPayslipData = () => {
+    if (!selectedEmployeeSalary || !selectedEmployeeInfo) return null;
+    return {
+      companyName: 'Ekka Barbershop',
+      companyLogoUrl: '/lovable-uploads/2ea1f72e-efd2-4345-bf4d-957efd873986.png',
+      payPeriod: selectedMonth,
+      issueDate: new Date().toISOString().slice(0, 10),
+      employee: {
+        nameAr: selectedEmployeeInfo.name_ar,
+        branch: getBranchNameAr(selectedEmployeeInfo.branch_id),
+        role: selectedEmployeeInfo.role,
+        email: selectedEmployeeInfo.email,
+      },
+      bonuses: transactions.bonuses.map(b => ({
+        description: b.description,
+        amount: b.amount,
+        date: b.date,
+      })),
+      deductions: transactions.deductions.map(d => ({
+        description: d.description,
+        amount: d.amount,
+        date: d.date,
+      })),
+      loans: transactions.loans.map(l => ({
+        description: l.description,
+        amount: l.amount,
+        date: l.date,
+      })),
+      totalSales: transactions.salesData?.sales_amount || 0,
+      summary: {
+        totalEarnings: selectedEmployeeSalary.baseSalary + selectedEmployeeSalary.commission + selectedEmployeeSalary.bonus + selectedEmployeeSalary.targetBonus,
+        totalDeductions: selectedEmployeeSalary.deductions + selectedEmployeeSalary.loans,
+        netSalary: selectedEmployeeSalary.total,
+      },
+    };
+  };
+
+  const payslipData = buildPayslipData();
+  
   return (
     <div className="space-y-6">
       <Tabs defaultValue="overview" value={salaryTab} onValueChange={setSalaryTab} className="space-y-6">
         <div className="w-full overflow-x-auto">
-          <div className="flex flex-nowrap items-center gap-2 px-2 min-w-max">
+          <div className="flex flex-nowrap items-center justify-between gap-2 px-2 min-w-max">
             <TabsList className="mb-4 flex flex-nowrap gap-2 min-w-max">
               <TabsTrigger value="overview" className="flex items-center gap-1 min-w-max">
                 Overview
@@ -207,6 +272,10 @@ export const SalaryDashboard = ({
               <TabsTrigger value="formula-plans" className="flex items-center gap-1 min-w-max">
                 <Calculator className="h-4 w-4 mr-1" />
                 Formula Salary Plans
+              </TabsTrigger>
+              <TabsTrigger value="payslip-template" className="flex items-center gap-1 min-w-max">
+                <FileText className="h-4 w-4 mr-1" />
+                Payslip Template
               </TabsTrigger>
             </TabsList>
             {salaryTab === "overview" && !isLoading && salaryData.length > 0 && !selectedEmployeeId && (
@@ -279,6 +348,12 @@ export const SalaryDashboard = ({
                 getMonthlyChange={getMonthlyChange}
               />
             )}
+            {selectedEmployeeId && payslipData && (
+              <div className="mt-8">
+                <h3 className="text-lg font-semibold mb-4">Employee Payslip</h3>
+                <PayslipTemplateViewer payslipData={payslipData} />
+              </div>
+            )}
           </div>
         </TabsContent>
         
@@ -311,6 +386,34 @@ export const SalaryDashboard = ({
             <Separator className="my-4" />
             <FormulaSalaryPlanList />
           </div>
+        </TabsContent>
+        
+        <TabsContent value="payslip-template">
+          {typeof window !== 'undefined' && salaryTab === "payslip-template" && (
+            <PayslipTemplateViewer 
+              payslipData={{
+                companyName: 'Ekka Barbershop',
+                companyLogoUrl: '/lovable-uploads/2ea1f72e-efd2-4345-bf4d-957efd873986.png',
+                payPeriod: selectedMonth,
+                issueDate: new Date().toISOString().slice(0, 10),
+                employee: {
+                  nameAr: 'Sample Employee',
+                  branch: 'Main Branch',
+                  role: 'Barber',
+                  email: 'sample@ekka.com',
+                },
+                bonuses: [],
+                deductions: [],
+                loans: [],
+                totalSales: 0,
+                summary: {
+                  totalEarnings: 0,
+                  totalDeductions: 0,
+                  netSalary: 0,
+                },
+              }}
+            />
+          )}
         </TabsContent>
       </Tabs>
     </div>
