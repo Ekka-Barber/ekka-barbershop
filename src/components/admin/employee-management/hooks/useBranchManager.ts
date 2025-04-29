@@ -1,47 +1,48 @@
-
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { supabase } from "@/integrations/supabase/client";
 import { logger } from "@/utils/logger";
 
-interface Branch {
+export interface Branch {
   id: string;
   name: string;
 }
 
 export const useBranchManager = () => {
-  const [branches, setBranches] = useState<Branch[]>([]);
   const [selectedBranch, setSelectedBranch] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    fetchBranches();
-  }, []);
-
-  const fetchBranches = async () => {
-    setIsLoading(true);
-    try {
-      // Explicitly select only the fields we need
-      const { data, error } = await supabase.from('branches').select('id, name');
+  const { 
+    data: branches = [], 
+    isLoading,
+    error 
+  } = useQuery<Branch[]>({
+    queryKey: ['branches'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('branches')
+        .select('id, name')
+        .order('name');
       
-      if (error) throw error;
+      if (error) {
+        logger.error('Error fetching branches:', error);
+        throw error;
+      }
       
       logger.info('Fetched branches count:', data?.length || 0);
-      setBranches(data || []);
-      
-      // Don't automatically select the first branch
-      // Let the user choose to see all employees or filter by branch
-    } catch (error) {
-      logger.error('Error fetching branches:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+      return (data || []) as Branch[];
+    },
+    staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
+    gcTime: 30 * 60 * 1000, // Keep in cache for 30 minutes
+  });
+
+  if (error) {
+    logger.error('Error in useBranchManager:', error);
+  }
 
   return {
     branches,
     selectedBranch,
     setSelectedBranch,
-    isLoading,
-    setIsLoading
+    isLoading
   };
 };

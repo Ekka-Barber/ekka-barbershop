@@ -43,7 +43,9 @@ export const EmployeeTab = () => {
   const { 
     employees, 
     isLoading: isEmployeeLoading,
-    fetchEmployees
+    fetchEmployees,
+    pagination,
+    setCurrentPage
   } = useEmployeeManager(selectedBranch);
   
   // Sales management
@@ -79,6 +81,9 @@ export const EmployeeTab = () => {
     [isBranchLoading, isEmployeeLoading]
   );
 
+  // Memoize the branches array to prevent unnecessary re-renders
+  const memoizedBranches = useMemo(() => branches, [branches]);
+
   return (
     <div className="space-y-6">
       {/* Branch filter buttons */}
@@ -92,7 +97,7 @@ export const EmployeeTab = () => {
         >
           All Branches
         </Button>
-        {branches.map(branch => (
+        {memoizedBranches.map(branch => (
           <Button
             key={branch.id}
             variant={selectedBranch === branch.id ? "default" : "outline"}
@@ -160,6 +165,9 @@ export const EmployeeTab = () => {
             onSalesChange={handleSalesChange}
             refetchEmployees={fetchEmployees}
             selectedDate={selectedDate}
+            branches={memoizedBranches}
+            pagination={pagination}
+            onPageChange={setCurrentPage}
           />
         </TabsContent>
         

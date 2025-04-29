@@ -1,4 +1,3 @@
-
 export type TimeRange = string; // Format: "HH:mm-HH:mm"
 
 export interface WorkingHours {
@@ -26,6 +25,7 @@ export interface Employee {
 
 export interface EmployeeSales {
   id: string;
+  employee_id?: string;
   employee_name: string;
   month: string;
   sales_amount: number;

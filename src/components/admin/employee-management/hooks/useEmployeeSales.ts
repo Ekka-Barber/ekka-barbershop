@@ -46,24 +46,29 @@ export const useEmployeeSales = (selectedDate: Date, employees: Employee[]) => {
       
       // Store the fetched sales data
       if (data) {
-        setExistingSales(data);
+        // Filter out sales records where employee_id is null and cast to EmployeeSales[]
+        const validSalesData = (data as EmployeeSales[]).filter(
+          (sale): sale is EmployeeSales & { employee_id: string } => 
+          sale.employee_id !== null && sale.employee_id !== undefined
+        );
+        
+        setExistingSales(validSalesData);
         
         // Store the last updated timestamp from the most recent record
-        if (data.length > 0) {
+        if (validSalesData.length > 0) {
           // Sort by updated_at in descending order to get the most recent update
-          const sortedData = [...data].sort((a, b) => 
-            new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
+          const sortedData = [...validSalesData].sort((a, b) => 
+            new Date(b.updated_at || '').getTime() - new Date(a.updated_at || '').getTime()
           );
-          setLastUpdated(format(new Date(sortedData[0].updated_at), 'yyyy-MM-dd HH:mm:ss'));
+          
+          if (sortedData[0].updated_at) {
+            setLastUpdated(format(new Date(sortedData[0].updated_at), 'yyyy-MM-dd HH:mm:ss'));
+          }
           
           // Then populate sales inputs with existing data where available
-          data.forEach(sale => {
-            // Find the matching employee by name (more reliable than using ID)
-            const matchingEmployee = employees.find(emp => emp.name === sale.employee_name);
-            if (matchingEmployee) {
-              // Ensure we store integers only
-              initialSalesInputs[matchingEmployee.id] = Math.floor(sale.sales_amount).toString();
-            }
+          validSalesData.forEach(sale => {
+            // We know employee_id exists because of the type guard in filter
+            initialSalesInputs[sale.employee_id] = Math.floor(sale.sales_amount).toString();
           });
         } else {
           setLastUpdated(null);
@@ -105,7 +110,7 @@ export const useEmployeeSales = (selectedDate: Date, employees: Employee[]) => {
       
       // Validate sales data
       const invalidEntries = Object.entries(salesInputs)
-        .filter(([_, value]) => value !== '' && !(/^\d+$/.test(value)));
+        .filter(([, value]) => value !== '' && !(/^\d+$/.test(value)));
       
       if (invalidEntries.length > 0) {
         throw new Error('Invalid sales amounts detected. Please enter whole numbers only.');
@@ -113,75 +118,62 @@ export const useEmployeeSales = (selectedDate: Date, employees: Employee[]) => {
       
       // Filter out empty values and prepare sales data
       const salesDataEntries = Object.entries(salesInputs)
-        .filter(([_, value]) => value !== '');
+        .filter(([, value]) => value !== '');
       
       if (salesDataEntries.length === 0) {
         throw new Error('No sales data to save. Please enter at least one sales amount.');
       }
       
-      // Find existing sales entries by employee name and month
-      // This is safer than using IDs since the employee_id column doesn't exist
-      const existingEmployeeSalesByName = new Map<string, EmployeeSales>();
+      // Find existing sales entries by employee_id and month
+      const existingEmployeeSalesById = new Map<string, EmployeeSales>();
       
+      // Only add sales with valid employee_id to the map
       existingSales.forEach(sale => {
-        existingEmployeeSalesByName.set(sale.employee_name, sale);
+        if (sale.employee_id) {
+          existingEmployeeSalesById.set(sale.employee_id, sale);
+        }
       });
       
-      // Prepare data for updates (existing records)
-      const updateData = [];
-      
-      // Prepare data for inserts (new records)
-      const insertData = [];
+      // Prepare data for upsert (both inserts and updates)
+      const upsertData = [];
       
       // Process each sales entry
       for (const [employeeId, salesAmount] of salesDataEntries) {
+        const existingSale = existingEmployeeSalesById.get(employeeId);
+        
+        // Find the employee to get their name
         const employee = employees.find(e => e.id === employeeId);
-        if (!employee) continue;
+        if (!employee) continue; // Skip if employee not found
         
-        // Check if this employee already has a sales record for this month
-        const existingSale = existingEmployeeSalesByName.get(employee.name);
-        
+        const salesRecord = {
+          employee_id: employeeId,
+          employee_name: employee.name, // Keep employee_name for backward compatibility
+          month: monthString,
+          sales_amount: parseInt(salesAmount, 10),
+        };
+
         if (existingSale) {
-          // Update existing record
-          updateData.push({
+          // Include id for updates
+          upsertData.push({
             id: existingSale.id,
-            employee_name: employee.name,
-            month: monthString,
-            sales_amount: parseInt(salesAmount, 10),
+            ...salesRecord
           });
         } else {
-          // Insert new record - don't set an ID, let Supabase generate it
-          insertData.push({
-            employee_name: employee.name,
-            month: monthString,
-            sales_amount: parseInt(salesAmount, 10),
-          });
+          // No id for inserts
+          upsertData.push(salesRecord);
         }
       }
       
-      console.log('Data to update:', updateData);
-      console.log('Data to insert:', insertData);
+      console.log('Data to upsert:', upsertData);
       
-      // Update existing records first
-      if (updateData.length > 0) {
-        for (const record of updateData) {
-          const { error } = await supabase
-            .from('employee_sales')
-            .update({ 
-              sales_amount: record.sales_amount, 
-              employee_name: record.employee_name
-            })
-            .eq('id', record.id);
-          
-          if (error) throw error;
-        }
-      }
-      
-      // Insert new records
-      if (insertData.length > 0) {
+      // Perform bulk upsert operation
+      if (upsertData.length > 0) {
         const { error } = await supabase
           .from('employee_sales')
-          .insert(insertData);
+          .upsert(upsertData, { 
+            onConflict: 'id',
+            ignoreDuplicates: false // We want to update if there's a conflict
+          });
         
         if (error) throw error;
       }
