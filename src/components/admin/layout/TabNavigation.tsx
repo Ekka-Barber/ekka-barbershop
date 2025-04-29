@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Home, Package, Calendar, Users, FileText, QrCode, Layout, Building } from 'lucide-react';
@@ -11,8 +10,8 @@ export const TabNavigation: React.FC<TabNavigationProps> = ({ isMobile }) => {
   if (isMobile) {
     return (
       <div className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t shadow-lg pb-[env(safe-area-inset-bottom)]">
-        <div className="overflow-x-auto">
-          <TabsList className="w-full grid grid-cols-8 gap-1 p-2">
+        <div>
+          <TabsList className="w-full flex flex-wrap justify-center gap-1 p-2">
             <TabsTrigger value="services" className="flex flex-col items-center py-2 h-auto">
               <Home className="h-5 w-5 mb-1" />
               <span className="text-xs">Services</span>

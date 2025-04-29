@@ -177,8 +177,8 @@ export const EmployeeTab = () => {
         </div>
         <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
           <div className="flex justify-between items-center">
-            <div className="overflow-x-auto pb-2 w-full">
-              <TabsList className="w-full inline-flex">
+            <div className="pb-2 w-full">
+              <TabsList className="w-full flex flex-wrap gap-2">
                 <TabsTrigger value="employee-grid" className="flex items-center gap-1">
                   <Users className="h-4 w-4" />
                   <span>Employees</span>
