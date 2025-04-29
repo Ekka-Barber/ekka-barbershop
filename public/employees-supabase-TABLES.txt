@@ -8,7 +8,7 @@ employee_loans
 INSERT INTO "public"."employee_loans" ("id", "employee_id", "employee_name", "description", "amount", "date", "created_at", "updated_at", "source", "cash_deposit_id", "branch_id")
 
 employee_sales
-INSERT INTO "public"."employee_sales" ("id", "employee_name", "month", "sales_amount", "created_at", "updated_at")
+INSERT INTO "public"."employee_sales" ("id", "employee_name", "month", "sales_amount", "created_at", "updated_at", "employee_id") 
 
 employees
 INSERT INTO "public"."employees" ("id", "name", "branch_id", "role", "created_at", "updated_at", "salary_plan_id", "name_ar", "working_hours", "off_days", "photo_url", "nationality", "previous_working_hours", "start_date", "annual_leave_quota", "email") 
