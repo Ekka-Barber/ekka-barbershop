@@ -1,236 +1,304 @@
-import { Loader2, TrendingDown, TrendingUp, AlertTriangle } from 'lucide-react';
-import { formatCurrency } from '../SalaryUtils';
-import { EmployeeSalary } from '../hooks/utils/salaryTypes'; // Ensure type import includes salesAmount
+import React from 'react';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
+import { ArrowUp, ArrowDown, ChevronRight, FileText } from 'lucide-react';
+import { EmployeeSalary } from '../hooks/utils/salaryTypes';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import PayslipTemplateViewer from './PayslipTemplateViewer';
+import { useSalaryData } from '../hooks/useSalaryData';
+import { PayslipData } from '@/types/payslip';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
-export interface SalaryTableProps {
+interface SalaryTableProps {
   salaryData: EmployeeSalary[];
   isLoading: boolean;
   onEmployeeSelect: (employeeId: string) => void;
   getMonthlyChange?: (employeeId: string) => number | null;
 }
 
-export const SalaryTable = ({ 
-  salaryData, 
-  isLoading, 
+interface EmployeeQueryResult {
+  id: string;
+  name: string;
+  name_ar?: string;
+  branch_id?: string;
+  role?: string;
+  email?: string;
+  salary_plan_id?: string;
+}
+
+export const SalaryTable = ({
+  salaryData,
+  isLoading,
   onEmployeeSelect,
   getMonthlyChange
 }: SalaryTableProps) => {
+  const [selectedEmployeeForPayslip, setSelectedEmployeeForPayslip] = React.useState<string | null>(null);
+  const [isPayslipLoading, setIsPayslipLoading] = React.useState(false);
+  const [dialogOpen, setDialogOpen] = React.useState<Record<string, boolean>>({});
+  
+  // Get transactions for the selected employee and current month
+  const { getEmployeeTransactions } = useSalaryData({
+    employees: [],
+    selectedMonth: new Date().toISOString().slice(0, 7) // YYYY-MM
+  });
+  
+  // Fetch complete employee data
+  const { data: employeesData = [] } = useQuery<EmployeeQueryResult[]>({
+    queryKey: ['employees-for-payslip'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('employees')
+        .select('id, name, name_ar, branch_id, role, email, salary_plan_id');
+      
+      if (error) throw error;
+      return (data || []) as unknown as EmployeeQueryResult[];
+    }
+  });
+
+  // Fetch branches for getting proper branch names
+  const { data: branches = [] } = useQuery({
+    queryKey: ['branches-for-payslip'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('branches')
+        .select('id, name_ar');
+      if (error) throw error;
+      return data || [];
+    },
+  });
+  
+  // Get branch name from ID
+  const getBranchNameAr = (branchId?: string): string => {
+    if (!branchId) return 'Unknown';
+    const branch = branches.find(b => b.id === branchId);
+    return branch ? branch.name_ar : 'Unknown';
+  };
+  
+  // Get employee details from ID
+  const getEmployeeDetails = (id: string): EmployeeQueryResult | undefined => {
+    return employeesData.find(emp => emp.id === id);
+  };
+
+  // Fetch salary plan for the selected employee
+  const { data: salaryPlan, isLoading: isSalaryPlanLoading } = useQuery({
+    queryKey: ['employee-salary-plan', selectedEmployeeForPayslip],
+    queryFn: async () => {
+      if (!selectedEmployeeForPayslip) return null;
+      
+      const employee = getEmployeeDetails(selectedEmployeeForPayslip);
+      if (!employee?.salary_plan_id) return null;
+      
+      const { data, error } = await supabase
+        .from('salary_plans')
+        .select('*')
+        .eq('id', employee.salary_plan_id)
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!selectedEmployeeForPayslip
+  });
+  
+  // Use effect to manage loading state
+  React.useEffect(() => {
+    if (!isSalaryPlanLoading) {
+      setIsPayslipLoading(false);
+    }
+  }, [isSalaryPlanLoading]);
+  
+  // Build payslip data for the selected employee
+  const buildPayslipData = (employee: EmployeeSalary): PayslipData | null => {
+    if (!employee) return null;
+    
+    const transactions = getEmployeeTransactions(employee.id);
+    const employeeDetails = getEmployeeDetails(employee.id);
+    
+    if (!employeeDetails) {
+      console.error("Employee details not found for:", employee.id);
+      return null;
+    }
+    
+    // Format salary plan data correctly
+    let formattedSalaryPlan = null;
+    if (salaryPlan && selectedEmployeeForPayslip === employee.id) {
+      formattedSalaryPlan = {
+        id: salaryPlan.id,
+        name: salaryPlan.name,
+        type: salaryPlan.type as 'fixed' | 'dynamic_basic',
+        config: salaryPlan.config
+      };
+    }
+    
+    return {
+      companyName: 'Ekka Barbershop',
+      companyLogoUrl: '/lovable-uploads/2ea1f72e-efd2-4345-bf4d-957efd873986.png',
+      payPeriod: new Date().toISOString().slice(0, 7),
+      issueDate: new Date().toISOString().slice(0, 10),
+      employee: {
+        nameAr: employeeDetails.name_ar || employeeDetails.name,
+        branch: getBranchNameAr(employeeDetails.branch_id),
+        role: employeeDetails.role || 'Employee',
+        email: employeeDetails.email || '',
+        salary_plan_id: employeeDetails.salary_plan_id || '',
+        salaryPlan: formattedSalaryPlan
+      },
+      bonuses: transactions.bonuses.map(b => ({
+        description: b.description,
+        amount: b.amount,
+        date: b.date,
+      })),
+      deductions: transactions.deductions.map(d => ({
+        description: d.description,
+        amount: d.amount,
+        date: d.date,
+      })),
+      loans: transactions.loans.map(l => ({
+        description: l.description,
+        amount: l.amount,
+        date: l.date,
+      })),
+      totalSales: transactions.salesData?.sales_amount || 0,
+      summary: {
+        totalEarnings: employee.baseSalary + employee.commission + (employee.bonus || 0) + (employee.targetBonus || 0),
+        totalDeductions: employee.deductions + employee.loans,
+        netSalary: employee.total,
+      },
+    };
+  };
+
+  if (isLoading) {
+    return (
+      <div className="space-y-2">
+        <Skeleton className="h-8 w-full" />
+        <Skeleton className="h-8 w-full" />
+        <Skeleton className="h-8 w-full" />
+        <Skeleton className="h-8 w-full" />
+        <Skeleton className="h-8 w-full" />
+      </div>
+    );
+  }
+
+  if (salaryData.length === 0) {
+    return (
+      <div className="text-center py-10 text-muted-foreground">
+        No salary data available for the selected month.
+      </div>
+    );
+  }
+
   return (
-    <div className="bg-white rounded-lg shadow border border-gray-200">
-      {isLoading ? (
-        <div className="flex justify-center items-center py-12">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          <span className="ml-3 text-lg text-gray-500">Calculating Salary Data...</span>
-        </div>
-      ) : (
-        <>
-          {/* Desktop view */}
-          <div className="md:block hidden overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-gray-50 border-b border-gray-200">
-                <tr className="text-gray-600 font-medium">
-                  <th className="text-left py-3 px-4">Employee</th>
-                  <th className="text-right py-3 px-4">Total Sales</th> 
-                  <th className="text-right py-3 px-4">Base Salary</th>
-                  <th className="text-right py-3 px-4">Commission</th>
-                  <th className="text-right py-3 px-4">Regular Bonuses</th>
-                  <th className="text-right py-3 px-4">Target Bonuses</th>
-                  <th className="text-right py-3 px-4">Deductions</th>
-                  <th className="text-right py-3 px-4">Loans</th>
-                  <th className="text-right py-3 px-4 font-semibold">Total</th>
-                  {getMonthlyChange && <th className="text-right py-3 px-4">Change</th>}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {salaryData.length > 0 ? (
-                  salaryData.map((salary, index) => {
-                    const monthlyChange = getMonthlyChange ? getMonthlyChange(salary.id) : null;
-                    
-                    return (
-                      <tr 
-                        key={salary.id} 
-                        className={`hover:bg-blue-50 cursor-pointer ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'}`}
-                        onClick={() => onEmployeeSelect(salary.id)}
-                        tabIndex={0}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter' || e.key === ' ') {
-                            onEmployeeSelect(salary.id);
-                            e.preventDefault();
-                          }
-                        }}
-                        aria-label={`View ${salary.name}'s salary details`}
-                      >
-                        <td className="py-3 px-4 font-medium text-gray-800">
-                          {salary.name}
-                          {salary.calculationError && (
-                            <span 
-                              className="ml-2 text-red-500 cursor-help inline-flex items-center" 
-                              title={salary.calculationError}
-                              aria-label={`Error: ${salary.calculationError}`}
-                            >
-                              <AlertTriangle className="h-4 w-4 mr-1" />
-                              <span className="text-xs">Salary plan issue</span>
-                            </span>
-                          )}
-                        </td>
-                        <td className="text-right py-3 px-4 text-gray-700">
-                          {formatCurrency(salary.salesAmount ?? 0)} 
-                        </td>
-                        <td className="text-right py-3 px-4 text-gray-700">{formatCurrency(salary.baseSalary)}</td>
-                        <td className="text-right py-3 px-4 text-gray-700">{formatCurrency(salary.commission)}</td>
-                        <td className="text-right py-3 px-4 text-green-700">{formatCurrency(salary.bonus)}</td>
-                        <td className="text-right py-3 px-4 text-green-700">{formatCurrency(salary.targetBonus)}</td>
-                        <td className="text-right py-3 px-4 text-red-600">
-                          {salary.deductions > 0 ? `-${formatCurrency(salary.deductions)}` : formatCurrency(0)}
-                        </td>
-                        <td className="text-right py-3 px-4 text-red-600">
-                          {salary.loans > 0 ? `-${formatCurrency(salary.loans)}` : formatCurrency(0)}
-                        </td>
-                        <td className="text-right py-3 px-4 font-semibold text-gray-800">
-                          {formatCurrency(salary.total)}
-                        </td>
-                        {getMonthlyChange && (
-                          <td className="text-right py-3 px-4">
-                            {monthlyChange !== null ? (
-                              <div className="flex items-center justify-end">
-                                {monthlyChange > 0 ? (
-                                  <>
-                                    <TrendingUp className="h-4 w-4 text-green-600 mr-1" />
-                                    <span className="text-green-600">
-                                      {formatCurrency(monthlyChange)}
-                                    </span>
-                                  </>
-                                ) : monthlyChange < 0 ? (
-                                  <>
-                                    <TrendingDown className="h-4 w-4 text-red-600 mr-1" />
-                                    <span className="text-red-600">
-                                      {formatCurrency(Math.abs(monthlyChange))}
-                                    </span>
-                                  </>
-                                ) : (
-                                  <span className="text-gray-500">No change</span>
-                                )}
-                              </div>
-                            ) : (
-                              <span className="text-gray-400">–</span>
-                            )}
-                          </td>
-                        )}
-                      </tr>
-                    );
-                  })
-                ) : (
-                  <tr>
-                    <td colSpan={getMonthlyChange ? 10 : 9} className="text-center py-8 text-gray-500 italic">
-                      No employees match the current filters or no salary data available.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead>Employee</TableHead>
+          <TableHead className="text-right">Sales</TableHead>
+          <TableHead className="text-right">Base Salary</TableHead>
+          <TableHead className="text-right">Commission</TableHead>
+          <TableHead className="text-right">Bonuses</TableHead>
+          <TableHead className="text-right">Deductions</TableHead>
+          <TableHead className="text-right">Loans</TableHead>
+          <TableHead className="text-right">Total</TableHead>
+          <TableHead></TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {salaryData.map((employee) => {
+          const monthlyChange = getMonthlyChange?.(employee.id);
+          const hasMonthlySalaryChange = monthlyChange !== null && monthlyChange !== 0;
           
-          {/* Mobile view */}
-          <div className="md:hidden block">
-            {salaryData.length > 0 ? (
-              <div className="divide-y divide-gray-200">
-                {salaryData.map(salary => {
-                  const monthlyChange = getMonthlyChange ? getMonthlyChange(salary.id) : null;
-                  
-                  return (
-                    <div 
-                      key={salary.id}
-                      className="p-4 hover:bg-blue-50 cursor-pointer"
-                      onClick={() => onEmployeeSelect(salary.id)}
-                      tabIndex={0}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' || e.key === ' ') {
-                          onEmployeeSelect(salary.id);
-                          e.preventDefault();
-                        }
-                      }}
-                      aria-label={`View ${salary.name}'s salary details`}
+          return (
+            <TableRow key={employee.id} className="cursor-pointer hover:bg-muted/50" onClick={() => onEmployeeSelect(employee.id)}>
+              <TableCell className="font-medium">{employee.name}</TableCell>
+              <TableCell className="text-right">
+                {employee.salesAmount ? `${employee.salesAmount.toLocaleString()} SAR` : '-'}
+              </TableCell>
+              <TableCell className="text-right">{employee.baseSalary.toLocaleString()} SAR</TableCell>
+              <TableCell className="text-right">{employee.commission.toLocaleString()} SAR</TableCell>
+              <TableCell className="text-right">
+                {(employee.bonus || 0) + (employee.targetBonus || 0) > 0
+                  ? `${((employee.bonus || 0) + (employee.targetBonus || 0)).toLocaleString()} SAR`
+                  : '-'
+                }
+              </TableCell>
+              <TableCell className="text-right">
+                {employee.deductions > 0 ? `${employee.deductions.toLocaleString()} SAR` : '-'}
+              </TableCell>
+              <TableCell className="text-right">
+                {employee.loans > 0 ? `${employee.loans.toLocaleString()} SAR` : '-'}
+              </TableCell>
+              <TableCell className="text-right font-medium">
+                <div className="flex items-center justify-end gap-1">
+                  {employee.total.toLocaleString()} SAR
+                  {hasMonthlySalaryChange && (
+                    <span 
+                      className={monthlyChange && monthlyChange > 0 ? "text-green-600" : "text-red-600"}
+                      title={`Change from previous month: ${monthlyChange?.toLocaleString()} SAR`}
                     >
-                      <div className="flex justify-between items-start">
-                        <div className="font-medium text-gray-800 flex items-center">
-                          {salary.name}
-                          {salary.calculationError && (
-                            <span 
-                              className="ml-2 text-red-500 cursor-help inline-flex items-center" 
-                              title={salary.calculationError}
-                              aria-label={`Error: ${salary.calculationError}`}
-                            >
-                              <AlertTriangle className="h-4 w-4 mr-1" />
-                              <span className="text-xs">Salary plan issue</span>
-                            </span>
-                          )}
-                        </div>
-                        <div className="font-semibold text-gray-800">
-                          {formatCurrency(salary.total)}
-                        </div>
-                      </div>
-                      
-                      <div className="grid grid-cols-2 gap-x-2 gap-y-1 mt-2 text-sm">
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Base:</span>
-                          <span>{formatCurrency(salary.baseSalary)}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Commission:</span>
-                          <span>{formatCurrency(salary.commission)}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Bonuses:</span>
-                          <span className="text-green-700">
-                            {formatCurrency(salary.bonus + (salary.targetBonus || 0))}
-                          </span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Deductions:</span>
-                          <span className="text-red-600">
-                            {(salary.deductions > 0 || salary.loans > 0) ? 
-                              `-${formatCurrency(salary.deductions + salary.loans)}` : 
-                              formatCurrency(0)}
-                          </span>
-                        </div>
-                        
-                        {getMonthlyChange && monthlyChange !== null && (
-                          <div className="col-span-2 mt-1 flex justify-between border-t pt-1">
-                            <span className="text-gray-600">Monthly Change:</span>
-                            <div className="flex items-center">
-                              {monthlyChange > 0 ? (
-                                <>
-                                  <TrendingUp className="h-4 w-4 text-green-600 mr-1" />
-                                  <span className="text-green-600">
-                                    {formatCurrency(monthlyChange)}
-                                  </span>
-                                </>
-                              ) : monthlyChange < 0 ? (
-                                <>
-                                  <TrendingDown className="h-4 w-4 text-red-600 mr-1" />
-                                  <span className="text-red-600">
-                                    {formatCurrency(Math.abs(monthlyChange))}
-                                  </span>
-                                </>
-                              ) : (
-                                <span className="text-gray-500">No change</span>
-                              )}
-                            </div>
+                      {monthlyChange && monthlyChange > 0 ? <ArrowUp className="h-4 w-4" /> : <ArrowDown className="h-4 w-4" />}
+                    </span>
+                  )}
+                </div>
+              </TableCell>
+              <TableCell>
+                <div className="flex items-center justify-end">
+                  <Dialog open={dialogOpen[employee.id]} onOpenChange={(open) => {
+                    setDialogOpen(prev => ({ ...prev, [employee.id]: open }));
+                    if (open) {
+                      setSelectedEmployeeForPayslip(employee.id);
+                      setIsPayslipLoading(true);
+                    }
+                  }}>
+                    <DialogTrigger asChild>
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setDialogOpen(prev => ({ ...prev, [employee.id]: true }));
+                        }}
+                      >
+                        <FileText className="h-4 w-4" />
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-4xl" onPointerDownOutside={(e) => {
+                      e.preventDefault();
+                    }}>
+                      <DialogHeader>
+                        <DialogTitle>Payslip - {employee.name}</DialogTitle>
+                      </DialogHeader>
+                      <div className="mt-4" onClick={(e) => e.stopPropagation()}>
+                        {isPayslipLoading || isSalaryPlanLoading ? (
+                          <div className="flex justify-center py-8">
+                            <Skeleton className="h-96 w-full" />
                           </div>
+                        ) : (
+                          <PayslipTemplateViewer 
+                            key={`payslip-${employee.id}`} 
+                            payslipData={buildPayslipData(employee)} 
+                          />
                         )}
                       </div>
-                    </div>
-                  );
-                })}
-              </div>
-            ) : (
-              <div className="text-center py-8 text-gray-500 italic">
-                No employees match the current filters or no salary data available.
-              </div>
-            )}
-          </div>
-        </>
-      )}
-    </div>
+                    </DialogContent>
+                  </Dialog>
+                  <Button variant="ghost" size="icon">
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              </TableCell>
+            </TableRow>
+          );
+        })}
+      </TableBody>
+    </Table>
   );
 };

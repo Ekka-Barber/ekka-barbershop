@@ -392,65 +392,61 @@ export const PayslipDocument: React.FC<PayslipDocumentProps> = ({ data }) => {
           </View>
         )}
 
-        {/* Deductions Section - Only show if there are deductions */}
-        {data.deductions && data.deductions.length > 0 && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>تفاصيل الخصميات</Text>
-            <View style={styles.table}>
-              <View style={styles.tableRow}>
-                <Text style={styles.tableColDateHeader}>التاريخ</Text>
-                <Text style={styles.tableColAmountHeader}>المبلغ</Text>
-                <Text style={styles.tableColHeader}>الوصف</Text>
+        {/* Deductions Section */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>تفاصيل الخصميات</Text>
+          <View style={styles.table}>
+            <View style={styles.tableRow}>
+              <Text style={styles.tableColDateHeader}>التاريخ</Text>
+              <Text style={styles.tableColAmountHeader}>المبلغ</Text>
+              <Text style={styles.tableColHeader}>الوصف</Text>
+            </View>
+            {data.deductions.map((item, index) => (
+              <View style={styles.tableRow} key={`deduction-${index}`}>
+                <Text style={styles.tableColDate}>{formatDate(item.date)}</Text>
+                <Text style={styles.tableColAmount}>{formatCurrency(item.amount)}</Text>
+                <Text style={styles.tableCol}>{item.description}</Text>
               </View>
-              {data.deductions.map((item, index) => (
-                <View style={styles.tableRow} key={`deduction-${index}`}>
-                  <Text style={styles.tableColDate}>{formatDate(item.date)}</Text>
-                  <Text style={styles.tableColAmount}>{formatCurrency(item.amount)}</Text>
-                  <Text style={styles.tableCol}>{item.description}</Text>
-                </View>
-              ))}
-              <View style={styles.tableRow}>
-                <Text style={styles.tableColDate}></Text>
-                <Text style={[styles.tableColAmount, { fontWeight: 'bold', backgroundColor: '#FBF7F0' }]}>
-                  {formatCurrency(data.deductions.reduce((sum, d) => sum + d.amount, 0))}
-                </Text>
-                <Text style={[styles.tableCol, { fontWeight: 'bold', backgroundColor: '#FBF7F0' }]}>
-                  إجمالي الخصميات
-                </Text>
-              </View>
+            ))}
+            <View style={styles.tableRow}>
+              <Text style={styles.tableColDate}></Text>
+              <Text style={[styles.tableColAmount, { fontWeight: 'bold', backgroundColor: '#FBF7F0' }]}>
+                {formatCurrency(data.deductions.reduce((sum, d) => sum + d.amount, 0))}
+              </Text>
+              <Text style={[styles.tableCol, { fontWeight: 'bold', backgroundColor: '#FBF7F0' }]}>
+                إجمالي الخصميات
+              </Text>
             </View>
           </View>
-        )}
+        </View>
 
-        {/* Loans Section - Only show if there are loans */}
-        {data.loans && data.loans.length > 0 && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>تفاصيل القروض</Text>
-            <View style={styles.table}>
-              <View style={styles.tableRow}>
-                <Text style={styles.tableColDateHeader}>التاريخ</Text>
-                <Text style={styles.tableColAmountHeader}>المبلغ</Text>
-                <Text style={styles.tableColHeader}>الوصف</Text>
+        {/* Loans Section */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>تفاصيل القروض</Text>
+          <View style={styles.table}>
+            <View style={styles.tableRow}>
+              <Text style={styles.tableColDateHeader}>التاريخ</Text>
+              <Text style={styles.tableColAmountHeader}>المبلغ</Text>
+              <Text style={styles.tableColHeader}>الوصف</Text>
+            </View>
+            {data.loans.map((item, index) => (
+              <View style={styles.tableRow} key={`loan-${index}`}>
+                <Text style={styles.tableColDate}>{formatDate(item.date)}</Text>
+                <Text style={styles.tableColAmount}>{formatCurrency(item.amount)}</Text>
+                <Text style={styles.tableCol}>{item.description}</Text>
               </View>
-              {data.loans.map((item, index) => (
-                <View style={styles.tableRow} key={`loan-${index}`}>
-                  <Text style={styles.tableColDate}>{formatDate(item.date)}</Text>
-                  <Text style={styles.tableColAmount}>{formatCurrency(item.amount)}</Text>
-                  <Text style={styles.tableCol}>{item.description}</Text>
-                </View>
-              ))}
-              <View style={styles.tableRow}>
-                <Text style={styles.tableColDate}></Text>
-                <Text style={[styles.tableColAmount, { fontWeight: 'bold', backgroundColor: '#FBF7F0' }]}>
-                  {formatCurrency(data.loans.reduce((sum, l) => sum + l.amount, 0))}
-                </Text>
-                <Text style={[styles.tableCol, { fontWeight: 'bold', backgroundColor: '#FBF7F0' }]}>
-                  إجمالي القروض
-                </Text>
-              </View>
+            ))}
+            <View style={styles.tableRow}>
+              <Text style={styles.tableColDate}></Text>
+              <Text style={[styles.tableColAmount, { fontWeight: 'bold', backgroundColor: '#FBF7F0' }]}>
+                {formatCurrency(data.loans.reduce((sum, l) => sum + l.amount, 0))}
+              </Text>
+              <Text style={[styles.tableCol, { fontWeight: 'bold', backgroundColor: '#FBF7F0' }]}>
+                إجمالي القروض
+              </Text>
             </View>
           </View>
-        )}
+        </View>
 
         {/* Summary Section with swapped columns */}
         <View style={styles.summarySection}>
