@@ -2,15 +2,9 @@ import { Employee } from '@/types/employee';
 import { EmployeeCard } from '../EmployeeCard';
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from '@/components/ui/skeleton';
-import { Branch } from '../hooks/useBranchManager';
+import { Branch, PaginationInfo } from '../types';
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-
-interface PaginationInfo {
-  currentPage: number;
-  totalPages: number;
-  totalItems: number;
-}
 
 interface EmployeeGridProps {
   isLoading: boolean;

@@ -1,14 +1,9 @@
 import { useState, useEffect } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { Employee } from '@/types/employee';
+import { PaginationInfo } from '../types'; // Import PaginationInfo type
 
 const ITEMS_PER_PAGE = 9; // 3x3 grid layout
-
-interface PaginationInfo {
-  currentPage: number;
-  totalPages: number;
-  totalItems: number;
-}
 
 export const useEmployeeManager = (selectedBranch: string | null) => {
   const [employees, setEmployees] = useState<Employee[]>([]);
@@ -19,51 +14,41 @@ export const useEmployeeManager = (selectedBranch: string | null) => {
   const fetchEmployees = async (page: number = currentPage) => {
     try {
       setIsLoading(true);
-      
       console.log('Fetching employees for branch:', selectedBranch, 'page:', page);
-      
-      // First, get total count
-      let countQuery = supabase.from('employees').select('id', { count: 'exact' });
-      if (selectedBranch) {
-        countQuery = countQuery.eq('branch_id', selectedBranch);
-      }
-      const { count: total, error: countError } = await countQuery;
-      
-      if (countError) throw countError;
-      
-      // Calculate pagination values
-      const totalCount = total || 0;
-      setTotalItems(totalCount);
-      
+
       // Calculate start and end range for the current page
       const start = (page - 1) * ITEMS_PER_PAGE;
       const end = start + ITEMS_PER_PAGE - 1;
-      
-      // Fetch paginated data
+
+      // Base query
       let query = supabase
         .from('employees')
-        .select('*')
+        .select('*', { count: 'exact' }) // Request count along with data
         .range(start, end)
         .order('name');
-      
+
       // Add branch filter if a branch is selected
       if (selectedBranch) {
         query = query.eq('branch_id', selectedBranch);
       }
-      
-      const { data, error } = await query;
-      
+
+      // Execute the single query
+      const { data, error, count } = await query;
+
       if (error) throw error;
-      
-      console.log('Fetched employees:', data);
-      
-      // Explicitly cast the data to Employee[] type
-      setEmployees(data as unknown as Employee[]);
+
+      console.log('Fetched employees:', data, 'Total count:', count);
+
+      // Update state
+      setEmployees(data as unknown as Employee[] || []); // Ensure data is an array
+      setTotalItems(count || 0); // Update total count from the response
       setCurrentPage(page);
+
     } catch (error) {
       console.error('Error fetching employees:', error);
       setEmployees([]);
       setTotalItems(0);
+      // Optionally set currentPage back to 1 or handle error state?
     } finally {
       setIsLoading(false);
     }

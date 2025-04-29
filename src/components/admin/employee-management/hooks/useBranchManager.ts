@@ -2,11 +2,7 @@ import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from "@/integrations/supabase/client";
 import { logger } from "@/utils/logger";
-
-export interface Branch {
-  id: string;
-  name: string;
-}
+import { Branch } from '../types'; // Import Branch type
 
 export const useBranchManager = () => {
   const [selectedBranch, setSelectedBranch] = useState<string | null>(null);
