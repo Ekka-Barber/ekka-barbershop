@@ -10,8 +10,7 @@ Font.register({
   fontWeight: 'normal',
 });
 
-// --- Styles ---
-// TODO: Refine styles to match your branding. Use the registered font family.
+// Styles with improved aesthetics
 const styles = StyleSheet.create({
   page: {
     fontFamily: 'IBM Plex Sans Arabic',
@@ -25,199 +24,208 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 18,
-    paddingBottom: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: '#DDDDDD',
+    marginBottom: 25,
+    paddingBottom: 15,
+    borderBottomWidth: 2,
+    borderBottomColor: '#C4A36F',
   },
   companyInfo: {
     textAlign: 'right',
     fontWeight: 'bold',
-    fontSize: 14,
+    fontSize: 16,
     color: '#222',
   },
   logo: {
-    width: 100,
-    height: 60,
+    width: 120,
+    height: 70,
     objectFit: 'contain',
   },
   title: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: 'bold',
     textAlign: 'center',
-    marginBottom: 18,
-    color: '#333333',
+    marginBottom: 25,
+    color: '#C4A36F',
     letterSpacing: 1,
   },
   employeeDetailsBlock: {
     flexDirection: 'column',
     alignItems: 'flex-end',
-    marginBottom: 18,
+    marginBottom: 25,
     borderWidth: 1,
-    borderColor: '#EEEEEE',
-    borderRadius: 5,
-    padding: 10,
-    backgroundColor: '#fafafa',
-    direction: 'rtl',
-    textAlign: 'right',
+    borderColor: '#C4A36F',
+    borderRadius: 8,
+    padding: 15,
+    backgroundColor: '#FBF7F0',
   },
   employeeDetailLine: {
-    fontSize: 12,
+    fontSize: 13,
     color: '#222',
-    marginBottom: 6,
+    marginBottom: 8,
     direction: 'rtl',
     textAlign: 'right',
     lineHeight: 1.8,
   },
   section: {
-    marginBottom: 15,
+    marginBottom: 20,
+    display: 'flex',
   },
   sectionTitle: {
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: 'bold',
-    marginBottom: 8,
-    paddingBottom: 4,
-    borderBottomWidth: 1,
-    borderBottomColor: '#CCCCCC',
-    color: '#444444',
+    marginBottom: 10,
+    paddingBottom: 5,
+    borderBottomWidth: 2,
+    borderBottomColor: '#C4A36F',
+    color: '#222',
     textAlign: 'right',
   },
   table: {
     width: '100%',
     borderStyle: 'solid',
     borderWidth: 1,
-    borderColor: '#EEEEEE',
+    borderColor: '#C4A36F',
     borderRightWidth: 0,
     borderBottomWidth: 0,
-    marginBottom: 10,
+    marginBottom: 15,
   },
   tableRow: {
     flexDirection: 'row',
+    borderBottomWidth: 1,
+    borderBottomColor: '#C4A36F',
+    minHeight: 35,
+    alignItems: 'center',
   },
   tableColHeader: {
-    width: '70%',
-    borderStyle: 'solid',
-    borderWidth: 1,
-    borderColor: '#EEEEEE',
-    borderLeftWidth: 0,
-    borderTopWidth: 0,
-    backgroundColor: '#f8f8f8',
-    padding: 5,
-    textAlign: 'right',
+    width: '40%',
+    borderRightWidth: 1,
+    borderRightColor: '#C4A36F',
+    paddingVertical: 8,
+    paddingHorizontal: 10,
+    backgroundColor: '#FBF7F0',
+    color: '#222',
     fontWeight: 'bold',
+    fontSize: 12,
+    textAlign: 'right',
   },
   tableColAmountHeader: {
     width: '30%',
-    borderStyle: 'solid',
-    borderWidth: 1,
-    borderColor: '#EEEEEE',
-    borderLeftWidth: 0,
-    borderTopWidth: 0,
-    backgroundColor: '#f8f8f8',
-    padding: 5,
-    textAlign: 'right',
+    borderRightWidth: 1,
+    borderRightColor: '#C4A36F',
+    paddingVertical: 8,
+    paddingHorizontal: 10,
+    backgroundColor: '#FBF7F0',
+    color: '#222',
     fontWeight: 'bold',
-  },
-  tableCol: {
-    width: '70%',
-    borderStyle: 'solid',
-    borderWidth: 1,
-    borderColor: '#EEEEEE',
-    borderLeftWidth: 0,
-    borderTopWidth: 0,
-    padding: 5,
-    textAlign: 'right',
-  },
-  tableColAmount: {
-    width: '30%',
-    borderStyle: 'solid',
-    borderWidth: 1,
-    borderColor: '#EEEEEE',
-    borderLeftWidth: 0,
-    borderTopWidth: 0,
-    padding: 5,
+    fontSize: 12,
     textAlign: 'right',
   },
   tableColDateHeader: {
     width: '30%',
-    borderStyle: 'solid',
-    borderWidth: 1,
-    borderColor: '#EEEEEE',
-    borderLeftWidth: 0,
-    borderTopWidth: 0,
-    backgroundColor: '#f8f8f8',
-    padding: 5,
-    textAlign: 'right',
+    borderRightWidth: 1,
+    borderRightColor: '#C4A36F',
+    paddingVertical: 8,
+    paddingHorizontal: 10,
+    backgroundColor: '#FBF7F0',
+    color: '#222',
     fontWeight: 'bold',
+    fontSize: 12,
+    textAlign: 'right',
+  },
+  tableCol: {
+    width: '40%',
+    borderRightWidth: 1,
+    borderRightColor: '#C4A36F',
+    paddingVertical: 8,
+    paddingHorizontal: 10,
+    textAlign: 'right',
+  },
+  tableColAmount: {
+    width: '30%',
+    borderRightWidth: 1,
+    borderRightColor: '#C4A36F',
+    paddingVertical: 8,
+    paddingHorizontal: 10,
+    textAlign: 'right',
   },
   tableColDate: {
     width: '30%',
-    borderStyle: 'solid',
-    borderWidth: 1,
-    borderColor: '#EEEEEE',
-    borderLeftWidth: 0,
-    borderTopWidth: 0,
-    padding: 5,
+    borderRightWidth: 1,
+    borderRightColor: '#C4A36F',
+    paddingVertical: 8,
+    paddingHorizontal: 10,
     textAlign: 'right',
   },
   summarySection: {
     marginTop: 20,
-    paddingTop: 10,
-    borderTopWidth: 1,
-    borderTopColor: '#CCCCCC',
+    padding: 15,
+    backgroundColor: '#FBF7F0',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#C4A36F',
   },
   summaryRow: {
     flexDirection: 'row',
-    justifyContent: 'flex-end',
-    marginBottom: 5,
-    paddingHorizontal: 5,
+    justifyContent: 'space-between',
+    marginBottom: 8,
+    paddingHorizontal: 10,
   },
   summaryLabel: {
+    fontSize: 13,
+    color: '#222',
     fontWeight: 'bold',
-    minWidth: 120,
     textAlign: 'right',
-    color: '#333',
+    flex: 1,
   },
   summaryValue: {
-    fontWeight: 'bold',
-    minWidth: 60,
-    textAlign: 'right',
+    fontSize: 13,
     color: '#222',
+    textAlign: 'left',
+    minWidth: 120,
+    marginRight: 15,
   },
   netSalaryValue: {
     fontWeight: 'bold',
-    minWidth: 60,
-    textAlign: 'right',
+    textAlign: 'left',
+    minWidth: 120,
+    marginRight: 15,
+    fontSize: 15,
+    color: '#C4A36F',
+  },
+  salaryPlanBlock: {
+    marginTop: 12,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#C4A36F',
+    borderTopStyle: 'dashed',
+    width: '100%',
+  },
+  salaryPlanTitle: {
     fontSize: 13,
-    color: '#0a7c3a',
+    color: '#222',
+    fontWeight: 'bold',
+    marginBottom: 6,
+    direction: 'rtl',
+    textAlign: 'right',
+  },
+  salaryPlanDescription: {
+    fontSize: 11,
+    color: '#666',
+    direction: 'rtl',
+    textAlign: 'right',
+    lineHeight: 1.5,
   },
   footer: {
     position: 'absolute',
-    bottom: 15,
+    bottom: 20,
     left: 30,
     right: 30,
     textAlign: 'center',
     fontSize: 9,
-    color: 'grey',
+    color: '#666',
     borderTopWidth: 1,
-    borderTopColor: '#DDDDDD',
-    paddingTop: 5,
-  },
-  loanSection: {
-    marginTop: 10,
-    marginBottom: 10,
-    padding: 8,
-    backgroundColor: '#f6f6f6',
-    borderRadius: 4,
-    border: '1px solid #eee',
-  },
-  bonusSection: {
-    marginTop: 10,
-    marginBottom: 10,
-    padding: 8,
-    backgroundColor: '#f6f6f6',
-    borderRadius: 4,
-    border: '1px solid #eee',
+    borderTopColor: '#C4A36F',
+    paddingTop: 10,
   },
 });
 
@@ -225,144 +233,248 @@ interface PayslipDocumentProps {
   data: PayslipData;
 }
 
-// Format currency helper (simple example)
+// Helper function to format currency
 const formatCurrency = (amount: number): string => {
-  return `${amount.toLocaleString('ar-EG', { minimumFractionDigits: 2 })} ر.س`;
+  return `${amount.toLocaleString('ar-SA')} ر.س`;
 };
 
-export const PayslipDocument: React.FC<PayslipDocumentProps> = ({ data }) => (
-  <Document>
-    <Page size="A4" style={styles.page}>
-      {/* Header */}
-      <View style={styles.header}>
-        <View style={styles.companyInfo}>
-          <Text>{data.companyName}</Text>
+// Helper function to format date
+const formatDate = (dateString: string): string => {
+  // Convert any date format to YYYY-MM-DD
+  return dateString.split('T')[0];
+};
+
+export const PayslipDocument: React.FC<PayslipDocumentProps> = ({ data }) => {
+  // Debug log to check what data we're receiving
+  console.log('Employee Data:', data.employee);
+  console.log('Salary Plan:', data.employee.salaryPlan);
+
+  const getSalaryPlanDisplay = () => {
+    // Case 1: We have a properly structured salaryPlan with config
+    if (data.employee.salaryPlan?.config) {
+      const config = data.employee.salaryPlan.config;
+      
+      // If config has name and description directly
+      if (typeof config.name === 'string' && typeof config.description === 'string') {
+        return {
+          name: config.name,
+          description: config.description
+        };
+      }
+      
+      // Try to determine name and description based on plan type
+      if (data.employee.salaryPlan.type === 'fixed') {
+        // Get amount from blocks if available
+        let amount = 0;
+        if (Array.isArray(config.blocks)) {
+          const fixedBlock = config.blocks.find((block: { 
+            type: string; 
+            config?: { 
+              amount?: number 
+            } 
+          }) => 
+            block.type === 'fixed_amount' && typeof block.config?.amount === 'number'
+          );
+          if (fixedBlock) {
+            amount = fixedBlock.config?.amount || 0;
+          }
+        }
+        
+        return {
+          name: config.name || data.employee.salaryPlan.name || 'راتب ثابت',
+          description: config.description || `راتب شهري ثابت ${amount} ريال`
+        };
+      }
+      
+      // For dynamic plans
+      return {
+        name: config.name || data.employee.salaryPlan.name || 'خطة متغيرة',
+        description: config.description || 'راتب أساسي مع عمولة مبيعات'
+      };
+    }
+
+    // Case 2: Specific fallback for fixed salary plan 1800
+    if (data.employee.salary_plan_id === 'a8b69d42-aaa1-4a95-8717-13fe6e99550d') {
+      return {
+        name: 'راتب ثابت',
+        description: 'راتب شهري ثابت ١٨٠٠ ريال'
+      };
+    }
+
+    // Case 3: General fallback - we know the plan ID but don't have the details
+    if (data.employee.salary_plan_id) {
+      return {
+        name: 'خطة الراتب',
+        description: `خطة راتب (${data.employee.salary_plan_id.substring(0, 8)}...)`
+      };
+    }
+
+    // Default fallback
+    return {
+      name: 'خطة الراتب الأساسية',
+      description: 'راتب شهري أساسي'
+    };
+  };
+
+  return (
+    <Document>
+      <Page size="A4" style={styles.page}>
+        {/* Header */}
+        <View style={styles.header}>
+          <View style={styles.companyInfo}>
+            <Text>{data.companyName}</Text>
+          </View>
+          <Image style={styles.logo} src={data.companyLogoUrl} />
         </View>
-        <Image style={styles.logo} src={data.companyLogoUrl} />
-      </View>
 
-      {/* Title */}
-      <Text style={styles.title}>كشف الراتب الشهري - {data.payPeriod}</Text>
+        {/* Title */}
+        <Text style={styles.title}>كشف الراتب الشهري - {data.payPeriod}</Text>
 
-      {/* Employee Details (Arabic only, single column, RTL) */}
-      <View style={styles.employeeDetailsBlock}>
-        <Text style={styles.employeeDetailLine}>الاسم: {data.employee.nameAr}</Text>
-        <Text style={styles.employeeDetailLine}>الفرع: {data.employee.branch}</Text>
-        <Text style={styles.employeeDetailLine}>المسمى الوظيفي: {data.employee.role}</Text>
-        {data.employee.email && (
-          <Text style={styles.employeeDetailLine}>البريد الإلكتروني: {data.employee.email}</Text>
+        {/* Employee Details */}
+        <View style={styles.employeeDetailsBlock}>
+          <Text style={styles.employeeDetailLine}>الاسم: {data.employee.nameAr}</Text>
+          <Text style={styles.employeeDetailLine}>الفرع: {data.employee.branch}</Text>
+          <Text style={styles.employeeDetailLine}>المسمى الوظيفي: {data.employee.role}</Text>
+          
+          {/* Salary Plan Details - Always show */}
+          <View style={styles.salaryPlanBlock}>
+            <Text style={styles.salaryPlanTitle}>نظام الراتب: {getSalaryPlanDisplay().name}</Text>
+            <Text style={styles.salaryPlanDescription}>
+              {getSalaryPlanDisplay().description}
+            </Text>
+          </View>
+        </View>
+
+        {/* Total Sales Section */}
+        {data.totalSales > 0 && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>إجمالي المبيعات لهذا الشهر</Text>
+            <View style={styles.table}>
+              <View style={styles.tableRow}>
+                <Text style={styles.tableColAmountHeader}>المبلغ</Text>
+                <Text style={styles.tableColHeader}>الوصف</Text>
+              </View>
+              <View style={styles.tableRow}>
+                <Text style={styles.tableColAmount}>{formatCurrency(data.totalSales)}</Text>
+                <Text style={styles.tableCol}>إجمالي المبيعات</Text>
+              </View>
+            </View>
+          </View>
         )}
-      </View>
 
-      {/* Total Sales Section */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>إجمالي المبيعات لهذا الشهر</Text>
-        <View style={styles.table}>
-          <View style={styles.tableRow}>
-            <Text style={styles.tableColAmountHeader}>المبلغ</Text>
-            <Text style={styles.tableColHeader}>الوصف</Text>
-          </View>
-          <View style={styles.tableRow}>
-            <Text style={styles.tableColAmount}>{formatCurrency(data.totalSales)}</Text>
-            <Text style={styles.tableCol}>إجمالي المبيعات</Text>
-          </View>
-        </View>
-      </View>
-
-      {/* Bonuses Section */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>تفاصيل المكافآت</Text>
-        <View style={styles.table}>
-          <View style={styles.tableRow}>
-            <Text style={styles.tableColDateHeader}>التاريخ</Text>
-            <Text style={styles.tableColAmountHeader}>المبلغ</Text>
-            <Text style={styles.tableColHeader}>الوصف</Text>
-          </View>
-          {data.bonuses.map((item, index) => (
-            <View style={styles.tableRow} key={`bonus-${index}`}>
-              <Text style={styles.tableColDate}>{item.date}</Text>
-              <Text style={styles.tableColAmount}>{formatCurrency(item.amount)}</Text>
-              <Text style={styles.tableCol}>{item.description}</Text>
+        {/* Bonuses Section - Only show if there are bonuses */}
+        {data.bonuses && data.bonuses.length > 0 && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>تفاصيل المكافآت</Text>
+            <View style={styles.table}>
+              <View style={styles.tableRow}>
+                <Text style={styles.tableColDateHeader}>التاريخ</Text>
+                <Text style={styles.tableColAmountHeader}>المبلغ</Text>
+                <Text style={styles.tableColHeader}>الوصف</Text>
+              </View>
+              {data.bonuses.map((item, index) => (
+                <View style={styles.tableRow} key={`bonus-${index}`}>
+                  <Text style={styles.tableColDate}>{formatDate(item.date)}</Text>
+                  <Text style={styles.tableColAmount}>{formatCurrency(item.amount)}</Text>
+                  <Text style={styles.tableCol}>{item.description}</Text>
+                </View>
+              ))}
+              <View style={styles.tableRow}>
+                <Text style={styles.tableColDate}></Text>
+                <Text style={[styles.tableColAmount, { fontWeight: 'bold', backgroundColor: '#FBF7F0' }]}>
+                  {formatCurrency(data.bonuses.reduce((sum, b) => sum + b.amount, 0))}
+                </Text>
+                <Text style={[styles.tableCol, { fontWeight: 'bold', backgroundColor: '#FBF7F0' }]}>
+                  إجمالي المكافآت
+                </Text>
+              </View>
             </View>
-          ))}
-          <View style={styles.tableRow}>
-            <Text style={styles.tableColDate}></Text>
-            <Text style={[styles.tableColAmount, { fontWeight: 'bold', backgroundColor: '#f8f8f8' }]}>{formatCurrency(data.bonuses.reduce((sum, b) => sum + b.amount, 0))}</Text>
-            <Text style={[styles.tableCol, { fontWeight: 'bold', backgroundColor: '#f8f8f8' }]}>إجمالي المكافآت</Text>
           </View>
-        </View>
-      </View>
+        )}
 
-      {/* Deductions Section */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>تفاصيل الخصميات</Text>
-        <View style={styles.table}>
-          <View style={styles.tableRow}>
-            <Text style={styles.tableColDateHeader}>التاريخ</Text>
-            <Text style={styles.tableColAmountHeader}>المبلغ</Text>
-            <Text style={styles.tableColHeader}>الوصف</Text>
-          </View>
-          {data.deductions.map((item, index) => (
-            <View style={styles.tableRow} key={`deduction-${index}`}>
-              <Text style={styles.tableColDate}>{item.date}</Text>
-              <Text style={styles.tableColAmount}>{formatCurrency(item.amount)}</Text>
-              <Text style={styles.tableCol}>{item.description}</Text>
+        {/* Deductions Section - Only show if there are deductions */}
+        {data.deductions && data.deductions.length > 0 && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>تفاصيل الخصميات</Text>
+            <View style={styles.table}>
+              <View style={styles.tableRow}>
+                <Text style={styles.tableColDateHeader}>التاريخ</Text>
+                <Text style={styles.tableColAmountHeader}>المبلغ</Text>
+                <Text style={styles.tableColHeader}>الوصف</Text>
+              </View>
+              {data.deductions.map((item, index) => (
+                <View style={styles.tableRow} key={`deduction-${index}`}>
+                  <Text style={styles.tableColDate}>{formatDate(item.date)}</Text>
+                  <Text style={styles.tableColAmount}>{formatCurrency(item.amount)}</Text>
+                  <Text style={styles.tableCol}>{item.description}</Text>
+                </View>
+              ))}
+              <View style={styles.tableRow}>
+                <Text style={styles.tableColDate}></Text>
+                <Text style={[styles.tableColAmount, { fontWeight: 'bold', backgroundColor: '#FBF7F0' }]}>
+                  {formatCurrency(data.deductions.reduce((sum, d) => sum + d.amount, 0))}
+                </Text>
+                <Text style={[styles.tableCol, { fontWeight: 'bold', backgroundColor: '#FBF7F0' }]}>
+                  إجمالي الخصميات
+                </Text>
+              </View>
             </View>
-          ))}
-          <View style={styles.tableRow}>
-            <Text style={styles.tableColDate}></Text>
-            <Text style={[styles.tableColAmount, { fontWeight: 'bold', backgroundColor: '#f8f8f8' }]}>{formatCurrency(data.deductions.reduce((sum, d) => sum + d.amount, 0))}</Text>
-            <Text style={[styles.tableCol, { fontWeight: 'bold', backgroundColor: '#f8f8f8' }]}>إجمالي الخصميات</Text>
           </View>
-        </View>
-      </View>
+        )}
 
-      {/* Loans Section */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>تفاصيل السلف</Text>
-        <View style={styles.table}>
-          <View style={styles.tableRow}>
-            <Text style={styles.tableColDateHeader}>التاريخ</Text>
-            <Text style={styles.tableColAmountHeader}>المبلغ</Text>
-            <Text style={styles.tableColHeader}>الوصف</Text>
-          </View>
-          {data.loans.map((item, index) => (
-            <View style={styles.tableRow} key={`loan-${index}`}>
-              <Text style={styles.tableColDate}>{item.date}</Text>
-              <Text style={styles.tableColAmount}>{formatCurrency(item.amount)}</Text>
-              <Text style={styles.tableCol}>{item.description}</Text>
+        {/* Loans Section - Only show if there are loans */}
+        {data.loans && data.loans.length > 0 && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>تفاصيل القروض</Text>
+            <View style={styles.table}>
+              <View style={styles.tableRow}>
+                <Text style={styles.tableColDateHeader}>التاريخ</Text>
+                <Text style={styles.tableColAmountHeader}>المبلغ</Text>
+                <Text style={styles.tableColHeader}>الوصف</Text>
+              </View>
+              {data.loans.map((item, index) => (
+                <View style={styles.tableRow} key={`loan-${index}`}>
+                  <Text style={styles.tableColDate}>{formatDate(item.date)}</Text>
+                  <Text style={styles.tableColAmount}>{formatCurrency(item.amount)}</Text>
+                  <Text style={styles.tableCol}>{item.description}</Text>
+                </View>
+              ))}
+              <View style={styles.tableRow}>
+                <Text style={styles.tableColDate}></Text>
+                <Text style={[styles.tableColAmount, { fontWeight: 'bold', backgroundColor: '#FBF7F0' }]}>
+                  {formatCurrency(data.loans.reduce((sum, l) => sum + l.amount, 0))}
+                </Text>
+                <Text style={[styles.tableCol, { fontWeight: 'bold', backgroundColor: '#FBF7F0' }]}>
+                  إجمالي القروض
+                </Text>
+              </View>
             </View>
-          ))}
-          <View style={styles.tableRow}>
-            <Text style={styles.tableColDate}></Text>
-            <Text style={[styles.tableColAmount, { fontWeight: 'bold', backgroundColor: '#f8f8f8' }]}>{formatCurrency(data.loans.reduce((sum, l) => sum + l.amount, 0))}</Text>
-            <Text style={[styles.tableCol, { fontWeight: 'bold', backgroundColor: '#f8f8f8' }]}>إجمالي السلف</Text>
+          </View>
+        )}
+
+        {/* Summary Section with swapped columns */}
+        <View style={styles.summarySection}>
+          <View style={styles.summaryRow}>
+            <Text style={styles.summaryValue}>{formatCurrency(data.summary.totalEarnings)}</Text>
+            <Text style={styles.summaryLabel}>:إجمالي المستحقات</Text>
+          </View>
+          <View style={styles.summaryRow}>
+            <Text style={styles.summaryValue}>{formatCurrency(data.summary.totalDeductions)}</Text>
+            <Text style={styles.summaryLabel}>:إجمالي الخصميات</Text>
+          </View>
+          <View style={[styles.summaryRow, { borderTopWidth: 1, borderTopColor: '#C4A36F', paddingTop: 10, marginTop: 10 }]}>
+            <Text style={styles.netSalaryValue}>{formatCurrency(data.summary.netSalary)}</Text>
+            <Text style={[styles.summaryLabel, { fontSize: 14 }]}>:صافي الراتب المستحق</Text>
           </View>
         </View>
-      </View>
 
-      {/* Summary Section (RTL, label first, then value) */}
-      <View style={styles.summarySection}>
-        <View style={styles.summaryRow}>
-          <Text style={styles.summaryLabel}>إجمالي المستحقات:</Text>
-          <Text style={styles.summaryValue}>{formatCurrency(data.summary.totalEarnings)}</Text>
-        </View>
-        <View style={styles.summaryRow}>
-          <Text style={styles.summaryLabel}>إجمالي الخصميات:</Text>
-          <Text style={styles.summaryValue}>{formatCurrency(data.summary.totalDeductions)}</Text>
-        </View>
-        <View style={[styles.summaryRow, { borderTopWidth: 1, borderTopColor: '#EEEEEE', paddingTop: 5, marginTop: 5 }]}> 
-          <Text style={[styles.summaryLabel, {fontSize: 13}]}>صافي الراتب المستحق:</Text>
-          <Text style={styles.netSalaryValue}>{formatCurrency(data.summary.netSalary)}</Text>
-        </View>
-      </View>
-
-      {/* Footer */}
-      <Text style={styles.footer}>
-        تاريخ الإصدار: {data.issueDate} - هذا كشف راتب تم إنشاؤه إلكترونياً بواسطة النظام.
-      </Text>
-    </Page>
-  </Document>
-);
+        {/* Footer */}
+        <Text style={styles.footer}>
+          تاريخ الإصدار: {data.issueDate} - هذا كشف راتب تم إنشاؤه إلكترونياً بواسطة النظام.
+        </Text>
+      </Page>
+    </Document>
+  );
+};
 
 export default PayslipDocument; 

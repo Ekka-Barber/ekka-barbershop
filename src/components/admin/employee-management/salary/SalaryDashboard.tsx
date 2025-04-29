@@ -16,7 +16,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import FormulaSalaryPlanList from './components/FormulaSalaryPlanList';
 import ExistingSalaryPlansList from './components/ExistingSalaryPlansList';
 import PayslipTemplateViewer from './components/PayslipTemplateViewer';
-import { samplePayslipData } from '../../../../../types/payslip';
+import { PayslipData } from '@/types/payslip';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -215,10 +215,40 @@ export const SalaryDashboard = ({
 
   const selectedEmployeeSalary = salaryData.find(e => e.id === selectedEmployeeId);
   const selectedEmployeeInfo = employees.find(e => e.id === selectedEmployeeId);
+  
+  // Fetch salary plan data for selected employee
+  const { data: salaryPlan } = useQuery({
+    queryKey: ['employee-salary-plan', selectedEmployeeInfo?.salary_plan_id],
+    queryFn: async () => {
+      if (!selectedEmployeeInfo?.salary_plan_id) return null;
+      
+      const { data, error } = await supabase
+        .from('salary_plans')
+        .select('*')
+        .eq('id', selectedEmployeeInfo.salary_plan_id)
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!selectedEmployeeInfo?.salary_plan_id
+  });
 
   // Build payslip data
-  const buildPayslipData = () => {
+  const buildPayslipData = (): PayslipData | null => {
     if (!selectedEmployeeSalary || !selectedEmployeeInfo) return null;
+    
+    // Handle salary plan data safely
+    let formattedSalaryPlan = null;
+    if (salaryPlan) {
+      formattedSalaryPlan = {
+        id: salaryPlan.id,
+        name: salaryPlan.name,
+        type: salaryPlan.type,
+        config: salaryPlan.config
+      } as PayslipData['employee']['salaryPlan'];
+    }
+    
     return {
       companyName: 'Ekka Barbershop',
       companyLogoUrl: '/lovable-uploads/2ea1f72e-efd2-4345-bf4d-957efd873986.png',
@@ -228,7 +258,9 @@ export const SalaryDashboard = ({
         nameAr: selectedEmployeeInfo.name_ar,
         branch: getBranchNameAr(selectedEmployeeInfo.branch_id),
         role: selectedEmployeeInfo.role,
-        email: selectedEmployeeInfo.email,
+        email: selectedEmployeeInfo.email || '',
+        salary_plan_id: selectedEmployeeInfo.salary_plan_id || '',
+        salaryPlan: formattedSalaryPlan
       },
       bonuses: transactions.bonuses.map(b => ({
         description: b.description,
@@ -389,7 +421,7 @@ export const SalaryDashboard = ({
         </TabsContent>
         
         <TabsContent value="payslip-template">
-          {typeof window !== 'undefined' && salaryTab === "payslip-template" && (
+          {typeof window !== 'undefined' && (
             <PayslipTemplateViewer 
               payslipData={{
                 companyName: 'Ekka Barbershop',
@@ -401,6 +433,26 @@ export const SalaryDashboard = ({
                   branch: 'Main Branch',
                   role: 'Barber',
                   email: 'sample@ekka.com',
+                  salary_plan_id: 'sample-plan-id',
+                  salaryPlan: {
+                    id: 'sample-plan-id',
+                    name: 'Sample Plan',
+                    type: 'fixed',
+                    config: {
+                      name: 'Sample Salary Plan',
+                      type: 'fixed',
+                      blocks: [
+                        {
+                          id: '1',
+                          type: 'fixed_amount',
+                          config: {
+                            amount: 3000
+                          }
+                        }
+                      ],
+                      description: 'Sample salary plan for demonstration'
+                    }
+                  }
                 },
                 bonuses: [],
                 deductions: [],

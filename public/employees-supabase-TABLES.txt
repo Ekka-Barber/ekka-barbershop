@@ -20,3 +20,6 @@ INSERT INTO "public"."salary_plans" ("id", "name", "type", "config", "created_at
 
 employee_holidays
 INSERT INTO "public"."employee_holidays" ("id", "employee_id", "date", "reason", "created_at", "end_date", "duration_days")
+
+branches
+INSERT INTO "public"."branches" ("id", "name", "address", "is_main", "created_at", "updated_at", "name_ar", "address_ar", "whatsapp_number", "google_maps_url", "working_hours", "google_places_api_key", "google_place_id") VALUES ('4b11ca76-a282-4a14-947b-0fad49239d3b', 'Ash-Sharai', 'Makkah', 'false', '2025-01-13 04:18:18.641653+00', '2025-01-13 04:18:18.641653+00', 'الشرائع', 'مكة', '966125654193', 'https://maps.app.goo.gl/ccYF5tTdiJg4j56E6', '{"friday": ["13:00-01:00"], "monday": ["12:00-00:00"], "sunday": ["12:00-00:00"], "tuesday": ["12:00-00:00"], "saturday": ["00:00-01:00", "12:00-00:00"], "thursday": ["12:00-00:00"], "wednesday": ["12:00-00:00"]}', 'AIzaSyAuSzcXL6Qpel1SYDjo7OfF1BimYKevtbU', 'ChIJefdSETQBwhURZw--F5C1hjE');
