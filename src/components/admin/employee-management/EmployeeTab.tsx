@@ -155,7 +155,10 @@ export const EmployeeTab = () => {
           />
           
           <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
-            <EmployeeTabsNavigation />
+            <EmployeeTabsNavigation 
+              activeTab={activeTab}
+              onTabChange={handleTabChange}
+            />
 
             <TabsContent value="employee-grid" className="space-y-6">
               <ErrorBoundary>
