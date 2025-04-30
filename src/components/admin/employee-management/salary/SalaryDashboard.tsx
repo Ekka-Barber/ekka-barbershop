@@ -259,6 +259,7 @@ export const SalaryDashboard = ({
               totalPayout={filteredStats.totalPayout}
               avgSalary={filteredStats.avgSalary}
               employeeCount={filteredStats.employeeCount}
+              totalSales={filteredStats.totalSales}
             />
           )}
           
