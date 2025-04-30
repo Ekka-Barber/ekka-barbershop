@@ -4,7 +4,8 @@ import { PayslipDocument } from './PayslipDocument';
 import { PayslipData } from '../../../../../types/payslip';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
-import { Download, RefreshCw } from 'lucide-react';
+import { Download, RefreshCw, FileText } from 'lucide-react';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface PayslipTemplateViewerProps {
   payslipData: PayslipData;
@@ -38,6 +39,8 @@ export const PayslipTemplateViewer: React.FC<PayslipTemplateViewerProps> = ({ pa
   const [key, setKey] = useState(Date.now());
   const [showPDF, setShowPDF] = useState(false);
   const [renderError, setRenderError] = useState(false);
+  const [pdfBlob, setPdfBlob] = useState<Blob | null>(null);
+  const isMobile = useIsMobile();
 
   // Handle client-side rendering
   useEffect(() => {
@@ -49,6 +52,7 @@ export const PayslipTemplateViewer: React.FC<PayslipTemplateViewerProps> = ({ pa
     if (isClient) {
       setShowPDF(false);
       setRenderError(false);
+      setPdfBlob(null);
       
       // Use timeout to ensure clean unmounting before remounting
       const timer = setTimeout(() => {
@@ -70,6 +74,7 @@ export const PayslipTemplateViewer: React.FC<PayslipTemplateViewerProps> = ({ pa
   const handleForceRefresh = () => {
     setShowPDF(false);
     setRenderError(false);
+    setPdfBlob(null);
     setTimeout(() => {
       setKey(Date.now());
       setShowPDF(true);
@@ -88,7 +93,70 @@ export const PayslipTemplateViewer: React.FC<PayslipTemplateViewerProps> = ({ pa
   // Create a unique ID for this payslip
   const payslipId = `${payslipData.employee.nameAr}-${payslipData.payPeriod}-${key}`;
 
-  return (
+  const MobilePayslipView = () => (
+    <div className="flex flex-col space-y-4 p-4">
+      <div className="flex flex-col space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-2">
+            <FileText className="h-5 w-5 text-muted-foreground" />
+            <span className="text-sm font-medium">Payslip Preview</span>
+          </div>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={handleForceRefresh}
+            className="flex items-center gap-2"
+          >
+            <RefreshCw className="h-4 w-4" />
+            Refresh
+          </Button>
+        </div>
+        
+        <PDFDownloadLink
+          key={`download-${payslipId}`}
+          document={<PayslipDocument data={payslipData} />}
+          fileName={`payslip-${payslipData.employee.nameAr}-${payslipData.payPeriod}.pdf`}
+          className="w-full"
+        >
+          {({ loading, url }) => {
+            if (url && !pdfBlob) {
+              // Store the blob URL for viewing
+              fetch(url)
+                .then(res => res.blob())
+                .then(blob => setPdfBlob(blob))
+                .catch(console.error);
+            }
+            return (
+              <Button 
+                variant="default" 
+                disabled={loading} 
+                className="w-full"
+              >
+                <Download className="mr-2 h-4 w-4" />
+                {loading ? 'جار التحميل...' : 'تحميل PDF'}
+              </Button>
+            );
+          }}
+        </PDFDownloadLink>
+
+        {pdfBlob && (
+          <Button
+            variant="outline"
+            className="w-full"
+            onClick={() => {
+              const url = URL.createObjectURL(pdfBlob);
+              window.open(url, '_blank');
+            }}
+          >
+            <FileText className="mr-2 h-4 w-4" />
+            Open PDF in Browser
+          </Button>
+        )}
+      </div>
+    </div>
+  );
+
+  const DesktopPayslipView = () => (
     <div className="w-full h-[70vh] flex flex-col space-y-4">
       <div className="flex justify-between">
         <Button 
@@ -144,6 +212,8 @@ export const PayslipTemplateViewer: React.FC<PayslipTemplateViewerProps> = ({ pa
       )}
     </div>
   );
+
+  return isMobile ? <MobilePayslipView /> : <DesktopPayslipView />;
 };
 
 export default PayslipTemplateViewer; 
