@@ -17,7 +17,7 @@ export const EmployeeTabsNavigation: React.FC<EmployeeTabsNavigationProps> = ({
 
   if (isMobile) {
     return (
-      <div className="fixed bottom-0 left-0 right-0 z-50 bg-background border-t shadow-lg pb-safe">
+      <div className="sticky top-0 left-0 right-0 z-40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b shadow-sm">
         <TabsList className="w-full p-1">
           {/* First row */}
           <div className="grid grid-cols-3 gap-1">

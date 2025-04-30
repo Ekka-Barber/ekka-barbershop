@@ -43,17 +43,17 @@ export const TabNavigation: React.FC<TabNavigationProps> = ({ isMobile, activeTa
               <span className="text-[11px] font-medium">Packages</span>
             </TabsTrigger>
             <TabsTrigger 
-              value="schedule" 
-              onClick={() => onTabChange('schedule')}
+              value="bookings" 
+              onClick={() => onTabChange('bookings')}
               className={cn(
                 "flex flex-col items-center py-3 px-1 h-auto",
                 "data-[state=active]:bg-accent data-[state=active]:text-accent-foreground",
                 "active:scale-95 transition-transform",
-                activeTab === 'schedule' && "bg-accent text-accent-foreground"
+                activeTab === 'bookings' && "bg-accent text-accent-foreground"
               )}
             >
               <Calendar className="h-5 w-5 mb-1.5" />
-              <span className="text-[11px] font-medium">Schedule</span>
+              <span className="text-[11px] font-medium">Bookings</span>
             </TabsTrigger>
             <TabsTrigger 
               value="employee" 
@@ -140,14 +140,14 @@ export const TabNavigation: React.FC<TabNavigationProps> = ({ isMobile, activeTa
           Packages
         </TabsTrigger>
         <TabsTrigger 
-          value="schedule" 
-          onClick={() => onTabChange('schedule')}
+          value="bookings" 
+          onClick={() => onTabChange('bookings')}
           className={cn(
             "px-4 py-2",
-            activeTab === 'schedule' && "bg-accent text-accent-foreground"
+            activeTab === 'bookings' && "bg-accent text-accent-foreground"
           )}
         >
-          Schedule
+          Bookings
         </TabsTrigger>
         <TabsTrigger 
           value="employee" 
