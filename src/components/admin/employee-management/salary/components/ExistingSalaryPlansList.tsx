@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useState, useEffect } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -39,6 +39,7 @@ interface Employee {
 }
 
 export const ExistingSalaryPlansList = () => {
+  const queryClient = useQueryClient();
   const { toast } = useToast();
   const [selectedPlan, setSelectedPlan] = useState<SalaryPlan | null>(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -52,25 +53,83 @@ export const ExistingSalaryPlansList = () => {
   const [threshold, setThreshold] = useState<number>(0);
   const [bonusTiers, setBonusTiers] = useState<Array<{bonus: number, sales_target: number}>>([]);
 
-  // Fetch ALL salary plans (no type filter)
-  const { data: salaryPlans = [], isLoading: isLoadingPlans, refetch } = useQuery({
+  // Set up real-time subscriptions
+  useEffect(() => {
+    // Subscribe to salary_plans table changes
+    const salaryPlansSubscription = supabase
+      .channel('salary-plans-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*', // Listen to all events (INSERT, UPDATE, DELETE)
+          schema: 'public',
+          table: 'salary_plans'
+        },
+        async (payload) => {
+          console.log('Salary plan change detected:', payload);
+          // Invalidate and refetch salary plans query
+          await queryClient.invalidateQueries({ queryKey: ['all-salary-plans'] });
+        }
+      )
+      .subscribe();
+
+    // Subscribe to employees table changes (specifically salary_plan_id changes)
+    const employeesSubscription = supabase
+      .channel('employee-plan-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'employees',
+          filter: 'salary_plan_id'
+        },
+        async (payload) => {
+          console.log('Employee salary plan change detected:', payload);
+          // Invalidate and refetch employees query
+          await queryClient.invalidateQueries({ queryKey: ['employees-with-plans'] });
+        }
+      )
+      .subscribe();
+
+    // Cleanup subscriptions on component unmount
+    return () => {
+      salaryPlansSubscription.unsubscribe();
+      employeesSubscription.unsubscribe();
+    };
+  }, [queryClient]);
+
+  // Fetch ALL salary plans with refetching strategy
+  const { data: salaryPlans = [], isLoading: isLoadingPlans, refetch: refetchPlans } = useQuery({
     queryKey: ['all-salary-plans'],
     queryFn: async () => {
       const { data, error } = await supabase.from('salary_plans').select('*');
       if (error) throw error;
       return data as SalaryPlan[] || [];
-    }
+    },
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
+    staleTime: 1000 * 60 // Consider data stale after 1 minute
   });
   
   // Fetch employees with their assigned plans
-  const { data: employees = [], isLoading: isLoadingEmployees } = useQuery({
+  const { data: employees = [], isLoading: isLoadingEmployees, refetch: refetchEmployees } = useQuery({
     queryKey: ['employees-with-plans'],
     queryFn: async () => {
       const { data, error } = await supabase.from('employees').select('id, name, salary_plan_id, photo_url');
       if (error) throw error;
       return data as Employee[] || [];
-    }
+    },
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
+    staleTime: 1000 * 60 // Consider data stale after 1 minute
   });
+
+  // Add effect to refetch data when component mounts or gains focus
+  useEffect(() => {
+    refetchPlans();
+    refetchEmployees();
+  }, [refetchPlans, refetchEmployees]);
 
   // Group employees by plan ID
   const employeesByPlan = employees.reduce((acc: Record<string, Employee[]>, emp) => {
@@ -183,7 +242,6 @@ export const ExistingSalaryPlansList = () => {
   const handleSave = async (config: Record<string, unknown>) => {
     try {
       if (isEditing && selectedPlan) {
-        // Update existing plan
         const { error } = await supabase
           .from('salary_plans')
           .update({ config: config as any })
@@ -191,16 +249,20 @@ export const ExistingSalaryPlansList = () => {
           
         if (error) throw error;
         
+        // Invalidate and refetch queries with correct syntax
+        await Promise.all([
+          queryClient.invalidateQueries({ queryKey: ['all-salary-plans'] }),
+          queryClient.invalidateQueries({ queryKey: ['employees-with-plans'] })
+        ]);
+        
         toast({
           title: 'Plan updated',
           description: 'The salary plan has been updated successfully'
         });
       }
       
-      // Reset state and refetch data
       setIsEditing(false);
       setSelectedPlan(null);
-      refetch();
     } catch (error) {
       console.error('Error saving plan:', error);
       toast({
@@ -242,7 +304,6 @@ export const ExistingSalaryPlansList = () => {
       setIsEditing(false);
       setSelectedPlan(null);
       setRawConfig('');
-      refetch();
     } catch (error) {
       console.error('Error saving plan:', error);
       toast({
@@ -324,7 +385,6 @@ export const ExistingSalaryPlansList = () => {
       setIsEditing(false);
       setSelectedPlan(null);
       setRawConfig('');
-      refetch();
     } catch (error) {
       console.error('Error saving plan:', error);
       toast({
