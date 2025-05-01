@@ -9,7 +9,7 @@ import {
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ArrowUp, ArrowDown, ChevronRight, FileText } from 'lucide-react';
+import { ArrowUp, ArrowDown, FileText } from 'lucide-react';
 import { EmployeeSalary } from '../hooks/utils/salaryTypes';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import PayslipTemplateViewer from './PayslipTemplateViewer';
@@ -217,26 +217,56 @@ export const SalaryTable = ({
           const hasMonthlySalaryChange = monthlyChange !== null && monthlyChange !== 0;
           
           return (
-            <TableRow key={employee.id} className="cursor-pointer hover:bg-muted/50" onClick={() => onEmployeeSelect(employee.id)}>
-              <TableCell className="font-medium">{employee.name}</TableCell>
-              <TableCell className="text-right">
+            <TableRow key={employee.id}>
+              <TableCell 
+                className="font-medium cursor-pointer hover:bg-muted/50"
+                onClick={() => onEmployeeSelect(employee.id)}
+              >
+                {employee.name}
+              </TableCell>
+              <TableCell 
+                className="text-right cursor-pointer hover:bg-muted/50"
+                onClick={() => onEmployeeSelect(employee.id)}
+              >
                 {employee.salesAmount ? `${employee.salesAmount.toLocaleString()} SAR` : '-'}
               </TableCell>
-              <TableCell className="text-right">{employee.baseSalary.toLocaleString()} SAR</TableCell>
-              <TableCell className="text-right">{employee.commission.toLocaleString()} SAR</TableCell>
-              <TableCell className="text-right">
+              <TableCell 
+                className="text-right cursor-pointer hover:bg-muted/50"
+                onClick={() => onEmployeeSelect(employee.id)}
+              >
+                {employee.baseSalary.toLocaleString()} SAR
+              </TableCell>
+              <TableCell 
+                className="text-right cursor-pointer hover:bg-muted/50"
+                onClick={() => onEmployeeSelect(employee.id)}
+              >
+                {employee.commission.toLocaleString()} SAR
+              </TableCell>
+              <TableCell 
+                className="text-right cursor-pointer hover:bg-muted/50"
+                onClick={() => onEmployeeSelect(employee.id)}
+              >
                 {(employee.bonus || 0) + (employee.targetBonus || 0) > 0
                   ? `${((employee.bonus || 0) + (employee.targetBonus || 0)).toLocaleString()} SAR`
                   : '-'
                 }
               </TableCell>
-              <TableCell className="text-right">
+              <TableCell 
+                className="text-right cursor-pointer hover:bg-muted/50"
+                onClick={() => onEmployeeSelect(employee.id)}
+              >
                 {employee.deductions > 0 ? `${employee.deductions.toLocaleString()} SAR` : '-'}
               </TableCell>
-              <TableCell className="text-right">
+              <TableCell 
+                className="text-right cursor-pointer hover:bg-muted/50"
+                onClick={() => onEmployeeSelect(employee.id)}
+              >
                 {employee.loans > 0 ? `${employee.loans.toLocaleString()} SAR` : '-'}
               </TableCell>
-              <TableCell className="text-right font-medium">
+              <TableCell 
+                className="text-right font-medium cursor-pointer hover:bg-muted/50"
+                onClick={() => onEmployeeSelect(employee.id)}
+              >
                 <div className="flex items-center justify-end gap-1">
                   {employee.total.toLocaleString()} SAR
                   {hasMonthlySalaryChange && (
@@ -251,32 +281,29 @@ export const SalaryTable = ({
               </TableCell>
               <TableCell>
                 <div className="flex items-center justify-end">
-                  <Dialog open={dialogOpen[employee.id]} onOpenChange={(open) => {
-                    setDialogOpen(prev => ({ ...prev, [employee.id]: open }));
-                    if (open) {
-                      setSelectedEmployeeForPayslip(employee.id);
-                      setIsPayslipLoading(true);
-                    }
-                  }}>
+                  <Dialog 
+                    open={dialogOpen[employee.id]} 
+                    onOpenChange={(open) => {
+                      setDialogOpen(prev => ({ ...prev, [employee.id]: open }));
+                      if (open) {
+                        setSelectedEmployeeForPayslip(employee.id);
+                        setIsPayslipLoading(true);
+                      }
+                    }}
+                  >
                     <DialogTrigger asChild>
                       <Button 
                         variant="ghost" 
-                        size="icon" 
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setDialogOpen(prev => ({ ...prev, [employee.id]: true }));
-                        }}
+                        size="icon"
                       >
                         <FileText className="h-4 w-4" />
                       </Button>
                     </DialogTrigger>
-                    <DialogContent className="max-w-4xl" onPointerDownOutside={(e) => {
-                      e.preventDefault();
-                    }}>
+                    <DialogContent className="max-w-4xl">
                       <DialogHeader>
                         <DialogTitle>Payslip - {employee.name}</DialogTitle>
                       </DialogHeader>
-                      <div className="mt-4" onClick={(e) => e.stopPropagation()}>
+                      <div className="mt-4">
                         {isPayslipLoading || isSalaryPlanLoading ? (
                           <div className="flex justify-center py-8">
                             <Skeleton className="h-96 w-full" />
@@ -290,9 +317,6 @@ export const SalaryTable = ({
                       </div>
                     </DialogContent>
                   </Dialog>
-                  <Button variant="ghost" size="icon">
-                    <ChevronRight className="h-4 w-4" />
-                  </Button>
                 </div>
               </TableCell>
             </TableRow>
