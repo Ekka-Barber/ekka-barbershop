@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Edit, PenSquare, Code, FileText } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { FormulaPlanConfig } from '@/components/admin/salary-plans/FormulaPlanConfig';
 import { Textarea } from '@/components/ui/textarea';
@@ -14,6 +13,15 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import {
+  DndContext,
+  DragOverlay,
+  MouseSensor,
+  TouchSensor,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core';
+import { restrictToWindowEdges } from '@dnd-kit/modifiers';
 
 /**
  * Component that displays all salary plans regardless of type,
@@ -46,12 +54,28 @@ export const ExistingSalaryPlansList = () => {
   const [rawConfig, setRawConfig] = useState<string>('');
   const [jsonError, setJsonError] = useState<string | null>(null);
   const [editMode, setEditMode] = useState<'simple' | 'advanced'>('simple');
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const [draggedEmployee, setDraggedEmployee] = useState<Employee | null>(null);
   
   // Simple form fields for fixed and dynamic_basic plans
   const [baseSalary, setBaseSalary] = useState<number>(0);
   const [commissionRate, setCommissionRate] = useState<number>(0);
   const [threshold, setThreshold] = useState<number>(0);
   const [bonusTiers, setBonusTiers] = useState<Array<{bonus: number, sales_target: number}>>([]);
+
+  // Configure DnD sensors
+  const mouseSensor = useSensor(MouseSensor, {
+    activationConstraint: {
+      distance: 10, // 10px movement before drag starts
+    },
+  });
+  const touchSensor = useSensor(TouchSensor, {
+    activationConstraint: {
+      delay: 250, // Wait 250ms before touch drag starts
+      tolerance: 5, // 5px movement allowed before canceling tap
+    },
+  });
+  const sensors = useSensors(mouseSensor, touchSensor);
 
   // Set up real-time subscriptions
   useEffect(() => {
@@ -437,6 +461,51 @@ export const ExistingSalaryPlansList = () => {
     return variantMap[type] || 'outline';
   };
 
+  // Handle drag start
+  const handleDragStart = (event: any) => {
+    const { active } = event;
+    const employee = employees.find(emp => emp.id === active.id);
+    setActiveId(active.id);
+    if (employee) setDraggedEmployee(employee);
+  };
+
+  // Handle drag end
+  const handleDragEnd = async (event: any) => {
+    const { active, over } = event;
+    
+    if (over && active.id !== over.id) {
+      const employeeId = active.id;
+      const newPlanId = over.id;
+      
+      try {
+        const { error } = await supabase
+          .from('employees')
+          .update({ salary_plan_id: newPlanId })
+          .eq('id', employeeId);
+
+        if (error) throw error;
+
+        toast({
+          title: 'Employee Updated',
+          description: 'Successfully reassigned employee to new salary plan',
+        });
+
+        // Refetch data
+        await queryClient.invalidateQueries({ queryKey: ['employees-with-plans'] });
+      } catch (error) {
+        console.error('Error updating employee:', error);
+        toast({
+          title: 'Error',
+          description: 'Failed to update employee salary plan',
+          variant: 'destructive',
+        });
+      }
+    }
+    
+    setActiveId(null);
+    setDraggedEmployee(null);
+  };
+
   // Render form for fixed salary plan
   const renderFixedPlanForm = () => (
     <div className="space-y-4">
@@ -639,47 +708,51 @@ export const ExistingSalaryPlansList = () => {
   }
 
   return (
-    <Card className="w-full">
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+    <div className="w-full">
+      <div className="flex items-center justify-between mb-6">
         <div>
-          <CardTitle className="text-xl">All Salary Plans</CardTitle>
-          <CardDescription>Manage existing salary plans and see assigned employees</CardDescription>
+          <h2 className="text-2xl font-bold">All Salary Plans</h2>
+          <p className="text-muted-foreground">
+            Manage existing salary plans and assign employees using drag and drop
+          </p>
         </div>
-      </CardHeader>
-      <CardContent>
-        {isLoadingPlans || isLoadingEmployees ? (
-          <div className="space-y-2">
-            <Skeleton className="h-12 w-full" />
-            <Skeleton className="h-12 w-full" />
-            <Skeleton className="h-12 w-full" />
-          </div>
-        ) : salaryPlans.length === 0 ? (
-          <div className="text-center py-6">
-            <PenSquare className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-            <p className="text-muted-foreground">No salary plans found</p>
-          </div>
-        ) : (
-          <ScrollArea className="h-[500px]">
-            <div className="space-y-3">
-              {salaryPlans.map((plan) => {
-                const assignedEmployees = employeesByPlan[plan.id] || [];
-                
-                return (
-                  <div 
-                    key={plan.id} 
-                    className="border rounded-md overflow-hidden"
-                  >
-                    <div className="flex items-center justify-between p-4 hover:bg-gray-50">
+      </div>
+
+      {isLoadingPlans || isLoadingEmployees ? (
+        <div className="space-y-4">
+          <Skeleton className="h-24 w-full" />
+          <Skeleton className="h-24 w-full" />
+          <Skeleton className="h-24 w-full" />
+        </div>
+      ) : salaryPlans.length === 0 ? (
+        <div className="text-center py-6">
+          <PenSquare className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+          <p className="text-muted-foreground">No salary plans found</p>
+        </div>
+      ) : (
+        <DndContext
+          sensors={sensors}
+          onDragStart={handleDragStart}
+          onDragEnd={handleDragEnd}
+          modifiers={[restrictToWindowEdges]}
+        >
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {salaryPlans.map((plan) => {
+              const assignedEmployees = employeesByPlan[plan.id] || [];
+              
+              return (
+                <div 
+                  key={plan.id}
+                  id={plan.id} // Required for drag and drop
+                  className="border rounded-lg bg-card"
+                >
+                  <div className="p-4 border-b">
+                    <div className="flex items-center justify-between mb-2">
                       <div>
-                        <div className="font-medium flex items-center mb-1">
-                          {plan.name}
-                          <Badge variant={getBadgeVariant(plan.type)} className="ml-2">
-                            {getTypeDisplayName(plan.type)}
-                          </Badge>
-                        </div>
-                        <div className="text-sm text-muted-foreground">
-                          Last updated: {new Date(plan.updated_at).toLocaleDateString()}
-                        </div>
+                        <h3 className="font-semibold text-lg">{plan.name}</h3>
+                        <Badge variant={getBadgeVariant(plan.type)}>
+                          {getTypeDisplayName(plan.type)}
+                        </Badge>
                       </div>
                       <Button 
                         variant="outline" 
@@ -690,35 +763,54 @@ export const ExistingSalaryPlansList = () => {
                         Edit
                       </Button>
                     </div>
-                    
-                    {assignedEmployees.length > 0 ? (
-                      <div className="border-t px-4 py-3 bg-gray-50">
-                        <div className="text-sm font-medium mb-2">Assigned Employees ({assignedEmployees.length})</div>
-                        <div className="flex flex-wrap gap-2">
-                          {assignedEmployees.map((employee) => (
-                            <div key={employee.id} className="flex items-center gap-2 bg-white p-2 rounded border">
-                              <Avatar className="h-8 w-8">
-                                <AvatarImage src={employee.photo_url || ''} alt={employee.name} />
-                                <AvatarFallback>{employee.name.charAt(0)}</AvatarFallback>
-                              </Avatar>
-                              <span className="text-sm">{employee.name}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="border-t px-4 py-3 text-center text-sm text-muted-foreground bg-gray-50">
-                        No employees assigned to this plan
-                      </div>
-                    )}
+                    <p className="text-sm text-muted-foreground">
+                      Last updated: {new Date(plan.updated_at).toLocaleDateString()}
+                    </p>
                   </div>
-                );
-              })}
-            </div>
-          </ScrollArea>
-        )}
-      </CardContent>
-    </Card>
+                  
+                  <div className="p-4 bg-muted/50 min-h-[200px]">
+                    <div className="text-sm font-medium mb-3">
+                      Assigned Employees ({assignedEmployees.length})
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      {assignedEmployees.map((employee) => (
+                        <div
+                          key={employee.id}
+                          id={employee.id} // Required for drag and drop
+                          className={`
+                            flex items-center gap-2 bg-background p-2 rounded-md border
+                            cursor-move hover:border-primary transition-colors
+                            ${activeId === employee.id ? 'opacity-50' : ''}
+                          `}
+                        >
+                          <Avatar className="h-8 w-8">
+                            <AvatarImage src={employee.photo_url || ''} alt={employee.name} />
+                            <AvatarFallback>{employee.name.charAt(0)}</AvatarFallback>
+                          </Avatar>
+                          <span className="text-sm truncate">{employee.name}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          <DragOverlay>
+            {draggedEmployee ? (
+              <div className="flex items-center gap-2 bg-background p-2 rounded-md border shadow-lg">
+                <Avatar className="h-8 w-8">
+                  <AvatarImage src={draggedEmployee.photo_url || ''} alt={draggedEmployee.name} />
+                  <AvatarFallback>{draggedEmployee.name.charAt(0)}</AvatarFallback>
+                </Avatar>
+                <span className="text-sm">{draggedEmployee.name}</span>
+              </div>
+            ) : null}
+          </DragOverlay>
+        </DndContext>
+      )}
+    </div>
   );
 };
 
