@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { PDFViewer, PDFDownloadLink } from '@react-pdf/renderer';
 import { PayslipDocument } from './PayslipDocument';
 import { PayslipData } from '../../../../../types/payslip';
@@ -34,12 +34,27 @@ class PDFErrorBoundary extends React.Component<{children: React.ReactNode, onErr
   }
 }
 
+const PDFViewerWrapper = ({ data, onError }: { data: PayslipData; onError: () => void }) => {
+  return (
+    <PDFErrorBoundary onError={onError}>
+      <PDFViewer
+        width="100%"
+        height="100%"
+        className="border rounded-md shadow-sm"
+        style={{ minHeight: '75vh' }}
+      >
+        <PayslipDocument data={data} />
+      </PDFViewer>
+    </PDFErrorBoundary>
+  );
+};
+
 export const PayslipTemplateViewer: React.FC<PayslipTemplateViewerProps> = ({ payslipData }) => {
   const [isClient, setIsClient] = useState(false);
-  const [key, setKey] = useState(Date.now());
-  const [showPDF, setShowPDF] = useState(false);
+  const [mountPDF, setMountPDF] = useState(true);
   const [renderError, setRenderError] = useState(false);
   const [pdfBlob, setPdfBlob] = useState<Blob | null>(null);
+  const mountCountRef = useRef(0);
   const isMobile = useIsMobile();
 
   // Handle client-side rendering
@@ -47,54 +62,68 @@ export const PayslipTemplateViewer: React.FC<PayslipTemplateViewerProps> = ({ pa
     setIsClient(true);
   }, []);
 
-  // Force remount PDF when payslip data changes
+  // Reset PDF viewer when payslip data changes
   useEffect(() => {
     if (isClient) {
-      setShowPDF(false);
+      // Cleanup function
+      const cleanup = () => {
+        if (pdfBlob) {
+          URL.revokeObjectURL(URL.createObjectURL(pdfBlob));
+          setPdfBlob(null);
+        }
+      };
+
+      // Force remount PDF viewer
+      setMountPDF(false);
       setRenderError(false);
-      setPdfBlob(null);
-      
-      // Use timeout to ensure clean unmounting before remounting
+      cleanup();
+
       const timer = setTimeout(() => {
-        setKey(Date.now());
-        setShowPDF(true);
-      }, 300);
-      
-      return () => clearTimeout(timer);
+        mountCountRef.current += 1;
+        setMountPDF(true);
+      }, 100);
+
+      return () => {
+        clearTimeout(timer);
+        cleanup();
+      };
     }
   }, [payslipData, isClient]);
 
   // Handle error case
   const handleRenderError = () => {
     setRenderError(true);
+    setMountPDF(false);
     console.error("Error rendering PDF");
   };
 
   // Force refresh the component
   const handleForceRefresh = () => {
-    setShowPDF(false);
+    mountCountRef.current += 1;
+    setMountPDF(false);
     setRenderError(false);
-    setPdfBlob(null);
+    
+    if (pdfBlob) {
+      URL.revokeObjectURL(URL.createObjectURL(pdfBlob));
+      setPdfBlob(null);
+    }
+
     setTimeout(() => {
-      setKey(Date.now());
-      setShowPDF(true);
-    }, 300);
+      setMountPDF(true);
+    }, 100);
   };
 
   if (!isClient) {
     return (
-      <div className="w-full h-[70vh] flex flex-col space-y-4 p-4">
-         <Skeleton className="h-10 w-1/4 self-end" />
-         <Skeleton className="h-full w-full" />
+      <div className="w-full min-h-[75vh] flex flex-col space-y-4 p-4">
+        <Skeleton className="h-10 w-1/4 self-end" />
+        <Skeleton className="flex-1 w-full" />
       </div>
     );
   }
 
-  // Create a unique ID for this payslip
-  const payslipId = `${payslipData.employee.nameAr}-${payslipData.payPeriod}-${key}`;
-
   const MobilePayslipView = () => (
-    <div className="flex flex-col space-y-4 p-4">
+    <div className="flex flex-col space-y-4 p-4 min-h-[75vh]">
       <div className="flex flex-col space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
@@ -113,17 +142,21 @@ export const PayslipTemplateViewer: React.FC<PayslipTemplateViewerProps> = ({ pa
         </div>
         
         <PDFDownloadLink
-          key={`download-${payslipId}`}
+          key={`download-${mountCountRef.current}`}
           document={<PayslipDocument data={payslipData} />}
           fileName={`payslip-${payslipData.employee.nameAr}-${payslipData.payPeriod}.pdf`}
           className="w-full"
         >
           {({ loading, url }) => {
             if (url && !pdfBlob) {
-              // Store the blob URL for viewing
               fetch(url)
                 .then(res => res.blob())
-                .then(blob => setPdfBlob(blob))
+                .then(blob => {
+                  if (pdfBlob) {
+                    URL.revokeObjectURL(URL.createObjectURL(pdfBlob));
+                  }
+                  setPdfBlob(blob);
+                })
                 .catch(console.error);
             }
             return (
@@ -146,6 +179,7 @@ export const PayslipTemplateViewer: React.FC<PayslipTemplateViewerProps> = ({ pa
             onClick={() => {
               const url = URL.createObjectURL(pdfBlob);
               window.open(url, '_blank');
+              URL.revokeObjectURL(url);
             }}
           >
             <FileText className="mr-2 h-4 w-4" />
@@ -157,8 +191,8 @@ export const PayslipTemplateViewer: React.FC<PayslipTemplateViewerProps> = ({ pa
   );
 
   const DesktopPayslipView = () => (
-    <div className="w-full h-[70vh] flex flex-col space-y-4">
-      <div className="flex justify-between">
+    <div className="flex flex-col space-y-4 min-h-[75vh] w-full">
+      <div className="flex justify-between items-center px-1">
         <Button 
           variant="ghost" 
           size="sm" 
@@ -169,9 +203,9 @@ export const PayslipTemplateViewer: React.FC<PayslipTemplateViewerProps> = ({ pa
           Refresh PDF
         </Button>
         
-        {showPDF && !renderError && (
+        {mountPDF && !renderError && (
           <PDFDownloadLink
-            key={`download-${payslipId}`}
+            key={`download-${mountCountRef.current}`}
             document={<PayslipDocument data={payslipData} />}
             fileName={`payslip-${payslipData.employee.nameAr}-${payslipData.payPeriod}.pdf`}
           >
@@ -185,31 +219,29 @@ export const PayslipTemplateViewer: React.FC<PayslipTemplateViewerProps> = ({ pa
         )}
       </div>
       
-      {showPDF && !renderError ? (
-        <PDFErrorBoundary onError={handleRenderError}>
-          <PDFViewer
-            key={`viewer-${payslipId}`}
-            width="100%"
-            height="100%"
-            className="border rounded-md"
-          >
-            <PayslipDocument data={payslipData} />
-          </PDFViewer>
-        </PDFErrorBoundary>
-      ) : (
-        <div className="h-full w-full flex items-center justify-center border rounded-md bg-gray-50">
-          {renderError ? (
-            <div className="text-center p-6">
-              <p className="text-red-500 mb-2">Failed to render PDF</p>
-              <Button onClick={handleForceRefresh} variant="outline">
-                Try Again
-              </Button>
-            </div>
-          ) : (
-            <Skeleton className="h-4/5 w-4/5" />
-          )}
-        </div>
-      )}
+      <div className="flex-1 min-h-[calc(75vh-4rem)]">
+        {mountPDF ? (
+          <div key={mountCountRef.current} className="h-full">
+            <PDFViewerWrapper 
+              data={payslipData}
+              onError={handleRenderError}
+            />
+          </div>
+        ) : (
+          <div className="h-full w-full flex items-center justify-center border rounded-md bg-gray-50">
+            {renderError ? (
+              <div className="text-center p-6">
+                <p className="text-red-500 mb-2">Failed to render PDF</p>
+                <Button onClick={handleForceRefresh} variant="outline">
+                  Try Again
+                </Button>
+              </div>
+            ) : (
+              <Skeleton className="h-full w-full" />
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 
