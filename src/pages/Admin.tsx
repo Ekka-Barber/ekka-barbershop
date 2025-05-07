@@ -17,14 +17,14 @@ const Admin = () => {
       <SidebarProvider>
         <SidebarWrapper>
           <AdminSidebar activeTab={activeTab} onTabChange={setActiveTab} />
-          
-          <SidebarInset className="bg-background">
+          <SidebarInset className="bg-background overflow-x-hidden">
             <AdminHeader />
-            
-            <div className={cn(
-              "w-full container mx-auto px-4 py-6",
-              isMobile ? "pb-32" : "pb-6"
-            )}>
+            <div
+              className={cn(
+                "w-full container mx-auto px-4 py-6",
+                isMobile ? "pb-32" : "pb-6"
+              )}
+            >
               <TabsPrimitive.Root value={activeTab} onValueChange={setActiveTab} className="space-y-4">
                 <TabContent />
               </TabsPrimitive.Root>
