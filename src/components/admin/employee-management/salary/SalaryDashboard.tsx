@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Employee } from '@/types/employee';
 import { Separator } from '@/components/ui/separator';
 import { useSalaryData } from './hooks/useSalaryData';
@@ -21,7 +21,7 @@ interface SalaryDashboardProps {
   employees: Employee[];
 }
 
-export const SalaryDashboard = ({ 
+export const SalaryDashboard = React.memo(({ 
   employees
 }: SalaryDashboardProps) => {
   const currentDate = new Date();
@@ -64,9 +64,11 @@ export const SalaryDashboard = ({
   });
   
   // Filter salaryData to only include employees in the current employees prop
-  const filteredSalaryData = salaryData.filter(salary =>
-    employees.some(emp => emp.id === salary.id)
-  );
+  const filteredSalaryData = useMemo(() => 
+    salaryData.filter(salary =>
+      employees.some(emp => emp.id === salary.id)
+    )
+  , [salaryData, employees]);
   
   // Always call the hook at the top level
   const filteredStats = useDashboardStats(filteredSalaryData);
@@ -101,14 +103,14 @@ export const SalaryDashboard = ({
   }, [autoRefresh, refreshData, selectedEmployeeId]);
 
   // Toggle auto-refresh
-  const toggleAutoRefresh = () => {
+  const toggleAutoRefresh = useCallback(() => {
     setAutoRefresh(prev => !prev);
     if (!autoRefresh) {
       // Start with a refresh
       refreshData();
       setLastRefresh(new Date());
     }
-  };
+  }, [autoRefresh, refreshData]);
   
   // Update history when month changes and data loads
   useEffect(() => {
@@ -120,33 +122,39 @@ export const SalaryDashboard = ({
     }
   }, [salaryData, selectedMonth, isLoading]);
   
-  const handleMonthChange = (date: Date) => {
+  const handleMonthChange = useCallback((date: Date) => {
     setPickerDate(date);
     const year = date.getFullYear();
     const month = date.getMonth() + 1;
     setSelectedMonth(`${year}-${month.toString().padStart(2, '0')}`);
     setSelectedEmployeeId(null);
-  };
+  }, []);
    
-  const selectedEmployee = selectedEmployeeId 
-    ? employees.find(emp => emp.id === selectedEmployeeId) 
-    : null;
+  const selectedEmployee = useMemo(() => 
+    selectedEmployeeId 
+      ? employees.find(emp => emp.id === selectedEmployeeId) 
+      : null
+  , [selectedEmployeeId, employees]);
   
-  const selectedSalaryData = selectedEmployeeId 
-    ? salaryData.find(salary => salary.id === selectedEmployeeId) 
-    : null;
+  const selectedSalaryData = useMemo(() => 
+    selectedEmployeeId 
+      ? salaryData.find(salary => salary.id === selectedEmployeeId) 
+      : null
+  , [selectedEmployeeId, salaryData]);
   
-  const transactions = selectedEmployeeId 
-    ? getEmployeeTransactions(selectedEmployeeId) 
-    : { bonuses: [], deductions: [], loans: [], salesData: null };
+  const transactions = useMemo(() => 
+    selectedEmployeeId 
+      ? getEmployeeTransactions(selectedEmployeeId) 
+      : { bonuses: [], deductions: [], loans: [], salesData: null }
+  , [selectedEmployeeId, getEmployeeTransactions]);
   
-  const handleEmployeeSelect = (employeeId: string) => {
+  const handleEmployeeSelect = useCallback((employeeId: string) => {
     setSelectedEmployeeId(employeeId);
-  };
+  }, []);
   
-  const handleBack = () => {
+  const handleBack = useCallback(() => {
     setSelectedEmployeeId(null);
-  };
+  }, []);
 
   /* const { filteredSalaryData } = useSalaryFiltering({
     salaryData,
@@ -157,7 +165,7 @@ export const SalaryDashboard = ({
   }); */
   
   // Export salary data to CSV
-  const exportSalaryData = () => {
+  const exportSalaryData = useCallback(() => {
     // Create CSV content
     const headers = ["Name", "Sales", "Base Salary", "Commission", "Bonuses", "Deductions", "Loans", "Total"];
     const csvContent = [
@@ -183,24 +191,26 @@ export const SalaryDashboard = ({
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-  };
+    // Clean up the URL object after download
+    URL.revokeObjectURL(url);
+  }, [salaryData, selectedMonth]);
   
   // Get previous month in YYYY-MM format
-  const getPreviousMonth = (monthStr: string): string => {
+  const getPreviousMonth = useCallback((monthStr: string): string => {
     const [year, month] = monthStr.split('-').map(Number);
     const prevDate = new Date(year, month - 2); // Months are 0-indexed in Date
     return `${prevDate.getFullYear()}-${(prevDate.getMonth() + 1).toString().padStart(2, '0')}`;
-  };
+  }, []);
   
   // Calculate month-over-month changes for an employee
-  const getMonthlyChange = (employeeId: string): number | null => {
+  const getMonthlyChange = useCallback((employeeId: string): number | null => {
     const currentData = salaryData.find(s => s.id === employeeId);
     const prevMonth = getPreviousMonth(selectedMonth);
     const prevData = historicalData[prevMonth]?.find(s => s.id === employeeId);
     
     if (!currentData || !prevData) return null;
     return currentData.total - prevData.total;
-  };
+  }, [salaryData, selectedMonth, historicalData, getPreviousMonth]);
   
   // Add state for search query (if not present)
   const [searchQuery, setSearchQuery] = useState('');
@@ -547,4 +557,6 @@ export const SalaryDashboard = ({
       <div className="h-16 md:h-0 block md:hidden" aria-hidden="true"></div>
     </div>
   );
-};
+});
+
+SalaryDashboard.displayName = 'SalaryDashboard';

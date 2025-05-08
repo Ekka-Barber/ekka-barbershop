@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   Table,
   TableBody,
@@ -37,17 +37,17 @@ interface EmployeeQueryResult {
   photo_url?: string;
 }
 
-export const SalaryTable = ({
+export const SalaryTable = React.memo(({
   salaryData,
   isLoading,
   onEmployeeSelect,
   getMonthlyChange
 }: SalaryTableProps) => {
-  const [selectedEmployeeForPayslip, setSelectedEmployeeForPayslip] = React.useState<string | null>(null);
-  const [isPayslipLoading, setIsPayslipLoading] = React.useState(false);
-  const [dialogOpen, setDialogOpen] = React.useState<Record<string, boolean>>({});
-  const [expandedCards, setExpandedCards] = React.useState<Record<string, boolean>>({});
-  const [paymentConfirmationOpen, setPaymentConfirmationOpen] = React.useState<Record<string, boolean>>({});
+  const [selectedEmployeeForPayslip, setSelectedEmployeeForPayslip] = useState<string | null>(null);
+  const [isPayslipLoading, setIsPayslipLoading] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState<Record<string, boolean>>({});
+  const [expandedCards, setExpandedCards] = useState<Record<string, boolean>>({});
+  const [paymentConfirmationOpen, setPaymentConfirmationOpen] = useState<Record<string, boolean>>({});
   
   // Get transactions for the selected employee and current month
   const { getEmployeeTransactions } = useSalaryData({
@@ -194,23 +194,23 @@ export const SalaryTable = ({
   };
 
   // Toggle card expansion
-  const toggleCardExpansion = (employeeId: string, e: React.MouseEvent) => {
+  const toggleCardExpansion = useCallback((employeeId: string, e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent triggering the card click
     setExpandedCards(prev => ({
       ...prev,
       [employeeId]: !prev[employeeId]
     }));
-  };
+  }, []);
 
   // Payment confirmation handler
-  const handlePaymentConfirm = async () => {
+  const handlePaymentConfirm = useCallback(async () => {
     // Mock API call that would actually process the payment
     return new Promise<boolean>((resolve) => {
       setTimeout(() => {
         resolve(true); // Simulate success
       }, 1500);
     });
-  };
+  }, []);
 
   if (isLoading) {
     return (
@@ -629,4 +629,6 @@ export const SalaryTable = ({
       </div>
     </>
   );
-};
+});
+
+SalaryTable.displayName = 'SalaryTable';

@@ -1,3 +1,4 @@
+import React from 'react';
 import { Employee } from '@/types/employee';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { EmployeeCardHeader } from './employee-card/EmployeeCardHeader';
@@ -14,7 +15,7 @@ interface EmployeeCardProps {
   branches: Branch[];
 }
 
-export const EmployeeCard = ({ 
+export const EmployeeCard = React.memo(({ 
   employee, 
   salesValue, 
   onSalesChange,
@@ -50,4 +51,7 @@ export const EmployeeCard = ({
       </CardContent>
     </Card>
   );
-};
+});
+
+// Add display name for React DevTools
+EmployeeCard.displayName = 'EmployeeCard';
