@@ -1,1213 +1,606 @@
-# Employee Management Mobile Optimization Plan
-
-## ⚠️ AUDIT SUMMARY (June 2024) ⚠️
-
-**Status Update:**
-- After a thorough review of the codebase, all tasks marked as incomplete in this plan remain **unimplemented** as of this audit.
-- No significant mobile optimization work has been done for the following phases and tasks:
-  - Phase 3: Salary Management Module (all subtasks)
-  - Phase 4: Schedule & Performance Modules (all subtasks)
-  - Phase 5: Touch Interaction & UX Improvements (all subtasks)
-  - Phase 6: Content Adaptation & Progressive Disclosure (all subtasks)
-- All these items are still pending and need to be implemented as per the plan.
-
-## ⚠️ PROGRESS UPDATE (September 2024) ⚠️
-
-**Current Progress:** 100% Complete for main implementation; 25% Complete for Testing Phase
-
-**Recent Updates:**
-- Fixed horizontal scrolling for stat cards in SalaryDashboard component
-- Fixed duplicate payslip buttons in employee cards
-- Enhanced styling of payment confirmation and payslip buttons
-- Added proper spacing between action buttons
-- Fixed bug with payslip loading in mobile view (empty content when clicking multiple times)
-- Completed Task 3.9: Payment confirmation button implementation (100%)
-- Completed Task 6.3: Information hierarchy optimization (100%)
-- Removed Task 5.4 (Gesture support for common interactions) as not needed
-- All tasks from implementation plan are now complete
-- Started Phase 7: Testing & Refinement with cross-device testing and performance optimization
-
-**Remaining tasks:**
-- Phase 4B: Team Module (all subtasks) - 0% (Marked as out of scope)
-- Phase 7: Testing & Refinement - 25% (In progress)
-
-**New Bug Identified** ⚠️:
-- Payslip content appears empty when clicking the payslip button multiple times for the same employee
-- User needs to hard refresh to see the payslip content again
-- This issue is only in mobile view and is likely related to state management or component reuse
-- Fixed as of latest update (September 2024)
-
-## ⚠️ IMPORTANT WARNINGS ⚠️
-
-- **PRESERVE ALL FUNCTIONALITY**: Do not modify any JavaScript functions or logic
-- **ONLY UPDATE STYLING**: Focus exclusively on CSS/Tailwind classes
-- **MAINTAIN ALL PROPS**: Do not change component props or interfaces
-- **PRESERVE EVENT HANDLERS**: Keep all event handlers intact
-- **TEST INCREMENTALLY**: Verify each change preserves functionality
-
-## Overview
-
-This document outlines a comprehensive plan to improve the mobile responsiveness of the entire employee management module, including all subtabs:
-
-### Main Components:
-- `EmployeeTab.tsx` (Main container)
-- `EmployeeAnalyticsDashboard.tsx`
-- `EmployeeCard.tsx`
-- `SalaryDashboard.tsx` and related components
-- `LeaveManagement.tsx`
-- `SalesStatistics.tsx`
-- `ScheduleDisplay.tsx`
-- Multiple sub-components across various tabs
-
-## Current Issues
-
-The employee management interface works well on desktop but has several issues on mobile:
-
-1. **Layout Problems**:
-   - Overflow in tab navigation across all subtabs
-   - Horizontal scrolling in tables and data displays
-   - Poor card stacking on narrow screens
-   - Fixed-width containers that don't adapt to mobile
-
-2. **Usability Challenges**:
-   - Small touch targets throughout the interface
-   - Dense information display difficult to navigate on small screens
-   - Navigation difficulties between subtabs and sections
-
-3. **Mobile Experience Gaps**:
-   - No mobile-optimized views for complex data tables
-   - Content not prioritized for small screens
-   - Limited touch interactions and gestures
-   - Modals and dialogs not optimized for small viewports
-
-## Implementation Roadmap
-
-### Phase 1: Core Navigation & Layout Foundation (20%)
-- [##########] Main tab navigation optimization (100%)
-- [##########] Responsive container layouts across all tabs (100%)
-- [##########] Mobile-friendly navigation between subtabs (100%)
-- [##########] Base component responsive styling (100%)
-
-### Phase 2: Employee Dashboard & Cards (15%)
-- [##########] EmployeeCard.tsx responsive optimization (100%) - FIXED!
-- [##########] EmployeeAnalyticsDashboard.tsx mobile layout (100%) - COMPLETED!
-- [##########] Dashboard charts and metrics for mobile (100%) - COMPLETED!
-- [##########] Fix horizontal scrolling in employee tabs (100%) - FIXED!
-
-### Phase 3: Salary Management Module (20%)
-- [##########] SalaryTable.tsx card view transformation (100%)
-- [##########] Payslip viewing on small devices (100%)
-- [##########] Mobile-friendly filtering and export options (100%)
-- [##########] SalaryDashboard.tsx header optimization (100%)
-- [##########] Bottom sheet for detailed views (100%)
-- [##########] Color-coded transaction visualization (100%)
-- [##########] Mobile action bar implementation (100%)
-- [##########] Unified responsive layout implementation (100%)
-- [##########] Payment confirmation button implementation (100%)
-
-### Phase 4: Schedule & Performance Modules (15%)
-- [##########] ScheduleDisplay.tsx mobile optimization (100%)
-- [##########] LeaveManagement.tsx responsive views (100%)
-- [##########] SalesStatistics.tsx mobile chart optimization (100%)
-- [##########] Performance metrics for mobile display (100%)
-
-### Phase 4B: Team Module (5%)
-- [----------] TeamInterface.tsx mobile optimization (0%)
-- [----------] Team member cards for mobile views (0%)
-- [----------] Team performance metrics on mobile (0%)
-
-### Phase 5: Touch Interaction & UX Improvements (15%)
-- [##########] Touch target size optimization across all components (100%)
-- [##########] Mobile-optimized modals and dialogs (100%)
-- [##########] Action button optimization for mobile (100%)
-
-### Phase 6: Content Adaptation & Progressive Disclosure (10%)
-- [##########] Content prioritization for mobile views (100%)
-- [##########] Progressive disclosure patterns implementation (100%)
-- [##########] Information hierarchy optimization (100%)
-
-### Phase 7: Testing & Refinement (5%)
-- [#####-----] Cross-device testing (50%)
-- [#####-----] Performance optimization (50%)
-- [----------] Accessibility validation (0%)
-- [----------] Final adjustments (0%)
-
-## Detailed Implementation Plan
-
-### Phase 1: Core Navigation & Layout Foundation
-
-#### Task 1.1: Main Tab Navigation Optimization
-
-**Target File**: `src/components/admin/employee-management/components/EmployeeTabsNavigation.tsx`
-
-**Implementation**:
-- ✅ Made tab navigation horizontally scrollable on mobile
-- ✅ Created compact tab labels for small screens
-- ✅ Ensured active tab is clearly visible
-
-**Changes Made**:
-- Replaced grid layout with horizontal scrollable flex layout
-- Added `overflow-x-auto` and `min-w-max` to ensure scrolling works properly
-- Simplified mobile tab UI with consistent styling
-- Improved icon and text sizing for touch targets
-
-**Progress**: [##########] 100%
-
-#### Task 1.2: Responsive Container Layouts
-
-**Target Files**: All components under the employee-management directory
-
-**Implementation**:
-- ✅ Updated all fixed-width containers to use responsive widths
-- ✅ Converted desktop-first layouts to mobile-first
-- ✅ Ensured proper padding and margins on mobile
-
-**Changes Made**:
-- Added responsive padding in EmployeeTab component (`px-3 sm:px-4 md:px-6`)
-- Made branch filter horizontally scrollable on small screens
-- Adjusted spacing and gaps to be smaller on mobile and larger on desktop
-- Updated text sizes to be appropriate for mobile (`text-sm`, `text-xs` for mobile)
-
-**Progress**: [##########] 100%
-
-#### Task 1.3: Mobile-Friendly Navigation Between Subtabs
-
-**Target Files**: `EmployeeTab.tsx` and all tab content components
-
-**Implementation**:
-- ✅ Added breadcrumb navigation for mobile
-- ✅ Implemented "back" buttons for nested views
-- ✅ Created consistent navigation patterns across all subtabs
-
-**Changes Made**:
-- Added back button with employee name and current tab in detailed view
-- Created expandable employee detail view for mobile with proper navigation
-- Implemented view state management with `expandedEmployee` state
-- Added proper touch targets and cursor styles for mobile interactions
-
-**Progress**: [##########] 100%
-
-#### Task 1.4: Base Component Responsive Styling
-
-**Target Files**: Various base components used throughout the module
-
-**Implementation**:
-- ✅ Updated MonthYearPicker for better mobile display
-- ✅ Optimized EmployeeSalesHeader for mobile layouts
-- ✅ Made touch targets appropriately sized for mobile
-- ✅ Ensured consistent spacing across components
-
-**Changes Made**:
-- Added responsive styling to MonthYearPicker (`w-full sm:w-auto`)
-- Improved EmployeeSalesHeader with better spacing and text sizing
-- Made button sizes consistent and touch-friendly
-- Ensured all interactive elements have appropriate aria attributes
-
-**Progress**: [##########] 100%
-
-### Phase 2: Employee Dashboard & Cards
-
-#### Task 2.1: EmployeeCard.tsx Responsive Optimization
-
-**Target File**: `src/components/admin/employee-management/EmployeeCard.tsx`
-
-**Implementation**:
-- ✅ Made employee cards stack properly on mobile
-- ✅ Optimized card content layout for small screens
-- ✅ Ensured actions and buttons are touch-friendly
-
-**Changes Made**:
-- Created responsive card layout with different styles for mobile
-- Removed card borders and shadows on mobile for a cleaner list view
-- Optimized EmployeeCardHeader with better photo size and text layout
-- Implemented back navigation pattern for detailed mobile views
-- ✅ Fixed issue where the CardHeader with employee name and photo was hidden on mobile devices by adding it back in the CardContent for mobile views
-
-**Progress**: [##########] 100%
-
-#### Task 2.2: EmployeeAnalyticsDashboard.tsx Mobile Layout
-
-**Target File**: `src/components/admin/employee-management/EmployeeAnalyticsDashboard.tsx`
-
-**Implementation**:
-- ✅ Restructure dashboard layout for vertical mobile viewing
-- ✅ Stack metric cards on mobile
-- ✅ Ensure dashboard sections have proper spacing
-
-**Changes Made**:
-- Converted filters to stack vertically on mobile for better usability
-- Implemented a 2-column grid for metric cards on mobile (4-column on desktop)
-- Adjusted spacing, padding, and text sizes to be appropriate for mobile
-- Added responsive margin and padding throughout the component
-
-**Progress**: [##########] 100%
-
-#### Task 2.3: Dashboard Charts and Metrics for Mobile
-
-**Target File**: `src/components/admin/employee-management/EmployeeAnalyticsDashboard.tsx`
-
-**Implementation**:
-- ✅ Ensure charts resize properly on mobile screens
-- ✅ Create simplified chart views for small screens
-- ✅ Adjust chart tooltips and interactions for touch
-
-**Changes Made**:
-- Reduced chart height on mobile for better proportions
-- Optimized chart configuration with smaller fonts and touch-friendly controls
-- Enhanced chart responsiveness with maintainAspectRatio: false
-- Added mobile-friendly tooltip and legend configurations
-- Reduced spacing between elements on mobile views
-
-**Progress**: [##########] 100%
-
-### Phase 3: Salary Management Module
-
-#### Task 3.1: SalaryTable.tsx Card View Transformation
-
-**Target File**: `src/components/admin/employee-management/salary/components/SalaryTable.tsx`
-
-**Implementation**:
-- ✅ Replace traditional table with touch-friendly cards on mobile
-- ✅ Each employee gets a card showing essential information
-- ✅ Include visual indicators for changes (up/down arrows)
-- ✅ Provide clear touch targets for interactions
-
-**Changes Made**:
-- Created responsive mobile card view that shows on small screens only
-- Kept the desktop table view hidden on mobile screens
-- Displayed key salary information in a readable card format
-- Added month-over-month change indicators with arrows and colors
-- Ensured consistent spacing and legible text sizes
-- Made entire card clickable to view employee details
-- Optimized the payslip dialog for mobile screens
-
-**Progress**: [##########] 100%
-
-#### Task 3.2: SalaryDashboard.tsx Header Optimization
-
-**Target File**: `src/components/admin/employee-management/salary/SalaryDashboard.tsx`
-
-**Implementation**:
-- Create a more compact header for mobile views
-- Optimize month selector with previous/next buttons
-- Display key metrics prominently on mobile (total payout, employee count)
-- Add mobile-friendly filtering options
-
-**Code Example**:
-```tsx
-{/* Mobile header */}
-<div className="block sm:hidden">
-  <div className="flex flex-col space-y-4">
-    <div className="flex items-center justify-between">
-      <Button 
-        variant="ghost" 
-        size="icon" 
-        onClick={() => handleMonthChange(new Date(pickerDate.getFullYear(), pickerDate.getMonth() - 1))}
-      >
-        <ChevronLeft className="h-5 w-5" />
-      </Button>
-      
-      <div className="text-center">
-        <h2 className="font-semibold">
-          {pickerDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
-        </h2>
-      </div>
-      
-      <Button 
-        variant="ghost" 
-        size="icon" 
-        onClick={() => handleMonthChange(new Date(pickerDate.getFullYear(), pickerDate.getMonth() + 1))}
-      >
-        <ChevronRight className="h-5 w-5" />
-      </Button>
-    </div>
-    
-    <div className="grid grid-cols-2 gap-3">
-      <div className="bg-muted rounded-lg p-3">
-        <div className="text-xs text-muted-foreground">Total Payout</div>
-        <div className="text-lg font-bold">{filteredStats.totalPayout.toLocaleString()} SAR</div>
-      </div>
-      <div className="bg-muted rounded-lg p-3">
-        <div className="text-xs text-muted-foreground">Employees</div>
-        <div className="text-lg font-bold">{filteredStats.employeeCount}</div>
-      </div>
-    </div>
-    
-    <div className="relative">
-      <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-      <Input
-        type="search"
-        placeholder="Search employees..."
-        className="pl-8 h-9"
-        value={searchQuery}
-        onChange={(e) => setSearchQuery(e.target.value)}
-      />
-    </div>
-  </div>
-</div>
-
-{/* Desktop header - original code */}
-<div className="hidden sm:block">
-  {/* Original header component */}
-</div>
+# Employee Management Mobile Optimization & Enhancement Plan
+
+## Executive Summary
+
+Based on the review of the previous restructuring plan, we've identified several areas for improvement in the employee management system:
+
+1. **Mobile Responsiveness**: Ensuring the application works seamlessly on mobile devices
+2. **Employee Creation**: Adding functionality to create new employees through a form interface
+3. **Complete Employee Information**: Enhancing employee cards to display and edit all available data
+4. **Country Flags**: Adding visual nationality indicators with real flag icons
+5. **Edit Functionality**: Ensuring all employee details can be edited directly from the frontend
+
+This plan outlines a comprehensive approach to implement these enhancements while maintaining the existing functionality and following established code patterns.
+
+***NOTE: This plan builds on top of the previous restructuring which separated employee data from sales tracking.***
+
+## Current Implementation Status
+
+The employee management system has successfully:
+
+1. Created two separate tabs for employee management and monthly sales ✅
+2. Implemented document tracking for employee credentials ✅
+3. Maintained backward compatibility with the original tab ✅
+4. Established proper data flow between components ✅
+
+However, the following areas need improvement:
+
+1. Mobile responsiveness is inadequate ❌
+2. Employee creation functionality is missing ❌
+3. Employee cards don't display all available information ❌
+4. Nationality is shown as text without visual indicators ❌
+5. Complete edit functionality for all employee fields is limited ❌
+
+## Project Goals
+
+1. **Create a fully responsive mobile interface** for all employee management components
+2. **Implement a new employee creation form** with validation
+3. **Enhance employee cards** to show and edit all database fields
+4. **Add country flag icons** for nationality visualization
+5. **Ensure all employee details are editable** from the frontend
+
+## Overall Architecture Updates
+
+We'll maintain the existing tab structure while enhancing the components:
+
+```
+employee-management/
+├── EmployeeTab.tsx                # Main container - PRESERVED
+├── components/                    # Subcomponents
+│   ├── employee-list/             # ENHANCED with responsive design
+│   │   ├── EmployeeList.tsx       # ENHANCED with responsive layout
+│   │   ├── EnhancedEmployeeCard.tsx # ENHANCED with complete info
+│   │   └── documents/             # PRESERVED
+│   ├── employee-form/             # NEW DIRECTORY
+│   │   ├── EmployeeForm.tsx       # NEW COMPONENT
+│   │   ├── EmployeeFormFields.tsx # NEW COMPONENT
+│   │   └── EmployeeValidator.ts   # NEW UTILITY
+│   ├── employee-detail/           # NEW DIRECTORY
+│   │   ├── EmployeeDetailView.tsx # NEW COMPONENT
+│   │   ├── EmployeeEditForm.tsx   # NEW COMPONENT
+│   │   └── EmployeeDetailTabs.tsx # NEW COMPONENT
+│   ├── ui/                        # NEW DIRECTORY
+│   │   ├── CountryFlag.tsx        # NEW COMPONENT
+│   │   ├── ResponsiveCard.tsx     # NEW COMPONENT
+│   │   └── ResponsiveTable.tsx    # NEW COMPONENT
+│   ├── monthly-sales/             # ENHANCED with responsive design
+├── hooks/                         # ENHANCED
+│   ├── useEmployeeForm.ts         # NEW HOOK
+│   ├── useEmployeeValidation.ts   # NEW HOOK
+│   ├── useEmployeeManager.ts      # ENHANCED
+├── services/                      # ENHANCED
+│   ├── employeeService.ts         # ENHANCED
+├── utils/                         # ENHANCED
+│   ├── responsive-helpers.ts      # NEW UTILITY
+│   ├── country-flags.ts           # NEW UTILITY
+│   ├── form-validators.ts         # NEW UTILITY
+├── types/                         # ENHANCED
+│   ├── employee-form-types.ts     # NEW TYPE DEFINITIONS
 ```
 
-**Progress**: [##########] 100%
+## Task Breakdown
 
-#### Task 3.3: Bottom Sheet Implementation for Detailed Views
+### Phase 1: Mobile Responsiveness Implementation
+- [ ] Analyze current components for mobile usability issues
+- [ ] Create responsive design system with breakpoints
+- [ ] Implement responsive layout for EmployeeList component
+- [ ] Create mobile-friendly employee cards
+- [ ] Optimize forms for touch interaction
+- [ ] Implement responsive table alternatives
+- [ ] Create mobile navigation pattern for tabs
+- [ ] Test on various screen sizes and devices
 
-**Target File**: `src/components/admin/employee-management/salary/SalaryBreakdown.tsx`
+### Phase 2: Employee Creation Form
+- [ ] Design employee creation form layout
+- [ ] Create form validation rules
+- [ ] Implement form component with all required fields
+- [ ] Add file upload for employee photo
+- [ ] Create submission and error handling logic
+- [ ] Connect to API endpoints
+- [ ] Implement success and error states
+- [ ] Add form navigation and cancel functionality
 
-**Implementation**:
-- Implement a mobile-optimized bottom sheet for detailed employee views
-- Create tabbed interface within the detail view
-- Add touch-friendly visual elements like mini charts
-- Ensure proper scrolling behavior within the bottom sheet
+### Phase 3: Enhanced Employee Information Display
+- [ ] Identify all available employee fields from database
+- [ ] Design expanded employee card layout
+- [ ] Implement tabbed interface for organizing information
+- [ ] Create responsive detail view
+- [ ] Integrate with existing document tracking
+- [ ] Add visual indicators for important information
+- [ ] Implement collapsed and expanded states
 
-**Code Example**:
+### Phase 4: Country Flag Integration
+- [ ] Research country flag library or API
+- [ ] Create country code mapping to ISO codes
+- [ ] Implement CountryFlag component
+- [ ] Add fallback for missing flags
+- [ ] Integrate flags in employee cards and forms
+- [ ] Optimize flag loading for performance
+- [ ] Add tooltip with country name on hover
+
+### Phase 5: Edit Functionality Enhancement
+- [ ] Create edit mode for employee details
+- [ ] Implement inline editing capabilities
+- [ ] Design confirmation dialogs for changes
+- [ ] Add validation for edited fields
+- [ ] Create optimistic UI updates
+- [ ] Implement proper error handling
+- [ ] Add undo/revert functionality
+- [ ] Ensure all fields are editable
+
+## Implementation Details
+
+### 1. Mobile Responsiveness Implementation
+
+The responsive design will follow these principles:
+
+1. **Mobile-First Approach**: Design for mobile first, then enhance for larger screens
+2. **Responsive Breakpoints**:
+   - Small: 0-640px (Mobile)
+   - Medium: 641px-1024px (Tablet)
+   - Large: 1025px+ (Desktop)
+
+3. **Key Component Adaptations**:
+
+#### EmployeeList
 ```tsx
-{/* Mobile bottom sheet for employee details */}
-<Sheet open={isOpen} onOpenChange={setIsOpen}>
-  <SheetContent side="bottom" className="h-[85vh] p-0">
-    <SheetHeader className="px-4 py-3 border-b sticky top-0 bg-background z-10">
-      <div className="flex items-center">
-        <Button variant="ghost" size="icon" onClick={onBack} className="mr-2">
-          <ArrowLeft className="h-4 w-4" />
+// Mobile adaptation for EmployeeList
+const EmployeeList = ({ employees }) => {
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      {employees.map(employee => (
+        <EmployeeCard key={employee.id} employee={employee} />
+      ))}
+    </div>
+  );
+};
+```
+
+#### ResponsiveCard
+```tsx
+// New component for responsive card layout
+const ResponsiveCard = ({ children, className }) => {
+  return (
+    <div className={`
+      w-full p-4 rounded-lg shadow 
+      transition-all duration-200
+      hover:shadow-md
+      flex flex-col
+      ${className}
+    `}>
+      {children}
+    </div>
+  );
+};
+```
+
+#### Mobile Navigation
+```tsx
+// Mobile-friendly tab navigation
+const MobileTabNavigation = ({ tabs, activeTab, onTabChange }) => {
+  return (
+    <div className="fixed bottom-0 left-0 w-full bg-white border-t md:hidden">
+      <div className="flex justify-around">
+        {tabs.map(tab => (
+          <button
+            key={tab.id}
+            className={`
+              flex flex-col items-center py-2 px-4
+              ${activeTab === tab.id ? 'text-primary' : 'text-gray-500'}
+            `}
+            onClick={() => onTabChange(tab.id)}
+          >
+            {tab.icon}
+            <span className="text-xs mt-1">{tab.label}</span>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+};
+```
+
+### 2. Employee Creation Form Implementation
+
+The employee creation form will:
+- Support all employee fields
+- Include proper validation
+- Handle file uploads for photos
+- Provide clear feedback on errors
+
+```tsx
+// Employee Form Structure
+interface EmployeeFormProps {
+  onSubmit: (data: EmployeeFormData) => void;
+  onCancel: () => void;
+  initialData?: Partial<EmployeeFormData>;
+  isEdit?: boolean;
+}
+
+const EmployeeForm: React.FC<EmployeeFormProps> = ({
+  onSubmit,
+  onCancel,
+  initialData,
+  isEdit = false
+}) => {
+  // Form implementation
+  return (
+    <form onSubmit={handleSubmit}>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <TextField
+          label="Name"
+          name="name"
+          value={formData.name}
+          onChange={handleChange}
+          error={errors.name}
+          required
+        />
+        
+        <TextField
+          label="Name (Arabic)"
+          name="name_ar"
+          value={formData.name_ar}
+          onChange={handleChange}
+          error={errors.name_ar}
+          dir="rtl"
+        />
+        
+        <CountrySelect
+          label="Nationality"
+          name="nationality"
+          value={formData.nationality}
+          onChange={handleChange}
+          error={errors.nationality}
+        />
+        
+        <RoleSelect
+          label="Role"
+          name="role"
+          value={formData.role}
+          onChange={handleChange}
+          error={errors.role}
+          required
+        />
+        
+        {/* More fields will be added here */}
+        
+        <PhotoUpload
+          label="Profile Photo"
+          name="photo"
+          value={formData.photo}
+          onChange={handleFileChange}
+          error={errors.photo}
+        />
+      </div>
+      
+      <div className="flex justify-end space-x-4 mt-6">
+        <Button variant="outline" onClick={onCancel}>
+          Cancel
         </Button>
-        <div>
-          <SheetTitle>{employeeName}</SheetTitle>
-          <div className="text-sm text-muted-foreground">
-            {getMonthDisplayName(selectedMonth)}
-          </div>
-        </div>
+        <Button type="submit">
+          {isEdit ? 'Update Employee' : 'Create Employee'}
+        </Button>
       </div>
-    </SheetHeader>
-    
-    <Tabs defaultValue="summary" className="h-full">
-      <TabsList className="w-full justify-start px-4 pt-2 pb-0 overflow-x-auto">
-        <TabsTrigger value="summary">Summary</TabsTrigger>
-        <TabsTrigger value="transactions">Transactions</TabsTrigger>
-        <TabsTrigger value="history">History</TabsTrigger>
-      </TabsList>
-      
-      <TabsContent value="summary" className="p-4 overflow-auto h-[calc(85vh-120px)]">
-        {/* Existing summary content, adapted for mobile */}
-      </TabsContent>
-      
-      <TabsContent value="transactions" className="p-4 overflow-auto h-[calc(85vh-120px)]">
-        {/* Transaction list in a mobile-friendly format */}
-      </TabsContent>
-      
-      <TabsContent value="history" className="p-4 overflow-auto h-[calc(85vh-120px)]">
-        {/* Salary history visualization */}
-        <div className="h-40 mb-4">
-          {/* Mini chart for salary history */}
-        </div>
-        <div className="space-y-3">
-          {/* Historical salary entries */}
-        </div>
-      </TabsContent>
-    </Tabs>
-  </SheetContent>
-</Sheet>
+    </form>
+  );
+};
 ```
 
-**Progress**: [##########] 100%
+### 3. Enhanced Employee Card Implementation
 
-#### Task 3.4: Color-Coded Transaction Visualization
+The enhanced employee card will display all information from the database in an organized, tabbed interface:
 
-**Target File**: `src/components/admin/employee-management/salary/SalaryBreakdown.tsx`
-
-**Implementation**:
-- Enhance transaction displays with clear color coding
-- Use green for positive transactions (bonuses, commissions)
-- Use red for negative transactions (deductions, loans)
-- Add visual elements to improve scannability on mobile
-
-**Code Example**:
 ```tsx
-{/* Transactions list with color coding */}
-<div className="space-y-3">
-  {transactions.map((transaction, index) => (
-    <div 
-      key={index} 
-      className={`flex items-center p-3 border rounded-lg ${
-        transaction.type === 'bonus' 
-          ? 'border-green-100 bg-green-50' 
-          : 'border-red-100 bg-red-50'
-      }`}
-    >
-      <div className={`h-10 w-10 rounded-full flex items-center justify-center mr-3 ${
-        transaction.type === 'bonus'
-          ? 'bg-green-100 text-green-700'
-          : 'bg-red-100 text-red-700'
-      }`}>
-        {transaction.type === 'bonus' 
-          ? <Plus className="h-5 w-5" /> 
-          : <Minus className="h-5 w-5" />}
-      </div>
-      <div className="flex-1">
-        <div className="font-medium">{transaction.description}</div>
-        <div className="text-xs text-muted-foreground">
-          {new Date(transaction.date).toLocaleDateString()}
-        </div>
-      </div>
-      <div className={transaction.type === 'bonus' 
-        ? 'text-green-700 font-medium' 
-        : 'text-red-700 font-medium'
-      }>
-        {transaction.type === 'bonus' 
-          ? `+${transaction.amount.toLocaleString()} SAR` 
-          : `-${transaction.amount.toLocaleString()} SAR`}
-      </div>
-    </div>
-  ))}
-</div>
-```
-
-**Progress**: [##########] 100%
-
-### Phase 4: Schedule & Performance Modules
-
-#### Task 4.1: ScheduleDisplay.tsx Mobile Optimization
-
-**Target File**: `src/components/admin/employee-management/ScheduleDisplay.tsx`
-
-**Implementation**:
-- Create mobile-specific calendar/schedule view
-- Optimize schedule cards for touch interaction
-- Implement better time slot visualization for narrow screens
-
-**Code Example**:
-```tsx
-// For responsive schedule display
-<div className="block sm:hidden">
-  {/* Mobile list view of schedule */}
-  <div className="space-y-3">
-    {scheduleItems.map(item => (
-      <div key={item.id} className="border rounded-lg p-3">
-        <div className="font-medium">{format(item.date, 'EEE, MMM d')}</div>
-        <div className="text-sm text-muted-foreground">
-          {format(item.startTime, 'h:mm a')} - {format(item.endTime, 'h:mm a')}
-        </div>
-        {/* Other schedule details */}
-      </div>
-    ))}
-  </div>
-</div>
-
-<div className="hidden sm:block">
-  {/* Original calendar grid view */}
-</div>
-```
-
-**Progress**: [##########] 100%
-
-#### Task 4.2: LeaveManagement.tsx Responsive Views
-
-**Target File**: `src/components/admin/employee-management/LeaveManagement.tsx`
-
-**Implementation**:
-- Adapt leave request tables for mobile
-- Create card views for leave requests on mobile
-- Make approval actions touch-friendly
-
-**Code Example**:
-```tsx
-// For leave request items
-<div className="block sm:hidden">
-  {leaveRequests.map(request => (
-    <div key={request.id} className="border rounded-lg p-4 mb-3">
-      <div className="flex justify-between mb-2">
-        <span className="font-medium">{request.employeeName}</span>
-        <Badge variant={getStatusVariant(request.status)}>{request.status}</Badge>
-      </div>
-      <div className="text-sm grid gap-1">
-        <div className="flex justify-between">
-          <span className="text-muted-foreground">Type:</span>
-          <span>{request.type}</span>
-        </div>
-        <div className="flex justify-between">
-          <span className="text-muted-foreground">Period:</span>
-          <span>{formatDateRange(request.startDate, request.endDate)}</span>
-        </div>
-      </div>
-      {/* Action buttons */}
-    </div>
-  ))}
-</div>
-```
-
-**Progress**: [##########] 100%
-
-#### Task 4.3: SalesStatistics.tsx Mobile Chart Optimization
-
-**Target File**: `src/components/admin/employee-management/SalesStatistics.tsx`
-
-**Implementation**:
-- Ensure charts scale properly for mobile screens
-- Create simplified chart views for mobile
-- Make legend and tooltips touch-friendly
-
-**Code Example**:
-```tsx
-// Responsive chart container
-<div className="h-[250px] sm:h-[300px] md:h-[400px]">
-  <ResponsiveContainer width="100%" height="100%">
-    {/* Chart components with mobile-friendly config */}
-  </ResponsiveContainer>
-</div>
-
-// Mobile-friendly legend
-<div className="grid grid-cols-2 sm:flex flex-wrap gap-3 mt-4">
-  {legendItems.map(item => (
-    <div 
-      key={item.id} 
-      className="flex items-center text-sm cursor-pointer p-2 rounded-md hover:bg-muted"
-      onClick={() => toggleDataSeries(item.id)}
-    >
-      <div className="w-3 h-3 mr-2" style={{ backgroundColor: item.color }} />
-      <span>{item.label}</span>
-    </div>
-  ))}
-</div>
-```
-
-**Progress**: [##########] 100%
-
-### Phase 4B: Team Module
-
-#### Task 4B.1: TeamInterface.tsx Mobile Optimization
-
-**Target File**: `src/components/admin/employee-management/TeamInterface.tsx`
-
-**Implementation**:
-- Adapt team interface for mobile
-- Create card views for team members on mobile
-- Make team performance metrics touch-friendly
-
-**Code Example**:
-```tsx
-// For team member cards
-<div className="block sm:hidden">
-  {teamMembers.map(member => (
-    <div key={member.id} className="border rounded-lg p-4 mb-3">
-      <div className="flex justify-between mb-2">
-        <span className="font-medium">{member.name}</span>
-        <Badge variant={getStatusVariant(member.status)}>{member.status}</Badge>
-      </div>
-      <div className="text-sm grid gap-1">
-        <div className="flex justify-between">
-          <span className="text-muted-foreground">Role:</span>
-          <span>{member.role}</span>
-        </div>
-        <div className="flex justify-between">
-          <span className="text-muted-foreground">Performance:</span>
-          <span>{member.performance}%</span>
-        </div>
-      </div>
-      {/* Action buttons */}
-    </div>
-  ))}
-</div>
-```
-
-**Progress**: [----------] 0%
-
-#### Task 4B.2: Team Member Cards for Mobile Views
-
-**Target File**: `src/components/admin/employee-management/TeamInterface.tsx`
-
-**Implementation**:
-- Adapt team member cards for mobile
-- Create card views for team members on mobile
-- Make team performance metrics touch-friendly
-
-**Code Example**:
-```tsx
-// For team member cards
-<div className="block sm:hidden">
-  {teamMembers.map(member => (
-    <div key={member.id} className="border rounded-lg p-4 mb-3">
-      <div className="flex justify-between mb-2">
-        <span className="font-medium">{member.name}</span>
-        <Badge variant={getStatusVariant(member.status)}>{member.status}</Badge>
-      </div>
-      <div className="text-sm grid gap-1">
-        <div className="flex justify-between">
-          <span className="text-muted-foreground">Role:</span>
-          <span>{member.role}</span>
-        </div>
-        <div className="flex justify-between">
-          <span className="text-muted-foreground">Performance:</span>
-          <span>{member.performance}%</span>
-        </div>
-      </div>
-      {/* Action buttons */}
-    </div>
-  ))}
-</div>
-```
-
-**Progress**: [----------] 0%
-
-#### Task 4B.3: Team Performance Metrics on Mobile
-
-**Target File**: `src/components/admin/employee-management/TeamInterface.tsx`
-
-**Implementation**:
-- Adapt team performance metrics for mobile
-- Create mobile-friendly visual representations
-- Make metrics touch-friendly
-
-**Code Example**:
-```tsx
-// For team performance metrics
-<div className="block sm:hidden">
-  {teamMetrics.map(metric => (
-    <div key={metric.id} className="border rounded-lg p-4 mb-3">
-      <div className="flex justify-between mb-2">
-        <span className="font-medium">{metric.name}</span>
-        <span className="font-bold">{metric.value}%</span>
-      </div>
-      <div className="text-sm text-muted-foreground">
-        {metric.description}
-      </div>
-    </div>
-  ))}
-</div>
-```
-
-**Progress**: [----------] 0%
-
-### Phase 5: Touch Interaction & UX Improvements
-
-#### Task 5.1: Touch Target Size Optimization
-
-**Target Files**: All components under employee-management
-
-**Implementation**:
-- Increase size of all interactive elements to minimum 44×44px on mobile
-- Add appropriate spacing between touch targets
-- Ensure all clickable elements have visible states
-
-**Code Example**:
-```tsx
-// BEFORE
-<Button className="p-2">
-  <Icon className="h-4 w-4" />
-</Button>
-
-// AFTER
-<Button className="p-3 sm:p-2 h-10 w-10 sm:h-8 sm:w-8">
-  <Icon className="h-5 w-5 sm:h-4 sm:w-4" />
-</Button>
-```
-
-**Progress**: [##########] 100%
-
-#### Task 5.2: Mobile-Optimized Modals and Dialogs
-
-**Target Files**: All components with dialogs/modals
-
-**Implementation**:
-- Use fullscreen or bottom sheet modals on mobile
-- Ensure proper spacing for form elements in dialogs
-- Add mobile-friendly dismissal patterns
-
-**Code Example**:
-```tsx
-<Dialog>
-  <DialogTrigger asChild>
-    <Button>Open Dialog</Button>
-  </DialogTrigger>
-  <DialogContent className="max-w-full sm:max-w-lg w-full sm:w-auto max-h-[90vh] sm:max-h-[85vh] overflow-auto sm:overflow-visible p-4 sm:p-6">
-    {/* Dialog content with increased spacing for touch */}
-    <div className="space-y-4 sm:space-y-2">
-      {/* Form elements with increased touch size */}
-    </div>
-  </DialogContent>
-</Dialog>
-```
-
-**Progress**: [##########] 100%
-
-#### Task 5.3: Action Button Optimization for Mobile
-
-**Target Files**: All components with action buttons
-
-**Implementation**:
-- Group related actions in dropdown menus on mobile
-- Use floating action buttons for primary actions
-- Ensure consistent button placement
-
-**Code Example**:
-```tsx
-// For action button groups
-<div className="fixed bottom-4 right-4 sm:relative sm:bottom-auto sm:right-auto sm:mt-4">
-  <Button className="h-12 w-12 rounded-full sm:h-9 sm:w-auto sm:rounded-md">
-    <Plus className="h-5 w-5 sm:mr-2" />
-    <span className="hidden sm:inline">Add New</span>
-  </Button>
-</div>
-```
-
-**Progress**: [##########] 100%
-
-### Phase 6: Content Adaptation & Progressive Disclosure
-
-#### Task 6.1: Content Prioritization for Mobile Views
-
-**Target Files**: All components
-
-**Implementation**:
-- Identify essential vs. secondary information for each view
-- Show only critical data by default on mobile
-- Create expandable sections for additional details
-
-**Code Example**:
-```tsx
-// For a data detail section
-<div>
-  {/* Essential information always visible */}
-  <div className="flex justify-between items-center mb-2">
-    <h3 className="font-medium">{item.title}</h3>
-    <span className="font-bold">{formatAmount(item.amount)}</span>
-  </div>
+// Enhanced Employee Card
+const EnhancedEmployeeCard = ({ employee, onEdit, onDelete }) => {
+  const [activeTab, setActiveTab] = useState('general');
   
-  {/* Conditionally shown details */}
-  {showDetails ? (
-    <div className="text-sm space-y-2 mt-2">
-      {/* Additional details */}
+  return (
+    <ResponsiveCard>
+      <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4">
+        <div className="w-24 h-24 rounded-full overflow-hidden">
+          {employee.photo_url ? (
+            <img 
+              src={employee.photo_url} 
+              alt={employee.name} 
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+              <UserIcon className="w-12 h-12 text-gray-400" />
+            </div>
+          )}
+        </div>
+        
+        <div className="flex-1 text-center sm:text-left">
+          <div className="flex items-center gap-2">
+            <h3 className="text-lg font-semibold">{employee.name}</h3>
+            <CountryFlag country={employee.nationality} />
+          </div>
+          <div className="text-gray-600">{employee.role}</div>
+          <div className="text-sm text-gray-500">{employee.email || 'No email provided'}</div>
+        </div>
+        
+        <div className="flex sm:flex-col gap-2">
+          <Button variant="ghost" size="icon" onClick={onEdit}>
+            <EditIcon className="w-4 h-4" />
+          </Button>
+          <Button variant="ghost" size="icon" onClick={onDelete}>
+            <TrashIcon className="w-4 h-4" />
+          </Button>
+        </div>
+      </div>
+      
+      <div className="mt-4">
+        <EmployeeDetailTabs
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+          employee={employee}
+        />
+      </div>
+    </ResponsiveCard>
+  );
+};
+```
+
+### 4. Country Flag Integration
+
+We'll implement a CountryFlag component that displays the appropriate flag based on the country code:
+
+```tsx
+// Country Flag Component
+interface CountryFlagProps {
+  country: string;
+  size?: 'sm' | 'md' | 'lg';
+  showName?: boolean;
+}
+
+const CountryFlag: React.FC<CountryFlagProps> = ({ 
+  country, 
+  size = 'md',
+  showName = false
+}) => {
+  const countryCode = useMemo(() => getCountryCode(country), [country]);
+  const flagUrl = useMemo(() => getFlagUrl(countryCode), [countryCode]);
+  
+  const sizeClasses = {
+    sm: 'w-4 h-4',
+    md: 'w-5 h-5',
+    lg: 'w-6 h-6'
+  };
+  
+  return (
+    <div className="flex items-center gap-1" title={country}>
+      {flagUrl ? (
+        <img 
+          src={flagUrl} 
+          alt={country} 
+          className={`rounded-sm ${sizeClasses[size]}`}
+        />
+      ) : (
+        <div className={`bg-gray-200 rounded-sm ${sizeClasses[size]}`} />
+      )}
+      
+      {showName && <span className="text-sm">{country}</span>}
     </div>
-  ) : (
-    <Button 
-      variant="ghost" 
-      size="sm" 
-      onClick={() => setShowDetails(true)}
-      className="text-xs w-full py-1"
-    >
-      Show Details
-    </Button>
-  )}
-</div>
+  );
+};
 ```
 
-**Progress**: [##########] 100%
+### 5. Edit Functionality Enhancement
 
-#### Task 6.2: Progressive Disclosure Patterns Implementation
-
-**Target Files**: Complex data view components
-
-**Implementation**:
-- Use "show more" patterns for detailed information
-- Implement staged disclosures for complex data
-- Create drill-down navigation for detailed views
-
-**Progress**: [##########] 100%
-
-### Phase 7: Testing & Refinement
-
-#### Task 7.1: Cross-device Testing
-
-**Target Files**: All components under employee-management
-
-**Implementation**:
-- Create device testing matrix covering iOS and Android devices
-- Established baseline performance metrics for key interactions
-- Identified bottlenecks in SalaryDashboard component on mobile devices
-- Created testing protocol for horizontal scrollable elements
-- Developed testing checklist for touch target verification
-- Started initial performance profiling for critical components
-- Implemented tools for measuring paint and layout times in mobile view
-- Benchmarked initial load times for SalaryDashboard and EmployeeCard components
-- Created performance optimization plan for components with rendering issues
-- Added device-specific viewport testing for landscape orientation
-
-**Progress**: [#####-----] 50%
-
-#### Task 7.2: Performance Optimization
-
-**Target Files**: All components under employee-management
-
-**Implementation**:
-- Identify and address performance bottlenecks in SalaryDashboard component
-- Optimize SalaryDashboard component for mobile devices
-- Implement performance monitoring and profiling tools
-
-**Progress**: [#####-----] 50%
-
-## Testing Checklist
-
-- [ ] iPhone SE (smallest common screen)
-- [ ] iPhone 12/13 size
-- [ ] Android small screen
-- [ ] Android large screen
-- [ ] iPad/Tablet
-- [ ] Desktop with various window sizes
-- [ ] Accessibility testing (screen readers)
-- [ ] Touch interaction testing
-- [ ] Landscape orientation
-- [ ] Cross-tab navigation flows
-
-## Best Practices Reference
-
-### Mobile-First Approach
-
-Always start with mobile styling then add modifiers for larger screens:
+We'll implement a comprehensive edit form for all employee details:
 
 ```tsx
-// GOOD - Mobile first
-<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-
-// AVOID - Desktop first
-<div className="grid grid-cols-3 sm:grid-cols-2 xs:grid-cols-1">
+// Employee Edit Form
+const EmployeeEditForm = ({ employee, onSave, onCancel }) => {
+  const { formData, errors, handleChange, handleSubmit } = useEmployeeForm({
+    initialData: employee,
+    onSubmit: onSave
+  });
+  
+  return (
+    <div className="p-4 border rounded-lg bg-white">
+      <h3 className="text-lg font-semibold mb-4">Edit Employee</h3>
+      
+      <form onSubmit={handleSubmit}>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* All employee fields will be included here */}
+          {/* Similar to the create form but with employee data pre-filled */}
+        </div>
+        
+        <div className="flex justify-end space-x-4 mt-6">
+          <Button variant="outline" onClick={onCancel}>
+            Cancel
+          </Button>
+          <Button type="submit">
+            Save Changes
+          </Button>
+        </div>
+      </form>
+    </div>
+  );
+};
 ```
 
-### Touch Target Sizes
+## Technical Requirements
 
-Ensure touch targets are at least 44×44px on mobile:
+### Responsive Design System
+
+To ensure consistent responsive behavior:
 
 ```tsx
-// GOOD
-<button className="h-11 w-11 p-3 sm:h-9 sm:w-9 sm:p-2">
+// responsive-helpers.ts
+export const breakpoints = {
+  sm: 640,
+  md: 768,
+  lg: 1024,
+  xl: 1280
+};
 
-// AVOID
-<button className="h-8 w-8 p-1">
+export const useBreakpoint = () => {
+  const [width, setWidth] = useState(window.innerWidth);
+  
+  useEffect(() => {
+    const handleResize = () => setWidth(window.innerWidth);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+  
+  return {
+    isSm: width >= breakpoints.sm,
+    isMd: width >= breakpoints.md,
+    isLg: width >= breakpoints.lg,
+    isXl: width >= breakpoints.xl
+  };
+};
 ```
 
-### Responsive Text
-
-Use appropriate font sizes that scale well:
+### Country Flags Utility
 
 ```tsx
-// GOOD
-<h2 className="text-lg sm:text-xl md:text-2xl">
+// country-flags.ts
+interface CountryMapping {
+  [key: string]: string;
+}
 
-// AVOID
-<h2 className="text-2xl"> // Too large on mobile
+export const countryToISOMapping: CountryMapping = {
+  'Saudi Arabia': 'SA',
+  'UAE': 'AE',
+  'United Arab Emirates': 'AE',
+  'Egypt': 'EG',
+  'Jordan': 'JO',
+  'Lebanon': 'LB',
+  'India': 'IN',
+  'Pakistan': 'PK',
+  'Philippines': 'PH',
+  'Bangladesh': 'BD',
+  'Nepal': 'NP',
+  'Sri Lanka': 'LK',
+  // Add more mappings as needed
+};
+
+export const getCountryCode = (country: string): string => {
+  return countryToISOMapping[country] || '';
+};
+
+export const getFlagUrl = (countryCode: string): string => {
+  if (!countryCode) return '';
+  // Use a flag API or local images
+  return `https://flagcdn.com/w20/${countryCode.toLowerCase()}.png`;
+};
 ```
 
-### Media Query Reference
+### Form Validation Utility
 
-Tailwind breakpoints to use consistently:
+```tsx
+// form-validators.ts
+export const validateEmployeeForm = (data: EmployeeFormData) => {
+  const errors: Partial<Record<keyof EmployeeFormData, string>> = {};
+  
+  if (!data.name) {
+    errors.name = 'Name is required';
+  }
+  
+  if (!data.role) {
+    errors.role = 'Role is required';
+  }
+  
+  if (data.email && !/^\S+@\S+\.\S+$/.test(data.email)) {
+    errors.email = 'Invalid email format';
+  }
+  
+  // More validation rules...
+  
+  return errors;
+};
+```
 
-- `sm`: 640px and up
-- `md`: 768px and up
-- `lg`: 1024px and up
-- `xl`: 1280px and up
+## Task Timeline & Priority
+
+The plan will be executed in phases, with each phase taking approximately 1-2 weeks:
+
+### Phase 1: Mobile Responsiveness (2 weeks)
+- Priority: High - This provides immediate value for mobile users
+- Focus on high-impact components first: EmployeeList, EmployeeCard, forms
+
+### Phase 2: Employee Creation Form (1 week)
+- Priority: High - This addresses a critical missing feature
+- Implement complete validation and error handling
+
+### Phase 3: Enhanced Employee Information (1 week)
+- Priority: Medium - Improves user experience for existing functionality
+- Ensure all database fields are accessible
+
+### Phase 4: Country Flag Integration (1 week)
+- Priority: Medium - Visual improvement for nationality information
+- Implement with fallbacks for missing flags
+
+### Phase 5: Edit Functionality (2 weeks)
+- Priority: High - Completes the CRUD functionality
+- Ensure all fields are editable with proper validation
+
+## Implementation Order
+
+For optimal development flow and value delivery:
+
+1. Implement responsive design patterns and utilities
+2. Create mobile-friendly employee list view
+3. Develop employee creation form
+4. Enhance employee cards with complete information
+5. Implement country flag component
+6. Add edit functionality for all employee fields
+7. Optimize layout for various screen sizes
+8. Test and refine mobile experience
+
+## Success Criteria
+
+The project will be considered successful when:
+
+1. All components display correctly on mobile devices (320px width and above)
+2. Users can create new employees with all required fields
+3. Employee cards display all available information from the database
+4. Country flags appear correctly for all nationalities
+5. All employee fields can be edited through the frontend
+6. Forms are easy to use on touch devices
+7. Navigation works intuitively on all screen sizes
+8. Performance remains smooth on mobile devices
+
+## Risk Assessment & Mitigation
+
+| Risk | Impact | Mitigation |
+|------|--------|------------|
+| Responsive layout breaking on certain devices | High | Test on multiple device sizes, use flexible layouts |
+| Form validation issues with complex fields | Medium | Implement comprehensive validation with clear error messages |
+| Country flag not available for certain countries | Low | Provide text fallback when flag not found |
+| Performance issues on low-end mobile devices | Medium | Optimize image loading, implement lazy loading |
+| Touch targets too small on mobile | High | Follow minimum touch target size guidelines (at least 44x44px) |
+| Form submission errors | High | Implement proper error handling and feedback |
 
 ## Progress Tracking
 
-Each task should be updated with progress:
+- Phase 1: Mobile Responsiveness - 0% complete
+- Phase 2: Employee Creation Form - 0% complete
+- Phase 3: Enhanced Employee Information - 0% complete
+- Phase 4: Country Flag Integration - 0% complete
+- Phase 5: Edit Functionality - 0% complete
 
-```
-// No progress
-[----------] 0%
+## Testing Strategy
 
-// Quarter done
-[##--------] 25% 
+- **Device Testing**: Test on at least 3 different screen sizes (mobile, tablet, desktop)
+- **Browser Testing**: Test on Chrome, Safari, Firefox, and Edge
+- **Usability Testing**: Have actual users test the mobile interface
+- **Form Testing**: Test all validation rules and error states
+- **Editing Flow**: Verify that edit functionality works for all fields
 
-// Half done
-[#####-----] 50%
+## Maintenance Plan
 
-// Three-quarters done
-[#######---] 75%
+After implementation:
+1. Monitor for any responsive layout issues
+2. Update country code mappings as needed
+3. Add support for additional employee fields as they're added to the database
+4. Refine form validation based on user feedback
 
-// Complete
-[##########] 100%
-```
+---
 
-## Notes for AI Assistants
-
-When implementing these changes:
-
-1. Always preserve existing functionality and logical operations
-2. Only modify CSS/Tailwind classes - do not change TypeScript logic
-3. Work incrementally - complete one section at a time and validate
-4. Use mobile-first approach consistently
-5. Be mindful of preserving existing event handlers and props
-6. Use the provided code examples as reference patterns
-7. Update the progress indicators as you complete tasks
-8. Test each change on various screen sizes
-
-The goal is solely to improve mobile appearance and usability without changing how the components function. 
-
-## Updates & Progress Log
-
-### Update: Initial Fixes for Horizontal Scrolling
-- Identified and fixed several components causing horizontal overflow:
-  - Fixed EmployeeTabs layout with proper width constraints and overflow handling
-  - Updated SalarySummaryCards component with better responsive grid and text wrapping
-  - Improved CompensationDetails with appropriate padding and text truncation
-  - Enhanced CompensationBreakdown to handle long numbers with proper breaking
-
-### Update: Optimizing EmployeeCard Structure
-- EmployeeCard.tsx has been updated to properly handle mobile views
-- Card header now appears within the card content on mobile devices
-- Back navigation has been improved with proper spacing
-
-### Update: Dashboard Responsive Layout
-- EmployeeAnalyticsDashboard.tsx now uses a stacked layout on mobile
-- Charts and statistics cards are properly sized for small screens
-- Filter controls have been reorganized for better mobile usability
-
-### Update: SalaryTable Mobile View
-- Added mobile card view as an alternative to tables on small screens
-- Each employee salary is now displayed in an easily readable card format
-- Essential information is prioritized on mobile displays
-
-### Update: Fixed Horizontal Scrolling Issues
-- Resolved horizontal overflow in multiple components:
-  1. Added `w-full max-w-full overflow-hidden` to parent containers to constrain width
-  2. Improved EmployeeTabs component with proper overflow handling
-  3. Used `break-all` and `truncate` for text elements that could cause overflow
-  4. Implemented more responsive grids (changing from fixed columns to fluid layouts)
-  5. Added appropriate spacing between elements with proper flex layouts
-  6. Made component padding and text sizes responsive with SM breakpoints
-  7. Improved CompensationBreakdown and SalarySummaryCards to properly contain long currency values
-
-### Update: SalaryBreakdown.tsx Mobile Bottom Sheet
-- Added a mobile-optimized bottom sheet for detailed employee salary views in SalaryBreakdown.tsx. Includes tabbed interface for summary, transactions, and history. Desktop view is unchanged. All logic and event handlers preserved.
-
-### Update: SalaryTable.tsx and SalaryBreakdown.tsx UI Enhancements (July 2024)
-- Enhanced SalaryTable.tsx mobile cards:
-  - Added touch-friendly card layout with entire card clickable area
-  - Improved visual hierarchy with better spacing and backgrounds
-  - Enhanced employee photos with better styling and fallbacks
-  - Optimized payslip dialog for mobile viewing
-  - Added visual improvements to metrics display with subtle backgrounds
-  - Improved month-over-month change indicators with colored badges
-
-- Refined SalaryBreakdown.tsx sheet UI:
-  - Made sheet auto-height to adapt to content without excess whitespace
-  - Improved section headings and content organization with proper spacing
-  - Enhanced color scheme with softer, more consistent styling
-  - Created better empty states for transactions and history
-  - Optimized transaction cards with better visual cues
-  - Added Sales Performance section with clear metrics display
-  - Improved scroll behavior and tab navigation
-  - Fixed white background to match brand aesthetic
-
-- Accessibility improvements:
-  - Enhanced touch targets to appropriate sizes (minimum 44x44px)
-  - Added proper focus indicators and keyboard navigation
-  - Improved contrast for better readability
-  - Enhanced role-specific styling for better information hierarchy
-
-### Update: ScheduleDisplay Mobile Optimizations (July 2024)
-- Completely redesigned the ScheduleDisplay component for mobile:
-  - Created a collapsible interface that shows only today's schedule by default
-  - Added expand/collapse functionality to save vertical screen space
-  - Implemented a visual timeline showing working hours in a 24-hour day
-  - Added clear status indicators for open/closed days
-  - Enhanced visual design with consistent styling and better touch targets
-  - Made the component more space-efficient while preserving all information
-
-### Update: LeaveManagement Mobile Optimization (July 2024)
-- Redesigned LeaveManagement for better mobile experience:
-  - Created mobile-specific card views for leave data
-  - Implemented stacked layout with clear visual hierarchy
-  - Added compact UI for leave history with expandable details
-  - Enhanced visual styling with proper spacing and touch targets
-  - Optimized modals and forms for mobile input
-  - Added responsive design elements across all subcomponents
-
-### Update: SalesStatistics Mobile Chart Improvements (July 2024)
-- Enhanced SalesStatistics charts for mobile devices:
-  - Made charts properly responsive with appropriate sizing
-  - Implemented mobile-specific chart configurations
-  - Adjusted font sizes and touch targets for mobile interaction
-  - Enhanced visual representations with better color coding
-  - Improved tooltips and legends for touch interfaces
-  - Added responsive sizing and spacing throughout the component
-
-### Update: Action Button Optimization (July 2024)
-- Implemented mobile-friendly action buttons across key components:
-  - Added floating action button (FAB) for primary "Save" action in EmployeeSalesHeader
-  - Created fixed bottom navigation bar for pagination in EmployeeGrid
-  - Made touch targets larger (minimum 44×44px) for all interactive elements
-  - Improved visual feedback for button states on mobile
-  - Enhanced tap area accessibility for mobile users
-  - Created circular button styles for better mobile ergonomics
-
-### Update: Content Prioritization for Mobile Views (July 2024)
-- Redesigned SalaryTable component with progressive disclosure for mobile:
-  - Created a clean, simplified view that shows essential information first
-  - Added expandable/collapsible sections for detailed information
-  - Implemented "Show Details/Hide Details" toggle for additional data
-  - Created visual separation between primary and secondary content
-  - Used color coding to improve information hierarchy
-  - Enhanced readability with optimized spacing and typography
-  - Maintained all functionality while reducing cognitive load on mobile
-
-### Update: Mobile Action Bar Implementation (August 2024)
-- Added mobile-optimized action bar to the SalaryDashboard component:
-  - Created fixed position action bar at the bottom of screen for mobile devices only
-  - Implemented export, refresh, auto-refresh, and filter actions with clear icons and labels
-  - Added real-time status indicator for auto-refresh functionality
-  - Ensured proper spacing with bottom padding to prevent content overlap
-  - Used touch-friendly button sizes (min 44x44px) for better mobile interaction
-  - Maintained all existing functionality while enhancing the mobile UI
-
-### Update: Performance Metrics Mobile Display (August 2024)
-- Implemented mobile-friendly performance metrics display:
-  - Created card-based layout for employee performance on mobile screens
-  - Used visual ranking indicators with color-coded position badges
-  - Displayed metrics in touch-friendly grid with clear icons and labels
-  - Highlighted top performer with special styling and award icon
-  - Enhanced readability with appropriate spacing and typography
-  - Maintained desktop table view for larger screens
-  - Ensured all metrics (sales, appointments, revenue) are clearly visible and properly formatted
-
-### Update: SalaryDashboard Unified Layout Implementation (August 2024)
-- Completely redesigned the SalaryDashboard component with a unified responsive approach:
-  - Eliminated duplication between mobile and desktop layouts
-  - Created a single responsive month selector that works well on all screen sizes
-  - Implemented a responsive card grid that shows essential stats on mobile and additional metrics on desktop
-  - Unified the search functionality across all device sizes
-  - Updated the mobile action bar to use md breakpoint for better tablet support
-  - Removed redundant SalaryDashboardHeader and SalaryDashboardStats components
-  - Improved readability with consistent spacing and typography
-  - Added progressive disclosure by hiding less essential stats on mobile
-  - Fixed issues with elements appearing twice on certain screen sizes
-
-### Update: Enhanced Horizontal Scrollable Stats Cards (August 2024)
-- Implemented horizontally scrollable stats cards for improved mobile experience:
-  - Replaced the grid layout with a horizontally scrollable flex container
-  - Added improved styling with subtle border and shadow effects
-  - Made all stats cards visible on mobile through a swipeable interface
-  - Used snap points for better scroll positioning
-  - Fixed minimum width for each card to ensure readability
-  - Enhanced visual appearance with consistent spacing and typography
-  - Eliminated duplication while maintaining access to all stat metrics
-  - Provided a more app-like experience for mobile users
-
-### Update: Colorful Visual Enhancement for Stats Cards (August 2024)
-- Added attractive color treatments to stats cards for better visual appeal:
-  - Implemented color-coded cards with unique gradient backgrounds for each metric
-  - Added matching colored dot indicators beside each card title
-  - Used subtle color gradients for a modern, polished look
-  - Selected complementary colors to create visual hierarchy and distinction
-  - Applied colored text that matches each card's theme
-  - Maintained readability with appropriate color contrast
-  - Created visual interest while keeping a professional aesthetic
-  - Enhanced the user experience with intuitive color associations
-
-### Update: Payment Confirmation Button Implementation (September 2024)
-- Added payment confirmation button to SalaryTable component:
-  - Implemented in both mobile card view and desktop table view
-  - Connected to the existing PaymentConfirmation dialog component
-  - Used CheckSquare icon with green accent for clear visual identification
-  - Created consistent UI between mobile and desktop versions
-  - Added proper touch-friendly sizing (12×12px on mobile, 9×9px on desktop)
-  - Implemented proper event handling to prevent event propagation
-  - Connected with a mock API call that can be replaced with actual implementation
-  - Added accessible aria-labels for improved screen reader support
-  - Ensured buttons maintain the existing UI style guidelines
-  - Placed the button alongside the existing payslip button for UI consistency
-
-### Update: Information Hierarchy Optimization (September 2024)
-- Enhanced SalaryDashboard component with improved information hierarchy:
-  - Added visual prominence to the month selector with subtle gradient background and border
-  - Implemented clear hierarchy indicators for different levels of metrics (primary, secondary, tertiary)
-  - Added a "Primary" badge to the most important metric for instant recognition
-  - Enhanced metrics cards with additional context information for better comprehension
-  - Implemented responsive progressive disclosure - showing only the most critical metrics on mobile
-  - Added mobile carousel indicators to show available content with swipe guidance
-  - Improved visual separation between sections with consistent spacing and borders
-  - Enhanced search functionality with more intuitive styling and improved placeholder text
-  - Added timestamp for last data refresh to provide context to users
-  - Used consistent color-coding across metric cards to enhance visual recognition
-  - Maintained all existing functionality while improving the visual organization
-
-### Update: Project Completion (September 2024)
-- Completed all planned mobile optimization tasks:
-  - All critical mobile usability issues have been addressed
-  - Improved responsive layouts across all employee management components
-  - Enhanced visual hierarchy and information organization
-  - Added touch-friendly interaction patterns throughout the interface
-  - Optimized for various screen sizes with progressive disclosure patterns
-  - Maintained functionality while enhancing mobile experience
-  - Successfully implemented all planned optimizations
-  - Phase 4B (Team Module) was marked as out of scope for current phase
-  - Phase 7 (Testing & Refinement) will be scheduled as a separate initiative
-
-### Update: Horizontal Scrolling & Button Styling Improvements (September 2024)
-- Fixed horizontal scrolling for stats cards:
-  - Added `overflow-y-hidden` and `touch-pan-x` for better touch scrolling behavior
-  - Added explicit width values for consistent card sizing
-  - Removed hidden classes that were preventing cards from showing on mobile
-  - Ensured all cards are properly responsive
-- Fixed UI issues with employee cards:
-  - Removed duplicate payslip button that was causing confusion
-  - Enhanced button styling with proper outlines and shadows
-  - Added white background with transparency for better contrast
-  - Increased gap between buttons for better touch targets
-  - Added z-index to prevent overlap with other elements
-  - Made styling consistent between mobile and desktop views
-  - Applied proper sizing for touch-friendly interaction
-
-### Update: Payslip Loading Issue Fixed (September 2024)
-- Fixed bug with payslip display functionality:
-  - Added proper state management to handle multiple clicks on payslip button
-  - Implemented sequential state updates with small delays to prevent race conditions
-  - Added key attribute with timestamp to force re-render of payslip content
-  - Enhanced dialog cleanup with additional event handlers for escape key and outside clicks
-  - Added error state with retry button for cases where payslip data fails to load
-  - Used timeout to ensure state changes occur in the correct order
-  - Added effect hook to properly reset state when dialog closes
-  - Fixed issue where stale state was causing empty payslips
-  - Wrapped PayslipTemplateViewer with conditional rendering to prevent null data errors
-  - Users can now click payslip buttons multiple times without issues
-
-### Update: Testing & Refinement Phase Started (October 2024)
-- Initiated cross-device testing for key components:
-  - Created device testing matrix covering iOS and Android devices
-  - Established baseline performance metrics for key interactions
-  - Identified bottlenecks in SalaryDashboard component on mobile devices
-  - Created testing protocol for horizontal scrollable elements
-  - Developed testing checklist for touch target verification
-  - Started initial performance profiling for critical components
-  - Implemented tools for measuring paint and layout times in mobile view
-  - Benchmarked initial load times for SalaryDashboard and EmployeeCard components
-  - Created performance optimization plan for components with rendering issues
-  - Added device-specific viewport testing for landscape orientation
-
-### Update: Testing Utilities Implementation (October 2024)
-- Created comprehensive testing utilities to support mobile optimization:
-  - Implemented performance monitoring hooks to measure component render and interaction times
-  - Created a device testing utility to simulate different mobile devices and orientations
-  - Developed a detailed testing plan covering all key components and user flows
-  - Added tools for benchmarking critical metrics like Time to Interactive and First Contentful Paint
-  - Set up automated memory usage monitoring to detect potential leaks
-  - Created a device viewport simulator for cross-device testing without physical devices
-  - Added interaction timing utilities to identify slow UI interactions
-  - Implemented performance measurement utilities using the browser's Performance API
-  - Created a structured approach to documenting mobile testing results
-  - Set up the foundation for the complete Phase 7 testing process
-
-### Update: Team Tab Integration (October 2024)
-- Integrated Team tab functionality into Analytics tab:
-  - Removed the Team tab from navigation to prevent recurring Chart.js errors
-  - Added tabbed interface within Analytics with "Individual Performance" and "Team Performance" sections
-  - Migrated all team performance charts, tables, and visualizations to the Analytics tab
-  - Created proper state management for both individual and team views
-  - Preserved all team comparison functionality without code duplication
-  - Fixed "Canvas is already in use" errors with proper chart lifecycle management
-  - Implemented ChartWrapper component to handle Chart.js instance cleanup
-  - Added unique IDs and keys for all chart instances to prevent rendering conflicts
-  - Simplified the mobile navigation experience with fewer tabs
-  - Made the application more stable and reliable on all devices
-
-### Update: Phase 4B Reorganization (October 2024)
-- Changed status of Phase 4B (Team Module):
-  - ~~Task 4B.1: TeamInterface.tsx mobile optimization (0%)~~
-  - ~~Task 4B.2: Team member cards for mobile views (0%)~~
-  - ~~Task 4B.3: Team performance metrics on mobile (0%)~~
-  - Tasks marked as obsolete as Team functionality was integrated into Analytics tab
-  - Reclassified as completed through integration rather than standalone optimization
-  - Created a more maintainable and stable solution for team performance visualization
-  - Improved overall application structure and reliability
-  - Enhanced both desktop and mobile experiences simultaneously
-  - Eliminated a major source of errors affecting the application
+*Plan created: May 21, 2024*
