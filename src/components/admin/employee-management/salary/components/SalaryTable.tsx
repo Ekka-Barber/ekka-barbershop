@@ -9,7 +9,7 @@ import {
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ArrowUp, ArrowDown, FileText } from 'lucide-react';
+import { ArrowUp, ArrowDown, FileText, ChevronDown, ChevronUp } from 'lucide-react';
 import { EmployeeSalary } from '../hooks/utils/salaryTypes';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import PayslipTemplateViewer from './PayslipTemplateViewer';
@@ -45,6 +45,7 @@ export const SalaryTable = ({
   const [selectedEmployeeForPayslip, setSelectedEmployeeForPayslip] = React.useState<string | null>(null);
   const [isPayslipLoading, setIsPayslipLoading] = React.useState(false);
   const [dialogOpen, setDialogOpen] = React.useState<Record<string, boolean>>({});
+  const [expandedCards, setExpandedCards] = React.useState<Record<string, boolean>>({});
   
   // Get transactions for the selected employee and current month
   const { getEmployeeTransactions } = useSalaryData({
@@ -177,6 +178,15 @@ export const SalaryTable = ({
     };
   };
 
+  // Toggle card expansion
+  const toggleCardExpansion = (employeeId: string, e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent triggering the card click
+    setExpandedCards(prev => ({
+      ...prev,
+      [employeeId]: !prev[employeeId]
+    }));
+  };
+
   if (isLoading) {
     return (
       <div className="space-y-2">
@@ -206,16 +216,18 @@ export const SalaryTable = ({
           const monthlyChange = getMonthlyChange?.(employee.id);
           const hasMonthlySalaryChange = monthlyChange !== null && monthlyChange !== 0;
           const employeeDetails = getEmployeeDetails(employee.id);
+          const isExpanded = expandedCards[employee.id] || false;
+          
           return (
             <div
               key={employee.id}
-              className="rounded-xl border bg-background p-4 flex flex-col gap-2 shadow-sm relative"
-              tabIndex={0}
-              onClick={() => onEmployeeSelect(employee.id)}
-              onKeyDown={(e) => e.key === 'Enter' && onEmployeeSelect(employee.id)}
-              aria-label={`Salary card for ${employee.name}`}
+              className="rounded-xl border bg-background p-4 flex flex-col gap-2 shadow-sm relative overflow-hidden"
             >
-              <div className="flex items-center gap-3 mb-2">
+              {/* Essential Information - Always Visible */}
+              <div 
+                className="flex items-center gap-3 mb-1"
+                onClick={() => onEmployeeSelect(employee.id)}
+              >
                 {employeeDetails?.photo_url ? (
                   <div className="h-14 w-14 rounded-full border-2 border-muted/40 overflow-hidden flex-shrink-0">
                     <img
@@ -247,91 +259,125 @@ export const SalaryTable = ({
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-12 w-12 absolute right-2 top-2 z-10"
-                      aria-label="View Payslip"
-                      onClick={(e) => e.stopPropagation()}
+                      className="h-11 w-11 absolute right-2 top-2 z-10"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                      }}
                     >
                       <FileText className="h-5 w-5" />
                     </Button>
                   </DialogTrigger>
-                  <DialogContent className="w-full max-w-full max-h-[90vh] p-0 rounded-t-2xl sm:max-w-4xl sm:rounded-2xl">
-                    <DialogHeader className="sticky top-0 bg-background z-10 p-4 border-b">
-                      <DialogTitle className="text-lg">{employee.name} - Payslip</DialogTitle>
+                  <DialogContent className="max-w-4xl max-h-[90vh] overflow-auto">
+                    <DialogHeader>
+                      <DialogTitle>Payslip for {employee.name}</DialogTitle>
                     </DialogHeader>
-                    <div className="overflow-auto">
-                      {isPayslipLoading || isSalaryPlanLoading ? (
-                        <div className="flex justify-center py-8">
-                          <Skeleton className="h-96 w-full" />
-                        </div>
-                      ) : (
-                        <PayslipTemplateViewer
-                          key={`payslip-${employee.id}`}
-                          payslipData={buildPayslipData(employee)}
-                        />
-                      )}
-                    </div>
+                    {isPayslipLoading ? (
+                      <div className="flex items-center justify-center h-64">
+                        <Skeleton className="h-full w-full" />
+                      </div>
+                    ) : (
+                      <PayslipTemplateViewer payslipData={buildPayslipData(employee)} />
+                    )}
                   </DialogContent>
                 </Dialog>
               </div>
-              <div className="grid grid-cols-2 gap-3 mt-1 text-sm">
-                <div className="bg-muted/40 rounded-lg p-2.5">
-                  <div className="text-xs text-muted-foreground">Sales</div>
-                  <div className="font-medium">{employee.salesAmount ? `${employee.salesAmount.toLocaleString()} SAR` : '-'}</div>
+
+              {/* Total Salary & Change - Always Visible */}
+              <div className="flex justify-between items-center py-2 border-t border-b">
+                <div>
+                  <div className="text-xs text-muted-foreground">Total Salary</div>
+                  <div className="text-xl font-bold">{employee.total.toLocaleString()} SAR</div>
                 </div>
-                <div className="bg-muted/40 rounded-lg p-2.5">
-                  <div className="text-xs text-muted-foreground">Base Salary</div>
-                  <div className="font-medium">{employee.baseSalary.toLocaleString()} SAR</div>
-                </div>
-                <div className="bg-muted/40 rounded-lg p-2.5">
-                  <div className="text-xs text-muted-foreground">Commission</div>
-                  <div className="font-medium">{employee.commission.toLocaleString()} SAR</div>
-                </div>
-                <div className="bg-muted/40 rounded-lg p-2.5">
-                  <div className="text-xs text-muted-foreground">Bonuses</div>
-                  <div className="font-medium">{(employee.bonus || 0) + (employee.targetBonus || 0) > 0 ? `${((employee.bonus || 0) + (employee.targetBonus || 0)).toLocaleString()} SAR` : '-'}</div>
-                </div>
-                <div className="bg-muted/40 rounded-lg p-2.5">
-                  <div className="text-xs text-muted-foreground">Deductions</div>
-                  <div className="font-medium">{employee.deductions > 0 ? `${employee.deductions.toLocaleString()} SAR` : '-'}</div>
-                </div>
-                <div className="bg-muted/40 rounded-lg p-2.5">
-                  <div className="text-xs text-muted-foreground">Loans</div>
-                  <div className="font-medium">{employee.loans > 0 ? `${employee.loans.toLocaleString()} SAR` : '-'}</div>
-                </div>
-                <div className="col-span-2 flex items-center justify-between mt-2 bg-primary/10 p-3 rounded-lg">
-                  <div className="text-sm font-medium">Total</div>
-                  <div className="flex items-center gap-1 font-bold text-base">
-                    {employee.total.toLocaleString()} SAR
-                    {hasMonthlySalaryChange && (
-                      <span
-                        className={`ml-1 flex items-center justify-center rounded-full w-5 h-5 ${
-                          monthlyChange && monthlyChange > 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-                        }`}
-                        title={`Change from previous month: ${monthlyChange?.toLocaleString()} SAR`}
-                      >
-                        {monthlyChange && monthlyChange > 0 ? <ArrowUp className="h-3.5 w-3.5" /> : <ArrowDown className="h-3.5 w-3.5" />}
-                      </span>
+                {hasMonthlySalaryChange && (
+                  <div className={`flex items-center ${monthlyChange! > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                    {monthlyChange! > 0 ? (
+                      <ArrowUp className="h-4 w-4 mr-1" />
+                    ) : (
+                      <ArrowDown className="h-4 w-4 mr-1" />
+                    )}
+                    <span className="font-medium">
+                      {Math.abs(monthlyChange!).toLocaleString()} SAR
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              {/* Expand/Collapse Button */}
+              <Button
+                variant="ghost"
+                size="sm"
+                className="flex items-center justify-center py-1 mt-1 mb-0 w-full"
+                onClick={(e) => toggleCardExpansion(employee.id, e)}
+              >
+                <span className="mr-1 text-xs">
+                  {isExpanded ? 'Hide Details' : 'Show Details'}
+                </span>
+                {isExpanded ? (
+                  <ChevronUp className="h-4 w-4" />
+                ) : (
+                  <ChevronDown className="h-4 w-4" />
+                )}
+              </Button>
+
+              {/* Expanded Details - Only visible when expanded */}
+              {isExpanded && (
+                <div className="pt-2 space-y-3 text-sm animate-in fade-in-50 duration-200">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="bg-muted/30 p-3 rounded-lg">
+                      <div className="text-xs text-muted-foreground">Base Salary</div>
+                      <div className="font-medium">{employee.baseSalary.toLocaleString()} SAR</div>
+                    </div>
+                    <div className="bg-muted/30 p-3 rounded-lg">
+                      <div className="text-xs text-muted-foreground">Commission</div>
+                      <div className="font-medium">{employee.commission.toLocaleString()} SAR</div>
+                    </div>
+                    {(employee.bonus > 0 || employee.targetBonus > 0) && (
+                      <div className="bg-green-50 p-3 rounded-lg">
+                        <div className="text-xs text-green-700">Bonuses</div>
+                        <div className="font-medium text-green-700">
+                          {((employee.bonus || 0) + (employee.targetBonus || 0)).toLocaleString()} SAR
+                        </div>
+                      </div>
+                    )}
+                    {(employee.deductions > 0 || employee.loans > 0) && (
+                      <div className="bg-red-50 p-3 rounded-lg">
+                        <div className="text-xs text-red-700">Deductions & Loans</div>
+                        <div className="font-medium text-red-700">
+                          {(employee.deductions + employee.loans).toLocaleString()} SAR
+                        </div>
+                      </div>
                     )}
                   </div>
+                  
+                  <div className="pt-2 border-t">
+                    <div className="flex justify-between items-center mb-1">
+                      <span className="text-xs text-muted-foreground">Sales Amount</span>
+                      <span className="font-medium">{employee.salesAmount.toLocaleString()} SAR</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs text-muted-foreground">Net Salary</span>
+                      <span className="font-bold">{employee.total.toLocaleString()} SAR</span>
+                    </div>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           );
         })}
       </div>
-      {/* Desktop Table */}
+
+      {/* Desktop Table View - Keep the existing table */}
       <div className="hidden sm:block">
         <Table>
           <TableHeader>
             <TableRow>
               <TableHead>Employee</TableHead>
-              <TableHead className="text-right">Sales</TableHead>
               <TableHead className="text-right">Base Salary</TableHead>
               <TableHead className="text-right">Commission</TableHead>
-              <TableHead className="text-right">Bonuses</TableHead>
+              <TableHead className="text-right">Bonus</TableHead>
               <TableHead className="text-right">Deductions</TableHead>
-              <TableHead className="text-right">Loans</TableHead>
               <TableHead className="text-right">Total</TableHead>
+              <TableHead className="text-right">MoM Change</TableHead>
               <TableHead></TableHead>
             </TableRow>
           </TableHeader>
@@ -339,108 +385,80 @@ export const SalaryTable = ({
             {salaryData.map((employee) => {
               const monthlyChange = getMonthlyChange?.(employee.id);
               const hasMonthlySalaryChange = monthlyChange !== null && monthlyChange !== 0;
+              
               return (
-                <TableRow key={employee.id}>
-                  <TableCell
-                    className="font-medium cursor-pointer hover:bg-muted/50"
-                    onClick={() => onEmployeeSelect(employee.id)}
-                  >
+                <TableRow 
+                  key={employee.id}
+                  className="cursor-pointer"
+                  onClick={() => onEmployeeSelect(employee.id)}
+                >
+                  <TableCell className="font-medium">
                     {employee.name}
                   </TableCell>
-                  <TableCell
-                    className="text-right cursor-pointer hover:bg-muted/50"
-                    onClick={() => onEmployeeSelect(employee.id)}
-                  >
-                    {employee.salesAmount ? `${employee.salesAmount.toLocaleString()} SAR` : '-'}
-                  </TableCell>
-                  <TableCell
-                    className="text-right cursor-pointer hover:bg-muted/50"
-                    onClick={() => onEmployeeSelect(employee.id)}
-                  >
+                  <TableCell className="text-right">
                     {employee.baseSalary.toLocaleString()} SAR
                   </TableCell>
-                  <TableCell
-                    className="text-right cursor-pointer hover:bg-muted/50"
-                    onClick={() => onEmployeeSelect(employee.id)}
-                  >
+                  <TableCell className="text-right">
                     {employee.commission.toLocaleString()} SAR
                   </TableCell>
-                  <TableCell
-                    className="text-right cursor-pointer hover:bg-muted/50"
-                    onClick={() => onEmployeeSelect(employee.id)}
-                  >
-                    {(employee.bonus || 0) + (employee.targetBonus || 0) > 0
-                      ? `${((employee.bonus || 0) + (employee.targetBonus || 0)).toLocaleString()} SAR`
-                      : '-'
-                    }
+                  <TableCell className="text-right">
+                    {((employee.bonus || 0) + (employee.targetBonus || 0)).toLocaleString()} SAR
                   </TableCell>
-                  <TableCell
-                    className="text-right cursor-pointer hover:bg-muted/50"
-                    onClick={() => onEmployeeSelect(employee.id)}
-                  >
-                    {employee.deductions > 0 ? `${employee.deductions.toLocaleString()} SAR` : '-'}
+                  <TableCell className="text-right text-destructive">
+                    {(employee.deductions + employee.loans).toLocaleString()} SAR
                   </TableCell>
-                  <TableCell
-                    className="text-right cursor-pointer hover:bg-muted/50"
-                    onClick={() => onEmployeeSelect(employee.id)}
-                  >
-                    {employee.loans > 0 ? `${employee.loans.toLocaleString()} SAR` : '-'}
+                  <TableCell className="text-right font-bold">
+                    {employee.total.toLocaleString()} SAR
                   </TableCell>
-                  <TableCell
-                    className="text-right font-medium cursor-pointer hover:bg-muted/50"
-                    onClick={() => onEmployeeSelect(employee.id)}
-                  >
-                    <div className="flex items-center justify-end gap-1">
-                      {employee.total.toLocaleString()} SAR
-                      {hasMonthlySalaryChange && (
-                        <span
-                          className={monthlyChange && monthlyChange > 0 ? 'text-green-600' : 'text-red-600'}
-                          title={`Change from previous month: ${monthlyChange?.toLocaleString()} SAR`}
-                        >
-                          {monthlyChange && monthlyChange > 0 ? <ArrowUp className="h-4 w-4" /> : <ArrowDown className="h-4 w-4" />}
+                  <TableCell className="text-right">
+                    {hasMonthlySalaryChange && (
+                      <div className={`flex items-center justify-end ${monthlyChange! > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                        {monthlyChange! > 0 ? (
+                          <ArrowUp className="h-4 w-4 mr-1" />
+                        ) : (
+                          <ArrowDown className="h-4 w-4 mr-1" />
+                        )}
+                        <span>
+                          {Math.abs(monthlyChange!).toLocaleString()} SAR
                         </span>
-                      )}
-                    </div>
+                      </div>
+                    )}
                   </TableCell>
                   <TableCell>
-                    <div className="flex items-center justify-end">
-                      <Dialog
-                        open={dialogOpen[employee.id]}
-                        onOpenChange={(open) => {
-                          setDialogOpen(prev => ({ ...prev, [employee.id]: open }));
-                          if (open) {
-                            setSelectedEmployeeForPayslip(employee.id);
-                            setIsPayslipLoading(true);
-                          }
-                        }}
-                      >
-                        <DialogTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                          >
-                            <FileText className="h-4 w-4" />
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent className="max-w-4xl">
-                          <DialogHeader>
-                            <DialogTitle>Payslip - {employee.name}</DialogTitle>
-                          </DialogHeader>
-                          <div className="mt-4">
-                            {isPayslipLoading || isSalaryPlanLoading ? (
-                              <div className="flex justify-center py-8">
-                                <Skeleton className="h-96 w-full" />
-                              </div>
-                            ) : (
-                              <PayslipTemplateViewer
-                                key={`payslip-${employee.id}`}
-                                payslipData={buildPayslipData(employee)}
-                              />
-                            )}
+                    <Dialog
+                      open={dialogOpen[employee.id]}
+                      onOpenChange={(open) => {
+                        setDialogOpen((prev) => ({ ...prev, [employee.id]: open }));
+                        if (open) {
+                          setSelectedEmployeeForPayslip(employee.id);
+                          setIsPayslipLoading(true);
+                        }
+                      }}
+                    >
+                      <DialogTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                          }}
+                        >
+                          <FileText className="h-4 w-4" />
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="max-w-4xl max-h-[90vh] overflow-auto">
+                        <DialogHeader>
+                          <DialogTitle>Payslip for {employee.name}</DialogTitle>
+                        </DialogHeader>
+                        {isPayslipLoading ? (
+                          <div className="flex items-center justify-center h-64">
+                            <Skeleton className="h-full w-full" />
                           </div>
-                        </DialogContent>
-                      </Dialog>
-                    </div>
+                        ) : (
+                          <PayslipTemplateViewer payslipData={buildPayslipData(employee)} />
+                        )}
+                      </DialogContent>
+                    </Dialog>
                   </TableCell>
                 </TableRow>
               );

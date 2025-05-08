@@ -42,8 +42,9 @@ export const EmployeeGrid = ({
     
     if (totalPages <= 1) return null;
     
+    // Desktop pagination
     return (
-      <div className="flex items-center justify-center gap-4 mt-6">
+      <div className="hidden sm:flex items-center justify-center gap-4 mt-6">
         <Button
           variant="outline"
           size="sm"
@@ -70,6 +71,43 @@ export const EmployeeGrid = ({
       </div>
     );
   };
+
+  const renderMobilePagination = () => {
+    const { currentPage, totalPages } = pagination;
+    
+    if (totalPages <= 1) return null;
+    
+    // Mobile fixed bottom pagination
+    return (
+      <div className="fixed bottom-0 left-0 right-0 sm:hidden bg-background shadow-md border-t p-3 flex justify-between items-center z-50">
+        <Button
+          variant="outline"
+          size="icon"
+          className="h-11 w-11 rounded-full"
+          onClick={() => onPageChange(currentPage - 1)}
+          disabled={currentPage === 1 || isLoading}
+          aria-label="Previous page"
+        >
+          <ChevronLeft className="h-5 w-5" />
+        </Button>
+        
+        <span className="text-sm font-medium">
+          {currentPage} / {totalPages}
+        </span>
+        
+        <Button
+          variant="outline"
+          size="icon"
+          className="h-11 w-11 rounded-full"
+          onClick={() => onPageChange(currentPage + 1)}
+          disabled={currentPage === totalPages || isLoading}
+          aria-label="Next page"
+        >
+          <ChevronRight className="h-5 w-5" />
+        </Button>
+      </div>
+    );
+  };
   
   if (isLoading) {
     return (
@@ -88,6 +126,7 @@ export const EmployeeGrid = ({
           ))}
         </div>
         {renderPaginationControls()}
+        {renderMobilePagination()}
       </div>
     );
   }
@@ -107,7 +146,7 @@ export const EmployeeGrid = ({
   }
   
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-16 sm:pb-0">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {employees.map(employee => (
           <EmployeeCard 
@@ -122,6 +161,7 @@ export const EmployeeGrid = ({
         ))}
       </div>
       {renderPaginationControls()}
+      {renderMobilePagination()}
     </div>
   );
 };
