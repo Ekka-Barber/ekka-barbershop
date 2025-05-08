@@ -117,12 +117,16 @@ export const SalaryBreakdown = ({
       {/* MOBILE: Bottom Sheet */}
       <div className="block sm:hidden">
         <Sheet open={!!selectedEmployeeId} onOpenChange={onBack}>
-          <SheetContent side="bottom" className="p-0 bg-white max-h-[85vh] h-auto">
+          <SheetContent 
+            side="bottom" 
+            className="p-0 bg-white max-h-[90vh] h-auto rounded-t-xl overflow-hidden shadow-lg"
+            closeButton={false}
+          >
             <SheetHeader className="px-4 py-3 border-b sticky top-0 bg-white z-10">
               <div className="flex items-center">
                 <button
                   type="button"
-                  className="mr-3 h-10 w-10 flex items-center justify-center rounded-full focus:outline-none focus:ring-2 focus:ring-primary bg-muted/50"
+                  className="mr-3 h-11 w-11 flex items-center justify-center rounded-full focus:outline-none focus:ring-2 focus:ring-primary bg-muted/50 touch-manipulation"
                   aria-label="Back"
                   tabIndex={0}
                   onClick={onBack}
@@ -137,42 +141,67 @@ export const SalaryBreakdown = ({
                   </div>
                 </div>
               </div>
+              {/* Visual drag indicator at top of modal */}
+              <div className="absolute top-0 left-0 right-0 flex justify-center">
+                <div className="w-12 h-1 bg-muted rounded-full my-2" />
+              </div>
             </SheetHeader>
+            
             <Tabs defaultValue="summary" className="h-full">
               <TabsList className="w-full justify-start px-4 pt-2 pb-0 overflow-x-auto bg-white sticky top-[57px] z-10 border-b">
-                <TabsTrigger value="summary" className="text-sm py-2">Summary</TabsTrigger>
-                <TabsTrigger value="transactions" className="text-sm py-2">Transactions</TabsTrigger>
-                <TabsTrigger value="history" className="text-sm py-2">History</TabsTrigger>
+                <TabsTrigger 
+                  value="summary" 
+                  className="text-sm min-h-[44px] py-2 px-4"
+                  aria-label="View salary summary"
+                >
+                  Summary
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="transactions" 
+                  className="text-sm min-h-[44px] py-2 px-4"
+                  aria-label="View transactions"
+                >
+                  Transactions
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="history" 
+                  className="text-sm min-h-[44px] py-2 px-4"
+                  aria-label="View salary history"
+                >
+                  History
+                </TabsTrigger>
               </TabsList>
-              <TabsContent value="summary" className="p-4 bg-white overflow-auto max-h-[70vh]">
+              
+              {/* Summary Tab Content - with improved spacing for touch */}
+              <TabsContent value="summary" className="p-5 bg-white overflow-auto max-h-[70vh]">
                 {/* Salary summary for mobile */}
-                <div className="grid grid-cols-2 gap-3 mb-5">
-                  <div className="bg-muted rounded-lg p-3">
+                <div className="grid grid-cols-2 gap-4 mb-6">
+                  <div className="bg-muted rounded-lg p-4">
                     <div className="text-xs text-muted-foreground">Base Salary</div>
                     <div className="text-lg font-bold">{salaryData ? formatCurrency(salaryData.baseSalary) : '-'}</div>
                   </div>
-                  <div className="bg-muted rounded-lg p-3">
+                  <div className="bg-muted rounded-lg p-4">
                     <div className="text-xs text-muted-foreground">Commission</div>
                     <div className="text-lg font-bold">{salaryData ? formatCurrency(salaryData.commission) : '-'}</div>
                   </div>
-                  <div className="bg-background border border-muted rounded-lg p-3 col-span-2">
+                  <div className="bg-background border border-muted rounded-lg p-4 col-span-2">
                     <div className="text-sm font-medium">Total Earnings</div>
                     <div className="text-xl font-bold">{salaryData ? formatCurrency(salaryData.total) : '-'}</div>
                   </div>
                 </div>
                 
-                <div className="mb-5">
+                <div className="mb-6">
                   <h3 className="text-base font-medium mb-3">Additional Income & Deductions</h3>
-                  <div className="grid grid-cols-3 gap-2">
-                    <div className="bg-green-50/50 rounded-lg p-3 text-center border border-green-100/50">
+                  <div className="grid grid-cols-3 gap-3">
+                    <div className="bg-green-50/50 rounded-lg p-4 text-center border border-green-100/50">
                       <div className="text-xs text-green-700 mb-1">Bonuses</div>
                       <div className="text-base font-bold text-green-700">{salaryData ? formatCurrency(salaryData.bonus) : '-'}</div>
                     </div>
-                    <div className="bg-red-50/50 rounded-lg p-3 text-center border border-red-100/50">
+                    <div className="bg-red-50/50 rounded-lg p-4 text-center border border-red-100/50">
                       <div className="text-xs text-red-700 mb-1">Deductions</div>
                       <div className="text-base font-bold text-red-700">{salaryData ? `-${formatCurrency(salaryData.deductions)}` : '-'}</div>
                     </div>
-                    <div className="bg-red-50/50 rounded-lg p-3 text-center border border-red-100/50">
+                    <div className="bg-red-50/50 rounded-lg p-4 text-center border border-red-100/50">
                       <div className="text-xs text-red-700 mb-1">Loans</div>
                       <div className="text-base font-bold text-red-700">{salaryData ? `-${formatCurrency(salaryData.loans)}` : '-'}</div>
                     </div>
@@ -183,7 +212,7 @@ export const SalaryBreakdown = ({
                   <div>
                     <h3 className="text-base font-medium mb-3">Sales Performance</h3>
                     <div className="bg-muted rounded-lg p-4">
-                      <div className="flex justify-between mb-2">
+                      <div className="flex justify-between mb-3">
                         <span className="text-sm">Sales Amount:</span>
                         <span className="font-medium">{formatCurrency(salesData.sales_amount || 0)}</span>
                       </div>
@@ -197,14 +226,16 @@ export const SalaryBreakdown = ({
                   </div>
                 )}
               </TabsContent>
-              <TabsContent value="transactions" className="p-4 bg-white overflow-auto max-h-[70vh]">
+              
+              {/* Transactions Tab Content */}
+              <TabsContent value="transactions" className="p-5 bg-white overflow-auto max-h-[70vh]">
                 {/* Transactions list with color coding */}
                 {[...(bonusTransactions.map(t => ({ ...t, type: 'bonus' }))),
                   ...(deductionTransactions.map(t => ({ ...t, type: 'deduction' }))),
                   ...(loanTransactions.map(t => ({ ...t, type: 'loan' })))]
                   .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
                   .length > 0 ? (
-                  <div className="space-y-3">
+                  <div className="space-y-4">
                     {[...(bonusTransactions.map(t => ({ ...t, type: 'bonus' }))),
                       ...(deductionTransactions.map(t => ({ ...t, type: 'deduction' }))),
                       ...(loanTransactions.map(t => ({ ...t, type: 'loan' })))]
@@ -212,28 +243,28 @@ export const SalaryBreakdown = ({
                       .map((transaction, index) => (
                         <div
                           key={index}
-                          className={`flex items-center p-3 border rounded-lg ${
+                          className={`flex items-center p-4 border rounded-lg ${
                             transaction.type === 'bonus'
                               ? 'border-green-100/50 bg-green-50/50'
                               : 'border-red-100/50 bg-red-50/50'
                           }`}
                         >
                           <div
-                            className={`h-10 w-10 rounded-full flex items-center justify-center mr-3 ${
+                            className={`h-12 w-12 rounded-full flex items-center justify-center mr-4 ${
                               transaction.type === 'bonus'
                                 ? 'bg-green-100/70 text-green-700'
                                 : 'bg-red-100/70 text-red-700'
                             }`}
                           >
                             {transaction.type === 'bonus' ? (
-                              <Plus className="h-5 w-5" />
+                              <Plus className="h-6 w-6" />
                             ) : (
-                              <Minus className="h-5 w-5" />
+                              <Minus className="h-6 w-6" />
                             )}
                           </div>
                           <div className="flex-1">
                             <div className="font-medium">{transaction.description}</div>
-                            <div className="text-xs text-muted-foreground">
+                            <div className="text-sm text-muted-foreground mt-1">
                               {new Date(transaction.date).toLocaleDateString()}
                             </div>
                           </div>
@@ -252,30 +283,35 @@ export const SalaryBreakdown = ({
                       ))}
                   </div>
                 ) : (
-                  <div className="flex flex-col items-center justify-center h-full text-center py-8">
-                    <div className="bg-muted h-16 w-16 rounded-full flex items-center justify-center mb-4">
-                      <Info className="h-7 w-7 text-muted-foreground" />
+                  <div className="flex flex-col items-center justify-center h-full text-center py-10">
+                    <div className="bg-muted h-20 w-20 rounded-full flex items-center justify-center mb-5">
+                      <Info className="h-8 w-8 text-muted-foreground" />
                     </div>
-                    <h3 className="text-lg font-medium mb-2">No transactions</h3>
+                    <h3 className="text-lg font-medium mb-3">No transactions</h3>
                     <p className="text-muted-foreground max-w-xs">
                       There are no bonus, deduction, or loan transactions for this period.
                     </p>
                   </div>
                 )}
               </TabsContent>
-              <TabsContent value="history" className="p-4 bg-white overflow-auto max-h-[70vh]">
+              
+              {/* History Tab Content */}
+              <TabsContent value="history" className="p-5 bg-white overflow-auto max-h-[70vh]">
                 {/* Placeholder for salary history visualization */}
-                <div className="flex flex-col items-center justify-center h-full text-center py-8">
-                  <div className="bg-muted h-16 w-16 rounded-full flex items-center justify-center mb-4">
-                    <CalendarDays className="h-7 w-7 text-muted-foreground" />
+                <div className="flex flex-col items-center justify-center h-full text-center py-10">
+                  <div className="bg-muted h-20 w-20 rounded-full flex items-center justify-center mb-5">
+                    <CalendarDays className="h-8 w-8 text-muted-foreground" />
                   </div>
-                  <h3 className="text-lg font-medium mb-2">Salary History</h3>
+                  <h3 className="text-lg font-medium mb-3">Salary History</h3>
                   <p className="text-muted-foreground max-w-xs">
                     Salary history visualization is coming soon. You'll be able to track changes over time.
                   </p>
                 </div>
               </TabsContent>
             </Tabs>
+            
+            {/* Bottom safe area padding */}
+            <div className="h-6 bg-white"></div>
           </SheetContent>
         </Sheet>
       </div>

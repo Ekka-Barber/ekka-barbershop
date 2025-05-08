@@ -272,7 +272,7 @@ export const LeaveManagement: React.FC<LeaveManagementProps> = ({ employees }) =
         </Button>
       </div>
 
-      {/* Mobile Leave Summary Cards - For quick overview on mobile */}
+      {/* Mobile Leave Summary Cards - With progressive disclosure */}
       <div className="block sm:hidden space-y-4">
         {employees.map(employee => {
           const balance = leaveData?.balances.get(employee.id);
@@ -293,9 +293,10 @@ export const LeaveManagement: React.FC<LeaveManagementProps> = ({ employees }) =
                   variant="ghost" 
                   size="sm" 
                   onClick={() => handleOpenLeaveDialog(employee)}
-                  className="h-9 px-2"
+                  className="h-11 w-11 flex items-center justify-center"
+                  aria-label={`Add leave for ${employee.name}`}
                 >
-                  <Calendar className="h-4 w-4" />
+                  <Calendar className="h-5 w-5" />
                 </Button>
               </div>
               
@@ -311,29 +312,58 @@ export const LeaveManagement: React.FC<LeaveManagementProps> = ({ employees }) =
                   </div>
                 </div>
                 
-                {leaveRecords.length > 0 ? (
-                  <div className="mt-4">
-                    <p className="text-sm font-medium mb-2">Recent Leave</p>
-                    <div className="space-y-2">
-                      {leaveRecords.slice(0, 2).map(leave => (
-                        <div key={leave.id} className="border p-3 rounded-md text-xs">
-                          <div className="flex justify-between">
-                            <Badge variant="outline" className="mb-1">{leave.reason}</Badge>
-                            <span className="text-muted-foreground">{leave.duration_days} days</span>
-                          </div>
-                          <p className="text-xs mt-1">{leave.date} to {leave.end_date}</p>
+                {/* Progressive disclosure pattern using Accordion */}
+                {leaveRecords.length > 0 && (
+                  <Accordion type="single" collapsible className="mt-4">
+                    <AccordionItem value={`leave-history-${employee.id}`} className="border-none">
+                      <AccordionTrigger className="py-2 text-sm font-medium">
+                        View Leave History ({leaveRecords.length})
+                      </AccordionTrigger>
+                      <AccordionContent>
+                        <div className="space-y-3 pt-2">
+                          {leaveRecords.map(leave => (
+                            <div key={leave.id} className="border p-3 rounded-lg text-sm relative">
+                              <div className="flex justify-between items-start gap-2">
+                                <div className="flex-1">
+                                  <Badge variant="outline" className="mb-1">{leave.reason}</Badge>
+                                  <div className="flex justify-between mt-1">
+                                    <p className="text-xs">{leave.date} to {leave.end_date}</p>
+                                    <p className="text-xs font-medium">{leave.duration_days} days</p>
+                                  </div>
+                                </div>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-10 w-10 -mt-1 -mr-1"
+                                  onClick={() => handleDeleteLeave(leave.id)}
+                                  aria-label={`Delete leave record from ${leave.date}`}
+                                >
+                                  <span className="sr-only">Delete</span>
+                                  &times;
+                                </Button>
+                              </div>
+                            </div>
+                          ))}
                         </div>
-                      ))}
-                      {leaveRecords.length > 2 && (
-                        <p className="text-xs text-muted-foreground text-center mt-1">
-                          + {leaveRecords.length - 2} more records
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                ) : (
-                  <p className="text-sm text-muted-foreground mt-4">No leave records</p>
+                      </AccordionContent>
+                    </AccordionItem>
+                  </Accordion>
                 )}
+                
+                {leaveRecords.length === 0 && (
+                  <div className="mt-4 py-3 text-center text-sm text-muted-foreground bg-muted/30 rounded-lg">
+                    No leave records
+                  </div>
+                )}
+                
+                {/* Add leave button for quick access */}
+                <Button 
+                  variant="outline" 
+                  onClick={() => handleOpenLeaveDialog(employee)}
+                  className="w-full mt-4 h-12"
+                >
+                  <Calendar className="mr-2 h-4 w-4" /> Add Leave
+                </Button>
               </div>
             </div>
           );
@@ -374,7 +404,7 @@ export const LeaveManagement: React.FC<LeaveManagementProps> = ({ employees }) =
                   </div>
                   
                   <Accordion type="single" collapsible className="mt-4">
-                    <AccordionItem value="leave-history">
+                    <AccordionItem value={`leave-history-${employee.id}`}>
                       <AccordionTrigger className="text-sm">Leave History</AccordionTrigger>
                       <AccordionContent>
                         {leaveRecords.length > 0 ? (

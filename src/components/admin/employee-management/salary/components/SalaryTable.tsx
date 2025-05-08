@@ -225,11 +225,19 @@ export const SalaryTable = ({
             >
               {/* Essential Information - Always Visible */}
               <div 
-                className="flex items-center gap-3 mb-1"
+                className="flex items-center gap-3 mb-1 cursor-pointer"
                 onClick={() => onEmployeeSelect(employee.id)}
+                role="button"
+                tabIndex={0}
+                aria-label={`View details for ${employee.name}`}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    onEmployeeSelect(employee.id);
+                  }
+                }}
               >
                 {employeeDetails?.photo_url ? (
-                  <div className="h-14 w-14 rounded-full border-2 border-muted/40 overflow-hidden flex-shrink-0">
+                  <div className="h-16 w-16 rounded-full border-2 border-muted/40 overflow-hidden flex-shrink-0">
                     <img
                       src={employeeDetails.photo_url}
                       alt={employee.name}
@@ -237,7 +245,7 @@ export const SalaryTable = ({
                     />
                   </div>
                 ) : (
-                  <div className="h-14 w-14 rounded-full bg-muted flex items-center justify-center text-lg font-bold text-muted-foreground flex-shrink-0 border-2 border-muted/40">
+                  <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center text-lg font-bold text-muted-foreground flex-shrink-0 border-2 border-muted/40">
                     {employee.name.charAt(0)}
                   </div>
                 )}
@@ -259,12 +267,13 @@ export const SalaryTable = ({
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-11 w-11 absolute right-2 top-2 z-10"
+                      className="h-12 w-12 absolute right-2 top-2 z-10"
+                      aria-label={`View payslip for ${employee.name}`}
                       onClick={(e) => {
                         e.stopPropagation();
                       }}
                     >
-                      <FileText className="h-5 w-5" />
+                      <FileText className="h-6 w-6" />
                     </Button>
                   </DialogTrigger>
                   <DialogContent className="max-w-4xl max-h-[90vh] overflow-auto">
@@ -291,9 +300,9 @@ export const SalaryTable = ({
                 {hasMonthlySalaryChange && (
                   <div className={`flex items-center ${monthlyChange! > 0 ? 'text-green-600' : 'text-red-600'}`}>
                     {monthlyChange! > 0 ? (
-                      <ArrowUp className="h-4 w-4 mr-1" />
+                      <ArrowUp className="h-5 w-5 mr-1" />
                     ) : (
-                      <ArrowDown className="h-4 w-4 mr-1" />
+                      <ArrowDown className="h-5 w-5 mr-1" />
                     )}
                     <span className="font-medium">
                       {Math.abs(monthlyChange!).toLocaleString()} SAR
@@ -306,22 +315,24 @@ export const SalaryTable = ({
               <Button
                 variant="ghost"
                 size="sm"
-                className="flex items-center justify-center py-1 mt-1 mb-0 w-full"
+                className="flex items-center justify-center py-2 mt-1 mb-0 w-full h-12"
                 onClick={(e) => toggleCardExpansion(employee.id, e)}
+                aria-expanded={isExpanded}
+                aria-controls={`details-${employee.id}`}
               >
-                <span className="mr-1 text-xs">
+                <span className="mr-1 text-sm">
                   {isExpanded ? 'Hide Details' : 'Show Details'}
                 </span>
                 {isExpanded ? (
-                  <ChevronUp className="h-4 w-4" />
+                  <ChevronUp className="h-5 w-5" />
                 ) : (
-                  <ChevronDown className="h-4 w-4" />
+                  <ChevronDown className="h-5 w-5" />
                 )}
               </Button>
 
               {/* Expanded Details - Only visible when expanded */}
               {isExpanded && (
-                <div className="pt-2 space-y-3 text-sm animate-in fade-in-50 duration-200">
+                <div id={`details-${employee.id}`} className="pt-2 space-y-3 text-sm animate-in fade-in-50 duration-200">
                   <div className="grid grid-cols-2 gap-3">
                     <div className="bg-muted/30 p-3 rounded-lg">
                       <div className="text-xs text-muted-foreground">Base Salary</div>
