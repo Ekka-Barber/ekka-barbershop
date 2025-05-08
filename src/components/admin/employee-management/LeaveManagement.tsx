@@ -264,15 +264,84 @@ export const LeaveManagement: React.FC<LeaveManagementProps> = ({ employees }) =
   };
 
   return (
-    <div className="space-y-8">
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold">Employee Leave Management</h2>
-        <Button variant="outline" onClick={() => setShowPastLeaveDialog(true)}>
+    <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-3 sm:space-y-0">
+        <h2 className="text-xl sm:text-2xl font-bold">Employee Leave Management</h2>
+        <Button variant="outline" onClick={() => setShowPastLeaveDialog(true)} className="w-full sm:w-auto">
           <RotateCcw className="mr-2 h-4 w-4" /> Record Past Leave
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      {/* Mobile Leave Summary Cards - For quick overview on mobile */}
+      <div className="block sm:hidden space-y-4">
+        {employees.map(employee => {
+          const balance = leaveData?.balances.get(employee.id);
+          const leaveRecords = leaveData?.records.get(employee.id) || [];
+          const defaultQuota = employee.annual_leave_quota || 21;
+          const totalAvailable = balance?.totalAvailable ?? calculateAccruedLeave(employee.start_date, defaultQuota);
+          const daysTaken = balance?.daysTaken ?? 0;
+          const daysRemaining = balance?.daysRemaining ?? (totalAvailable - daysTaken);
+          
+          return (
+            <div 
+              key={employee.id} 
+              className="border rounded-lg overflow-hidden shadow-sm"
+            >
+              <div className="bg-muted/30 p-4 flex justify-between items-center">
+                <h3 className="font-semibold">{employee.name}</h3>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => handleOpenLeaveDialog(employee)}
+                  className="h-9 px-2"
+                >
+                  <Calendar className="h-4 w-4" />
+                </Button>
+              </div>
+              
+              <div className="p-4">
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="bg-green-50 p-3 rounded-lg">
+                    <p className="text-xs text-green-600">Available</p>
+                    <p className="text-lg font-semibold text-green-700">{daysRemaining}</p>
+                  </div>
+                  <div className="bg-orange-50 p-3 rounded-lg">
+                    <p className="text-xs text-orange-600">Taken</p>
+                    <p className="text-lg font-semibold text-orange-700">{daysTaken}</p>
+                  </div>
+                </div>
+                
+                {leaveRecords.length > 0 ? (
+                  <div className="mt-4">
+                    <p className="text-sm font-medium mb-2">Recent Leave</p>
+                    <div className="space-y-2">
+                      {leaveRecords.slice(0, 2).map(leave => (
+                        <div key={leave.id} className="border p-3 rounded-md text-xs">
+                          <div className="flex justify-between">
+                            <Badge variant="outline" className="mb-1">{leave.reason}</Badge>
+                            <span className="text-muted-foreground">{leave.duration_days} days</span>
+                          </div>
+                          <p className="text-xs mt-1">{leave.date} to {leave.end_date}</p>
+                        </div>
+                      ))}
+                      {leaveRecords.length > 2 && (
+                        <p className="text-xs text-muted-foreground text-center mt-1">
+                          + {leaveRecords.length - 2} more records
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground mt-4">No leave records</p>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Desktop Leave Management Cards */}
+      <div className="hidden sm:grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {employees.map(employee => {
           const balance = leaveData?.balances.get(employee.id);
           const leaveRecords = leaveData?.records.get(employee.id) || [];
@@ -352,37 +421,41 @@ export const LeaveManagement: React.FC<LeaveManagementProps> = ({ employees }) =
         })}
       </div>
       
-      {/* Employee Leave Dialog */}
+      {/* Mobile-Optimized Employee Leave Dialog */}
       <Dialog open={showEmployeeLeaveDialog} onOpenChange={setShowEmployeeLeaveDialog}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-md max-h-[90vh] overflow-auto p-4 sm:p-6">
           <DialogHeader>
-            <DialogTitle>Add Leave for {selectedEmployee?.name}</DialogTitle>
+            <DialogTitle className="text-center">Add Leave for {selectedEmployee?.name}</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4">
+          <div className="space-y-5 py-2">
             <DateRangePicker
               date={leaveRange || { from: undefined, to: undefined }}
               onDateChange={setLeaveRange}
+              className="w-full"
             />
             
-            <Select 
-              value={leaveReason} 
-              onValueChange={setLeaveReason}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select reason" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Annual Leave">Annual Leave</SelectItem>
-                <SelectItem value="Sick Leave">Sick Leave</SelectItem>
-                <SelectItem value="Personal Leave">Personal Leave</SelectItem>
-                <SelectItem value="Unpaid Leave">Unpaid Leave</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Leave Type</label>
+              <Select 
+                value={leaveReason} 
+                onValueChange={setLeaveReason}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select reason" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Annual Leave">Annual Leave</SelectItem>
+                  <SelectItem value="Sick Leave">Sick Leave</SelectItem>
+                  <SelectItem value="Personal Leave">Personal Leave</SelectItem>
+                  <SelectItem value="Unpaid Leave">Unpaid Leave</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
             
             <Button 
               onClick={handleAddLeave} 
               disabled={!leaveRange?.from || !leaveRange.to}
-              className="w-full"
+              className="w-full h-11"
             >
               Save Leave
             </Button>
@@ -390,46 +463,53 @@ export const LeaveManagement: React.FC<LeaveManagementProps> = ({ employees }) =
         </DialogContent>
       </Dialog>
       
-      {/* Record Past Leave Dialog */}
+      {/* Record Past Leave Dialog - optimized for mobile */}
       <Dialog open={showPastLeaveDialog} onOpenChange={setShowPastLeaveDialog}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-md max-h-[90vh] overflow-auto p-4 sm:p-6">
           <DialogHeader>
-            <DialogTitle>Record Past Leave</DialogTitle>
+            <DialogTitle className="text-center">Record Past Leave</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4 py-2">
-            <Select onValueChange={(value) => {
-              const employee = employees.find(e => e.id === value);
-              if (employee) setSelectedEmployee(employee);
-            }}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select employee" />
-              </SelectTrigger>
-              <SelectContent>
-                {employees.map(emp => (
-                  <SelectItem key={emp.id} value={emp.id}>{emp.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          <div className="space-y-5 py-2">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Employee</label>
+              <Select onValueChange={(value) => {
+                const employee = employees.find(e => e.id === value);
+                if (employee) setSelectedEmployee(employee);
+              }}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select employee" />
+                </SelectTrigger>
+                <SelectContent>
+                  {employees.map(emp => (
+                    <SelectItem key={emp.id} value={emp.id}>{emp.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
             
             <DateRangePicker
               date={leaveRange || { from: undefined, to: undefined }}
               onDateChange={setLeaveRange}
+              className="w-full"
             />
             
-            <Select 
-              value={leaveReason} 
-              onValueChange={setLeaveReason}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select reason" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Annual Leave">Annual Leave</SelectItem>
-                <SelectItem value="Sick Leave">Sick Leave</SelectItem>
-                <SelectItem value="Personal Leave">Personal Leave</SelectItem>
-                <SelectItem value="Unpaid Leave">Unpaid Leave</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Leave Type</label>
+              <Select 
+                value={leaveReason} 
+                onValueChange={setLeaveReason}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select reason" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Annual Leave">Annual Leave</SelectItem>
+                  <SelectItem value="Sick Leave">Sick Leave</SelectItem>
+                  <SelectItem value="Personal Leave">Personal Leave</SelectItem>
+                  <SelectItem value="Unpaid Leave">Unpaid Leave</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
             
             <Button 
               onClick={() => {
@@ -437,7 +517,7 @@ export const LeaveManagement: React.FC<LeaveManagementProps> = ({ employees }) =
                 setShowPastLeaveDialog(false);
               }}
               disabled={!selectedEmployee || !leaveRange?.from || !leaveRange.to}
-              className="w-full"
+              className="w-full h-11"
             >
               <Plus className="mr-2 h-4 w-4" /> Add Past Leave
             </Button>

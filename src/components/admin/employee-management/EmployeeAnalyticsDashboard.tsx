@@ -254,20 +254,56 @@ export const EmployeeAnalyticsDashboard = ({
     plugins: {
       legend: {
         position: 'top',
+        labels: {
+          boxWidth: 12,
+          padding: 15,
+          font: {
+            size: window.innerWidth < 640 ? 10 : 12
+          }
+        }
       },
       title: {
         display: true,
         text: selectedMetric === 'sales' 
           ? 'Monthly Sales Performance' 
           : 'Monthly Average Performance',
+        font: {
+          size: window.innerWidth < 640 ? 14 : 16
+        }
       },
+      tooltip: {
+        titleFont: {
+          size: window.innerWidth < 640 ? 12 : 14
+        },
+        bodyFont: {
+          size: window.innerWidth < 640 ? 11 : 13
+        },
+        boxPadding: 6
+      }
     },
     scales: {
       y: {
         beginAtZero: true,
         title: {
           display: true,
-          text: 'Amount (SAR)'
+          text: 'Amount (SAR)',
+          font: {
+            size: window.innerWidth < 640 ? 10 : 12
+          }
+        },
+        ticks: {
+          font: {
+            size: window.innerWidth < 640 ? 9 : 11
+          },
+          maxRotation: 0
+        }
+      },
+      x: {
+        ticks: {
+          font: {
+            size: window.innerWidth < 640 ? 9 : 11
+          },
+          maxRotation: window.innerWidth < 640 ? 45 : 0
         }
       }
     }
@@ -572,7 +608,7 @@ export const EmployeeAnalyticsDashboard = ({
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="h-80">
+            <div className="h-60 sm:h-80">
               {selectedChartType === 'bar' ? (
                 <Bar options={chartOptions} data={chartData} />
               ) : (
@@ -600,7 +636,7 @@ export const EmployeeAnalyticsDashboard = ({
             <CardTitle className="text-lg">Month-over-Month Growth Rate (%)</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="h-64">
+            <div className="h-48 sm:h-64">
               <Bar 
                 options={{
                   ...chartOptions,
@@ -608,7 +644,10 @@ export const EmployeeAnalyticsDashboard = ({
                     ...chartOptions.plugins,
                     title: {
                       display: true,
-                      text: 'Monthly Growth Rate'
+                      text: 'Monthly Growth Rate',
+                      font: {
+                        size: window.innerWidth < 640 ? 14 : 16
+                      }
                     }
                   }
                 }} 
