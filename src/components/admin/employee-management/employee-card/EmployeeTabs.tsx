@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { Employee } from '@/types/employee';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Info, BarChart, DollarSign } from 'lucide-react';
+import { Info, BarChart, DollarSign, FileText } from 'lucide-react';
 import { InfoTabContent, StatsTabContent, FinancialsTabContent } from './EmployeeTabContent';
+import { EmployeeDocumentsTab } from './EmployeeDocumentsTab';
 
 // Define Branch interface
 interface Branch {
@@ -45,6 +46,10 @@ export const EmployeeTabs = ({
             <DollarSign className="h-4 w-4" />
             <span>Financials</span>
           </TabsTrigger>
+          <TabsTrigger value="documents" className="flex items-center gap-1">
+            <FileText className="h-4 w-4" />
+            <span>Documents</span>
+          </TabsTrigger>
         </TabsList>
       </div>
       
@@ -71,6 +76,13 @@ export const EmployeeTabs = ({
           employee={employee}
           refetchEmployees={refetchEmployees}
           selectedMonth={selectedMonth}
+        />
+      </TabsContent>
+      
+      <TabsContent value="documents">
+        <EmployeeDocumentsTab 
+          employee={employee}
+          tabValue="documents"
         />
       </TabsContent>
     </Tabs>
