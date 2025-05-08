@@ -10,7 +10,7 @@ import { SalaryTable } from './components/SalaryTable';
 /* import { useSalaryFiltering } from './hooks/useSalaryFiltering'; */
 import { useDashboardStats } from './hooks/useDashboardStats';
 import { Button } from '@/components/ui/button';
-import { Download, Calculator, List, FileText } from 'lucide-react';
+import { Download, Calculator, List, FileText, ChevronLeft, ChevronRight, Search, RefreshCw, Filter, Plus, Clock } from 'lucide-react';
 import { EmployeeSalary } from './hooks/utils/salaryTypes';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import FormulaSalaryPlanList from './components/FormulaSalaryPlanList';
@@ -192,8 +192,61 @@ export const SalaryDashboard = ({
     return currentData.total - prevData.total;
   };
   
+  // Add state for search query (if not present)
+  const [searchQuery, setSearchQuery] = useState('');
+  
   return (
     <div className="space-y-6">
+      {/* Mobile Header */}
+      <div className="block sm:hidden space-y-4">
+        <div className="flex items-center justify-between">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => handleMonthChange(new Date(pickerDate.getFullYear(), pickerDate.getMonth() - 1))}
+            aria-label="Previous month"
+            className="h-10 w-10"
+          >
+            <ChevronLeft className="h-5 w-5" />
+          </Button>
+          <div className="text-center flex-1">
+            <h2 className="font-semibold text-base">
+              {pickerDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+            </h2>
+          </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => handleMonthChange(new Date(pickerDate.getFullYear(), pickerDate.getMonth() + 1))}
+            aria-label="Next month"
+            className="h-10 w-10"
+          >
+            <ChevronRight className="h-5 w-5" />
+          </Button>
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <div className="bg-muted rounded-lg p-3">
+            <div className="text-xs text-muted-foreground">Total Payout</div>
+            <div className="text-lg font-bold">{filteredStats.totalPayout.toLocaleString()} SAR</div>
+          </div>
+          <div className="bg-muted rounded-lg p-3">
+            <div className="text-xs text-muted-foreground">Employees</div>
+            <div className="text-lg font-bold">{filteredStats.employeeCount}</div>
+          </div>
+        </div>
+        <div className="relative">
+          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+          <input
+            type="search"
+            placeholder="Search employees..."
+            className="pl-8 h-11 w-full rounded-md border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            aria-label="Search employees"
+          />
+        </div>
+      </div>
+      {/* Desktop Tabs and Content */}
       <Tabs defaultValue="overview" value={salaryTab} onValueChange={setSalaryTab} className="space-y-6">
         <div className="w-full overflow-x-auto">
           <div className="flex flex-nowrap items-center justify-between gap-2 px-2 min-w-max">
@@ -367,6 +420,34 @@ export const SalaryDashboard = ({
           )}
         </TabsContent>
       </Tabs>
+      {/* Mobile Action Bar */}
+      <div className="block sm:hidden fixed bottom-0 left-0 right-0 bg-background border-t z-10">
+        <div className="flex items-center justify-around p-2">
+          <Button variant="ghost" size="icon" onClick={refreshData} className="h-10 w-10" aria-label="Refresh">
+            <RefreshCw className="h-5 w-5" />
+          </Button>
+          <Button variant="ghost" size="icon" onClick={() => {}} className="h-10 w-10" aria-label="Filter">
+            <Filter className="h-5 w-5" />
+          </Button>
+          <div className="w-14"></div> {/* Space for FAB */}
+          <Button variant="ghost" size="icon" onClick={toggleAutoRefresh} className="h-10 w-10" aria-label="Auto Refresh">
+            <Clock className={autoRefresh ? 'h-5 w-5 text-primary' : 'h-5 w-5'} />
+          </Button>
+          <Button variant="ghost" size="icon" onClick={exportSalaryData} className="h-10 w-10" aria-label="Export">
+            <Download className="h-5 w-5" />
+          </Button>
+        </div>
+      </div>
+      {/* Floating Action Button */}
+      <Button
+        className="block sm:hidden fixed right-4 bottom-16 h-14 w-14 rounded-full shadow-lg z-20"
+        onClick={() => {}}
+        aria-label="Add"
+      >
+        <Plus className="h-6 w-6" />
+      </Button>
+      {/* Add bottom padding to avoid overlap */}
+      <div className="block sm:hidden pb-20"></div>
     </div>
   );
 };
