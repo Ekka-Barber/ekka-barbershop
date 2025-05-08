@@ -1,32 +1,22 @@
 import { useState, useCallback } from 'react';
-import { addDays, differenceInDays } from 'date-fns';
-import { EmployeeDocument, DocumentCalculation, DocumentStatus } from '../types';
+import { differenceInDays } from 'date-fns';
+import { EmployeeDocument, DocumentCalculation } from '../types/document-types';
+import { documentService } from '../services/documentService';
 
-// DO NOT CHANGE API LOGIC
-// IMPORTANT: This is a temporary implementation using local state
-// In the final implementation, this will use the API
+// Use the real API implementation with Supabase
 export const useEmployeeDocuments = () => {
   const [documents, setDocuments] = useState<EmployeeDocument[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
-  // DO NOT CHANGE API LOGIC
+  // Fetch documents for an employee
   const fetchDocuments = useCallback(async (employeeId: string) => {
     setIsLoading(true);
     setError(null);
     
     try {
-      // IMPORTANT: In the final implementation, this would be an API call
-      // The API endpoint would be:
-      // GET /api/employees/{employeeId}/documents
-      console.log('Fetching documents for employee:', employeeId);
-      
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      // For now, return the documents from local state
-      // filtered by employee ID
-      const employeeDocuments = documents.filter(doc => doc.employeeId === employeeId);
+      // Use the document service to fetch documents
+      const employeeDocuments = await documentService.getDocumentsForEmployee(employeeId);
       setDocuments(employeeDocuments);
       
       setIsLoading(false);
@@ -37,37 +27,26 @@ export const useEmployeeDocuments = () => {
       setIsLoading(false);
       throw error;
     }
-  }, [documents]);
+  }, []);
 
-  // DO NOT CHANGE API LOGIC
+  // Add a new document
   const addDocument = useCallback(async (document: Partial<EmployeeDocument>) => {
     try {
-      // IMPORTANT: In the final implementation, this would be an API call
-      // The API endpoint would be:
-      // POST /api/employees/{employeeId}/documents
-      console.log('Adding document:', document);
+      // Use the document service to add a document
+      const newDocument = await documentService.createDocument({
+        employee_id: document.employee_id || '',
+        document_type: document.document_type || 'custom',
+        document_name: document.document_name || 'Untitled Document',
+        document_number: document.document_number || null,
+        issue_date: document.issue_date || new Date().toISOString(),
+        expiry_date: document.expiry_date || new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
+        duration_months: document.duration_months || 12,
+        notification_threshold_days: document.notification_threshold_days || 30,
+        document_url: document.document_url || null,
+        notes: document.notes || null,
+      });
       
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      // Create a new document with fake ID and timestamps
-      const newDocument: EmployeeDocument = {
-        id: `doc_${Date.now()}`,
-        employeeId: document.employeeId || '',
-        documentType: document.documentType || 'custom',
-        documentName: document.documentName || 'Untitled Document',
-        documentNumber: document.documentNumber,
-        issueDate: document.issueDate || new Date().toISOString(),
-        expiryDate: document.expiryDate || addDays(new Date(), 365).toISOString(),
-        durationMonths: document.durationMonths || 12,
-        status: calculateDocumentStatus(document.expiryDate || addDays(new Date(), 365).toISOString(), document.notificationThresholdDays || 30),
-        notificationThresholdDays: document.notificationThresholdDays || 30,
-        documentUrl: document.documentUrl,
-        notes: document.notes,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
-      
+      // Update the local state
       setDocuments(prevDocuments => [...prevDocuments, newDocument]);
       return newDocument;
     } catch (err) {
@@ -77,37 +56,23 @@ export const useEmployeeDocuments = () => {
     }
   }, []);
 
-  // DO NOT CHANGE API LOGIC
+  // Update an existing document
   const updateDocument = useCallback(async (id: string, document: Partial<EmployeeDocument>) => {
     try {
-      // IMPORTANT: In the final implementation, this would be an API call
-      // The API endpoint would be:
-      // PUT /api/documents/{id}
-      console.log('Updating document:', id, document);
+      // Use the document service to update a document
+      const updatedDocument = await documentService.updateDocument(id, document);
       
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
+      // Update the local state
       setDocuments(prevDocuments => {
         return prevDocuments.map(doc => {
           if (doc.id === id) {
-            // Calculate status for updated document
-            const expiryDate = document.expiryDate || doc.expiryDate;
-            const notificationThreshold = document.notificationThresholdDays || doc.notificationThresholdDays;
-            const status = calculateDocumentStatus(expiryDate, notificationThreshold);
-            
-            return {
-              ...doc,
-              ...document,
-              status,
-              updatedAt: new Date().toISOString(),
-            };
+            return updatedDocument;
           }
           return doc;
         });
       });
       
-      return id;
+      return updatedDocument;
     } catch (err) {
       const error = err instanceof Error ? err : new Error('Failed to update document');
       console.error(error);
@@ -115,22 +80,16 @@ export const useEmployeeDocuments = () => {
     }
   }, []);
 
-  // DO NOT CHANGE API LOGIC
+  // Delete a document
   const deleteDocument = useCallback(async (id: string) => {
     try {
-      // IMPORTANT: In the final implementation, this would be an API call
-      // The API endpoint would be:
-      // DELETE /api/documents/{id}
-      console.log('Deleting document:', id);
+      // Use the document service to delete a document
+      await documentService.deleteDocument(id);
       
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
+      // Update the local state
       setDocuments(prevDocuments => 
         prevDocuments.filter(doc => doc.id !== id)
       );
-      
-      return id;
     } catch (err) {
       const error = err instanceof Error ? err : new Error('Failed to delete document');
       console.error(error);
@@ -138,36 +97,23 @@ export const useEmployeeDocuments = () => {
     }
   }, []);
 
-  // Calculate document status based on expiry date and notification threshold
-  const calculateDocumentStatus = (expiryDate: string, notificationThresholdDays: number): DocumentStatus => {
-    try {
-      const today = new Date();
-      const expiry = new Date(expiryDate);
-      
-      if (today > expiry) {
-        return 'expired';
-      }
-      
-      const daysUntilExpiry = differenceInDays(expiry, today);
-      if (daysUntilExpiry <= notificationThresholdDays) {
-        return 'expiring_soon';
-      }
-      
-      return 'valid';
-    } catch (error) {
-      console.error('Error calculating document status:', error);
-      return 'valid'; // Default to valid on error
-    }
-  };
-
   // Calculate detailed status information for display
   const calculateStatus = useCallback((document: EmployeeDocument): DocumentCalculation => {
     try {
       const today = new Date();
-      const expiryDate = new Date(document.expiryDate);
-      const isExpired = today > expiryDate;
-      const daysRemaining = differenceInDays(expiryDate, today);
-      const isExpiringSoon = !isExpired && daysRemaining <= document.notificationThresholdDays;
+      const expiryDate = new Date(document.expiry_date);
+      
+      // Check if status is already in the document (from view)
+      const isExpired = document.status === 'expired' || today > expiryDate;
+      
+      // Use days_remaining from the view if available, otherwise calculate
+      const daysRemaining = document.days_remaining !== undefined 
+        ? document.days_remaining 
+        : differenceInDays(expiryDate, today);
+      
+      const isExpiringSoon = !isExpired && 
+        (document.status === 'expiring_soon' || 
+         daysRemaining <= document.notification_threshold_days);
       
       let statusText = '';
       if (isExpired) {
@@ -197,6 +143,26 @@ export const useEmployeeDocuments = () => {
     }
   }, []);
 
+  // Get all documents that are expiring soon
+  const getExpiringDocuments = useCallback(async (thresholdDays = 30) => {
+    try {
+      return await documentService.getExpiringDocuments(thresholdDays);
+    } catch (error) {
+      console.error('Error fetching expiring documents:', error);
+      return [];
+    }
+  }, []);
+
+  // Get all expired documents
+  const getExpiredDocuments = useCallback(async () => {
+    try {
+      return await documentService.getExpiredDocuments();
+    } catch (error) {
+      console.error('Error fetching expired documents:', error);
+      return [];
+    }
+  }, []);
+
   return {
     documents,
     isLoading,
@@ -206,5 +172,7 @@ export const useEmployeeDocuments = () => {
     updateDocument,
     deleteDocument,
     calculateStatus,
+    getExpiringDocuments,
+    getExpiredDocuments
   };
 }; 
