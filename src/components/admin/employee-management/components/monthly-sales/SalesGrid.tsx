@@ -1,11 +1,11 @@
 import React from 'react';
 import { SalesInputCard } from './SalesInputCard';
-import { Employee } from '../../../types';
+import { Employee } from '@/types/employee';
 
 interface SalesGridProps {
   employees: Employee[];
-  salesInputs: Record<string, number>;
-  onSalesChange: (employeeId: string, value: number) => void;
+  salesInputs: Record<string, string>;
+  onSalesChange: (employeeId: string, value: string) => void;
   selectedDate: Date;
   isLoading: boolean;
 }
@@ -55,7 +55,7 @@ export const SalesGrid: React.FC<SalesGridProps> = ({
         <SalesInputCard 
           key={employee.id} 
           employee={employee} 
-          salesValue={salesInputs[employee.id] || 0} 
+          salesValue={salesInputs[employee.id] || ''} 
           onChange={(value) => onSalesChange(employee.id, value)}
           selectedDate={selectedDate}
         />

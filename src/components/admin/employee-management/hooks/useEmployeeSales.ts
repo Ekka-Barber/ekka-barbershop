@@ -1,13 +1,33 @@
-import { useState, useEffect } from 'react';
-import { format } from 'date-fns';
+import { useState, useEffect, useCallback } from 'react';
+import { format, subMonths } from 'date-fns';
 import { supabase } from "@/integrations/supabase/client";
 import { Employee, EmployeeSales } from '@/types/employee';
+import { logger } from '@/utils/logger';
+
+export interface SalesAnalytics {
+  totalSales: number;
+  averageSales: number;
+  previousMonthComparison: number | null;
+  topPerformer: {
+    employeeId: string;
+    employeeName: string;
+    amount: number;
+  } | null;
+}
 
 export const useEmployeeSales = (selectedDate: Date, employees: Employee[]) => {
   const [salesInputs, setSalesInputs] = useState<Record<string, string>>({});
   const [existingSales, setExistingSales] = useState<EmployeeSales[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<string | null>(null);
+  const [error, setError] = useState<Error | null>(null);
+  const [salesAnalytics, setSalesAnalytics] = useState<SalesAnalytics>({
+    totalSales: 0,
+    averageSales: 0,
+    previousMonthComparison: null,
+    topPerformer: null
+  });
 
   // Reset the form when date or employees change
   useEffect(() => {
@@ -20,21 +40,26 @@ export const useEmployeeSales = (selectedDate: Date, employees: Employee[]) => {
     }
   }, [selectedDate, employees]);
 
-  const fetchSalesData = async () => {
+  // Enhanced fetchSalesData function
+  const fetchSalesData = useCallback(async () => {
     try {
+      setIsLoading(true);
+      setError(null);
+      
       // Format date as YYYY-MM-01 to get the first day of the month
       const monthString = format(selectedDate, 'yyyy-MM-01');
-      console.log('Fetching sales data for month:', monthString);
+      logger.info('Fetching sales data for month:', monthString);
       
+      // DO NOT CHANGE - PRESERVE API LOGIC
       // Fetch sales data for the selected month
       const { data, error } = await supabase
         .from('employee_sales')
         .select('*')
         .eq('month', monthString);
       
-      if (error) throw error;
+      if (error) throw new Error(error.message);
       
-      console.log('Fetched sales data:', data);
+      logger.info('Fetched sales data:', data?.length);
       
       // Initialize sales inputs with existing data
       const initialSalesInputs: Record<string, string> = {};
@@ -70,28 +95,107 @@ export const useEmployeeSales = (selectedDate: Date, employees: Employee[]) => {
             // We know employee_id exists because of the type guard in filter
             initialSalesInputs[sale.employee_id] = Math.floor(sale.sales_amount).toString();
           });
+          
+          // Calculate analytics for the current month
+          await calculateSalesAnalytics(validSalesData);
         } else {
           setLastUpdated(null);
         }
       } else {
         setExistingSales([]);
         setLastUpdated(null);
+        setSalesAnalytics({
+          totalSales: 0,
+          averageSales: 0,
+          previousMonthComparison: null,
+          topPerformer: null
+        });
       }
       
-      console.log('Setting initial sales inputs:', initialSalesInputs);
+      logger.info('Setting initial sales inputs:', Object.keys(initialSalesInputs).length);
       setSalesInputs(initialSalesInputs);
-    } catch (error) {
-      console.error('Error fetching sales data:', error);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error fetching sales data';
+      logger.error('Error fetching sales data:', errorMessage);
+      setError(err instanceof Error ? err : new Error(errorMessage));
+      
       // Still initialize empty inputs for all employees on error
       const emptyInputs: Record<string, string> = {};
       employees.forEach(employee => {
         emptyInputs[employee.id] = '';
       });
       setSalesInputs(emptyInputs);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [selectedDate, employees]);
+
+  // Calculate sales analytics including comparison with previous month
+  const calculateSalesAnalytics = async (salesData: EmployeeSales[]) => {
+    try {
+      // Calculate total and average sales for current month
+      const totalSales = salesData.reduce((sum, sale) => sum + sale.sales_amount, 0);
+      const averageSales = totalSales / salesData.length;
+      
+      // Find top performer
+      let topPerformer: SalesAnalytics['topPerformer'] = null;
+      if (salesData.length > 0) {
+        const sortedBySales = [...salesData].sort((a, b) => b.sales_amount - a.sales_amount);
+        const topSale = sortedBySales[0];
+        if (topSale && topSale.employee_id) {
+          topPerformer = {
+            employeeId: topSale.employee_id,
+            employeeName: topSale.employee_name,
+            amount: topSale.sales_amount
+          };
+        }
+      }
+      
+      // Get previous month's data for comparison
+      const previousMonth = subMonths(selectedDate, 1);
+      const previousMonthString = format(previousMonth, 'yyyy-MM-01');
+      
+      const { data: prevMonthData, error: prevMonthError } = await supabase
+        .from('employee_sales')
+        .select('*')
+        .eq('month', previousMonthString);
+      
+      let previousMonthComparison: number | null = null;
+      
+      if (!prevMonthError && prevMonthData && prevMonthData.length > 0) {
+        const prevMonthTotal = prevMonthData.reduce(
+          (sum, sale) => sum + (sale.sales_amount || 0), 
+          0
+        );
+        
+        if (prevMonthTotal > 0) {
+          // Calculate percentage change ((current - previous) / previous) * 100
+          previousMonthComparison = ((totalSales - prevMonthTotal) / prevMonthTotal) * 100;
+        }
+      }
+      
+      // Update analytics state
+      setSalesAnalytics({
+        totalSales,
+        averageSales,
+        previousMonthComparison,
+        topPerformer
+      });
+      
+    } catch (err) {
+      logger.error('Error calculating sales analytics:', err);
+      // Default to basic analytics without comparison if there's an error
+      const totalSales = salesData.reduce((sum, sale) => sum + sale.sales_amount, 0);
+      setSalesAnalytics({
+        totalSales,
+        averageSales: totalSales / salesData.length,
+        previousMonthComparison: null,
+        topPerformer: null
+      });
     }
   };
 
-  const handleSalesChange = (employeeId: string, value: string) => {
+  const handleSalesChange = useCallback((employeeId: string, value: string) => {
     // Only accept whole numbers (no decimals)
     if (value === '' || (/^\d+$/.test(value) && !value.includes('.'))) {
       setSalesInputs(prev => ({
@@ -99,11 +203,12 @@ export const useEmployeeSales = (selectedDate: Date, employees: Employee[]) => {
         [employeeId]: value
       }));
     }
-  };
+  }, []);
 
   const submitSalesData = async () => {
     try {
       setIsSubmitting(true);
+      setError(null);
       
       // Format date as YYYY-MM-01 to get the first day of the month
       const monthString = format(selectedDate, 'yyyy-MM-01');
@@ -164,8 +269,9 @@ export const useEmployeeSales = (selectedDate: Date, employees: Employee[]) => {
         }
       }
       
-      console.log('Data to upsert:', upsertData);
+      logger.info('Data to upsert:', upsertData.length);
       
+      // DO NOT CHANGE - PRESERVE API LOGIC
       // Perform bulk upsert operation
       if (upsertData.length > 0) {
         const { error } = await supabase
@@ -175,27 +281,57 @@ export const useEmployeeSales = (selectedDate: Date, employees: Employee[]) => {
             ignoreDuplicates: false // We want to update if there's a conflict
           });
         
-        if (error) throw error;
+        if (error) throw new Error(error.message);
       }
       
       // Refresh sales data to show the latest updates
       await fetchSalesData();
       
       return { success: true };
-    } catch (error) {
-      console.error('Error submitting sales data:', error);
-      throw error;
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error submitting sales data';
+      logger.error('Error submitting sales data:', errorMessage);
+      setError(err instanceof Error ? err : new Error(errorMessage));
+      throw err;
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  // Check if there are any unsaved changes
+  const hasUnsavedChanges = useCallback(() => {
+    // Create a map of existing sales for quick lookup
+    const existingSalesMap = new Map<string, number>();
+    existingSales.forEach(sale => {
+      if (sale.employee_id) {
+        existingSalesMap.set(sale.employee_id, sale.sales_amount);
+      }
+    });
+    
+    // Check if any sales input differs from the existing data
+    for (const [employeeId, inputValue] of Object.entries(salesInputs)) {
+      const existingValue = existingSalesMap.get(employeeId);
+      const numericInputValue = inputValue === '' ? 0 : parseInt(inputValue, 10);
+      
+      if (existingValue !== numericInputValue) {
+        return true;
+      }
+    }
+    
+    return false;
+  }, [salesInputs, existingSales]);
+
   return {
     salesInputs,
     existingSales,
     isSubmitting,
+    isLoading,
+    error,
     lastUpdated,
+    salesAnalytics,
     handleSalesChange,
-    submitSalesData
+    submitSalesData,
+    hasUnsavedChanges,
+    fetchSalesData
   };
 };

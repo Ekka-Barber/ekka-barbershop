@@ -1,32 +1,26 @@
 import React from 'react';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
-
-interface Employee {
-  id: string;
-  name: string;
-  profilePicture?: string;
-  role: string;
-  branchId: string;
-  email?: string;
-  phone?: string;
-}
+import { Employee } from '@/types/employee';
 
 interface SalesInputCardProps {
   employee: Employee;
-  salesValue: number;
-  onChange: (value: number) => void;
+  salesValue: string;
+  onChange: (value: string) => void;
   selectedDate: Date;
 }
 
 // Format currency as USD
-const formatCurrency = (value: number): string => {
+const formatCurrency = (value: string | number): string => {
+  const numValue = typeof value === 'string' ? parseFloat(value) : value;
+  if (isNaN(numValue)) return '$0.00';
+  
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: 'USD',
     minimumFractionDigits: 2,
     maximumFractionDigits: 2
-  }).format(value);
+  }).format(numValue);
 };
 
 // Format month and year
@@ -44,15 +38,18 @@ export const SalesInputCard: React.FC<SalesInputCardProps> = ({
   selectedDate
 }) => {
   const handleSalesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // Convert to number and validate
-    const value = e.target.value === '' ? 0 : parseFloat(e.target.value);
-    if (!isNaN(value) && value >= 0) {
+    // Only accept digits (whole numbers)
+    const value = e.target.value;
+    if (value === '' || /^\d+$/.test(value)) {
       onChange(value);
     }
   };
 
   // Format the month and year for display
   const formattedMonth = formatMonth(selectedDate);
+
+  // Only convert to currency format if there's a valid number
+  const hasValidSales = salesValue !== '' && !isNaN(parseFloat(salesValue));
 
   return (
     <div className="bg-card rounded-lg border shadow-sm p-4 space-y-4">
@@ -61,9 +58,9 @@ export const SalesInputCard: React.FC<SalesInputCardProps> = ({
           "h-12 w-12 rounded-full bg-muted flex items-center justify-center",
           "text-muted-foreground font-medium"
         )}>
-          {employee.profilePicture ? (
+          {employee.photo_url ? (
             <img 
-              src={employee.profilePicture} 
+              src={employee.photo_url} 
               alt={employee.name} 
               className="h-full w-full rounded-full object-cover"
             />
@@ -88,17 +85,17 @@ export const SalesInputCard: React.FC<SalesInputCardProps> = ({
           <span className="absolute left-3 top-1/2 -translate-y-1/2">$</span>
           <Input
             id={`sales-${employee.id}`}
-            type="number"
-            value={salesValue === 0 ? '' : salesValue}
+            type="text"
+            inputMode="numeric"
+            pattern="[0-9]*"
+            value={salesValue}
             onChange={handleSalesChange}
-            placeholder="0.00"
+            placeholder="0"
             className="pl-7"
-            min="0"
-            step="0.01"
           />
         </div>
         
-        {salesValue > 0 && (
+        {hasValidSales && (
           <div className="text-xs text-muted-foreground text-right">
             {formatCurrency(salesValue)}
           </div>

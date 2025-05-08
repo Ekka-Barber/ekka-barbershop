@@ -8,8 +8,11 @@ import { BranchFilter } from '../components/BranchFilter';
 import { SalesGrid } from '../components/monthly-sales/SalesGrid';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
-import { Calendar, Save, Loader2 } from 'lucide-react';
+import { Calendar, Save, Loader2, TrendingUp, User, DollarSign, AlertTriangle } from 'lucide-react';
 import { useUrlState } from '../hooks/useUrlState';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { cn } from '@/lib/utils';
+import { format } from 'date-fns';
 
 interface MonthlySalesTabProps {
   initialDate?: Date;
@@ -43,8 +46,12 @@ export const MonthlySalesTab: React.FC<MonthlySalesTabProps> = ({
     salesInputs,
     lastUpdated,
     isSubmitting,
+    isLoading: isSalesLoading,
+    error: salesError,
+    salesAnalytics,
     handleSalesChange,
-    submitSalesData
+    submitSalesData,
+    hasUnsavedChanges
   } = useEmployeeSales(selectedDate, employees);
   
   // Keep URL in sync with component state
@@ -90,7 +97,10 @@ export const MonthlySalesTab: React.FC<MonthlySalesTabProps> = ({
     }
   };
   
-  const isLoading = isBranchLoading || isEmployeeLoading;
+  // Check if we should show save button prompt
+  const shouldPromptToSave = hasUnsavedChanges();
+  
+  const isLoading = isBranchLoading || isEmployeeLoading || isSalesLoading;
   
   return (
     <ErrorBoundary>
@@ -112,6 +122,115 @@ export const MonthlySalesTab: React.FC<MonthlySalesTabProps> = ({
           />
         </div>
         
+        {/* Analytics Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* Total Sales Card */}
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium">
+                Total Sales
+              </CardTitle>
+              <CardDescription>
+                All sales for {format(selectedDate, 'MMMM yyyy')}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center">
+                <DollarSign className="h-4 w-4 text-muted-foreground mr-1" />
+                <div className="text-2xl font-bold">
+                  {salesAnalytics.totalSales.toLocaleString()}
+                </div>
+                
+                {salesAnalytics.previousMonthComparison !== null && (
+                  <div 
+                    className={cn(
+                      "ml-2 text-xs flex items-center",
+                      salesAnalytics.previousMonthComparison > 0 
+                        ? "text-green-500" 
+                        : "text-red-500"
+                    )}
+                  >
+                    <TrendingUp className="h-3 w-3 mr-1" />
+                    {salesAnalytics.previousMonthComparison > 0 ? '+' : ''}
+                    {salesAnalytics.previousMonthComparison.toFixed(1)}%
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+          
+          {/* Average Sales Card */}
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium">
+                Average per Employee
+              </CardTitle>
+              <CardDescription>
+                Average sales amount
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {salesAnalytics.averageSales ? salesAnalytics.averageSales.toLocaleString(undefined, {
+                  minimumFractionDigits: 0,
+                  maximumFractionDigits: 0
+                }) : '0'}
+              </div>
+            </CardContent>
+          </Card>
+          
+          {/* Top Performer Card */}
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium">
+                Top Performer
+              </CardTitle>
+              <CardDescription>
+                Highest sales this month
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {salesAnalytics.topPerformer ? (
+                <div className="flex items-center">
+                  <User className="h-4 w-4 text-muted-foreground mr-2" />
+                  <div>
+                    <div className="font-medium">{salesAnalytics.topPerformer.employeeName}</div>
+                    <div className="text-sm text-muted-foreground">
+                      {salesAnalytics.topPerformer.amount.toLocaleString()}
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-sm text-muted-foreground">No data available</div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+        
+        {/* Error Display */}
+        {salesError && (
+          <div className="bg-destructive/15 text-destructive px-4 py-2 rounded-md flex items-center">
+            <AlertTriangle className="h-4 w-4 mr-2" />
+            <span>{salesError.message}</span>
+          </div>
+        )}
+        
+        {/* Unsaved changes warning */}
+        {shouldPromptToSave && (
+          <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 rounded-md">
+            <div className="flex">
+              <div className="flex-shrink-0">
+                <AlertTriangle className="h-5 w-5 text-yellow-500" />
+              </div>
+              <div className="ml-3">
+                <p className="text-sm">
+                  You have unsaved changes. Don't forget to save your data.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+        
         {/* Sales Header with Date Picker */}
         <div className="flex flex-wrap items-center justify-between gap-4 bg-card p-4 rounded-lg border">
           <div className="flex items-center gap-4">
@@ -132,6 +251,7 @@ export const MonthlySalesTab: React.FC<MonthlySalesTabProps> = ({
             <Button 
               onClick={handleSubmit} 
               disabled={isSubmitting || isLoading}
+              variant={shouldPromptToSave ? "default" : "outline"}
             >
               {isSubmitting ? (
                 <>
