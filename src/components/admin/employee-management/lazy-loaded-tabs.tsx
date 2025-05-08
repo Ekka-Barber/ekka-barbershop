@@ -11,7 +11,20 @@ const withErrorBoundary = (Component: React.ComponentType<unknown>) => {
   );
 };
 
-// Lazy load each tab component with error boundary
+// New tab components for restructuring
+export const LazyEmployeesTab = lazy(() => 
+  import('./tabs/EmployeesTab').then(module => ({
+    default: withErrorBoundary(module.default || module.EmployeesTab)
+  }))
+);
+
+export const LazyMonthlySalesTab = lazy(() => 
+  import('./tabs/MonthlySalesTab').then(module => ({
+    default: withErrorBoundary(module.default || module.MonthlySalesTab)
+  }))
+);
+
+// Original tab components
 export const LazyEmployeeAnalyticsDashboard = lazy(() => 
   import('./EmployeeAnalyticsDashboard').then(module => ({
     default: withErrorBoundary(module.EmployeeAnalyticsDashboard)

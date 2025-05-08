@@ -4,10 +4,10 @@ import { Calendar } from 'lucide-react';
 import { useEmployeeSales } from './hooks/useEmployeeSales';
 import { useBranchManager } from './hooks/useBranchManager';
 import { useEmployeeManager } from './hooks/useEmployeeManager';
-import { EmployeeSalesHeader } from './components/EmployeeSalesHeader';
-import { EmployeeGrid } from './components/EmployeeGrid';
 import { Tabs, TabsContent } from '@/components/ui/tabs';
 import {
+  LazyEmployeesTab,
+  LazyMonthlySalesTab,
   LazyEmployeeAnalyticsDashboard,
   LazyScheduleInterface,
   LazySalaryDashboard,
@@ -19,6 +19,8 @@ import { useUrlState } from './hooks/useUrlState';
 import { BranchFilter } from './components/BranchFilter';
 import { EmployeeTabsNavigation } from './components/EmployeeTabsNavigation';
 import { ErrorBoundary } from '@/components/common/ErrorBoundary';
+import { EmployeeSalesHeader } from './components/EmployeeSalesHeader';
+import { EmployeeGrid } from './components/EmployeeGrid';
 
 export const EmployeeTab = () => {
   const { toast } = useToast();
@@ -188,6 +190,27 @@ export const EmployeeTab = () => {
                   onPageChange={handlePageChange}
                 />
               </ErrorBoundary>
+            </TabsContent>
+
+            <TabsContent value="employees" className="space-y-6">
+              <Suspense fallback={<TabLoadingFallback />}>
+                <ErrorBoundary>
+                  <LazyEmployeesTab
+                    initialBranchId={selectedBranch}
+                  />
+                </ErrorBoundary>
+              </Suspense>
+            </TabsContent>
+
+            <TabsContent value="monthly-sales" className="space-y-6">
+              <Suspense fallback={<TabLoadingFallback />}>
+                <ErrorBoundary>
+                  <LazyMonthlySalesTab 
+                    initialDate={selectedDate}
+                    initialBranchId={selectedBranch}
+                  />
+                </ErrorBoundary>
+              </Suspense>
             </TabsContent>
             
             <TabsContent value="analytics">
