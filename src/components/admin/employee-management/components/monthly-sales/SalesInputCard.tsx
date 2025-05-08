@@ -1,7 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { Employee } from '@/types/employee';
+import { motion } from 'framer-motion';
+import { Check, AlertCircle } from 'lucide-react';
 
 interface SalesInputCardProps {
   employee: Employee;
@@ -10,17 +12,15 @@ interface SalesInputCardProps {
   selectedDate: Date;
 }
 
-// Format currency as USD
-const formatCurrency = (value: string | number): string => {
-  const numValue = typeof value === 'string' ? parseFloat(value) : value;
-  if (isNaN(numValue)) return '$0.00';
-  
+// Format currency for display
+const formatCurrency = (value: string): string => {
+  const numericValue = parseInt(value, 10);
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: 'USD',
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2
-  }).format(numValue);
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0
+  }).format(numericValue);
 };
 
 // Format month and year
@@ -37,11 +37,15 @@ export const SalesInputCard: React.FC<SalesInputCardProps> = ({
   onChange,
   selectedDate
 }) => {
+  const [isFocused, setIsFocused] = useState(false);
+  const [hasChanged, setHasChanged] = useState(false);
+
   const handleSalesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     // Only accept digits (whole numbers)
     const value = e.target.value;
     if (value === '' || /^\d+$/.test(value)) {
       onChange(value);
+      setHasChanged(true);
     }
   };
 
@@ -52,12 +56,27 @@ export const SalesInputCard: React.FC<SalesInputCardProps> = ({
   const hasValidSales = salesValue !== '' && !isNaN(parseFloat(salesValue));
 
   return (
-    <div className="bg-card rounded-lg border shadow-sm p-4 space-y-4">
+    <motion.div 
+      className={cn(
+        "bg-card rounded-lg border shadow-sm p-4 space-y-4",
+        isFocused && "ring-2 ring-primary/20",
+        hasChanged && !isFocused && "border-green-200"
+      )}
+      whileHover={{ 
+        boxShadow: "0 8px 30px rgba(0, 0, 0, 0.12)",
+        y: -2,
+        transition: { type: "spring", stiffness: 300 }
+      }}
+      initial={false}
+    >
       <div className="flex items-center space-x-4">
-        <div className={cn(
-          "h-12 w-12 rounded-full bg-muted flex items-center justify-center",
-          "text-muted-foreground font-medium"
-        )}>
+        <motion.div 
+          className={cn(
+            "h-12 w-12 rounded-full bg-muted flex items-center justify-center",
+            "text-muted-foreground font-medium overflow-hidden"
+          )}
+          whileHover={{ scale: 1.05 }}
+        >
           {employee.photo_url ? (
             <img 
               src={employee.photo_url} 
@@ -67,22 +86,22 @@ export const SalesInputCard: React.FC<SalesInputCardProps> = ({
           ) : (
             employee.name.substring(0, 2).toUpperCase()
           )}
-        </div>
+        </motion.div>
         <div>
           <div className="font-medium">{employee.name}</div>
           <div className="text-sm text-muted-foreground">{employee.role}</div>
         </div>
       </div>
       
-      <div className="space-y-2">
+      <div>
         <label 
           htmlFor={`sales-${employee.id}`} 
           className="text-sm font-medium text-muted-foreground"
         >
           Sales for {formattedMonth}
         </label>
-        <div className="relative">
-          <span className="absolute left-3 top-1/2 -translate-y-1/2">$</span>
+        <div className="relative mt-1">
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
           <Input
             id={`sales-${employee.id}`}
             type="text"
@@ -90,18 +109,49 @@ export const SalesInputCard: React.FC<SalesInputCardProps> = ({
             pattern="[0-9]*"
             value={salesValue}
             onChange={handleSalesChange}
+            onFocus={() => setIsFocused(true)}
+            onBlur={() => setIsFocused(false)}
             placeholder="0"
-            className="pl-7"
+            className={cn(
+              "pl-7 transition-all duration-200",
+              isFocused && "border-primary ring-2 ring-primary/20"
+            )}
           />
+          
+          {hasChanged && (
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-green-500"
+            >
+              <Check className="h-4 w-4" />
+            </motion.div>
+          )}
         </div>
         
         {hasValidSales && (
-          <div className="text-xs text-muted-foreground text-right">
+          <motion.div 
+            className="text-xs text-muted-foreground text-right mt-1"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            key={salesValue} // Remount on value change to trigger animation
+          >
             {formatCurrency(salesValue)}
-          </div>
+          </motion.div>
+        )}
+        
+        {salesValue !== '' && parseInt(salesValue, 10) === 0 && (
+          <motion.div 
+            className="flex items-center mt-2 text-xs text-amber-600"
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+          >
+            <AlertCircle className="h-3 w-3 mr-1" />
+            <span>Are you sure about zero sales?</span>
+          </motion.div>
         )}
       </div>
-    </div>
+    </motion.div>
   );
 };
 

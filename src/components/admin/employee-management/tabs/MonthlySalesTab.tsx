@@ -51,7 +51,8 @@ export const MonthlySalesTab: React.FC<MonthlySalesTabProps> = ({
     salesAnalytics,
     handleSalesChange,
     submitSalesData,
-    hasUnsavedChanges
+    hasUnsavedChanges,
+    fetchSalesData
   } = useEmployeeSales(selectedDate, employees);
   
   // Keep URL in sync with component state
@@ -69,10 +70,18 @@ export const MonthlySalesTab: React.FC<MonthlySalesTabProps> = ({
     }
   }, [selectedBranch, selectedDate, syncUrlWithState, currentState]);
   
+  // Force re-fetch sales data when branch changes
+  useEffect(() => {
+    // This will trigger a refresh of the sales data specifically for the selected branch
+    fetchSalesData();
+  }, [selectedBranch, fetchSalesData]);
+  
   // Handle branch change
   const handleBranchChange = useCallback((branchId: string | null) => {
     setSelectedBranch(branchId);
-  }, [setSelectedBranch]);
+    // Immediately trigger a data refresh when branch changes
+    setTimeout(() => fetchSalesData(), 0);
+  }, [setSelectedBranch, fetchSalesData]);
   
   // Handle date change
   const handleDateChange = useCallback((date: Date) => {
@@ -232,7 +241,7 @@ export const MonthlySalesTab: React.FC<MonthlySalesTabProps> = ({
         )}
         
         {/* Sales Header with Date Picker */}
-        <div className="flex flex-wrap items-center justify-between gap-4 bg-card p-4 rounded-lg border">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div className="flex items-center gap-4">
             <MonthYearPicker
               selectedDate={selectedDate}

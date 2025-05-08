@@ -1,11 +1,18 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from "@/integrations/supabase/client";
 import { logger } from "@/utils/logger";
 import { Branch } from '../types'; // Import Branch type
 
-export const useBranchManager = () => {
-  const [selectedBranch, setSelectedBranch] = useState<string | null>(null);
+export const useBranchManager = (initialBranchId: string | null = null) => {
+  const [selectedBranch, setSelectedBranch] = useState<string | null>(initialBranchId);
+
+  // Update selected branch if initialBranchId changes
+  useEffect(() => {
+    if (initialBranchId !== null) {
+      setSelectedBranch(initialBranchId);
+    }
+  }, [initialBranchId]);
 
   const { 
     data: branches = [], 

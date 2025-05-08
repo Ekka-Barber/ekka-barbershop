@@ -61,7 +61,7 @@
     "date-fns": "^3.6.0",
     "embla-carousel-react": "^8.5.2",
     "emoji-mart": "^5.6.0",
-    "framer-motion": "^12.4.7",
+    "framer-motion": "^10.16.4",
     "heatmap.js": "^2.0.5",
     "input-otp": "^1.2.4",
     "jest": "^29.7.0",

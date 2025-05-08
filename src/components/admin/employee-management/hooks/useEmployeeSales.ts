@@ -31,14 +31,87 @@ export const useEmployeeSales = (selectedDate: Date, employees: Employee[]) => {
 
   // Reset the form when date or employees change
   useEffect(() => {
-    if (employees.length > 0) {
-      fetchSalesData();
-    } else {
-      setSalesInputs({});
-      setExistingSales([]);
-      setLastUpdated(null);
-    }
+    fetchSalesData();
   }, [selectedDate, employees]);
+
+  // Calculate sales analytics including comparison with previous month
+  const calculateSalesAnalytics = useCallback(async (salesData: EmployeeSales[], currentEmployees: Employee[]) => {
+    try {
+      // Calculate total and average sales for current month
+      const totalSales = salesData.reduce((sum, sale) => sum + sale.sales_amount, 0);
+      const averageSales = salesData.length > 0 ? totalSales / salesData.length : 0;
+      
+      // Find top performer
+      let topPerformer: SalesAnalytics['topPerformer'] = null;
+      if (salesData.length > 0) {
+        const sortedBySales = [...salesData].sort((a, b) => b.sales_amount - a.sales_amount);
+        const topSale = sortedBySales[0];
+        if (topSale && topSale.employee_id) {
+          topPerformer = {
+            employeeId: topSale.employee_id,
+            employeeName: topSale.employee_name,
+            amount: topSale.sales_amount
+          };
+        }
+      }
+      
+      // Get previous month's data for comparison
+      const previousMonth = subMonths(selectedDate, 1);
+      const previousMonthString = format(previousMonth, 'yyyy-MM-01');
+      
+      const { data: prevMonthData, error: prevMonthError } = await supabase
+        .from('employee_sales')
+        .select('*')
+        .eq('month', previousMonthString);
+      
+      let previousMonthComparison: number | null = null;
+      
+      if (!prevMonthError && prevMonthData && prevMonthData.length > 0) {
+        // Filter previous month data to only include employees in the current filtered list
+        const currentEmployeeIds = new Set(currentEmployees.map(emp => emp.id));
+        
+        // Cast the data to EmployeeSales[] and filter out items without employee_id
+        const validPrevMonthData = (prevMonthData as EmployeeSales[]).filter(
+          (sale): sale is EmployeeSales & { employee_id: string } => 
+          Boolean(sale.employee_id)
+        );
+        
+        // Then filter by current employees
+        const filteredPrevMonthData = validPrevMonthData.filter(sale => 
+          currentEmployeeIds.has(sale.employee_id)
+        );
+        
+        const prevMonthTotal = filteredPrevMonthData.reduce(
+          (sum, sale) => sum + (sale.sales_amount || 0), 
+          0
+        );
+        
+        if (prevMonthTotal > 0) {
+          // Calculate percentage change ((current - previous) / previous) * 100
+          previousMonthComparison = ((totalSales - prevMonthTotal) / prevMonthTotal) * 100;
+        }
+      }
+      
+      // Update analytics state
+      setSalesAnalytics({
+        totalSales,
+        averageSales,
+        previousMonthComparison,
+        topPerformer
+      });
+      
+    } catch (err) {
+      logger.error('Error calculating sales analytics:', err);
+      // Default to basic analytics without comparison if there's an error
+      const totalSales = salesData.reduce((sum, sale) => sum + sale.sales_amount, 0);
+      setSalesAnalytics({
+        totalSales,
+        averageSales: salesData.length > 0 ? totalSales / salesData.length : 0,
+        previousMonthComparison: null,
+        topPerformer: null
+      });
+    }
+  }, [selectedDate]);
 
   // Enhanced fetchSalesData function
   const fetchSalesData = useCallback(async () => {
@@ -72,9 +145,15 @@ export const useEmployeeSales = (selectedDate: Date, employees: Employee[]) => {
       // Store the fetched sales data
       if (data) {
         // Filter out sales records where employee_id is null and cast to EmployeeSales[]
-        const validSalesData = (data as EmployeeSales[]).filter(
+        let validSalesData = (data as EmployeeSales[]).filter(
           (sale): sale is EmployeeSales & { employee_id: string } => 
           sale.employee_id !== null && sale.employee_id !== undefined
+        );
+        
+        // Filter sales data to only include employees in the current filtered list (based on branch)
+        const currentEmployeeIds = new Set(employees.map(emp => emp.id));
+        validSalesData = validSalesData.filter(sale => 
+          currentEmployeeIds.has(sale.employee_id)
         );
         
         setExistingSales(validSalesData);
@@ -97,9 +176,16 @@ export const useEmployeeSales = (selectedDate: Date, employees: Employee[]) => {
           });
           
           // Calculate analytics for the current month
-          await calculateSalesAnalytics(validSalesData);
+          await calculateSalesAnalytics(validSalesData, employees);
         } else {
           setLastUpdated(null);
+          // Reset analytics when no sales data is available
+          setSalesAnalytics({
+            totalSales: 0,
+            averageSales: 0,
+            previousMonthComparison: null,
+            topPerformer: null
+          });
         }
       } else {
         setExistingSales([]);
@@ -128,72 +214,7 @@ export const useEmployeeSales = (selectedDate: Date, employees: Employee[]) => {
     } finally {
       setIsLoading(false);
     }
-  }, [selectedDate, employees]);
-
-  // Calculate sales analytics including comparison with previous month
-  const calculateSalesAnalytics = async (salesData: EmployeeSales[]) => {
-    try {
-      // Calculate total and average sales for current month
-      const totalSales = salesData.reduce((sum, sale) => sum + sale.sales_amount, 0);
-      const averageSales = totalSales / salesData.length;
-      
-      // Find top performer
-      let topPerformer: SalesAnalytics['topPerformer'] = null;
-      if (salesData.length > 0) {
-        const sortedBySales = [...salesData].sort((a, b) => b.sales_amount - a.sales_amount);
-        const topSale = sortedBySales[0];
-        if (topSale && topSale.employee_id) {
-          topPerformer = {
-            employeeId: topSale.employee_id,
-            employeeName: topSale.employee_name,
-            amount: topSale.sales_amount
-          };
-        }
-      }
-      
-      // Get previous month's data for comparison
-      const previousMonth = subMonths(selectedDate, 1);
-      const previousMonthString = format(previousMonth, 'yyyy-MM-01');
-      
-      const { data: prevMonthData, error: prevMonthError } = await supabase
-        .from('employee_sales')
-        .select('*')
-        .eq('month', previousMonthString);
-      
-      let previousMonthComparison: number | null = null;
-      
-      if (!prevMonthError && prevMonthData && prevMonthData.length > 0) {
-        const prevMonthTotal = prevMonthData.reduce(
-          (sum, sale) => sum + (sale.sales_amount || 0), 
-          0
-        );
-        
-        if (prevMonthTotal > 0) {
-          // Calculate percentage change ((current - previous) / previous) * 100
-          previousMonthComparison = ((totalSales - prevMonthTotal) / prevMonthTotal) * 100;
-        }
-      }
-      
-      // Update analytics state
-      setSalesAnalytics({
-        totalSales,
-        averageSales,
-        previousMonthComparison,
-        topPerformer
-      });
-      
-    } catch (err) {
-      logger.error('Error calculating sales analytics:', err);
-      // Default to basic analytics without comparison if there's an error
-      const totalSales = salesData.reduce((sum, sale) => sum + sale.sales_amount, 0);
-      setSalesAnalytics({
-        totalSales,
-        averageSales: totalSales / salesData.length,
-        previousMonthComparison: null,
-        topPerformer: null
-      });
-    }
-  };
+  }, [selectedDate, employees, calculateSalesAnalytics]);
 
   const handleSalesChange = useCallback((employeeId: string, value: string) => {
     // Only accept whole numbers (no decimals)
