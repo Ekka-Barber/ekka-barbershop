@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Employee } from '@/types/employee';
 import { Separator } from '@/components/ui/separator';
 import { useSalaryData } from './hooks/useSalaryData';
@@ -70,6 +70,16 @@ export const SalaryDashboard = ({
   
   // Always call the hook at the top level
   const filteredStats = useDashboardStats(filteredSalaryData);
+  
+  // Calculate additional statistics not included in the DashboardStats interface
+  const totalCommission = useMemo(() => 
+    filteredSalaryData.reduce((sum, employee) => sum + (employee.commission || 0), 0)
+  , [filteredSalaryData]);
+  
+  const totalBonus = useMemo(() => 
+    filteredSalaryData.reduce((sum, employee) => 
+      sum + (employee.bonus || 0) + (employee.targetBonus || 0), 0)
+  , [filteredSalaryData]);
   
   // Track historical data for comparison
   const [historicalData, setHistoricalData] = useState<Record<string, EmployeeSalary[]>>({});
@@ -199,14 +209,14 @@ export const SalaryDashboard = ({
     <div className="space-y-6">
       {/* Unified Responsive Header */}
       <div className="space-y-4">
-        {/* Month Selector - Responsive */}
-        <div className="flex items-center justify-between">
+        {/* Month Selector with Visual Enhancement - Responsive */}
+        <div className="flex items-center justify-between bg-gradient-to-r from-slate-50 to-slate-100 p-3 rounded-lg shadow-sm border border-slate-200">
           <Button
             variant="ghost"
             size="icon"
             onClick={() => handleMonthChange(new Date(pickerDate.getFullYear(), pickerDate.getMonth() - 1))}
             aria-label="Previous month"
-            className="h-10 w-10"
+            className="h-10 w-10 hover:bg-white/80"
           >
             <ChevronLeft className="h-5 w-5" />
           </Button>
@@ -215,6 +225,11 @@ export const SalaryDashboard = ({
             <h2 className="font-semibold text-base md:text-xl">
               {pickerDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
             </h2>
+            {lastRefresh && (
+              <p className="text-xs text-muted-foreground hidden md:block">
+                Last updated: {lastRefresh.toLocaleTimeString()}
+              </p>
+            )}
           </div>
           
           <Button
@@ -222,57 +237,107 @@ export const SalaryDashboard = ({
             size="icon"
             onClick={() => handleMonthChange(new Date(pickerDate.getFullYear(), pickerDate.getMonth() + 1))}
             aria-label="Next month"
-            className="h-10 w-10"
+            className="h-10 w-10 hover:bg-white/80"
           >
             <ChevronRight className="h-5 w-5" />
           </Button>
         </div>
         
-        {/* Stats Cards - Responsive Grid */}
-        <div className="flex overflow-x-auto pb-2 gap-3 snap-x">
-          <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 min-w-[180px] flex-shrink-0 shadow-sm border border-blue-200 snap-start">
-            <div className="text-xs text-blue-700 font-medium flex items-center">
+        {/* Enhanced Stats Cards with Hierarchy Indicators - Responsive Grid */}
+        <div className="flex overflow-x-auto pb-2 gap-3 snap-x scrollbar-thin scrollbar-thumb-muted overflow-y-hidden touch-pan-x">
+          {/* Primary Metric - Total Payout */}
+          <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 min-w-[180px] w-[180px] flex-shrink-0 shadow-sm border border-blue-200 snap-start relative">
+            <div className="absolute top-0 right-0 bg-blue-500 text-white text-xs px-2 py-0.5 rounded-bl-md rounded-tr-md font-medium">
+              Primary
+            </div>
+            <div className="text-xs text-blue-700 font-medium flex items-center mt-2">
               <div className="w-2 h-2 rounded-full bg-blue-500 mr-1.5"></div>
               Total Payout
             </div>
             <div className="text-lg font-bold mt-1 text-blue-900">{filteredStats.totalPayout.toLocaleString()} SAR</div>
+            <div className="mt-1 text-xs text-blue-700 opacity-90">
+              {filteredStats.totalSales > 0 && 
+                `${((filteredStats.totalPayout / filteredStats.totalSales) * 100).toFixed(1)}% of sales`
+              }
+            </div>
           </div>
           
-          <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-4 min-w-[180px] flex-shrink-0 shadow-sm border border-purple-200 snap-start">
+          {/* Secondary Metric - Employee Count */}
+          <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-4 min-w-[180px] w-[180px] flex-shrink-0 shadow-sm border border-purple-200 snap-start">
             <div className="text-xs text-purple-700 font-medium flex items-center">
               <div className="w-2 h-2 rounded-full bg-purple-500 mr-1.5"></div>
               Employees
             </div>
             <div className="text-lg font-bold mt-1 text-purple-900">{filteredStats.employeeCount}</div>
+            <div className="mt-1 text-xs text-purple-700 opacity-80">
+              Avg: {filteredStats.avgSalary.toLocaleString()} SAR
+            </div>
           </div>
           
-          <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-4 min-w-[180px] flex-shrink-0 shadow-sm border border-green-200 snap-start">
+          {/* Tertiary Metric - Sales Performance */}
+          <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-4 min-w-[180px] w-[180px] flex-shrink-0 shadow-sm border border-green-200 snap-start">
             <div className="text-xs text-green-700 font-medium flex items-center">
               <div className="w-2 h-2 rounded-full bg-green-500 mr-1.5"></div>
-              Average Salary
-            </div>
-            <div className="text-lg font-bold mt-1 text-green-900">{filteredStats.avgSalary.toLocaleString()} SAR</div>
-          </div>
-          
-          <div className="bg-gradient-to-br from-amber-50 to-amber-100 rounded-lg p-4 min-w-[180px] flex-shrink-0 shadow-sm border border-amber-200 snap-start">
-            <div className="text-xs text-amber-700 font-medium flex items-center">
-              <div className="w-2 h-2 rounded-full bg-amber-500 mr-1.5"></div>
               Total Sales
             </div>
-            <div className="text-lg font-bold mt-1 text-amber-900">{filteredStats.totalSales.toLocaleString()} SAR</div>
+            <div className="text-lg font-bold mt-1 text-green-900">{filteredStats.totalSales.toLocaleString()} SAR</div>
+            <div className="mt-1 text-xs text-green-700 opacity-80">
+              {filteredStats.employeeCount > 0 && 
+                `Per employee: ${(filteredStats.totalSales / filteredStats.employeeCount).toFixed(0).toLocaleString()} SAR`
+              }
+            </div>
+          </div>
+          
+          {/* Tertiary Metric - Commission Data */}
+          <div className="bg-gradient-to-br from-amber-50 to-amber-100 rounded-lg p-4 min-w-[180px] w-[180px] flex-shrink-0 shadow-sm border border-amber-200 snap-start">
+            <div className="text-xs text-amber-700 font-medium flex items-center">
+              <div className="w-2 h-2 rounded-full bg-amber-500 mr-1.5"></div>
+              Total Commission
+            </div>
+            <div className="text-lg font-bold mt-1 text-amber-900">
+              {totalCommission.toLocaleString()} SAR
+            </div>
+            <div className="mt-1 text-xs text-amber-700 opacity-80">
+              {filteredStats.totalPayout > 0 && 
+                `${((totalCommission / filteredStats.totalPayout) * 100).toFixed(0)}% of payout`
+              }
+            </div>
+          </div>
+          
+          {/* Quaternary Metric - Bonus Data */}
+          <div className="bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-lg p-4 min-w-[180px] w-[180px] flex-shrink-0 shadow-sm border border-indigo-200 snap-start">
+            <div className="text-xs text-indigo-700 font-medium flex items-center">
+              <div className="w-2 h-2 rounded-full bg-indigo-500 mr-1.5"></div>
+              Total Bonuses
+            </div>
+            <div className="text-lg font-bold mt-1 text-indigo-900">
+              {totalBonus.toLocaleString()} SAR
+            </div>
           </div>
         </div>
         
-        {/* Search Bar - Unified */}
-        <div className="relative">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+        {/* Mobile Indicator for Available Cards */}
+        <div className="flex justify-center md:hidden">
+          <div className="flex gap-1">
+            <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+            <div className="w-2 h-2 rounded-full bg-purple-500"></div>
+            <div className="w-2 h-2 rounded-full bg-muted opacity-50"></div>
+            <div className="w-2 h-2 rounded-full bg-muted opacity-50"></div>
+          </div>
+          <div className="text-xs text-muted-foreground ml-1">Swipe for more</div>
+        </div>
+        
+        {/* Enhanced Search with Better Visual Prominence */}
+        <div className="relative mt-4">
+          <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+            <Search className="h-4 w-4 text-muted-foreground" />
+          </div>
           <input
             type="search"
-            placeholder="Search employees..."
-            className="pl-8 h-11 w-full rounded-md border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+            placeholder="Search employees by name..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            aria-label="Search employees"
+            className="pl-10 pr-4 py-2 w-full border border-input bg-white rounded-lg text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary"
           />
         </div>
       </div>

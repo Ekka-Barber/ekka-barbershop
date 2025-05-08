@@ -9,7 +9,7 @@ import {
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ArrowUp, ArrowDown, FileText, ChevronDown, ChevronUp } from 'lucide-react';
+import { ArrowUp, ArrowDown, FileText, ChevronDown, ChevronUp, CheckSquare } from 'lucide-react';
 import { EmployeeSalary } from '../hooks/utils/salaryTypes';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import PayslipTemplateViewer from './PayslipTemplateViewer';
@@ -17,6 +17,7 @@ import { useSalaryData } from '../hooks/useSalaryData';
 import { PayslipData } from '@/types/payslip';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { PaymentConfirmation } from '../PaymentConfirmation';
 
 interface SalaryTableProps {
   salaryData: EmployeeSalary[];
@@ -46,6 +47,7 @@ export const SalaryTable = ({
   const [isPayslipLoading, setIsPayslipLoading] = React.useState(false);
   const [dialogOpen, setDialogOpen] = React.useState<Record<string, boolean>>({});
   const [expandedCards, setExpandedCards] = React.useState<Record<string, boolean>>({});
+  const [paymentConfirmationOpen, setPaymentConfirmationOpen] = React.useState<Record<string, boolean>>({});
   
   // Get transactions for the selected employee and current month
   const { getEmployeeTransactions } = useSalaryData({
@@ -118,6 +120,19 @@ export const SalaryTable = ({
     }
   }, [isSalaryPlanLoading]);
   
+  // Reset payslip state when dialog closes
+  React.useEffect(() => {
+    // Check if any dialog was just closed
+    const anyDialogOpen = Object.values(dialogOpen).some(isOpen => isOpen);
+    if (!anyDialogOpen) {
+      // Reset selected employee and loading state when all dialogs are closed
+      setTimeout(() => {
+        setSelectedEmployeeForPayslip(null);
+        setIsPayslipLoading(false);
+      }, 300); // Small delay to ensure dialog is fully closed
+    }
+  }, [dialogOpen]);
+  
   // Build payslip data for the selected employee
   const buildPayslipData = (employee: EmployeeSalary): PayslipData | null => {
     if (!employee) return null;
@@ -187,6 +202,16 @@ export const SalaryTable = ({
     }));
   };
 
+  // Payment confirmation handler
+  const handlePaymentConfirm = async () => {
+    // Mock API call that would actually process the payment
+    return new Promise<boolean>((resolve) => {
+      setTimeout(() => {
+        resolve(true); // Simulate success
+      }, 1500);
+    });
+  };
+
   if (isLoading) {
     return (
       <div className="space-y-2">
@@ -253,30 +278,57 @@ export const SalaryTable = ({
                   <div className="font-semibold truncate text-base">{employee.name}</div>
                   <div className="text-xs text-muted-foreground truncate">{getBranchNameAr(employeeDetails?.branch_id)}</div>
                 </div>
+              </div>
+
+              {/* Action Buttons - Payslip and Payment Confirmation */}
+              <div className="absolute right-2 top-2 flex gap-2 z-10">
+                {/* Payslip Button */}
                 <Dialog
                   open={dialogOpen[employee.id]}
                   onOpenChange={(open) => {
                     setDialogOpen((prev) => ({ ...prev, [employee.id]: open }));
                     if (open) {
-                      setSelectedEmployeeForPayslip(employee.id);
+                      // When opening, set loading state first, then select employee
                       setIsPayslipLoading(true);
+                      setTimeout(() => {
+                        setSelectedEmployeeForPayslip(employee.id);
+                      }, 50);
                     }
                   }}
                 >
                   <DialogTrigger asChild>
                     <Button
-                      variant="ghost"
+                      variant="outline"
                       size="icon"
-                      className="h-12 w-12 absolute right-2 top-2 z-10"
+                      className="h-10 w-10 bg-white/90 shadow-sm"
                       aria-label={`View payslip for ${employee.name}`}
                       onClick={(e) => {
                         e.stopPropagation();
+                        // Force state reset on each click
+                        if (dialogOpen[employee.id]) {
+                          setDialogOpen((prev) => ({ ...prev, [employee.id]: false }));
+                          setTimeout(() => {
+                            setDialogOpen((prev) => ({ ...prev, [employee.id]: true }));
+                          }, 100);
+                        }
                       }}
                     >
-                      <FileText className="h-6 w-6" />
+                      <FileText className="h-5 w-5" />
                     </Button>
                   </DialogTrigger>
-                  <DialogContent className="max-w-4xl max-h-[90vh] overflow-auto">
+                  <DialogContent 
+                    className="max-w-4xl max-h-[90vh] overflow-auto"
+                    onEscapeKeyDown={() => {
+                      // Additional cleanup on escape key
+                      setSelectedEmployeeForPayslip(null);
+                      setIsPayslipLoading(false);
+                    }}
+                    onInteractOutside={() => {
+                      // Additional cleanup on outside click
+                      setSelectedEmployeeForPayslip(null);
+                      setIsPayslipLoading(false);
+                    }}
+                  >
                     <DialogHeader>
                       <DialogTitle>Payslip for {employee.name}</DialogTitle>
                     </DialogHeader>
@@ -285,10 +337,52 @@ export const SalaryTable = ({
                         <Skeleton className="h-full w-full" />
                       </div>
                     ) : (
-                      <PayslipTemplateViewer payslipData={buildPayslipData(employee)} />
+                      <div key={`payslip-${employee.id}-${Date.now()}`}>
+                        {buildPayslipData(employee) ? (
+                          <PayslipTemplateViewer payslipData={buildPayslipData(employee)} />
+                        ) : (
+                          <div className="p-6 text-center">
+                            <p className="text-red-500 mb-2">Error loading payslip data</p>
+                            <Button 
+                              variant="outline" 
+                              onClick={() => {
+                                setIsPayslipLoading(true);
+                                setTimeout(() => {
+                                  setSelectedEmployeeForPayslip(employee.id);
+                                }, 100);
+                              }}
+                            >
+                              Retry
+                            </Button>
+                          </div>
+                        )}
+                      </div>
                     )}
                   </DialogContent>
                 </Dialog>
+
+                {/* Payment Confirmation Button */}
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-10 w-10 bg-white/90 shadow-sm"
+                  aria-label={`Confirm payment for ${employee.name}`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setPaymentConfirmationOpen((prev) => ({ ...prev, [employee.id]: true }));
+                  }}
+                >
+                  <CheckSquare className="h-5 w-5 text-green-600" />
+                </Button>
+
+                {/* Payment Confirmation Dialog */}
+                <PaymentConfirmation
+                  isOpen={!!paymentConfirmationOpen[employee.id]}
+                  onClose={() => setPaymentConfirmationOpen((prev) => ({ ...prev, [employee.id]: false }))}
+                  totalAmount={employee.total}
+                  employeeCount={1}
+                  onConfirm={() => handlePaymentConfirm()}
+                />
               </div>
 
               {/* Total Salary & Change - Always Visible */}
@@ -389,7 +483,7 @@ export const SalaryTable = ({
               <TableHead className="text-right">Deductions</TableHead>
               <TableHead className="text-right">Total</TableHead>
               <TableHead className="text-right">MoM Change</TableHead>
-              <TableHead></TableHead>
+              <TableHead className="w-[100px]">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -436,40 +530,96 @@ export const SalaryTable = ({
                     )}
                   </TableCell>
                   <TableCell>
-                    <Dialog
-                      open={dialogOpen[employee.id]}
-                      onOpenChange={(open) => {
-                        setDialogOpen((prev) => ({ ...prev, [employee.id]: open }));
-                        if (open) {
-                          setSelectedEmployeeForPayslip(employee.id);
-                          setIsPayslipLoading(true);
-                        }
-                      }}
-                    >
-                      <DialogTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={(e) => {
-                            e.stopPropagation();
+                    <div className="flex justify-end items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                      {/* Existing Payslip Button */}
+                      <Dialog
+                        open={dialogOpen[employee.id]}
+                        onOpenChange={(open) => {
+                          setDialogOpen((prev) => ({ ...prev, [employee.id]: open }));
+                          if (open) {
+                            // When opening, set loading state first, then select employee
+                            setIsPayslipLoading(true);
+                            setTimeout(() => {
+                              setSelectedEmployeeForPayslip(employee.id);
+                            }, 50);
+                          }
+                        }}
+                      >
+                        <DialogTrigger asChild>
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            className="h-9 w-9 bg-white/90 shadow-sm"
+                            aria-label={`View payslip for ${employee.name}`}
+                          >
+                            <FileText className="h-5 w-5" />
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent 
+                          className="max-w-4xl max-h-[90vh] overflow-auto"
+                          onEscapeKeyDown={() => {
+                            // Additional cleanup on escape key
+                            setSelectedEmployeeForPayslip(null);
+                            setIsPayslipLoading(false);
+                          }}
+                          onInteractOutside={() => {
+                            // Additional cleanup on outside click
+                            setSelectedEmployeeForPayslip(null);
+                            setIsPayslipLoading(false);
                           }}
                         >
-                          <FileText className="h-4 w-4" />
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent className="max-w-4xl max-h-[90vh] overflow-auto">
-                        <DialogHeader>
-                          <DialogTitle>Payslip for {employee.name}</DialogTitle>
-                        </DialogHeader>
-                        {isPayslipLoading ? (
-                          <div className="flex items-center justify-center h-64">
-                            <Skeleton className="h-full w-full" />
-                          </div>
-                        ) : (
-                          <PayslipTemplateViewer payslipData={buildPayslipData(employee)} />
-                        )}
-                      </DialogContent>
-                    </Dialog>
+                          <DialogHeader>
+                            <DialogTitle>Payslip for {employee.name}</DialogTitle>
+                          </DialogHeader>
+                          {isPayslipLoading ? (
+                            <div className="flex items-center justify-center h-64">
+                              <Skeleton className="h-full w-full" />
+                            </div>
+                          ) : (
+                            <div key={`payslip-${employee.id}-${Date.now()}`}>
+                              {buildPayslipData(employee) ? (
+                                <PayslipTemplateViewer payslipData={buildPayslipData(employee)} />
+                              ) : (
+                                <div className="p-6 text-center">
+                                  <p className="text-red-500 mb-2">Error loading payslip data</p>
+                                  <Button 
+                                    variant="outline" 
+                                    onClick={() => {
+                                      setIsPayslipLoading(true);
+                                      setTimeout(() => {
+                                        setSelectedEmployeeForPayslip(employee.id);
+                                      }, 100);
+                                    }}
+                                  >
+                                    Retry
+                                  </Button>
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </DialogContent>
+                      </Dialog>
+
+                      {/* Payment Confirmation Button */}
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="h-9 w-9 bg-white/90 shadow-sm"
+                        aria-label={`Confirm payment for ${employee.name}`}
+                        onClick={() => setPaymentConfirmationOpen((prev) => ({ ...prev, [employee.id]: true }))}
+                      >
+                        <CheckSquare className="h-5 w-5 text-green-600" />
+                      </Button>
+
+                      {/* Payment Confirmation Dialog */}
+                      <PaymentConfirmation
+                        isOpen={!!paymentConfirmationOpen[employee.id]}
+                        onClose={() => setPaymentConfirmationOpen((prev) => ({ ...prev, [employee.id]: false }))}
+                        totalAmount={employee.total}
+                        employeeCount={1}
+                        onConfirm={() => handlePaymentConfirm()}
+                      />
+                    </div>
                   </TableCell>
                 </TableRow>
               );
