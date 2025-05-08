@@ -10,7 +10,7 @@ import { SalaryTable } from './components/SalaryTable';
 /* import { useSalaryFiltering } from './hooks/useSalaryFiltering'; */
 import { useDashboardStats } from './hooks/useDashboardStats';
 import { Button } from '@/components/ui/button';
-import { Download, Calculator, List, FileText, ChevronLeft, ChevronRight, Search, RefreshCw, Filter, Plus, Clock } from 'lucide-react';
+import { Download, Calculator, List, FileText, ChevronLeft, ChevronRight, Search, RefreshCw, Filter, Clock } from 'lucide-react';
 import { EmployeeSalary } from './hooks/utils/salaryTypes';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import FormulaSalaryPlanList from './components/FormulaSalaryPlanList';
@@ -438,14 +438,6 @@ export const SalaryDashboard = ({
           </Button>
         </div>
       </div>
-      {/* Floating Action Button */}
-      <Button
-        className="block sm:hidden fixed right-4 bottom-16 h-14 w-14 rounded-full shadow-lg z-20"
-        onClick={() => {}}
-        aria-label="Add"
-      >
-        <Plus className="h-6 w-6" />
-      </Button>
       {/* Add bottom padding to avoid overlap */}
       <div className="block sm:hidden pb-20"></div>
     </div>

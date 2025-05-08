@@ -209,24 +209,28 @@ export const SalaryTable = ({
           return (
             <div
               key={employee.id}
-              className="rounded-xl border bg-background p-4 flex flex-col gap-2 shadow-sm"
+              className="rounded-xl border bg-background p-4 flex flex-col gap-2 shadow-sm relative"
               tabIndex={0}
+              onClick={() => onEmployeeSelect(employee.id)}
+              onKeyDown={(e) => e.key === 'Enter' && onEmployeeSelect(employee.id)}
               aria-label={`Salary card for ${employee.name}`}
             >
               <div className="flex items-center gap-3 mb-2">
                 {employeeDetails?.photo_url ? (
-                  <img
-                    src={employeeDetails.photo_url}
-                    alt={employee.name}
-                    className="h-12 w-12 rounded-full object-cover border"
-                  />
+                  <div className="h-14 w-14 rounded-full border-2 border-muted/40 overflow-hidden flex-shrink-0">
+                    <img
+                      src={employeeDetails.photo_url}
+                      alt={employee.name}
+                      className="h-full w-full object-cover"
+                    />
+                  </div>
                 ) : (
-                  <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center text-lg font-bold text-muted-foreground">
+                  <div className="h-14 w-14 rounded-full bg-muted flex items-center justify-center text-lg font-bold text-muted-foreground flex-shrink-0 border-2 border-muted/40">
                     {employee.name.charAt(0)}
                   </div>
                 )}
-                <div className="flex-1 min-w-0">
-                  <div className="font-semibold truncate">{employee.name}</div>
+                <div className="flex-1 min-w-0 pr-10">
+                  <div className="font-semibold truncate text-base">{employee.name}</div>
                   <div className="text-xs text-muted-foreground truncate">{getBranchNameAr(employeeDetails?.branch_id)}</div>
                 </div>
                 <Dialog
@@ -243,17 +247,18 @@ export const SalaryTable = ({
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-11 w-11"
+                      className="h-12 w-12 absolute right-2 top-2 z-10"
                       aria-label="View Payslip"
+                      onClick={(e) => e.stopPropagation()}
                     >
                       <FileText className="h-5 w-5" />
                     </Button>
                   </DialogTrigger>
-                  <DialogContent className="w-full max-w-full max-h-[90vh] p-0 rounded-t-2xl sm:max-w-4xl">
-                    <DialogHeader>
-                      <DialogTitle>Payslip - {employee.name}</DialogTitle>
+                  <DialogContent className="w-full max-w-full max-h-[90vh] p-0 rounded-t-2xl sm:max-w-4xl sm:rounded-2xl">
+                    <DialogHeader className="sticky top-0 bg-background z-10 p-4 border-b">
+                      <DialogTitle className="text-lg">{employee.name} - Payslip</DialogTitle>
                     </DialogHeader>
-                    <div className="mt-4">
+                    <div className="overflow-auto">
                       {isPayslipLoading || isSalaryPlanLoading ? (
                         <div className="flex justify-center py-8">
                           <Skeleton className="h-96 w-full" />
@@ -268,41 +273,43 @@ export const SalaryTable = ({
                   </DialogContent>
                 </Dialog>
               </div>
-              <div className="grid grid-cols-2 gap-2 text-sm">
-                <div>
+              <div className="grid grid-cols-2 gap-3 mt-1 text-sm">
+                <div className="bg-muted/40 rounded-lg p-2.5">
                   <div className="text-xs text-muted-foreground">Sales</div>
                   <div className="font-medium">{employee.salesAmount ? `${employee.salesAmount.toLocaleString()} SAR` : '-'}</div>
                 </div>
-                <div>
+                <div className="bg-muted/40 rounded-lg p-2.5">
                   <div className="text-xs text-muted-foreground">Base Salary</div>
                   <div className="font-medium">{employee.baseSalary.toLocaleString()} SAR</div>
                 </div>
-                <div>
+                <div className="bg-muted/40 rounded-lg p-2.5">
                   <div className="text-xs text-muted-foreground">Commission</div>
                   <div className="font-medium">{employee.commission.toLocaleString()} SAR</div>
                 </div>
-                <div>
+                <div className="bg-muted/40 rounded-lg p-2.5">
                   <div className="text-xs text-muted-foreground">Bonuses</div>
                   <div className="font-medium">{(employee.bonus || 0) + (employee.targetBonus || 0) > 0 ? `${((employee.bonus || 0) + (employee.targetBonus || 0)).toLocaleString()} SAR` : '-'}</div>
                 </div>
-                <div>
+                <div className="bg-muted/40 rounded-lg p-2.5">
                   <div className="text-xs text-muted-foreground">Deductions</div>
                   <div className="font-medium">{employee.deductions > 0 ? `${employee.deductions.toLocaleString()} SAR` : '-'}</div>
                 </div>
-                <div>
+                <div className="bg-muted/40 rounded-lg p-2.5">
                   <div className="text-xs text-muted-foreground">Loans</div>
                   <div className="font-medium">{employee.loans > 0 ? `${employee.loans.toLocaleString()} SAR` : '-'}</div>
                 </div>
-                <div className="col-span-2 flex items-center justify-between mt-2">
-                  <div className="text-xs text-muted-foreground">Total</div>
+                <div className="col-span-2 flex items-center justify-between mt-2 bg-primary/10 p-3 rounded-lg">
+                  <div className="text-sm font-medium">Total</div>
                   <div className="flex items-center gap-1 font-bold text-base">
                     {employee.total.toLocaleString()} SAR
                     {hasMonthlySalaryChange && (
                       <span
-                        className={monthlyChange && monthlyChange > 0 ? 'text-green-600' : 'text-red-600'}
+                        className={`ml-1 flex items-center justify-center rounded-full w-5 h-5 ${
+                          monthlyChange && monthlyChange > 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                        }`}
                         title={`Change from previous month: ${monthlyChange?.toLocaleString()} SAR`}
                       >
-                        {monthlyChange && monthlyChange > 0 ? <ArrowUp className="h-4 w-4" /> : <ArrowDown className="h-4 w-4" />}
+                        {monthlyChange && monthlyChange > 0 ? <ArrowUp className="h-3.5 w-3.5" /> : <ArrowDown className="h-3.5 w-3.5" />}
                       </span>
                     )}
                   </div>

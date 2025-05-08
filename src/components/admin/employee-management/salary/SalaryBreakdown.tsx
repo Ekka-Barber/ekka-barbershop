@@ -117,12 +117,12 @@ export const SalaryBreakdown = ({
       {/* MOBILE: Bottom Sheet */}
       <div className="block sm:hidden">
         <Sheet open={!!selectedEmployeeId} onOpenChange={onBack}>
-          <SheetContent side="bottom" className="h-[85vh] p-0">
-            <SheetHeader className="px-4 py-3 border-b sticky top-0 bg-background z-10">
+          <SheetContent side="bottom" className="p-0 bg-white max-h-[85vh] h-auto">
+            <SheetHeader className="px-4 py-3 border-b sticky top-0 bg-white z-10">
               <div className="flex items-center">
                 <button
                   type="button"
-                  className="mr-2 h-11 w-11 flex items-center justify-center rounded-full focus:outline-none focus:ring-2 focus:ring-primary"
+                  className="mr-3 h-10 w-10 flex items-center justify-center rounded-full focus:outline-none focus:ring-2 focus:ring-primary bg-muted/50"
                   aria-label="Back"
                   tabIndex={0}
                   onClick={onBack}
@@ -131,7 +131,7 @@ export const SalaryBreakdown = ({
                   <ArrowLeft className="h-5 w-5" />
                 </button>
                 <div>
-                  <SheetTitle>{employeeName}</SheetTitle>
+                  <SheetTitle className="text-lg">{employeeName}</SheetTitle>
                   <div className="text-sm text-muted-foreground">
                     {getMonthDisplayName(selectedMonth)}
                   </div>
@@ -139,14 +139,14 @@ export const SalaryBreakdown = ({
               </div>
             </SheetHeader>
             <Tabs defaultValue="summary" className="h-full">
-              <TabsList className="w-full justify-start px-4 pt-2 pb-0 overflow-x-auto">
-                <TabsTrigger value="summary">Summary</TabsTrigger>
-                <TabsTrigger value="transactions">Transactions</TabsTrigger>
-                <TabsTrigger value="history">History</TabsTrigger>
+              <TabsList className="w-full justify-start px-4 pt-2 pb-0 overflow-x-auto bg-white sticky top-[57px] z-10 border-b">
+                <TabsTrigger value="summary" className="text-sm py-2">Summary</TabsTrigger>
+                <TabsTrigger value="transactions" className="text-sm py-2">Transactions</TabsTrigger>
+                <TabsTrigger value="history" className="text-sm py-2">History</TabsTrigger>
               </TabsList>
-              <TabsContent value="summary" className="p-4 overflow-auto h-[calc(85vh-120px)]">
+              <TabsContent value="summary" className="p-4 bg-white overflow-auto max-h-[70vh]">
                 {/* Salary summary for mobile */}
-                <div className="grid grid-cols-2 gap-3 mb-4">
+                <div className="grid grid-cols-2 gap-3 mb-5">
                   <div className="bg-muted rounded-lg p-3">
                     <div className="text-xs text-muted-foreground">Base Salary</div>
                     <div className="text-lg font-bold">{salaryData ? formatCurrency(salaryData.baseSalary) : '-'}</div>
@@ -155,90 +155,124 @@ export const SalaryBreakdown = ({
                     <div className="text-xs text-muted-foreground">Commission</div>
                     <div className="text-lg font-bold">{salaryData ? formatCurrency(salaryData.commission) : '-'}</div>
                   </div>
-                  <div className="bg-muted rounded-lg p-3 col-span-2">
-                    <div className="text-xs text-muted-foreground">Total Earnings</div>
-                    <div className="text-lg font-bold">{salaryData ? formatCurrency(salaryData.total) : '-'}</div>
+                  <div className="bg-background border border-muted rounded-lg p-3 col-span-2">
+                    <div className="text-sm font-medium">Total Earnings</div>
+                    <div className="text-xl font-bold">{salaryData ? formatCurrency(salaryData.total) : '-'}</div>
                   </div>
                 </div>
-                {/* Bonuses, Deductions, Loans summary */}
-                <div className="grid grid-cols-3 gap-2 mb-4">
-                  <div className="bg-green-50 rounded-lg p-2 text-center">
-                    <div className="text-xs text-green-700">Bonuses</div>
-                    <div className="text-base font-bold text-green-700">{salaryData ? formatCurrency(salaryData.bonus) : '-'}</div>
-                  </div>
-                  <div className="bg-red-50 rounded-lg p-2 text-center">
-                    <div className="text-xs text-red-700">Deductions</div>
-                    <div className="text-base font-bold text-red-700">{salaryData ? `-${formatCurrency(salaryData.deductions)}` : '-'}</div>
-                  </div>
-                  <div className="bg-red-50 rounded-lg p-2 text-center">
-                    <div className="text-xs text-red-700">Loans</div>
-                    <div className="text-base font-bold text-red-700">{salaryData ? `-${formatCurrency(salaryData.loans)}` : '-'}</div>
+                
+                <div className="mb-5">
+                  <h3 className="text-base font-medium mb-3">Additional Income & Deductions</h3>
+                  <div className="grid grid-cols-3 gap-2">
+                    <div className="bg-green-50/50 rounded-lg p-3 text-center border border-green-100/50">
+                      <div className="text-xs text-green-700 mb-1">Bonuses</div>
+                      <div className="text-base font-bold text-green-700">{salaryData ? formatCurrency(salaryData.bonus) : '-'}</div>
+                    </div>
+                    <div className="bg-red-50/50 rounded-lg p-3 text-center border border-red-100/50">
+                      <div className="text-xs text-red-700 mb-1">Deductions</div>
+                      <div className="text-base font-bold text-red-700">{salaryData ? `-${formatCurrency(salaryData.deductions)}` : '-'}</div>
+                    </div>
+                    <div className="bg-red-50/50 rounded-lg p-3 text-center border border-red-100/50">
+                      <div className="text-xs text-red-700 mb-1">Loans</div>
+                      <div className="text-base font-bold text-red-700">{salaryData ? `-${formatCurrency(salaryData.loans)}` : '-'}</div>
+                    </div>
                   </div>
                 </div>
+                
+                {salesData && (
+                  <div>
+                    <h3 className="text-base font-medium mb-3">Sales Performance</h3>
+                    <div className="bg-muted rounded-lg p-4">
+                      <div className="flex justify-between mb-2">
+                        <span className="text-sm">Sales Amount:</span>
+                        <span className="font-medium">{formatCurrency(salesData.sales_amount || 0)}</span>
+                      </div>
+                      {salesData.commission_rate && (
+                        <div className="flex justify-between">
+                          <span className="text-sm">Commission Rate:</span>
+                          <span className="font-medium">{salesData.commission_rate * 100}%</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
               </TabsContent>
-              <TabsContent value="transactions" className="p-4 overflow-auto h-[calc(85vh-120px)]">
+              <TabsContent value="transactions" className="p-4 bg-white overflow-auto max-h-[70vh]">
                 {/* Transactions list with color coding */}
-                <div className="space-y-3">
-                  {[...(bonusTransactions.map(t => ({ ...t, type: 'bonus' }))),
-                    ...(deductionTransactions.map(t => ({ ...t, type: 'deduction' }))),
-                    ...(loanTransactions.map(t => ({ ...t, type: 'loan' })))]
-                    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-                    .map((transaction, index) => (
-                      <div
-                        key={index}
-                        className={`flex items-center p-3 border rounded-lg ${
-                          transaction.type === 'bonus'
-                            ? 'border-green-100 bg-green-50'
-                            : 'border-red-100 bg-red-50'
-                        }`}
-                      >
+                {[...(bonusTransactions.map(t => ({ ...t, type: 'bonus' }))),
+                  ...(deductionTransactions.map(t => ({ ...t, type: 'deduction' }))),
+                  ...(loanTransactions.map(t => ({ ...t, type: 'loan' })))]
+                  .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+                  .length > 0 ? (
+                  <div className="space-y-3">
+                    {[...(bonusTransactions.map(t => ({ ...t, type: 'bonus' }))),
+                      ...(deductionTransactions.map(t => ({ ...t, type: 'deduction' }))),
+                      ...(loanTransactions.map(t => ({ ...t, type: 'loan' })))]
+                      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+                      .map((transaction, index) => (
                         <div
-                          className={`h-10 w-10 rounded-full flex items-center justify-center mr-3 ${
+                          key={index}
+                          className={`flex items-center p-3 border rounded-lg ${
                             transaction.type === 'bonus'
-                              ? 'bg-green-100 text-green-700'
-                              : 'bg-red-100 text-red-700'
+                              ? 'border-green-100/50 bg-green-50/50'
+                              : 'border-red-100/50 bg-red-50/50'
                           }`}
                         >
-                          {transaction.type === 'bonus' ? (
-                            <Plus className="h-5 w-5" />
-                          ) : (
-                            <Minus className="h-5 w-5" />
-                          )}
-                        </div>
-                        <div className="flex-1">
-                          <div className="font-medium">{transaction.description}</div>
-                          <div className="text-xs text-muted-foreground">
-                            {new Date(transaction.date).toLocaleDateString()}
+                          <div
+                            className={`h-10 w-10 rounded-full flex items-center justify-center mr-3 ${
+                              transaction.type === 'bonus'
+                                ? 'bg-green-100/70 text-green-700'
+                                : 'bg-red-100/70 text-red-700'
+                            }`}
+                          >
+                            {transaction.type === 'bonus' ? (
+                              <Plus className="h-5 w-5" />
+                            ) : (
+                              <Minus className="h-5 w-5" />
+                            )}
+                          </div>
+                          <div className="flex-1">
+                            <div className="font-medium">{transaction.description}</div>
+                            <div className="text-xs text-muted-foreground">
+                              {new Date(transaction.date).toLocaleDateString()}
+                            </div>
+                          </div>
+                          <div
+                            className={
+                              transaction.type === 'bonus'
+                                ? 'text-green-700 font-medium text-base'
+                                : 'text-red-700 font-medium text-base'
+                            }
+                          >
+                            {transaction.type === 'bonus'
+                              ? `+${formatCurrency(transaction.amount)}`
+                              : `-${formatCurrency(transaction.amount)}`}
                           </div>
                         </div>
-                        <div
-                          className={
-                            transaction.type === 'bonus'
-                              ? 'text-green-700 font-medium'
-                              : 'text-red-700 font-medium'
-                          }
-                        >
-                          {transaction.type === 'bonus'
-                            ? `+${formatCurrency(transaction.amount)}`
-                            : `-${formatCurrency(transaction.amount)}`}
-                        </div>
-                      </div>
-                    ))}
-                  {[...bonusTransactions, ...deductionTransactions, ...loanTransactions].length === 0 && (
-                    <div className="text-center py-4 text-muted-foreground">
-                      No transactions for this period
+                      ))}
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center justify-center h-full text-center py-8">
+                    <div className="bg-muted h-16 w-16 rounded-full flex items-center justify-center mb-4">
+                      <Info className="h-7 w-7 text-muted-foreground" />
                     </div>
-                  )}
-                </div>
+                    <h3 className="text-lg font-medium mb-2">No transactions</h3>
+                    <p className="text-muted-foreground max-w-xs">
+                      There are no bonus, deduction, or loan transactions for this period.
+                    </p>
+                  </div>
+                )}
               </TabsContent>
-              <TabsContent value="history" className="p-4 overflow-auto h-[calc(85vh-120px)]">
+              <TabsContent value="history" className="p-4 bg-white overflow-auto max-h-[70vh]">
                 {/* Placeholder for salary history visualization */}
-                <div className="h-40 mb-4 bg-muted rounded-lg flex items-center justify-center text-muted-foreground">
-                  Salary history chart coming soon
-                </div>
-                <div className="space-y-3">
-                  {/* Placeholder for historical salary entries */}
-                  <div className="text-center text-xs text-muted-foreground">No history data</div>
+                <div className="flex flex-col items-center justify-center h-full text-center py-8">
+                  <div className="bg-muted h-16 w-16 rounded-full flex items-center justify-center mb-4">
+                    <CalendarDays className="h-7 w-7 text-muted-foreground" />
+                  </div>
+                  <h3 className="text-lg font-medium mb-2">Salary History</h3>
+                  <p className="text-muted-foreground max-w-xs">
+                    Salary history visualization is coming soon. You'll be able to track changes over time.
+                  </p>
                 </div>
               </TabsContent>
             </Tabs>
