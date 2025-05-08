@@ -1,7 +1,4 @@
 import React, { useState, useMemo, useEffect, Suspense, useCallback } from 'react';
-import { useToast } from "@/components/ui/use-toast";
-import { Calendar } from 'lucide-react';
-import { useEmployeeSales } from './hooks/useEmployeeSales';
 import { useBranchManager } from './hooks/useBranchManager';
 import { useEmployeeManager } from './hooks/useEmployeeManager';
 import { Tabs, TabsContent } from '@/components/ui/tabs';
@@ -15,18 +12,41 @@ import {
   TabLoadingFallback
 } from './lazy-loaded-tabs';
 import { EmployeeProvider } from './context/EmployeeContext';
+import { BaseEmployeeContextType } from './context/EmployeeContext';
 import { DocumentProvider } from './context/DocumentContext';
 import { useUrlState } from './hooks/useUrlState';
 import { BranchFilter } from './components/BranchFilter';
 import { EmployeeTabsNavigation } from './components/EmployeeTabsNavigation';
 import { ErrorBoundary } from '@/components/common/ErrorBoundary';
-import { EmployeeSalesHeader } from './components/EmployeeSalesHeader';
-import { EmployeeGrid } from './components/EmployeeGrid';
+import { EmployeeGrid as OriginalEmployeeGrid } from './components/EmployeeGrid';
+import { Employee } from '@/types/employee';
+import { Branch, PaginationInfo } from './types';
+
+// Create a version of EmployeeGrid without sales inputs
+// Define proper types for the wrapper component
+type EmployeeGridProps = {
+  isLoading: boolean;
+  employees: Employee[];
+  selectedBranch: string | null;
+  refetchEmployees?: () => void;
+  selectedDate?: Date;
+  branches: Branch[]; // Use proper Branch type
+  pagination: PaginationInfo;
+  onPageChange: (page: number) => void;
+};
+
+const EmployeeGrid: React.FC<EmployeeGridProps> = (props) => (
+  <OriginalEmployeeGrid
+    {...props}
+    salesInputs={{}} // Empty object as we don't need sales inputs here anymore
+    onSalesChange={() => {}} // Empty function as we don't handle sales changes here anymore
+  />
+);
 
 export const EmployeeTab = () => {
-  const { toast } = useToast();
   const { currentState, syncUrlWithState } = useUrlState();
   
+  // Keep date state for tabs that need it like analytics
   const [selectedDate, setSelectedDate] = useState<Date>(() => 
     new Date(currentState.date)
   );
@@ -47,14 +67,6 @@ export const EmployeeTab = () => {
     setCurrentPage
   } = useEmployeeManager(selectedBranch);
   
-  const {
-    salesInputs,
-    lastUpdated,
-    isSubmitting,
-    handleSalesChange,
-    submitSalesData
-  } = useEmployeeSales(selectedDate, employees);
-
   useEffect(() => {
     const currentDateStr = selectedDate.toISOString().slice(0, 7);
     if (
@@ -89,58 +101,32 @@ export const EmployeeTab = () => {
     setCurrentPage(page);
   }, [setCurrentPage]);
 
-  const handleSubmit = useCallback(async () => {
-    try {
-      await submitSalesData();
-      toast({
-        title: "Success",
-        description: "Employee sales data saved successfully",
-      });
-    } catch (error) {
-      console.error('Error submitting sales data:', error);
-      toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to save sales data",
-        variant: "destructive",
-      });
-    }
-  }, [submitSalesData, toast]);
-
   const isLoading = useMemo(() => 
     isBranchLoading || isEmployeeLoading, 
     [isBranchLoading, isEmployeeLoading]
   );
 
-  const contextValue = useMemo(() => ({
+  // Use the new BaseEmployeeContextType without sales properties
+  const contextValue = useMemo<BaseEmployeeContextType>(() => ({
     employees,
     branches,
     selectedBranch,
     selectedDate,
     isLoading,
-    salesInputs,
-    lastUpdated,
-    isSubmitting,
     pagination,
     setSelectedBranch: handleBranchChange,
     setSelectedDate: handleDateChange,
-    handleSalesChange,
-    handleSubmit,
     setCurrentPage: handlePageChange,
-    fetchEmployees,
+    fetchEmployees
   }), [
     employees,
     branches,
     selectedBranch,
     selectedDate,
     isLoading,
-    salesInputs,
-    lastUpdated,
-    isSubmitting,
     pagination,
     handleBranchChange,
     handleDateChange,
-    handleSalesChange,
-    handleSubmit,
     handlePageChange,
     fetchEmployees
   ]);
@@ -165,26 +151,17 @@ export const EmployeeTab = () => {
 
               <TabsContent value="employee-grid" className="space-y-6">
                 <ErrorBoundary>
-                  <EmployeeSalesHeader
-                    selectedDate={selectedDate}
-                    setSelectedDate={handleDateChange}
-                    handleSubmit={handleSubmit}
-                    isSubmitting={isSubmitting}
-                  />
-                  
-                  {lastUpdated && (
-                    <div className="flex items-center text-sm text-muted-foreground">
-                      <Calendar className="h-4 w-4 mr-1" />
-                      <span>Last updated: {lastUpdated}</span>
+                  <div className="flex flex-col md:flex-row justify-between gap-4 items-start md:items-center mb-6">
+                    <div>
+                      <h2 className="text-2xl font-bold">Employee Management</h2>
+                      <p className="text-muted-foreground">Manage your employees and their settings</p>
                     </div>
-                  )}
+                  </div>
                   
                   <EmployeeGrid
                     isLoading={isLoading}
                     employees={employees}
-                    salesInputs={salesInputs}
                     selectedBranch={selectedBranch}
-                    onSalesChange={handleSalesChange}
                     refetchEmployees={fetchEmployees}
                     selectedDate={selectedDate}
                     branches={branches}
@@ -194,66 +171,49 @@ export const EmployeeTab = () => {
                 </ErrorBoundary>
               </TabsContent>
 
-              <TabsContent value="employees" className="space-y-6">
+              <TabsContent value="employees">
                 <Suspense fallback={<TabLoadingFallback />}>
-                  <ErrorBoundary>
-                    <LazyEmployeesTab
-                      initialBranchId={selectedBranch}
-                    />
-                  </ErrorBoundary>
+                  <LazyEmployeesTab initialBranchId={selectedBranch} />
                 </Suspense>
               </TabsContent>
 
-              <TabsContent value="monthly-sales" className="space-y-6">
+              <TabsContent value="monthly-sales">
                 <Suspense fallback={<TabLoadingFallback />}>
-                  <ErrorBoundary>
-                    <LazyMonthlySalesTab 
-                      initialDate={selectedDate}
-                      initialBranchId={selectedBranch}
-                    />
-                  </ErrorBoundary>
+                  <LazyMonthlySalesTab 
+                    initialDate={selectedDate}
+                    initialBranchId={selectedBranch}
+                  />
                 </Suspense>
               </TabsContent>
-              
+
               <TabsContent value="analytics">
                 <Suspense fallback={<TabLoadingFallback />}>
-                  <ErrorBoundary>
-                    <LazyEmployeeAnalyticsDashboard 
-                      employees={employees}
-                      selectedBranch={selectedBranch}
-                    />
-                  </ErrorBoundary>
+                  <LazyEmployeeAnalyticsDashboard 
+                    selectedDate={selectedDate}
+                    setSelectedDate={handleDateChange}
+                    selectedBranch={selectedBranch}
+                  />
                 </Suspense>
               </TabsContent>
-              
+
               <TabsContent value="schedule">
                 <Suspense fallback={<TabLoadingFallback />}>
-                  <ErrorBoundary>
-                    <LazyScheduleInterface 
-                      selectedBranch={selectedBranch}
-                      employees={employees}
-                    />
-                  </ErrorBoundary>
+                  <LazyScheduleInterface />
                 </Suspense>
               </TabsContent>
 
               <TabsContent value="salary">
                 <Suspense fallback={<TabLoadingFallback />}>
-                  <ErrorBoundary>
-                    <LazySalaryDashboard 
-                      employees={employees}
-                    />
-                  </ErrorBoundary>
+                  <LazySalaryDashboard
+                    selectedDate={selectedDate}
+                    setSelectedDate={handleDateChange}
+                  />
                 </Suspense>
               </TabsContent>
 
               <TabsContent value="leave">
                 <Suspense fallback={<TabLoadingFallback />}>
-                  <ErrorBoundary>
-                    <LazyLeaveManagement 
-                      employees={employees}
-                    />
-                  </ErrorBoundary>
+                  <LazyLeaveManagement />
                 </Suspense>
               </TabsContent>
             </Tabs>

@@ -1,13 +1,8 @@
 import React, { createContext, useContext, useMemo } from 'react';
 import { Employee } from '@/types/employee';
-import { Branch } from '@/components/admin/employee-management/hooks/useBranchManager';
+import { Branch, PaginationInfo } from '../types';
 
-interface PaginationInfo {
-  currentPage: number;
-  totalPages: number;
-  totalItems: number;
-}
-
+// Legacy context type with sales properties - kept for backward compatibility
 interface EmployeeContextType {
   employees: Employee[];
   branches: Branch[];
@@ -26,30 +21,38 @@ interface EmployeeContextType {
   fetchEmployees: () => Promise<void>;
 }
 
-const EmployeeContext = createContext<EmployeeContextType | undefined>(undefined);
+// New context type without sales-specific properties
+export interface BaseEmployeeContextType {
+  employees: Employee[];
+  branches: Branch[];
+  selectedBranch: string | null;
+  selectedDate: Date;
+  isLoading: boolean;
+  pagination: PaginationInfo;
+  setSelectedBranch: (branchId: string | null) => void;
+  setSelectedDate: (date: Date) => void;
+  setCurrentPage: (page: number) => void;
+  fetchEmployees: () => Promise<void>;
+}
+
+// Allow using either the full context or the base context
+type FlexibleEmployeeContextType = BaseEmployeeContextType | EmployeeContextType;
+
+// Function to check if a context has sales properties
+export const hasSalesProperties = (
+  context: FlexibleEmployeeContextType
+): context is EmployeeContextType => {
+  return 'salesInputs' in context && 'handleSalesChange' in context;
+};
+
+const EmployeeContext = createContext<FlexibleEmployeeContextType | undefined>(undefined);
 
 export const EmployeeProvider: React.FC<{
   children: React.ReactNode;
-  value: EmployeeContextType;
+  value: FlexibleEmployeeContextType;
 }> = ({ children, value }) => {
   // Memoize the context value to prevent unnecessary re-renders
-  const memoizedValue = useMemo(() => value, [
-    value.employees,
-    value.branches,
-    value.selectedBranch,
-    value.selectedDate,
-    value.isLoading,
-    value.salesInputs,
-    value.lastUpdated,
-    value.isSubmitting,
-    value.pagination,
-    value.setSelectedBranch,
-    value.setSelectedDate,
-    value.handleSalesChange,
-    value.handleSubmit,
-    value.setCurrentPage,
-    value.fetchEmployees
-  ]);
+  const memoizedValue = useMemo(() => value, Object.values(value));
 
   return (
     <EmployeeContext.Provider value={memoizedValue}>
