@@ -15,6 +15,7 @@ import {
   TabLoadingFallback
 } from './lazy-loaded-tabs';
 import { EmployeeProvider } from './context/EmployeeContext';
+import { DocumentProvider } from './context/DocumentContext';
 import { useUrlState } from './hooks/useUrlState';
 import { BranchFilter } from './components/BranchFilter';
 import { EmployeeTabsNavigation } from './components/EmployeeTabsNavigation';
@@ -146,117 +147,119 @@ export const EmployeeTab = () => {
 
   return (
     <ErrorBoundary>
-      <EmployeeProvider value={contextValue}>
-        <div className="space-y-6">
-          <BranchFilter 
-            branches={branches} 
-            selectedBranch={selectedBranch} 
-            onBranchChange={handleBranchChange} 
-            isLoading={isBranchLoading} 
-          />
-          
-          <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
-            <EmployeeTabsNavigation 
-              activeTab={activeTab}
-              onTabChange={handleTabChange}
+      <DocumentProvider>
+        <EmployeeProvider value={contextValue}>
+          <div className="space-y-6">
+            <BranchFilter 
+              branches={branches} 
+              selectedBranch={selectedBranch} 
+              onBranchChange={handleBranchChange} 
+              isLoading={isBranchLoading} 
             />
-
-            <TabsContent value="employee-grid" className="space-y-6">
-              <ErrorBoundary>
-                <EmployeeSalesHeader
-                  selectedDate={selectedDate}
-                  setSelectedDate={handleDateChange}
-                  handleSubmit={handleSubmit}
-                  isSubmitting={isSubmitting}
-                />
-                
-                {lastUpdated && (
-                  <div className="flex items-center text-sm text-muted-foreground">
-                    <Calendar className="h-4 w-4 mr-1" />
-                    <span>Last updated: {lastUpdated}</span>
-                  </div>
-                )}
-                
-                <EmployeeGrid
-                  isLoading={isLoading}
-                  employees={employees}
-                  salesInputs={salesInputs}
-                  selectedBranch={selectedBranch}
-                  onSalesChange={handleSalesChange}
-                  refetchEmployees={fetchEmployees}
-                  selectedDate={selectedDate}
-                  branches={branches}
-                  pagination={pagination}
-                  onPageChange={handlePageChange}
-                />
-              </ErrorBoundary>
-            </TabsContent>
-
-            <TabsContent value="employees" className="space-y-6">
-              <Suspense fallback={<TabLoadingFallback />}>
-                <ErrorBoundary>
-                  <LazyEmployeesTab
-                    initialBranchId={selectedBranch}
-                  />
-                </ErrorBoundary>
-              </Suspense>
-            </TabsContent>
-
-            <TabsContent value="monthly-sales" className="space-y-6">
-              <Suspense fallback={<TabLoadingFallback />}>
-                <ErrorBoundary>
-                  <LazyMonthlySalesTab 
-                    initialDate={selectedDate}
-                    initialBranchId={selectedBranch}
-                  />
-                </ErrorBoundary>
-              </Suspense>
-            </TabsContent>
             
-            <TabsContent value="analytics">
-              <Suspense fallback={<TabLoadingFallback />}>
-                <ErrorBoundary>
-                  <LazyEmployeeAnalyticsDashboard 
-                    employees={employees}
-                    selectedBranch={selectedBranch}
-                  />
-                </ErrorBoundary>
-              </Suspense>
-            </TabsContent>
-            
-            <TabsContent value="schedule">
-              <Suspense fallback={<TabLoadingFallback />}>
-                <ErrorBoundary>
-                  <LazyScheduleInterface 
-                    selectedBranch={selectedBranch}
-                    employees={employees}
-                  />
-                </ErrorBoundary>
-              </Suspense>
-            </TabsContent>
+            <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
+              <EmployeeTabsNavigation 
+                activeTab={activeTab}
+                onTabChange={handleTabChange}
+              />
 
-            <TabsContent value="salary">
-              <Suspense fallback={<TabLoadingFallback />}>
+              <TabsContent value="employee-grid" className="space-y-6">
                 <ErrorBoundary>
-                  <LazySalaryDashboard 
+                  <EmployeeSalesHeader
+                    selectedDate={selectedDate}
+                    setSelectedDate={handleDateChange}
+                    handleSubmit={handleSubmit}
+                    isSubmitting={isSubmitting}
+                  />
+                  
+                  {lastUpdated && (
+                    <div className="flex items-center text-sm text-muted-foreground">
+                      <Calendar className="h-4 w-4 mr-1" />
+                      <span>Last updated: {lastUpdated}</span>
+                    </div>
+                  )}
+                  
+                  <EmployeeGrid
+                    isLoading={isLoading}
                     employees={employees}
+                    salesInputs={salesInputs}
+                    selectedBranch={selectedBranch}
+                    onSalesChange={handleSalesChange}
+                    refetchEmployees={fetchEmployees}
+                    selectedDate={selectedDate}
+                    branches={branches}
+                    pagination={pagination}
+                    onPageChange={handlePageChange}
                   />
                 </ErrorBoundary>
-              </Suspense>
-            </TabsContent>
+              </TabsContent>
 
-            <TabsContent value="leave">
-              <Suspense fallback={<TabLoadingFallback />}>
-                <ErrorBoundary>
-                  <LazyLeaveManagement 
-                    employees={employees}
-                  />
-                </ErrorBoundary>
-              </Suspense>
-            </TabsContent>
-          </Tabs>
-        </div>
-      </EmployeeProvider>
+              <TabsContent value="employees" className="space-y-6">
+                <Suspense fallback={<TabLoadingFallback />}>
+                  <ErrorBoundary>
+                    <LazyEmployeesTab
+                      initialBranchId={selectedBranch}
+                    />
+                  </ErrorBoundary>
+                </Suspense>
+              </TabsContent>
+
+              <TabsContent value="monthly-sales" className="space-y-6">
+                <Suspense fallback={<TabLoadingFallback />}>
+                  <ErrorBoundary>
+                    <LazyMonthlySalesTab 
+                      initialDate={selectedDate}
+                      initialBranchId={selectedBranch}
+                    />
+                  </ErrorBoundary>
+                </Suspense>
+              </TabsContent>
+              
+              <TabsContent value="analytics">
+                <Suspense fallback={<TabLoadingFallback />}>
+                  <ErrorBoundary>
+                    <LazyEmployeeAnalyticsDashboard 
+                      employees={employees}
+                      selectedBranch={selectedBranch}
+                    />
+                  </ErrorBoundary>
+                </Suspense>
+              </TabsContent>
+              
+              <TabsContent value="schedule">
+                <Suspense fallback={<TabLoadingFallback />}>
+                  <ErrorBoundary>
+                    <LazyScheduleInterface 
+                      selectedBranch={selectedBranch}
+                      employees={employees}
+                    />
+                  </ErrorBoundary>
+                </Suspense>
+              </TabsContent>
+
+              <TabsContent value="salary">
+                <Suspense fallback={<TabLoadingFallback />}>
+                  <ErrorBoundary>
+                    <LazySalaryDashboard 
+                      employees={employees}
+                    />
+                  </ErrorBoundary>
+                </Suspense>
+              </TabsContent>
+
+              <TabsContent value="leave">
+                <Suspense fallback={<TabLoadingFallback />}>
+                  <ErrorBoundary>
+                    <LazyLeaveManagement 
+                      employees={employees}
+                    />
+                  </ErrorBoundary>
+                </Suspense>
+              </TabsContent>
+            </Tabs>
+          </div>
+        </EmployeeProvider>
+      </DocumentProvider>
     </ErrorBoundary>
   );
 };

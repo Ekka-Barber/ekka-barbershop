@@ -7,6 +7,17 @@ interface UrlState {
   page: number;
 }
 
+// Add new tabs to the valid tabs list
+const VALID_TABS = [
+  'employee-grid',  // Original tab (keeping for backward compatibility)
+  'employees',      // New employee information tab
+  'monthly-sales',  // New monthly sales tab
+  'analytics',
+  'schedule',
+  'salary',
+  'leave'
+];
+
 const DEFAULT_STATE: UrlState = {
   tab: 'employee-grid',
   branch: null,
@@ -35,7 +46,11 @@ export const useUrlState = () => {
   // Get current URL state
   const currentState = useMemo(() => {
     const adminAccess = searchParams.get('access');
-    const tab = searchParams.get('tab') || DEFAULT_STATE.tab;
+    
+    // Get the tab parameter and validate it
+    const rawTab = searchParams.get('tab') || DEFAULT_STATE.tab;
+    const tab = VALID_TABS.includes(rawTab) ? rawTab : DEFAULT_STATE.tab;
+    
     const branch = searchParams.get('branch');
     const date = searchParams.get('date') || DEFAULT_STATE.date;
     const page = parseInt(searchParams.get('page') || '1', 10);
@@ -53,6 +68,11 @@ export const useUrlState = () => {
   const updateUrlState = useCallback((newState: Partial<UrlState>) => {
     const params = new URLSearchParams(window.location.search);
     const adminAccess = params.get('access');
+
+    // Validate tab if provided
+    if (newState.tab && !VALID_TABS.includes(newState.tab)) {
+      newState.tab = DEFAULT_STATE.tab;
+    }
 
     // Update only the provided parameters
     Object.entries(newState).forEach(([key, value]) => {
@@ -81,8 +101,11 @@ export const useUrlState = () => {
     date: Date,
     page: number
   ) => {
+    // Validate the tab
+    const validTab = VALID_TABS.includes(tab) ? tab : DEFAULT_STATE.tab;
+    
     const newState: Partial<UrlState> = {
-      tab,
+      tab: validTab,
       branch,
       date: date.toISOString().slice(0, 7),
       page
@@ -90,7 +113,13 @@ export const useUrlState = () => {
 
     // Only update if values are different from current URL
     const shouldUpdate = Object.entries(newState).some(
-      ([key, value]) => currentState[key as keyof UrlState] !== value
+      ([key, value]) => {
+        if (key === 'date') {
+          // Special handling for date comparison
+          return currentState.date !== value;
+        }
+        return currentState[key as keyof UrlState] !== value;
+      }
     );
 
     if (shouldUpdate) {
@@ -101,6 +130,7 @@ export const useUrlState = () => {
   return {
     currentState,
     updateUrlState,
-    syncUrlWithState
+    syncUrlWithState,
+    VALID_TABS
   };
 }; 
