@@ -62,20 +62,7 @@ export const EmployeeTabsNavigation: React.FC<EmployeeTabsNavigationProps> = ({
             </TabsTrigger>
           </div>
           {/* Second row */}
-          <div className="grid grid-cols-3 gap-2 mt-2">
-            <TabsTrigger 
-              value="team" 
-              onClick={() => onTabChange('team')}
-              className={cn(
-                "flex flex-col items-center justify-center py-4 px-2 h-auto min-h-[60px]",
-                "data-[state=active]:bg-accent data-[state=active]:text-accent-foreground",
-                activeTab === 'team' && "bg-accent text-accent-foreground"
-              )}
-              aria-label="Team tab"
-            >
-              <Users className="h-6 w-6 mb-1" />
-              <span className="text-xs">Team</span>
-            </TabsTrigger>
+          <div className="grid grid-cols-2 gap-2 mt-2">
             <TabsTrigger 
               value="salary" 
               onClick={() => onTabChange('salary')}
@@ -147,18 +134,6 @@ export const EmployeeTabsNavigation: React.FC<EmployeeTabsNavigationProps> = ({
           >
             <Clock className="h-4 w-4" />
             <span>Scheduling</span>
-          </TabsTrigger>
-          <TabsTrigger 
-            value="team" 
-            onClick={() => onTabChange('team')}
-            className={cn(
-              "flex items-center gap-1",
-              activeTab === 'team' && "bg-accent text-accent-foreground"
-            )}
-            aria-label="Team tab"
-          >
-            <Users className="h-4 w-4" />
-            <span>Team</span>
           </TabsTrigger>
           <TabsTrigger 
             value="salary" 

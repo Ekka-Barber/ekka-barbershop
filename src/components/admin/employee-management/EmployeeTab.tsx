@@ -10,7 +10,6 @@ import { Tabs, TabsContent } from '@/components/ui/tabs';
 import {
   LazyEmployeeAnalyticsDashboard,
   LazyScheduleInterface,
-  LazyTeamPerformanceComparison,
   LazySalaryDashboard,
   LazyLeaveManagement,
   TabLoadingFallback
@@ -206,17 +205,6 @@ export const EmployeeTab = () => {
               <Suspense fallback={<TabLoadingFallback />}>
                 <ErrorBoundary>
                   <LazyScheduleInterface 
-                    selectedBranch={selectedBranch}
-                    employees={employees}
-                  />
-                </ErrorBoundary>
-              </Suspense>
-            </TabsContent>
-
-            <TabsContent value="team">
-              <Suspense fallback={<TabLoadingFallback />}>
-                <ErrorBoundary>
-                  <LazyTeamPerformanceComparison 
                     selectedBranch={selectedBranch}
                     employees={employees}
                   />

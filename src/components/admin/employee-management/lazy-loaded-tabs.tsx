@@ -1,10 +1,10 @@
-import { lazy, Suspense } from 'react';
-import { Employee } from '@/types/employee';
+import { lazy } from 'react';
 import { ErrorBoundary } from '@/components/common/ErrorBoundary';
+import React from 'react';
 
 // Error boundary wrapper for lazy loaded components
-const withErrorBoundary = (Component: React.ComponentType<any>) => {
-  return (props: any) => (
+const withErrorBoundary = (Component: React.ComponentType<unknown>) => {
+  return (props: Record<string, unknown>) => (
     <ErrorBoundary>
       <Component {...props} />
     </ErrorBoundary>
@@ -21,12 +21,6 @@ export const LazyEmployeeAnalyticsDashboard = lazy(() =>
 export const LazyScheduleInterface = lazy(() => 
   import('./components/ScheduleInterface').then(module => ({
     default: withErrorBoundary(module.ScheduleInterface)
-  }))
-);
-
-export const LazyTeamPerformanceComparison = lazy(() => 
-  import('./components/TeamPerformanceComparison').then(module => ({
-    default: withErrorBoundary(module.TeamPerformanceComparison)
   }))
 );
 

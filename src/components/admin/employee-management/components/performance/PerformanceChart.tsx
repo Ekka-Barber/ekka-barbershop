@@ -1,6 +1,5 @@
-
-import { Bar, Line } from 'react-chartjs-2';
 import { ChartData, ChartOptions } from 'chart.js';
+import { ChartWrapper } from './ChartWrapper';
 
 interface PerformanceChartProps {
   chartData: ChartData<'bar' | 'line'>;
@@ -15,17 +14,12 @@ export const PerformanceChart = ({
 }: PerformanceChartProps) => {
   return (
     <div className="h-[300px]">
-      {selectedChartType === 'bar' ? (
-        <Bar 
-          options={chartOptions as ChartOptions<'bar'>} 
-          data={chartData as ChartData<'bar'>} 
-        />
-      ) : (
-        <Line 
-          options={chartOptions as ChartOptions<'line'>} 
-          data={chartData as ChartData<'line'>} 
-        />
-      )}
+      <ChartWrapper
+        chartData={chartData}
+        chartOptions={chartOptions}
+        chartType={selectedChartType}
+        id={`performance-chart-${selectedChartType}`}
+      />
     </div>
   );
 };
