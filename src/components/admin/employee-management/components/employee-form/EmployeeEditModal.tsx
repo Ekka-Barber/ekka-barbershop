@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -12,6 +12,8 @@ import { EmployeeForm } from './EmployeeForm';
 import { Employee } from '@/types/employee';
 import { Branch } from '@/types/branch';
 import { SalaryPlan } from '@/types/salaryPlan';
+import { uploadEmployeePhoto } from '@/services/employeeService';
+import { useToast } from '@/components/ui/use-toast';
 
 interface EmployeeEditModalProps {
   isOpen: boolean;
@@ -30,14 +32,46 @@ export const EmployeeEditModal: React.FC<EmployeeEditModalProps> = ({
   branches,
   salaryPlans,
 }) => {
+  const { toast } = useToast();
+  const [currentPhotoUrl, setCurrentPhotoUrl] = useState<string | undefined>(
+    employeeToEdit?.photo_url || undefined
+  );
+
+  useEffect(() => {
+    setCurrentPhotoUrl(employeeToEdit?.photo_url || undefined);
+  }, [employeeToEdit]);
+
   if (!isOpen) {
     return null;
   }
 
+  const handlePhotoUploadCallback = async (file: File) => {
+    try {
+      const newPhotoUrl = await uploadEmployeePhoto(file);
+      setCurrentPhotoUrl(newPhotoUrl);
+      toast({
+        title: "Photo Uploaded",
+        description: "The new employee photo has been successfully uploaded.",
+      });
+    } catch (error) {
+      console.error("Error uploading photo in modal:", error);
+      toast({
+        title: "Upload Failed",
+        description: error instanceof Error ? error.message : "Could not upload the photo. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
   // The form submission will be handled by EmployeeForm's onSubmit, which calls onSave.
   // The onSave prop (implemented in EmployeesTab.tsx) will then handle closing the modal.
-  const handleSubmitForm = async (formData: Partial<Employee>) => {
-    await onSave(formData);
+  const handleSubmitForm = async (formDataFromForm: Partial<Employee>) => {
+    // Ensure the latest photo URL is included in the submission
+    const submissionData = {
+      ...formDataFromForm,
+      photo_url: currentPhotoUrl || null, // Use the stateful currentPhotoUrl
+    };
+    await onSave(submissionData);
   };
 
   return (
@@ -56,6 +90,7 @@ export const EmployeeEditModal: React.FC<EmployeeEditModalProps> = ({
           isEditMode={!!employeeToEdit}
           branches={branches}
           salaryPlans={salaryPlans}
+          onPhotoUpload={handlePhotoUploadCallback}
         />
       </DialogContent>
     </Dialog>

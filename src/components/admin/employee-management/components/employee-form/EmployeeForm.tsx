@@ -5,6 +5,8 @@ import { SalaryPlan } from '@/types/salaryPlan';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Upload } from "lucide-react";
 // import { Textarea } from '@/components/ui/textarea'; // For potential multi-line inputs
 import {
   Select,
@@ -45,6 +47,7 @@ interface EmployeeFormProps {
   isEditMode: boolean;
   branches: Branch[];
   salaryPlans: SalaryPlan[];
+  onPhotoUpload: (file: File) => Promise<void>;
 }
 
 const defaultFormState: EmployeeFormState = {
@@ -67,6 +70,7 @@ export const EmployeeForm: React.FC<EmployeeFormProps> = ({
   isEditMode,
   branches,
   salaryPlans,
+  onPhotoUpload,
 }) => {
   const [formData, setFormData] = useState<EmployeeFormState>(defaultFormState);
   // const [errors, setErrors] = useState<Record<keyof EmployeeFormState, string>>({}); // For Zod/validator
@@ -97,6 +101,13 @@ export const EmployeeForm: React.FC<EmployeeFormProps> = ({
 
   const handleSelectChange = (name: keyof Pick<EmployeeFormState, 'branch_id' | 'salary_plan_id' | 'role'>, value: string) => {
     setFormData(prev => ({ ...prev, [name]: value === '' ? undefined : value })); // store undefined if "" selected (e.g. "None" for salary plan)
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      await onPhotoUpload(file);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -131,6 +142,27 @@ export const EmployeeForm: React.FC<EmployeeFormProps> = ({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6 py-4">
+      <div className="flex flex-col items-center space-y-3 mb-6">
+        <Avatar className="w-24 h-24 border">
+          <AvatarImage src={formData.photo_url || undefined} alt={formData.name} />
+          <AvatarFallback>{formData.name ? formData.name.charAt(0).toUpperCase() : 'E'}</AvatarFallback>
+        </Avatar>
+        <Input
+          id="photo-upload-input"
+          type="file"
+          accept="image/*"
+          onChange={handleFileChange}
+          className="hidden"
+        />
+        <Label
+          htmlFor="photo-upload-input"
+          className="cursor-pointer inline-flex items-center gap-2 px-4 py-2 bg-secondary text-secondary-foreground hover:bg-secondary/80 rounded-md text-sm font-medium"
+        >
+          <Upload className="h-4 w-4" />
+          Upload Photo
+        </Label>
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
         <div>
           <Label htmlFor="name" className="block text-sm font-medium mb-1">Name <span className="text-red-500">*</span></Label>
@@ -217,17 +249,6 @@ export const EmployeeForm: React.FC<EmployeeFormProps> = ({
           />
         </div>
         
-        <div>
-          <Label htmlFor="photo_url" className="block text-sm font-medium mb-1">Photo URL</Label>
-          <Input
-            id="photo_url"
-            name="photo_url"
-            type="url"
-            value={formData.photo_url}
-            onChange={handleChange}
-          />
-        </div>
-
         <div>
           <Label htmlFor="salary_plan_id" className="block text-sm font-medium mb-1">Salary Plan</Label>
           <Select
