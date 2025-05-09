@@ -196,17 +196,20 @@ updated_at       - Timestamp (record last update date)
 - [ ] Test on various screen sizes and devices
 
 ### Phase 2: Employee Creation Form
-- [ ] Design employee creation form layout (Partially addressed by `EmployeeForm.tsx`)
+- [x] Design employee creation form layout (Partially addressed by `EmployeeForm.tsx`)
 - [ ] Create form validation rules (Potentially using `EmployeeValidator.ts` or `form-validators.ts`)
 - [x] Implement form component with all required fields (`EmployeeForm.tsx` - also for editing) - **Largely Completed**
   - [x] `EmployeeForm.tsx` created in `src/components/admin/employee-management/components/employee-form/`.
   - [x] Includes fields: Name, Name (Arabic), Branch (Select), Role (Select), Email, Nationality, Photo URL, Salary Plan (Select), Start Date, Annual Leave Quota.
   - [x] "Role" field implemented as a Select dropdown populated from `EmployeeRole` type.
-- [ ] Add file upload for employee photo
-- [ ] Create submission and error handling logic (Partially done for edit, needs dedicated create logic and service call)
-- [ ] Connect to API endpoints (`employeeService.createEmployee`) - (Pending `createEmployee` function in `employeeService.ts`)
-- [ ] Implement success and error states for creation
-- [ ] Add form navigation and cancel functionality (Cancel exists via modal, primary navigation for triggering create is pending)
+- [x] Add file upload for employee photo - **Completed**
+  - [x] Integrated into `EmployeeForm.tsx` with UI for avatar display and upload button.
+  - [x] `uploadEmployeePhoto` service created in `employeeService.ts` for Supabase Storage interaction.
+  - [x] `EmployeeEditModal.tsx` updated to manage photo URL state and use the upload service.
+- [x] Create submission and error handling logic - **Completed** (Done for edit and create, including toasts in `EmployeesTab.tsx`)
+- [x] Connect to API endpoints (`employeeService.createEmployee`) - **Completed** (`createEmployee` function in `employeeService.ts` now uses Supabase for inserts)
+- [x] Implement success and error states for creation - **Completed** (Implemented via toasts in `EmployeesTab.tsx`)
+- [ ] Add form navigation and cancel functionality (Cancel exists via modal, primary navigation for triggering create is done)
 
 ### Phase 3: Enhanced Employee Information Display
 - [ ] Identify all available employee fields from database
@@ -252,19 +255,16 @@ updated_at       - Timestamp (record last update date)
 ---
 **NEXT STEPS FOR CURRENT DEVELOPMENT FOCUS:**
 
-The core edit functionality is now largely in place. Immediate next steps involve:
-
 1.  **Thorough Testing of Edit Functionality**:
-    *   Test editing various fields for multiple employees.
+    *   Test editing various fields for multiple employees (including photo upload).
     *   Verify data persistence in the database.
     *   Check UI updates and toast notifications.
     *   Test edge cases (e.g., clearing optional fields, selecting different roles/branches/salary plans).
 
-2.  **Database Schema Verification (Critical for `email` and `phone`)**:
-    *   Verify if `email` and `phone` columns exist in the Supabase `employees` table as expected by the UI and canonical `Employee` type.
-    *   If missing or named differently, update the DB schema to include them.
-    *   Regenerate Supabase TypeScript types (`npx supabase gen types typescript ...`) to reflect the accurate schema.
-    *   Update `useEmployeeManager.ts` (specifically `DbEmployeeRow` and the `select` statement in `fetchEmployees`) based on the outcome. This is crucial for data integrity and to remove frontend workarounds.
+2.  **Database Schema Verification (Critical for `email` and `phone`)**: - **Partially Addressed**
+    *   **CONFIRMED:** `email` column exists in the Supabase `employees` table as expected.
+    *   `phone` column is not currently required and can be deferred.
+    *   If `email` was missing/different, next steps would be: update DB schema, regenerate Supabase types, update `useEmployeeManager.ts`. (This part is now less critical given email is confirmed).
 
 3.  **Implement Employee Creation Functionality**:
     *   Add a "Create Employee" button in `EmployeesTab.tsx` (likely in the header area near the branch filter).
@@ -295,15 +295,14 @@ The core edit functionality is now largely in place. Immediate next steps involv
     *   These props are correctly defined in `EmployeeListProps` but might not be fully utilized within `EmployeeList.tsx`'s JSX for pagination controls (depending on whether `EmployeeList` itself renders pagination UI or delegates it).
     *   **Action:** Review `EmployeeList.tsx` if pagination controls are its responsibility. If pagination is handled externally (e.g., by a separate pagination component), this might be fine. For now, low priority if pagination generally works.
 
-*   **NEW: Database Schema Discrepancy for `email` and `phone` fields:**
-    *   The Supabase auto-generated types (in `src/integrations/supabase/types.ts`) suggest that `email` (and possibly `phone`) might be missing from the `employees` table's `Row` definition, or the type generation is out of sync with the actual schema.
-    *   This caused issues with Supabase queries and type safety in `useEmployeeManager.ts`.
-    *   A temporary workaround was applied in `useEmployeeManager.ts` (using `select('*')` and defensively accessing/mapping these fields in `formatEmployeeData`).
-    *   **Action for Next Session (CRITICAL):**
-        1.  Verify the actual schema of the `employees` table in the Supabase database.
-        2.  If `email`/`phone` are missing from the DB table and are required fields for an employee, add them to the database table.
-        3.  Regenerate Supabase TypeScript types using the appropriate command (e.g., `npx supabase gen types typescript ...`).
-        4.  Update `useEmployeeManager.ts` based on the regenerated types: adjust `DbEmployeeRow` to directly use the (now correct) generated type, and modify the `select` statement in `fetchEmployees` if necessary (e.g., back to `select('*')` if the generated types are complete, or `select('col1, col2, email, phone, ...')` if specific selection is preferred).
+*   **NEW: Database Schema Discrepancy for `email` and `phone` fields:** - **Status Updated**
+    *   The Supabase auto-generated types (in `src/integrations/supabase/types.ts`) might still show discrepancies if not regenerated after any minor schema alignments. However, for current functionality:
+    *   `email` is confirmed to exist in the `employees` table.
+    *   `phone` is not a required field for now.
+    *   Workaround in `useEmployeeManager.ts` (using `select('*')` and defensive mapping) might still be present. Can be refined later if exact column selection is preferred and types are perfectly aligned, but less critical if `email` is functioning.
+    *   **Action for Next Session (Lower Priority):**
+        1.  If strict type alignment is desired, ensure Supabase types are regenerated (`npx supabase gen types typescript ...`).
+        2.  Update `useEmployeeManager.ts` (specifically `DbEmployeeRow` and `select` statement) if regenerated types allow for more precise field selection than `select('*')`.
 
 *   **NEW: Salary Plan `name_ar` field display:**
     *   The `salary_plans` table in `employees-supabase-TABLES.txt` lists `name_ar`.
@@ -316,7 +315,7 @@ The core edit functionality is now largely in place. Immediate next steps involv
 
 - Phase 0: Critical Bug Fixes - 100% complete
 - Phase 1: Mobile Responsiveness - ~75% complete (Tab navigation, Sales & Analytics UI enhancements, Employee Card significantly improved with Flag and Leave Balance, Edit button plumbing done. Next: forms optimization via modal approach).
-- Phase 2: Employee Creation Form - ~40% complete (`EmployeeForm.tsx` created and largely functional with most fields including Role as Select, reusable for creation. Service logic (`createEmployee`) and UI integration for triggering 'create' action are pending).
+- Phase 2: Employee Creation Form - ~90% complete (`EmployeeForm.tsx` handles data entry for create/edit including photo upload. `EmployeesTab.tsx` manages modal flow for create/edit. `employeeService.ts` handles API calls for create/update. Key pending items: robust client-side validation in form).
 - Phase 3: Enhanced Employee Information - ~80% complete (Most info now in card or available in edit form).
 - Phase 4: Country Flag Integration - 100% complete.
 - Phase 5: Edit Functionality - ~95% complete (Core modal, form with most fields including Role Select, `updateEmployee` service, and integration in `EmployeesTab.tsx` are done. Toast notifications implemented. Type safety significantly improved. Key pending items: robust validation, UI for complex fields like `working_hours`/`off_days`, and critical DB schema alignment for `email`/`phone`).

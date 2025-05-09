@@ -35,60 +35,52 @@ export async function updateEmployee(
   }
 }
 
-// Placeholder for createEmployee function - to be implemented later as per the plan
-/**
- * Creates a new employee record in the database.
- *
- * @param newData An object containing the data for the new employee.
- *                Should be Omit<Employee, 'id' | 'created_at' | 'updated_at'> or a specific create type.
- * @returns An object with `data` (the created employee record or null) and `error` (any error that occurred or null).
- */
-// export async function createEmployee(
-//   newData: Omit<Employee, 'id' | 'created_at' | 'updated_at'>
-// ): Promise<{ data: Employee | null; error: Error | null }> {
-//   try {
-//     const { data: newEmployee, error: supabaseError } = await supabase
-//       .from('employees')
-//       .insert(newData)
-//       .select()
-//       .single();
-// 
-//     if (supabaseError) {
-//       console.error('Error creating employee:', supabaseError);
-//       return { data: null, error: new Error(supabaseError.message) };
-//     }
-// 
-//     return { data: newEmployee as Employee | null, error: null };
-//   } catch (e) {
-//     const error = e instanceof Error ? e : new Error('An unexpected error occurred during employee creation');
-//     console.error('Unexpected error in createEmployee:', error);
-//     return { data: null, error };
-//   }
-// } 
-
+// Replace the mock createEmployee function with the actual Supabase implementation.
 export const createEmployee = async (employeeData: Partial<Employee>): Promise<Employee> => {
-  console.log('employeeService.createEmployee called with:', employeeData);
-  // Simulate API call
-  // const { data, error } = await supabase.from('employees').insert([employeeData]).select().single();
-  // if (error) throw error;
-  // return data;
-  // For now, returning a mock. Replace with actual Supabase call.
-  await new Promise(resolve => setTimeout(resolve, 500)); 
-  const mockCreatedEmployee = {
-    id: crypto.randomUUID(), 
-    ...defaultFormState, // Assuming defaultFormState is available or use a proper default
-    ...employeeData,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-    // Ensure all required Employee fields are present if not in employeeData or defaultFormState
-    previous_working_hours: null,
-    working_hours: null,
-    off_days: [],
-    start_date: employeeData.start_date || new Date().toISOString(),
-    annual_leave_quota: typeof employeeData.annual_leave_quota === 'number' ? employeeData.annual_leave_quota : 0,
-  } as Employee;
-  console.log("Mock created employee:", mockCreatedEmployee);
-  return mockCreatedEmployee;
+  if (!employeeData.name || !employeeData.role || !employeeData.branch_id) {
+    console.error('Create employee called with missing required fields (name, role, or branch_id).', employeeData);
+    throw new Error('Cannot create employee: Name, Role, and Branch ID are required.');
+  }
+
+  const payloadToInsert = {
+    name: employeeData.name, // Known to be string
+    role: employeeData.role,   // Known to be EmployeeRole
+    branch_id: employeeData.branch_id, // Known to be string
+    name_ar: employeeData.name_ar || null,
+    nationality: employeeData.nationality || null,
+    email: employeeData.email || null,
+    photo_url: employeeData.photo_url || null,
+    salary_plan_id: employeeData.salary_plan_id || null,
+    start_date: employeeData.start_date || null,
+    annual_leave_quota: employeeData.annual_leave_quota, // Already number | null from EmployeeForm
+    // Fields like working_hours, off_days, previous_working_hours are omitted
+    // as they are low priority and might not be in Employee type or are handled by DB defaults.
+  };
+
+  try {
+    const { data: newEmployee, error: supabaseError } = await supabase
+      .from('employees')
+      .insert(payloadToInsert)
+      .select()
+      .single();
+
+    if (supabaseError) {
+      console.error('Error creating employee in Supabase:', supabaseError);
+      throw new Error(`Failed to create employee: ${supabaseError.message}`);
+    }
+
+    if (!newEmployee) {
+      console.error('No data returned from Supabase after creating employee.');
+      throw new Error('Failed to create employee: No data returned after insert.');
+    }
+
+    return newEmployee as Employee;
+  } catch (e) {
+    // Catch any other unexpected errors (network issues, etc.)
+    const error = e instanceof Error ? e : new Error('An unexpected error occurred during employee creation');
+    console.error('Unexpected error in createEmployee service:', error);
+    throw error; // Re-throw the error to be caught by the calling function (in EmployeesTab)
+  }
 };
 
 export const uploadEmployeePhoto = async (file: File): Promise<string> => {
@@ -133,18 +125,3 @@ export const uploadEmployeePhoto = async (file: File): Promise<string> => {
 };
 
 // TODO: Add deleteEmployee function if needed
-
-// Helper to simulate default form state if needed for mock createEmployee
-// This should ideally be imported or aligned with actual form defaults
-const defaultFormState = {
-  name: 'Default Name',
-  name_ar: '',
-  branch_id: 'default-branch-id', // replace with actual default or ensure it's provided
-  role: 'barber' as Employee['role'],
-  nationality: 'SA',
-  email: 'default@example.com',
-  photo_url: '',
-  salary_plan_id: undefined, // or a default plan id
-  start_date: new Date().toISOString().split('T')[0],
-  annual_leave_quota: 0,
-}; 

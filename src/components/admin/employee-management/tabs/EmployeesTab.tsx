@@ -8,11 +8,12 @@ import { EmployeesTabProps } from '../types';
 import { Employee } from '@/types/employee';
 import { useUrlState } from '../hooks/useUrlState';
 import { EmployeeEditModal } from '../components/employee-form/EmployeeEditModal';
-import { updateEmployee } from '@/services/employeeService';
+import { updateEmployee, createEmployee } from '@/services/employeeService';
 import { SalaryPlan } from '@/types/salaryPlan';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from "@/components/ui/use-toast";
+import { Button } from "@/components/ui/button";
 
 export const EmployeesTab: React.FC<EmployeesTabProps> = ({ 
   initialBranchId = null 
@@ -68,43 +69,69 @@ export const EmployeesTab: React.FC<EmployeesTabProps> = ({
     setIsEditModalOpen(true);
   };
 
+  const handleOpenCreateModal = () => {
+    setEditingEmployee(null);
+    setIsEditModalOpen(true);
+  };
+
   const handleCloseEditModal = () => {
     setIsEditModalOpen(false);
     setEditingEmployee(null);
   };
 
-  const handleSaveEmployee = async (updatedData: Partial<Employee>) => {
-    if (!editingEmployee || !editingEmployee.id) {
-      toast({
-        title: "Error",
-        description: "No employee selected for update.",
-        variant: "destructive",
-      });
-      return;
-    }
-
+  const handleSaveEmployee = async (formData: Partial<Employee>) => {
     try {
-      const { data: savedEmployee, error } = await updateEmployee(editingEmployee.id, updatedData);
-      if (error) {
-        console.error("Failed to save employee:", error);
-        toast({
-          title: "Save Failed",
-          description: error.message || "Could not update employee details.",
-          variant: "destructive",
-        });
+      if (editingEmployee && editingEmployee.id) {
+        // Update existing employee
+        const { data: savedEmployee, error } = await updateEmployee(editingEmployee.id, formData);
+        if (error) {
+          console.error("Failed to update employee:", error);
+          toast({
+            title: "Update Failed",
+            description: error.message || "Could not update employee details.",
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "Success",
+            description: `Employee ${savedEmployee?.name || ''} updated successfully.`,
+          });
+          fetchEmployees(); 
+          handleCloseEditModal();
+        }
       } else {
+        // Create new employee
+        // Ensure required fields for creation are present if your service/DB expects them
+        // The `formData` from EmployeeForm should contain all necessary fields
+        const  savedEmployee = await createEmployee(formData); // Assuming createEmployee returns the new employee or throws an error
+        // The createEmployee service function needs to be updated to return { data, error } or throw
+        // For now, assuming it throws on error and returns data on success for simplicity based on prior mock.
+        // if (error) { // If createEmployee returns { data, error }
+        //   console.error("Failed to create employee:", error);
+        //   toast({
+        //     title: "Creation Failed",
+        //     description: error.message || "Could not create new employee.",
+        //     variant: "destructive",
+        //   });
+        // } else {
         toast({
           title: "Success",
-          description: `Employee ${savedEmployee?.name || ''} updated successfully.`,
+          description: `Employee ${savedEmployee?.name || ''} created successfully.`,
         });
-        fetchEmployees(); // Refetch employee list
+        fetchEmployees();
         handleCloseEditModal();
+        // }
       }
     } catch (error) {
+      // More specific error handling
+      let errorMessage = "An unexpected error occurred while saving.";
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      }
       console.error("Exception when saving employee:", error);
       toast({
         title: "Save Error",
-        description: "An unexpected error occurred while saving.",
+        description: errorMessage,
         variant: "destructive",
       });
     }
@@ -139,15 +166,18 @@ export const EmployeesTab: React.FC<EmployeesTabProps> = ({
   return (
     <ErrorBoundary>
       <div className="space-y-6">
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
             <h2 className="text-2xl font-bold tracking-tight">Employees</h2>
             <p className="text-muted-foreground">
               Manage your employees and their information
             </p>
           </div>
-          
-          {/* Branch Filter Component */}
+          <Button onClick={handleOpenCreateModal}>Create Employee</Button>
+        </div>
+        
+        {/* Branch Filter Component - moved to a new div for layout */}
+        <div className="pb-4 border-b">
           <BranchFilter 
             branches={branches} 
             selectedBranch={selectedBranch} 
@@ -169,7 +199,8 @@ export const EmployeesTab: React.FC<EmployeesTabProps> = ({
           />
         </ErrorBoundary>
 
-        {editingEmployee && (
+        {/* Modal is now controlled only by isEditModalOpen */}
+        {isEditModalOpen && (
           <EmployeeEditModal
             isOpen={isEditModalOpen}
             onClose={handleCloseEditModal}
