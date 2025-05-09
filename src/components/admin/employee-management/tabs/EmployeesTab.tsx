@@ -4,13 +4,21 @@ import { ErrorBoundary } from '@/components/common/ErrorBoundary';
 import { useEmployeeManager } from '../hooks/useEmployeeManager';
 import { useBranchManager } from '../hooks/useBranchManager';
 import { EmployeeList } from '../components/employee-list/EmployeeList';
-import { EmployeesTabProps, Employee } from '../types';
+import { EmployeesTabProps } from '../types';
+import { Employee } from '@/types/employee';
 import { useUrlState } from '../hooks/useUrlState';
+import { EmployeeEditModal } from '../components/employee-form/EmployeeEditModal';
+import { updateEmployee } from '@/services/employeeService';
+import { SalaryPlan } from '@/types/salaryPlan';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from "@/components/ui/use-toast";
 
 export const EmployeesTab: React.FC<EmployeesTabProps> = ({ 
   initialBranchId = null 
 }) => {
   const { currentState, syncUrlWithState } = useUrlState();
+  const { toast } = useToast();
   
   const { 
     branches, 
@@ -27,9 +35,27 @@ export const EmployeesTab: React.FC<EmployeesTabProps> = ({
     setCurrentPage
   } = useEmployeeManager(selectedBranch);
   
+  // Fetch Salary Plans
+  const {
+    data: salaryPlans = [],
+    isLoading: isSalaryPlansLoading,
+  } = useQuery<SalaryPlan[], Error>({
+    queryKey: ['salaryPlans'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('salary_plans')
+        .select('id, name, type'); // Removed name_ar for now due to linter error
+      if (error) {
+        console.error('Error fetching salary plans:', error);
+        throw new Error(error.message);
+      }
+      return data || [];
+    },
+  });
+  
   const isLoading = useMemo(() => 
-    isBranchLoading || isEmployeeLoading, 
-    [isBranchLoading, isEmployeeLoading]
+    isBranchLoading || isEmployeeLoading || isSalaryPlansLoading, 
+    [isBranchLoading, isEmployeeLoading, isSalaryPlansLoading]
   );
   
   // State for Edit Modal
@@ -40,7 +66,6 @@ export const EmployeesTab: React.FC<EmployeesTabProps> = ({
   const handleOpenEditModal = (employee: Employee) => {
     setEditingEmployee(employee);
     setIsEditModalOpen(true);
-    console.log("Opening edit modal for:", employee); // Placeholder log
   };
 
   const handleCloseEditModal = () => {
@@ -49,18 +74,40 @@ export const EmployeesTab: React.FC<EmployeesTabProps> = ({
   };
 
   const handleSaveEmployee = async (updatedData: Partial<Employee>) => {
-    if (!editingEmployee) return;
-    console.log("Saving employee:", editingEmployee.id, updatedData); // Placeholder log
-    // TODO: Implement actual save logic using employeeService
-    // try {
-    //   await employeeService.updateEmployee(editingEmployee.id, updatedData);
-    //   fetchEmployees(); // Refetch employee list
-    //   handleCloseEditModal();
-    // } catch (error) {
-    //   console.error("Failed to save employee:", error);
-    //   // TODO: Show error toast
-    // }
-    handleCloseEditModal(); // Close modal for now
+    if (!editingEmployee || !editingEmployee.id) {
+      toast({
+        title: "Error",
+        description: "No employee selected for update.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const { data: savedEmployee, error } = await updateEmployee(editingEmployee.id, updatedData);
+      if (error) {
+        console.error("Failed to save employee:", error);
+        toast({
+          title: "Save Failed",
+          description: error.message || "Could not update employee details.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Success",
+          description: `Employee ${savedEmployee?.name || ''} updated successfully.`,
+        });
+        fetchEmployees(); // Refetch employee list
+        handleCloseEditModal();
+      }
+    } catch (error) {
+      console.error("Exception when saving employee:", error);
+      toast({
+        title: "Save Error",
+        description: "An unexpected error occurred while saving.",
+        variant: "destructive",
+      });
+    }
   };
   
   // Keep URL in sync with component state
@@ -122,25 +169,15 @@ export const EmployeesTab: React.FC<EmployeesTabProps> = ({
           />
         </ErrorBoundary>
 
-        {/* Placeholder for Modal - to be replaced with EmployeeEditModal */}
-        {isEditModalOpen && editingEmployee && (
-          <div 
-            style={{
-              position: 'fixed', 
-              top: '50%', 
-              left: '50%', 
-              transform: 'translate(-50%, -50%)',
-              padding: '20px', 
-              background: 'white', 
-              border: '1px solid black',
-              zIndex: 1000
-            }}
-          >
-            <h3>Editing: {editingEmployee.name}</h3>
-            <p>ID: {editingEmployee.id}</p>
-            <button onClick={() => handleSaveEmployee({ name: 'Updated Name' })}>Save (Test)</button>
-            <button onClick={handleCloseEditModal}>Close</button>
-          </div>
+        {editingEmployee && (
+          <EmployeeEditModal
+            isOpen={isEditModalOpen}
+            onClose={handleCloseEditModal}
+            employeeToEdit={editingEmployee}
+            onSave={handleSaveEmployee}
+            branches={branches}
+            salaryPlans={salaryPlans}
+          />
         )}
       </div>
     </ErrorBoundary>
