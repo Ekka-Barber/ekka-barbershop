@@ -1,6 +1,6 @@
 import React from 'react';
 import { TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Users, BarChart2, Clock, DollarSign, Airplay, LineChart } from 'lucide-react';
+import { Users, BarChart2, Clock, DollarSign, Airplay, LineChart, UserCog } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
 
@@ -9,206 +9,87 @@ interface EmployeeTabsNavigationProps {
   onTabChange: (value: string) => void;
 }
 
-export const EmployeeTabsNavigation: React.FC<EmployeeTabsNavigationProps> = ({ 
-  activeTab, 
-  onTabChange 
+const TABS_CONFIG = [
+  { id: 'employee-grid', label: 'Employee Grid', icon: <UserCog className="h-5 w-5" /> },
+  { id: 'employees', label: 'Employees', icon: <Users className="h-5 w-5" /> },
+  { id: 'monthly-sales', label: 'Sales', icon: <LineChart className="h-5 w-5" /> },
+  { id: 'analytics', label: 'Analytics', icon: <BarChart2 className="h-5 w-5" /> },
+  { id: 'schedule', label: 'Schedule', icon: <Clock className="h-5 w-5" /> },
+  { id: 'salary', label: 'Salary', icon: <DollarSign className="h-5 w-5" /> },
+  { id: 'leave', label: 'Leave', icon: <Airplay className="h-5 w-5" /> },
+];
+
+export const EmployeeTabsNavigation: React.FC<EmployeeTabsNavigationProps> = ({
+  activeTab,
+  onTabChange,
 }) => {
   const isMobile = useIsMobile();
 
   if (isMobile) {
     return (
-      <div className="sticky top-0 left-0 right-0 z-40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b shadow-sm">
-        <TabsList className="w-full p-2">
-          {/* First row */}
-          <div className="grid grid-cols-4 gap-2">
-            <TabsTrigger 
-              value="employee-grid" 
-              onClick={() => onTabChange('employee-grid')}
+      <div className="fixed bottom-0 left-0 w-full bg-background border-t border-border shadow-lg md:hidden z-50">
+        <TabsList className="grid h-auto grid-cols-4 p-0">
+          {TABS_CONFIG.slice(0, 4).map((tab) => ( // First row for mobile (max 4 tabs)
+            <TabsTrigger
+              key={tab.id}
+              value={tab.id}
+              onClick={() => onTabChange(tab.id)}
               className={cn(
-                "flex flex-col items-center justify-center py-4 px-2 h-auto min-h-[60px]",
-                "data-[state=active]:bg-accent data-[state=active]:text-accent-foreground",
-                activeTab === 'employee-grid' && "bg-accent text-accent-foreground"
+                "flex flex-col items-center justify-center py-2 px-1 h-16 rounded-none",
+                "text-xs data-[state=active]:text-primary data-[state=active]:bg-accent data-[state=active]:shadow-none",
+                activeTab === tab.id ? 'text-primary bg-accent' : 'text-muted-foreground'
               )}
-              aria-label="Employee Grid tab"
+              aria-label={`${tab.label} tab`}
             >
-              <Users className="h-6 w-6 mb-1" />
-              <span className="text-xs">Employee Grid</span>
+              {React.cloneElement(tab.icon, { className: cn(tab.icon.props.className, "mb-1") })}
+              {tab.label}
             </TabsTrigger>
-            <TabsTrigger 
-              value="employees" 
-              onClick={() => onTabChange('employees')}
-              className={cn(
-                "flex flex-col items-center justify-center py-4 px-2 h-auto min-h-[60px]",
-                "data-[state=active]:bg-accent data-[state=active]:text-accent-foreground",
-                activeTab === 'employees' && "bg-accent text-accent-foreground"
-              )}
-              aria-label="Employees tab"
-            >
-              <Users className="h-6 w-6 mb-1" />
-              <span className="text-xs">Employees</span>
-            </TabsTrigger>
-            <TabsTrigger 
-              value="monthly-sales" 
-              onClick={() => onTabChange('monthly-sales')}
-              className={cn(
-                "flex flex-col items-center justify-center py-4 px-2 h-auto min-h-[60px]",
-                "data-[state=active]:bg-accent data-[state=active]:text-accent-foreground",
-                activeTab === 'monthly-sales' && "bg-accent text-accent-foreground"
-              )}
-              aria-label="Monthly Sales tab"
-            >
-              <LineChart className="h-6 w-6 mb-1" />
-              <span className="text-xs">Sales</span>
-            </TabsTrigger>
-            <TabsTrigger 
-              value="analytics" 
-              onClick={() => onTabChange('analytics')}
-              className={cn(
-                "flex flex-col items-center justify-center py-4 px-2 h-auto min-h-[60px]",
-                "data-[state=active]:bg-accent data-[state=active]:text-accent-foreground",
-                activeTab === 'analytics' && "bg-accent text-accent-foreground"
-              )}
-              aria-label="Analytics tab"
-            >
-              <BarChart2 className="h-6 w-6 mb-1" />
-              <span className="text-xs">Analytics</span>
-            </TabsTrigger>
-          </div>
-          {/* Second row */}
-          <div className="grid grid-cols-3 gap-2 mt-2">
-            <TabsTrigger 
-              value="schedule" 
-              onClick={() => onTabChange('schedule')}
-              className={cn(
-                "flex flex-col items-center justify-center py-4 px-2 h-auto min-h-[60px]",
-                "data-[state=active]:bg-accent data-[state=active]:text-accent-foreground",
-                activeTab === 'schedule' && "bg-accent text-accent-foreground"
-              )}
-              aria-label="Schedule tab"
-            >
-              <Clock className="h-6 w-6 mb-1" />
-              <span className="text-xs">Schedule</span>
-            </TabsTrigger>
-            <TabsTrigger 
-              value="salary" 
-              onClick={() => onTabChange('salary')}
-              className={cn(
-                "flex flex-col items-center justify-center py-4 px-2 h-auto min-h-[60px]",
-                "data-[state=active]:bg-accent data-[state=active]:text-accent-foreground",
-                activeTab === 'salary' && "bg-accent text-accent-foreground"
-              )}
-              aria-label="Salary tab"
-            >
-              <DollarSign className="h-6 w-6 mb-1" />
-              <span className="text-xs">Salary</span>
-            </TabsTrigger>
-            <TabsTrigger 
-              value="leave" 
-              onClick={() => onTabChange('leave')}
-              className={cn(
-                "flex flex-col items-center justify-center py-4 px-2 h-auto min-h-[60px]",
-                "data-[state=active]:bg-accent data-[state=active]:text-accent-foreground",
-                activeTab === 'leave' && "bg-accent text-accent-foreground"
-              )}
-              aria-label="Leave tab"
-            >
-              <Airplay className="h-6 w-6 mb-1" />
-              <span className="text-xs">Leave</span>
-            </TabsTrigger>
-          </div>
+          ))}
         </TabsList>
+        {TABS_CONFIG.length > 4 && ( // Second row for mobile if more than 4 tabs
+           <TabsList className="grid h-auto grid-cols-3 p-0 border-t border-border">
+            {TABS_CONFIG.slice(4).map((tab) => (
+              <TabsTrigger
+                key={tab.id}
+                value={tab.id}
+                onClick={() => onTabChange(tab.id)}
+                className={cn(
+                  "flex flex-col items-center justify-center py-2 px-1 h-16 rounded-none",
+                  "text-xs data-[state=active]:text-primary data-[state=active]:bg-accent data-[state=active]:shadow-none",
+                  activeTab === tab.id ? 'text-primary bg-accent' : 'text-muted-foreground'
+                )}
+                aria-label={`${tab.label} tab`}
+              >
+                {React.cloneElement(tab.icon, { className: cn(tab.icon.props.className, "mb-1") })}
+                {tab.label}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        )}
       </div>
     );
   }
 
+  // Desktop navigation
   return (
-    <div className="flex justify-between items-center">
+    <div className="hidden md:flex justify-between items-center">
       <div className="pb-2 w-full">
         <TabsList className="w-full flex flex-wrap gap-2">
-          <TabsTrigger 
-            value="employee-grid" 
-            onClick={() => onTabChange('employee-grid')}
-            className={cn(
-              "flex items-center gap-1",
-              activeTab === 'employee-grid' && "bg-accent text-accent-foreground"
-            )}
-            aria-label="Employee Grid tab"
-          >
-            <Users className="h-4 w-4" />
-            <span>Employee Grid</span>
-          </TabsTrigger>
-          <TabsTrigger 
-            value="employees" 
-            onClick={() => onTabChange('employees')}
-            className={cn(
-              "flex items-center gap-1",
-              activeTab === 'employees' && "bg-accent text-accent-foreground"
-            )}
-            aria-label="Employees tab"
-          >
-            <Users className="h-4 w-4" />
-            <span>Employees</span>
-          </TabsTrigger>
-          <TabsTrigger 
-            value="monthly-sales" 
-            onClick={() => onTabChange('monthly-sales')}
-            className={cn(
-              "flex items-center gap-1",
-              activeTab === 'monthly-sales' && "bg-accent text-accent-foreground"
-            )}
-            aria-label="Monthly Sales tab"
-          >
-            <LineChart className="h-4 w-4" />
-            <span>Monthly Sales</span>
-          </TabsTrigger>
-          <TabsTrigger 
-            value="analytics" 
-            onClick={() => onTabChange('analytics')}
-            className={cn(
-              "flex items-center gap-1",
-              activeTab === 'analytics' && "bg-accent text-accent-foreground"
-            )}
-            aria-label="Analytics tab"
-          >
-            <BarChart2 className="h-4 w-4" />
-            <span>Analytics</span>
-          </TabsTrigger>
-          <TabsTrigger 
-            value="schedule" 
-            onClick={() => onTabChange('schedule')}
-            className={cn(
-              "flex items-center gap-1",
-              activeTab === 'schedule' && "bg-accent text-accent-foreground"
-            )}
-            aria-label="Scheduling tab"
-          >
-            <Clock className="h-4 w-4" />
-            <span>Scheduling</span>
-          </TabsTrigger>
-          <TabsTrigger 
-            value="salary" 
-            onClick={() => onTabChange('salary')}
-            className={cn(
-              "flex items-center gap-1",
-              activeTab === 'salary' && "bg-accent text-accent-foreground"
-            )}
-            aria-label="Salary tab"
-          >
-            <DollarSign className="h-4 w-4" />
-            <span>Salary</span>
-          </TabsTrigger>
-          <TabsTrigger 
-            value="leave" 
-            onClick={() => onTabChange('leave')}
-            className={cn(
-              "flex items-center gap-1",
-              activeTab === 'leave' && "bg-accent text-accent-foreground"
-            )}
-            aria-label="Leave tab"
-          >
-            <Airplay className="h-4 w-4" />
-            <span>Leave</span>
-          </TabsTrigger>
+          {TABS_CONFIG.map((tab) => (
+            <TabsTrigger
+              key={tab.id}
+              value={tab.id}
+              onClick={() => onTabChange(tab.id)}
+              className={cn(
+                "flex items-center gap-2 px-3 py-2 text-sm",
+                activeTab === tab.id ? 'bg-accent text-accent-foreground shadow-sm' : 'hover:bg-accent/50'
+              )}
+              aria-label={`${tab.label} tab`}
+            >
+              {React.cloneElement(tab.icon, { className: "h-4 w-4"})}
+              <span>{tab.label}</span>
+            </TabsTrigger>
+          ))}
         </TabsList>
       </div>
     </div>

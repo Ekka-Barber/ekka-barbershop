@@ -132,9 +132,9 @@ export const MonthlySalesTab: React.FC<MonthlySalesTabProps> = ({
         </div>
         
         {/* Analytics Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="flex overflow-x-auto space-x-4 pb-4 pt-1">
           {/* Total Sales Card */}
-          <Card>
+          <Card className="min-w-[280px] flex-shrink-0">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium">
                 Total Sales
@@ -169,7 +169,7 @@ export const MonthlySalesTab: React.FC<MonthlySalesTabProps> = ({
           </Card>
           
           {/* Average Sales Card */}
-          <Card>
+          <Card className="min-w-[280px] flex-shrink-0">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium">
                 Average per Employee
@@ -189,7 +189,7 @@ export const MonthlySalesTab: React.FC<MonthlySalesTabProps> = ({
           </Card>
           
           {/* Top Performer Card */}
-          <Card>
+          <Card className="min-w-[280px] flex-shrink-0">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium">
                 Top Performer

@@ -70,6 +70,7 @@ export const EmployeeAnalyticsDashboard = ({
   const [teamChartType, setTeamChartType] = useState<'bar' | 'line'>('bar');
   const [teamChartKey, setTeamChartKey] = useState<number>(0);
   const [activeSection, setActiveSection] = useState<'individual' | 'team'>('individual');
+  const [showIndividualFilters, setShowIndividualFilters] = useState(true);
   
   // Get team performance data
   const { 
@@ -491,105 +492,138 @@ export const EmployeeAnalyticsDashboard = ({
       <Card>
         <CardContent className="pt-6">
           <Tabs value={activeSection} onValueChange={(value) => setActiveSection(value as 'individual' | 'team')}>
-            <TabsList className="mb-4">
-              <TabsTrigger value="individual" className="flex items-center gap-2">
+            <TabsList className="mb-6 grid w-full grid-cols-2 bg-muted p-1 rounded-lg">
+              <TabsTrigger 
+                value="individual" 
+                className="data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm rounded-md px-3 py-1.5 text-sm font-medium flex items-center justify-center gap-2"
+              >
                 <BarChart2 className="h-4 w-4" />
                 <span>Individual Performance</span>
               </TabsTrigger>
-              <TabsTrigger value="team" className="flex items-center gap-2">
+              <TabsTrigger 
+                value="team" 
+                className="data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm rounded-md px-3 py-1.5 text-sm font-medium flex items-center justify-center gap-2"
+              >
                 <Users className="h-4 w-4" />
                 <span>Team Performance</span>
               </TabsTrigger>
             </TabsList>
             
             <TabsContent value="individual" className="space-y-6">
-              {/* Individual analytics content - existing code */}
-              <div className="flex flex-col sm:flex-row gap-4 items-end">
-                <div className="w-full sm:w-1/4">
-                  <label className="text-sm font-medium mb-1.5 block">Employee</label>
-                  <Select value={selectedEmployee} onValueChange={setSelectedEmployee}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select employee" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Employees</SelectItem>
-                      {filteredEmployees.map(employee => (
-                        <SelectItem key={employee.id} value={employee.id}>
-                          {employee.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div className="w-full sm:w-1/6">
-                  <label className="text-sm font-medium mb-1.5 block">Time Period</label>
-                  <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select period" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="3">Last 3 Months</SelectItem>
-                      <SelectItem value="6">Last 6 Months</SelectItem>
-                      <SelectItem value="12">Last 12 Months</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div className="w-full sm:w-1/6">
-                  <label className="text-sm font-medium mb-1.5 block">Metric</label>
-                  <Select value={selectedMetric} onValueChange={setSelectedMetric}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select metric" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="sales">Total Sales</SelectItem>
-                      <SelectItem value="average">Average Sales</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div className="w-full sm:w-1/6">
-                  <label className="text-sm font-medium mb-1.5 block">Chart Type</label>
-                  <Select value={selectedChartType} onValueChange={(value: 'bar' | 'line') => setSelectedChartType(value)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select chart type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="bar" className="flex items-center gap-2">
-                        <BarChart2 className="h-4 w-4" />
-                        <span>Bar Chart</span>
-                      </SelectItem>
-                      <SelectItem value="line" className="flex items-center gap-2">
-                        <LineChart className="h-4 w-4" />
-                        <span>Line Chart</span>
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div className="w-full sm:w-auto mt-auto">
-                  <Button onClick={exportToCSV} className="w-full sm:w-auto" variant="outline">
-                    <Download className="mr-2 h-4 w-4" />
-                    Export
-                  </Button>
-                </div>
-              </div>
+              {/* Individual analytics content */}
               
-              {/* Search Filter */}
-              <div className="relative">
-                <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input 
-                  placeholder="Search employees..." 
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-9"
-                />
+              {/* Toggle Filters Button */}
+              <div className="flex justify-end mb-2">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowIndividualFilters(!showIndividualFilters)}
+                  size="sm"
+                >
+                  <Filter className="mr-2 h-4 w-4" />
+                  {showIndividualFilters ? 'Hide Filters' : 'Show Filters'}
+                </Button>
               </div>
+
+              {/* Collapsible Filter Section */}
+              {showIndividualFilters && (
+                <Card className="mb-2 p-4 border">
+                  <div className="space-y-4">
+                    {/* Row 1: Employee, Time Period, Metric, Chart Type */}
+                    <div className="flex flex-col sm:flex-row flex-wrap gap-4 items-start sm:items-end">
+                      <div className="w-full sm:flex-1 min-w-[180px]">
+                        <label htmlFor="individualEmployeeSelect" className="text-sm font-medium mb-1.5 block">Employee</label>
+                        <Select value={selectedEmployee} onValueChange={setSelectedEmployee}>
+                          <SelectTrigger id="individualEmployeeSelect">
+                            <SelectValue placeholder="Select employee" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">All Employees</SelectItem>
+                            {filteredEmployees.map(employee => (
+                              <SelectItem key={employee.id} value={employee.id}>
+                                {employee.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      
+                      <div className="w-full sm:flex-1 min-w-[180px]">
+                        <label htmlFor="individualPeriodSelect" className="text-sm font-medium mb-1.5 block">Time Period</label>
+                        <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
+                          <SelectTrigger id="individualPeriodSelect">
+                            <SelectValue placeholder="Select period" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="3">Last 3 Months</SelectItem>
+                            <SelectItem value="6">Last 6 Months</SelectItem>
+                            <SelectItem value="12">Last 12 Months</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      
+                      <div className="w-full sm:flex-1 min-w-[180px]">
+                        <label htmlFor="individualMetricSelect" className="text-sm font-medium mb-1.5 block">Metric</label>
+                        <Select value={selectedMetric} onValueChange={setSelectedMetric}>
+                          <SelectTrigger id="individualMetricSelect">
+                            <SelectValue placeholder="Select metric" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="sales">Total Sales</SelectItem>
+                            <SelectItem value="average">Average Sales</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      
+                      <div className="w-full sm:flex-1 min-w-[180px]">
+                        <label htmlFor="individualChartTypeSelect" className="text-sm font-medium mb-1.5 block">Chart Type</label>
+                        <Select value={selectedChartType} onValueChange={(value: 'bar' | 'line') => setSelectedChartType(value)}>
+                          <SelectTrigger id="individualChartTypeSelect">
+                            <SelectValue placeholder="Select chart type" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="bar" className="flex items-center gap-2">
+                              <BarChart2 className="h-4 w-4" />
+                              <span>Bar Chart</span>
+                            </SelectItem>
+                            <SelectItem value="line" className="flex items-center gap-2">
+                              <LineChart className="h-4 w-4" />
+                              <span>Line Chart</span>
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+
+                    {/* Row 2: Search Filter and Export Button */}
+                    <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-end">
+                      <div className="flex-grow w-full sm:w-auto">
+                        <label htmlFor="individualSearchEmployee" className="text-sm font-medium mb-1.5 block">Search Employee</label>
+                        <div className="relative">
+                          <Users className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                          <Input 
+                            id="individualSearchEmployee"
+                            placeholder="Filter by employee name..." 
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="pl-9"
+                          />
+                        </div>
+                      </div>
+                      
+                      <div className="w-full sm:w-auto sm:mt-auto">
+                        <Button onClick={exportToCSV} className="w-full" variant="outline">
+                          <Download className="mr-2 h-4 w-4" />
+                          Export Data
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </Card>
+              )}
               
               {/* Summary Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <Card>
+              <div className="flex overflow-x-auto space-x-4 pb-4 pt-1">
+                <Card className="min-w-[280px] flex-shrink-0">
                   <CardContent className="p-4 flex justify-between items-center">
                     <div>
                       <p className="text-sm text-muted-foreground">Total Sales</p>
@@ -601,7 +635,7 @@ export const EmployeeAnalyticsDashboard = ({
                   </CardContent>
                 </Card>
                 
-                <Card>
+                <Card className="min-w-[280px] flex-shrink-0">
                   <CardContent className="p-4 flex justify-between items-center">
                     <div>
                       <p className="text-sm text-muted-foreground">Month-over-Month</p>
@@ -630,7 +664,7 @@ export const EmployeeAnalyticsDashboard = ({
                   </CardContent>
                 </Card>
                 
-                <Card>
+                <Card className="min-w-[280px] flex-shrink-0">
                   <CardContent className="p-4 flex justify-between items-center">
                     <div>
                       <p className="text-sm text-muted-foreground">Year-over-Year</p>
@@ -659,7 +693,7 @@ export const EmployeeAnalyticsDashboard = ({
                   </CardContent>
                 </Card>
                 
-                <Card>
+                <Card className="min-w-[280px] flex-shrink-0">
                   <CardContent className="p-4 flex justify-between items-center">
                     <div>
                       <p className="text-sm text-muted-foreground">Active Employees</p>
