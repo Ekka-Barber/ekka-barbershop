@@ -11,8 +11,9 @@ const ITEMS_PER_PAGE = 9; // 3x3 grid layout
 // Define a type for the raw employee data from Supabase, including a potential email field
 type DbEmployeeRow = Database['public']['Tables']['employees']['Row'] & {
   email?: string | null; // Explicitly add email if it might be missing from generated types but present in DB
-  phone?: string | null; // Handling potential discrepancy for phone
 };
+
+export type ArchiveStatusFilter = 'active' | 'archived' | 'all';
 
 /**
  * Hook return type for useEmployeeManager
@@ -24,8 +25,8 @@ interface UseEmployeeManagerReturn {
   isLoading: boolean;
   /** Error state if any fetch operation fails */
   error: Error | null;
-  /** Fetch employees with optional page parameter */
-  fetchEmployees: (page?: number) => Promise<void>;
+  /** Fetch employees with optional page and filter parameters */
+  fetchEmployees: (page?: number, filter?: ArchiveStatusFilter) => Promise<void>;
   /** Pagination information */
   pagination: PaginationState;
   /** Set the current page and fetch data for that page */
@@ -34,6 +35,10 @@ interface UseEmployeeManagerReturn {
   getEmployeeById: (id: string) => Employee | undefined;
   /** Refresh the current page data */
   refresh: () => Promise<void>;
+  /** Set the current archive filter */
+  setCurrentArchiveFilter: (filter: ArchiveStatusFilter) => void;
+  /** Current archive filter */
+  currentArchiveFilter: ArchiveStatusFilter;
 }
 
 /**
@@ -48,23 +53,21 @@ const formatEmployeeData = (dbRow: DbEmployeeRow): Employee => {
   } else if (Array.isArray(workingHoursObj)) {
     // Handle if working_hours is an array - this case might need specific logic
     // For now, treating as undefined if it's an array and not the expected object structure.
-    // Or, if it's an array of strings like ["09:00-17:00"], it needs different parsing.
+    // Or, if it's an array of strings ["09:00-17:00"], it needs different parsing.
     // Assuming it should be an object like { monday: ["09:00-17:00"] } as per WorkingHours type.
     // If dbRow.working_hours can be DB `json` which can be array or object, parsing needs to be robust.
     // For now, this simplistic parsing assumes it's the object type or null/undefined.
     logger.warn('Unexpected array type for working_hours in formatEmployeeData', workingHoursObj);
   }
 
-  // Safely access potentially missing email and phone
+  // Safely access potentially missing email
   const email = 'email' in dbRow ? dbRow.email : null;
-  const phone = 'phone' in dbRow ? dbRow.phone : undefined;
 
   return {
     id: dbRow.id,
     name: dbRow.name,
     name_ar: dbRow.name_ar || null,
     email: email || null,
-    phone: phone || undefined,
     role: dbRow.role as EmployeeRole, // Role is correctly typed in DbEmployeeRow via Enum
     branch_id: dbRow.branch_id || null,
     photo_url: dbRow.photo_url || null,
@@ -76,6 +79,7 @@ const formatEmployeeData = (dbRow: DbEmployeeRow): Employee => {
     annual_leave_quota: dbRow.annual_leave_quota === undefined || dbRow.annual_leave_quota === null 
                         ? null 
                         : Number(dbRow.annual_leave_quota),
+    is_archived: dbRow.is_archived,
     created_at: dbRow.created_at,
     updated_at: dbRow.updated_at,
   };
@@ -84,40 +88,44 @@ const formatEmployeeData = (dbRow: DbEmployeeRow): Employee => {
 /**
  * Hook for managing employee data with pagination and branch filtering
  * @param selectedBranch - Currently selected branch ID or null for all branches
+ * @param initialArchiveFilter - Initial filter for employee archive status
  * @returns Employees data and management functions
  */
-export const useEmployeeManager = (selectedBranch: string | null): UseEmployeeManagerReturn => {
+export const useEmployeeManager = (
+  selectedBranch: string | null, 
+  initialArchiveFilter: ArchiveStatusFilter = 'active'
+): UseEmployeeManagerReturn => {
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<Error | null>(null);
   const [currentPage, setCurrentPageInternal] = useState<number>(1);
   const [totalItems, setTotalItems] = useState<number>(0);
+  const [currentArchiveFilter, setCurrentArchiveFilter] = useState<ArchiveStatusFilter>(initialArchiveFilter);
 
   /**
    * Fetch employees from database with pagination and optional branch filtering
    * DO NOT CHANGE - PRESERVE API LOGIC
    */
-  const fetchEmployees = useCallback(async (page: number = currentPage) => {
+  const fetchEmployees = useCallback(async (page: number = currentPage, filter: ArchiveStatusFilter = currentArchiveFilter) => {
     if (page < 1) {
       logger.warn('Attempted to fetch page less than 1, defaulting to 1');
       page = 1; // Ensure page is at least 1
     }
     
+    setCurrentArchiveFilter(filter); // Update current filter state
+
     try {
       setIsLoading(true);
       setError(null);
-      logger.info('Fetching employees for branch:', selectedBranch, 'page:', page);
+      logger.info('Fetching employees for branch:', selectedBranch, 'page:', page, 'archiveFilter:', filter);
 
       // Calculate start and end range for the current page
       const start = (page - 1) * ITEMS_PER_PAGE;
       const end = start + ITEMS_PER_PAGE - 1;
 
-      // Reverted to select('*') due to issues with Supabase not recognizing 'email' column in select list.
-      // This means 'email' and 'phone' will only be present if the DbEmployeeRow type accurately reflects them
-      // AND the database actually returns them with '*'.
       let query = supabase
         .from('employees')
-        .select('*') // Fetch all columns as defined by Supabase for the table
+        .select('*', { count: 'exact' }) // Request count along with data
         .range(start, end)
         .order('name');
 
@@ -126,6 +134,14 @@ export const useEmployeeManager = (selectedBranch: string | null): UseEmployeeMa
         query = query.eq('branch_id', selectedBranch);
       }
 
+      // Add archive status filter
+      if (filter === 'active') {
+        query = query.eq('is_archived', false);
+      } else if (filter === 'archived') {
+        query = query.eq('is_archived', true);
+      } 
+      // If filter is 'all', no additional is_archived filter is applied
+
       // Execute the query
       const { data, error: supabaseError, count } = await query;
 
@@ -133,14 +149,13 @@ export const useEmployeeManager = (selectedBranch: string | null): UseEmployeeMa
         throw new Error(supabaseError.message);
       }
 
-      logger.info('Fetched employees:', data?.length, 'Total count:', count);
+      logger.info('Fetched employees:', data?.length, 'Total count from response:', count);
 
-      // Process the raw data to match Employee type
+      // The count returned in the response header should be for the *filtered* query.
       const formattedEmployees = (data || []).map(dbItem => formatEmployeeData(dbItem as DbEmployeeRow));
 
-      // Update state
       setEmployees(formattedEmployees); 
-      setTotalItems(count || 0);
+      setTotalItems(count || 0); // Use the count from the main query
       setCurrentPageInternal(page);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Unknown error fetching employees';
@@ -151,12 +166,12 @@ export const useEmployeeManager = (selectedBranch: string | null): UseEmployeeMa
     } finally {
       setIsLoading(false);
     }
-  }, [currentPage, selectedBranch]);
+  }, [currentPage, selectedBranch, currentArchiveFilter]);
 
   // Reset to first page when branch changes
   useEffect(() => {
-    fetchEmployees(1);
-  }, [selectedBranch, fetchEmployees]);
+    fetchEmployees(1, currentArchiveFilter);
+  }, [selectedBranch, currentArchiveFilter, fetchEmployees]);
 
   // Calculate pagination info with memoization
   const paginationState = useMemo<PaginationState>(() => ({
@@ -173,11 +188,17 @@ export const useEmployeeManager = (selectedBranch: string | null): UseEmployeeMa
 
   // Refresh function to reload current page
   const refresh = useCallback(() => {
-    return fetchEmployees(currentPage);
-  }, [fetchEmployees, currentPage]);
+    return fetchEmployees(currentPage, currentArchiveFilter);
+  }, [fetchEmployees, currentPage, currentArchiveFilter]);
 
   const setCurrentPageAndFetch = (page: number) => {
-    fetchEmployees(page);
+    fetchEmployees(page, currentArchiveFilter);
+  };
+
+  // This function will be called by the UI to change the filter
+  const setArchiveFilter = (filter: ArchiveStatusFilter) => {
+    setCurrentPageInternal(1); // Reset to page 1 when filter changes
+    setCurrentArchiveFilter(filter); // This will trigger the useEffect to refetch
   };
 
   // Return complete interface
@@ -189,6 +210,8 @@ export const useEmployeeManager = (selectedBranch: string | null): UseEmployeeMa
     pagination: paginationState,
     setCurrentPage: setCurrentPageAndFetch,
     getEmployeeById,
-    refresh
+    refresh,
+    setCurrentArchiveFilter: setArchiveFilter,
+    currentArchiveFilter
   };
 };

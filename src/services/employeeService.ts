@@ -124,4 +124,32 @@ export const uploadEmployeePhoto = async (file: File): Promise<string> => {
   return data.publicUrl;
 };
 
-// TODO: Add deleteEmployee function if needed
+/**
+ * Sets the archived status of an employee in the database.
+ *
+ * @param employeeId The UUID of the employee to update.
+ * @param isArchived The new archive status (true for archived, false for active).
+ * @returns An object with `error` (any error that occurred or null).
+ */
+export async function setEmployeeArchiveStatus(
+  employeeId: string,
+  isArchived: boolean
+): Promise<{ error: Error | null }> {
+  try {
+    const { error: supabaseError } = await supabase
+      .from('employees')
+      .update({ is_archived: isArchived })
+      .eq('id', employeeId);
+
+    if (supabaseError) {
+      console.error(`Error setting archive status for employee ${employeeId}:`, supabaseError);
+      return { error: new Error(supabaseError.message) };
+    }
+
+    return { error: null };
+  } catch (e) {
+    const error = e instanceof Error ? e : new Error('An unexpected error occurred while setting employee archive status');
+    console.error('Unexpected error in setEmployeeArchiveStatus:', error);
+    return { error };
+  }
+}

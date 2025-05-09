@@ -188,6 +188,12 @@ export const EmployeeTab = () => {
 
               <TabsContent value="analytics">
                 <Suspense fallback={<TabLoadingFallback />}>
+                  <div className="flex flex-col md:flex-row justify-between gap-4 items-start md:items-center mb-6">
+                    <div>
+                      <h2 className="text-2xl font-bold">Employee Analytics</h2>
+                      <p className="text-muted-foreground">Visualize employee performance, sales data, and trends.</p>
+                    </div>
+                  </div>
                   <LazyEmployeeAnalyticsDashboard 
                     employees={employees}
                     selectedDate={selectedDate}
@@ -208,6 +214,12 @@ export const EmployeeTab = () => {
 
               <TabsContent value="salary">
                 <Suspense fallback={<TabLoadingFallback />}>
+                  <div className="flex flex-col md:flex-row justify-between gap-4 items-start md:items-center mb-6">
+                    <div>
+                      <h2 className="text-2xl font-bold">Salary Management</h2>
+                      <p className="text-muted-foreground">Oversee employee compensation, salary structures, and payroll.</p>
+                    </div>
+                  </div>
                   <LazySalaryDashboard
                     employees={employees}
                     selectedDate={selectedDate}

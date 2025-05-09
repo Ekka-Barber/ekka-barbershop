@@ -4,7 +4,6 @@ import { MonthYearPicker } from '../components/monthly-sales/MonthYearPicker';
 import { useEmployeeSales } from '../hooks/useEmployeeSales';
 import { useEmployeeManager } from '../hooks/useEmployeeManager';
 import { useBranchManager } from '../hooks/useBranchManager';
-import { BranchFilter } from '../components/BranchFilter';
 import { SalesGrid } from '../components/monthly-sales/SalesGrid';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
@@ -31,9 +30,7 @@ export const MonthlySalesTab: React.FC<MonthlySalesTabProps> = ({
   );
   
   const { 
-    branches, 
     selectedBranch, 
-    setSelectedBranch,
     isLoading: isBranchLoading
   } = useBranchManager(initialBranchId);
   
@@ -76,13 +73,6 @@ export const MonthlySalesTab: React.FC<MonthlySalesTabProps> = ({
     fetchSalesData();
   }, [selectedBranch, fetchSalesData]);
   
-  // Handle branch change
-  const handleBranchChange = useCallback((branchId: string | null) => {
-    setSelectedBranch(branchId);
-    // Immediately trigger a data refresh when branch changes
-    setTimeout(() => fetchSalesData(), 0);
-  }, [setSelectedBranch, fetchSalesData]);
-  
   // Handle date change
   const handleDateChange = useCallback((date: Date) => {
     setSelectedDate(date);
@@ -114,6 +104,7 @@ export const MonthlySalesTab: React.FC<MonthlySalesTabProps> = ({
   return (
     <ErrorBoundary>
       <div className="space-y-6">
+        {/* Title and Description Block */}
         <div className="flex flex-col gap-4">
           <div>
             <h2 className="text-2xl font-bold tracking-tight">Monthly Sales</h2>
@@ -121,14 +112,6 @@ export const MonthlySalesTab: React.FC<MonthlySalesTabProps> = ({
               Track and manage employee sales for each month
             </p>
           </div>
-          
-          {/* Branch Filter Component */}
-          <BranchFilter 
-            branches={branches} 
-            selectedBranch={selectedBranch} 
-            onBranchChange={handleBranchChange} 
-            isLoading={isBranchLoading} 
-          />
         </div>
         
         {/* Analytics Cards */}

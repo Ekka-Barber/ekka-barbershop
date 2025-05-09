@@ -17,7 +17,6 @@ export interface Employee {
   name: string;
   name_ar?: string | null; // Changed from required string
   email?: string | null; // Changed from required string
-  phone?: string;
   role: EmployeeRole; // Changed from string to EmployeeRole union type
   branch_id?: string | null;
   photo_url?: string | null; // Also made explicitly nullable
@@ -27,6 +26,7 @@ export interface Employee {
   salary_plan_id?: string | null;
   start_date?: string | null;
   annual_leave_quota?: number | null;
+  is_archived: boolean;
   created_at?: string;
   updated_at?: string;
 }

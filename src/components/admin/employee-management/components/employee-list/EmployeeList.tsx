@@ -10,9 +10,8 @@ interface EmployeeListProps {
   isLoading: boolean;
   branches?: Branch[];
   onEditEmployee?: (employee: Employee) => void;
+  onArchiveEmployee?: (employee: Employee) => void;
   pagination: PaginationState;
-  onPageChange: (page: number) => void;
-  refetchEmployees?: () => void;
 }
 
 export const EmployeeList: React.FC<EmployeeListProps> = ({ 
@@ -20,9 +19,8 @@ export const EmployeeList: React.FC<EmployeeListProps> = ({
   isLoading,
   branches = [],
   onEditEmployee,
-  pagination,
-  onPageChange,
-  refetchEmployees
+  onArchiveEmployee,
+  pagination
 }) => {
   const [expandedEmployee, setExpandedEmployee] = useState<string | null>(null);
 
@@ -64,6 +62,7 @@ export const EmployeeList: React.FC<EmployeeListProps> = ({
           isExpanded={expandedEmployee === employee.id}
           onToggleExpand={() => toggleExpandEmployee(employee.id)}
           onEdit={() => onEditEmployee && onEditEmployee(employee)}
+          onArchive={() => onArchiveEmployee && onArchiveEmployee(employee)}
         />
       ))}
     </div>

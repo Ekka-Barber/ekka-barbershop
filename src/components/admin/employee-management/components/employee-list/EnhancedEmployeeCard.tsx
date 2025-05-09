@@ -12,7 +12,8 @@ import {
   ChevronUp,
   PencilIcon,
   Briefcase,
-  InfoIcon
+  InfoIcon,
+  Trash2
 } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { DocumentList } from './documents/DocumentList';
@@ -69,6 +70,7 @@ interface EnhancedEmployeeCardProps {
   isExpanded: boolean;
   onToggleExpand: () => void;
   onEdit?: (employeeData: Employee) => void;
+  onArchive?: (employee: Employee) => void;
 }
 
 export const EnhancedEmployeeCard: React.FC<EnhancedEmployeeCardProps> = ({
@@ -76,7 +78,8 @@ export const EnhancedEmployeeCard: React.FC<EnhancedEmployeeCardProps> = ({
   branches = [],
   isExpanded,
   onToggleExpand,
-  onEdit
+  onEdit,
+  onArchive
 }) => {
   const [salaryPlan, setSalaryPlan] = useState<SalaryPlan | null>(null);
   const [leaveBalanceInfo, setLeaveBalanceInfo] = useState<LeaveBalanceInfo>({ daysRemaining: 0, isLoading: false });
@@ -158,6 +161,12 @@ export const EnhancedEmployeeCard: React.FC<EnhancedEmployeeCardProps> = ({
   const handleEditClick = () => {
     if (onEdit) {
       onEdit(employee);
+    }
+  };
+
+  const handleArchiveClick = () => {
+    if (onArchive) {
+      onArchive(employee);
     }
   };
 
@@ -296,22 +305,24 @@ export const EnhancedEmployeeCard: React.FC<EnhancedEmployeeCardProps> = ({
       </CardContent>
       
       {isExpanded && (
-        <CardFooter className="pt-2 px-4 pb-3 sm:px-6 sm:pb-4 flex justify-end border-t mt-auto">
+        <CardFooter className="border-t pt-3 pb-3 bg-muted/20 flex items-center justify-end gap-2">
           <Button 
             variant="outline" 
-            size="sm"
-            className="h-9 text-xs sm:text-sm"
+            size="sm" 
             onClick={handleEditClick}
-            aria-label="Edit employee details"
-            tabIndex={0}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') { // Added space key for accessibility
-                handleEditClick();
-              }
-            }}
+            aria-label={`Edit details for ${employee.name}`}
           >
-            <PencilIcon className="w-3.5 h-3.5 mr-1.5" />
+            <PencilIcon className="h-3.5 w-3.5 mr-1.5" />
             Edit Details
+          </Button>
+          <Button 
+            variant={employee.is_archived ? "secondary" : "destructive"} 
+            size="sm" 
+            onClick={handleArchiveClick}
+            aria-label={employee.is_archived ? `Restore employee ${employee.name}` : `Archive employee ${employee.name}`}
+          >
+            <Trash2 className="h-3.5 w-3.5 mr-1.5" />
+            {employee.is_archived ? "Restore" : "Archive"}
           </Button>
         </CardFooter>
       )}
