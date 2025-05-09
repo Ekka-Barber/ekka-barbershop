@@ -108,8 +108,8 @@ export const EmployeeTab = () => {
 
   // Use the new BaseEmployeeContextType without sales properties
   const contextValue = useMemo<BaseEmployeeContextType>(() => ({
-    employees,
-    branches,
+    employees: employees || [],
+    branches: branches || [],
     selectedBranch,
     selectedDate,
     isLoading,
@@ -189,6 +189,7 @@ export const EmployeeTab = () => {
               <TabsContent value="analytics">
                 <Suspense fallback={<TabLoadingFallback />}>
                   <LazyEmployeeAnalyticsDashboard 
+                    employees={employees}
                     selectedDate={selectedDate}
                     setSelectedDate={handleDateChange}
                     selectedBranch={selectedBranch}
@@ -198,13 +199,17 @@ export const EmployeeTab = () => {
 
               <TabsContent value="schedule">
                 <Suspense fallback={<TabLoadingFallback />}>
-                  <LazyScheduleInterface />
+                  <LazyScheduleInterface 
+                    employees={employees}
+                    selectedBranch={selectedBranch}
+                  />
                 </Suspense>
               </TabsContent>
 
               <TabsContent value="salary">
                 <Suspense fallback={<TabLoadingFallback />}>
                   <LazySalaryDashboard
+                    employees={employees}
                     selectedDate={selectedDate}
                     setSelectedDate={handleDateChange}
                   />
@@ -213,7 +218,10 @@ export const EmployeeTab = () => {
 
               <TabsContent value="leave">
                 <Suspense fallback={<TabLoadingFallback />}>
-                  <LazyLeaveManagement />
+                  <LazyLeaveManagement 
+                    employees={employees}
+                    selectedBranch={selectedBranch}
+                  />
                 </Suspense>
               </TabsContent>
             </Tabs>
