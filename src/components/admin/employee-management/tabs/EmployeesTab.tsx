@@ -1,10 +1,10 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { BranchFilter } from '../components/BranchFilter';
 import { ErrorBoundary } from '@/components/common/ErrorBoundary';
 import { useEmployeeManager } from '../hooks/useEmployeeManager';
 import { useBranchManager } from '../hooks/useBranchManager';
 import { EmployeeList } from '../components/employee-list/EmployeeList';
-import { EmployeesTabProps } from '../types';
+import { EmployeesTabProps, Employee } from '../types';
 import { useUrlState } from '../hooks/useUrlState';
 
 export const EmployeesTab: React.FC<EmployeesTabProps> = ({ 
@@ -31,6 +31,37 @@ export const EmployeesTab: React.FC<EmployeesTabProps> = ({
     isBranchLoading || isEmployeeLoading, 
     [isBranchLoading, isEmployeeLoading]
   );
+  
+  // State for Edit Modal
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
+
+  // Handlers for Edit Modal
+  const handleOpenEditModal = (employee: Employee) => {
+    setEditingEmployee(employee);
+    setIsEditModalOpen(true);
+    console.log("Opening edit modal for:", employee); // Placeholder log
+  };
+
+  const handleCloseEditModal = () => {
+    setIsEditModalOpen(false);
+    setEditingEmployee(null);
+  };
+
+  const handleSaveEmployee = async (updatedData: Partial<Employee>) => {
+    if (!editingEmployee) return;
+    console.log("Saving employee:", editingEmployee.id, updatedData); // Placeholder log
+    // TODO: Implement actual save logic using employeeService
+    // try {
+    //   await employeeService.updateEmployee(editingEmployee.id, updatedData);
+    //   fetchEmployees(); // Refetch employee list
+    //   handleCloseEditModal();
+    // } catch (error) {
+    //   console.error("Failed to save employee:", error);
+    //   // TODO: Show error toast
+    // }
+    handleCloseEditModal(); // Close modal for now
+  };
   
   // Keep URL in sync with component state
   useEffect(() => {
@@ -87,8 +118,30 @@ export const EmployeesTab: React.FC<EmployeesTabProps> = ({
             onPageChange={handlePageChange}
             refetchEmployees={fetchEmployees}
             branches={branches}
+            onEditEmployee={handleOpenEditModal}
           />
         </ErrorBoundary>
+
+        {/* Placeholder for Modal - to be replaced with EmployeeEditModal */}
+        {isEditModalOpen && editingEmployee && (
+          <div 
+            style={{
+              position: 'fixed', 
+              top: '50%', 
+              left: '50%', 
+              transform: 'translate(-50%, -50%)',
+              padding: '20px', 
+              background: 'white', 
+              border: '1px solid black',
+              zIndex: 1000
+            }}
+          >
+            <h3>Editing: {editingEmployee.name}</h3>
+            <p>ID: {editingEmployee.id}</p>
+            <button onClick={() => handleSaveEmployee({ name: 'Updated Name' })}>Save (Test)</button>
+            <button onClick={handleCloseEditModal}>Close</button>
+          </div>
+        )}
       </div>
     </ErrorBoundary>
   );

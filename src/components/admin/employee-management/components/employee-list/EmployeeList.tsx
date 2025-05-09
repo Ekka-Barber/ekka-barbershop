@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Employee } from '@/types/employee';
-import { Branch } from '../../types';
+import { Branch, PaginationState } from '../../types';
 import { Card, CardContent } from '@/components/ui/card';
 import { EnhancedEmployeeCard } from './EnhancedEmployeeCard';
 
@@ -9,14 +9,20 @@ interface EmployeeListProps {
   employees: Employee[];
   isLoading: boolean;
   branches?: Branch[];
-  onUpdateEmployee?: () => void;
+  onEditEmployee?: (employee: Employee) => void;
+  pagination: PaginationState;
+  onPageChange: (page: number) => void;
+  refetchEmployees?: () => void;
 }
 
 export const EmployeeList: React.FC<EmployeeListProps> = ({ 
   employees, 
   isLoading,
   branches = [],
-  onUpdateEmployee
+  onEditEmployee,
+  pagination,
+  onPageChange,
+  refetchEmployees
 }) => {
   const [expandedEmployee, setExpandedEmployee] = useState<string | null>(null);
 
@@ -27,7 +33,7 @@ export const EmployeeList: React.FC<EmployeeListProps> = ({
   if (isLoading) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {[...Array(6)].map((_, index) => (
+        {[...Array(pagination?.pageSize || 6)].map((_, index) => (
           <Card key={index} className="overflow-hidden">
             <div className="h-32 bg-muted animate-pulse"></div>
             <CardContent className="p-4">
@@ -49,7 +55,7 @@ export const EmployeeList: React.FC<EmployeeListProps> = ({
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5">
       {employees.map(employee => (
         <EnhancedEmployeeCard
           key={employee.id}
@@ -57,7 +63,7 @@ export const EmployeeList: React.FC<EmployeeListProps> = ({
           branches={branches}
           isExpanded={expandedEmployee === employee.id}
           onToggleExpand={() => toggleExpandEmployee(employee.id)}
-          onUpdate={onUpdateEmployee}
+          onEdit={() => onEditEmployee && onEditEmployee(employee)}
         />
       ))}
     </div>

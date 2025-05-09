@@ -181,50 +181,125 @@ updated_at       - Timestamp (record last update date)
     - Made filter section in "Individual Performance" collapsible and improved layout.
 - [x] Create responsive design system with breakpoints
 - [x] Implement responsive layout for EmployeeList component
-- [ ] Create mobile-friendly employee cards
-- [ ] Optimize forms for touch interaction
+- [x] **Create mobile-friendly employee cards (`EnhancedEmployeeCard.tsx`) - Significantly Progressed**
+  - [x] Integrated `CountryFlag` component (`src/components/admin/employee-management/components/ui/CountryFlag.tsx` and `utils/country-flags.ts`) for nationality display.
+  - [x] Simplified internal tabs to "General" and "Documents" for clarity on mobile.
+  - [x] Added "Available Leave" balance to the "General" tab. This is calculated by fetching the employee's holiday records via Supabase when the card is expanded.
+  - [x] Removed "Off Days" and "Working Hours" display from the card to avoid redundancy with main page tabs and keep the card focused.
+  - [x] Refined the "Edit Details" button functionality:
+    - Prop connecting to parent handler renamed to `onEdit`.
+    - Correctly passes the full `employee` object to the parent component (`EmployeeList.tsx`, then to `EmployeesTab.tsx`) to identify which employee to edit, preparing for modal integration.
+- [/] Optimize forms for touch interaction (Partially addressed by planning for modal forms, pending form creation)
 - [ ] Implement responsive table alternatives
 - [x] Create mobile navigation pattern for tabs
-  - Note: Achieved by enhancing `EmployeeTabsNavigation.tsx` to be responsive and include a bottom-fixed mobile view, instead of a new `MobileTabNavigation.tsx` component.
+  - Note: Achieved by enhancing `EmployeeTabsNavigation.tsx` to be responsive and include a bottom-fixed mobile view.
 - [ ] Test on various screen sizes and devices
 
 ### Phase 2: Employee Creation Form
 - [ ] Design employee creation form layout
-- [ ] Create form validation rules
-- [ ] Implement form component with all required fields
+- [ ] Create form validation rules (Potentially using `EmployeeValidator.ts` or `form-validators.ts`)
+- [ ] Implement form component with all required fields (`EmployeeForm.tsx` - also for editing)
 - [ ] Add file upload for employee photo
 - [ ] Create submission and error handling logic
-- [ ] Connect to API endpoints
+- [ ] Connect to API endpoints (`employeeService.createEmployee`)
 - [ ] Implement success and error states
 - [ ] Add form navigation and cancel functionality
 
 ### Phase 3: Enhanced Employee Information Display
 - [ ] Identify all available employee fields from database
-- [ ] Design expanded employee card layout
-- [ ] Implement tabbed interface for organizing information
-- [ ] Create responsive detail view
-- [ ] Integrate with existing document tracking
-- [ ] Add visual indicators for important information
-- [ ] Implement collapsed and expanded states
+- [ ] Design expanded employee card layout (Largely addressed in Phase 1)
+- [ ] Implement tabbed interface for organizing information (Largely addressed in Phase 1)
+- [ ] Create responsive detail view (Modal approach for editing contributes to this)
+- [x] Integrate with existing document tracking (Done in `EnhancedEmployeeCard`)
+- [x] Add visual indicators for important information (Country flags done)
+- [x] Implement collapsed and expanded states (Done in `EnhancedEmployeeCard`)
 
 ### Phase 4: Country Flag Integration
-- [ ] Research country flag library or API
-- [ ] Create country code mapping to ISO codes
-- [ ] Implement CountryFlag component
-- [ ] Add fallback for missing flags
-- [ ] Integrate flags in employee cards and forms
-- [ ] Optimize flag loading for performance
-- [ ] Add tooltip with country name on hover
+- [x] Research country flag library or API (Used `flagcdn.com`)
+- [x] Create country code mapping to ISO codes (`utils/country-flags.ts`)
+- [x] Implement `CountryFlag` component (`components/ui/CountryFlag.tsx`)
+- [x] Add fallback for missing flags (Handled in `CountryFlag` component)
+- [x] Integrate flags in employee cards and forms (Done for cards, pending for forms)
+- [x] Optimize flag loading for performance (`loading="lazy"` on img)
+- [x] Add tooltip with country name on hover (Done in `CountryFlag`)
 
 ### Phase 5: Edit Functionality Enhancement
-- [ ] Create edit mode for employee details
-- [ ] Implement inline editing capabilities
-- [ ] Design confirmation dialogs for changes
-- [ ] Add validation for edited fields
-- [ ] Create optimistic UI updates
-- [ ] Implement proper error handling
-- [ ] Add undo/revert functionality
-- [ ] Ensure all fields are editable
+- [/] Create edit mode for employee details (Modal approach initiated)
+  - [x] Setup state and handlers (`isEditModalOpen`, `editingEmployee`, `handleOpenEditModal`, `handleCloseEditModal`, `handleSaveEmployee` placeholder) in `EmployeesTab.tsx`.
+  - [x] Correctly propagate the edit request (with employee data) from `EnhancedEmployeeCard` -> `EmployeeList` -> `EmployeesTab`.
+- [ ] Implement inline editing capabilities (Decided on Modal editing instead for comprehensive changes)
+- [ ] Design confirmation dialogs for changes (Modal itself serves as a form of confirmation before save)
+- [ ] Add validation for edited fields (To be done in `EmployeeForm.tsx`)
+- [ ] Create optimistic UI updates (Consider after basic save functionality)
+- [ ] Implement proper error handling (To be done in `handleSaveEmployee` and form)
+- [ ] Add undo/revert functionality (Future consideration)
+- [ ] Ensure all fields are editable (To be implemented in `EmployeeForm.tsx`)
+
+---
+**NEXT STEPS FOR CURRENT DEVELOPMENT FOCUS (Continuing Phase 5):**
+
+The immediate priority is to **replace the placeholder modal in `EmployeesTab.tsx` with the actual `EmployeeEditModal.tsx` and `EmployeeForm.tsx` components.** This involves the following key tasks:
+
+1.  **Create `EmployeeForm.tsx`** (e.g., in `src/components/admin/employee-management/components/employee-form/EmployeeForm.tsx`):
+    *   **Purpose:** A reusable form for both creating and editing employee details.
+    *   **Fields:** Must include inputs for all editable fields from the `employees` table (e.g., `name`, `name_ar`, `role`, `email`, `nationality`, `start_date`, `annual_leave_quota`). Associated data like `branch_id` and `salary_plan_id` should be selectable (e.g., via dropdowns using Shadcn UI `Select`).
+    *   **Data for Selectables:** The form will need access to `branches` and `salary_plans` lists for dropdowns. These can be passed as props or fetched within the form/modal if more appropriate.
+    *   **Validation:** Implement robust client-side validation (can leverage utility functions in `src/components/admin/employee-management/utils/form-validators.ts` or a new `EmployeeValidator.ts`). Consider using a library like Zod for schema validation.
+    *   **Props:**
+        *   `initialData?: Employee | null` (for pre-filling in edit mode)
+        *   `onSubmit: (formData: Partial<Employee>) => Promise<void>` (to handle form submission logic)
+        *   `onCancel: () => void` (to close the form/modal)
+        *   `isEditMode: boolean` (to adjust labels like "Update Employee" vs "Create Employee")
+        *   `branches: Branch[]` (or similar type)
+        *   `salaryPlans: SalaryPlan[]` (or similar type)
+    *   **Accessibility & UX:** Ensure form is keyboard navigable, has clear labels, and provides good feedback for validation errors.
+
+2.  **Create `EmployeeEditModal.tsx`** (e.g., in `src/components/admin/employee-management/components/employee-form/EmployeeEditModal.tsx`):
+    *   **Purpose:** A modal dialog (using Shadcn UI `Dialog`, `DialogContent`, `DialogHeader`, `DialogTitle`, `DialogFooter`) to host the `EmployeeForm.tsx` specifically for editing an existing employee.
+    *   **Props:**
+        *   `isOpen: boolean`
+        *   `onClose: () => void`
+        *   `employeeToEdit: Employee | null` (to pass to the form's `initialData`)
+        *   `onSave: (updatedData: Partial<Employee>) => Promise<void>` (to be called by the form's `onSubmit`)
+        *   `branches: Branch[]` (passed from `EmployeesTab` or fetched by parent)
+        *   `salaryPlans: SalaryPlan[]` (passed from `EmployeesTab` or fetched by parent)
+    *   **Functionality:** Manages the display of the dialog and renders `EmployeeForm` with appropriate props (passing `isEditMode={true}`).
+
+3.  **Integrate into `EmployeesTab.tsx`:**
+    *   Import and render `EmployeeEditModal.tsx`.
+    *   Connect `isEditModalOpen` state to the modal's `isOpen` prop.
+    *   Pass `editingEmployee` (from `EmployeesTab` state) to the modal's `employeeToEdit` prop.
+    *   Connect `handleCloseEditModal` to the modal's `onClose` prop.
+    *   Connect `handleSaveEmployee` (which needs to be fully implemented in `EmployeesTab.tsx`) to the modal's `onSave` prop.
+    *   Ensure `branches` list is available in `EmployeesTab.tsx` (it is, via `useBranchManager`) and can be passed to the modal.
+    *   Fetch `salaryPlans` within `EmployeesTab.tsx` (e.g., in a `useEffect` or via a new hook) to pass to the modal.
+
+4.  **Implement `employeeService.updateEmployee` function:**
+    *   **Location:** `src/services/employeeService.ts` (create this file/service structure if it doesn't exist).
+    *   **Functionality:** An asynchronous function: `async function updateEmployee(id: string, data: Partial<Employee>): Promise<{ data: Employee | null, error: Error | null }>` (returning data and error for better handling).
+    *   This function will perform a Supabase `update` operation on the `employees` table using `supabase.from('employees').update(data).eq('id', id).select().single()`.
+    *   **Error Handling:** Should handle potential errors from the Supabase client and return them.
+    *   The `handleSaveEmployee` function in `EmployeesTab.tsx` will call this service. On successful update, it will refetch the employee list (using `fetchEmployees()`) and close the modal. On failure, it should display an error message (e.g., via toast).
+
+**Starting Point for Next Session:** Begin by creating the basic file structure for `EmployeeForm.tsx` and `EmployeeEditModal.tsx`. Implement `EmployeeEditModal.tsx` with the Shadcn UI `Dialog` and include a placeholder for `EmployeeForm.tsx` within it. Then, start building out `EmployeeForm.tsx` with a few basic fields (e.g., Name, Role, Email) and their validation.
+
+---
+**PENDING ISSUES / TO-DOs (from previous session or to verify at start of next session):**
+
+*   **Linter Error in `EmployeesTab.tsx` (Type Mismatch for `pagination` Prop):**
+    *   `EmployeesTab.tsx` uses `pagination` from `useEmployeeManager` (which is `PaginationState`).
+    *   `EmployeeList.tsx`'s `pagination` prop is now correctly typed as `PaginationState`.
+    *   **Action:** This specific error (`Property 'pageSize' is missing in type 'PaginationInfo'`) should be resolved. Verify no related type errors persist.
+
+*   **Linter Error in `EmployeesTab.tsx` (Type Incompatibility for `onEditEmployee`'s `employee` parameter):**
+    *   The `Employee` type used by `handleOpenEditModal` in `EmployeesTab.tsx` is imported as `import { ..., Employee } from '../types';` (i.e., `src/components/admin/employee-management/types.ts`).
+    *   The `Employee` type expected by `onEditEmployee` in `EmployeeList.tsx` is imported as `import { Employee } from '@/types/employee';` (i.e., `src/types/employee.ts`).
+    *   The error message `Property 'branchId' is missing in type 'import("@/types/employee").Employee' but required in type 'import("../types").Employee'.` indicates a structural difference.
+    *   **Action for Next Session:** Harmonize these `Employee` type definitions. Decide on a single source of truth for the `Employee` type or ensure they are compatible (e.g., one extends the other, or use type mapping if fields are intentionally different but translatable). The primary `Employee` type in `@/types/employee.ts` should probably be the canonical one.
+
+*   **Linter Info in `EmployeeList.tsx` (`onPageChange`, `refetchEmployees` unused):**
+    *   These props are correctly defined in `EmployeeListProps` but not yet used within `EmployeeList.tsx`'s JSX.
+    *   **Action:** This is not critical for edit functionality. These will be used when implementing UI for pagination controls and any manual list refresh capability. Keep as is for now.
 
 ## Implementation Details
 
@@ -1179,11 +1254,11 @@ The project will be considered successful when:
 ## Progress Tracking
 
 - Phase 0: Critical Bug Fixes - 100% complete
-- Phase 1: Mobile Responsiveness - 55% complete (Tab navigation, several UI/UX enhancements in Sales & Analytics tabs)
-- Phase 2: Employee Creation Form - 0% complete
-- Phase 3: Enhanced Employee Information - 0% complete
-- Phase 4: Country Flag Integration - 0% complete
-- Phase 5: Edit Functionality - 0% complete
+- Phase 1: Mobile Responsiveness - ~75% complete (Tab navigation, Sales & Analytics UI enhancements, Employee Card significantly improved with Flag and Leave Balance, Edit button plumbing done. Next: forms optimization via modal approach).
+- Phase 2: Employee Creation Form - 0% complete (Will leverage `EmployeeForm.tsx` from edit functionality).
+- Phase 3: Enhanced Employee Information - ~80% complete (Most info now in card or planned for edit form).
+- Phase 4: Country Flag Integration - 100% complete.
+- Phase 5: Edit Functionality - ~15% complete (Handlers in `EmployeesTab.tsx` for modal state. Prop chain for edit request established. Next: Build `EmployeeForm.tsx`, `EmployeeEditModal.tsx`, and `employeeService.updateEmployee`).
 
 ## Accessibility Considerations
 
