@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { format } from 'date-fns';
 import { 
   Dialog, 
   DialogContent, 
@@ -10,14 +11,17 @@ import {
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { formatCurrency } from './SalaryUtils';
-import { Loader2, CheckCircle, AlertCircle } from 'lucide-react';
+import { Loader2, CheckCircle, AlertCircle, CalendarIcon } from 'lucide-react';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
+import { cn } from '@/lib/utils';
 
 interface PaymentConfirmationProps {
   isOpen: boolean;
   onClose: () => void;
   totalAmount: number;
   employeeCount: number;
-  onConfirm: () => Promise<boolean>;
+  onConfirm: (paymentDate: Date) => Promise<boolean>;
 }
 
 export const PaymentConfirmation = ({ 
@@ -31,16 +35,18 @@ export const PaymentConfirmation = ({
   const [isConfirmed, setIsConfirmed] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [hasAcknowledged, setHasAcknowledged] = useState(false);
+  const [paymentDate, setPaymentDate] = useState<Date>(new Date());
+  const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
   
   // Handle confirmation
   const handleConfirm = async () => {
-    if (!hasAcknowledged) return;
+    if (!hasAcknowledged || !paymentDate) return;
     
     setIsConfirming(true);
     setError(null);
     
     try {
-      const success = await onConfirm();
+      const success = await onConfirm(paymentDate);
       
       if (success) {
         setIsConfirmed(true);
@@ -66,12 +72,21 @@ export const PaymentConfirmation = ({
     setIsConfirmed(false);
     setError(null);
     setHasAcknowledged(false);
+    setPaymentDate(new Date()); // Reset date on close
+    setIsDatePickerOpen(false);
   };
   
   // Handle dialog close
   const handleClose = () => {
     resetState();
     onClose();
+  };
+  
+  const handleDateSelect = (date: Date | undefined) => {
+    if (date) {
+      setPaymentDate(date);
+    }
+    setIsDatePickerOpen(false);
   };
   
   return (
@@ -108,6 +123,37 @@ export const PaymentConfirmation = ({
                 </div>
               </div>
               
+              {/* Date Picker */}
+              <div className="grid gap-2">
+                <label htmlFor="paymentDate" className="text-sm font-medium">
+                  Payment Date
+                </label>
+                <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      id="paymentDate"
+                      variant={"outline"}
+                      className={cn(
+                        "w-full justify-start text-left font-normal",
+                        !paymentDate && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {paymentDate ? format(paymentDate, "PPP") : <span>Pick a date</span>}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0 z-[1000]" align="start"> {/* Increased z-index */}
+                    <Calendar
+                      mode="single"
+                      selected={paymentDate}
+                      onSelect={handleDateSelect}
+                      initialFocus
+                      disabled={(date) => date > new Date()} // Optional: disable future dates
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+              
               {error && (
                 <div className="flex items-center gap-3 rounded-lg bg-red-50 p-4 text-red-700">
                   <AlertCircle className="h-6 w-6 flex-shrink-0" />
@@ -141,7 +187,7 @@ export const PaymentConfirmation = ({
               </Button>
               <Button
                 onClick={handleConfirm}
-                disabled={!hasAcknowledged || isConfirming}
+                disabled={!hasAcknowledged || !paymentDate || isConfirming}
                 className="w-full sm:w-auto h-12 sm:h-10"
               >
                 {isConfirming ? (

@@ -18,6 +18,7 @@ import { PayslipData } from '@/types/payslip';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { PaymentConfirmation } from '../PaymentConfirmation';
+import { format } from 'date-fns';
 
 interface SalaryTableProps {
   salaryData: EmployeeSalary[];
@@ -203,14 +204,79 @@ export const SalaryTable = React.memo(({
   }, []);
 
   // Payment confirmation handler
-  const handlePaymentConfirm = useCallback(async () => {
-    // Mock API call that would actually process the payment
-    return new Promise<boolean>((resolve) => {
-      setTimeout(() => {
-        resolve(true); // Simulate success
-      }, 1500);
-    });
-  }, []);
+  const handlePaymentConfirm = useCallback(
+    async (paymentDate: Date, employeeId: string, employeeData: EmployeeSalary, employeeDetailsFromQuery: EmployeeQueryResult | undefined): Promise<boolean> => {
+      if (!employeeId || !employeeData || !paymentDate) {
+        console.error('[SalaryTable] Missing paymentDate, employeeId, or employeeData for payment confirmation.');
+        return false;
+      }
+
+      // Validate critical numeric data
+      if (isNaN(employeeData.baseSalary)) {
+        console.error('[SalaryTable] baseSalary is NaN for employeeId:', employeeId, 'employeeData:', employeeData);
+        return false;
+      }
+      // Add similar checks for other critical numeric fields if necessary, e.g., employeeData.total
+      if (isNaN(employeeData.total)) {
+        console.error('[SalaryTable] total salary is NaN for employeeId:', employeeId, 'employeeData:', employeeData);
+        // total_salary is nullable in DB, but usually good to ensure it's a number if being processed
+      }
+
+      // Access salaryPlan state if the confirmed employee is the one selected for payslip
+      const currentSalaryPlanName = 
+        selectedEmployeeForPayslip === employeeId && salaryPlan 
+        ? salaryPlan.name 
+        : null;
+
+      const recordToInsertObject = {
+        employee_id: employeeId,
+        employee_name: employeeData.name,
+        effective_date: format(paymentDate, 'yyyy-MM-dd'),
+        base_salary: employeeData.baseSalary,
+        month: format(paymentDate, 'yyyy-MM'),
+        change_type: 'salary_payout',
+        commission: employeeData.commission || 0,
+        bonus: (employeeData.bonus || 0) + (employeeData.targetBonus || 0),
+        deductions: employeeData.deductions || 0,
+        loans: employeeData.loans || 0,
+        sales_amount: employeeData.salesAmount || 0,
+        salary_plan_id: employeeDetailsFromQuery?.salary_plan_id || null,
+        salary_plan_name: currentSalaryPlanName,
+      };
+
+      console.log('[SalaryTable] Attempting to insert into salary_history:', recordToInsertObject);
+
+      const { data: { user: currentUser }, error: authError } = await supabase.auth.getUser();
+      if (authError) {
+        console.error('[SalaryTable] Error fetching Supabase user before insert:', authError);
+      } else if (!currentUser) {
+        console.error('[SalaryTable] No Supabase user session found before insert. User is likely not authenticated.');
+      } else {
+        console.log('[SalaryTable] Current Supabase user before insert: ID:', currentUser.id, 'Role:', currentUser.role, 'Email:', currentUser.email);
+      }
+
+      try {
+        const { data, error } = await supabase
+          .from('salary_history')
+          .insert([recordToInsertObject])
+          .select();
+
+        if (error) {
+          console.error('[SalaryTable] Error saving payment to salary_history. Supabase error:', error);
+          // Log all available error details
+          console.error(`[SalaryTable] Supabase error details: Message: ${error.message}, Details: ${error.details}, Code: ${error.code}, Hint: ${error.hint}`);
+          return false;
+        }
+
+        console.log('[SalaryTable] Payment saved to salary_history:', data);
+        return true;
+      } catch (err) {
+        console.error('[SalaryTable] Unexpected error during payment confirmation:', err);
+        return false;
+      }
+    },
+    [supabase, selectedEmployeeForPayslip, salaryPlan] // Added dependencies
+  );
 
   if (isLoading) {
     return (
@@ -248,221 +314,130 @@ export const SalaryTable = React.memo(({
               key={employee.id}
               className="rounded-xl border bg-background p-4 flex flex-col gap-2 shadow-sm relative overflow-hidden"
             >
-              {/* Essential Information - Always Visible */}
-              <div 
-                className="flex items-center gap-3 mb-1 cursor-pointer"
-                onClick={() => onEmployeeSelect(employee.id)}
-                role="button"
-                tabIndex={0}
-                aria-label={`View details for ${employee.name}`}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    onEmployeeSelect(employee.id);
-                  }
-                }}
-              >
-                {employeeDetails?.photo_url ? (
-                  <div className="h-16 w-16 rounded-full border-2 border-muted/40 overflow-hidden flex-shrink-0">
-                    <img
-                      src={employeeDetails.photo_url}
-                      alt={employee.name}
-                      className="h-full w-full object-cover"
-                    />
-                  </div>
-                ) : (
-                  <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center text-lg font-bold text-muted-foreground flex-shrink-0 border-2 border-muted/40">
-                    {employee.name.charAt(0)}
-                  </div>
-                )}
-                <div className="flex-1 min-w-0 pr-10">
-                  <div className="font-semibold truncate text-base">{employee.name}</div>
-                  <div className="text-xs text-muted-foreground truncate">{getBranchNameAr(employeeDetails?.branch_id)}</div>
-                </div>
-              </div>
-
-              {/* Action Buttons - Payslip and Payment Confirmation */}
-              <div className="absolute right-2 top-2 flex gap-2 z-10">
-                {/* Payslip Button */}
-                <Dialog
-                  open={dialogOpen[employee.id]}
-                  onOpenChange={(open) => {
-                    setDialogOpen((prev) => ({ ...prev, [employee.id]: open }));
-                    if (open) {
-                      // When opening, set loading state first, then select employee
-                      setIsPayslipLoading(true);
-                      setTimeout(() => {
-                        setSelectedEmployeeForPayslip(employee.id);
-                      }, 50);
-                    }
-                  }}
-                >
-                  <DialogTrigger asChild>
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      className="h-10 w-10 bg-white/90 shadow-sm"
-                      aria-label={`View payslip for ${employee.name}`}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        // Force state reset on each click
-                        if (dialogOpen[employee.id]) {
-                          setDialogOpen((prev) => ({ ...prev, [employee.id]: false }));
-                          setTimeout(() => {
-                            setDialogOpen((prev) => ({ ...prev, [employee.id]: true }));
-                          }, 100);
-                        }
-                      }}
-                    >
-                      <FileText className="h-5 w-5" />
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent 
-                    className="max-w-4xl max-h-[90vh] overflow-auto"
-                    onEscapeKeyDown={() => {
-                      // Additional cleanup on escape key
-                      setSelectedEmployeeForPayslip(null);
-                      setIsPayslipLoading(false);
-                    }}
-                    onInteractOutside={() => {
-                      // Additional cleanup on outside click
-                      setSelectedEmployeeForPayslip(null);
-                      setIsPayslipLoading(false);
-                    }}
-                  >
-                    <DialogHeader>
-                      <DialogTitle>Payslip for {employee.name}</DialogTitle>
-                    </DialogHeader>
-                    {isPayslipLoading ? (
-                      <div className="flex items-center justify-center h-64">
-                        <Skeleton className="h-full w-full" />
-                      </div>
-                    ) : (
-                      <div key={`payslip-${employee.id}-${Date.now()}`}>
-                        {buildPayslipData(employee) ? (
-                          <PayslipTemplateViewer payslipData={buildPayslipData(employee)} />
-                        ) : (
-                          <div className="p-6 text-center">
-                            <p className="text-red-500 mb-2">Error loading payslip data</p>
-                            <Button 
-                              variant="outline" 
-                              onClick={() => {
-                                setIsPayslipLoading(true);
-                                setTimeout(() => {
-                                  setSelectedEmployeeForPayslip(employee.id);
-                                }, 100);
-                              }}
-                            >
-                              Retry
-                            </Button>
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </DialogContent>
-                </Dialog>
-
-                {/* Payment Confirmation Button */}
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="h-10 w-10 bg-white/90 shadow-sm"
-                  aria-label={`Confirm payment for ${employee.name}`}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setPaymentConfirmationOpen((prev) => ({ ...prev, [employee.id]: true }));
-                  }}
-                >
-                  <CheckSquare className="h-5 w-5 text-green-600" />
-                </Button>
-
-                {/* Payment Confirmation Dialog */}
-                <PaymentConfirmation
-                  isOpen={!!paymentConfirmationOpen[employee.id]}
-                  onClose={() => setPaymentConfirmationOpen((prev) => ({ ...prev, [employee.id]: false }))}
-                  totalAmount={employee.total}
-                  employeeCount={1}
-                  onConfirm={() => handlePaymentConfirm()}
+              {/* Profile Row */}
+              <div className="flex items-center gap-3 cursor-pointer" onClick={() => onEmployeeSelect(employee.id)} role="button" tabIndex={0} onKeyDown={(e) => e.key === 'Enter' && onEmployeeSelect(employee.id)} aria-label={`Select employee ${employee.name}`}>
+                <img 
+                  src={employeeDetails?.photo_url || '/placeholder-avatar.png'} 
+                  alt={employee.name} 
+                  className="w-12 h-12 rounded-full object-cover"
                 />
-              </div>
-
-              {/* Total Salary & Change - Always Visible */}
-              <div className="flex justify-between items-center py-2 border-t border-b">
-                <div>
-                  <div className="text-xs text-muted-foreground">Total Salary</div>
-                  <div className="text-xl font-bold">{employee.total.toLocaleString()} SAR</div>
+                <div className="flex-grow">
+                  <h3 className="font-semibold text-sm leading-tight">{employee.name}</h3>
+                  <p className="text-xs text-muted-foreground leading-tight">{employeeDetails?.role || 'N/A'}</p>
                 </div>
-                {hasMonthlySalaryChange && (
-                  <div className={`flex items-center ${monthlyChange! > 0 ? 'text-green-600' : 'text-red-600'}`}>
-                    {monthlyChange! > 0 ? (
-                      <ArrowUp className="h-5 w-5 mr-1" />
-                    ) : (
-                      <ArrowDown className="h-5 w-5 mr-1" />
-                    )}
-                    <span className="font-medium">
-                      {Math.abs(monthlyChange!).toLocaleString()} SAR
+                <div className="flex flex-col items-end">
+                  <span className="font-semibold text-sm">SAR {employee.total.toFixed(2)}</span>
+                  {hasMonthlySalaryChange && (
+                    <span className={`text-xs ${monthlyChange > 0 ? 'text-green-500' : 'text-red-500'}`}>
+                      {monthlyChange > 0 ? <ArrowUp size={12} className="inline" /> : <ArrowDown size={12} className="inline" />}
+                      {Math.abs(monthlyChange).toFixed(2)}
                     </span>
-                  </div>
-                )}
+                  )}
+                </div>
+                <Button variant="ghost" size="icon" onClick={(e) => toggleCardExpansion(employee.id, e)} className="ml-auto">
+                  {isExpanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+                </Button>
               </div>
 
-              {/* Expand/Collapse Button */}
-              <Button
-                variant="ghost"
-                size="sm"
-                className="flex items-center justify-center py-2 mt-1 mb-0 w-full h-12"
-                onClick={(e) => toggleCardExpansion(employee.id, e)}
-                aria-expanded={isExpanded}
-                aria-controls={`details-${employee.id}`}
-              >
-                <span className="mr-1 text-sm">
-                  {isExpanded ? 'Hide Details' : 'Show Details'}
-                </span>
-                {isExpanded ? (
-                  <ChevronUp className="h-5 w-5" />
-                ) : (
-                  <ChevronDown className="h-5 w-5" />
-                )}
-              </Button>
-
-              {/* Expanded Details - Only visible when expanded */}
+              {/* Expanded Content (Collapsible) */}
               {isExpanded && (
-                <div id={`details-${employee.id}`} className="pt-2 space-y-3 text-sm animate-in fade-in-50 duration-200">
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="bg-muted/30 p-3 rounded-lg">
-                      <div className="text-xs text-muted-foreground">Base Salary</div>
-                      <div className="font-medium">{employee.baseSalary.toLocaleString()} SAR</div>
-                    </div>
-                    <div className="bg-muted/30 p-3 rounded-lg">
-                      <div className="text-xs text-muted-foreground">Commission</div>
-                      <div className="font-medium">{employee.commission.toLocaleString()} SAR</div>
-                    </div>
-                    {(employee.bonus > 0 || employee.targetBonus > 0) && (
-                      <div className="bg-green-50 p-3 rounded-lg">
-                        <div className="text-xs text-green-700">Bonuses</div>
-                        <div className="font-medium text-green-700">
-                          {((employee.bonus || 0) + (employee.targetBonus || 0)).toLocaleString()} SAR
-                        </div>
-                      </div>
+                <div className="mt-2 pt-2 border-t border-dashed">
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
+                    <div className="text-muted-foreground">Base Salary:</div>
+                    <div className="text-right">SAR {employee.baseSalary.toFixed(2)}</div>
+                    
+                    <div className="text-muted-foreground">Commission:</div>
+                    <div className="text-right">SAR {employee.commission.toFixed(2)}</div>
+
+                    { (employee.bonus ?? 0) > 0 && (
+                      <>
+                        <div className="text-muted-foreground">Bonus:</div>
+                        <div className="text-right">SAR {employee.bonus?.toFixed(2)}</div>
+                      </>
                     )}
-                    {(employee.deductions > 0 || employee.loans > 0) && (
-                      <div className="bg-red-50 p-3 rounded-lg">
-                        <div className="text-xs text-red-700">Deductions & Loans</div>
-                        <div className="font-medium text-red-700">
-                          {(employee.deductions + employee.loans).toLocaleString()} SAR
-                        </div>
-                      </div>
+                    { (employee.targetBonus ?? 0) > 0 && (
+                      <>
+                        <div className="text-muted-foreground">Target Bonus:</div>
+                        <div className="text-right">SAR {employee.targetBonus?.toFixed(2)}</div>
+                      </>
+                    )}
+
+                    <div className="text-muted-foreground">Deductions:</div>
+                    <div className="text-right text-red-500">SAR {employee.deductions.toFixed(2)}</div>
+
+                    <div className="text-muted-foreground">Loans:</div>
+                    <div className="text-right text-red-500">SAR {employee.loans.toFixed(2)}</div>
+
+                    { (employee.salesAmount ?? 0) > 0 && (
+                        <>
+                            <div className="text-muted-foreground">Sales:</div>
+                            <div className="text-right">SAR {employee.salesAmount?.toFixed(2)}</div>
+                        </>
                     )}
                   </div>
-                  
-                  <div className="pt-2 border-t">
-                    <div className="flex justify-between items-center mb-1">
-                      <span className="text-xs text-muted-foreground">Sales Amount</span>
-                      <span className="font-medium">{employee.salesAmount.toLocaleString()} SAR</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-xs text-muted-foreground">Net Salary</span>
-                      <span className="font-bold">{employee.total.toLocaleString()} SAR</span>
-                    </div>
+
+                  <div className="mt-3 flex justify-end gap-2">
+                    <Dialog 
+                      open={dialogOpen[employee.id] || false} 
+                      onOpenChange={(isOpen) => setDialogOpen(prev => ({ ...prev, [employee.id]: isOpen }))}
+                    >
+                      <DialogTrigger asChild>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => {
+                            setSelectedEmployeeForPayslip(employee.id);
+                            setIsPayslipLoading(true);
+                          }}
+                          aria-label={`View payslip for ${employee.name}`}
+                          disabled={isPayslipLoading && selectedEmployeeForPayslip === employee.id}
+                        >
+                          {isPayslipLoading && selectedEmployeeForPayslip === employee.id ? (
+                            <>
+                              <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-foreground" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                              </svg>
+                              Loading...
+                            </>
+                          ) : (
+                            <FileText size={16} className="mr-1.5" />
+                          )}
+                          Payslip
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="sm:max-w-2xl">
+                        <DialogHeader>
+                          <DialogTitle>Payslip - {employee.name}</DialogTitle>
+                        </DialogHeader>
+                        {selectedEmployeeForPayslip === employee.id && !isPayslipLoading && (
+                          <PayslipTemplateViewer payslipData={buildPayslipData(employee)} />
+                        )}
+                        {(isPayslipLoading && selectedEmployeeForPayslip === employee.id) && <Skeleton className="w-full h-[500px]" />}
+                      </DialogContent>
+                    </Dialog>
+
+                    {/* Button to trigger PaymentConfirmation dialog */}
+                    <Button 
+                      variant="default"
+                      size="sm" 
+                      aria-label={`Confirm payment for ${employee.name}`}
+                      onClick={() => setPaymentConfirmationOpen(prev => ({ ...prev, [employee.id]: true}))}
+                    >
+                      <CheckSquare size={16} className="mr-1.5" />
+                      Confirm Payment
+                    </Button>
+
+                    {/* PaymentConfirmation Dialog for mobile view*/}
+                    <PaymentConfirmation
+                      isOpen={paymentConfirmationOpen[employee.id] || false}
+                      onClose={() => setPaymentConfirmationOpen(prev => ({ ...prev, [employee.id]: false }))}
+                      totalAmount={employee.total}
+                      employeeCount={1} // For a single employee
+                      onConfirm={(paymentDateFromDialog) => 
+                        handlePaymentConfirm(paymentDateFromDialog, employee.id, employee, getEmployeeDetails(employee.id))
+                      }
+                    />
                   </div>
                 </div>
               )}
@@ -471,153 +446,126 @@ export const SalaryTable = React.memo(({
         })}
       </div>
 
-      {/* Desktop Table View - Keep the existing table */}
+      {/* Desktop Table View */}
       <div className="hidden sm:block">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Employee</TableHead>
+              <TableHead className="w-[250px]">Employee</TableHead>
+              <TableHead className="text-right">Net Salary</TableHead>
               <TableHead className="text-right">Base Salary</TableHead>
               <TableHead className="text-right">Commission</TableHead>
               <TableHead className="text-right">Bonus</TableHead>
+              <TableHead className="text-right">Target Bonus</TableHead>
               <TableHead className="text-right">Deductions</TableHead>
-              <TableHead className="text-right">Total</TableHead>
-              <TableHead className="text-right">MoM Change</TableHead>
-              <TableHead className="w-[100px]">Actions</TableHead>
+              <TableHead className="text-right">Loans</TableHead>
+              <TableHead className="text-right">Sales</TableHead>
+              <TableHead className="text-center w-[200px]">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {salaryData.map((employee) => {
               const monthlyChange = getMonthlyChange?.(employee.id);
               const hasMonthlySalaryChange = monthlyChange !== null && monthlyChange !== 0;
-              
+              const employeeDetails = getEmployeeDetails(employee.id);
+
               return (
                 <TableRow 
-                  key={employee.id}
-                  className="cursor-pointer"
+                  key={employee.id} 
                   onClick={() => onEmployeeSelect(employee.id)}
+                  className="cursor-pointer hover:bg-muted/50"
                 >
-                  <TableCell className="font-medium">
-                    {employee.name}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    {employee.baseSalary.toLocaleString()} SAR
-                  </TableCell>
-                  <TableCell className="text-right">
-                    {employee.commission.toLocaleString()} SAR
-                  </TableCell>
-                  <TableCell className="text-right">
-                    {((employee.bonus || 0) + (employee.targetBonus || 0)).toLocaleString()} SAR
-                  </TableCell>
-                  <TableCell className="text-right text-destructive">
-                    {(employee.deductions + employee.loans).toLocaleString()} SAR
-                  </TableCell>
-                  <TableCell className="text-right font-bold">
-                    {employee.total.toLocaleString()} SAR
-                  </TableCell>
-                  <TableCell className="text-right">
-                    {hasMonthlySalaryChange && (
-                      <div className={`flex items-center justify-end ${monthlyChange! > 0 ? 'text-green-600' : 'text-red-600'}`}>
-                        {monthlyChange! > 0 ? (
-                          <ArrowUp className="h-4 w-4 mr-1" />
-                        ) : (
-                          <ArrowDown className="h-4 w-4 mr-1" />
-                        )}
-                        <span>
-                          {Math.abs(monthlyChange!).toLocaleString()} SAR
-                        </span>
+                  <TableCell>
+                    <div className="flex items-center gap-3">
+                      <img 
+                        src={employeeDetails?.photo_url || '/placeholder-avatar.png'} 
+                        alt={employee.name} 
+                        className="w-10 h-10 rounded-full object-cover"
+                      />
+                      <div>
+                        <div className="font-medium">{employee.name}</div>
+                        <div className="text-xs text-muted-foreground">{employeeDetails?.role || 'N/A'}</div>
                       </div>
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <div className="font-semibold">SAR {employee.total.toFixed(2)}</div>
+                    {hasMonthlySalaryChange && (
+                      <span className={`text-xs ${monthlyChange > 0 ? 'text-green-500' : 'text-red-500'}`}>
+                        {monthlyChange > 0 ? <ArrowUp size={12} className="inline" /> : <ArrowDown size={12} className="inline" />}
+                        {Math.abs(monthlyChange).toFixed(2)}
+                      </span>
                     )}
                   </TableCell>
-                  <TableCell>
-                    <div className="flex justify-end items-center gap-2" onClick={(e) => e.stopPropagation()}>
-                      {/* Existing Payslip Button */}
-                      <Dialog
-                        open={dialogOpen[employee.id]}
-                        onOpenChange={(open) => {
-                          setDialogOpen((prev) => ({ ...prev, [employee.id]: open }));
-                          if (open) {
-                            // When opening, set loading state first, then select employee
-                            setIsPayslipLoading(true);
-                            setTimeout(() => {
-                              setSelectedEmployeeForPayslip(employee.id);
-                            }, 50);
-                          }
-                        }}
+                  <TableCell className="text-right">SAR {employee.baseSalary.toFixed(2)}</TableCell>
+                  <TableCell className="text-right">SAR {employee.commission.toFixed(2)}</TableCell>
+                  <TableCell className="text-right">SAR {(employee.bonus || 0).toFixed(2)}</TableCell>
+                  <TableCell className="text-right">SAR {(employee.targetBonus || 0).toFixed(2)}</TableCell>
+                  <TableCell className="text-right text-red-500">SAR {employee.deductions.toFixed(2)}</TableCell>
+                  <TableCell className="text-right text-red-500">SAR {employee.loans.toFixed(2)}</TableCell>
+                  <TableCell className="text-right">SAR {(employee.salesAmount || 0).toFixed(2)}</TableCell>
+                  <TableCell className="text-center">
+                    <div className="flex items-center justify-center gap-1">
+                      <Dialog 
+                        open={dialogOpen[`desktop-${employee.id}`] || false} 
+                        onOpenChange={(isOpen) => setDialogOpen(prev => ({ ...prev, [`desktop-${employee.id}`]: isOpen }))}
                       >
                         <DialogTrigger asChild>
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            className="h-9 w-9 bg-white/90 shadow-sm"
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedEmployeeForPayslip(employee.id);
+                              setIsPayslipLoading(true);
+                              setDialogOpen(prev => ({ ...prev, [`desktop-${employee.id}`]: true }));
+                            }}
                             aria-label={`View payslip for ${employee.name}`}
+                            disabled={isPayslipLoading && selectedEmployeeForPayslip === employee.id}
                           >
-                            <FileText className="h-5 w-5" />
+                            {isPayslipLoading && selectedEmployeeForPayslip === employee.id ? (
+                              <svg className="animate-spin h-4 w-4 text-foreground" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                              </svg>
+                            ) : (
+                              <FileText size={16} />
+                            )}
                           </Button>
                         </DialogTrigger>
-                        <DialogContent 
-                          className="max-w-4xl max-h-[90vh] overflow-auto"
-                          onEscapeKeyDown={() => {
-                            // Additional cleanup on escape key
-                            setSelectedEmployeeForPayslip(null);
-                            setIsPayslipLoading(false);
-                          }}
-                          onInteractOutside={() => {
-                            // Additional cleanup on outside click
-                            setSelectedEmployeeForPayslip(null);
-                            setIsPayslipLoading(false);
-                          }}
-                        >
+                        <DialogContent className="sm:max-w-2xl">
                           <DialogHeader>
-                            <DialogTitle>Payslip for {employee.name}</DialogTitle>
+                            <DialogTitle>Payslip - {employee.name}</DialogTitle>
                           </DialogHeader>
-                          {isPayslipLoading ? (
-                            <div className="flex items-center justify-center h-64">
-                              <Skeleton className="h-full w-full" />
-                            </div>
-                          ) : (
-                            <div key={`payslip-${employee.id}-${Date.now()}`}>
-                              {buildPayslipData(employee) ? (
-                                <PayslipTemplateViewer payslipData={buildPayslipData(employee)} />
-                              ) : (
-                                <div className="p-6 text-center">
-                                  <p className="text-red-500 mb-2">Error loading payslip data</p>
-                                  <Button 
-                                    variant="outline" 
-                                    onClick={() => {
-                                      setIsPayslipLoading(true);
-                                      setTimeout(() => {
-                                        setSelectedEmployeeForPayslip(employee.id);
-                                      }, 100);
-                                    }}
-                                  >
-                                    Retry
-                                  </Button>
-                                </div>
-                              )}
-                            </div>
+                          {selectedEmployeeForPayslip === employee.id && !isPayslipLoading && (
+                            <PayslipTemplateViewer payslipData={buildPayslipData(employee)} />
                           )}
+                          {(isPayslipLoading && selectedEmployeeForPayslip === employee.id) && <Skeleton className="w-full h-[500px]" />}
                         </DialogContent>
                       </Dialog>
 
-                      {/* Payment Confirmation Button */}
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        className="h-9 w-9 bg-white/90 shadow-sm"
+                      {/* Button to trigger PaymentConfirmation dialog */}
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
                         aria-label={`Confirm payment for ${employee.name}`}
-                        onClick={() => setPaymentConfirmationOpen((prev) => ({ ...prev, [employee.id]: true }))}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setPaymentConfirmationOpen(prev => ({ ...prev, [`desktop-${employee.id}`]: true}));
+                        }}
                       >
-                        <CheckSquare className="h-5 w-5 text-green-600" />
+                        <CheckSquare size={16} />
                       </Button>
 
-                      {/* Payment Confirmation Dialog */}
+                      {/* PaymentConfirmation Dialog for desktop view*/}
                       <PaymentConfirmation
-                        isOpen={!!paymentConfirmationOpen[employee.id]}
-                        onClose={() => setPaymentConfirmationOpen((prev) => ({ ...prev, [employee.id]: false }))}
+                        isOpen={paymentConfirmationOpen[`desktop-${employee.id}`] || false}
+                        onClose={() => setPaymentConfirmationOpen(prev => ({ ...prev, [`desktop-${employee.id}`]: false }))}
                         totalAmount={employee.total}
-                        employeeCount={1}
-                        onConfirm={() => handlePaymentConfirm()}
+                        employeeCount={1} // For a single employee
+                        onConfirm={(paymentDateFromDialog) => 
+                          handlePaymentConfirm(paymentDateFromDialog, employee.id, employee, getEmployeeDetails(employee.id))
+                        }
                       />
                     </div>
                   </TableCell>
