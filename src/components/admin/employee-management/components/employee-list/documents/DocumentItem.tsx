@@ -6,11 +6,11 @@ import { PencilIcon, TrashIcon, FileIcon } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import { 
-  DocumentType,
   DocumentCalculation,
   EmployeeDocument,
   DocumentStatus
 } from '../../../types';
+import { DocumentType } from '../../../types/document-types';
 
 interface DocumentItemProps {
   document: EmployeeDocument;
@@ -40,7 +40,7 @@ export const DocumentItem: React.FC<DocumentItemProps> = ({
     return 'valid';
   };
 
-  const documentTypeLabels: Record<DocumentType | string, string> = {
+  const documentTypeLabels: Record<string, string> = {
     [DocumentType.HEALTH_CERTIFICATE]: 'Health Certificate',
     [DocumentType.RESIDENCY_PERMIT]: 'Residency Permit',
     [DocumentType.WORK_LICENSE]: 'Work License',

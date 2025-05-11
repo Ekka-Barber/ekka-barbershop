@@ -21,8 +21,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { useForm } from 'react-hook-form';
 import { 
   DocumentFormProps,
-  DocumentType
+  EmployeeDocument
 } from '../../../types';
+import { DocumentType } from '../../../types/document-types';
 import { addDays, format } from 'date-fns';
 
 export const DocumentForm: React.FC<DocumentFormProps> = ({
@@ -49,7 +50,7 @@ export const DocumentForm: React.FC<DocumentFormProps> = ({
   // Set document name based on document type
   useEffect(() => {
     if (watchDocumentType && watchDocumentType !== DocumentType.CUSTOM) {
-      const documentNames: Record<DocumentType, string> = {
+      const documentNames: Record<string, string> = {
         [DocumentType.HEALTH_CERTIFICATE]: 'Health Certificate',
         [DocumentType.RESIDENCY_PERMIT]: 'Residency Permit',
         [DocumentType.WORK_LICENSE]: 'Work License',

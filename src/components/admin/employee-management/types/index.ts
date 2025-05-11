@@ -10,7 +10,6 @@ export type {
 } from './document-types';
 
 export { 
-  DocumentType, 
   DocumentStatus 
 } from './document-types';
 
@@ -64,5 +63,5 @@ export interface DocumentContextType {
   addDocument: (document: Partial<EmployeeDocument>) => Promise<void>;
   updateDocument: (id: string, document: Partial<EmployeeDocument>) => Promise<void>;
   deleteDocument: (id: string) => Promise<void>;
-  calculateStatus: (document: EmployeeDocument) => DocumentCalculation;
+  calculateDocumentStatus: (document: EmployeeDocument) => DocumentCalculation;
 }

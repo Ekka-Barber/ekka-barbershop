@@ -24,7 +24,7 @@ export const DocumentList: React.FC<DocumentListProps> = ({ employeeId }) => {
     addDocument, 
     updateDocument, 
     deleteDocument,
-    calculateStatus 
+    calculateDocumentStatus 
   } = useEmployeeDocuments();
 
   useEffect(() => {
@@ -117,7 +117,7 @@ export const DocumentList: React.FC<DocumentListProps> = ({ employeeId }) => {
             <DocumentItem 
               key={document.id}
               document={document}
-              statusDetails={calculateStatus(document)}
+              statusDetails={calculateDocumentStatus(document)}
               onEdit={() => handleEditClick(document)}
               onDelete={() => handleDeleteDocument(document.id)}
             />

@@ -1,7 +1,7 @@
 
 // Document types
 export enum DocumentType {
-  PASSPORT = 'passport',
+  HEALTH_CERTIFICATE = 'health_certificate',
   ID_CARD = 'id_card',
   DRIVING_LICENSE = 'driving_license',
   WORK_PERMIT = 'work_permit',
@@ -11,6 +11,7 @@ export enum DocumentType {
   HEALTH_CERTIFICATE = 'health_certificate',
   RESIDENCY_PERMIT = 'residency_permit',
   WORK_LICENSE = 'work_license',
+  PASSPORT = 'passport',
   CUSTOM = 'custom',
   OTHER = 'other',
 }

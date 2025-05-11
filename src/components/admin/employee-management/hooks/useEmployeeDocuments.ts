@@ -1,20 +1,67 @@
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { differenceInDays, parseISO } from 'date-fns';
 import { 
   EmployeeDocument, 
-  DocumentType, 
-  DocumentCalculation 
-} from '../types/document-types';
+  DocumentCalculation,
+  DocumentStatus
+} from '../types';
+import { DocumentType } from '../types/document-types';
 
-export const useEmployeeDocuments = (employeeId: string) => {
+export const useEmployeeDocuments = () => {
   const [documents, setDocuments] = useState<EmployeeDocument[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
-
-  const fetchDocuments = useCallback(async () => {
-    if (!employeeId) return;
-    
+  
+  // Calculate document status
+  const calculateDocumentStatus = useCallback((document: EmployeeDocument): DocumentCalculation => {
+    try {
+      if (!document.expiryDate) {
+        return {
+          daysRemaining: null,
+          isExpired: false,
+          isWarning: false,
+          statusText: 'No expiry date'
+        };
+      }
+      
+      const currentDate = new Date();
+      const expiryDate = parseISO(document.expiryDate);
+      const daysRemaining = differenceInDays(expiryDate, currentDate);
+      
+      const isExpired = daysRemaining < 0;
+      const isWarning = !isExpired && daysRemaining <= document.notificationThresholdDays;
+      
+      let statusText = '';
+      if (isExpired) {
+        statusText = `Expired ${Math.abs(daysRemaining)} days ago`;
+      } else if (isWarning) {
+        statusText = `Expires in ${daysRemaining} days`;
+      } else {
+        statusText = `Valid for ${daysRemaining} days`;
+      }
+      
+      return {
+        daysRemaining,
+        isExpired,
+        isWarning,
+        statusText,
+        expiryDate
+      };
+    } catch (error) {
+      console.error('Error calculating document status:', error);
+      return {
+        daysRemaining: null,
+        isExpired: false,
+        isWarning: false,
+        statusText: 'Error calculating status'
+      };
+    }
+  }, []);
+  
+  // Fetch documents
+  const fetchDocuments = useCallback(async (employeeId: string) => {
     setIsLoading(true);
     setError(null);
     
@@ -26,94 +73,118 @@ export const useEmployeeDocuments = (employeeId: string) => {
         
       if (fetchError) throw new Error(fetchError.message);
       
+      // Process documents and calculate status
       if (data) {
-        // Transform data to match the EmployeeDocument type
-        const mappedDocuments = data.map(mapDatabaseDocumentToEmployeeDocument);
-        setDocuments(mappedDocuments);
+        const processedDocuments = data.map(doc => ({
+          ...doc,
+          id: doc.id,
+          employeeId: doc.employee_id,
+          documentType: doc.document_type as DocumentType,
+          documentName: doc.document_name,
+          documentNumber: doc.document_number,
+          issueDate: doc.issue_date,
+          expiryDate: doc.expiry_date,
+          durationMonths: doc.duration_months,
+          notificationThresholdDays: doc.notification_threshold_days,
+          documentUrl: doc.document_url,
+          notes: doc.notes,
+          createdAt: doc.created_at,
+          updatedAt: doc.updated_at
+        })) as EmployeeDocument[];
+        
+        setDocuments(processedDocuments);
+      } else {
+        setDocuments([]);
       }
-    } catch (err: any) {
-      setError(err instanceof Error ? err : new Error('An unexpected error occurred'));
+    } catch (err) {
+      setError(err instanceof Error ? err : new Error('An error occurred while fetching documents'));
+      console.error('Error fetching documents:', err);
     } finally {
       setIsLoading(false);
     }
-  }, [employeeId]);
-
-  const addDocument = useCallback(async (documentData: Partial<EmployeeDocument>) => {
+  }, []);
+  
+  // Add document
+  const addDocument = useCallback(async (document: Partial<EmployeeDocument>) => {
+    setError(null);
+    
     try {
-      // Transform to database format
-      const dbDocument = {
-        employee_id: documentData.employeeId,
-        document_type: documentData.documentType,
-        document_name: documentData.documentName,
-        document_number: documentData.documentNumber,
-        issue_date: documentData.issueDate,
-        expiry_date: documentData.expiryDate,
-        duration_months: documentData.durationMonths,
-        notification_threshold_days: documentData.notificationThresholdDays,
-        document_url: documentData.documentUrl,
-        notes: documentData.notes,
+      // Convert document to snake_case
+      const documentData = {
+        employee_id: document.employeeId,
+        document_type: document.documentType,
+        document_name: document.documentName,
+        document_number: document.documentNumber,
+        issue_date: document.issueDate,
+        expiry_date: document.expiryDate,
+        duration_months: document.durationMonths,
+        notification_threshold_days: document.notificationThresholdDays,
+        document_url: document.documentUrl,
+        notes: document.notes
       };
       
-      const { data, error: insertError } = await supabase
+      const { error: insertError } = await supabase
         .from('employee_documents')
-        .insert(dbDocument)
-        .select();
+        .insert(documentData);
         
       if (insertError) throw new Error(insertError.message);
       
-      if (data && data[0]) {
-        const newDocument = mapDatabaseDocumentToEmployeeDocument(data[0]);
-        setDocuments(prevDocuments => [...prevDocuments, newDocument]);
+      // Refetch documents
+      if (document.employeeId) {
+        await fetchDocuments(document.employeeId);
       }
-      
-      return data;
-    } catch (err: any) {
-      setError(err instanceof Error ? err : new Error('Failed to add document'));
+    } catch (err) {
+      setError(err instanceof Error ? err : new Error('An error occurred while adding document'));
+      console.error('Error adding document:', err);
       throw err;
     }
-  }, []);
-
-  const updateDocument = useCallback(async (id: string, documentData: Partial<EmployeeDocument>) => {
+  }, [fetchDocuments]);
+  
+  // Update document
+  const updateDocument = useCallback(async (id: string, document: Partial<EmployeeDocument>) => {
+    setError(null);
+    
     try {
-      // Transform to database format
-      const dbDocument = {
-        document_type: documentData.documentType,
-        document_name: documentData.documentName,
-        document_number: documentData.documentNumber,
-        issue_date: documentData.issueDate,
-        expiry_date: documentData.expiryDate,
-        duration_months: documentData.durationMonths,
-        notification_threshold_days: documentData.notificationThresholdDays,
-        document_url: documentData.documentUrl,
-        notes: documentData.notes,
+      // Convert document to snake_case
+      const documentData = {
+        document_type: document.documentType,
+        document_name: document.documentName,
+        document_number: document.documentNumber,
+        issue_date: document.issueDate,
+        expiry_date: document.expiryDate,
+        duration_months: document.durationMonths,
+        notification_threshold_days: document.notificationThresholdDays,
+        document_url: document.documentUrl,
+        notes: document.notes
       };
       
-      const { data, error: updateError } = await supabase
+      const { error: updateError } = await supabase
         .from('employee_documents')
-        .update(dbDocument)
-        .eq('id', id)
-        .select();
+        .update(documentData)
+        .eq('id', id);
         
       if (updateError) throw new Error(updateError.message);
       
-      if (data && data[0]) {
-        const updatedDocument = mapDatabaseDocumentToEmployeeDocument(data[0]);
-        setDocuments(prevDocuments => 
-          prevDocuments.map(doc => 
-            doc.id === id ? updatedDocument : doc
-          )
-        );
+      // Refetch documents
+      const existingDocument = documents.find(doc => doc.id === id);
+      if (existingDocument?.employeeId) {
+        await fetchDocuments(existingDocument.employeeId);
       }
-      
-      return data;
-    } catch (err: any) {
-      setError(err instanceof Error ? err : new Error('Failed to update document'));
+    } catch (err) {
+      setError(err instanceof Error ? err : new Error('An error occurred while updating document'));
+      console.error('Error updating document:', err);
       throw err;
     }
-  }, []);
-
+  }, [documents, fetchDocuments]);
+  
+  // Delete document
   const deleteDocument = useCallback(async (id: string) => {
+    setError(null);
+    
     try {
+      // Find the document to get the employeeId before deletion
+      const documentToDelete = documents.find(doc => doc.id === id);
+      
       const { error: deleteError } = await supabase
         .from('employee_documents')
         .delete()
@@ -121,49 +192,21 @@ export const useEmployeeDocuments = (employeeId: string) => {
         
       if (deleteError) throw new Error(deleteError.message);
       
-      setDocuments(prevDocuments => 
-        prevDocuments.filter(doc => doc.id !== id)
-      );
-    } catch (err: any) {
-      setError(err instanceof Error ? err : new Error('Failed to delete document'));
+      // Refetch documents
+      if (documentToDelete?.employeeId) {
+        await fetchDocuments(documentToDelete.employeeId);
+      } else {
+        setDocuments(documents.filter(doc => doc.id !== id));
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err : new Error('An error occurred while deleting document'));
+      console.error('Error deleting document:', err);
       throw err;
     }
-  }, []);
-
-  const calculateDocumentStatus = useCallback((document: EmployeeDocument): DocumentCalculation => {
-    if (!document.expiryDate) {
-      return {
-        daysRemaining: null,
-        isExpired: false,
-        isWarning: false,
-      };
-    }
-
-    const today = new Date();
-    const expiryDate = new Date(document.expiryDate);
-    const diffTime = expiryDate.getTime() - today.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    
-    return {
-      daysRemaining: diffDays,
-      isExpired: diffDays < 0,
-      isWarning: diffDays >= 0 && diffDays <= document.notificationThresholdDays,
-    };
-  }, []);
-
-  const documentStatuses = useMemo(() => {
-    return documents.map(doc => {
-      const calculation = calculateDocumentStatus(doc);
-      return { ...doc, status: calculation };
-    });
-  }, [documents, calculateDocumentStatus]);
+  }, [documents, fetchDocuments]);
   
-  useEffect(() => {
-    fetchDocuments();
-  }, [fetchDocuments]);
-
   return {
-    documents: documentStatuses,
+    documents,
     isLoading,
     error,
     fetchDocuments,
@@ -173,22 +216,3 @@ export const useEmployeeDocuments = (employeeId: string) => {
     calculateDocumentStatus
   };
 };
-
-// Helper function to map database document to EmployeeDocument type
-function mapDatabaseDocumentToEmployeeDocument(dbDoc: any): EmployeeDocument {
-  return {
-    id: dbDoc.id,
-    employeeId: dbDoc.employee_id,
-    documentType: dbDoc.document_type as DocumentType,
-    documentName: dbDoc.document_name,
-    documentNumber: dbDoc.document_number,
-    issueDate: dbDoc.issue_date,
-    expiryDate: dbDoc.expiry_date,
-    durationMonths: dbDoc.duration_months,
-    notificationThresholdDays: dbDoc.notification_threshold_days,
-    documentUrl: dbDoc.document_url,
-    notes: dbDoc.notes,
-    createdAt: dbDoc.created_at,
-    updatedAt: dbDoc.updated_at,
-  };
-}
