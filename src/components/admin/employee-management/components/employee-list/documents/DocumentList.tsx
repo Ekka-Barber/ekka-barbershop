@@ -6,7 +6,7 @@ import { Plus } from 'lucide-react';
 import { DocumentItem } from './DocumentItem';
 import { DocumentForm } from './DocumentForm';
 import { useEmployeeDocuments } from '../../../hooks/useEmployeeDocuments';
-import { EmployeeDocument } from '../../../types/index';
+import { EmployeeDocument, DocumentWithStatus } from '../../../types/index';
 
 interface DocumentListProps {
   employeeId: string;
@@ -24,7 +24,7 @@ export const DocumentList: React.FC<DocumentListProps> = ({ employeeId }) => {
     addDocument, 
     updateDocument, 
     deleteDocument,
-    calculateDocumentStatus 
+    calculateStatus 
   } = useEmployeeDocuments();
 
   useEffect(() => {
@@ -55,7 +55,7 @@ export const DocumentList: React.FC<DocumentListProps> = ({ employeeId }) => {
       } else {
         await addDocument({
           ...documentData,
-          employeeId
+          employee_id: employeeId
         });
       }
       setShowForm(false);
@@ -97,11 +97,11 @@ export const DocumentList: React.FC<DocumentListProps> = ({ employeeId }) => {
         <Card className="mb-4">
           <CardContent className="pt-4">
             <DocumentForm
-              employeeId={employeeId}
-              document={editingDocument || undefined}
               onSubmit={handleSubmitForm}
-              onCancel={handleCancelForm}
+              defaultValues={editingDocument || undefined}
+              documentType={undefined}
               isSubmitting={false}
+              onCancel={handleCancelForm}
             />
           </CardContent>
         </Card>
@@ -113,15 +113,23 @@ export const DocumentList: React.FC<DocumentListProps> = ({ employeeId }) => {
         </div>
       ) : (
         <div className="grid gap-4">
-          {documents.map((document) => (
-            <DocumentItem 
-              key={document.id}
-              document={document}
-              statusDetails={calculateDocumentStatus(document)}
-              onEdit={() => handleEditClick(document)}
-              onDelete={() => handleDeleteDocument(document.id)}
-            />
-          ))}
+          {documents.map((document) => {
+            // Create a DocumentWithStatus from the document with required status property
+            const docWithStatus = {
+              ...document,
+              status: calculateStatus(document).status
+            } as DocumentWithStatus;
+            
+            return (
+              <DocumentItem 
+                key={document.id}
+                document={docWithStatus}
+                statusDetails={calculateStatus(document)}
+                onEdit={() => handleEditClick(document)}
+                onDelete={() => handleDeleteDocument(document.id)}
+              />
+            );
+          })}
         </div>
       )}
     </div>

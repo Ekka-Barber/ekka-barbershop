@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -10,7 +9,7 @@ import { CalendarIcon } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { format, addMonths } from "date-fns";
-import { DocumentType, DocumentFormProps } from "../../../types/document-types";
+import { DocumentType, DocumentFormProps } from "../../../types/index";
 import { cn } from "@/lib/utils";
 
 export const DocumentForm = ({ 
@@ -21,11 +20,11 @@ export const DocumentForm = ({
   onCancel
 }: DocumentFormProps) => {
   const [issueDate, setIssueDate] = useState<Date | undefined>(
-    defaultValues.issue_date ? new Date(defaultValues.issue_date) : undefined
+    defaultValues.issue_date ? new Date(defaultValues.issue_date as string) : undefined
   );
   
   const [expiryDate, setExpiryDate] = useState<Date | undefined>(
-    defaultValues.expiry_date ? new Date(defaultValues.expiry_date) : undefined
+    defaultValues.expiry_date ? new Date(defaultValues.expiry_date as string) : undefined
   );
   
   const [durationMonths, setDurationMonths] = useState<number>(
@@ -37,7 +36,7 @@ export const DocumentForm = ({
   );
   
   const [selectedDocType, setSelectedDocType] = useState<DocumentType>(
-    defaultValues.document_type || documentType || DocumentType.OTHER
+    defaultValues.document_type as DocumentType || documentType || DocumentType.OTHER
   );
   
   const [documentName, setDocumentName] = useState<string>(
@@ -133,13 +132,13 @@ export const DocumentForm = ({
     onSubmit({
       document_type: selectedDocType,
       document_name: documentName,
-      document_number: documentNumber,
-      document_url: documentUrl,
-      issue_date: issueDate,
-      expiry_date: expiryDate,
+      document_number: documentNumber || undefined,
+      document_url: documentUrl || undefined,
+      issue_date: issueDate.toISOString(),
+      expiry_date: expiryDate.toISOString(),
       duration_months: durationMonths,
       notification_threshold_days: notificationDays,
-      notes: notes
+      notes: notes || undefined
     });
   };
 

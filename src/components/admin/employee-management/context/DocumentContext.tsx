@@ -23,11 +23,11 @@ export const DocumentProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const calculateDocumentStatus = useCallback((document: EmployeeDocument): DocumentCalculation => {
     try {
       const currentDate = new Date();
-      const expiryDate = parseISO(document.expiryDate);
+      const expiryDate = parseISO(document.expiry_date as string);
       const daysRemaining = differenceInDays(expiryDate, currentDate);
       
       const isExpired = daysRemaining < 0;
-      const isWarning = !isExpired && daysRemaining <= document.notificationThresholdDays;
+      const isWarning = !isExpired && daysRemaining <= document.notification_threshold_days;
       
       let statusText = '';
       if (isExpired) {
@@ -39,19 +39,16 @@ export const DocumentProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       }
       
       return {
-        daysRemaining,
-        isExpired,
-        isWarning,
-        statusText,
-        expiryDate
+        days_remaining: daysRemaining,
+        status: isExpired ? DocumentStatus.EXPIRED : 
+               isWarning ? DocumentStatus.EXPIRING : 
+               DocumentStatus.VALID
       };
     } catch (error) {
       console.error('Error calculating document status:', error);
       return {
-        daysRemaining: null,
-        isExpired: false,
-        isWarning: false,
-        statusText: 'Error calculating status'
+        days_remaining: undefined,
+        status: DocumentStatus.MISSING
       };
     }
   }, []);
@@ -70,23 +67,7 @@ export const DocumentProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       if (fetchError) throw new Error(fetchError.message);
       
       if (data) {
-        const processedDocuments = data.map(doc => ({
-          ...doc,
-          id: doc.id,
-          employeeId: doc.employee_id,
-          documentType: doc.document_type as DocumentType,
-          documentName: doc.document_name,
-          documentNumber: doc.document_number,
-          issueDate: doc.issue_date,
-          expiryDate: doc.expiry_date,
-          durationMonths: doc.duration_months,
-          notificationThresholdDays: doc.notification_threshold_days,
-          documentUrl: doc.document_url,
-          notes: doc.notes,
-          createdAt: doc.created_at,
-          updatedAt: doc.updated_at
-        })) as EmployeeDocument[];
-        
+        const processedDocuments = data as EmployeeDocument[];
         setDocuments(processedDocuments);
       } else {
         setDocuments([]);
@@ -105,15 +86,15 @@ export const DocumentProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     
     try {
       const documentData = {
-        employee_id: document.employeeId,
-        document_type: document.documentType,
-        document_name: document.documentName,
-        document_number: document.documentNumber,
-        issue_date: document.issueDate,
-        expiry_date: document.expiryDate,
-        duration_months: document.durationMonths,
-        notification_threshold_days: document.notificationThresholdDays,
-        document_url: document.documentUrl,
+        employee_id: document.employee_id,
+        document_type: document.document_type,
+        document_name: document.document_name,
+        document_number: document.document_number,
+        issue_date: document.issue_date,
+        expiry_date: document.expiry_date,
+        duration_months: document.duration_months,
+        notification_threshold_days: document.notification_threshold_days,
+        document_url: document.document_url,
         notes: document.notes
       };
       
@@ -123,8 +104,8 @@ export const DocumentProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         
       if (insertError) throw new Error(insertError.message);
       
-      if (document.employeeId) {
-        await fetchDocuments(document.employeeId);
+      if (document.employee_id) {
+        await fetchDocuments(document.employee_id);
       }
     } catch (err) {
       setError(err instanceof Error ? err : new Error('An error occurred while adding document'));
@@ -139,14 +120,14 @@ export const DocumentProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     
     try {
       const documentData = {
-        document_type: document.documentType,
-        document_name: document.documentName,
-        document_number: document.documentNumber,
-        issue_date: document.issueDate,
-        expiry_date: document.expiryDate,
-        duration_months: document.durationMonths,
-        notification_threshold_days: document.notificationThresholdDays,
-        document_url: document.documentUrl,
+        document_type: document.document_type,
+        document_name: document.document_name,
+        document_number: document.document_number,
+        issue_date: document.issue_date,
+        expiry_date: document.expiry_date,
+        duration_months: document.duration_months,
+        notification_threshold_days: document.notification_threshold_days,
+        document_url: document.document_url,
         notes: document.notes
       };
       
@@ -158,8 +139,8 @@ export const DocumentProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       if (updateError) throw new Error(updateError.message);
       
       const existingDocument = documents.find(doc => doc.id === id);
-      if (existingDocument?.employeeId) {
-        await fetchDocuments(existingDocument.employeeId);
+      if (existingDocument?.employee_id) {
+        await fetchDocuments(existingDocument.employee_id);
       }
     } catch (err) {
       setError(err instanceof Error ? err : new Error('An error occurred while updating document'));
@@ -182,8 +163,8 @@ export const DocumentProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         
       if (deleteError) throw new Error(deleteError.message);
       
-      if (documentToDelete?.employeeId) {
-        await fetchDocuments(documentToDelete.employeeId);
+      if (documentToDelete?.employee_id) {
+        await fetchDocuments(documentToDelete.employee_id);
       } else {
         setDocuments(documents.filter(doc => doc.id !== id));
       }

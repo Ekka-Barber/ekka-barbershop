@@ -72,7 +72,7 @@ export interface DocumentService {
 }
 
 export interface DocumentFormProps {
-  onSubmit: (document: EmployeeDocumentInput) => Promise<void>;
+  onSubmit: (document: Partial<EmployeeDocument>) => Promise<void>;
   defaultValues?: Partial<EmployeeDocument>;
   documentType?: DocumentType;
   isSubmitting?: boolean;

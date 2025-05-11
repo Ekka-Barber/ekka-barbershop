@@ -1,6 +1,6 @@
 
 // Re-export all types from document-types
-import type { 
+import { 
   DocumentType, 
   DocumentStatus, 
   DocumentCalculation,
@@ -11,7 +11,7 @@ import type {
   DocumentFormProps
 } from './document-types';
 
-export type { 
+export { 
   DocumentType,
   DocumentStatus,
   DocumentCalculation,
