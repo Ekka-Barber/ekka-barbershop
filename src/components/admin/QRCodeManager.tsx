@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,14 +9,12 @@ import CreateQRCodeForm from "./CreateQRCodeForm";
 import QRCodeDisplay from "./QRCodeDisplay";
 import QRCodeList from "./qr-code/QRCodeList";
 import UpdateQRCodeUrl from "./qr-code/UpdateQRCodeUrl";
-import { useOwnerAccess } from "./qr-code/useOwnerAccess";
 import { QRCodeAnalytics } from "./qr-code/QRCodeAnalytics";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 const QRCodeManager = () => {
   const [selectedQrId, setSelectedQrId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'management' | 'analytics'>('management');
-  const { setOwnerAccess } = useOwnerAccess();
   const isMobile = useIsMobile();
   const { toast } = useToast();
   
@@ -29,11 +26,6 @@ const QRCodeManager = () => {
   const { data: qrCodes, isLoading, error: fetchError } = useQuery({
     queryKey: ["qrCodes"],
     queryFn: async () => {
-      const ownerAccessSet = await setOwnerAccess();
-      if (!ownerAccessSet) {
-        throw new Error("Failed to set owner access");
-      }
-
       const { data, error } = await supabase
         .from("qr_codes")
         .select("*")

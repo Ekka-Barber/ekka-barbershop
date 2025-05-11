@@ -22,20 +22,6 @@ logger.configure({
 // Lazy load Admin component
 const Admin = lazy(() => import("./pages/Admin"));
 
-// Protected route component
-const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const location = useLocation();
-  const searchParams = new URLSearchParams(location.search);
-  const access = searchParams.get('access');
-
-  if (access !== 'owner123') {
-    logger.warn("Unauthorized access attempt to admin route");
-    return <Navigate to="/customer" replace />;
-  }
-
-  return <>{children}</>;
-};
-
 // App component
 const App = () => {
   const location = useLocation();
@@ -64,18 +50,16 @@ const App = () => {
             <Route 
               path="/admin" 
               element={
-                <ProtectedRoute>
-                  <Suspense fallback={
-                    <div className="min-h-screen flex items-center justify-center">
-                      <div className="flex flex-col items-center">
-                        <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-                        <p className="mt-4 text-muted-foreground">Loading admin panel...</p>
-                      </div>
+                <Suspense fallback={
+                  <div className="min-h-screen flex items-center justify-center">
+                    <div className="flex flex-col items-center">
+                      <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+                      <p className="mt-4 text-muted-foreground">Loading admin panel...</p>
                     </div>
-                  }>
-                    <Admin />
-                  </Suspense>
-                </ProtectedRoute>
+                  </div>
+                }>
+                  <Admin />
+                </Suspense>
               } 
             />
             

@@ -12,23 +12,8 @@ const CreateQRCodeForm = () => {
   const [newUrl, setNewUrl] = useState("");
   const [newQrId, setNewQrId] = useState("");
 
-  // Set owner access before creating QR code
-  const setOwnerAccess = async () => {
-    const { error } = await supabase.rpc('set_owner_access', { value: 'owner123' });
-    if (error) {
-      console.error('Error setting owner access:', error);
-      return false;
-    }
-    return true;
-  };
-
   const createQrCode = useMutation({
     mutationFn: async ({ id, url }: { id: string; url: string }) => {
-      const ownerAccessSet = await setOwnerAccess();
-      if (!ownerAccessSet) {
-        throw new Error("Failed to set owner access");
-      }
-
       // Use provided ID or generate a random one
       const qrId = id || `qr-${Math.random().toString(36).substring(2, 9)}`;
 

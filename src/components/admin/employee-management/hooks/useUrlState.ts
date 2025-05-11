@@ -100,18 +100,14 @@ export const useUrlState = () => {
 
   // Get current URL state with validation
   const currentState = useMemo(() => {
-    const adminAccess = searchParams.get('access');
-    
+    // Remove adminAccess logic
     // Get the tab parameter and validate it
     const rawTab = searchParams.get('tab') || DEFAULT_STATE.tab;
     const tab = isValidTab(rawTab) ? rawTab : DEFAULT_STATE.tab;
-    
     const branch = searchParams.get('branch');
     const date = searchParams.get('date') || DEFAULT_STATE.date;
     const page = parseInt(searchParams.get('page') || '1', 10);
-
     return {
-      adminAccess,
       tab,
       branch,
       date,
@@ -120,37 +116,31 @@ export const useUrlState = () => {
   }, [searchParams]);
 
   /**
-   * Update URL state while preserving admin access and applying tab-specific rules
+   * Update URL state while applying tab-specific rules
    */
   const updateUrlState = useCallback((newState: Partial<UrlState>) => {
     const params = new URLSearchParams(window.location.search);
-    const adminAccess = params.get('access');
-
+    // Remove adminAccess logic
     // Validate tab if provided
     if (newState.tab && !isValidTab(newState.tab)) {
       newState.tab = DEFAULT_STATE.tab;
     }
-
     // Get current tab or new tab if specified
     const currentTab = (newState.tab || currentState.tab) as TabType;
     const tabConfig = TAB_CONFIG[currentTab];
-    
     // Apply tab configuration to remove unneeded parameters
     if (!tabConfig.usesBranch) {
       params.delete('branch');
       delete newState.branch;
     }
-    
     if (!tabConfig.usesDate) {
       params.delete('date');
       delete newState.date;
     }
-    
     if (!tabConfig.usesPagination) {
       params.delete('page');
       delete newState.page;
     }
-
     // Update only the provided parameters
     Object.entries(newState).forEach(([key, value]) => {
       if (value === null) {
@@ -159,12 +149,7 @@ export const useUrlState = () => {
         params.set(key, value.toString());
       }
     });
-
-    // Always preserve admin access
-    if (adminAccess) {
-      params.set('access', adminAccess);
-    }
-
+    // Do not preserve admin access
     // Update URL without full page reload
     const newUrl = `${window.location.pathname}?${params.toString()}`;
     window.history.pushState({}, '', newUrl);

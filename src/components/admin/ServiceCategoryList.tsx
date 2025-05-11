@@ -16,19 +16,8 @@ const ServiceCategoryList = () => {
   const {
     categories,
     isLoading,
-    totalServices,
-    setSearchQuery,
-    setSortBy,
     setupRealtimeSubscription
   } = useOptimizedCategories();
-
-  useEffect(() => {
-    const searchParams = new URLSearchParams(window.location.search);
-    const accessCode = searchParams.get('access');
-    if (accessCode === 'owner123') {
-      void supabase.rpc('set_branch_manager_code', { code: 'true' });
-    }
-  }, []);
 
   useEffect(() => {
     const cleanup = setupRealtimeSubscription();
