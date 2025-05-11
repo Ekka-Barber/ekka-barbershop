@@ -9,12 +9,18 @@ interface SalaryHistoryPaginationProps {
   currentPage: number;
   totalPages: number;
   onPageChange: (page: number) => void;
+  pageSize?: number;
+  totalItems?: number;
+  onPageSizeChange?: (pageSize: number) => void;
 }
 
 export const SalaryHistoryPagination: React.FC<SalaryHistoryPaginationProps> = ({
   currentPage,
   totalPages,
-  onPageChange
+  onPageChange,
+  pageSize,
+  totalItems,
+  onPageSizeChange
 }) => {
   const canGoPrevious = currentPage > 1;
   const canGoNext = currentPage < totalPages;
@@ -107,3 +113,6 @@ export const SalaryHistoryPagination: React.FC<SalaryHistoryPaginationProps> = (
     </div>
   );
 };
+
+// Add a default export to fix the import error
+export default SalaryHistoryPagination;

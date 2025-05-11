@@ -8,7 +8,7 @@ import { useSalaryHistorySnapshots } from '../hooks/useSalaryHistorySnapshots';
 import { SalaryHistoryEmployeeFilter } from './SalaryHistoryEmployeeFilter';
 import { SalaryHistorySnapshotsTable } from './SalaryHistorySnapshotsTable';
 import { useAllActiveEmployees, SimpleEmployee } from '@/components/admin/employee-management/hooks/useAllActiveEmployees';
-import SalaryHistoryPagination from './SalaryHistoryPagination';
+import { SalaryHistoryPagination } from './SalaryHistoryPagination';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -365,4 +365,4 @@ const SalaryHistory: React.FC<SalaryHistoryProps> = ({
   );
 };
 
-export default SalaryHistory; 
+export default SalaryHistory;
