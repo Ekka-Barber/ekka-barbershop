@@ -1,8 +1,9 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
-import { EmployeeDocument } from '../../../types';
+import { EmployeeDocument } from '../../../types/document-types';
 import { DocumentItem } from './DocumentItem';
 import { DocumentForm } from './DocumentForm';
 import { useEmployeeDocuments } from '../../../hooks/useEmployeeDocuments';
@@ -58,7 +59,7 @@ export const DocumentList: React.FC<DocumentListProps> = ({ employeeId }) => {
       } else {
         await addDocument({
           ...documentData,
-          employeeId
+          employee_id: employeeId // Use proper field name (employee_id instead of employeeId)
         });
       }
       setShowForm(false);

@@ -1,10 +1,11 @@
+
 import React from 'react';
 import { Employee } from '@/types/employee';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { EmployeeCardHeader } from './employee-card/EmployeeCardHeader';
 import { EmployeeTabs } from './employee-card/EmployeeTabs';
 import { format } from 'date-fns';
-import { Branch } from './hooks/useBranchManager';
+import { Branch } from './hooks/useBranchManager';  // Fixed import
 
 interface EmployeeCardProps {
   employee: Employee;

@@ -1,3 +1,11 @@
+// Import document types from the dedicated file
+import { 
+  EmployeeDocument as DocumentType,
+  DocumentStatus,
+  DocumentCalculation,
+  DocumentTypeEnum
+} from './types/document-types';
+
 // Employee Types
 export interface Employee {
   id: string;
@@ -53,11 +61,12 @@ export interface SalesContextType {
 }
 
 // Component Props Types
+// Ensure PaginationState matches PaginationInfo requirements
 export interface PaginationState {
   currentPage: number;
   totalPages: number;
+  totalItems: number;  // Make this required to match PaginationInfo
   pageSize: number;
-  totalItems?: number;
 }
 
 export interface BranchSelectorProps {
@@ -168,10 +177,12 @@ export interface TabsNavigationProps {
   onTabChange: (tab: string) => void;
 }
 
+// PaginationInfo interface should ensure totalItems is required
 export interface PaginationInfo {
   currentPage: number;
   totalPages: number;
   totalItems: number;
+  pageSize: number;
 }
 
 // Document Tracking Types
@@ -240,25 +251,25 @@ export interface AddDocumentButtonProps {
 
 // Document Context Types
 export interface DocumentContextType {
-  documents: EmployeeDocument[];
+  documents: DocumentType[];
   isLoading: boolean;
   error: Error | null;
   fetchDocuments: (employeeId: string) => Promise<void>;
-  addDocument: (document: Partial<EmployeeDocument>) => Promise<void>;
-  updateDocument: (id: string, document: Partial<EmployeeDocument>) => Promise<void>;
+  addDocument: (document: Partial<DocumentType>) => Promise<void>;
+  updateDocument: (id: string, document: Partial<DocumentType>) => Promise<void>;
   deleteDocument: (id: string) => Promise<void>;
-  calculateStatus: (document: EmployeeDocument) => DocumentCalculation;
+  calculateStatus: (document: DocumentType) => DocumentCalculation;
 }
 
 // Document Hook Types
 export interface UseEmployeeDocumentsReturn {
-  documents: EmployeeDocument[];
+  documents: DocumentType[];
   isLoading: boolean;
   error: Error | null;
   fetchDocuments: (employeeId: string) => Promise<void>;
-  addDocument: (document: Partial<EmployeeDocument>) => Promise<void>;
-  updateDocument: (id: string, document: Partial<EmployeeDocument>) => Promise<void>;
+  addDocument: (document: Partial<DocumentType>) => Promise<void>;
+  updateDocument: (id: string, document: Partial<DocumentType>) => Promise<void>;
   deleteDocument: (id: string) => Promise<void>;
-  expiringSoonDocuments: EmployeeDocument[];
-  expiredDocuments: EmployeeDocument[];
-} 
+  expiringSoonDocuments: DocumentType[];
+  expiredDocuments: DocumentType[];
+}

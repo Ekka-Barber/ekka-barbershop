@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, useEffect, Suspense, useCallback } from 'react';
 import { useBranchManager } from './hooks/useBranchManager';
 import { useEmployeeManager } from './hooks/useEmployeeManager';
@@ -174,6 +175,14 @@ export const EmployeeTab = () => {
     [isBranchLoading, isEmployeeLoading]
   );
 
+  // Ensure pagination meets PaginationInfo requirements
+  const paginationInfo: PaginationInfo = useMemo(() => ({
+    currentPage: pagination.currentPage,
+    totalPages: pagination.totalPages,
+    pageSize: pagination.pageSize,
+    totalItems: pagination.totalItems || 0 // Provide default to ensure it's always defined
+  }), [pagination]);
+
   // Use the new BaseEmployeeContextType without sales properties
   const contextValue = useMemo<BaseEmployeeContextType>(() => ({
     employees: employees || [],
@@ -181,7 +190,7 @@ export const EmployeeTab = () => {
     selectedBranch,
     selectedDate,
     isLoading,
-    pagination,
+    pagination: paginationInfo, // Use the enhanced pagination object
     setSelectedBranch: handleBranchChange,
     setSelectedDate: handleDateChange,
     setCurrentPage: handlePageChange,
@@ -192,7 +201,7 @@ export const EmployeeTab = () => {
     selectedBranch,
     selectedDate,
     isLoading,
-    pagination,
+    paginationInfo, // Use the enhanced pagination object
     handleBranchChange,
     handleDateChange,
     handlePageChange,
@@ -233,7 +242,7 @@ export const EmployeeTab = () => {
                     refetchEmployees={fetchEmployees}
                     selectedDate={selectedDate}
                     branches={branches}
-                    pagination={pagination}
+                    pagination={paginationInfo} // Use the enhanced pagination object
                     onPageChange={handlePageChange}
                   />
                 </ErrorBoundary>

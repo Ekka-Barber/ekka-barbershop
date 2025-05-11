@@ -13,12 +13,7 @@ type DbEmployeeRow = Database['public']['Tables']['employees']['Row'] & {
   email?: string | null; // Explicitly add email if it might be missing from generated types but present in DB
 };
 
-export type ArchiveStatusFilter = 'active' | 'archived' | 'all';
-
-/**
- * Hook return type for useEmployeeManager
- */
-interface UseEmployeeManagerReturn {
+export interface UseEmployeeManagerReturn {
   /** List of employees for the current page and branch */
   employees: Employee[];
   /** Loading state for data fetching operations */
@@ -178,7 +173,7 @@ export const useEmployeeManager = (
     currentPage,
     totalPages: Math.ceil(totalItems / ITEMS_PER_PAGE) || 1,
     pageSize: ITEMS_PER_PAGE,
-    totalItems
+    totalItems: totalItems || 0 // Ensure this is always a number, never undefined
   }), [currentPage, totalItems]);
 
   // Get a specific employee by ID from the current list

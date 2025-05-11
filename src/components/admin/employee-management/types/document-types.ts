@@ -1,4 +1,5 @@
-import { Database } from '@/types/supabase-types';
+
+import { Database } from '@/types/supabase-generated';
 
 // Document type enum (matches CHECK constraint in database)
 export type DocumentTypeEnum = 'health_certificate' | 'residency_permit' | 'work_license' | 'custom';
@@ -58,9 +59,9 @@ export interface DocumentService {
 }
 
 // Database types
-export type DocumentsTable = Database['public']['Tables']['employee_documents']['Row'];
-export type DocumentsInsert = Database['public']['Tables']['employee_documents']['Insert'];
-export type DocumentsUpdate = Database['public']['Tables']['employee_documents']['Update'];
+export type DocumentsTable = Database['public']['Tables']['employees']['Row']; // Placeholder, replace with actual table when available
+export type DocumentsInsert = Database['public']['Tables']['employees']['Insert']; // Placeholder
+export type DocumentsUpdate = Database['public']['Tables']['employees']['Update']; // Placeholder
 
 // View types
 export type DocumentsView = DocumentsTable & {
