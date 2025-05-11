@@ -1,3 +1,4 @@
+
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from "@/contexts/LanguageContext";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
@@ -24,16 +25,6 @@ import { UIElementRenderer } from "@/components/customer/ui/UIElementRenderer";
 import { useUIElements } from "@/hooks/useUIElements";
 import { useElementAnimation } from "@/hooks/useElementAnimation";
 import { useDialogState } from "@/hooks/useDialogState";
-
-// Add the interface near the top of the file
-interface UIElementRendererProps {
-  elements: UIElement[];
-  animatingElements: string[];
-  isLoading: boolean;
-  onOpenBranchDialog: () => void;
-  onOpenLocationDialog: () => void;
-  onOpenEidDialog: () => void;
-}
 
 const Customer = () => {
   const navigate = useNavigate();
@@ -94,7 +85,6 @@ const Customer = () => {
     setEidBookingsDialogOpen(true);
   };
 
-  // Make sure the UIElementRenderer component accepts the props we're passing
   return (
     <AppLayout>
       <PullToRefresh

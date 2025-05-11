@@ -16,7 +16,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { EmployeeCard } from '../EmployeeCard';
+import { EmployeeCard } from '../components/employee-card/EmployeeCard';
+import { useEmployeeData } from '@/hooks/useEmployeeData';
 
 // Simple mock EmployeeDialog component
 const EmployeeDialog = ({ trigger }: { trigger: React.ReactNode }) => {
@@ -45,6 +46,7 @@ export const EmployeeTab: React.FC<EmployeesTabProps> = ({ initialBranchId }) =>
   const [selectedEmployee, setSelectedEmployee] = useState<string | null>(null);
   const { toast } = useToast();
   const [isArchiveToggleLoading, setIsArchiveToggleLoading] = useState(false);
+  const { selectedEmployee: employeeData } = useEmployeeData(selectedEmployee);
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
@@ -154,9 +156,9 @@ export const EmployeeTab: React.FC<EmployeesTabProps> = ({ initialBranchId }) =>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
-          {selectedEmployee ? (
+          {selectedEmployee && employeeData ? (
             <EmployeeCard
-              employeeId={selectedEmployee}
+              employee={employeeData}
               onClose={handleEmployeeClose}
             />
           ) : (

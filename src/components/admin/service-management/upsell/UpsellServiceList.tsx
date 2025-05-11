@@ -1,58 +1,72 @@
 
-import { useState } from 'react';
+import React from 'react';
+import { Service } from '@/types/service';
 import { ServiceWithUpsells } from './types';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { UpsellServiceTable } from './UpsellServiceTable';
-import { useLanguage } from "@/contexts/LanguageContext";
-import { Badge } from "@/components/ui/badge";
 
-interface UpsellServiceListProps {
+export interface UpsellServiceListProps {
   servicesWithUpsells: ServiceWithUpsells[];
   onUpdateDiscount: (id: string, discount: number) => void;
   onDeleteUpsell: (id: string) => void;
+  isUpdating?: boolean;
+  isDeleting?: boolean;
 }
 
-export const UpsellServiceList = ({ 
+export const UpsellServiceList: React.FC<UpsellServiceListProps> = ({ 
   servicesWithUpsells,
   onUpdateDiscount,
-  onDeleteUpsell
-}: UpsellServiceListProps) => {
-  const { language } = useLanguage();
-  const [editingUpsell, setEditingUpsell] = useState<{
-    id: string;
-    discount: number;
-  } | null>(null);
-
+  onDeleteUpsell,
+  isUpdating = false,
+  isDeleting = false
+}) => {
   return (
-    <Accordion type="multiple" className="space-y-2">
-      {servicesWithUpsells.map(service => (
-        <AccordionItem key={service.id} value={service.id} className="border rounded-lg overflow-hidden bg-white">
-          <AccordionTrigger className="px-4 py-3 hover:bg-gray-50">
-            <div className="flex justify-between items-center w-full">
-              <div className="text-left">
-                <h3 className="font-medium">
-                  {language === 'ar' ? service.name_ar : service.name_en}
-                </h3>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Has {service.upsells?.length || 0} upsell option{service.upsells?.length !== 1 ? 's' : ''}
-                </p>
-              </div>
-              <Badge variant="outline" className="ml-2">
-                {service.upsells?.length || 0} upsell{service.upsells?.length !== 1 ? 's' : ''}
-              </Badge>
-            </div>
-          </AccordionTrigger>
-          <AccordionContent className="px-4 pb-4">
-            <UpsellServiceTable 
-              upsells={service.upsells || []}
-              editingUpsell={editingUpsell}
-              setEditingUpsell={setEditingUpsell}
-              onUpdateDiscount={onUpdateDiscount}
-              onDeleteUpsell={onDeleteUpsell}
-            />
-          </AccordionContent>
-        </AccordionItem>
+    <div className="space-y-4">
+      {servicesWithUpsells.map((service) => (
+        <div key={service.id} className="border rounded-md p-4">
+          <h3 className="font-semibold">{service.name_en}</h3>
+          <div className="mt-2">
+            {service.upsells && service.upsells.length > 0 ? (
+              <table className="w-full mt-2">
+                <thead>
+                  <tr className="text-left text-sm">
+                    <th className="pb-2">Upsell Service</th>
+                    <th className="pb-2">Discount %</th>
+                    <th className="pb-2">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {service.upsells.map((upsell) => (
+                    <tr key={upsell.id} className="border-t">
+                      <td className="py-2">{upsell.upsell.name_en}</td>
+                      <td className="py-2">
+                        <input
+                          type="number"
+                          value={upsell.discount_percentage}
+                          onChange={(e) => onUpdateDiscount(upsell.id, Number(e.target.value))}
+                          className="w-16 p-1 border rounded"
+                          min="0"
+                          max="100"
+                          disabled={isUpdating}
+                        />
+                      </td>
+                      <td className="py-2">
+                        <button
+                          onClick={() => onDeleteUpsell(upsell.id)}
+                          className="text-red-500 hover:text-red-700 disabled:opacity-50"
+                          disabled={isDeleting}
+                        >
+                          Delete
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            ) : (
+              <p className="text-gray-500 italic">No upsells defined</p>
+            )}
+          </div>
+        </div>
       ))}
-    </Accordion>
+    </div>
   );
 };

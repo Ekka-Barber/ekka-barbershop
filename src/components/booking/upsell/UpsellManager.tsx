@@ -2,7 +2,6 @@
 import React from 'react';
 
 export interface UpsellManagerProps {
-  // Define the props that this component actually needs
   onStepChange: (step: any) => void;
 }
 

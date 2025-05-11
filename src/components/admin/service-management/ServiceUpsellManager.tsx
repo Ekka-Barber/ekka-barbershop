@@ -8,23 +8,6 @@ import { useServiceUpsells as originalUseServiceUpsells, useUpsellMutations } fr
 import { Service } from '@/types/service';
 import { ServiceWithUpsells } from './upsell/types';
 
-// Define proper interfaces for the components
-export interface AddUpsellDialogProps {
-  isOpen?: boolean;
-  onOpenChange: (open: boolean) => void;
-  services: Service[];
-  onSubmit: (data: any) => void;
-  isSubmitting?: boolean;
-}
-
-export interface UpsellServiceListProps {
-  servicesWithUpsells: ServiceWithUpsells[];
-  onUpdateDiscount: (id: string, discount: number) => void;
-  onDeleteUpsell: (id: string) => void;
-  isUpdating?: boolean;
-  isDeleting?: boolean;
-}
-
 // Create a wrapper around the original hook to provide the missing properties
 const useServiceUpsells = () => {
   const result = originalUseServiceUpsells();
