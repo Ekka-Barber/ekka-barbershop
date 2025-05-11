@@ -12,7 +12,7 @@ export interface EmployeeMonthlySalary {
   total_loan_repayments?: number | null; // NUMERIC(10, 2)
   net_salary_paid: number; // NUMERIC(10, 2)
   salary_plan_name_snapshot?: string | null;
-  // calculation_details_json?: any; // Not for direct table display
+  calculation_details_json?: Record<string, unknown> | null; // JSONB
   // created_at?: string; // TIMESTAMPTZ - Not typically shown in this table view
   // updated_at?: string; // TIMESTAMPTZ - Not typically shown in this table view
 } 

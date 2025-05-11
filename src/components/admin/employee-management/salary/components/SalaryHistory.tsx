@@ -4,10 +4,11 @@ import { Separator } from '@/components/ui/separator';
 import { Download } from 'lucide-react';
 import SalaryHistoryViewToggle from './SalaryHistoryViewToggle';
 import SalaryHistoryDateFilter, { DateFilterOption } from './SalaryHistoryDateFilter';
-import { useSalaryHistorySnapshots, SalaryHistorySnapshot } from '../hooks/useSalaryHistorySnapshots';
+import { useSalaryHistorySnapshots } from '../hooks/useSalaryHistorySnapshots';
 import { SalaryHistoryEmployeeFilter } from './SalaryHistoryEmployeeFilter';
 import { SalaryHistorySnapshotsTable } from './SalaryHistorySnapshotsTable';
 import { useAllActiveEmployees, SimpleEmployee } from '@/components/admin/employee-management/hooks/useAllActiveEmployees';
+import SalaryHistoryPagination from './SalaryHistoryPagination';
 
 interface SalaryHistoryProps {
   pickerDate: Date;
@@ -24,6 +25,10 @@ const SalaryHistory: React.FC<SalaryHistoryProps> = ({
   const [filterMonth, setFilterMonth] = useState<string | null>(null);
   const [selectedEmployeeIds, setSelectedEmployeeIds] = useState<Set<string>>(new Set());
   
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  
   // Initialize values only once on component mount
   useEffect(() => {
     if (!initializedRef.current && pickerDate) {
@@ -32,6 +37,11 @@ const SalaryHistory: React.FC<SalaryHistoryProps> = ({
       initializedRef.current = true;
     }
   }, [pickerDate]);
+  
+  // Reset pagination when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filterYear, filterMonth, selectedEmployeeIds.size, viewMode]);
   
   // Fetch all active employees for the filter
   const {
@@ -58,6 +68,7 @@ const SalaryHistory: React.FC<SalaryHistoryProps> = ({
     snapshots,
     isLoading: isLoadingSnapshots,
     totalCount,
+    totalPages,
     getAvailableYears,
     getAvailableMonthsForYear,
     allSnapshots, // We need access to all snapshots for accurate counting
@@ -65,6 +76,8 @@ const SalaryHistory: React.FC<SalaryHistoryProps> = ({
     monthYear: effectiveMonthYearFilter,
     viewMode: viewMode,
     employeeIds: selectedEmployeeIds.size > 0 ? Array.from(selectedEmployeeIds) : undefined,
+    page: currentPage,
+    pageSize: pageSize,
   });
 
   // Derive relevant employees for the filter based on loaded snapshots
@@ -89,6 +102,16 @@ const SalaryHistory: React.FC<SalaryHistoryProps> = ({
       }
       return newSet;
     });
+  };
+
+  // Pagination handlers
+  const handlePageChange = (newPage: number) => {
+    setCurrentPage(newPage);
+  };
+  
+  const handlePageSizeChange = (newPageSize: number) => {
+    setPageSize(newPageSize);
+    setCurrentPage(1); // Reset to first page when changing page size
   };
 
   // Generate date filter options from available data - ensure defaults are provided when empty
@@ -236,6 +259,18 @@ const SalaryHistory: React.FC<SalaryHistoryProps> = ({
           
           {/* Always render the table component, it will handle the empty state internally */}
           <SalaryHistorySnapshotsTable snapshots={snapshots || []} isLoading={isLoadingSnapshots} />
+          
+          {/* Pagination component */}
+          {!isLoadingSnapshots && snapshots && snapshots.length > 0 && (
+            <SalaryHistoryPagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              pageSize={pageSize}
+              totalItems={totalCount}
+              onPageChange={handlePageChange}
+              onPageSizeChange={handlePageSizeChange}
+            />
+          )}
         </div>
       </div>
     </div>
