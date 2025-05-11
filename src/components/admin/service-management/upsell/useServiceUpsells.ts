@@ -1,175 +1,186 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/components/ui/use-toast';
-import { Service } from '@/types/service';
+import { useToast } from '@/hooks/use-toast';
+
+export interface Service {
+  id: string;
+  name_en: string;
+  name_ar: string;
+  price: number;
+  duration: number;
+  category_id: string;
+  description_en?: string;
+  description_ar?: string;
+}
 
 export interface UpsellRelationship {
   id: string;
   main_service_id: string;
   upsell_service_id: string;
   discount_percentage: number;
+  created_at: string;
+  updated_at: string;
   main_service?: Service;
   upsell_service?: Service;
 }
 
-export const useServiceUpsells = () => {
-  const queryClient = useQueryClient();
-  const { toast } = useToast();
+export interface ServiceWithUpsells extends Service {
+  upsells: {
+    id: string;
+    upsell_service: Service;
+    discount_percentage: number;
+  }[];
+}
 
-  // Fetch all services for selection
-  const { data: services, isLoading: isLoadingServices } = useQuery({
+export const useServiceUpsells = () => {
+  const { toast } = useToast();
+  
+  // Fetch all services
+  const { data: services = [], isLoading: isLoadingServices } = useQuery({
     queryKey: ['services'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('services')
-        .select(`
-          id,
-          name_en,
-          name_ar,
-          category_id,
-          category:categories(id, name_en)
-        `)
-        .order('name_en');
-
+        .select('id, name_en, name_ar, category_id, price, duration, category:category_id(id, name_en)');
+      
       if (error) throw error;
-      return data || [];
+      return data as Service[];
     }
   });
-
-  // Fetch existing upsell relationships
-  const { data: upsellRelationships, isLoading: isLoadingUpsells } = useQuery({
+  
+  // Fetch all upsell relationships
+  const { data: upsellRelationships = [], isLoading: isLoadingUpsells } = useQuery({
     queryKey: ['service-upsells'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('service_upsells')
-        .select(`
-          id,
-          main_service_id,
-          upsell_service_id,
-          discount_percentage,
-          main_service:services!service_upsells_main_service_id_fkey(id, name_en),
-          upsell_service:services!service_upsells_upsell_service_id_fkey(id, name_en)
-        `);
-
+        .select('*, main_service:main_service_id(*), upsell_service:upsell_service_id(*)');
+      
       if (error) throw error;
-      return data as UpsellRelationship[] || [];
+      return data as UpsellRelationship[];
     }
   });
+  
+  // Transform the data for the component
+  const servicesWithUpsells: ServiceWithUpsells[] = services.map(service => {
+    const serviceUpsells = upsellRelationships
+      .filter(rel => rel.main_service_id === service.id)
+      .map(rel => ({
+        id: rel.id,
+        upsell_service: rel.upsell_service as Service,
+        discount_percentage: rel.discount_percentage
+      }));
+    
+    return {
+      ...service,
+      upsells: serviceUpsells
+    };
+  }).filter(service => service.upsells.length > 0);
+  
+  return {
+    services,
+    upsellRelationships,
+    isLoadingServices,
+    isLoadingUpsells,
+    isLoading: isLoadingServices || isLoadingUpsells,
+    servicesWithUpsells,
+    allServices: services
+  };
+};
 
-  // Add a new upsell relationship
+export const useUpsellMutations = ({ onSuccess }) => {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+  
   const addUpsellMutation = useMutation({
-    mutationFn: async (upsell: Omit<UpsellRelationship, 'id' | 'main_service' | 'upsell_service'>) => {
+    mutationFn: async ({ mainServiceId, upsellServiceId, discountPercentage }) => {
       const { data, error } = await supabase
         .from('service_upsells')
-        .insert(upsell)
+        .insert({
+          main_service_id: mainServiceId,
+          upsell_service_id: upsellServiceId,
+          discount_percentage: discountPercentage
+        })
         .select();
-
+      
       if (error) throw error;
-      return data[0] as UpsellRelationship;
+      return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['service-upsells'] });
       toast({
-        title: 'Success',
-        description: 'Upsell relationship added successfully',
+        title: "Upsell created",
+        description: "The upsell relationship has been created successfully."
       });
+      onSuccess?.();
     },
-    onError: (error: Error) => {
+    onError: (error) => {
       toast({
-        title: 'Error',
-        description: error.message,
-        variant: 'destructive',
+        variant: "destructive",
+        title: "Failed to create upsell",
+        description: error.message
       });
     }
   });
-
-  // Update an existing upsell relationship
+  
   const updateUpsellMutation = useMutation({
-    mutationFn: async ({ id, ...upsell }: Partial<UpsellRelationship> & { id: string }) => {
+    mutationFn: async ({ id, discount }) => {
       const { data, error } = await supabase
         .from('service_upsells')
         .update({
-          main_service_id: upsell.main_service_id,
-          upsell_service_id: upsell.upsell_service_id,
-          discount_percentage: upsell.discount_percentage
+          discount_percentage: discount
         })
         .eq('id', id)
         .select();
-
+      
       if (error) throw error;
-      return data[0] as UpsellRelationship;
+      return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['service-upsells'] });
       toast({
-        title: 'Success',
-        description: 'Upsell relationship updated successfully',
+        title: "Upsell updated",
+        description: "The discount has been updated successfully."
       });
+      onSuccess?.();
     },
-    onError: (error: Error) => {
+    onError: (error) => {
       toast({
-        title: 'Error',
-        description: error.message,
-        variant: 'destructive',
+        variant: "destructive",
+        title: "Failed to update upsell",
+        description: error.message
       });
     }
   });
-
-  // Delete an upsell relationship
+  
   const deleteUpsellMutation = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase
         .from('service_upsells')
         .delete()
         .eq('id', id);
-
+      
       if (error) throw error;
-      return id;
+      return true;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['service-upsells'] });
       toast({
-        title: 'Success',
-        description: 'Upsell relationship deleted successfully',
+        title: "Upsell deleted",
+        description: "The upsell relationship has been removed."
       });
+      onSuccess?.();
     },
-    onError: (error: Error) => {
+    onError: (error) => {
       toast({
-        title: 'Error',
-        description: error.message,
-        variant: 'destructive',
+        variant: "destructive",
+        title: "Failed to delete upsell",
+        description: error.message
       });
     }
   });
-
-  // Get upsells for a specific service
-  const getUpsellsForService = (serviceId: string) => {
-    if (!upsellRelationships) return [];
-    return upsellRelationships.filter(
-      relationship => relationship.main_service_id === serviceId
-    );
-  };
-
-  // Get services that upsell a specific service
-  const getServicesUpselling = (serviceId: string) => {
-    if (!upsellRelationships) return [];
-    return upsellRelationships.filter(
-      relationship => relationship.upsell_service_id === serviceId
-    );
-  };
-
+  
   return {
-    services,
-    upsellRelationships,
-    isLoadingServices,
-    isLoadingUpsells,
-    addUpsell: addUpsellMutation.mutate,
-    updateUpsell: updateUpsellMutation.mutate,
-    deleteUpsell: deleteUpsellMutation.mutate,
-    getUpsellsForService,
-    getServicesUpselling,
-    isAddingUpsell: addUpsellMutation.isPending,
-    isUpdatingUpsell: updateUpsellMutation.isPending,
-    isDeletingUpsell: deleteUpsellMutation.isPending
+    addUpsellMutation,
+    updateUpsellMutation,
+    deleteUpsellMutation
   };
 };

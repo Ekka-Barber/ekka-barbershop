@@ -11,7 +11,7 @@ import {
   DocumentFormProps
 } from './document-types';
 
-export type { 
+export { 
   DocumentType,
   DocumentStatus,
   DocumentCalculation,

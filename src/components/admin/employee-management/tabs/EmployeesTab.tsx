@@ -1,7 +1,8 @@
+
 import { useState, useEffect } from 'react';
 import { useEmployeeManager } from '../hooks/useEmployeeManager';
 import { ArchiveStatusFilter } from '../types/index';
-import { EmployeeList } from '../components/employee-list/EmployeeList';
+import EmployeeList from '../components/employee-list/EmployeeList';
 import { EmployeeCard } from '../components/employee-card/EmployeeCard';
 import { BranchSelector } from '../components/BranchSelector';
 import { Button } from '@/components/ui/button';
