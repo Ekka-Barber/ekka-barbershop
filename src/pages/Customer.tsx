@@ -27,9 +27,9 @@ import { useDialogState } from "@/hooks/useDialogState";
 
 // Add the interface near the top of the file
 interface UIElementRendererProps {
-  visibleElements: any[]; // Update with the proper type if available
+  elements: UIElement[];
   animatingElements: string[];
-  isLoadingUiElements: boolean;
+  isLoading: boolean;
   onOpenBranchDialog: () => void;
   onOpenLocationDialog: () => void;
   onOpenEidDialog: () => void;

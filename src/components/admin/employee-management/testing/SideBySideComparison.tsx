@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -6,7 +7,7 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 import { EmployeeTab } from '../EmployeeTab';
-import { EmployeesTab } from '../tabs/EmployeesTab';
+import { EmployeeTab as NewEmployeeTab } from '../tabs/EmployeesTab';
 import { MonthlySalesTab } from '../tabs/MonthlySalesTab';
 import { ArrowLeft, ArrowRight, Columns, RefreshCcw, Check, X } from 'lucide-react';
 
@@ -170,7 +171,7 @@ export const SideBySideComparison: React.FC = () => {
           <CardContent className="p-0 max-h-[800px] overflow-auto">
             <div className="p-4">
               {selectedTab === 'employees' ? (
-                <EmployeesTab initialBranchId={initialBranchId} />
+                <NewEmployeeTab initialBranchId={initialBranchId} />
               ) : (
                 <MonthlySalesTab 
                   initialDate={initialDate}
@@ -297,4 +298,4 @@ export const SideBySideComparison: React.FC = () => {
   );
 };
 
-export default SideBySideComparison; 
+export default SideBySideComparison;

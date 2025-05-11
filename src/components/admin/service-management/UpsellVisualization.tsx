@@ -1,4 +1,5 @@
 
+// Fix the id property access issue at line 39
 import React, { useState } from 'react';
 import { ChevronDown, ChevronRight, ArrowRight, Pencil } from 'lucide-react';
 import { Service } from '@/types/service';
@@ -6,6 +7,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+
+// Define proper type for the visualization props
+export interface UpsellVisualizationProps {
+  services?: Service[];
+  relationships?: any[];
+}
 
 const fetchServicesWithUpsells = async () => {
   // First, fetch all services that have upsells
@@ -35,7 +42,7 @@ const fetchServicesWithUpsells = async () => {
   if (upsellsError) throw upsellsError;
 
   // Group by main service
-  const servicesMap = servicesWithUpsells.reduce((acc, upsell) => {
+  const servicesMap = servicesWithUpsells.reduce((acc: any, upsell: any) => {
     const mainServiceId = upsell.main_service.id;
     if (!acc[mainServiceId]) {
       acc[mainServiceId] = {
@@ -51,12 +58,12 @@ const fetchServicesWithUpsells = async () => {
   }, {});
 
   // Group by category
-  const groupedServices = Object.values(servicesMap).reduce((acc, service: any) => {
+  const groupedServices = Object.values(servicesMap).reduce((acc: any, service: any) => {
     const categoryId = service.category_id;
     if (!acc[categoryId]) {
       acc[categoryId] = {
         id: categoryId,
-        name: service.category.name_en,
+        name: service.category?.name_en || 'Uncategorized',
         services: []
       };
     }
@@ -67,7 +74,7 @@ const fetchServicesWithUpsells = async () => {
   return Object.values(groupedServices);
 };
 
-export const UpsellVisualization = () => {
+export const UpsellVisualization: React.FC<UpsellVisualizationProps> = ({ services, relationships }) => {
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
   const [editingUpsell, setEditingUpsell] = useState<{
     mainServiceId: string;

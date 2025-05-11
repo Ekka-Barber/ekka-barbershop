@@ -1,7 +1,23 @@
+
 import React, { useState } from 'react';
 import { useEmployeeManager } from '../hooks/useEmployeeManager';
 import EmployeeList from '../components/employee-list/EmployeeList';
-import { EmployeesTabProps } from '../types';
+// Import EmployeesTabProps from types but rename it to avoid conflict
+import { EmployeesTabProps as EmployeesTabPropsType } from '../types';
+import { useToast } from '@/components/ui/use-toast';
+import { BranchSelector } from '../components/BranchSelector';
+import { Button } from '@/components/ui/button';
+import { Plus } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { EmployeeCard } from '../EmployeeCard';
 
 // Simple mock EmployeeDialog component
 const EmployeeDialog = ({ trigger }: { trigger: React.ReactNode }) => {
@@ -12,11 +28,8 @@ const EmployeeDialog = ({ trigger }: { trigger: React.ReactNode }) => {
   );
 };
 
-interface EmployeesTabProps {
-  initialBranchId?: string;
-}
-
-export const EmployeeTab: React.FC<EmployeesTabProps> = ({ initialBranchId }) => {
+// Use EmployeeTab as the component name to match imports elsewhere
+export const EmployeeTab: React.FC<EmployeesTabPropsType> = ({ initialBranchId }) => {
   const {
     employees,
     isLoading,
@@ -158,4 +171,5 @@ export const EmployeeTab: React.FC<EmployeesTabProps> = ({ initialBranchId }) =>
   );
 };
 
+// Export as default and named export to support both import styles
 export default EmployeeTab;

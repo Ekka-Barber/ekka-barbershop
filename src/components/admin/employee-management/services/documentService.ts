@@ -1,119 +1,85 @@
+// Make sure the function returns a boolean
 import { supabase } from '@/integrations/supabase/client';
-import { 
-  EmployeeDocument, 
-  EmployeeDocumentInput,
-  DocumentWithStatus, 
-  DocumentService 
-} from '../types/document-types';
+import { EmployeeDocument, EmployeeDocumentInput } from '../types/index';
 
-/**
- * Service for managing employee documents through Supabase
- */
-export const documentService: DocumentService = {
-  /**
-   * Get all documents for a specific employee
-   */
-  async getDocumentsForEmployee(employeeId: string): Promise<EmployeeDocument[]> {
+export const documentService = {
+  fetchDocuments: async (employeeId: string): Promise<EmployeeDocument[]> => {
     const { data, error } = await supabase
-      .from('employee_documents_with_status')
+      .from('employee_documents')
       .select('*')
-      .eq('employee_id', employeeId)
-      .order('expiry_date', { ascending: true });
-    
+      .eq('employee_id', employeeId);
+      
     if (error) {
-      console.error('Error fetching employee documents:', error);
-      throw new Error(`Failed to fetch employee documents: ${error.message}`);
+      throw new Error(error.message);
     }
     
     return data as EmployeeDocument[];
   },
   
-  /**
-   * Create a new document
-   */
-  async createDocument(document: EmployeeDocumentInput): Promise<EmployeeDocument> {
+  addDocument: async (employeeId: string, document: EmployeeDocumentInput): Promise<EmployeeDocument> => {
+    const documentData = {
+      employee_id: employeeId,
+      document_type: document.document_type,
+      document_name: document.document_name,
+      document_number: document.document_number,
+      issue_date: document.issue_date,
+      expiry_date: document.expiry_date,
+      duration_months: document.duration_months,
+      notification_threshold_days: document.notification_threshold_days,
+      document_url: document.document_url,
+      notes: document.notes
+    };
+    
     const { data, error } = await supabase
       .from('employee_documents')
-      .insert(document)
+      .insert(documentData)
       .select()
       .single();
-    
+      
     if (error) {
-      console.error('Error creating document:', error);
-      throw new Error(`Failed to create document: ${error.message}`);
+      throw new Error(error.message);
     }
     
     return data as EmployeeDocument;
   },
   
-  /**
-   * Update an existing document
-   */
-  async updateDocument(id: string, document: Partial<EmployeeDocumentInput>): Promise<EmployeeDocument> {
+  updateDocument: async (documentId: string, document: Partial<EmployeeDocumentInput>): Promise<EmployeeDocument> => {
+    const documentData = {
+      document_type: document.document_type,
+      document_name: document.document_name,
+      document_number: document.document_number,
+      issue_date: document.issue_date,
+      expiry_date: document.expiry_date,
+      duration_months: document.duration_months,
+      notification_threshold_days: document.notification_threshold_days,
+      document_url: document.document_url,
+      notes: document.notes
+    };
+    
     const { data, error } = await supabase
       .from('employee_documents')
-      .update(document)
-      .eq('id', id)
+      .update(documentData)
+      .eq('id', documentId)
       .select()
       .single();
-    
+      
     if (error) {
-      console.error('Error updating document:', error);
-      throw new Error(`Failed to update document: ${error.message}`);
+      throw new Error(error.message);
     }
     
     return data as EmployeeDocument;
   },
   
-  /**
-   * Delete a document
-   */
-  async deleteDocument(id: string): Promise<void> {
+  deleteDocument: async (documentId: string): Promise<boolean> => {
     const { error } = await supabase
       .from('employee_documents')
       .delete()
-      .eq('id', id);
-    
+      .eq('id', documentId);
+      
     if (error) {
-      console.error('Error deleting document:', error);
-      throw new Error(`Failed to delete document: ${error.message}`);
-    }
-  },
-  
-  /**
-   * Get all documents that are expiring soon
-   */
-  async getExpiringDocuments(thresholdDays: number = 30): Promise<DocumentWithStatus[]> {
-    const { data, error } = await supabase
-      .from('employee_documents_with_status')
-      .select('*')
-      .eq('status', 'expiring_soon')
-      .lte('days_remaining', thresholdDays)
-      .order('days_remaining', { ascending: true });
-    
-    if (error) {
-      console.error('Error fetching expiring documents:', error);
-      throw new Error(`Failed to fetch expiring documents: ${error.message}`);
+      throw new Error(error.message);
     }
     
-    return data as DocumentWithStatus[];
-  },
-  
-  /**
-   * Get all expired documents
-   */
-  async getExpiredDocuments(): Promise<DocumentWithStatus[]> {
-    const { data, error } = await supabase
-      .from('employee_documents_with_status')
-      .select('*')
-      .eq('status', 'expired')
-      .order('days_remaining', { ascending: true });
-    
-    if (error) {
-      console.error('Error fetching expired documents:', error);
-      throw new Error(`Failed to fetch expired documents: ${error.message}`);
-    }
-    
-    return data as DocumentWithStatus[];
+    return true; // Return true on successful deletion
   }
-}; 
+};

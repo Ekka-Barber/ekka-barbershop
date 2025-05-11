@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { AddUpsellDialog } from './upsell/AddUpsellDialog';
@@ -6,6 +7,23 @@ import { UpsellVisualization } from './UpsellVisualization';
 import { useServiceUpsells as originalUseServiceUpsells, useUpsellMutations } from './upsell/useServiceUpsells';
 import { Service } from '@/types/service';
 import { ServiceWithUpsells } from './upsell/types';
+
+// Define proper interfaces for the components
+export interface AddUpsellDialogProps {
+  isOpen?: boolean;
+  onOpenChange: (open: boolean) => void;
+  services: Service[];
+  onSubmit: (data: any) => void;
+  isSubmitting?: boolean;
+}
+
+export interface UpsellServiceListProps {
+  servicesWithUpsells: ServiceWithUpsells[];
+  onUpdateDiscount: (id: string, discount: number) => void;
+  onDeleteUpsell: (id: string) => void;
+  isUpdating?: boolean;
+  isDeleting?: boolean;
+}
 
 // Create a wrapper around the original hook to provide the missing properties
 const useServiceUpsells = () => {
@@ -90,7 +108,7 @@ export const ServiceUpsellManager = () => {
         <p>No upsell relationships found. Create one to get started!</p>
       ) : (
         <>
-          <UpsellVisualization services={allServices} relationships={servicesWithUpsells} />
+          <UpsellVisualization />
           <UpsellServiceList 
             servicesWithUpsells={servicesWithUpsells}
             onUpdateDiscount={(id, discount) => updateUpsellMutation.mutate({ id, discount })}
@@ -102,7 +120,7 @@ export const ServiceUpsellManager = () => {
       )}
       
       <AddUpsellDialog 
-        open={isAddUpsellOpen}
+        isOpen={isAddUpsellOpen}
         onOpenChange={setIsAddUpsellOpen}
         services={allServices}
         onSubmit={(data) => {
