@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,10 +5,10 @@ import { PencilIcon, TrashIcon, FileIcon } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import { 
-  EmployeeDocument, 
-  DocumentCalculation, 
-  DocumentTypeEnum 
+  DocumentTypeEnum,
+  DocumentCalculation 
 } from '../../../types';
+import { EmployeeDocument } from '../../../types/document-types';
 
 interface DocumentItemProps {
   document: EmployeeDocument;
@@ -102,4 +101,4 @@ export const DocumentItem: React.FC<DocumentItemProps> = ({
       </CardContent>
     </Card>
   );
-}; 
+};

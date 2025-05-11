@@ -14,7 +14,7 @@ export interface DocumentCalculation {
   isExpiringSoon: boolean;
   statusText: string;
   expiryDate: Date;
-  status: DocumentStatus;
+  status: DocumentStatus; // Make sure status is included
 }
 
 // Frontend document interface (camelCase)

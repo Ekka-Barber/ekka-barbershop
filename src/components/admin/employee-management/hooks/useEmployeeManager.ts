@@ -1,9 +1,10 @@
+
 import { useState, useCallback, useEffect } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { Employee } from '@/types/employee';
 import { ArchiveStatusFilter } from '../types';
 
-export const useEmployeeManager = (initialBranchId: string | null = null) => {
+export const useEmployeeManager = (initialBranchId: string | null = null, initialArchiveStatus: ArchiveStatusFilter = 'active') => {
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
@@ -11,17 +12,25 @@ export const useEmployeeManager = (initialBranchId: string | null = null) => {
   const [pageSize, setPageSize] = useState(10);
   const [totalItems, setTotalItems] = useState(0);
   const [selectedBranch, setSelectedBranch] = useState<string | null>(initialBranchId);
-  const [archiveStatus, setArchiveStatus] = useState<ArchiveStatusFilter>('active');
+  const [archiveStatus, setArchiveStatus] = useState<ArchiveStatusFilter>(initialArchiveStatus);
 
-  const fetchEmployees = useCallback(async () => {
+  const fetchEmployees = useCallback(async (page?: number, status?: ArchiveStatusFilter) => {
+    const currentPageToUse = page || currentPage;
+    const statusToUse = status || archiveStatus;
+    
     setIsLoading(true);
     setError(null);
 
     let query = supabase
       .from('employees')
       .select('*', { count: 'exact' })
-      .range((currentPage - 1) * pageSize, currentPage * pageSize - 1)
-      .eq('is_archived', archiveStatus === 'archived');
+      .range((currentPageToUse - 1) * pageSize, currentPageToUse * pageSize - 1);
+    
+    if (statusToUse === 'active') {
+      query = query.eq('is_archived', false);
+    } else if (statusToUse === 'archived') {
+      query = query.eq('is_archived', true);
+    }
 
     if (selectedBranch && selectedBranch !== 'all') {
       query = query.eq('branch_id', selectedBranch);
@@ -123,3 +132,5 @@ export const useEmployeeManager = (initialBranchId: string | null = null) => {
     setArchiveFilter
   };
 };
+
+export type { ArchiveStatusFilter };

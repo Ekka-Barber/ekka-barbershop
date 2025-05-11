@@ -2,11 +2,11 @@
 import { useState, useCallback, useMemo } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { 
-  EmployeeDocument, 
   DocumentStatus, 
-  DocumentCalculation,
+  DocumentCalculation, 
   DocumentTypeEnum 
 } from '../types';
+import { EmployeeDocument } from '../types/document-types';
 import { differenceInDays, parseISO } from 'date-fns';
 
 export const useEmployeeDocuments = () => {
@@ -49,7 +49,7 @@ export const useEmployeeDocuments = () => {
       isExpiringSoon, 
       statusText, 
       expiryDate,
-      status 
+      status
     };
   }, []);
 

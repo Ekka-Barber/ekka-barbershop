@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { 
   Form, 
@@ -20,9 +19,8 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { useForm } from 'react-hook-form';
 import { 
-  EmployeeDocument, 
-  DocumentTypeEnum, 
-  DocumentFormProps 
+  DocumentFormProps,
+  DocumentTypeEnum,
 } from '../../../types';
 import { addDays, format } from 'date-fns';
 
@@ -33,7 +31,7 @@ export const DocumentForm: React.FC<DocumentFormProps> = ({
   onCancel,
   isSubmitting
 }) => {
-  const form = useForm<Partial<EmployeeDocument>>({
+  const form = useForm({
     defaultValues: document || {
       employeeId,
       documentType: 'health_certificate' as DocumentTypeEnum,
@@ -43,7 +41,7 @@ export const DocumentForm: React.FC<DocumentFormProps> = ({
     }
   });
 
-  const watchDocumentType = form.watch('documentType');
+  const watchDocumentType = form.watch('documentType') as DocumentTypeEnum;
   const watchIssueDate = form.watch('issueDate');
   const watchDurationMonths = form.watch('durationMonths');
 
@@ -56,7 +54,7 @@ export const DocumentForm: React.FC<DocumentFormProps> = ({
         work_license: 'Work License',
         custom: ''
       };
-      form.setValue('documentName', documentNames[watchDocumentType as DocumentTypeEnum]);
+      form.setValue('documentName', documentNames[watchDocumentType]);
     }
   }, [watchDocumentType, form]);
 

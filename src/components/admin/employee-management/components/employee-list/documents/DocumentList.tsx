@@ -3,10 +3,10 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
-import { EmployeeDocument } from '../../../types';
 import { DocumentItem } from './DocumentItem';
 import { DocumentForm } from './DocumentForm';
 import { useEmployeeDocuments } from '../../../hooks/useEmployeeDocuments';
+import { EmployeeDocument } from '../../../types/document-types';
 
 interface DocumentListProps {
   employeeId: string;
@@ -126,4 +126,4 @@ export const DocumentList: React.FC<DocumentListProps> = ({ employeeId }) => {
       )}
     </div>
   );
-}; 
+};

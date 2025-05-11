@@ -1,6 +1,6 @@
 
 // Re-export document-related types from document-types.ts
-export {
+export type { 
   DocumentTypeEnum,
   DocumentStatus,
   DocumentCalculation,
@@ -12,7 +12,7 @@ export {
 } from './document-types';
 
 // Define Branch re-export from useBranchManager
-export { Branch } from '../hooks/useBranchManager';
+export type { Branch } from '../hooks/useBranchManager';
 
 // Define employee tab props
 export interface EmployeesTabProps {
