@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import { 
   Dialog, 
@@ -38,30 +38,56 @@ export const PaymentConfirmation = ({
   const [paymentDate, setPaymentDate] = useState<Date>(new Date());
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
   
+  // Reset state when dialog opens
+  useEffect(() => {
+    if (isOpen) {
+      setIsConfirming(false);
+      setIsConfirmed(false);
+      setError(null);
+      setHasAcknowledged(false);
+      setPaymentDate(new Date());
+    }
+  }, [isOpen]);
+  
   // Handle confirmation
-  const handleConfirm = async () => {
-    if (!hasAcknowledged || !paymentDate) return;
+  const handleConfirm = async (e: React.MouseEvent) => {
+    // Prevent event propagation and default behavior
+    e.preventDefault();
+    e.stopPropagation();
     
+    // Early validation check
+    if (!hasAcknowledged || !paymentDate) {
+      console.log('[PAYMENT DEBUG] PaymentConfirmation validation failed', { hasAcknowledged, paymentDate });
+      return;
+    }
+    
+    console.log('[PAYMENT DEBUG] PaymentConfirmation handleConfirm started');
     setIsConfirming(true);
     setError(null);
     
     try {
+      console.log('[PAYMENT DEBUG] PaymentConfirmation about to call onConfirm with date:', paymentDate);
       const success = await onConfirm(paymentDate);
+      console.log('[PAYMENT DEBUG] PaymentConfirmation onConfirm result:', success);
       
       if (success) {
         setIsConfirmed(true);
+        console.log('[PAYMENT DEBUG] PaymentConfirmation success confirmed, will auto-close');
         // Auto-close after 3 seconds
         setTimeout(() => {
           resetState();
           onClose();
         }, 3000);
       } else {
+        console.log('[PAYMENT DEBUG] PaymentConfirmation received false from onConfirm');
         setError('Failed to confirm payments. Please try again.');
       }
     } catch (err) {
+      console.error('[PAYMENT DEBUG] PaymentConfirmation error caught:', err);
       setError('An unexpected error occurred. Please try again.');
       console.error('Payment confirmation error:', err);
     } finally {
+      console.log('[PAYMENT DEBUG] PaymentConfirmation finally block, setting isConfirming to false');
       setIsConfirming(false);
     }
   };
@@ -78,6 +104,10 @@ export const PaymentConfirmation = ({
   
   // Handle dialog close
   const handleClose = () => {
+    if (isConfirming) {
+      // Don't allow closing while confirming
+      return;
+    }
     resetState();
     onClose();
   };
@@ -89,9 +119,19 @@ export const PaymentConfirmation = ({
     setIsDatePickerOpen(false);
   };
   
+  // Special handler to prevent events from bubbling out of the calendar component
+  const preventPropagation = (e: React.MouseEvent) => {
+    e.stopPropagation();
+  };
+  
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-md max-w-[95vw] p-4 sm:p-6 rounded-xl">
+      <DialogContent 
+        className="sm:max-w-md max-w-[95vw] p-4 sm:p-6 rounded-xl" 
+        onClick={preventPropagation}
+        onMouseDown={preventPropagation}
+        onMouseUp={preventPropagation}
+      >
         <DialogHeader className="space-y-2 mb-2">
           <DialogTitle className="text-xl">Confirm Salary Payments</DialogTitle>
           <DialogDescription>
@@ -137,19 +177,37 @@ export const PaymentConfirmation = ({
                         "w-full justify-start text-left font-normal",
                         !paymentDate && "text-muted-foreground"
                       )}
+                      onClick={preventPropagation}
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
                       {paymentDate ? format(paymentDate, "PPP") : <span>Pick a date</span>}
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0 z-[1000]" align="start"> {/* Increased z-index */}
-                    <Calendar
-                      mode="single"
-                      selected={paymentDate}
-                      onSelect={handleDateSelect}
-                      initialFocus
-                      disabled={(date) => date > new Date()} // Optional: disable future dates
-                    />
+                  <PopoverContent 
+                    className="w-auto p-0 z-[1000]" 
+                    align="start"
+                    onClick={preventPropagation}
+                    onMouseDown={preventPropagation}
+                    onMouseUp={preventPropagation}
+                    onPointerDown={preventPropagation}
+                    onPointerUp={preventPropagation}
+                  >
+                    <div 
+                      className="prevent-propagation" 
+                      onClick={preventPropagation}
+                      onMouseDown={preventPropagation}
+                      onMouseUp={preventPropagation}
+                      onPointerDown={preventPropagation}
+                      onPointerUp={preventPropagation}
+                    >
+                      <Calendar
+                        mode="single"
+                        selected={paymentDate}
+                        onSelect={handleDateSelect}
+                        initialFocus
+                        disabled={(date) => date > new Date()} // Optional: disable future dates
+                      />
+                    </div>
                   </PopoverContent>
                 </Popover>
               </div>
@@ -170,7 +228,11 @@ export const PaymentConfirmation = ({
                   }}
                   className="mt-1 h-5 w-5"
                 />
-                <label htmlFor="acknowledgement" className="text-sm">
+                <label 
+                  htmlFor="acknowledgement" 
+                  className="text-sm"
+                  onClick={preventPropagation}
+                >
                   I confirm that I have reviewed the salary information and wish to proceed with the payments.
                 </label>
               </div>
@@ -179,7 +241,10 @@ export const PaymentConfirmation = ({
             <DialogFooter className="flex-col sm:flex-row gap-3 sm:gap-2 mt-2">
               <Button
                 variant="outline"
-                onClick={handleClose}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleClose();
+                }}
                 disabled={isConfirming}
                 className="w-full sm:w-auto h-12 sm:h-10"
               >

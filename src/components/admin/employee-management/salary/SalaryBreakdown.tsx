@@ -112,6 +112,16 @@ export const SalaryBreakdown = ({
     );
   }
   
+  // Handler for back button click with propagation control
+  const handleBackClick = (e: React.MouseEvent) => {
+    // Only process the event if it originated directly from this button
+    // This prevents events from other components (like calendar arrows) from triggering this
+    if (e.currentTarget === e.target || e.currentTarget.contains(e.target as Node)) {
+      e.stopPropagation(); // Ensure the event doesn't propagate further
+      onBack();
+    }
+  };
+  
   return (
     <>
       {/* MOBILE: Bottom Sheet */}
@@ -120,7 +130,6 @@ export const SalaryBreakdown = ({
           <SheetContent 
             side="bottom" 
             className="p-0 bg-white max-h-[90vh] h-auto rounded-t-xl overflow-hidden shadow-lg"
-            closeButton={false}
           >
             <SheetHeader className="px-4 py-3 border-b sticky top-0 bg-white z-10">
               <div className="flex items-center">
@@ -129,7 +138,7 @@ export const SalaryBreakdown = ({
                   className="mr-3 h-11 w-11 flex items-center justify-center rounded-full focus:outline-none focus:ring-2 focus:ring-primary bg-muted/50 touch-manipulation"
                   aria-label="Back"
                   tabIndex={0}
-                  onClick={onBack}
+                  onClick={handleBackClick}
                   onKeyDown={e => (e.key === 'Enter' || e.key === ' ') && onBack()}
                 >
                   <ArrowLeft className="h-5 w-5" />
@@ -321,7 +330,12 @@ export const SalaryBreakdown = ({
         <div className="space-y-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
-              <Button variant="outline" size="icon" onClick={onBack}>
+              <Button 
+                variant="outline" 
+                size="icon" 
+                onClick={handleBackClick}
+                className="relative isolate"
+              >
                 <ArrowLeft className="h-4 w-4" />
               </Button>
               <div>

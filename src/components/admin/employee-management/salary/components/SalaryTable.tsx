@@ -9,7 +9,7 @@ import {
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ArrowUp, ArrowDown, FileText, ChevronDown, ChevronUp, CheckSquare } from 'lucide-react';
+import { ArrowUp, ArrowDown, FileText, ChevronDown, ChevronUp, CheckSquare, Loader2 } from 'lucide-react';
 import { EmployeeSalary } from '../hooks/utils/salaryTypes';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import PayslipTemplateViewer from './PayslipTemplateViewer';
@@ -38,6 +38,11 @@ interface EmployeeQueryResult {
   photo_url?: string;
 }
 
+interface SalaryPlanLite {
+  id: string;
+  name: string;
+}
+
 export const SalaryTable = React.memo(({
   salaryData,
   isLoading,
@@ -49,6 +54,7 @@ export const SalaryTable = React.memo(({
   const [dialogOpen, setDialogOpen] = useState<Record<string, boolean>>({});
   const [expandedCards, setExpandedCards] = useState<Record<string, boolean>>({});
   const [paymentConfirmationOpen, setPaymentConfirmationOpen] = useState<Record<string, boolean>>({});
+  const [isConfirmingPayment, setIsConfirmingPayment] = useState(false);
   
   // Get transactions for the selected employee and current month
   const { getEmployeeTransactions } = useSalaryData({
@@ -112,6 +118,21 @@ export const SalaryTable = React.memo(({
       return data;
     },
     enabled: !!selectedEmployeeForPayslip
+  });
+  
+  // Fetch all salary plans (new query)
+  const { data: allSalaryPlans = [] } = useQuery<SalaryPlanLite[]>({
+    queryKey: ['all-salary-plans-for-snapshot'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('salary_plans')
+        .select('id, name');
+      if (error) {
+        console.error('[SalaryTable] Error fetching all salary plans:', error);
+        throw error;
+      }
+      return data || [];
+    },
   });
   
   // Use effect to manage loading state
@@ -206,76 +227,95 @@ export const SalaryTable = React.memo(({
   // Payment confirmation handler
   const handlePaymentConfirm = useCallback(
     async (paymentDate: Date, employeeId: string, employeeData: EmployeeSalary, employeeDetailsFromQuery: EmployeeQueryResult | undefined): Promise<boolean> => {
-      if (!employeeId || !employeeData || !paymentDate) {
-        console.error('[SalaryTable] Missing paymentDate, employeeId, or employeeData for payment confirmation.');
-        return false;
-      }
-
-      // Validate critical numeric data
-      if (isNaN(employeeData.baseSalary)) {
-        console.error('[SalaryTable] baseSalary is NaN for employeeId:', employeeId, 'employeeData:', employeeData);
-        return false;
-      }
-      // Add similar checks for other critical numeric fields if necessary, e.g., employeeData.total
-      if (isNaN(employeeData.total)) {
-        console.error('[SalaryTable] total salary is NaN for employeeId:', employeeId, 'employeeData:', employeeData);
-        // total_salary is nullable in DB, but usually good to ensure it's a number if being processed
-      }
-
-      // Access salaryPlan state if the confirmed employee is the one selected for payslip
-      const currentSalaryPlanName = 
-        selectedEmployeeForPayslip === employeeId && salaryPlan 
-        ? salaryPlan.name 
-        : null;
-
-      const recordToInsertObject = {
-        employee_id: employeeId,
-        employee_name: employeeData.name,
-        effective_date: format(paymentDate, 'yyyy-MM-dd'),
-        base_salary: employeeData.baseSalary,
-        month: format(paymentDate, 'yyyy-MM'),
-        change_type: 'salary_payout',
-        commission: employeeData.commission || 0,
-        bonus: (employeeData.bonus || 0) + (employeeData.targetBonus || 0),
-        deductions: employeeData.deductions || 0,
-        loans: employeeData.loans || 0,
-        sales_amount: employeeData.salesAmount || 0,
-        salary_plan_id: employeeDetailsFromQuery?.salary_plan_id || null,
-        salary_plan_name: currentSalaryPlanName,
-      };
-
-      console.log('[SalaryTable] Attempting to insert into salary_history:', recordToInsertObject);
-
-      const { data: { user: currentUser }, error: authError } = await supabase.auth.getUser();
-      if (authError) {
-        console.error('[SalaryTable] Error fetching Supabase user before insert:', authError);
-      } else if (!currentUser) {
-        console.error('[SalaryTable] No Supabase user session found before insert. User is likely not authenticated.');
-      } else {
-        console.log('[SalaryTable] Current Supabase user before insert: ID:', currentUser.id, 'Role:', currentUser.role, 'Email:', currentUser.email);
-      }
-
+      console.log('[PAYMENT DEBUG] handlePaymentConfirm started with:', {
+        paymentDate,
+        employeeId,
+        employeeDataId: employeeData?.id,
+        employeeDetailsFromQueryId: employeeDetailsFromQuery?.id
+      });
+      
       try {
-        const { data, error } = await supabase
-          .from('salary_history')
-          .insert([recordToInsertObject])
-          .select();
+        setIsConfirmingPayment(true);
 
-        if (error) {
-          console.error('[SalaryTable] Error saving payment to salary_history. Supabase error:', error);
-          // Log all available error details
-          console.error(`[SalaryTable] Supabase error details: Message: ${error.message}, Details: ${error.details}, Code: ${error.code}, Hint: ${error.hint}`);
+        if (!employeeId || !employeeData || !paymentDate) {
+          console.error('[SalaryTable] Missing paymentDate, employeeId, or employeeData for payment confirmation.');
+          setIsConfirmingPayment(false);
           return false;
         }
 
-        console.log('[SalaryTable] Payment saved to salary_history:', data);
-        return true;
-      } catch (err) {
-        console.error('[SalaryTable] Unexpected error during payment confirmation:', err);
+        if (isNaN(employeeData.baseSalary)) {
+          console.error('[SalaryTable] baseSalary is NaN for employeeId:', employeeId, 'employeeData:', employeeData);
+          setIsConfirmingPayment(false);
+          return false;
+        }
+        if (isNaN(employeeData.total)) {
+          console.error('[SalaryTable] total salary is NaN for employeeId:', employeeId, 'employeeData:', employeeData);
+          setIsConfirmingPayment(false);
+          return false; 
+        }
+
+        console.log('[PAYMENT DEBUG] Validation passed, preparing record');
+
+        // Simplified approach - directly insert the record with minimal pre-processing
+        try {
+          // Format dates once
+          const formattedMonthYear = format(paymentDate, 'yyyy-MM');
+          const formattedPaymentDate = format(paymentDate, 'yyyy-MM-dd');
+          
+          // Get salary plan name if possible
+          let salaryPlanName = null;
+          if (employeeDetailsFromQuery?.salary_plan_id && allSalaryPlans.length > 0) {
+            const plan = allSalaryPlans.find(p => p.id === employeeDetailsFromQuery.salary_plan_id);
+            if (plan) {
+              salaryPlanName = plan.name;
+            }
+          }
+          
+          // Direct insertion using the raw table name
+          console.log('[PAYMENT DEBUG] Attempting to insert record');
+          const { data, error } = await supabase
+            .from('employee_monthly_salary')
+            .insert({
+              employee_id: employeeId,
+              employee_name_snapshot: employeeData.name,
+              month_year: formattedMonthYear,
+              payment_confirmation_date: formattedPaymentDate,
+              base_salary: employeeData.baseSalary,
+              sales_amount: employeeData.salesAmount || 0,
+              commission_amount: employeeData.commission || 0,
+              total_bonuses: (employeeData.bonus || 0) + (employeeData.targetBonus || 0),
+              total_deductions: employeeData.deductions || 0,
+              total_loan_repayments: employeeData.loans || 0,
+              net_salary_paid: employeeData.total,
+              salary_plan_id_snapshot: employeeDetailsFromQuery?.salary_plan_id || null,
+              salary_plan_name_snapshot: salaryPlanName,
+              calculation_details_json: JSON.stringify(employeeData)
+            })
+            .select();
+          
+          console.log('[PAYMENT DEBUG] Insert response:', { data, error });
+          
+          if (error) {
+            console.error('[SalaryTable] Error inserting salary record:', error);
+            setIsConfirmingPayment(false);
+            return false;
+          }
+          
+          console.log('[SalaryTable] Payment confirmation successful:', data);
+          setIsConfirmingPayment(false);
+          return true;
+        } catch (innerError) {
+          console.error('[SalaryTable] Unexpected error during payment confirmation:', innerError);
+          setIsConfirmingPayment(false);
+          return false;
+        }
+      } catch (outerError) {
+        console.error('[PAYMENT DEBUG] Exception in handlePaymentConfirm:', outerError);
+        setIsConfirmingPayment(false);
         return false;
       }
     },
-    [supabase, selectedEmployeeForPayslip, salaryPlan] // Added dependencies
+    [allSalaryPlans]
   );
 
   if (isLoading) {
@@ -308,6 +348,7 @@ export const SalaryTable = React.memo(({
           const hasMonthlySalaryChange = monthlyChange !== null && monthlyChange !== 0;
           const employeeDetails = getEmployeeDetails(employee.id);
           const isExpanded = expandedCards[employee.id] || false;
+          const empDialogId = `mobile-${employee.id}`;
           
           return (
             <div
@@ -378,8 +419,8 @@ export const SalaryTable = React.memo(({
 
                   <div className="mt-3 flex justify-end gap-2">
                     <Dialog 
-                      open={dialogOpen[employee.id] || false} 
-                      onOpenChange={(isOpen) => setDialogOpen(prev => ({ ...prev, [employee.id]: isOpen }))}
+                      open={dialogOpen[empDialogId] || false} 
+                      onOpenChange={(isOpen) => setDialogOpen(prev => ({ ...prev, [empDialogId]: isOpen }))}
                     >
                       <DialogTrigger asChild>
                         <Button 
@@ -422,21 +463,47 @@ export const SalaryTable = React.memo(({
                       variant="default"
                       size="sm" 
                       aria-label={`Confirm payment for ${employee.name}`}
-                      onClick={() => setPaymentConfirmationOpen(prev => ({ ...prev, [employee.id]: true}))}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        console.log(`[PAYMENT DEBUG] Opening payment confirmation dialog for ${employee.name} (mobile view)`);
+                        // Reset paymentConfirmationOpen completely to avoid stale state
+                        setPaymentConfirmationOpen({
+                          [empDialogId]: true
+                        });
+                      }}
+                      disabled={isConfirmingPayment}
                     >
-                      <CheckSquare size={16} className="mr-1.5" />
+                      {isConfirmingPayment && empDialogId in paymentConfirmationOpen && paymentConfirmationOpen[empDialogId] ? (
+                        <Loader2 size={16} className="mr-1.5 animate-spin" />
+                      ) : (
+                        <CheckSquare size={16} className="mr-1.5" />
+                      )}
                       Confirm Payment
                     </Button>
 
                     {/* PaymentConfirmation Dialog for mobile view*/}
                     <PaymentConfirmation
-                      isOpen={paymentConfirmationOpen[employee.id] || false}
-                      onClose={() => setPaymentConfirmationOpen(prev => ({ ...prev, [employee.id]: false }))}
+                      isOpen={paymentConfirmationOpen[empDialogId] || false}
+                      onClose={() => {
+                        console.log(`[PAYMENT DEBUG] Closing payment confirmation for ${employee.name} (mobile view)`);
+                        setPaymentConfirmationOpen(prev => ({ ...prev, [empDialogId]: false }));
+                      }}
                       totalAmount={employee.total}
                       employeeCount={1} // For a single employee
-                      onConfirm={(paymentDateFromDialog) => 
-                        handlePaymentConfirm(paymentDateFromDialog, employee.id, employee, getEmployeeDetails(employee.id))
-                      }
+                      onConfirm={(paymentDateFromDialog) => {
+                        console.log(`[PAYMENT DEBUG] Payment confirmation triggered for ${employee.name} with date ${paymentDateFromDialog.toISOString()}`);
+                        try {
+                          return handlePaymentConfirm(
+                            paymentDateFromDialog, 
+                            employee.id, 
+                            employee, 
+                            getEmployeeDetails(employee.id)
+                          );
+                        } catch (error) {
+                          console.error(`[PAYMENT DEBUG] Error during payment confirmation for ${employee.name}:`, error);
+                          return Promise.resolve(false);
+                        }
+                      }}
                     />
                   </div>
                 </div>
@@ -468,6 +535,7 @@ export const SalaryTable = React.memo(({
               const monthlyChange = getMonthlyChange?.(employee.id);
               const hasMonthlySalaryChange = monthlyChange !== null && monthlyChange !== 0;
               const employeeDetails = getEmployeeDetails(employee.id);
+              const empDialogId = `desktop-${employee.id}`;
 
               return (
                 <TableRow 
@@ -507,8 +575,8 @@ export const SalaryTable = React.memo(({
                   <TableCell className="text-center">
                     <div className="flex items-center justify-center gap-1">
                       <Dialog 
-                        open={dialogOpen[`desktop-${employee.id}`] || false} 
-                        onOpenChange={(isOpen) => setDialogOpen(prev => ({ ...prev, [`desktop-${employee.id}`]: isOpen }))}
+                        open={dialogOpen[empDialogId] || false} 
+                        onOpenChange={(isOpen) => setDialogOpen(prev => ({ ...prev, [empDialogId]: isOpen }))}
                       >
                         <DialogTrigger asChild>
                           <Button 
@@ -518,7 +586,7 @@ export const SalaryTable = React.memo(({
                               e.stopPropagation();
                               setSelectedEmployeeForPayslip(employee.id);
                               setIsPayslipLoading(true);
-                              setDialogOpen(prev => ({ ...prev, [`desktop-${employee.id}`]: true }));
+                              setDialogOpen(prev => ({ ...prev, [empDialogId]: true }));
                             }}
                             aria-label={`View payslip for ${employee.name}`}
                             disabled={isPayslipLoading && selectedEmployeeForPayslip === employee.id}
@@ -551,21 +619,44 @@ export const SalaryTable = React.memo(({
                         aria-label={`Confirm payment for ${employee.name}`}
                         onClick={(e) => {
                           e.stopPropagation();
-                          setPaymentConfirmationOpen(prev => ({ ...prev, [`desktop-${employee.id}`]: true}));
+                          console.log(`[PAYMENT DEBUG] Opening payment confirmation dialog for ${employee.name} (desktop view)`);
+                          // Reset paymentConfirmationOpen completely to avoid stale state
+                          setPaymentConfirmationOpen({
+                            [empDialogId]: true
+                          });
                         }}
+                        disabled={isConfirmingPayment}
                       >
-                        <CheckSquare size={16} />
+                        {isConfirmingPayment && empDialogId in paymentConfirmationOpen && paymentConfirmationOpen[empDialogId] ? (
+                          <Loader2 size={16} className="animate-spin" />
+                        ) : (
+                          <CheckSquare size={16} />
+                        )}
                       </Button>
 
                       {/* PaymentConfirmation Dialog for desktop view*/}
                       <PaymentConfirmation
-                        isOpen={paymentConfirmationOpen[`desktop-${employee.id}`] || false}
-                        onClose={() => setPaymentConfirmationOpen(prev => ({ ...prev, [`desktop-${employee.id}`]: false }))}
+                        isOpen={paymentConfirmationOpen[empDialogId] || false}
+                        onClose={() => {
+                          console.log(`[PAYMENT DEBUG] Closing payment confirmation for ${employee.name} (desktop view)`);
+                          setPaymentConfirmationOpen(prev => ({ ...prev, [empDialogId]: false }));
+                        }}
                         totalAmount={employee.total}
                         employeeCount={1} // For a single employee
-                        onConfirm={(paymentDateFromDialog) => 
-                          handlePaymentConfirm(paymentDateFromDialog, employee.id, employee, getEmployeeDetails(employee.id))
-                        }
+                        onConfirm={(paymentDateFromDialog) => {
+                          console.log(`[PAYMENT DEBUG] Payment confirmation triggered for ${employee.name} with date ${paymentDateFromDialog.toISOString()}`);
+                          try {
+                            return handlePaymentConfirm(
+                              paymentDateFromDialog, 
+                              employee.id, 
+                              employee, 
+                              getEmployeeDetails(employee.id)
+                            );
+                          } catch (error) {
+                            console.error(`[PAYMENT DEBUG] Error during payment confirmation for ${employee.name}:`, error);
+                            return Promise.resolve(false);
+                          }
+                        }}
                       />
                     </div>
                   </TableCell>
