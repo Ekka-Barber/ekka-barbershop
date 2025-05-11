@@ -1,40 +1,53 @@
 
-// Re-export document-related types from document-types.ts
-export type { 
-  DocumentTypeEnum,
-  DocumentStatus,
-  DocumentCalculation,
-  EmployeeDocument,
-  EmployeeDocumentDB,
-  EmployeeDocumentInput,
-  DocumentWithStatus,
-  DocumentService
-} from './document-types';
+// Re-export all types from document-types
+export type { DocumentCalculation, EmployeeDocument } from './document-types';
+export { DocumentType, DocumentStatus } from './document-types';
 
-// Define Branch re-export from useBranchManager
-export type { Branch } from '../hooks/useBranchManager';
-
-// Define employee tab props
-export interface EmployeesTabProps {
-  initialBranchId?: string | null;
-}
-
-// Define document form props
-export interface DocumentFormProps {
-  document?: Partial<EmployeeDocument>;
-  employeeId: string;
-  onSubmit: (data: Partial<EmployeeDocument>) => Promise<void>;
-  onCancel: () => void;
-  isSubmitting: boolean;
-}
-
-// Define pagination-related types
-export interface PaginationInfo {
+// Define PaginationState type
+export interface PaginationState {
   currentPage: number;
   totalPages: number;
-  pageSize: number;
   totalItems: number;
+  pageSize: number;
 }
 
-// Archive Status Filter type needed for employee management
-export type ArchiveStatusFilter = 'active' | 'archived' | 'all';
+// Define Employee type
+export interface Employee {
+  id: string;
+  name: string;
+  name_ar?: string;
+  role: string;
+  branch_id?: string;
+  is_archived: boolean;
+  nationality?: string;
+  photo_url?: string;
+  email?: string;
+  start_date?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+// Define EmployeesTabProps interface
+export interface EmployeesTabProps {
+  initialBranchId?: string;
+}
+
+// Define EmployeeListProps interface
+export interface EmployeeListProps {
+  employees: Employee[];
+  isLoading: boolean;
+  pagination: PaginationState;
+  onEmployeeSelect: (id: string) => void;
+  selectedEmployee: string | null;
+}
+
+// Create a DocumentContextType
+export interface DocumentContextType {
+  documents: EmployeeDocument[];
+  isLoading: boolean;
+  error: Error | null;
+  addDocument: (document: Partial<EmployeeDocument>) => Promise<void>;
+  updateDocument: (id: string, document: Partial<EmployeeDocument>) => Promise<void>;
+  deleteDocument: (id: string) => Promise<void>;
+  calculateStatus: (document: EmployeeDocument) => DocumentCalculation;
+}
