@@ -1,21 +1,19 @@
+
 import React from 'react';
 import { Button } from "@/components/ui/button";
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from "@/contexts/LanguageContext";
 import { AlertTriangle } from "lucide-react";
-import { logger } from "@/utils/logger";
 
 interface Props {
   children: React.ReactNode;
   fallbackComponent?: React.ComponentType<{ error: Error; resetErrorBoundary: () => void }>;
   onError?: (error: Error, errorInfo: React.ErrorInfo) => void;
-  componentName?: string;
 }
 
 interface State {
   hasError: boolean;
   error?: Error;
-  errorInfo?: React.ErrorInfo;
 }
 
 export class ErrorBoundary extends React.Component<Props, State> {
@@ -28,21 +26,14 @@ export class ErrorBoundary extends React.Component<Props, State> {
   }
 
   public componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    logger.error(`Error in ${this.props.componentName || 'Unknown Component'}:`, {
-      error: error.message,
-      stack: error.stack,
-      componentStack: errorInfo.componentStack
-    });
-
-    this.setState({ errorInfo });
-    
+    console.error('Uncaught error:', error, errorInfo);
     if (this.props.onError) {
       this.props.onError(error, errorInfo);
     }
   }
 
   public resetErrorBoundary = () => {
-    this.setState({ hasError: false, error: undefined, errorInfo: undefined });
+    this.setState({ hasError: false, error: undefined });
   };
 
   public render() {
@@ -56,8 +47,6 @@ export class ErrorBoundary extends React.Component<Props, State> {
       }
       return <ErrorFallback 
         error={this.state.error} 
-        errorInfo={this.state.errorInfo}
-        componentName={this.props.componentName}
         resetErrorBoundary={this.resetErrorBoundary} 
       />;
     }
@@ -68,12 +57,10 @@ export class ErrorBoundary extends React.Component<Props, State> {
 
 interface ErrorFallbackProps {
   error?: Error;
-  errorInfo?: React.ErrorInfo;
-  componentName?: string;
   resetErrorBoundary: () => void;
 }
 
-const ErrorFallback = ({ error, errorInfo, componentName, resetErrorBoundary }: ErrorFallbackProps) => {
+const ErrorFallback = ({ error, resetErrorBoundary }: ErrorFallbackProps) => {
   const navigate = useNavigate();
   const { language } = useLanguage();
 
@@ -96,28 +83,14 @@ const ErrorFallback = ({ error, errorInfo, componentName, resetErrorBoundary }: 
             : 'We apologize for the inconvenience. Please try again.'}
         </p>
         {error && process.env.NODE_ENV === 'development' && (
-          <div className="mt-4 p-4 bg-gray-100 rounded-lg text-left text-sm overflow-auto">
-            {componentName && (
-              <div className="font-semibold text-red-600 mb-2">
-                Component: {componentName}
-              </div>
-            )}
-            <div className="font-semibold text-red-600 mb-2">
-              Error: {error.message}
-            </div>
+          <pre className="mt-4 p-4 bg-gray-100 rounded-lg text-left text-sm overflow-auto">
+            {error.message}
             {error.stack && (
               <div className="mt-2 text-xs text-gray-500">
-                <div className="font-semibold mb-1">Stack Trace:</div>
                 {error.stack.split("\n").slice(1).join("\n")}
               </div>
             )}
-            {errorInfo?.componentStack && (
-              <div className="mt-2 text-xs text-gray-500">
-                <div className="font-semibold mb-1">Component Stack:</div>
-                {errorInfo.componentStack}
-              </div>
-            )}
-          </div>
+          </pre>
         )}
         <div className="pt-4 space-x-3 rtl:space-x-reverse">
           <Button 

@@ -1,230 +1,97 @@
 
-import { useEffect, useRef, useState } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
-import { useToast } from '@/components/ui/use-toast';
-import { supabase } from '@/integrations/supabase/client';
-import debounce from 'lodash/debounce';
-import { RealtimePostgresChangesPayload } from '@supabase/supabase-js';
+import { useCallback, useRef, useEffect } from "react";
+import { format } from "date-fns";
+import { useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
-export type PostgresChangesEvent = 'INSERT' | 'UPDATE' | 'DELETE' | '*';
-
-export interface RealtimeSubscriptionConfig {
-  table: string;
-  filter?: string;
-  queryKey: string[] | readonly unknown[];  // Update to accept queryKey formats
-  enableToast?: boolean;
-  toastMessage?: string;
-  onDataChange?: (payload: RealtimePostgresChangesPayload<any>) => void;
-  debounceMs?: number;
-  onError?: (error: Error) => void;
-}
-
-/**
- * Hook for setting up Supabase real-time subscriptions that invalidate React Query cache on data changes
- */
-export function useRealtimeSubscription({
-  table,
-  filter,
-  queryKey,
-  enableToast = false,
-  toastMessage,
-  onDataChange,
-  debounceMs = 0,
-  onError
-}: RealtimeSubscriptionConfig) {
+export const useRealtimeSubscription = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
-  const subscription = useRef(null);
-  const [hasError, setHasError] = useState(false);
-  
-  useEffect(() => {
-    // Handler function with optional debouncing
-    const handleChange = debounceMs > 0
-      ? debounce((payload: RealtimePostgresChangesPayload<any>) => {
-          queryClient.invalidateQueries({ queryKey }); // Updated to use object syntax
-          
-          if (enableToast && toastMessage) {
-            toast({
-              title: toastMessage,
-              description: `${payload.eventType} at ${new Date().toLocaleTimeString()}`,
-            });
-          }
-          
-          if (onDataChange) {
-            onDataChange(payload);
-          }
-        }, debounceMs)
-      : (payload: RealtimePostgresChangesPayload<any>) => {
-          queryClient.invalidateQueries({ queryKey }); // Updated to use object syntax
-          
-          if (enableToast && toastMessage) {
-            toast({
-              title: toastMessage,
-              description: `${payload.eventType} at ${new Date().toLocaleTimeString()}`,
-            });
-          }
-          
-          if (onDataChange) {
-            onDataChange(payload);
-          }
-        };
+  const activeSubscriptions = useRef<{ [key: string]: any }>({});
 
-    try {
-      // Create channel with appropriate filters
-      const channel = supabase
-        .channel(`${table}-changes-${Array.isArray(queryKey) ? queryKey.join('-') : String(queryKey)}`)
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table,
-            filter: filter ? filter : undefined,
-          } as any,
-          handleChange
-        )
-        .subscribe((status) => {
-          if (status !== 'SUBSCRIBED') {
-            setHasError(true);
-            if (onError) onError(new Error(`Failed to subscribe to ${table}: ${status}`));
-          } else {
-            setHasError(false);
-          }
-        });
-      
-      subscription.current = channel;
-    } catch (error) {
-      setHasError(true);
-      if (onError) onError(error instanceof Error ? error : new Error(String(error)));
-      console.error(`Error setting up subscription for ${table}:`, error);
+  /**
+   * Setup realtime subscription for employee schedules
+   * Enhanced to track changes for specific employee and date
+   */
+  const setupRealtimeSubscription = useCallback((employeeId: string, selectedDate: Date) => {
+    // Create a unique channel name for this subscription
+    const formattedDate = format(selectedDate, 'yyyy-MM-dd');
+    const channelName = `employee_schedules_${employeeId}_${formattedDate}`;
+    
+    // Don't create duplicate subscriptions
+    if (activeSubscriptions.current[channelName]) {
+      console.log(`Subscription for ${channelName} already exists`);
+      return;
     }
     
-    // Cleanup subscription on unmount
-    return () => {
-      if (subscription.current) {
-        try {
-          supabase.removeChannel(subscription.current);
-        } catch (error) {
-          console.error(`Error removing channel for ${table}:`, error);
-        }
-      }
-    };
-  }, [table, filter, JSON.stringify(queryKey), enableToast, toastMessage, debounceMs, queryClient, toast, onDataChange, onError]);
-  
-  return { hasError };
-}
-
-// Fix the useMultipleRealtimeSubscriptions hook to use correct types
-export function useMultipleRealtimeSubscriptions(
-  subscriptionsConfig: RealtimeSubscriptionConfig[]
-) {
-  const [errors, setErrors] = useState<Record<string, boolean>>({});
-  
-  useEffect(() => {
-    const newErrors: Record<string, boolean> = {};
-    const cleanupFunctions: (() => void)[] = [];
+    console.log(`Setting up realtime subscription for ${channelName}`);
     
-    subscriptionsConfig.forEach((config, index) => {
-      const subscriptionKey = `${config.table}-${index}`;
-      
-      const handleError = (err: Error) => {
-        setErrors(prev => ({
-          ...prev,
-          [subscriptionKey]: true
-        }));
-        if (config.onError) config.onError(err);
-      };
-      
-      // Set up this specific subscription
-      const singleConfig = {
-        ...config,
-        onError: handleError
-      };
-      
-      try {
-        // Use proper type casting and string handling
-        const channelId = Array.isArray(config.queryKey) 
-          ? `${config.table}-changes-${config.queryKey.join('-')}-${index}`
-          : `${config.table}-changes-${String(config.queryKey)}-${index}`;
+    const queryKey = ['unavailableSlots', employeeId, formattedDate];
+    
+    // Fixed filter conditions for the subscription to properly separate employee_id and date
+    // Subscribe to changes on the employee_schedules table for this employee and date
+    const channel = supabase
+      .channel(channelName)
+      .on(
+        'postgres_changes',
+        {
+          event: '*', // Listen for all events (INSERT, UPDATE, DELETE)
+          schema: 'public',
+          table: 'employee_schedules',
+          filter: `employee_id=eq.${employeeId}&date=eq.${formattedDate}`
+        },
+        (payload) => {
+          console.log(`Realtime update received for ${formattedDate}:`, payload);
           
-        // Set up Supabase subscription
-        const channel = supabase
-          .channel(channelId)
-          .on(
-            'postgres_changes',
-            {
-              event: '*' as PostgresChangesEvent,
-              schema: 'public',
-              table: config.table,
-              filter: config.filter ? config.filter : undefined,
-            } as any,
-            (payload: RealtimePostgresChangesPayload<any>) => {
-              const queryClient = useQueryClient();
-              queryClient.invalidateQueries({ queryKey: config.queryKey });
-              
-              if (config.enableToast && config.toastMessage) {
-                const { toast } = useToast();
-                toast({
-                  title: config.toastMessage,
-                  description: `${payload.eventType} at ${new Date().toLocaleTimeString()}`,
-                });
-              }
-              
-              if (config.onDataChange) {
-                config.onDataChange(payload);
-              }
-            }
-          )
-          .subscribe((status) => {
-            if (status !== 'SUBSCRIBED') {
-              setErrors(prev => ({
-                ...prev,
-                [subscriptionKey]: true
-              }));
-              if (config.onError) config.onError(new Error(`Failed to subscribe to ${config.table}: ${status}`));
-            } else {
-              setErrors(prev => ({
-                ...prev,
-                [subscriptionKey]: false
-              }));
-            }
+          // Invalidate the query to trigger a refetch
+          queryClient.invalidateQueries({
+            queryKey: queryKey
           });
-        
-        // Add cleanup function
-        cleanupFunctions.push(() => {
-          try {
-            supabase.removeChannel(channel);
-          } catch (error) {
-            console.error(`Error removing channel for ${config.table}:`, error);
-          }
-        });
-      } catch (error) {
-        setErrors(prev => ({
-          ...prev,
-          [subscriptionKey]: true
-        }));
-        if (config.onError) config.onError(error instanceof Error ? error : new Error(String(error)));
-        console.error(`Error setting up subscription for ${config.table}:`, error);
-      }
-    });
+          
+          // Also invalidate any cached time slots for this employee/date
+          queryClient.invalidateQueries({
+            queryKey: ['timeSlots', employeeId, formattedDate]
+          });
+          
+          // Show a toast notification
+          toast({
+            title: "Schedule updated",
+            description: "The barber's availability has been updated",
+            variant: "default"
+          });
+        }
+      )
+      .subscribe();
     
-    // Return cleanup function that calls all individual cleanup functions
+    // Store the subscription reference
+    activeSubscriptions.current[channelName] = channel;
+    console.log(`Active subscriptions: ${Object.keys(activeSubscriptions.current).join(', ')}`);
+    
     return () => {
-      cleanupFunctions.forEach(cleanup => cleanup());
+      if (activeSubscriptions.current[channelName]) {
+        supabase.removeChannel(channel);
+        delete activeSubscriptions.current[channelName];
+        console.log(`Removed subscription for ${channelName}`);
+      }
     };
-  }, [subscriptionsConfig]);
-  
-  const hasAnyError = Object.values(errors).some(Boolean);
-  
-  return { errors, hasAnyError };
-}
+  }, [queryClient, toast]);
 
-export function useRealtimeSubscriptionSetup() {
+  // Clean up subscriptions when component unmounts
+  useEffect(() => {
+    return () => {
+      // Remove all active subscriptions
+      Object.values(activeSubscriptions.current).forEach((channel) => {
+        if (channel) {
+          supabase.removeChannel(channel);
+        }
+      });
+      activeSubscriptions.current = {};
+      console.log("Cleaned up all realtime subscriptions");
+    };
+  }, []);
+
   return {
-    setupRealtimeSubscription: (employeeId: string, selectedDate: Date) => {
-      // Implementation for setup
-      console.log(`Setting up subscription for employee ${employeeId} on ${selectedDate}`);
-      return true;
-    }
+    setupRealtimeSubscription,
   };
-}
+};

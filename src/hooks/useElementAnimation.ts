@@ -1,65 +1,51 @@
+
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { Tables } from "@/types/supabase";
 
-export interface UIElement {
-  id: string;
-  type: string;
-  name: string;
-  display_name: string;
-  display_name_ar: string;
-  description: string | null;
-  description_ar: string | null;
-  is_visible: boolean;
-  display_order: number;
-  icon: string | null;
-  action: string | null;
-}
-
-export const useElementAnimation = () => {
-  const [elements, setElements] = useState<UIElement[]>([]);
+export const useElementAnimation = (visibleElements: Tables<'ui_elements'>[]) => {
+  const [animationComplete, setAnimationComplete] = useState(false);
   const [animatingElements, setAnimatingElements] = useState<string[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchElements = async () => {
-      setIsLoading(true);
-      try {
-        const { data, error } = await supabase
-          .from('ui_elements')
-          .select('*')
-          .eq('is_visible', true)
-          .order('display_order', { ascending: true });
+  const startElementAnimation = (elements: Tables<'ui_elements'>[]) => {
+    setAnimatingElements([]);
+    setAnimationComplete(false);
+    
+    setTimeout(() => {
+      setAnimatingElements(['logo']);
+      
+      setTimeout(() => {
+        setAnimatingElements(prev => [...prev, 'headings']);
         
-        if (error) throw error;
-        setElements(data as UIElement[]);
-      } catch (error) {
-        console.error('Error fetching UI elements:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchElements();
-  }, []);
-
-  const startAnimation = (elementId: string) => {
-    setAnimatingElements(prev => [...prev, elementId]);
+        setTimeout(() => {
+          setAnimatingElements(prev => [...prev, 'divider']);
+          
+          const sortedElements = [...elements].sort((a, b) => a.display_order - b.display_order);
+          
+          let delay = 300;
+          sortedElements.forEach((element, index) => {
+            setTimeout(() => {
+              setAnimatingElements(prev => [...prev, element.id]);
+              
+              if (index === sortedElements.length - 1) {
+                setAnimationComplete(true);
+              }
+            }, delay * (index + 1));
+          });
+        }, 300);
+      }, 300);
+    }, 100);
   };
-
-  const stopAnimation = (elementId: string) => {
-    setAnimatingElements(prev => prev.filter(id => id !== elementId));
-  };
-
-  const isAnimating = (elementId: string) => {
-    return animatingElements.includes(elementId);
-  };
+  
+  // Start animations when visible elements change
+  useEffect(() => {
+    if (visibleElements.length > 0) {
+      startElementAnimation(visibleElements);
+    }
+  }, [visibleElements]);
 
   return {
-    elements,
-    isLoading,
+    animationComplete,
     animatingElements,
-    startAnimation,
-    stopAnimation,
-    isAnimating
+    startElementAnimation
   };
 };

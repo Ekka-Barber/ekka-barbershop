@@ -1,113 +1,48 @@
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from 'react';
 import { supabase } from "@/integrations/supabase/client";
-import { Branch } from '../types/index';
+import { Employee } from '@/types/employee';
 
-export type ArchiveStatusFilter = 'all' | 'active' | 'archived';
-
-export const useEmployeeManager = (initialBranchId = null) => {
-  const [employees, setEmployees] = useState([]);
+export const useEmployeeManager = (selectedBranch: string | null) => {
+  const [employees, setEmployees] = useState<Employee[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [archiveFilter, setArchiveFilter] = useState<ArchiveStatusFilter>("active");
-  const [pagination, setPagination] = useState({
-    currentPage: 1,
-    totalPages: 1,
-    totalItems: 0,
-    pageSize: 10
-  });
-  const [selectedBranch, setSelectedBranch] = useState(initialBranchId);
-  const [branches, setBranches] = useState<Branch[]>([]);
 
-  const setCurrentPage = (page) => {
-    setPagination((prev) => ({ ...prev, currentPage: page }));
-  };
-
-  const filterByBranch = (branchId) => {
-    setSelectedBranch(branchId);
-    setCurrentPage(1);
-  };
-
-  const fetchEmployees = useCallback(async () => {
-    setIsLoading(true);
-    setError(null);
+  const fetchEmployees = async () => {
     try {
-      let query = supabase.from("employees").select("*", { count: "exact" }).range(
-        (pagination.currentPage - 1) * pagination.pageSize,
-        pagination.currentPage * pagination.pageSize - 1
-      ).order("name", { ascending: true });
-
+      setIsLoading(true);
+      
+      console.log('Fetching employees for branch:', selectedBranch);
+      // When no branch is selected, show all employees to allow branch assignment
+      let query = supabase.from('employees').select('*');
+      
+      // Add branch filter if a branch is selected
       if (selectedBranch) {
-        query = query.eq("branch_id", selectedBranch);
-      }
-
-      if (archiveFilter === "active") {
-        query = query.eq("is_archived", false);
-      } else if (archiveFilter === "archived") {
-        query = query.eq("is_archived", true);
-      }
-
-      const { data, error: fetchError, count } = await query;
-      
-      if (fetchError) {
-        throw new Error(fetchError.message);
+        query = query.eq('branch_id', selectedBranch);
       }
       
-      if (data) {
-        setEmployees(data);
-        setPagination((prev) => ({
-          ...prev,
-          totalItems: count || 0,
-          totalPages: Math.ceil((count || 0) / pagination.pageSize)
-        }));
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err : new Error("An unexpected error occurred"));
+      const { data, error } = await query;
+      
+      if (error) throw error;
+      
+      console.log('Fetched employees:', data);
+      
+      // Explicitly cast the data to Employee[] type
+      setEmployees(data as unknown as Employee[]);
+    } catch (error) {
+      console.error('Error fetching employees:', error);
+      setEmployees([]);
     } finally {
       setIsLoading(false);
     }
-  }, [pagination.currentPage, pagination.pageSize, selectedBranch, archiveFilter]);
-
-  const setArchiveStatusFilter = useCallback((status: ArchiveStatusFilter) => {
-    setArchiveFilter(status);
-    setPagination((prev) => ({ ...prev, currentPage: 1 }));
-  }, []);
+  };
 
   useEffect(() => {
     fetchEmployees();
-  }, [fetchEmployees]);
-
-  useEffect(() => {
-    const fetchBranches = async () => {
-      try {
-        const { data: branchData, error: branchError } = await supabase.from("branches").select("id, name");
-        
-        if (branchError) {
-          throw new Error(branchError.message);
-        }
-        
-        if (branchData) {
-          setBranches(branchData);
-        }
-      } catch (branchErr) {
-        setError(branchErr instanceof Error ? branchErr : new Error("An unexpected error occurred"));
-      }
-    };
-    
-    fetchBranches();
-  }, []);
+  }, [selectedBranch]);
 
   return {
     employees,
     isLoading,
-    error,
-    pagination,
-    setCurrentPage,
-    filterByBranch,
-    selectedBranch,
-    branches,
-    archiveFilter,
-    setArchiveFilter: setArchiveStatusFilter,
     fetchEmployees
   };
 };

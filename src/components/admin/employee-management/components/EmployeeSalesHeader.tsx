@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { MonthYearPicker } from '../MonthYearPicker';
-import { LoaderCircle, Save } from 'lucide-react';
+import { LoaderCircle } from 'lucide-react';
 
 interface EmployeeSalesHeaderProps {
   selectedDate: Date;
@@ -16,7 +16,7 @@ export const EmployeeSalesHeader = ({
   isSubmitting
 }: EmployeeSalesHeaderProps) => {
   return (
-    <div className="space-y-4 relative">
+    <div className="space-y-4">
       <div className="flex flex-col md:flex-row justify-between gap-4 items-start md:items-center">
         <div>
           <h2 className="text-2xl font-bold">Employee Sales</h2>
@@ -27,11 +27,10 @@ export const EmployeeSalesHeader = ({
             selectedDate={selectedDate} 
             onChange={setSelectedDate} 
           />
-          {/* Desktop save button */}
           <Button 
             onClick={handleSubmit} 
             disabled={isSubmitting}
-            className="whitespace-nowrap hidden sm:flex"
+            className="whitespace-nowrap"
           >
             {isSubmitting ? (
               <>
@@ -42,21 +41,6 @@ export const EmployeeSalesHeader = ({
           </Button>
         </div>
       </div>
-
-      {/* Mobile Floating Action Button */}
-      <Button
-        onClick={handleSubmit}
-        disabled={isSubmitting}
-        className="fixed bottom-20 right-4 z-40 h-14 w-14 rounded-full shadow-lg sm:hidden flex items-center justify-center"
-        size="icon"
-        aria-label="Save Sales"
-      >
-        {isSubmitting ? (
-          <LoaderCircle className="h-6 w-6 animate-spin" />
-        ) : (
-          <Save className="h-6 w-6" />
-        )}
-      </Button>
     </div>
   );
 };

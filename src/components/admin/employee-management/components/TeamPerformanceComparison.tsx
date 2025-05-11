@@ -1,10 +1,10 @@
-import { useState, useEffect } from 'react';
+
+import { useState } from 'react';
 import { Employee } from '@/types/employee';
-import { Users, BarChart2, LineChart } from 'lucide-react';
+import { Users } from 'lucide-react';
 import { Card, CardHeader, CardContent, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Button } from '@/components/ui/button';
 
 // Hooks
 import { useTeamPerformanceData, MetricType, PeriodType } from '@/hooks/team-performance/useTeamPerformanceData';
@@ -29,9 +29,6 @@ export const TeamPerformanceComparison = ({
 }: TeamPerformanceComparisonProps) => {
   const [selectedMetric, setSelectedMetric] = useState<MetricType>('sales');
   const [selectedPeriod, setSelectedPeriod] = useState<PeriodType>('3');
-  const [selectedChartType, setSelectedChartType] = useState<'bar' | 'line'>('bar');
-  // Add key state to force re-render of chart
-  const [chartKey, setChartKey] = useState<number>(0);
   
   // Get team performance data
   const { 
@@ -54,11 +51,6 @@ export const TeamPerformanceComparison = ({
   
   // Get export functionality
   const { handleExportData } = usePerformanceExport(sortedPerformanceData);
-
-  // Force chart re-render when data changes
-  useEffect(() => {
-    setChartKey(prevKey => prevKey + 1);
-  }, [chartData, selectedMetric, selectedPeriod, selectedChartType, sortedPerformanceData]);
 
   if (isLoading) {
     return (
@@ -108,35 +100,7 @@ export const TeamPerformanceComparison = ({
               />
             )}
             
-            <div className="flex flex-col space-y-4">
-              <div className="flex justify-end">
-                <div className="flex space-x-2">
-                  <Button
-                    size="sm"
-                    variant={selectedChartType === 'bar' ? 'default' : 'outline'}
-                    onClick={() => setSelectedChartType('bar')}
-                  >
-                    <BarChart2 className="h-4 w-4 mr-1" />
-                    Bar
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant={selectedChartType === 'line' ? 'default' : 'outline'}
-                    onClick={() => setSelectedChartType('line')}
-                  >
-                    <LineChart className="h-4 w-4 mr-1" />
-                    Line
-                  </Button>
-                </div>
-              </div>
-              
-              <PerformanceChart 
-                key={`performance-chart-${chartKey}`}
-                chartData={chartData} 
-                chartOptions={chartOptions}
-                selectedChartType={selectedChartType}
-              />
-            </div>
+            <PerformanceChart chartData={chartData} chartOptions={chartOptions} />
             
             <Tabs defaultValue="table">
               <div className="overflow-x-auto pb-2">
