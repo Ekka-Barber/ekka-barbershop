@@ -1,7 +1,8 @@
-
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { ArchiveStatusFilter } from '../types/index';
+import { ArchiveStatusFilter, Branch } from '../types/index';
+
+export { ArchiveStatusFilter } from '../types/index';
 
 export const useEmployeeManager = (initialBranchId = null) => {
   const [employees, setEmployees] = useState([]);
@@ -15,7 +16,7 @@ export const useEmployeeManager = (initialBranchId = null) => {
     pageSize: 10
   });
   const [selectedBranch, setSelectedBranch] = useState(initialBranchId);
-  const [branches, setBranches] = useState([]);
+  const [branches, setBranches] = useState<Branch[]>([]);
 
   const setCurrentPage = (page) => {
     setPagination((prev) => ({ ...prev, currentPage: page }));

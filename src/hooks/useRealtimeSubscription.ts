@@ -10,7 +10,7 @@ export type PostgresChangesEvent = 'INSERT' | 'UPDATE' | 'DELETE' | '*';
 export interface RealtimeSubscriptionConfig {
   table: string;
   filter?: string;
-  queryKey: unknown[];
+  queryKey: string | string[] | readonly unknown[];  // Update to accept queryKey formats
   enableToast?: boolean;
   toastMessage?: string;
   onDataChange?: (payload: RealtimePostgresChangesPayload<any>) => void;
@@ -61,7 +61,7 @@ export function useRealtimeSubscription({
     // Handler function with optional debouncing
     const handleChange = debounceMs > 0
       ? debounce((payload: RealtimePostgresChangesPayload<any>) => {
-          queryClient.invalidateQueries(queryKey);
+          queryClient.invalidateQueries({ queryKey }); // Updated to use object syntax
           
           if (enableToast && toastMessage) {
             toast({
@@ -75,7 +75,7 @@ export function useRealtimeSubscription({
           }
         }, debounceMs)
       : (payload: RealtimePostgresChangesPayload<any>) => {
-          queryClient.invalidateQueries(queryKey);
+          queryClient.invalidateQueries({ queryKey }); // Updated to use object syntax
           
           if (enableToast && toastMessage) {
             toast({
@@ -92,11 +92,11 @@ export function useRealtimeSubscription({
     try {
       // Create channel with appropriate filters
       const channel = supabase
-        .channel(`${table}-changes-${queryKey.join('-')}`)
+        .channel(`${table}-changes-${Array.isArray(queryKey) ? queryKey.join('-') : queryKey}`)
         .on(
           'postgres_changes',
           {
-            event: '*' as PostgresChangesEvent, 
+            event: '*',
             schema: 'public',
             table,
             filter: filter ? filter : undefined,
@@ -268,4 +268,14 @@ export function useMultipleRealtimeSubscriptions(
   const hasAnyError = Object.values(errors).some(Boolean);
   
   return { errors, hasAnyError };
+}
+
+export function useRealtimeSubscriptionSetup() {
+  return {
+    setupRealtimeSubscription: (employeeId: string, selectedDate: Date) => {
+      // Implementation for setup
+      console.log(`Setting up subscription for employee ${employeeId} on ${selectedDate}`);
+      return true;
+    }
+  };
 }

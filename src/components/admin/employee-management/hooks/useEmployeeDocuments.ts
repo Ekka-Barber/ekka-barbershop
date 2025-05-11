@@ -1,20 +1,19 @@
 
 import { useState, useCallback } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from "@/integrations/supabase/client";
 import { differenceInDays, parseISO } from 'date-fns';
 import { 
-  EmployeeDocument, 
+  EmployeeDocument,
   DocumentCalculation,
-  DocumentStatus, 
+  DocumentStatus,
   DocumentType
 } from '../types/index';
 
 export const useEmployeeDocuments = () => {
   const [documents, setDocuments] = useState<EmployeeDocument[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<Error | null>(null);
-
-  // Calculate document status
+  
   const calculateDocumentStatus = useCallback((document: EmployeeDocument): DocumentCalculation => {
     try {
       const currentDate = new Date();
@@ -51,7 +50,6 @@ export const useEmployeeDocuments = () => {
     }
   }, []);
 
-  // Fetch documents for a specific employee
   const fetchDocuments = useCallback(async (employeeId: string) => {
     setIsLoading(true);
     setError(null);
@@ -199,3 +197,5 @@ export const useEmployeeDocuments = () => {
     calculateDocumentStatus
   };
 };
+
+export type { EmployeeDocument, DocumentCalculation, DocumentStatus, DocumentType };

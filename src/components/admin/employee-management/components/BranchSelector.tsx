@@ -1,5 +1,5 @@
 
-import { Branch } from '../hooks/useEmployeeManager';
+import { Branch } from '../types/index';
 import { 
   Select,
   SelectContent,

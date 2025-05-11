@@ -1,7 +1,9 @@
 
 // Re-export all types from document-types
-export type { 
-  DocumentCalculation, 
+import { 
+  DocumentType, 
+  DocumentStatus, 
+  DocumentCalculation,
   EmployeeDocument,
   DocumentWithStatus,
   EmployeeDocumentInput,
@@ -11,8 +13,14 @@ export type {
 
 export { 
   DocumentType,
-  DocumentStatus 
-} from './document-types';
+  DocumentStatus,
+  DocumentCalculation,
+  EmployeeDocument,
+  DocumentWithStatus,
+  EmployeeDocumentInput,
+  DocumentService,
+  DocumentFormProps
+};
 
 // Define PaginationState type
 export interface PaginationState {
@@ -59,6 +67,7 @@ export interface EmployeeListProps {
   pagination: PaginationState;
   onEmployeeSelect: (id: string) => void;
   selectedEmployee: string | null;
+  onPageChange: (page: number) => void;
 }
 
 // Create a DocumentContextType

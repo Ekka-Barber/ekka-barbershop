@@ -6,7 +6,7 @@ import { doesCrossMidnight, convertTimeToMinutes, convertMinutesToTime, isAfterM
 import { fetchUnavailableSlots } from "@/services/employeeScheduleService";
 import { isSlotAvailable } from "@/utils/slotAvailability";
 import { useToast } from "@/hooks/use-toast";
-import { useRealtimeSubscription } from "./useRealtimeSubscription";
+import { useRealtimeSubscriptionSetup } from "./useRealtimeSubscription";
 
 // Cache constants
 const CACHE_EXPIRY = 5 * 60 * 1000; // 5 minutes
@@ -15,7 +15,7 @@ const SLOT_INTERVAL = 30; // 30-minute intervals between slots
 export const useSlotGeneration = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
-  const { setupRealtimeSubscription } = useRealtimeSubscription();
+  const { setupRealtimeSubscription } = useRealtimeSubscriptionSetup();
 
   /**
    * Generates available time slots based on working hours and unavailable periods

@@ -3,12 +3,25 @@ import { useEffect } from 'react';
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useState } from 'react';
-import { Tables } from "@/types/supabase";
 import { useToast } from "@/components/ui/use-toast";
+
+export interface UIElement {
+  id: string;
+  type: string;
+  name: string;
+  display_name: string;
+  display_name_ar: string;
+  description: string | null;
+  description_ar: string | null;
+  is_visible: boolean;
+  display_order: number;
+  icon: string | null;
+  action: string | null;
+}
 
 export const useUIElements = () => {
   const { toast } = useToast();
-  const [visibleElements, setVisibleElements] = useState<Tables<'ui_elements'>[]>([]);
+  const [visibleElements, setVisibleElements] = useState<UIElement[]>([]);
   
   const { data: uiElements, refetch: refetchUiElements, isLoading: isLoadingUiElements } = useQuery({
     queryKey: ['ui-elements'],
@@ -21,7 +34,7 @@ export const useUIElements = () => {
       if (error) {
         throw error;
       }
-      return data as Tables<'ui_elements'>[];
+      return data as UIElement[];
     }
   });
 

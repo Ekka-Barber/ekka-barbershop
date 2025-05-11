@@ -1,10 +1,7 @@
 import { 
-  DocumentType, 
-  DocumentStatus, 
-  DocumentCalculation,
-  EmployeeDocument,
+  Branch,
   ArchiveStatusFilter,
-  Branch
+  PaginationState
 } from './types/index';
 
 // Employee Types
@@ -56,12 +53,7 @@ export interface SalesContextType {
 
 // Component Props Types
 // Ensure PaginationState matches PaginationInfo requirements
-export interface PaginationState {
-  currentPage: number;
-  totalPages: number;
-  totalItems: number;  // Make this required to match PaginationInfo
-  pageSize: number;
-}
+export { PaginationState } from './types/index';
 
 export interface BranchSelectorProps {
   branches: Branch[];
@@ -69,12 +61,7 @@ export interface BranchSelectorProps {
   onChange: (branchId: string | null) => void;
 }
 
-export interface EmployeeListProps {
-  employees: Employee[];
-  isLoading: boolean;
-  pagination: PaginationState;
-  onPageChange: (page: number) => void;
-}
+export { EmployeeListProps } from './types/index';
 
 export interface EmployeeCardProps {
   employee: Employee;
@@ -131,9 +118,7 @@ export interface MonthYearPickerProps {
 }
 
 // Tab Props
-export interface EmployeesTabProps {
-  initialBranchId?: string | null;
-}
+export { EmployeesTabProps } from './types/index';
 
 export interface MonthlySalesTabProps {
   initialDate?: Date;
@@ -179,101 +164,17 @@ export interface PaginationInfo {
   pageSize: number;
 }
 
-// Document Tracking Types
-export type DocumentStatus = 'valid' | 'expiring_soon' | 'expired';
-
-export type DocumentType = 'health_certificate' | 'residency_permit' | 'work_license' | 'custom';
-
-export interface EmployeeDocument {
-  id: string;
-  employeeId: string;
-  documentType: DocumentType;
-  documentName: string;
-  documentNumber?: string;
-  issueDate: string;
-  expiryDate: string;
-  durationMonths: number;
-  status: DocumentStatus;
-  notificationThresholdDays: number;
-  documentUrl?: string;
-  notes?: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface DocumentCalculation {
-  daysRemaining: number;
-  isExpired: boolean;
-  isExpiringSoon: boolean;
-  statusText: string;
-  expiryDate: Date;
-}
-
-// Document Component Props
-export interface DocumentsTabProps {
-  employee: Employee;
-}
-
-export interface DocumentListProps {
-  documents: EmployeeDocument[];
-  onEdit: (document: EmployeeDocument) => void;
-  onDelete: (documentId: string) => void;
-  isLoading: boolean;
-}
-
-export interface DocumentFormProps {
-  document?: EmployeeDocument;
-  employeeId: string;
-  onSubmit: (document: Partial<EmployeeDocument>) => Promise<void>;
-  onCancel: () => void;
-  isSubmitting: boolean;
-}
-
-export interface DocumentStatusBadgeProps {
-  status: DocumentStatus;
-  daysRemaining?: number;
-}
-
-export interface ExpiryWarningBannerProps {
-  documents: EmployeeDocument[];
-}
-
-export interface AddDocumentButtonProps {
-  onClick: () => void;
-  disabled?: boolean;
-}
-
-// Document Context Types
-export interface DocumentContextType {
-  documents: DocumentType[];
-  isLoading: boolean;
-  error: Error | null;
-  fetchDocuments: (employeeId: string) => Promise<void>;
-  addDocument: (document: Partial<DocumentType>) => Promise<void>;
-  updateDocument: (id: string, document: Partial<DocumentType>) => Promise<void>;
-  deleteDocument: (id: string) => Promise<void>;
-  calculateStatus: (document: DocumentType) => DocumentCalculation;
-}
-
-// Document Hook Types
-export interface UseEmployeeDocumentsReturn {
-  documents: DocumentType[];
-  isLoading: boolean;
-  error: Error | null;
-  fetchDocuments: (employeeId: string) => Promise<void>;
-  addDocument: (document: Partial<DocumentType>) => Promise<void>;
-  updateDocument: (id: string, document: Partial<DocumentType>) => Promise<void>;
-  deleteDocument: (id: string) => Promise<void>;
-  expiringSoonDocuments: DocumentType[];
-  expiredDocuments: DocumentType[];
-}
-
 // Re-export types from types/index.ts to avoid duplication
-export type { 
-  DocumentType, 
-  DocumentStatus, 
-  DocumentCalculation,
-  EmployeeDocument,
+export {
+  Branch,
   ArchiveStatusFilter,
-  Branch
+  Employee as EmployeeType
+} from './types/index';
+
+// Document specific types are now imported from types/index.ts
+export type {
+  DocumentType,
+  DocumentStatus,
+  DocumentCalculation,
+  EmployeeDocument
 } from './types/index';
