@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { Employee, WorkingHours, EmployeeRole } from '@/types/employee';
-import { PaginationState } from '../types';
+import { PaginationInfo, ArchiveStatusFilter } from '../types';
 import { logger } from '@/utils/logger';
 import { Database } from '@/integrations/supabase/types';
 
@@ -23,7 +23,7 @@ export interface UseEmployeeManagerReturn {
   /** Fetch employees with optional page and filter parameters */
   fetchEmployees: (page?: number, filter?: ArchiveStatusFilter) => Promise<void>;
   /** Pagination information */
-  pagination: PaginationState;
+  pagination: PaginationInfo;
   /** Set the current page and fetch data for that page */
   setCurrentPage: (page: number) => void;
   /** Get an employee by ID from the current list */
@@ -169,7 +169,7 @@ export const useEmployeeManager = (
   }, [selectedBranch, currentArchiveFilter, fetchEmployees]);
 
   // Calculate pagination info with memoization
-  const paginationState = useMemo<PaginationState>(() => ({
+  const paginationState = useMemo<PaginationInfo>(() => ({
     currentPage,
     totalPages: Math.ceil(totalItems / ITEMS_PER_PAGE) || 1,
     pageSize: ITEMS_PER_PAGE,

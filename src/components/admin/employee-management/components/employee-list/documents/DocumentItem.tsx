@@ -1,10 +1,11 @@
+
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { PencilIcon, TrashIcon, FileIcon } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
-import { EmployeeDocument, DocumentCalculation } from '../../../types';
+import { EmployeeDocument, DocumentCalculation, DocumentTypeEnum } from '../../../types';
 
 interface DocumentItemProps {
   document: EmployeeDocument;
@@ -28,7 +29,7 @@ export const DocumentItem: React.FC<DocumentItemProps> = ({
     }
   };
 
-  const documentTypeLabels = {
+  const documentTypeLabels: Record<DocumentTypeEnum | string, string> = {
     health_certificate: 'Health Certificate',
     residency_permit: 'Residency Permit',
     work_license: 'Work License',
@@ -45,13 +46,13 @@ export const DocumentItem: React.FC<DocumentItemProps> = ({
 
   return (
     <Card className="border overflow-hidden">
-      <div className={`h-2 ${getStatusColor(document.status).split(' ')[0]}`} />
+      <div className={`h-2 ${getStatusColor(document.status || 'valid').split(' ')[0]}`} />
       <CardContent className="p-4">
         <div className="flex justify-between">
           <div>
             <div className="font-medium">
               <FileIcon className="inline-block w-4 h-4 mr-2" />
-              {documentTypeLabels[document.documentType as keyof typeof documentTypeLabels]}
+              {documentTypeLabels[document.documentType as DocumentTypeEnum]}
             </div>
             {document.documentNumber && (
               <div className="text-sm text-muted-foreground mt-1">
@@ -83,7 +84,7 @@ export const DocumentItem: React.FC<DocumentItemProps> = ({
         </div>
 
         <div className="mt-4 flex justify-between items-center">
-          <Badge className={getStatusColor(document.status)}>
+          <Badge className={getStatusColor(document.status || 'valid')}>
             {statusDetails.statusText}
           </Badge>
           {document.documentUrl && (

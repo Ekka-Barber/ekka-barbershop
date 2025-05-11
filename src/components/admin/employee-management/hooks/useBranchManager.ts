@@ -1,51 +1,76 @@
-import { useState, useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
+
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from "@/integrations/supabase/client";
-import { logger } from "@/utils/logger";
-import { Branch } from '@/types/branch'; // Use canonical Branch type
+import { logger } from '@/utils/logger';
 
+// Export Branch type so it can be imported elsewhere
+export interface Branch {
+  id: string;
+  name: string;
+  name_ar?: string | null;
+  working_hours?: Record<string, string[]> | null;
+  is_main?: boolean;
+}
+
+/**
+ * Hook for managing branch selection
+ * @param initialBranchId - Initial selected branch ID
+ * @returns Branch management functionality
+ */
 export const useBranchManager = (initialBranchId: string | null = null) => {
+  const [branches, setBranches] = useState<Branch[]>([]);
   const [selectedBranch, setSelectedBranch] = useState<string | null>(initialBranchId);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [error, setError] = useState<Error | null>(null);
 
-  // Update selected branch if initialBranchId changes
-  useEffect(() => {
-    if (initialBranchId !== null) {
-      setSelectedBranch(initialBranchId);
-    }
-  }, [initialBranchId]);
-
-  const { 
-    data: branches = [], 
-    isLoading,
-    error 
-  } = useQuery<Branch[], Error>({
-    queryKey: ['branches'],
-    queryFn: async () => {
-      const { data, error: supabaseError } = await supabase // Renamed error to avoid conflict
+  // Fetch branches from API
+  const fetchBranches = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      
+      const { data, error: fetchError } = await supabase
         .from('branches')
-        .select('id, name, name_ar, address, address_ar, is_main, whatsapp_number, google_maps_url, working_hours, google_place_id') // Select all fields for canonical Branch type
+        .select('id, name, name_ar, working_hours, is_main')
         .order('name');
+        
+      if (fetchError) throw new Error(fetchError.message);
       
-      if (supabaseError) {
-        logger.error('Error fetching branches:', supabaseError);
-        throw supabaseError; // Throw the actual Supabase error
+      if (data) {
+        setBranches(data as Branch[]);
+        
+        // If no branch is selected and we have branches, select the main branch or first branch
+        if (!selectedBranch && data.length > 0) {
+          const mainBranch = data.find(branch => branch.is_main);
+          setSelectedBranch(mainBranch ? mainBranch.id : data[0].id);
+        }
       }
-      
-      // logger.info('Fetched branches count:', data?.length || 0);
-      return (data || []) as Branch[]; // Data should now conform to canonical Branch[]
-    },
-    staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
-    gcTime: 30 * 60 * 1000, // Keep in cache for 30 minutes
-  });
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Error fetching branches';
+      logger.error('Error fetching branches:', errorMessage);
+      setError(err instanceof Error ? err : new Error(errorMessage));
+    } finally {
+      setIsLoading(false);
+    }
+  }, [selectedBranch]);
 
-  if (error) {
-    logger.error('Error in useBranchManager hook (after query execution):', error);
-  }
+  // Initial fetch
+  useEffect(() => {
+    fetchBranches();
+  }, [fetchBranches]);
+
+  // Get a specific branch by ID
+  const getBranchById = useCallback((id: string): Branch | undefined => {
+    return branches.find(branch => branch.id === id);
+  }, [branches]);
 
   return {
     branches,
     selectedBranch,
     setSelectedBranch,
-    isLoading
+    isLoading,
+    error,
+    fetchBranches,
+    getBranchById
   };
 };

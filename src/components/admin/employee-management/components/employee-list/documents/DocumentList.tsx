@@ -3,12 +3,11 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
-import { EmployeeDocument } from '../../../types/document-types';
+import { EmployeeDocument, DocumentCalculation } from '../../../types';
 import { DocumentItem } from './DocumentItem';
 import { DocumentForm } from './DocumentForm';
 import { useEmployeeDocuments } from '../../../hooks/useEmployeeDocuments';
 
-// DO NOT CHANGE API LOGIC
 interface DocumentListProps {
   employeeId: string;
 }
@@ -17,7 +16,6 @@ export const DocumentList: React.FC<DocumentListProps> = ({ employeeId }) => {
   const [showForm, setShowForm] = useState(false);
   const [editingDocument, setEditingDocument] = useState<EmployeeDocument | null>(null);
   
-  // DO NOT CHANGE API LOGIC
   const { 
     documents, 
     isLoading, 
@@ -29,7 +27,6 @@ export const DocumentList: React.FC<DocumentListProps> = ({ employeeId }) => {
     calculateStatus 
   } = useEmployeeDocuments();
 
-  // DO NOT CHANGE API LOGIC
   useEffect(() => {
     if (employeeId) {
       fetchDocuments(employeeId);
@@ -51,7 +48,6 @@ export const DocumentList: React.FC<DocumentListProps> = ({ employeeId }) => {
     setEditingDocument(null);
   };
 
-  // DO NOT CHANGE API LOGIC
   const handleSubmitForm = async (documentData: Partial<EmployeeDocument>) => {
     try {
       if (editingDocument?.id) {
@@ -59,7 +55,7 @@ export const DocumentList: React.FC<DocumentListProps> = ({ employeeId }) => {
       } else {
         await addDocument({
           ...documentData,
-          employee_id: employeeId // Use proper field name (employee_id instead of employeeId)
+          employeeId // Use camelCase field name to match our interface
         });
       }
       setShowForm(false);
@@ -69,7 +65,6 @@ export const DocumentList: React.FC<DocumentListProps> = ({ employeeId }) => {
     }
   };
 
-  // DO NOT CHANGE API LOGIC
   const handleDeleteDocument = async (documentId: string) => {
     if (window.confirm('Are you sure you want to delete this document?')) {
       try {
@@ -122,9 +117,9 @@ export const DocumentList: React.FC<DocumentListProps> = ({ employeeId }) => {
             <DocumentItem 
               key={document.id}
               document={document}
-              statusDetails={calculateStatus(document)}
+              statusDetails={calculateStatus(document) as DocumentCalculation}
               onEdit={() => handleEditClick(document)}
-              onDelete={() => handleDeleteDocument(document.id)}
+              onDelete={() => handleDeleteDocument(document.id!)}
             />
           ))}
         </div>

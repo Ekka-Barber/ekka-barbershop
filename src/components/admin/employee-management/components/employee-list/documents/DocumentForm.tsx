@@ -1,3 +1,4 @@
+
 import React, { useEffect } from 'react';
 import { 
   Form, 
@@ -18,7 +19,7 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { useForm } from 'react-hook-form';
-import { EmployeeDocument, DocumentFormProps } from '../../../types';
+import { EmployeeDocument, DocumentTypeEnum, DocumentFormProps } from '../../../types';
 import { addDays, format } from 'date-fns';
 
 export const DocumentForm: React.FC<DocumentFormProps> = ({
@@ -38,7 +39,7 @@ export const DocumentForm: React.FC<DocumentFormProps> = ({
     }
   });
 
-  const watchDocumentType = form.watch('documentType');
+  const watchDocumentType = form.watch('documentType') as DocumentTypeEnum;
   const watchIssueDate = form.watch('issueDate');
   const watchDurationMonths = form.watch('durationMonths');
 
@@ -50,7 +51,7 @@ export const DocumentForm: React.FC<DocumentFormProps> = ({
         residency_permit: 'Residency Permit',
         work_license: 'Work License'
       };
-      form.setValue('documentName', documentNames[watchDocumentType as keyof typeof documentNames]);
+      form.setValue('documentName', documentNames[watchDocumentType]);
     }
   }, [watchDocumentType, form]);
 
@@ -91,7 +92,7 @@ export const DocumentForm: React.FC<DocumentFormProps> = ({
               <FormLabel>Document Type</FormLabel>
               <Select 
                 onValueChange={field.onChange} 
-                defaultValue={field.value}
+                defaultValue={field.value as string}
               >
                 <FormControl>
                   <SelectTrigger>
@@ -248,10 +249,10 @@ export const DocumentForm: React.FC<DocumentFormProps> = ({
             Cancel
           </Button>
           <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? 'Saving...' : document ? 'Update Document' : 'Add Document'}
+            {isSubmitting ? 'Saving...' : document?.id ? 'Update Document' : 'Add Document'}
           </Button>
         </div>
       </form>
     </Form>
   );
-}; 
+};
