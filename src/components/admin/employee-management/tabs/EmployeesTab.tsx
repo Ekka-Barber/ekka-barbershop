@@ -1,6 +1,15 @@
+
 import React, { useState } from 'react';
 import { useEmployeeManager } from '../hooks/useEmployeeManager';
+import { useToast } from '@/components/ui/use-toast';
+import { Button } from '@/components/ui/button';
+import { Plus } from 'lucide-react';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Skeleton } from '@/components/ui/skeleton';
 import EmployeeList from '../components/employee-list/EmployeeList';
+import BranchSelector from '../components/BranchSelector';
+// Fix import path - importing from the correct location
+import { EmployeeCard } from '../components/employee-card/EmployeeCard';
 import { EmployeesTabProps } from '../types';
 
 // Simple mock EmployeeDialog component
@@ -11,10 +20,6 @@ const EmployeeDialog = ({ trigger }: { trigger: React.ReactNode }) => {
     </>
   );
 };
-
-interface EmployeesTabProps {
-  initialBranchId?: string;
-}
 
 export const EmployeeTab: React.FC<EmployeesTabProps> = ({ initialBranchId }) => {
   const {
