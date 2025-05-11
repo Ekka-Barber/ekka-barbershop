@@ -11,5 +11,7 @@ export interface UIElement {
   icon?: string;
   is_visible?: boolean;
   action?: string;
+  display_order: number;
+  created_at?: string;
   [key: string]: any;
 }

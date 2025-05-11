@@ -1,23 +1,9 @@
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useState } from 'react';
 import { useToast } from "@/components/ui/use-toast";
-
-export interface UIElement {
-  id: string;
-  type: string;
-  name: string;
-  display_name: string;
-  display_name_ar: string;
-  description: string | null;
-  description_ar: string | null;
-  is_visible: boolean;
-  display_order: number;
-  icon: string | null;
-  action: string | null;
-}
+import { UIElement } from '@/components/customer/types/uiTypes';
 
 export const useUIElements = () => {
   const { toast } = useToast();
@@ -32,8 +18,11 @@ export const useUIElements = () => {
         .order('display_order', { ascending: true });
       
       if (error) {
+        console.error('Error fetching UI elements:', error);
         throw error;
       }
+      
+      console.log('UI Elements fetched:', data);
       return data as UIElement[];
     }
   });
@@ -41,7 +30,10 @@ export const useUIElements = () => {
   // Filter visible elements
   useEffect(() => {
     if (!uiElements) return;
-    setVisibleElements(uiElements.filter(el => el.is_visible));
+    
+    const visible = uiElements.filter(el => el.is_visible);
+    console.log('Visible elements:', visible);
+    setVisibleElements(visible);
   }, [uiElements]);
 
   // Set up real-time subscription
@@ -56,6 +48,7 @@ export const useUIElements = () => {
           table: 'ui_elements'
         },
         () => {
+          console.log('UI elements table changed, refreshing data...');
           refetchUiElements();
         }
       )
@@ -67,12 +60,22 @@ export const useUIElements = () => {
   }, [refetchUiElements]);
 
   const handleRefresh = async () => {
-    await refetchUiElements();
-    toast({
-      title: 'Refreshed',
-      description: 'Content has been updated',
-      duration: 2000,
-    });
+    try {
+      await refetchUiElements();
+      toast({
+        title: 'Refreshed',
+        description: 'Content has been updated',
+        duration: 2000,
+      });
+    } catch (error) {
+      console.error('Error refreshing UI elements:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to refresh content',
+        variant: 'destructive',
+        duration: 2000,
+      });
+    }
   };
 
   return {
