@@ -1,7 +1,6 @@
 
 // Define basic document types
 
-// Use enum instead of type for values that need to be used at runtime
 export enum DocumentType {
   PASSPORT = "passport",
   NATIONAL_ID = "national_id",
@@ -19,7 +18,6 @@ export enum DocumentType {
   VISA = "visa"
 }
 
-// Use enum instead of type for values that need to be used at runtime
 export enum DocumentStatus {
   VALID = "valid",
   EXPIRING = "expiring",

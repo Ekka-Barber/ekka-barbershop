@@ -1,7 +1,6 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from "@/integrations/supabase/client";
-import { Employee } from '@/types/employee';
 
 /**
  * Hook for fetching employee data by ID
@@ -18,7 +17,7 @@ export const useEmployeeData = (employeeId: string | undefined) => {
         .maybeSingle();
       
       if (error) throw error;
-      return data as Employee;
+      return data;
     },
     enabled: !!employeeId
   });

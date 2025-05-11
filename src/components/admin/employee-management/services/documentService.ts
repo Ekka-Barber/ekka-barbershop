@@ -1,102 +1,119 @@
-
 import { supabase } from '@/integrations/supabase/client';
-import { EmployeeDocument, EmployeeDocumentInput, DocumentType } from '../types/index';
-import { format } from 'date-fns';
+import { 
+  EmployeeDocument, 
+  EmployeeDocumentInput,
+  DocumentWithStatus, 
+  DocumentService 
+} from '../types/document-types';
 
-// Helper function to ensure dates are converted to proper string format
-const formatDateForDB = (date: string | Date): string => {
-  if (typeof date === 'string') return date;
-  return format(date, 'yyyy-MM-dd');
-};
-
-export const documentService = {
-  getDocumentsForEmployee: async (employeeId: string): Promise<EmployeeDocument[]> => {
+/**
+ * Service for managing employee documents through Supabase
+ */
+export const documentService: DocumentService = {
+  /**
+   * Get all documents for a specific employee
+   */
+  async getDocumentsForEmployee(employeeId: string): Promise<EmployeeDocument[]> {
     const { data, error } = await supabase
-      .from('employee_documents')
+      .from('employee_documents_with_status')
       .select('*')
-      .eq('employee_id', employeeId);
-      
+      .eq('employee_id', employeeId)
+      .order('expiry_date', { ascending: true });
+    
     if (error) {
-      throw new Error(error.message);
+      console.error('Error fetching employee documents:', error);
+      throw new Error(`Failed to fetch employee documents: ${error.message}`);
     }
     
     return data as EmployeeDocument[];
   },
   
-  createDocument: async (document: Partial<EmployeeDocument>): Promise<EmployeeDocument> => {
-    const documentData = {
-      employee_id: document.employee_id,
-      document_type: document.document_type,
-      document_name: document.document_name,
-      document_number: document.document_number,
-      issue_date: document.issue_date ? formatDateForDB(document.issue_date) : undefined,
-      expiry_date: document.expiry_date ? formatDateForDB(document.expiry_date) : undefined,
-      duration_months: document.duration_months,
-      notification_threshold_days: document.notification_threshold_days,
-      document_url: document.document_url,
-      notes: document.notes
-    };
-    
+  /**
+   * Create a new document
+   */
+  async createDocument(document: EmployeeDocumentInput): Promise<EmployeeDocument> {
     const { data, error } = await supabase
       .from('employee_documents')
-      .insert(documentData)
+      .insert(document)
       .select()
       .single();
-      
+    
     if (error) {
-      throw new Error(error.message);
+      console.error('Error creating document:', error);
+      throw new Error(`Failed to create document: ${error.message}`);
     }
     
     return data as EmployeeDocument;
   },
   
-  updateDocument: async (documentId: string, document: Partial<EmployeeDocumentInput>): Promise<EmployeeDocument> => {
-    const documentData = {
-      document_type: document.document_type,
-      document_name: document.document_name,
-      document_number: document.document_number,
-      issue_date: document.issue_date ? formatDateForDB(document.issue_date) : undefined,
-      expiry_date: document.expiry_date ? formatDateForDB(document.expiry_date) : undefined,
-      duration_months: document.duration_months,
-      notification_threshold_days: document.notification_threshold_days,
-      document_url: document.document_url,
-      notes: document.notes
-    };
-    
+  /**
+   * Update an existing document
+   */
+  async updateDocument(id: string, document: Partial<EmployeeDocumentInput>): Promise<EmployeeDocument> {
     const { data, error } = await supabase
       .from('employee_documents')
-      .update(documentData)
-      .eq('id', documentId)
+      .update(document)
+      .eq('id', id)
       .select()
       .single();
-      
+    
     if (error) {
-      throw new Error(error.message);
+      console.error('Error updating document:', error);
+      throw new Error(`Failed to update document: ${error.message}`);
     }
     
     return data as EmployeeDocument;
   },
   
-  deleteDocument: async (documentId: string): Promise<boolean> => {
+  /**
+   * Delete a document
+   */
+  async deleteDocument(id: string): Promise<void> {
     const { error } = await supabase
       .from('employee_documents')
       .delete()
-      .eq('id', documentId);
-      
+      .eq('id', id);
+    
     if (error) {
-      throw new Error(error.message);
+      console.error('Error deleting document:', error);
+      throw new Error(`Failed to delete document: ${error.message}`);
+    }
+  },
+  
+  /**
+   * Get all documents that are expiring soon
+   */
+  async getExpiringDocuments(thresholdDays: number = 30): Promise<DocumentWithStatus[]> {
+    const { data, error } = await supabase
+      .from('employee_documents_with_status')
+      .select('*')
+      .eq('status', 'expiring_soon')
+      .lte('days_remaining', thresholdDays)
+      .order('days_remaining', { ascending: true });
+    
+    if (error) {
+      console.error('Error fetching expiring documents:', error);
+      throw new Error(`Failed to fetch expiring documents: ${error.message}`);
     }
     
-    return true; // Return true on successful deletion
+    return data as DocumentWithStatus[];
   },
   
-  getExpiringDocuments: async (thresholdDays: number): Promise<EmployeeDocument[]> => {
-    // Implementation would fetch documents expiring soon
-    return [];
-  },
-  
-  getExpiredDocuments: async (): Promise<EmployeeDocument[]> => {
-    // Implementation would fetch expired documents
-    return [];
+  /**
+   * Get all expired documents
+   */
+  async getExpiredDocuments(): Promise<DocumentWithStatus[]> {
+    const { data, error } = await supabase
+      .from('employee_documents_with_status')
+      .select('*')
+      .eq('status', 'expired')
+      .order('days_remaining', { ascending: true });
+    
+    if (error) {
+      console.error('Error fetching expired documents:', error);
+      throw new Error(`Failed to fetch expired documents: ${error.message}`);
+    }
+    
+    return data as DocumentWithStatus[];
   }
-};
+}; 

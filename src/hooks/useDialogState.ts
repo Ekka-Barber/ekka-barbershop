@@ -1,6 +1,5 @@
-
 import { useState } from 'react';
-import { trackButtonClick } from "@/utils/tiktokTracking";
+import { trackButtonClick, trackLocationView } from "@/utils/tiktokTracking";
 import { useNavigate } from 'react-router-dom';
 import { Branch } from "@/types/branch";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -69,6 +68,13 @@ export const useDialogState = (branches: Branch[] | undefined) => {
 
   const handleLocationDialog = () => {
     setLocationDialogOpen(true);
+    if (branches?.[0]) {
+      trackLocationView({
+        id: branches[0].id,
+        name_en: branches[0].name,
+        value: undefined
+      });
+    }
   };
 
   return {

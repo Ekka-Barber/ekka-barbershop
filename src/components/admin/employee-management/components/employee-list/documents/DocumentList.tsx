@@ -66,10 +66,12 @@ export const DocumentList: React.FC<DocumentListProps> = ({ employeeId }) => {
   };
 
   const handleDeleteDocument = async (documentId: string) => {
-    try {
-      await deleteDocument(documentId);
-    } catch (error) {
-      console.error('Error deleting document:', error);
+    if (window.confirm('Are you sure you want to delete this document?')) {
+      try {
+        await deleteDocument(documentId);
+      } catch (error) {
+        console.error('Error deleting document:', error);
+      }
     }
   };
 
@@ -97,6 +99,7 @@ export const DocumentList: React.FC<DocumentListProps> = ({ employeeId }) => {
             <DocumentForm
               onSubmit={handleSubmitForm}
               defaultValues={editingDocument || undefined}
+              documentType={undefined}
               isSubmitting={false}
               onCancel={handleCancelForm}
             />
@@ -112,18 +115,16 @@ export const DocumentList: React.FC<DocumentListProps> = ({ employeeId }) => {
         <div className="grid gap-4">
           {documents.map((document) => {
             // Create a DocumentWithStatus from the document with required status property
-            const statusDetails = calculateStatus(document);
             const docWithStatus = {
               ...document,
-              status: statusDetails.status,
-              days_remaining: statusDetails.days_remaining
+              status: calculateStatus(document).status
             } as DocumentWithStatus;
             
             return (
               <DocumentItem 
                 key={document.id}
                 document={docWithStatus}
-                statusDetails={statusDetails}
+                statusDetails={calculateStatus(document)}
                 onEdit={() => handleEditClick(document)}
                 onDelete={() => handleDeleteDocument(document.id)}
               />

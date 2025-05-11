@@ -1,194 +1,104 @@
 
-import React, { useState } from 'react';
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
-import { Trash2, Plus } from 'lucide-react';
+import { ReactNode } from 'react';
+import { ArrowRight } from 'lucide-react';
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
+import { Separator } from '@/components/ui/separator';
 import { Service } from '@/types/service';
-import { UpsellItem } from './types';
+import { UseMutationResult } from '@tanstack/react-query';
+import { AddUpsellFormState } from './types';
+import { MainServiceSelector } from './dialog/MainServiceSelector';
+import { UpsellItemsSection } from './dialog/UpsellItemsSection';
+import { useUpsellFormState } from './dialog/useUpsellFormState';
 
-export interface AddUpsellDialogProps {
+interface AddUpsellDialogProps {
+  children: ReactNode;
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
-  services: Service[];
-  onSubmit: (data: any) => void;
-  isSubmitting: boolean;
+  allServices: Service[] | undefined;
+  addUpsellMutation: UseMutationResult<void, Error, AddUpsellFormState, unknown>;
 }
 
-export const AddUpsellDialog: React.FC<AddUpsellDialogProps> = ({
-  isOpen,
-  onOpenChange,
-  services,
-  onSubmit,
-  isSubmitting
-}) => {
-  const [mainServiceId, setMainServiceId] = useState<string>('');
-  const [upsellItems, setUpsellItems] = useState<UpsellItem[]>([
-    { upsellServiceId: '', discountPercentage: 10 }
-  ]);
+export const AddUpsellDialog = ({ 
+  children, 
+  isOpen, 
+  onOpenChange, 
+  allServices,
+  addUpsellMutation
+}: AddUpsellDialogProps) => {
+  const {
+    newUpsell,
+    resetForm,
+    updateMainServiceId,
+    addUpsellItem,
+    removeUpsellItem,
+    updateUpsellItem,
+    getAvailableServices,
+    handleAddUpsell
+  } = useUpsellFormState({ addUpsellMutation });
 
-  const handleAddUpsellItem = () => {
-    setUpsellItems([...upsellItems, { upsellServiceId: '', discountPercentage: 10 }]);
-  };
-
-  const handleRemoveUpsellItem = (index: number) => {
-    setUpsellItems(upsellItems.filter((_, i) => i !== index));
-  };
-
-  const handleUpsellItemChange = (index: number, field: keyof UpsellItem, value: string | number) => {
-    const newItems = [...upsellItems];
-    newItems[index] = { ...newItems[index], [field]: value };
-    setUpsellItems(newItems);
-  };
-
-  const getFilteredServices = (currentIndex: number) => {
-    const selectedIds = new Set(upsellItems.map(item => item.upsellServiceId));
-    selectedIds.delete(upsellItems[currentIndex].upsellServiceId); // Remove current item's ID
-    
-    return services.filter(service => 
-      service.id !== mainServiceId && 
-      !selectedIds.has(service.id)
-    );
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    // Filter out incomplete items
-    const validItems = upsellItems.filter(item => item.upsellServiceId);
-    
-    if (!mainServiceId || validItems.length === 0) {
-      return; // Don't submit if no main service or no valid upsell items
+  // Handle dialog open state change
+  const handleOpenChange = (open: boolean) => {
+    if (!open) {
+      resetForm();
     }
-    
-    onSubmit({
-      mainServiceId,
-      upsellItems: validItems
-    });
-    
-    // Reset form
-    setMainServiceId('');
-    setUpsellItems([{ upsellServiceId: '', discountPercentage: 10 }]);
+    onOpenChange(open);
   };
-
-  const mainServiceOptions = services.filter(service => 
-    !upsellItems.some(item => item.upsellServiceId === service.id)
-  );
 
   return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
+      <DialogTrigger asChild>
+        {children}
+      </DialogTrigger>
+      <DialogContent className="max-w-md sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Add Upsell Relationship</DialogTitle>
+          <DialogTitle className="text-xl flex items-center gap-2">
+            Create New Upsell Relationship
+          </DialogTitle>
+          <p className="text-sm text-muted-foreground mt-1">
+            Upsell relationships allow you to offer discounted services when purchased with a main service.
+          </p>
         </DialogHeader>
         
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="mainService">Main Service</Label>
-              <Select 
-                value={mainServiceId} 
-                onValueChange={setMainServiceId}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a service" />
-                </SelectTrigger>
-                <SelectContent>
-                  {mainServiceOptions.map(service => (
-                    <SelectItem key={service.id} value={service.id}>
-                      {service.name_en}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div className="space-y-2">
-              <Label>Upsell Services</Label>
-              
-              {upsellItems.map((item, index) => (
-                <div key={index} className="flex items-center gap-2">
-                  <Select 
-                    value={item.upsellServiceId} 
-                    onValueChange={(value) => handleUpsellItemChange(index, 'upsellServiceId', value)}
-                  >
-                    <SelectTrigger className="flex-1">
-                      <SelectValue placeholder="Select a service" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {getFilteredServices(index).map(service => (
-                        <SelectItem key={service.id} value={service.id}>
-                          {service.name_en}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  
-                  <div className="flex items-center">
-                    <Input
-                      type="number"
-                      value={item.discountPercentage}
-                      onChange={(e) => handleUpsellItemChange(
-                        index, 
-                        'discountPercentage', 
-                        Math.min(100, Math.max(0, parseInt(e.target.value) || 0))
-                      )}
-                      className="w-20"
-                      min="0"
-                      max="100"
-                    />
-                    <span className="ml-2 mr-2">%</span>
-                  </div>
-                  
-                  {upsellItems.length > 1 && (
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleRemoveUpsellItem(index)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  )}
-                </div>
-              ))}
-              
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={handleAddUpsellItem}
-                disabled={upsellItems.some(item => !item.upsellServiceId)}
-                className="mt-2"
-              >
-                <Plus className="h-3.5 w-3.5 mr-1" />
-                Add Another Service
-              </Button>
-            </div>
-          </div>
+        <div className="space-y-6 py-4">
+          {/* Step 1: Main Service Selection */}
+          <MainServiceSelector 
+            mainServiceId={newUpsell.mainServiceId}
+            onChange={updateMainServiceId}
+            allServices={allServices}
+          />
           
-          <DialogFooter>
-            <Button 
-              type="button" 
-              variant="outline" 
-              onClick={() => onOpenChange(false)}
-            >
-              Cancel
-            </Button>
-            <Button 
-              type="submit" 
-              disabled={
-                isSubmitting || 
-                !mainServiceId || 
-                upsellItems.some(item => !item.upsellServiceId)
-              }
-            >
-              {isSubmitting ? 'Saving...' : 'Save Upsell'}
-            </Button>
-          </DialogFooter>
-        </form>
+          <Separator />
+          
+          {/* Step 2: Upsell Services */}
+          <UpsellItemsSection 
+            upsellItems={newUpsell.upsellItems}
+            onAddItem={addUpsellItem}
+            onUpdateItem={updateUpsellItem}
+            onRemoveItem={removeUpsellItem}
+            getAvailableServices={(index) => getAvailableServices(allServices, index)}
+          />
+        </div>
+        
+        <DialogFooter className="flex items-center justify-end gap-2">
+          <Button variant="outline" onClick={() => handleOpenChange(false)}>
+            Cancel
+          </Button>
+          <Button 
+            onClick={handleAddUpsell} 
+            disabled={addUpsellMutation.isPending}
+            className="flex items-center"
+          >
+            {addUpsellMutation.isPending ? (
+              'Adding...'
+            ) : (
+              <>
+                Create Relationship
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </>
+            )}
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

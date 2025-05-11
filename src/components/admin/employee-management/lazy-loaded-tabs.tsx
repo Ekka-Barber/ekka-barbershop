@@ -1,4 +1,3 @@
-
 import { lazy } from 'react';
 import { ErrorBoundary } from '@/components/common/ErrorBoundary';
 import React from 'react';
@@ -15,7 +14,7 @@ const withErrorBoundary = (Component: React.ComponentType<unknown>) => {
 // New tab components for restructuring
 export const LazyEmployeesTab = lazy(() => 
   import('./tabs/EmployeesTab').then(module => ({
-    default: withErrorBoundary(module.default || module.EmployeeTab)
+    default: withErrorBoundary(module.default || module.EmployeesTab)
   }))
 );
 
@@ -58,4 +57,4 @@ export const TabLoadingFallback = () => (
       <p className="mt-4 text-sm text-muted-foreground">Loading...</p>
     </div>
   </div>
-);
+); 

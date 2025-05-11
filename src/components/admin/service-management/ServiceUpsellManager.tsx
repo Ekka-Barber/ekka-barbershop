@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { AddUpsellDialog } from './upsell/AddUpsellDialog';
@@ -91,7 +90,7 @@ export const ServiceUpsellManager = () => {
         <p>No upsell relationships found. Create one to get started!</p>
       ) : (
         <>
-          <UpsellVisualization />
+          <UpsellVisualization services={allServices} relationships={servicesWithUpsells} />
           <UpsellServiceList 
             servicesWithUpsells={servicesWithUpsells}
             onUpdateDiscount={(id, discount) => updateUpsellMutation.mutate({ id, discount })}
@@ -103,7 +102,7 @@ export const ServiceUpsellManager = () => {
       )}
       
       <AddUpsellDialog 
-        isOpen={isAddUpsellOpen}
+        open={isAddUpsellOpen}
         onOpenChange={setIsAddUpsellOpen}
         services={allServices}
         onSubmit={(data) => {
