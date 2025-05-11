@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Employee } from '@/types/employee';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -106,6 +106,72 @@ export const LeaveManagement: React.FC<LeaveManagementProps> = ({ employees }) =
     staleTime: 0, // Make data immediately stale so it refreshes on focus
     refetchOnWindowFocus: true, // Refetch when window regains focus
   });
+
+  // Set up real-time subscription for employee leave data
+  useEffect(() => {
+    // Create a channel for leave data changes
+    const leaveChannel = supabase
+      .channel('leave-management-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*', // Listen for all events (INSERT, UPDATE, DELETE)
+          schema: 'public',
+          table: 'employee_holidays'
+        },
+        (payload) => {
+          console.log('Real-time leave data update:', payload);
+          
+          // Invalidate the query to trigger a refetch
+          queryClient.invalidateQueries({
+            queryKey: ['employee-leaves']
+          });
+          
+          // Show a toast notification
+          toast({
+            title: "Leave Records Updated",
+            description: "Employee leave data has been updated",
+            duration: 3000,
+          });
+        }
+      )
+      .subscribe();
+    
+    // Also subscribe to employee table changes since leave quota might be updated
+    const employeeChannel = supabase
+      .channel('leave-management-employee-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'employees',
+          filter: 'annual_leave_quota IS NOT NULL'
+        },
+        (payload) => {
+          console.log('Employee leave quota updated:', payload);
+          
+          // Invalidate the query to update leave balances
+          queryClient.invalidateQueries({
+            queryKey: ['employee-leaves']
+          });
+          
+          toast({
+            title: "Leave Quota Updated",
+            description: "Employee leave quota has been changed",
+            duration: 3000,
+          });
+        }
+      )
+      .subscribe();
+    
+    // Cleanup subscriptions when component unmounts
+    return () => {
+      console.log('Cleaning up leave management subscriptions');
+      supabase.removeChannel(leaveChannel);
+      supabase.removeChannel(employeeChannel);
+    };
+  }, [queryClient, toast]);
 
   const handleAddLeave = async () => {
     if (!selectedEmployee || !leaveRange?.from || !leaveRange.to) {
@@ -264,15 +330,114 @@ export const LeaveManagement: React.FC<LeaveManagementProps> = ({ employees }) =
   };
 
   return (
-    <div className="space-y-8">
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold">Employee Leave Management</h2>
-        <Button variant="outline" onClick={() => setShowPastLeaveDialog(true)}>
+    <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-3 sm:space-y-0">
+        <h2 className="text-xl sm:text-2xl font-bold">Employee Leave Management</h2>
+        <Button variant="outline" onClick={() => setShowPastLeaveDialog(true)} className="w-full sm:w-auto">
           <RotateCcw className="mr-2 h-4 w-4" /> Record Past Leave
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      {/* Mobile Leave Summary Cards - With progressive disclosure */}
+      <div className="block sm:hidden space-y-4">
+        {employees.map(employee => {
+          const balance = leaveData?.balances.get(employee.id);
+          const leaveRecords = leaveData?.records.get(employee.id) || [];
+          const defaultQuota = employee.annual_leave_quota || 21;
+          const totalAvailable = balance?.totalAvailable ?? calculateAccruedLeave(employee.start_date, defaultQuota);
+          const daysTaken = balance?.daysTaken ?? 0;
+          const daysRemaining = balance?.daysRemaining ?? (totalAvailable - daysTaken);
+          
+          return (
+            <div 
+              key={employee.id} 
+              className="border rounded-lg overflow-hidden shadow-sm"
+            >
+              <div className="bg-muted/30 p-4 flex justify-between items-center">
+                <h3 className="font-semibold">{employee.name}</h3>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => handleOpenLeaveDialog(employee)}
+                  className="h-11 w-11 flex items-center justify-center"
+                  aria-label={`Add leave for ${employee.name}`}
+                >
+                  <Calendar className="h-5 w-5" />
+                </Button>
+              </div>
+              
+              <div className="p-4">
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="bg-green-50 p-3 rounded-lg">
+                    <p className="text-xs text-green-600">Available</p>
+                    <p className="text-lg font-semibold text-green-700">{daysRemaining}</p>
+                  </div>
+                  <div className="bg-orange-50 p-3 rounded-lg">
+                    <p className="text-xs text-orange-600">Taken</p>
+                    <p className="text-lg font-semibold text-orange-700">{daysTaken}</p>
+                  </div>
+                </div>
+                
+                {/* Progressive disclosure pattern using Accordion */}
+                {leaveRecords.length > 0 && (
+                  <Accordion type="single" collapsible className="mt-4">
+                    <AccordionItem value={`leave-history-${employee.id}`} className="border-none">
+                      <AccordionTrigger className="py-2 text-sm font-medium">
+                        View Leave History ({leaveRecords.length})
+                      </AccordionTrigger>
+                      <AccordionContent>
+                        <div className="space-y-3 pt-2">
+                          {leaveRecords.map(leave => (
+                            <div key={leave.id} className="border p-3 rounded-lg text-sm relative">
+                              <div className="flex justify-between items-start gap-2">
+                                <div className="flex-1">
+                                  <Badge variant="outline" className="mb-1">{leave.reason}</Badge>
+                                  <div className="flex justify-between mt-1">
+                                    <p className="text-xs">{leave.date} to {leave.end_date}</p>
+                                    <p className="text-xs font-medium">{leave.duration_days} days</p>
+                                  </div>
+                                </div>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-10 w-10 -mt-1 -mr-1"
+                                  onClick={() => handleDeleteLeave(leave.id)}
+                                  aria-label={`Delete leave record from ${leave.date}`}
+                                >
+                                  <span className="sr-only">Delete</span>
+                                  &times;
+                                </Button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </AccordionContent>
+                    </AccordionItem>
+                  </Accordion>
+                )}
+                
+                {leaveRecords.length === 0 && (
+                  <div className="mt-4 py-3 text-center text-sm text-muted-foreground bg-muted/30 rounded-lg">
+                    No leave records
+                  </div>
+                )}
+                
+                {/* Add leave button for quick access */}
+                <Button 
+                  variant="outline" 
+                  onClick={() => handleOpenLeaveDialog(employee)}
+                  className="w-full mt-4 h-12"
+                >
+                  <Calendar className="mr-2 h-4 w-4" /> Add Leave
+                </Button>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Desktop Leave Management Cards */}
+      <div className="hidden sm:grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {employees.map(employee => {
           const balance = leaveData?.balances.get(employee.id);
           const leaveRecords = leaveData?.records.get(employee.id) || [];
@@ -305,7 +470,7 @@ export const LeaveManagement: React.FC<LeaveManagementProps> = ({ employees }) =
                   </div>
                   
                   <Accordion type="single" collapsible className="mt-4">
-                    <AccordionItem value="leave-history">
+                    <AccordionItem value={`leave-history-${employee.id}`}>
                       <AccordionTrigger className="text-sm">Leave History</AccordionTrigger>
                       <AccordionContent>
                         {leaveRecords.length > 0 ? (
@@ -352,37 +517,41 @@ export const LeaveManagement: React.FC<LeaveManagementProps> = ({ employees }) =
         })}
       </div>
       
-      {/* Employee Leave Dialog */}
+      {/* Mobile-Optimized Employee Leave Dialog */}
       <Dialog open={showEmployeeLeaveDialog} onOpenChange={setShowEmployeeLeaveDialog}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-md max-h-[90vh] overflow-auto p-4 sm:p-6">
           <DialogHeader>
-            <DialogTitle>Add Leave for {selectedEmployee?.name}</DialogTitle>
+            <DialogTitle className="text-center">Add Leave for {selectedEmployee?.name}</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4">
+          <div className="space-y-5 py-2">
             <DateRangePicker
               date={leaveRange || { from: undefined, to: undefined }}
               onDateChange={setLeaveRange}
+              className="w-full"
             />
             
-            <Select 
-              value={leaveReason} 
-              onValueChange={setLeaveReason}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select reason" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Annual Leave">Annual Leave</SelectItem>
-                <SelectItem value="Sick Leave">Sick Leave</SelectItem>
-                <SelectItem value="Personal Leave">Personal Leave</SelectItem>
-                <SelectItem value="Unpaid Leave">Unpaid Leave</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Leave Type</label>
+              <Select 
+                value={leaveReason} 
+                onValueChange={setLeaveReason}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select reason" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Annual Leave">Annual Leave</SelectItem>
+                  <SelectItem value="Sick Leave">Sick Leave</SelectItem>
+                  <SelectItem value="Personal Leave">Personal Leave</SelectItem>
+                  <SelectItem value="Unpaid Leave">Unpaid Leave</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
             
             <Button 
               onClick={handleAddLeave} 
               disabled={!leaveRange?.from || !leaveRange.to}
-              className="w-full"
+              className="w-full h-11"
             >
               Save Leave
             </Button>
@@ -390,46 +559,53 @@ export const LeaveManagement: React.FC<LeaveManagementProps> = ({ employees }) =
         </DialogContent>
       </Dialog>
       
-      {/* Record Past Leave Dialog */}
+      {/* Record Past Leave Dialog - optimized for mobile */}
       <Dialog open={showPastLeaveDialog} onOpenChange={setShowPastLeaveDialog}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-md max-h-[90vh] overflow-auto p-4 sm:p-6">
           <DialogHeader>
-            <DialogTitle>Record Past Leave</DialogTitle>
+            <DialogTitle className="text-center">Record Past Leave</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4 py-2">
-            <Select onValueChange={(value) => {
-              const employee = employees.find(e => e.id === value);
-              if (employee) setSelectedEmployee(employee);
-            }}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select employee" />
-              </SelectTrigger>
-              <SelectContent>
-                {employees.map(emp => (
-                  <SelectItem key={emp.id} value={emp.id}>{emp.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          <div className="space-y-5 py-2">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Employee</label>
+              <Select onValueChange={(value) => {
+                const employee = employees.find(e => e.id === value);
+                if (employee) setSelectedEmployee(employee);
+              }}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select employee" />
+                </SelectTrigger>
+                <SelectContent>
+                  {employees.map(emp => (
+                    <SelectItem key={emp.id} value={emp.id}>{emp.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
             
             <DateRangePicker
               date={leaveRange || { from: undefined, to: undefined }}
               onDateChange={setLeaveRange}
+              className="w-full"
             />
             
-            <Select 
-              value={leaveReason} 
-              onValueChange={setLeaveReason}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select reason" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Annual Leave">Annual Leave</SelectItem>
-                <SelectItem value="Sick Leave">Sick Leave</SelectItem>
-                <SelectItem value="Personal Leave">Personal Leave</SelectItem>
-                <SelectItem value="Unpaid Leave">Unpaid Leave</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Leave Type</label>
+              <Select 
+                value={leaveReason} 
+                onValueChange={setLeaveReason}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select reason" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Annual Leave">Annual Leave</SelectItem>
+                  <SelectItem value="Sick Leave">Sick Leave</SelectItem>
+                  <SelectItem value="Personal Leave">Personal Leave</SelectItem>
+                  <SelectItem value="Unpaid Leave">Unpaid Leave</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
             
             <Button 
               onClick={() => {
@@ -437,7 +613,7 @@ export const LeaveManagement: React.FC<LeaveManagementProps> = ({ employees }) =
                 setShowPastLeaveDialog(false);
               }}
               disabled={!selectedEmployee || !leaveRange?.from || !leaveRange.to}
-              className="w-full"
+              className="w-full h-11"
             >
               <Plus className="mr-2 h-4 w-4" /> Add Past Leave
             </Button>

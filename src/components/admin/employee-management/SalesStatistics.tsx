@@ -105,7 +105,7 @@ export const SalesStatistics = ({ employee }: SalesStatisticsProps) => {
   if (isLoading) {
     return (
       <div className="space-y-4 p-1">
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Skeleton className="h-24 w-full" />
           <Skeleton className="h-24 w-full" />
         </div>
@@ -114,67 +114,106 @@ export const SalesStatistics = ({ employee }: SalesStatisticsProps) => {
     );
   }
 
+  // Format number to display with thousands separator
+  const formatNumber = (num: number) => {
+    return Math.round(num).toLocaleString();
+  };
+
   return (
     <div className="space-y-4 p-1">
+      {/* Top Cards - Stacked on mobile, side by side on desktop */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <Card className="overflow-hidden">
-          <CardContent className="p-4">
-            <h3 className="text-sm font-medium text-muted-foreground mb-1">Current vs Previous Month</h3>
+        {/* Current vs Previous Month Card */}
+        <Card className="overflow-hidden bg-card hover:bg-card/80 transition-colors">
+          <CardContent className="p-4 sm:p-6">
+            <h3 className="text-sm font-medium text-muted-foreground mb-1.5">Current vs Previous Month</h3>
             <div className="flex justify-between items-end">
               <div>
-                <p className="text-2xl font-bold">{statistics.currentMonth.amount.toLocaleString()} SAR</p>
-                <p className="text-xs text-muted-foreground">{statistics.currentMonth.month}</p>
+                <p className="text-xl sm:text-2xl font-bold">{formatNumber(statistics.currentMonth.amount)} SAR</p>
+                <p className="text-xs text-muted-foreground mt-1">{statistics.currentMonth.month}</p>
               </div>
               
               <div className="flex items-center">
                 {statistics.trend === 'up' && (
-                  <ArrowUp className="h-4 w-4 text-green-500 mr-1" />
+                  <div className="flex items-center justify-center bg-green-50 h-10 w-10 rounded-full">
+                    <ArrowUp className="h-5 w-5 text-green-500" />
+                  </div>
                 )}
                 {statistics.trend === 'down' && (
-                  <ArrowDown className="h-4 w-4 text-red-500 mr-1" />
+                  <div className="flex items-center justify-center bg-red-50 h-10 w-10 rounded-full">
+                    <ArrowDown className="h-5 w-5 text-red-500" />
+                  </div>
                 )}
                 {statistics.trend === 'neutral' && (
-                  <ArrowRight className="h-4 w-4 text-gray-500 mr-1" />
+                  <div className="flex items-center justify-center bg-gray-50 h-10 w-10 rounded-full">
+                    <ArrowRight className="h-5 w-5 text-gray-500" />
+                  </div>
                 )}
-                <span className={`text-sm font-medium ${
-                  statistics.trend === 'up' ? 'text-green-500' : 
-                  statistics.trend === 'down' ? 'text-red-500' : 'text-gray-500'
-                }`}>
-                  {Math.abs(Math.round(statistics.percentChange))}%
-                </span>
               </div>
             </div>
-            <div className="mt-2">
-              <p className="text-xs text-muted-foreground">Previous: {statistics.previousMonth.amount.toLocaleString()} SAR ({statistics.previousMonth.month})</p>
+            <div className="mt-3 flex items-center">
+              <span className={`text-sm font-medium px-2 py-0.5 rounded-full ${
+                statistics.trend === 'up' ? 'bg-green-100 text-green-700' : 
+                statistics.trend === 'down' ? 'bg-red-100 text-red-700' : 
+                'bg-gray-100 text-gray-700'
+              }`}>
+                {Math.abs(Math.round(statistics.percentChange))}%
+              </span>
+              <p className="text-xs text-muted-foreground ml-2">
+                from {formatNumber(statistics.previousMonth.amount)} SAR
+              </p>
             </div>
           </CardContent>
         </Card>
         
-        <Card className="overflow-hidden">
-          <CardContent className="p-4">
-            <h3 className="text-sm font-medium text-muted-foreground mb-1">Average Monthly Sales</h3>
-            <p className="text-2xl font-bold">{Math.round(statistics.average).toLocaleString()} SAR</p>
-            <div className="mt-2">
-              <p className="text-xs text-muted-foreground">Highest: {statistics.highest.amount.toLocaleString()} SAR ({statistics.highest.month})</p>
+        {/* Average Monthly Sales Card */}
+        <Card className="bg-card hover:bg-card/80 transition-colors">
+          <CardContent className="p-4 sm:p-6">
+            <h3 className="text-sm font-medium text-muted-foreground mb-1.5">Average Monthly Sales</h3>
+            <p className="text-xl sm:text-2xl font-bold">{formatNumber(statistics.average)} SAR</p>
+            <div className="mt-3">
+              <div className="flex items-center">
+                <span className="text-xs px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full">Highest</span>
+                <p className="text-xs ml-2 text-muted-foreground">
+                  {formatNumber(statistics.highest.amount)} SAR ({statistics.highest.month})
+                </p>
+              </div>
             </div>
           </CardContent>
         </Card>
       </div>
       
-      <Card>
-        <CardContent className="p-4">
+      {/* Performance Progress Card */}
+      <Card className="bg-card hover:bg-card/80 transition-colors">
+        <CardContent className="p-4 sm:p-6">
           <h3 className="text-sm font-medium text-muted-foreground mb-3">Performance Relative to Highest Month</h3>
-          <div className="space-y-1">
-            <div className="flex justify-between text-xs">
-              <span>Current: {statistics.currentMonth.amount.toLocaleString()} SAR</span>
-              <span>Highest: {statistics.highest.amount.toLocaleString()} SAR</span>
+          
+          {/* Current as percentage of highest */}
+          <div className="mb-4">
+            <div className="flex justify-between text-xs mb-1.5">
+              <span className="font-medium">Current Month</span>
+              <span>{Math.round(statistics.highest.amount > 0 
+                ? (statistics.currentMonth.amount / statistics.highest.amount) * 100 
+                : 0)}%</span>
             </div>
             <Progress 
               value={statistics.highest.amount > 0 
                 ? (statistics.currentMonth.amount / statistics.highest.amount) * 100 
                 : 0} 
-              className="h-2" 
+              className="h-3 rounded-full" 
             />
+          </div>
+          
+          {/* Amounts */}
+          <div className="grid grid-cols-2 gap-2 mt-2">
+            <div className="bg-muted/40 p-2 rounded">
+              <span className="text-xs text-muted-foreground">Current</span>
+              <p className="text-sm font-semibold">{formatNumber(statistics.currentMonth.amount)} SAR</p>
+            </div>
+            <div className="bg-muted/40 p-2 rounded">
+              <span className="text-xs text-muted-foreground">Highest</span>
+              <p className="text-sm font-semibold">{formatNumber(statistics.highest.amount)} SAR</p>
+            </div>
           </div>
         </CardContent>
       </Card>

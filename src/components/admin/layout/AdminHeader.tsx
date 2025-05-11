@@ -1,10 +1,15 @@
 import { Button } from '@/components/ui/button';
-import { ShieldAlert } from 'lucide-react';
+import { ShieldAlert, Menu } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { useSidebar } from '@/components/ui/sidebar/SidebarContext';
 
 export const AdminHeader = () => {
+  const isMobile = useIsMobile();
+  const { toggleSidebar } = useSidebar();
+
   // Fetch branch count for status badge
   const { data: branchCount } = useQuery({
     queryKey: ['branchCount'],
@@ -19,10 +24,22 @@ export const AdminHeader = () => {
   });
 
   return (
-    <header className="sticky top-0 z-10 border-b p-4 bg-white">
-      <div className="container mx-auto flex justify-between items-center">
+    <header className="sticky top-0 z-10 border-b bg-white p-4 shadow-sm">
+      <div className="mx-auto flex justify-between items-center">
         <div className="flex items-center">
-          <h1 className="text-xl font-bold">Admin Dashboard</h1>
+          {isMobile && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="mr-2 md:hidden text-gray-700 hover:bg-gray-100"
+              onClick={toggleSidebar}
+            >
+              <Menu className="h-5 w-5" />
+              <span className="sr-only">Toggle menu</span>
+            </Button>
+          )}
+          
+          <h1 className="text-xl font-bold text-gray-900">Admin Dashboard</h1>
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -44,6 +61,7 @@ export const AdminHeader = () => {
           <Button
             variant="outline"
             onClick={() => window.location.href = '/customer'}
+            className="text-gray-700 hover:text-gray-900 hover:bg-gray-100"
           >
             Back to Site
           </Button>

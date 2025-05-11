@@ -1,10 +1,18 @@
 
-import { Tables } from "@/types/supabase";
 import { motion, AnimatePresence } from "framer-motion";
 import GoogleReviews from "@/components/customer/GoogleReviews";
 
+interface UIElement {
+  id: string;
+  type: string;
+  name: string;
+  display_name: string;
+  is_visible?: boolean;
+  [key: string]: any;
+}
+
 interface GoogleReviewsWrapperProps {
-  element: Tables<'ui_elements'>;
+  element: UIElement;
   isVisible: boolean;
 }
 

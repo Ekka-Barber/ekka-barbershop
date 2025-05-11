@@ -1,12 +1,19 @@
-
 import { useLanguage } from "@/contexts/LanguageContext";
-import { Tables } from "@/types/supabase";
 import { motion, AnimatePresence } from "framer-motion";
 import { trackButtonClick } from "@/utils/tiktokTracking";
 import freshaLogo from "@/assets/fresha-logo.svg";
 
+interface UIElement {
+  id: string;
+  type: string;
+  name: string;
+  display_name: string;
+  is_visible?: boolean;
+  [key: string]: any;
+}
+
 interface EidBookingsSectionProps {
-  element: Tables<'ui_elements'>;
+  element: UIElement;
   isVisible: boolean;
   onOpenEidDialog: () => void;
 }

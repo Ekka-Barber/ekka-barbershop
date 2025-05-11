@@ -24,7 +24,7 @@ export const EmployeeFinancials = ({
   return (
     <div className="space-y-4">
       <Tabs defaultValue="bonuses" onValueChange={setActiveTab} value={activeTab}>
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="flex flex-wrap gap-2 w-full">
           <TabsTrigger value="bonuses" className="flex items-center gap-1">
             <CircleDollarSign className="h-4 w-4" />
             <span>Bonuses</span>

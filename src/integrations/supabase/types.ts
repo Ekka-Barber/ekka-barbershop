@@ -169,11 +169,46 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "bookings_barber_id_fkey"
+            columns: ["barber_id"]
+            isOneToOne: false
+            referencedRelation: "mv_employee_monthly_salary_summary"
+            referencedColumns: ["employee_id"]
+          },
+          {
+            foreignKeyName: "bookings_barber_id_fkey"
+            columns: ["barber_id"]
+            isOneToOne: false
+            referencedRelation: "mv_employee_transaction_summary"
+            referencedColumns: ["employee_id"]
+          },
+          {
+            foreignKeyName: "bookings_barber_id_fkey"
+            columns: ["barber_id"]
+            isOneToOne: false
+            referencedRelation: "vw_current_month_sales"
+            referencedColumns: ["employee_id"]
+          },
+          {
+            foreignKeyName: "bookings_barber_id_fkey"
+            columns: ["barber_id"]
+            isOneToOne: false
+            referencedRelation: "vw_employee_transactions"
+            referencedColumns: ["employee_id"]
+          },
+          {
             foreignKeyName: "bookings_branch_id_fkey"
             columns: ["branch_id"]
             isOneToOne: false
             referencedRelation: "branches"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "mv_branch_salary_aggregates"
+            referencedColumns: ["branch_id"]
           },
         ]
       }
@@ -206,6 +241,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "branches"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "branch_categories_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "mv_branch_salary_aggregates"
+            referencedColumns: ["branch_id"]
           },
           {
             foreignKeyName: "branch_categories_category_id_fkey"
@@ -249,6 +291,13 @@ export type Database = {
             referencedRelation: "branches"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "branch_managers_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "mv_branch_salary_aggregates"
+            referencedColumns: ["branch_id"]
+          },
         ]
       }
       branch_services: {
@@ -280,6 +329,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "branches"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "branch_services_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "mv_branch_salary_aggregates"
+            referencedColumns: ["branch_id"]
           },
           {
             foreignKeyName: "branch_services_service_id_fkey"
@@ -483,6 +539,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "cash_deposits_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "mv_branch_salary_aggregates"
+            referencedColumns: ["branch_id"]
+          },
+          {
             foreignKeyName: "cash_deposits_transaction_id_fkey"
             columns: ["transaction_id"]
             isOneToOne: false
@@ -576,6 +639,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "daily_sales_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "mv_branch_salary_aggregates"
+            referencedColumns: ["branch_id"]
+          },
+          {
             foreignKeyName: "daily_sales_recorded_by_manager_id_fkey"
             columns: ["recorded_by_manager_id"]
             isOneToOne: false
@@ -624,6 +694,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "deposit_withdrawals_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "mv_branch_salary_aggregates"
+            referencedColumns: ["branch_id"]
+          },
+          {
             foreignKeyName: "deposit_withdrawals_deposit_id_fkey"
             columns: ["deposit_id"]
             isOneToOne: false
@@ -643,6 +720,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "branches"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_branch_id"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "mv_branch_salary_aggregates"
+            referencedColumns: ["branch_id"]
           },
         ]
       }
@@ -685,6 +769,34 @@ export type Database = {
             referencedRelation: "employees"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "employee_bonuses_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "mv_employee_monthly_salary_summary"
+            referencedColumns: ["employee_id"]
+          },
+          {
+            foreignKeyName: "employee_bonuses_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "mv_employee_transaction_summary"
+            referencedColumns: ["employee_id"]
+          },
+          {
+            foreignKeyName: "employee_bonuses_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "vw_current_month_sales"
+            referencedColumns: ["employee_id"]
+          },
+          {
+            foreignKeyName: "employee_bonuses_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "vw_employee_transactions"
+            referencedColumns: ["employee_id"]
+          },
         ]
       }
       employee_deductions: {
@@ -726,6 +838,118 @@ export type Database = {
             referencedRelation: "employees"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "employee_deductions_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "mv_employee_monthly_salary_summary"
+            referencedColumns: ["employee_id"]
+          },
+          {
+            foreignKeyName: "employee_deductions_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "mv_employee_transaction_summary"
+            referencedColumns: ["employee_id"]
+          },
+          {
+            foreignKeyName: "employee_deductions_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "vw_current_month_sales"
+            referencedColumns: ["employee_id"]
+          },
+          {
+            foreignKeyName: "employee_deductions_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "vw_employee_transactions"
+            referencedColumns: ["employee_id"]
+          },
+        ]
+      }
+      employee_documents: {
+        Row: {
+          created_at: string
+          document_name: string
+          document_number: string | null
+          document_type: string
+          document_url: string | null
+          duration_months: number
+          employee_id: string
+          expiry_date: string
+          id: string
+          issue_date: string
+          notes: string | null
+          notification_threshold_days: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          document_name: string
+          document_number?: string | null
+          document_type: string
+          document_url?: string | null
+          duration_months?: number
+          employee_id: string
+          expiry_date: string
+          id?: string
+          issue_date: string
+          notes?: string | null
+          notification_threshold_days?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          document_name?: string
+          document_number?: string | null
+          document_type?: string
+          document_url?: string | null
+          duration_months?: number
+          employee_id?: string
+          expiry_date?: string
+          id?: string
+          issue_date?: string
+          notes?: string | null
+          notification_threshold_days?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_documents_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_documents_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "mv_employee_monthly_salary_summary"
+            referencedColumns: ["employee_id"]
+          },
+          {
+            foreignKeyName: "employee_documents_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "mv_employee_transaction_summary"
+            referencedColumns: ["employee_id"]
+          },
+          {
+            foreignKeyName: "employee_documents_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "vw_current_month_sales"
+            referencedColumns: ["employee_id"]
+          },
+          {
+            foreignKeyName: "employee_documents_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "vw_employee_transactions"
+            referencedColumns: ["employee_id"]
+          },
         ]
       }
       employee_holidays: {
@@ -763,6 +987,34 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "employees"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_holidays_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "mv_employee_monthly_salary_summary"
+            referencedColumns: ["employee_id"]
+          },
+          {
+            foreignKeyName: "employee_holidays_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "mv_employee_transaction_summary"
+            referencedColumns: ["employee_id"]
+          },
+          {
+            foreignKeyName: "employee_holidays_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "vw_current_month_sales"
+            referencedColumns: ["employee_id"]
+          },
+          {
+            foreignKeyName: "employee_holidays_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "vw_employee_transactions"
+            referencedColumns: ["employee_id"]
           },
         ]
       }
@@ -815,6 +1067,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "employee_loans_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "mv_branch_salary_aggregates"
+            referencedColumns: ["branch_id"]
+          },
+          {
             foreignKeyName: "employee_loans_cash_deposit_id_fkey"
             columns: ["cash_deposit_id"]
             isOneToOne: false
@@ -828,11 +1087,150 @@ export type Database = {
             referencedRelation: "employees"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "employee_loans_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "mv_employee_monthly_salary_summary"
+            referencedColumns: ["employee_id"]
+          },
+          {
+            foreignKeyName: "employee_loans_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "mv_employee_transaction_summary"
+            referencedColumns: ["employee_id"]
+          },
+          {
+            foreignKeyName: "employee_loans_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "vw_current_month_sales"
+            referencedColumns: ["employee_id"]
+          },
+          {
+            foreignKeyName: "employee_loans_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "vw_employee_transactions"
+            referencedColumns: ["employee_id"]
+          },
+        ]
+      }
+      employee_monthly_salary: {
+        Row: {
+          base_salary: number
+          calculation_details_json: Json | null
+          commission_amount: number | null
+          created_at: string | null
+          employee_id: string
+          employee_name_snapshot: string
+          id: string
+          month_year: string
+          net_salary_paid: number
+          payment_confirmation_date: string
+          salary_plan_id_snapshot: string | null
+          salary_plan_name_snapshot: string | null
+          sales_amount: number | null
+          total_bonuses: number | null
+          total_deductions: number | null
+          total_loan_repayments: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          base_salary?: number
+          calculation_details_json?: Json | null
+          commission_amount?: number | null
+          created_at?: string | null
+          employee_id: string
+          employee_name_snapshot: string
+          id?: string
+          month_year: string
+          net_salary_paid: number
+          payment_confirmation_date: string
+          salary_plan_id_snapshot?: string | null
+          salary_plan_name_snapshot?: string | null
+          sales_amount?: number | null
+          total_bonuses?: number | null
+          total_deductions?: number | null
+          total_loan_repayments?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          base_salary?: number
+          calculation_details_json?: Json | null
+          commission_amount?: number | null
+          created_at?: string | null
+          employee_id?: string
+          employee_name_snapshot?: string
+          id?: string
+          month_year?: string
+          net_salary_paid?: number
+          payment_confirmation_date?: string
+          salary_plan_id_snapshot?: string | null
+          salary_plan_name_snapshot?: string | null
+          sales_amount?: number | null
+          total_bonuses?: number | null
+          total_deductions?: number | null
+          total_loan_repayments?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_monthly_salary_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_monthly_salary_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "mv_employee_monthly_salary_summary"
+            referencedColumns: ["employee_id"]
+          },
+          {
+            foreignKeyName: "employee_monthly_salary_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "mv_employee_transaction_summary"
+            referencedColumns: ["employee_id"]
+          },
+          {
+            foreignKeyName: "employee_monthly_salary_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "vw_current_month_sales"
+            referencedColumns: ["employee_id"]
+          },
+          {
+            foreignKeyName: "employee_monthly_salary_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "vw_employee_transactions"
+            referencedColumns: ["employee_id"]
+          },
+          {
+            foreignKeyName: "employee_monthly_salary_salary_plan_id_snapshot_fkey"
+            columns: ["salary_plan_id_snapshot"]
+            isOneToOne: false
+            referencedRelation: "mv_employee_monthly_salary_summary"
+            referencedColumns: ["salary_plan_id"]
+          },
+          {
+            foreignKeyName: "employee_monthly_salary_salary_plan_id_snapshot_fkey"
+            columns: ["salary_plan_id_snapshot"]
+            isOneToOne: false
+            referencedRelation: "salary_plans"
+            referencedColumns: ["id"]
+          },
         ]
       }
       employee_sales: {
         Row: {
           created_at: string
+          employee_id: string | null
           employee_name: string
           id: string
           month: string
@@ -841,6 +1239,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          employee_id?: string | null
           employee_name: string
           id?: string
           month: string
@@ -849,13 +1248,50 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          employee_id?: string | null
           employee_name?: string
           id?: string
           month?: string
           sales_amount?: number
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "fk_employee_sales_employee"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_employee_sales_employee"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "mv_employee_monthly_salary_summary"
+            referencedColumns: ["employee_id"]
+          },
+          {
+            foreignKeyName: "fk_employee_sales_employee"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "mv_employee_transaction_summary"
+            referencedColumns: ["employee_id"]
+          },
+          {
+            foreignKeyName: "fk_employee_sales_employee"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "vw_current_month_sales"
+            referencedColumns: ["employee_id"]
+          },
+          {
+            foreignKeyName: "fk_employee_sales_employee"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "vw_employee_transactions"
+            referencedColumns: ["employee_id"]
+          },
+        ]
       }
       employee_schedules: {
         Row: {
@@ -924,11 +1360,46 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "employee_schedules_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "mv_branch_salary_aggregates"
+            referencedColumns: ["branch_id"]
+          },
+          {
             foreignKeyName: "employee_schedules_employee_id_fkey"
             columns: ["employee_id"]
             isOneToOne: false
             referencedRelation: "employees"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_schedules_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "mv_employee_monthly_salary_summary"
+            referencedColumns: ["employee_id"]
+          },
+          {
+            foreignKeyName: "employee_schedules_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "mv_employee_transaction_summary"
+            referencedColumns: ["employee_id"]
+          },
+          {
+            foreignKeyName: "employee_schedules_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "vw_current_month_sales"
+            referencedColumns: ["employee_id"]
+          },
+          {
+            foreignKeyName: "employee_schedules_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "vw_employee_transactions"
+            referencedColumns: ["employee_id"]
           },
           {
             foreignKeyName: "employee_schedules_last_modified_by_fkey"
@@ -944,7 +1415,9 @@ export type Database = {
           annual_leave_quota: number | null
           branch_id: string | null
           created_at: string
+          email: string | null
           id: string
+          is_archived: boolean
           name: string
           name_ar: string | null
           nationality: string | null
@@ -961,7 +1434,9 @@ export type Database = {
           annual_leave_quota?: number | null
           branch_id?: string | null
           created_at?: string
+          email?: string | null
           id?: string
+          is_archived?: boolean
           name: string
           name_ar?: string | null
           nationality?: string | null
@@ -978,7 +1453,9 @@ export type Database = {
           annual_leave_quota?: number | null
           branch_id?: string | null
           created_at?: string
+          email?: string | null
           id?: string
+          is_archived?: boolean
           name?: string
           name_ar?: string | null
           nationality?: string | null
@@ -1000,11 +1477,32 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "employees_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "mv_branch_salary_aggregates"
+            referencedColumns: ["branch_id"]
+          },
+          {
+            foreignKeyName: "employees_salary_plan_id_fkey"
+            columns: ["salary_plan_id"]
+            isOneToOne: false
+            referencedRelation: "mv_employee_monthly_salary_summary"
+            referencedColumns: ["salary_plan_id"]
+          },
+          {
             foreignKeyName: "employees_salary_plan_id_fkey"
             columns: ["salary_plan_id"]
             isOneToOne: false
             referencedRelation: "salary_plans"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_employee_salary_plan"
+            columns: ["salary_plan_id"]
+            isOneToOne: false
+            referencedRelation: "mv_employee_monthly_salary_summary"
+            referencedColumns: ["salary_plan_id"]
           },
           {
             foreignKeyName: "fk_employee_salary_plan"
@@ -1208,6 +1706,27 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "branches"
             referencedColumns: ["name"]
+          },
+          {
+            foreignKeyName: "marketing_files_branch_name_fkey"
+            columns: ["branch_name"]
+            isOneToOne: false
+            referencedRelation: "mv_branch_salary_aggregates"
+            referencedColumns: ["branch_name"]
+          },
+          {
+            foreignKeyName: "marketing_files_branch_name_fkey"
+            columns: ["branch_name"]
+            isOneToOne: false
+            referencedRelation: "mv_employee_monthly_salary_summary"
+            referencedColumns: ["branch_name"]
+          },
+          {
+            foreignKeyName: "marketing_files_branch_name_fkey"
+            columns: ["branch_name"]
+            isOneToOne: false
+            referencedRelation: "vw_current_month_sales"
+            referencedColumns: ["branch_name"]
           },
         ]
       }
@@ -1510,6 +2029,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "recurring_expenses_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "mv_branch_salary_aggregates"
+            referencedColumns: ["branch_id"]
+          },
+          {
             foreignKeyName: "recurring_expenses_category_id_fkey"
             columns: ["category_id"]
             isOneToOne: false
@@ -1529,24 +2055,33 @@ export type Database = {
         Row: {
           config: Json
           created_at: string
+          description_ar: string | null
+          description_en: string | null
           id: string
           name: string
+          name_ar: string | null
           type: Database["public"]["Enums"]["salary_calculation_type"]
           updated_at: string
         }
         Insert: {
           config: Json
           created_at?: string
+          description_ar?: string | null
+          description_en?: string | null
           id?: string
           name: string
+          name_ar?: string | null
           type: Database["public"]["Enums"]["salary_calculation_type"]
           updated_at?: string
         }
         Update: {
           config?: Json
           created_at?: string
+          description_ar?: string | null
+          description_en?: string | null
           id?: string
           name?: string
+          name_ar?: string | null
           type?: Database["public"]["Enums"]["salary_calculation_type"]
           updated_at?: string
         }
@@ -1946,6 +2481,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "transactions_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "mv_branch_salary_aggregates"
+            referencedColumns: ["branch_id"]
+          },
+          {
             foreignKeyName: "transactions_category_id_fkey"
             columns: ["category_id"]
             isOneToOne: false
@@ -1965,6 +2507,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "branches"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transactions_recorded_at_branch_id_fkey"
+            columns: ["recorded_at_branch_id"]
+            isOneToOne: false
+            referencedRelation: "mv_branch_salary_aggregates"
+            referencedColumns: ["branch_id"]
           },
           {
             foreignKeyName: "transactions_recorded_by_manager_id_fkey"
@@ -2115,6 +2664,147 @@ export type Database = {
         }
         Relationships: []
       }
+      employee_documents_with_status: {
+        Row: {
+          branch_id: string | null
+          created_at: string | null
+          days_remaining: number | null
+          document_name: string | null
+          document_number: string | null
+          document_type: string | null
+          document_url: string | null
+          duration_months: number | null
+          employee_id: string | null
+          employee_name: string | null
+          expiry_date: string | null
+          id: string | null
+          issue_date: string | null
+          notes: string | null
+          notification_threshold_days: number | null
+          status: string | null
+          updated_at: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_documents_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_documents_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "mv_employee_monthly_salary_summary"
+            referencedColumns: ["employee_id"]
+          },
+          {
+            foreignKeyName: "employee_documents_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "mv_employee_transaction_summary"
+            referencedColumns: ["employee_id"]
+          },
+          {
+            foreignKeyName: "employee_documents_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "vw_current_month_sales"
+            referencedColumns: ["employee_id"]
+          },
+          {
+            foreignKeyName: "employee_documents_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "vw_employee_transactions"
+            referencedColumns: ["employee_id"]
+          },
+          {
+            foreignKeyName: "employees_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employees_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "mv_branch_salary_aggregates"
+            referencedColumns: ["branch_id"]
+          },
+        ]
+      }
+      mv_branch_salary_aggregates: {
+        Row: {
+          avg_base_salary: number | null
+          branch_id: string | null
+          branch_name: string | null
+          employee_count: number | null
+          max_base_salary: number | null
+          min_base_salary: number | null
+          month: string | null
+          total_base_salary: number | null
+          total_bonuses: number | null
+          total_commissions: number | null
+          total_deductions: number | null
+          total_sales: number | null
+        }
+        Relationships: []
+      }
+      mv_employee_monthly_salary_summary: {
+        Row: {
+          base_salary: number | null
+          branch_id: string | null
+          branch_name: string | null
+          commission: number | null
+          employee_id: string | null
+          employee_name: string | null
+          month: string | null
+          salary_plan_id: string | null
+          salary_plan_name: string | null
+          salary_plan_type:
+            | Database["public"]["Enums"]["salary_calculation_type"]
+            | null
+          sales_amount: number | null
+          total_bonuses: number | null
+          total_deductions: number | null
+          total_loans: number | null
+          total_salary: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employees_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employees_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "mv_branch_salary_aggregates"
+            referencedColumns: ["branch_id"]
+          },
+        ]
+      }
+      mv_employee_transaction_summary: {
+        Row: {
+          bonus_count: number | null
+          deduction_count: number | null
+          employee_id: string | null
+          employee_name: string | null
+          loan_count: number | null
+          month: string | null
+          sales_amount: number | null
+          total_bonuses: number | null
+          total_deductions: number | null
+          total_loans: number | null
+        }
+        Relationships: []
+      }
       qr_scan_counts_daily: {
         Row: {
           qr_id: string | null
@@ -2131,8 +2821,61 @@ export type Database = {
           },
         ]
       }
+      vw_current_month_sales: {
+        Row: {
+          branch_id: string | null
+          branch_name: string | null
+          employee_id: string | null
+          employee_name: string | null
+          month: string | null
+          sales_amount: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employees_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employees_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "mv_branch_salary_aggregates"
+            referencedColumns: ["branch_id"]
+          },
+        ]
+      }
+      vw_employee_transactions: {
+        Row: {
+          current_month_bonuses: number | null
+          current_month_deductions: number | null
+          current_month_loans: number | null
+          employee_id: string | null
+          employee_name: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
+      calculate_commission: {
+        Args: { plan_type: string; config_json: Json; sales_amount: number }
+        Returns: number
+      }
+      calculate_employee_salary: {
+        Args: { p_employee_id: string; p_month?: string }
+        Returns: {
+          employee_id: string
+          employee_name: string
+          base_salary: number
+          commission: number
+          bonus: number
+          deductions: number
+          total_salary: number
+          month: string
+        }[]
+      }
       clean_orphaned_receipts: {
         Args: Record<PropertyKey, never>
         Returns: undefined
@@ -2156,6 +2899,14 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
+      execute_sql: {
+        Args: { sql_query: string }
+        Returns: undefined
+      }
+      execute_sql_with_result: {
+        Args: { sql_query: string }
+        Returns: string[]
+      }
       generate_15min_slots: {
         Args: { start_time: string; end_time: string }
         Returns: {
@@ -2165,6 +2916,10 @@ export type Database = {
       generate_recurring_expenses: {
         Args: Record<PropertyKey, never>
         Returns: undefined
+      }
+      get_base_salary_from_config: {
+        Args: { plan_type: string; config_json: Json }
+        Returns: number
       }
       get_branch_manager_code: {
         Args: Record<PropertyKey, never>
@@ -2176,6 +2931,10 @@ export type Database = {
           device_type: string
           count: string
         }[]
+      }
+      get_employee_with_aggregated_json: {
+        Args: { p_employee_id: string }
+        Returns: Json
       }
       get_owner_access: {
         Args: Record<PropertyKey, never>
@@ -2192,6 +2951,15 @@ export type Database = {
           count: string
         }[]
       }
+      group_employees_by_salary_range: {
+        Args: { low_range?: number; mid_range?: number; high_range?: number }
+        Returns: {
+          salary_range: string
+          employee_count: number
+          total_salary: number
+          avg_salary: number
+        }[]
+      }
       increment: {
         Args: { x: number }
         Returns: number
@@ -2205,7 +2973,24 @@ export type Database = {
         }
         Returns: boolean
       }
+      json_path_query: {
+        Args: {
+          table_name: string
+          json_column: string
+          json_path: string
+          comparison_operator: string
+          comparison_value: Json
+        }
+        Returns: {
+          id: string
+          result: Json
+        }[]
+      }
       manage_expired_offers: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      refresh_all_materialized_views: {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
@@ -2213,9 +2998,38 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
+      refresh_mv_branch_salary_aggregates: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      refresh_mv_employee_monthly_salary_summary: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      refresh_mv_employee_salary_change_history: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      refresh_mv_employee_transaction_summary: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      refresh_mv_historical_salary_trends: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       round_amount: {
         Args: { amount: number }
         Returns: number
+      }
+      search_employee_json_data: {
+        Args: { search_term: string }
+        Returns: {
+          id: string
+          name: string
+          matched_field: string
+          matched_value: Json
+        }[]
       }
       set_branch_manager_code: {
         Args: { code: string }
@@ -2228,6 +3042,10 @@ export type Database = {
       time_to_minutes: {
         Args: { time_str: string }
         Returns: number
+      }
+      transform_employee_json: {
+        Args: { employee_id: string; field_name: string; update_value: Json }
+        Returns: Json
       }
     }
     Enums: {

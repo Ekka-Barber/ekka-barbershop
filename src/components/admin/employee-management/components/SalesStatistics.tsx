@@ -1,8 +1,8 @@
-import { useState, useMemo } from 'react';
+import { useMemo, useEffect } from 'react';
 import { Employee } from '@/types/employee';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { format, subMonths, isAfter, parseISO } from 'date-fns';
 import { ArrowUp, ArrowDown, ArrowRight } from 'lucide-react';
@@ -13,10 +13,10 @@ interface SalesStatisticsProps {
 }
 
 export const SalesStatistics = ({ employee }: SalesStatisticsProps) => {
-  const [isLoading, setIsLoading] = useState(true);
-  
+  const queryClient = useQueryClient();
+
   // Fetch sales data for the last 6 months
-  const { data: salesData } = useQuery({
+  const { data: salesData, isLoading } = useQuery({
     queryKey: ['employee-sales-history', employee.id],
     queryFn: async () => {
       // Get date 6 months ago
@@ -31,10 +31,38 @@ export const SalesStatistics = ({ employee }: SalesStatisticsProps) => {
         .order('month');
       
       if (error) throw error;
-      setIsLoading(false);
       return data || [];
-    }
+    },
+    staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
+    gcTime: 10 * 60 * 1000 // Keep data in cache for 10 minutes
   });
+
+  // Set up real-time subscription
+  useEffect(() => {
+    const sixMonthsAgo = subMonths(new Date(), 6);
+    const formattedDate = format(sixMonthsAgo, 'yyyy-MM-01');
+
+    const subscription = supabase
+      .channel('employee-sales-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'employee_sales',
+          filter: `employee_name=eq.${employee.name} AND month>=${formattedDate}`
+        },
+        () => {
+          // Invalidate and refetch when any change occurs
+          queryClient.invalidateQueries({ queryKey: ['employee-sales-history', employee.id] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [employee.name, employee.id, queryClient]);
 
   // Calculate statistics from sales data
   const statistics = useMemo(() => {
@@ -150,7 +178,7 @@ export const SalesStatistics = ({ employee }: SalesStatisticsProps) => {
           </CardContent>
         </Card>
         
-        <Card className="overflow-hidden">
+        <Card>
           <CardContent className="p-4">
             <h3 className="text-sm font-medium text-muted-foreground mb-1">Average Monthly Sales</h3>
             <p className="text-2xl font-bold">{Math.round(statistics.average).toLocaleString()} SAR</p>

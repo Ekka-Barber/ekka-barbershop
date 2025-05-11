@@ -1,10 +1,11 @@
+
+import React from 'react';
 import { Employee } from '@/types/employee';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
 import { EmployeeCardHeader } from './employee-card/EmployeeCardHeader';
 import { EmployeeTabs } from './employee-card/EmployeeTabs';
 import { format } from 'date-fns';
+import { Branch } from './hooks/useBranchManager';  // Fixed import
 
 interface EmployeeCardProps {
   employee: Employee;
@@ -12,14 +13,16 @@ interface EmployeeCardProps {
   onSalesChange: (value: string) => void;
   refetchEmployees?: () => void;
   selectedDate?: Date;
+  branches: Branch[];
 }
 
-export const EmployeeCard = ({ 
+export const EmployeeCard = React.memo(({ 
   employee, 
   salesValue, 
   onSalesChange,
   refetchEmployees,
-  selectedDate = new Date()
+  selectedDate = new Date(),
+  branches
 }: EmployeeCardProps) => {
   // Format selected date as YYYY-MM for month filtering
   const selectedMonth = format(selectedDate, 'yyyy-MM');
@@ -28,20 +31,6 @@ export const EmployeeCard = ({
     employeeId: employee.id,
     selectedDate,
     selectedMonth
-  });
-
-  // Fetch branches for branch selection
-  const { data: branches = [] } = useQuery({
-    queryKey: ['branches-for-employee-assignment'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('branches')
-        .select('id, name')
-        .order('name');
-      
-      if (error) throw error;
-      return data || [];
-    }
   });
 
   return (
@@ -63,4 +52,7 @@ export const EmployeeCard = ({
       </CardContent>
     </Card>
   );
-};
+});
+
+// Add display name for React DevTools
+EmployeeCard.displayName = 'EmployeeCard';
