@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Employee } from '@/types/employee';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -106,6 +106,72 @@ export const LeaveManagement: React.FC<LeaveManagementProps> = ({ employees }) =
     staleTime: 0, // Make data immediately stale so it refreshes on focus
     refetchOnWindowFocus: true, // Refetch when window regains focus
   });
+
+  // Set up real-time subscription for employee leave data
+  useEffect(() => {
+    // Create a channel for leave data changes
+    const leaveChannel = supabase
+      .channel('leave-management-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*', // Listen for all events (INSERT, UPDATE, DELETE)
+          schema: 'public',
+          table: 'employee_holidays'
+        },
+        (payload) => {
+          console.log('Real-time leave data update:', payload);
+          
+          // Invalidate the query to trigger a refetch
+          queryClient.invalidateQueries({
+            queryKey: ['employee-leaves']
+          });
+          
+          // Show a toast notification
+          toast({
+            title: "Leave Records Updated",
+            description: "Employee leave data has been updated",
+            duration: 3000,
+          });
+        }
+      )
+      .subscribe();
+    
+    // Also subscribe to employee table changes since leave quota might be updated
+    const employeeChannel = supabase
+      .channel('leave-management-employee-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'employees',
+          filter: 'annual_leave_quota IS NOT NULL'
+        },
+        (payload) => {
+          console.log('Employee leave quota updated:', payload);
+          
+          // Invalidate the query to update leave balances
+          queryClient.invalidateQueries({
+            queryKey: ['employee-leaves']
+          });
+          
+          toast({
+            title: "Leave Quota Updated",
+            description: "Employee leave quota has been changed",
+            duration: 3000,
+          });
+        }
+      )
+      .subscribe();
+    
+    // Cleanup subscriptions when component unmounts
+    return () => {
+      console.log('Cleaning up leave management subscriptions');
+      supabase.removeChannel(leaveChannel);
+      supabase.removeChannel(employeeChannel);
+    };
+  }, [queryClient, toast]);
 
   const handleAddLeave = async () => {
     if (!selectedEmployee || !leaveRange?.from || !leaveRange.to) {

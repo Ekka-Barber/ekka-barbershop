@@ -21,6 +21,9 @@ import { ErrorBoundary } from '@/components/common/ErrorBoundary';
 import { EmployeeGrid as OriginalEmployeeGrid } from './components/EmployeeGrid';
 import { Employee } from '@/types/employee';
 import { Branch, PaginationInfo } from './types';
+import { useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/components/ui/use-toast';
 
 // Create a version of EmployeeGrid without sales inputs
 // Define proper types for the wrapper component
@@ -45,6 +48,8 @@ const EmployeeGrid: React.FC<EmployeeGridProps> = (props) => (
 
 export const EmployeeTab = () => {
   const { currentState, syncUrlWithState } = useUrlState();
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
   
   // Keep date state for tabs that need it like analytics
   const [selectedDate, setSelectedDate] = useState<Date>(() => 
@@ -83,6 +88,69 @@ export const EmployeeTab = () => {
       );
     }
   }, [activeTab, selectedBranch, selectedDate, pagination.currentPage, syncUrlWithState, currentState]);
+
+  // Add real-time subscriptions for employees and branches
+  useEffect(() => {
+    // Set up subscription for employees table
+    const employeesChannel = supabase
+      .channel('employee_tab_employees_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'employees',
+          ...(selectedBranch ? { filter: `branch_id=eq.${selectedBranch}` } : {})
+        },
+        (payload) => {
+          console.log('Real-time employee update:', payload);
+          // Invalidate employees query to trigger a refetch
+          queryClient.invalidateQueries({
+            queryKey: ['employees', selectedBranch, pagination.currentPage]
+          });
+          
+          toast({
+            title: "Employee Data Updated",
+            description: "Employee information has been updated",
+            duration: 3000,
+          });
+        }
+      )
+      .subscribe();
+
+    // Set up subscription for branches table
+    const branchesChannel = supabase
+      .channel('employee_tab_branches_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'branches'
+        },
+        (payload) => {
+          console.log('Real-time branch update:', payload);
+          // Invalidate branches query to trigger a refetch
+          queryClient.invalidateQueries({
+            queryKey: ['branches']
+          });
+          
+          toast({
+            title: "Branch Data Updated",
+            description: "Branch information has been updated",
+            duration: 3000,
+          });
+        }
+      )
+      .subscribe();
+    
+    // Cleanup subscriptions when component unmounts
+    return () => {
+      console.log('Cleaning up real-time subscriptions in EmployeeTab');
+      supabase.removeChannel(employeesChannel);
+      supabase.removeChannel(branchesChannel);
+    };
+  }, [queryClient, selectedBranch, pagination.currentPage, toast]);
 
   const handleTabChange = useCallback((value: string) => {
     setActiveTab(value);

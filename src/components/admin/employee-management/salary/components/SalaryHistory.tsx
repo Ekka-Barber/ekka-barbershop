@@ -9,6 +9,8 @@ import { SalaryHistoryEmployeeFilter } from './SalaryHistoryEmployeeFilter';
 import { SalaryHistorySnapshotsTable } from './SalaryHistorySnapshotsTable';
 import { useAllActiveEmployees, SimpleEmployee } from '@/components/admin/employee-management/hooks/useAllActiveEmployees';
 import SalaryHistoryPagination from './SalaryHistoryPagination';
+import { useToast } from '@/components/ui/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 interface SalaryHistoryProps {
   pickerDate: Date;
@@ -19,6 +21,8 @@ const SalaryHistory: React.FC<SalaryHistoryProps> = ({
 }) => {
   const initializedRef = useRef(false);
   const [viewMode, setViewMode] = useState<'month' | 'year'>('month');
+  const { toast } = useToast();
+  const [subscriptionStatus, setSubscriptionStatus] = useState<'subscribed' | 'error' | 'none'>('none');
   
   // Only use pickerDate for initial values, not for ongoing updates
   const [filterYear, setFilterYear] = useState<string | null>(null);
@@ -72,6 +76,7 @@ const SalaryHistory: React.FC<SalaryHistoryProps> = ({
     getAvailableYears,
     getAvailableMonthsForYear,
     allSnapshots, // We need access to all snapshots for accurate counting
+    refetch,
   } = useSalaryHistorySnapshots({
     monthYear: effectiveMonthYearFilter,
     viewMode: viewMode,
@@ -79,6 +84,79 @@ const SalaryHistory: React.FC<SalaryHistoryProps> = ({
     page: currentPage,
     pageSize: pageSize,
   });
+
+  // Set up real-time subscription for employee_monthly_salary table
+  useEffect(() => {
+    let filter: string | undefined;
+    
+    // Create appropriate filter based on view mode and selected filters
+    if (effectiveMonthYearFilter) {
+      if (viewMode === 'month') {
+        filter = `month_year=eq.${effectiveMonthYearFilter}`;
+      } else {
+        filter = `month_year=like.${effectiveMonthYearFilter}-%`;
+      }
+    }
+    
+    if (selectedEmployeeIds.size > 0) {
+      const employeeFilter = Array.from(selectedEmployeeIds)
+        .map(id => `employee_id=eq.${id}`)
+        .join(',');
+      
+      filter = filter ? `${filter} AND (${employeeFilter})` : employeeFilter;
+    }
+    
+    const channelName = `salary-history-${viewMode}-${effectiveMonthYearFilter || 'all'}`;
+    
+    try {
+      setSubscriptionStatus('none');
+      
+      // Set up subscription
+      const channel = supabase
+        .channel(channelName)
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'employee_monthly_salary',
+            filter,
+          },
+          (payload) => {
+            // Refresh data when changes occur
+            refetch();
+            
+            // Show notification
+            toast({
+              title: 'Salary history updated',
+              description: `${payload.eventType} at ${new Date().toLocaleTimeString()}`,
+            });
+          }
+        )
+        .subscribe((status) => {
+          if (status === 'SUBSCRIBED') {
+            setSubscriptionStatus('subscribed');
+          } else {
+            setSubscriptionStatus('error');
+            console.error('Failed to subscribe to salary history changes:', status);
+          }
+        });
+      
+      // Clean up subscription on unmount or when dependencies change
+      return () => {
+        supabase.removeChannel(channel);
+      };
+    } catch (error) {
+      setSubscriptionStatus('error');
+      console.error('Error setting up salary history subscription:', error);
+    }
+  }, [
+    effectiveMonthYearFilter, 
+    viewMode, 
+    selectedEmployeeIds, 
+    refetch, 
+    toast
+  ]);
 
   // Derive relevant employees for the filter based on loaded snapshots
   const relevantEmployeesForFilter = useMemo((): SimpleEmployee[] => {
@@ -200,6 +278,16 @@ const SalaryHistory: React.FC<SalaryHistoryProps> = ({
         <h2 className="text-2xl font-bold">Salary History</h2>
         <div className="text-muted-foreground hidden md:block">
           View confirmed salary payments history
+          {subscriptionStatus === 'subscribed' && (
+            <span className="ml-2 text-xs text-green-600">
+              • Real-time updates enabled
+            </span>
+          )}
+          {subscriptionStatus === 'error' && (
+            <span className="ml-2 text-xs text-red-600">
+              • Real-time updates unavailable
+            </span>
+          )}
         </div>
         <SalaryHistoryViewToggle 
           currentView={viewMode} 

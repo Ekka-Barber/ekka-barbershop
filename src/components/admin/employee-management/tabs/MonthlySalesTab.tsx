@@ -12,6 +12,8 @@ import { useUrlState } from '../hooks/useUrlState';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
+import { useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
 interface MonthlySalesTabProps {
   initialDate?: Date;
@@ -24,6 +26,7 @@ export const MonthlySalesTab: React.FC<MonthlySalesTabProps> = ({
 }) => {
   const { toast } = useToast();
   const { currentState, syncUrlWithState } = useUrlState();
+  const queryClient = useQueryClient();
   
   const [selectedDate, setSelectedDate] = useState<Date>(() => 
     initialDate || new Date(currentState.date)
@@ -66,6 +69,48 @@ export const MonthlySalesTab: React.FC<MonthlySalesTabProps> = ({
       );
     }
   }, [selectedBranch, selectedDate, syncUrlWithState, currentState]);
+  
+  // Set up real-time subscription for employee sales data
+  useEffect(() => {
+    const formattedMonth = format(selectedDate, 'yyyy-MM');
+    
+    // Set up subscription for employee_sales table
+    const salesChannel = supabase
+      .channel(`monthly_sales_${formattedMonth}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'employee_sales',
+          filter: `month=eq.${formattedMonth}`
+        },
+        (payload) => {
+          console.log('Real-time sales update:', payload);
+          
+          // Invalidate queries related to sales data for this month
+          queryClient.invalidateQueries({
+            queryKey: ['employee-sales', formattedMonth, selectedBranch]
+          });
+          
+          // Refresh the sales data
+          fetchSalesData();
+          
+          toast({
+            title: "Sales Data Updated",
+            description: `Sales data for ${format(selectedDate, 'MMMM yyyy')} has been updated`,
+            duration: 3000,
+          });
+        }
+      )
+      .subscribe();
+    
+    // Cleanup subscription when component unmounts or when month/branch changes
+    return () => {
+      console.log(`Removing subscription for sales in ${formattedMonth}`);
+      supabase.removeChannel(salesChannel);
+    };
+  }, [selectedDate, selectedBranch, queryClient, toast, fetchSalesData]);
   
   // Force re-fetch sales data when branch changes
   useEffect(() => {

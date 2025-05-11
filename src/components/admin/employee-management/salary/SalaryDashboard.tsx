@@ -17,8 +17,19 @@ import FormulaSalaryPlanList from './components/FormulaSalaryPlanList';
 import ExistingSalaryPlansList from './components/ExistingSalaryPlansList';
 import PayslipTemplateViewer from './components/PayslipTemplateViewer';
 import SalaryHistory from './components/SalaryHistory';
-import { useSalaryHistorySnapshots } from './hooks/useSalaryHistorySnapshots';
-import SalaryHistoryViewToggle from './components/SalaryHistoryViewToggle';
+import { useQueryClient } from '@tanstack/react-query';
+import { useSalarySubscriptions } from '@/hooks/salary/useSalarySubscriptions';
+
+// Type required by useSalaryData
+interface SalaryDataEmployee {
+  id: string;
+  name: string;
+  name_ar: string;
+  email: string;
+  role: string;
+  working_hours: Record<string, string[]>;
+  salary_plan_id?: string;
+}
 
 interface SalaryDashboardProps {
   employees: Employee[];
@@ -30,6 +41,7 @@ export const SalaryDashboard = React.memo(({
   const currentDate = new Date();
   const currentYear = currentDate.getFullYear();
   const currentMonth = currentDate.getMonth();
+  const queryClient = useQueryClient();
   
   const [pickerDate, setPickerDate] = useState<Date>(new Date(currentYear, currentMonth));
   const [salaryTab, setSalaryTab] = useState<string>("overview");
@@ -62,9 +74,52 @@ export const SalaryDashboard = React.memo(({
   }, []);
   
   const { salaryData, isLoading, getEmployeeTransactions, refreshData } = useSalaryData({
-    employees,
+    employees: employees as unknown as SalaryDataEmployee[],
     selectedMonth
   });
+  
+  // Set up subscription for salary-related tables using our custom hook
+  const { 
+    lastUpdateTime, 
+    hasError: subscriptionError 
+  } = useSalarySubscriptions({
+    selectedMonth,
+    employeeId: selectedEmployeeId || undefined,
+    enableToasts: true,
+    refreshData,
+    onError: (error) => {
+      console.error('Subscription error:', error);
+      // Fallback to manual refresh if subscription fails
+      if (autoRefresh) {
+        refreshData();
+        setLastRefresh(new Date());
+      }
+    }
+  });
+  
+  // Update last refresh when data is updated via subscription
+  useEffect(() => {
+    if (lastUpdateTime) {
+      setLastRefresh(lastUpdateTime);
+    }
+  }, [lastUpdateTime]);
+
+  // When selected employee changes, load employee-specific data
+  useEffect(() => {
+    if (selectedEmployeeId) {
+      // Fetch employee-specific data
+      queryClient.prefetchQuery({
+        queryKey: ['employee-details', selectedEmployeeId],
+        queryFn: async () => {
+          // This could be actual data fetching, but for now we just use it for subscription
+          return { id: selectedEmployeeId };
+        }
+      });
+      
+      // Refresh employee data
+      refreshData();
+    }
+  }, [selectedEmployeeId, queryClient, refreshData]);
   
   // Filter salaryData to only include employees in the current employees prop
   const filteredSalaryData = useMemo(() => 
@@ -384,9 +439,10 @@ export const SalaryDashboard = React.memo(({
               <div className="hidden md:flex items-center gap-2">
                 <Button 
                   variant={autoRefresh ? "default" : "outline"} 
-                  className="flex items-center gap-1 min-w-max"
+                  className={`flex items-center gap-1 min-w-max ${subscriptionError ? 'border-red-500 text-red-500' : ''}`}
                   onClick={toggleAutoRefresh}
                 >
+                  {subscriptionError && <span className="mr-1">⚠️</span>}
                   {autoRefresh ? "Auto-Refresh On" : "Auto-Refresh Off"}
                   {lastRefresh && autoRefresh && (
                     <span className="text-xs ml-1">
@@ -516,7 +572,6 @@ export const SalaryDashboard = React.memo(({
         
         <TabsContent value="salary-history">
           <SalaryHistory 
-            selectedMonth={selectedMonth} 
             pickerDate={pickerDate} 
           />
         </TabsContent>
@@ -535,12 +590,12 @@ export const SalaryDashboard = React.memo(({
           </button>
           
           <button 
-            className="flex flex-col items-center justify-center w-16 h-16 text-xs"
+            className={`flex flex-col items-center justify-center w-16 h-16 text-xs ${subscriptionError ? 'text-red-500' : ''}`}
             onClick={() => refreshData()}
             aria-label="Refresh data"
           >
-            <RefreshCw className="h-5 w-5 mb-1" />
-            <span>Refresh</span>
+            <RefreshCw className={`h-5 w-5 mb-1 ${subscriptionError ? 'text-red-500' : ''}`} />
+            <span>{subscriptionError ? "Error" : "Refresh"}</span>
           </button>
           
           <button 

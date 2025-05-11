@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { EmployeeMonthlySalary } from '../types';
+import { useQueryClient } from '@tanstack/react-query';
 
 export type SalaryHistorySnapshot = EmployeeMonthlySalary;
 
@@ -24,6 +25,7 @@ interface UseSalaryHistorySnapshotsResult {
   getAvailableYears: () => string[];
   getAvailableMonthsForYear: (year: string) => string[];
   allSnapshots: SalaryHistorySnapshot[] | undefined;
+  refetch: () => Promise<void>;
 }
 
 export const useSalaryHistorySnapshots = ({
@@ -131,6 +133,12 @@ export const useSalaryHistorySnapshots = ({
   const isLoading = isLoadingAll || isLoadingPaginated;
   const error = errorAll || errorPaginated || null;
   
+  const queryClient = useQueryClient();
+
+  const refetch = async () => {
+    await queryClient.invalidateQueries({ queryKey: ['salary-history-snapshots'] });
+  };
+
   return {
     snapshots: paginatedData?.records || [],
     isLoading,
@@ -143,5 +151,6 @@ export const useSalaryHistorySnapshots = ({
     getAvailableYears,
     getAvailableMonthsForYear,
     allSnapshots: allSnapshotsData,
+    refetch
   };
 }; 
