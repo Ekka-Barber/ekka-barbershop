@@ -8,7 +8,6 @@ export enum DocumentType {
   RESIDENCE_PERMIT = 'residence_permit',
   INSURANCE = 'insurance',
   CONTRACT = 'contract',
-  HEALTH_CERTIFICATE = 'health_certificate',
   RESIDENCY_PERMIT = 'residency_permit',
   WORK_LICENSE = 'work_license',
   PASSPORT = 'passport',

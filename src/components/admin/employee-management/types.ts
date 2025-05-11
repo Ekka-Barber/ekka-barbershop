@@ -1,6 +1,5 @@
-// Import types from the dedicated types directory
 import { 
-  DocumentTypeEnum, 
+  DocumentType, 
   DocumentStatus, 
   DocumentCalculation,
   EmployeeDocument,
@@ -271,7 +270,7 @@ export interface UseEmployeeDocumentsReturn {
 
 // Re-export types from types/index.ts to avoid duplication
 export type { 
-  DocumentTypeEnum, 
+  DocumentType, 
   DocumentStatus, 
   DocumentCalculation,
   EmployeeDocument,

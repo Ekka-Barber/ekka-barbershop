@@ -5,27 +5,18 @@ import { differenceInDays, parseISO } from 'date-fns';
 import { 
   EmployeeDocument, 
   DocumentCalculation,
-  DocumentStatus
-} from '../types';
-import { DocumentType } from '../types/document-types';
+  DocumentStatus, 
+  DocumentType
+} from '../types/index';
 
 export const useEmployeeDocuments = () => {
   const [documents, setDocuments] = useState<EmployeeDocument[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
-  
+
   // Calculate document status
   const calculateDocumentStatus = useCallback((document: EmployeeDocument): DocumentCalculation => {
     try {
-      if (!document.expiryDate) {
-        return {
-          daysRemaining: null,
-          isExpired: false,
-          isWarning: false,
-          statusText: 'No expiry date'
-        };
-      }
-      
       const currentDate = new Date();
       const expiryDate = parseISO(document.expiryDate);
       const daysRemaining = differenceInDays(expiryDate, currentDate);
@@ -59,8 +50,8 @@ export const useEmployeeDocuments = () => {
       };
     }
   }, []);
-  
-  // Fetch documents
+
+  // Fetch documents for a specific employee
   const fetchDocuments = useCallback(async (employeeId: string) => {
     setIsLoading(true);
     setError(null);
@@ -73,10 +64,8 @@ export const useEmployeeDocuments = () => {
         
       if (fetchError) throw new Error(fetchError.message);
       
-      // Process documents and calculate status
       if (data) {
         const processedDocuments = data.map(doc => ({
-          ...doc,
           id: doc.id,
           employeeId: doc.employee_id,
           documentType: doc.document_type as DocumentType,
@@ -103,13 +92,12 @@ export const useEmployeeDocuments = () => {
       setIsLoading(false);
     }
   }, []);
-  
-  // Add document
+
+  // Add a document
   const addDocument = useCallback(async (document: Partial<EmployeeDocument>) => {
     setError(null);
     
     try {
-      // Convert document to snake_case
       const documentData = {
         employee_id: document.employeeId,
         document_type: document.documentType,
@@ -129,7 +117,6 @@ export const useEmployeeDocuments = () => {
         
       if (insertError) throw new Error(insertError.message);
       
-      // Refetch documents
       if (document.employeeId) {
         await fetchDocuments(document.employeeId);
       }
@@ -139,13 +126,12 @@ export const useEmployeeDocuments = () => {
       throw err;
     }
   }, [fetchDocuments]);
-  
-  // Update document
+
+  // Update an existing document
   const updateDocument = useCallback(async (id: string, document: Partial<EmployeeDocument>) => {
     setError(null);
     
     try {
-      // Convert document to snake_case
       const documentData = {
         document_type: document.documentType,
         document_name: document.documentName,
@@ -165,7 +151,6 @@ export const useEmployeeDocuments = () => {
         
       if (updateError) throw new Error(updateError.message);
       
-      // Refetch documents
       const existingDocument = documents.find(doc => doc.id === id);
       if (existingDocument?.employeeId) {
         await fetchDocuments(existingDocument.employeeId);
@@ -176,13 +161,12 @@ export const useEmployeeDocuments = () => {
       throw err;
     }
   }, [documents, fetchDocuments]);
-  
-  // Delete document
+
+  // Delete a document
   const deleteDocument = useCallback(async (id: string) => {
     setError(null);
     
     try {
-      // Find the document to get the employeeId before deletion
       const documentToDelete = documents.find(doc => doc.id === id);
       
       const { error: deleteError } = await supabase
@@ -192,7 +176,6 @@ export const useEmployeeDocuments = () => {
         
       if (deleteError) throw new Error(deleteError.message);
       
-      // Refetch documents
       if (documentToDelete?.employeeId) {
         await fetchDocuments(documentToDelete.employeeId);
       } else {
@@ -204,7 +187,7 @@ export const useEmployeeDocuments = () => {
       throw err;
     }
   }, [documents, fetchDocuments]);
-  
+
   return {
     documents,
     isLoading,

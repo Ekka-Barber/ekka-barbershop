@@ -1,7 +1,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { ArchiveStatusFilter } from '../types';
+import { ArchiveStatusFilter } from '../types/index';
 
 export const useEmployeeManager = (initialBranchId = null) => {
   const [employees, setEmployees] = useState([]);
@@ -105,6 +105,7 @@ export const useEmployeeManager = (initialBranchId = null) => {
     selectedBranch,
     branches,
     archiveFilter,
-    setArchiveFilter: setArchiveStatusFilter
+    setArchiveFilter: setArchiveStatusFilter,
+    fetchEmployees
   };
 };

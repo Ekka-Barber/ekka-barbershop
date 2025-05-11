@@ -19,11 +19,7 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { useForm } from 'react-hook-form';
-import { 
-  DocumentFormProps,
-  EmployeeDocument
-} from '../../../types';
-import { DocumentType } from '../../../types/document-types';
+import { DocumentFormProps, DocumentType } from '../../../types/index';
 import { addDays, format } from 'date-fns';
 
 export const DocumentForm: React.FC<DocumentFormProps> = ({

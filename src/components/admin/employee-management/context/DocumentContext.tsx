@@ -6,9 +6,9 @@ import {
   DocumentContextType, 
   EmployeeDocument, 
   DocumentCalculation,
-  DocumentStatus
-} from '../types';
-import { DocumentType } from '../types/document-types';
+  DocumentStatus,
+  DocumentType
+} from '../types/index';
 
 // Create context
 const DocumentContext = createContext<DocumentContextType | undefined>(undefined);

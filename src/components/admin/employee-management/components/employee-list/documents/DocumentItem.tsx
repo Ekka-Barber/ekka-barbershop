@@ -6,11 +6,11 @@ import { PencilIcon, TrashIcon, FileIcon } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import { 
+  DocumentType,
   DocumentCalculation,
   EmployeeDocument,
   DocumentStatus
-} from '../../../types';
-import { DocumentType } from '../../../types/document-types';
+} from '../../../types/index';
 
 interface DocumentItemProps {
   document: EmployeeDocument;

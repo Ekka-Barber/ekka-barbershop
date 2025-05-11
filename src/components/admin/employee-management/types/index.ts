@@ -10,6 +10,7 @@ export type {
 } from './document-types';
 
 export { 
+  DocumentType,
   DocumentStatus 
 } from './document-types';
 
@@ -19,6 +20,12 @@ export interface PaginationState {
   totalPages: number;
   totalItems: number;
   pageSize: number;
+}
+
+// Define Branch type
+export interface Branch {
+  id: string;
+  name: string;
 }
 
 // Define ArchiveStatusFilter type
