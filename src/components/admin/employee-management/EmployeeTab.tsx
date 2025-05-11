@@ -1,63 +1,37 @@
-
-import React, { useState, useMemo, useEffect, Suspense, useCallback } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { useToast } from "@/components/ui/use-toast";
+import { Calendar, BarChart2, Users, Clock, DollarSign, Airplay } from 'lucide-react';
+import { useEmployeeSales } from './hooks/useEmployeeSales';
 import { useBranchManager } from './hooks/useBranchManager';
 import { useEmployeeManager } from './hooks/useEmployeeManager';
-import { Tabs, TabsContent } from '@/components/ui/tabs';
-import {
-  LazyEmployeesTab,
-  LazyMonthlySalesTab,
-  LazyEmployeeAnalyticsDashboard,
-  LazyScheduleInterface,
-  LazySalaryDashboard,
-  LazyLeaveManagement,
-  TabLoadingFallback
-} from './lazy-loaded-tabs';
-import { EmployeeProvider } from './context/EmployeeContext';
-import { BaseEmployeeContextType } from './context/EmployeeContext';
-import { DocumentProvider } from './context/DocumentContext';
-import { useUrlState } from './hooks/useUrlState';
-import { BranchFilter } from './components/BranchFilter';
-import { EmployeeTabsNavigation } from './components/EmployeeTabsNavigation';
-import { ErrorBoundary } from '@/components/common/ErrorBoundary';
-import { EmployeeGrid as OriginalEmployeeGrid } from './components/EmployeeGrid';
-import { Employee } from '@/types/employee';
-import { Branch, PaginationInfo } from './types';
-import { useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/components/ui/use-toast';
-
-// Create a version of EmployeeGrid without sales inputs
-// Define proper types for the wrapper component
-type EmployeeGridProps = {
-  isLoading: boolean;
-  employees: Employee[];
-  selectedBranch: string | null;
-  refetchEmployees?: () => void;
-  selectedDate?: Date;
-  branches: Branch[]; // Use proper Branch type
-  pagination: PaginationInfo;
-  onPageChange: (page: number) => void;
-};
-
-const EmployeeGrid: React.FC<EmployeeGridProps> = (props) => (
-  <OriginalEmployeeGrid
-    {...props}
-    salesInputs={{}} // Empty object as we don't need sales inputs here anymore
-    onSalesChange={() => {}} // Empty function as we don't handle sales changes here anymore
-  />
-);
+import { EmployeeSalesHeader } from './components/EmployeeSalesHeader';
+import { EmployeeGrid } from './components/EmployeeGrid';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { EmployeeAnalyticsDashboard } from './EmployeeAnalyticsDashboard';
+import { ScheduleInterface } from './components/ScheduleInterface';
+import { TeamPerformanceComparison } from './components/TeamPerformanceComparison';
+import { SalaryDashboard } from './salary/SalaryDashboard';
+import { LeaveManagement } from './LeaveManagement';
+import { Button } from '@/components/ui/button';
 
 export const EmployeeTab = () => {
-  const { currentState, syncUrlWithState } = useUrlState();
-  const queryClient = useQueryClient();
   const { toast } = useToast();
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [activeTab, setActiveTab] = useState<string>('employee-grid');
   
-  // Keep date state for tabs that need it like analytics
-  const [selectedDate, setSelectedDate] = useState<Date>(() => 
-    new Date(currentState.date)
-  );
-  const [activeTab, setActiveTab] = useState<string>(currentState.tab);
+  // Check URL for section parameter when component mounts
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      const sectionParam = urlParams.get('section');
+      
+      if (sectionParam === 'salary') {
+        setActiveTab('salary');
+      }
+    }
+  }, []);
   
+  // Branch management
   const { 
     branches, 
     selectedBranch, 
@@ -65,258 +39,162 @@ export const EmployeeTab = () => {
     isLoading: isBranchLoading
   } = useBranchManager();
   
+  // Employee management
   const { 
     employees, 
     isLoading: isEmployeeLoading,
-    fetchEmployees,
-    pagination,
-    setCurrentPage
+    fetchEmployees
   } = useEmployeeManager(selectedBranch);
   
-  useEffect(() => {
-    const currentDateStr = selectedDate.toISOString().slice(0, 7);
-    if (
-      activeTab !== currentState.tab ||
-      selectedBranch !== currentState.branch ||
-      currentDateStr !== currentState.date ||
-      pagination.currentPage !== currentState.page
-    ) {
-      syncUrlWithState(
-        activeTab,
-        selectedBranch,
-        selectedDate,
-        pagination.currentPage
-      );
+  // Sales management
+  const {
+    salesInputs,
+    lastUpdated,
+    isSubmitting,
+    handleSalesChange,
+    submitSalesData
+  } = useEmployeeSales(selectedDate, employees);
+  
+  const handleSubmit = async () => {
+    try {
+      await submitSalesData();
+      
+      toast({
+        title: "Success",
+        description: "Employee sales data saved successfully",
+      });
+    } catch (error) {
+      console.error('Error submitting sales data:', error);
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to save sales data",
+        variant: "destructive",
+      });
     }
-  }, [activeTab, selectedBranch, selectedDate, pagination.currentPage, syncUrlWithState, currentState]);
+  };
 
-  // Add real-time subscriptions for employees and branches
-  useEffect(() => {
-    // Set up subscription for employees table
-    const employeesChannel = supabase
-      .channel('employee_tab_employees_changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'employees',
-          ...(selectedBranch ? { filter: `branch_id=eq.${selectedBranch}` } : {})
-        },
-        (payload) => {
-          console.log('Real-time employee update:', payload);
-          // Invalidate employees query to trigger a refetch
-          queryClient.invalidateQueries({
-            queryKey: ['employees', selectedBranch, pagination.currentPage]
-          });
-          
-          toast({
-            title: "Employee Data Updated",
-            description: "Employee information has been updated",
-            duration: 3000,
-          });
-        }
-      )
-      .subscribe();
-
-    // Set up subscription for branches table
-    const branchesChannel = supabase
-      .channel('employee_tab_branches_changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'branches'
-        },
-        (payload) => {
-          console.log('Real-time branch update:', payload);
-          // Invalidate branches query to trigger a refetch
-          queryClient.invalidateQueries({
-            queryKey: ['branches']
-          });
-          
-          toast({
-            title: "Branch Data Updated",
-            description: "Branch information has been updated",
-            duration: 3000,
-          });
-        }
-      )
-      .subscribe();
-    
-    // Cleanup subscriptions when component unmounts
-    return () => {
-      console.log('Cleaning up real-time subscriptions in EmployeeTab');
-      supabase.removeChannel(employeesChannel);
-      supabase.removeChannel(branchesChannel);
-    };
-  }, [queryClient, selectedBranch, pagination.currentPage, toast]);
-
-  const handleTabChange = useCallback((value: string) => {
-    setActiveTab(value);
-  }, []);
-
-  const handleBranchChange = useCallback((branchId: string | null) => {
-    setSelectedBranch(branchId);
-    setCurrentPage(1);
-  }, [setSelectedBranch, setCurrentPage]);
-
-  const handleDateChange = useCallback((date: Date) => {
-    setSelectedDate(date);
-  }, []);
-
-  const handlePageChange = useCallback((page: number) => {
-    setCurrentPage(page);
-  }, [setCurrentPage]);
-
+  // Memoize the loading state to prevent unnecessary re-renders
   const isLoading = useMemo(() => 
     isBranchLoading || isEmployeeLoading, 
     [isBranchLoading, isEmployeeLoading]
   );
 
-  // Ensure pagination meets PaginationInfo requirements
-  const paginationInfo: PaginationInfo = useMemo(() => ({
-    currentPage: pagination.currentPage,
-    totalPages: pagination.totalPages,
-    pageSize: pagination.pageSize,
-    totalItems: pagination.totalItems || 0 // Provide default to ensure it's always defined
-  }), [pagination]);
-
-  // Use the new BaseEmployeeContextType without sales properties
-  const contextValue = useMemo<BaseEmployeeContextType>(() => ({
-    employees: employees || [],
-    branches: branches || [],
-    selectedBranch,
-    selectedDate,
-    isLoading,
-    pagination: paginationInfo, // Use the enhanced pagination object
-    setSelectedBranch: handleBranchChange,
-    setSelectedDate: handleDateChange,
-    setCurrentPage: handlePageChange,
-    fetchEmployees
-  }), [
-    employees,
-    branches,
-    selectedBranch,
-    selectedDate,
-    isLoading,
-    paginationInfo, // Use the enhanced pagination object
-    handleBranchChange,
-    handleDateChange,
-    handlePageChange,
-    fetchEmployees
-  ]);
-
   return (
-    <ErrorBoundary>
-      <DocumentProvider>
-        <EmployeeProvider value={contextValue}>
-          <div className="space-y-6">
-            <BranchFilter 
-              branches={branches} 
-              selectedBranch={selectedBranch} 
-              onBranchChange={handleBranchChange} 
-              isLoading={isBranchLoading} 
-            />
-            
-            <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
-              <EmployeeTabsNavigation 
-                activeTab={activeTab}
-                onTabChange={handleTabChange}
-              />
-
-              <TabsContent value="employee-grid" className="space-y-6">
-                <ErrorBoundary>
-                  <div className="flex flex-col md:flex-row justify-between gap-4 items-start md:items-center mb-6">
-                    <div>
-                      <h2 className="text-2xl font-bold">Employee Management</h2>
-                      <p className="text-muted-foreground">Manage your employees and their settings</p>
-                    </div>
-                  </div>
-                  
-                  <EmployeeGrid
-                    isLoading={isLoading}
-                    employees={employees}
-                    selectedBranch={selectedBranch}
-                    refetchEmployees={fetchEmployees}
-                    selectedDate={selectedDate}
-                    branches={branches}
-                    pagination={paginationInfo} // Use the enhanced pagination object
-                    onPageChange={handlePageChange}
-                  />
-                </ErrorBoundary>
-              </TabsContent>
-
-              <TabsContent value="employees">
-                <Suspense fallback={<TabLoadingFallback />}>
-                  <LazyEmployeesTab initialBranchId={selectedBranch} />
-                </Suspense>
-              </TabsContent>
-
-              <TabsContent value="monthly-sales">
-                <Suspense fallback={<TabLoadingFallback />}>
-                  <LazyMonthlySalesTab 
-                    initialDate={selectedDate}
-                    initialBranchId={selectedBranch}
-                  />
-                </Suspense>
-              </TabsContent>
-
-              <TabsContent value="analytics">
-                <Suspense fallback={<TabLoadingFallback />}>
-                  <div className="flex flex-col md:flex-row justify-between gap-4 items-start md:items-center mb-6">
-                    <div>
-                      <h2 className="text-2xl font-bold">Employee Analytics</h2>
-                      <p className="text-muted-foreground">Visualize employee performance, sales data, and trends.</p>
-                    </div>
-                  </div>
-                  <LazyEmployeeAnalyticsDashboard 
-                    employees={employees}
-                    selectedDate={selectedDate}
-                    setSelectedDate={handleDateChange}
-                    selectedBranch={selectedBranch}
-                  />
-                </Suspense>
-              </TabsContent>
-
-              <TabsContent value="schedule">
-                <Suspense fallback={<TabLoadingFallback />}>
-                  <LazyScheduleInterface 
-                    employees={employees}
-                    selectedBranch={selectedBranch}
-                  />
-                </Suspense>
-              </TabsContent>
-
-              <TabsContent value="salary">
-                <Suspense fallback={<TabLoadingFallback />}>
-                  <div className="flex flex-col md:flex-row justify-between gap-4 items-start md:items-center mb-6">
-                    <div>
-                      <h2 className="text-2xl font-bold">Salary Management</h2>
-                      <p className="text-muted-foreground">Oversee employee compensation, salary structures, and payroll.</p>
-                    </div>
-                  </div>
-                  <LazySalaryDashboard
-                    employees={employees}
-                    selectedDate={selectedDate}
-                    setSelectedDate={handleDateChange}
-                  />
-                </Suspense>
-              </TabsContent>
-
-              <TabsContent value="leave">
-                <Suspense fallback={<TabLoadingFallback />}>
-                  <LazyLeaveManagement 
-                    employees={employees}
-                    selectedBranch={selectedBranch}
-                  />
-                </Suspense>
-              </TabsContent>
-            </Tabs>
+    <div className="space-y-6">
+      {/* Branch filter buttons */}
+      <div className="flex flex-wrap gap-2 mt-2">
+        <Button
+          variant={selectedBranch === null ? "default" : "outline"}
+          size="sm"
+          onClick={() => setSelectedBranch(null)}
+          aria-label="Show all branches"
+          tabIndex={0}
+        >
+          All Branches
+        </Button>
+        {branches.map(branch => (
+          <Button
+            key={branch.id}
+            variant={selectedBranch === branch.id ? "default" : "outline"}
+            size="sm"
+            onClick={() => setSelectedBranch(branch.id)}
+            aria-label={`Show ${branch.name} branch`}
+            tabIndex={0}
+          >
+            {branch.name}
+          </Button>
+        ))}
+      </div>
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+        <div className="flex justify-between items-center">
+          <div className="overflow-x-auto pb-2 w-full">
+            <TabsList className="w-full inline-flex">
+              <TabsTrigger value="employee-grid" className="flex items-center gap-1">
+                <Users className="h-4 w-4" />
+                <span>Employees</span>
+              </TabsTrigger>
+              <TabsTrigger value="analytics" className="flex items-center gap-1">
+                <BarChart2 className="h-4 w-4" />
+                <span>Analytics</span>
+              </TabsTrigger>
+              <TabsTrigger value="schedule" className="flex items-center gap-1">
+                <Clock className="h-4 w-4" />
+                <span>Scheduling</span>
+              </TabsTrigger>
+              <TabsTrigger value="team" className="flex items-center gap-1">
+                <Users className="h-4 w-4" />
+                <span>Team</span>
+              </TabsTrigger>
+              <TabsTrigger value="salary" className="flex items-center gap-1">
+                <DollarSign className="h-4 w-4" />
+                <span>Salary</span>
+              </TabsTrigger>
+              <TabsTrigger value="leave" className="flex items-center gap-1">
+                <Airplay className="h-4 w-4" />
+                <span>Leave</span>
+              </TabsTrigger>
+            </TabsList>
           </div>
-        </EmployeeProvider>
-      </DocumentProvider>
-    </ErrorBoundary>
+        </div>
+        
+        <TabsContent value="employee-grid" className="space-y-6">
+          <EmployeeSalesHeader
+            selectedDate={selectedDate}
+            setSelectedDate={setSelectedDate}
+            handleSubmit={handleSubmit}
+            isSubmitting={isSubmitting}
+          />
+          
+          {lastUpdated && (
+            <div className="flex items-center text-sm text-muted-foreground">
+              <Calendar className="h-4 w-4 mr-1" />
+              <span>Last updated: {lastUpdated}</span>
+            </div>
+          )}
+          
+          <EmployeeGrid
+            isLoading={isLoading}
+            employees={employees}
+            salesInputs={salesInputs}
+            selectedBranch={selectedBranch}
+            onSalesChange={handleSalesChange}
+            refetchEmployees={fetchEmployees}
+            selectedDate={selectedDate}
+          />
+        </TabsContent>
+        
+        <TabsContent value="analytics">
+          <EmployeeAnalyticsDashboard 
+            employees={employees}
+            selectedBranch={selectedBranch}
+          />
+        </TabsContent>
+        
+        <TabsContent value="schedule">
+          <ScheduleInterface 
+            employees={employees}
+            selectedBranch={selectedBranch}
+            onScheduleUpdate={fetchEmployees}
+          />
+        </TabsContent>
+        
+        <TabsContent value="team">
+          <TeamPerformanceComparison
+            employees={employees}
+            selectedBranch={selectedBranch}
+          />
+        </TabsContent>
+        
+        <TabsContent value="salary">
+          <SalaryDashboard
+            employees={employees}
+          />
+        </TabsContent>
+        
+        <TabsContent value="leave" className="space-y-6">
+          <LeaveManagement employees={employees} />
+        </TabsContent>
+      </Tabs>
+    </div>
   );
 };

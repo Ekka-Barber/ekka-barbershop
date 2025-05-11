@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { format, lastDayOfMonth } from 'date-fns';
@@ -26,33 +26,6 @@ export const useBonuses = (employeeId: string, currentMonth: string) => {
       return data as EmployeeBonus[];
     }
   });
-
-  // Set up real-time subscription
-  useEffect(() => {
-    const startOfMonth = `${currentMonth}-01`;
-    const endOfMonth = format(lastDayOfMonth(new Date(currentMonth)), 'yyyy-MM-dd');
-
-    const subscription = supabase
-      .channel('employee-bonuses-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'employee_bonuses',
-          filter: `employee_id=eq.${employeeId} AND date>=${startOfMonth} AND date<=${endOfMonth}`
-        },
-        () => {
-          // Invalidate and refetch when any change occurs
-          queryClient.invalidateQueries({ queryKey: ['employee-bonuses', employeeId, currentMonth] });
-        }
-      )
-      .subscribe();
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, [employeeId, currentMonth, queryClient]);
 
   const addBonusMutation = useMutation({
     mutationFn: async (bonusData: SubmitBonusData) => {

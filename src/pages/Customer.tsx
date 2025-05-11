@@ -56,7 +56,7 @@ const Customer = () => {
 
   // Use our custom hooks
   const { visibleElements, isLoadingUiElements, handleRefresh } = useUIElements();
-  const { animatingElements, startElementAnimation } = useElementAnimation(visibleElements);
+  const { animatingElements } = useElementAnimation(visibleElements);
   const { 
     branchDialogOpen, 
     setBranchDialogOpen,
@@ -67,20 +67,11 @@ const Customer = () => {
     mapDialogOpen, 
     setMapDialogOpen,
     selectedBranch,
-    loyaltyDialogOpen,
-    setLoyaltyDialogOpen,
     handleBranchSelect,
     handleEidBranchSelect,
     handleLocationClick,
     handleLocationDialog
   } = useDialogState(branches);
-
-  // Effect to trigger animation when elements load
-  useEffect(() => {
-    if (visibleElements.length > 0) {
-      startElementAnimation(visibleElements);
-    }
-  }, [visibleElements, startElementAnimation]);
 
   return (
     <AppLayout>
@@ -101,7 +92,6 @@ const Customer = () => {
             onOpenBranchDialog={() => setBranchDialogOpen(true)}
             onOpenLocationDialog={() => handleLocationDialog()}
             onOpenEidDialog={() => setEidBookingsDialogOpen(true)}
-            onOpenLoyaltyDialog={() => setLoyaltyDialogOpen(true)}
           />
         </div>
       </PullToRefresh>

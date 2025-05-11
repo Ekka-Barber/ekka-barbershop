@@ -1,139 +1,40 @@
-import { useState, useEffect, useCallback } from 'react';
-import { format, subMonths } from 'date-fns';
+import { useState, useEffect } from 'react';
+import { format } from 'date-fns';
 import { supabase } from "@/integrations/supabase/client";
 import { Employee, EmployeeSales } from '@/types/employee';
-import { logger } from '@/utils/logger';
-import { v4 as uuidv4 } from 'uuid';
-
-export interface SalesAnalytics {
-  totalSales: number;
-  averageSales: number;
-  previousMonthComparison: number | null;
-  topPerformer: {
-    employeeId: string;
-    employeeName: string;
-    amount: number;
-  } | null;
-}
 
 export const useEmployeeSales = (selectedDate: Date, employees: Employee[]) => {
   const [salesInputs, setSalesInputs] = useState<Record<string, string>>({});
   const [existingSales, setExistingSales] = useState<EmployeeSales[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<string | null>(null);
-  const [error, setError] = useState<Error | null>(null);
-  const [salesAnalytics, setSalesAnalytics] = useState<SalesAnalytics>({
-    totalSales: 0,
-    averageSales: 0,
-    previousMonthComparison: null,
-    topPerformer: null
-  });
 
   // Reset the form when date or employees change
   useEffect(() => {
-    fetchSalesData();
+    if (employees.length > 0) {
+      fetchSalesData();
+    } else {
+      setSalesInputs({});
+      setExistingSales([]);
+      setLastUpdated(null);
+    }
   }, [selectedDate, employees]);
 
-  // Calculate sales analytics including comparison with previous month
-  const calculateSalesAnalytics = useCallback(async (salesData: EmployeeSales[], currentEmployees: Employee[]) => {
+  const fetchSalesData = async () => {
     try {
-      // Calculate total and average sales for current month
-      const totalSales = salesData.reduce((sum, sale) => sum + sale.sales_amount, 0);
-      const averageSales = salesData.length > 0 ? totalSales / salesData.length : 0;
-      
-      // Find top performer
-      let topPerformer: SalesAnalytics['topPerformer'] = null;
-      if (salesData.length > 0) {
-        const sortedBySales = [...salesData].sort((a, b) => b.sales_amount - a.sales_amount);
-        const topSale = sortedBySales[0];
-        if (topSale && topSale.employee_id) {
-          topPerformer = {
-            employeeId: topSale.employee_id,
-            employeeName: topSale.employee_name,
-            amount: topSale.sales_amount
-          };
-        }
-      }
-      
-      // Get previous month's data for comparison
-      const previousMonth = subMonths(selectedDate, 1);
-      const previousMonthString = format(previousMonth, 'yyyy-MM-01');
-      
-      const { data: prevMonthData, error: prevMonthError } = await supabase
-        .from('employee_sales')
-        .select('*')
-        .eq('month', previousMonthString);
-      
-      let previousMonthComparison: number | null = null;
-      
-      if (!prevMonthError && prevMonthData && prevMonthData.length > 0) {
-        // Filter previous month data to only include employees in the current filtered list
-        const currentEmployeeIds = new Set(currentEmployees.map(emp => emp.id));
-        
-        // Cast the data to EmployeeSales[] and filter out items without employee_id
-        const validPrevMonthData = (prevMonthData as EmployeeSales[]).filter(
-          (sale): sale is EmployeeSales & { employee_id: string } => 
-          Boolean(sale.employee_id)
-        );
-        
-        // Then filter by current employees
-        const filteredPrevMonthData = validPrevMonthData.filter(sale => 
-          currentEmployeeIds.has(sale.employee_id)
-        );
-        
-        const prevMonthTotal = filteredPrevMonthData.reduce(
-          (sum, sale) => sum + (sale.sales_amount || 0), 
-          0
-        );
-        
-        if (prevMonthTotal > 0) {
-          // Calculate percentage change ((current - previous) / previous) * 100
-          previousMonthComparison = ((totalSales - prevMonthTotal) / prevMonthTotal) * 100;
-        }
-      }
-      
-      // Update analytics state
-      setSalesAnalytics({
-        totalSales,
-        averageSales,
-        previousMonthComparison,
-        topPerformer
-      });
-      
-    } catch (err) {
-      logger.error('Error calculating sales analytics:', err);
-      // Default to basic analytics without comparison if there's an error
-      const totalSales = salesData.reduce((sum, sale) => sum + sale.sales_amount, 0);
-      setSalesAnalytics({
-        totalSales,
-        averageSales: salesData.length > 0 ? totalSales / salesData.length : 0,
-        previousMonthComparison: null,
-        topPerformer: null
-      });
-    }
-  }, [selectedDate]);
-
-  // Enhanced fetchSalesData function
-  const fetchSalesData = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
-      
       // Format date as YYYY-MM-01 to get the first day of the month
       const monthString = format(selectedDate, 'yyyy-MM-01');
-      logger.info('Fetching sales data for month:', monthString);
+      console.log('Fetching sales data for month:', monthString);
       
-      // DO NOT CHANGE - PRESERVE API LOGIC
       // Fetch sales data for the selected month
       const { data, error } = await supabase
         .from('employee_sales')
         .select('*')
         .eq('month', monthString);
       
-      if (error) throw new Error(error.message);
+      if (error) throw error;
       
-      logger.info('Fetched sales data:', data?.length);
+      console.log('Fetched sales data:', data);
       
       // Initialize sales inputs with existing data
       const initialSalesInputs: Record<string, string> = {};
@@ -145,79 +46,47 @@ export const useEmployeeSales = (selectedDate: Date, employees: Employee[]) => {
       
       // Store the fetched sales data
       if (data) {
-        // Filter out sales records where employee_id is null and cast to EmployeeSales[]
-        let validSalesData = (data as EmployeeSales[]).filter(
-          (sale): sale is EmployeeSales & { employee_id: string } => 
-          sale.employee_id !== null && sale.employee_id !== undefined
-        );
-        
-        // Filter sales data to only include employees in the current filtered list (based on branch)
-        const currentEmployeeIds = new Set(employees.map(emp => emp.id));
-        validSalesData = validSalesData.filter(sale => 
-          currentEmployeeIds.has(sale.employee_id)
-        );
-        
-        setExistingSales(validSalesData);
+        setExistingSales(data);
         
         // Store the last updated timestamp from the most recent record
-        if (validSalesData.length > 0) {
+        if (data.length > 0) {
           // Sort by updated_at in descending order to get the most recent update
-          const sortedData = [...validSalesData].sort((a, b) => 
-            new Date(b.updated_at || '').getTime() - new Date(a.updated_at || '').getTime()
+          const sortedData = [...data].sort((a, b) => 
+            new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
           );
-          
-          if (sortedData[0].updated_at) {
-            setLastUpdated(format(new Date(sortedData[0].updated_at), 'yyyy-MM-dd HH:mm:ss'));
-          }
+          setLastUpdated(format(new Date(sortedData[0].updated_at), 'yyyy-MM-dd HH:mm:ss'));
           
           // Then populate sales inputs with existing data where available
-          validSalesData.forEach(sale => {
-            // We know employee_id exists because of the type guard in filter
-            initialSalesInputs[sale.employee_id] = Math.floor(sale.sales_amount).toString();
+          data.forEach(sale => {
+            // Find the matching employee by name (more reliable than using ID)
+            const matchingEmployee = employees.find(emp => emp.name === sale.employee_name);
+            if (matchingEmployee) {
+              // Ensure we store integers only
+              initialSalesInputs[matchingEmployee.id] = Math.floor(sale.sales_amount).toString();
+            }
           });
-          
-          // Calculate analytics for the current month
-          await calculateSalesAnalytics(validSalesData, employees);
         } else {
           setLastUpdated(null);
-          // Reset analytics when no sales data is available
-          setSalesAnalytics({
-            totalSales: 0,
-            averageSales: 0,
-            previousMonthComparison: null,
-            topPerformer: null
-          });
         }
       } else {
         setExistingSales([]);
         setLastUpdated(null);
-        setSalesAnalytics({
-          totalSales: 0,
-          averageSales: 0,
-          previousMonthComparison: null,
-          topPerformer: null
-        });
       }
       
-      logger.info('Setting initial sales inputs:', Object.keys(initialSalesInputs).length);
+      console.log('Setting initial sales inputs:', initialSalesInputs);
       setSalesInputs(initialSalesInputs);
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Unknown error fetching sales data';
-      logger.error('Error fetching sales data:', errorMessage);
-      setError(err instanceof Error ? err : new Error(errorMessage));
-      
+    } catch (error) {
+      console.error('Error fetching sales data:', error);
       // Still initialize empty inputs for all employees on error
       const emptyInputs: Record<string, string> = {};
       employees.forEach(employee => {
         emptyInputs[employee.id] = '';
       });
       setSalesInputs(emptyInputs);
-    } finally {
-      setIsLoading(false);
     }
-  }, [selectedDate, employees, calculateSalesAnalytics]);
+  };
 
-  const handleSalesChange = useCallback((employeeId: string, value: string) => {
+  const handleSalesChange = (employeeId: string, value: string) => {
     // Only accept whole numbers (no decimals)
     if (value === '' || (/^\d+$/.test(value) && !value.includes('.'))) {
       setSalesInputs(prev => ({
@@ -225,19 +94,18 @@ export const useEmployeeSales = (selectedDate: Date, employees: Employee[]) => {
         [employeeId]: value
       }));
     }
-  }, []);
+  };
 
   const submitSalesData = async () => {
     try {
       setIsSubmitting(true);
-      setError(null);
       
       // Format date as YYYY-MM-01 to get the first day of the month
       const monthString = format(selectedDate, 'yyyy-MM-01');
       
       // Validate sales data
       const invalidEntries = Object.entries(salesInputs)
-        .filter(([, value]) => value !== '' && !(/^\d+$/.test(value)));
+        .filter(([_, value]) => value !== '' && !(/^\d+$/.test(value)));
       
       if (invalidEntries.length > 0) {
         throw new Error('Invalid sales amounts detected. Please enter whole numbers only.');
@@ -245,118 +113,97 @@ export const useEmployeeSales = (selectedDate: Date, employees: Employee[]) => {
       
       // Filter out empty values and prepare sales data
       const salesDataEntries = Object.entries(salesInputs)
-        .filter(([, value]) => value !== '');
+        .filter(([_, value]) => value !== '');
       
       if (salesDataEntries.length === 0) {
         throw new Error('No sales data to save. Please enter at least one sales amount.');
       }
       
-      // Find existing sales entries by employee_id and month
-      const existingEmployeeSalesById = new Map<string, EmployeeSales>();
+      // Find existing sales entries by employee name and month
+      // This is safer than using IDs since the employee_id column doesn't exist
+      const existingEmployeeSalesByName = new Map<string, EmployeeSales>();
       
-      // Only add sales with valid employee_id to the map
       existingSales.forEach(sale => {
-        if (sale.employee_id) {
-          existingEmployeeSalesById.set(sale.employee_id, sale);
-        }
+        existingEmployeeSalesByName.set(sale.employee_name, sale);
       });
       
-      // Prepare data for upsert (both inserts and updates)
-      const upsertData = [];
+      // Prepare data for updates (existing records)
+      const updateData = [];
+      
+      // Prepare data for inserts (new records)
+      const insertData = [];
       
       // Process each sales entry
       for (const [employeeId, salesAmount] of salesDataEntries) {
-        const existingSale = existingEmployeeSalesById.get(employeeId);
-        
-        // Find the employee to get their name
         const employee = employees.find(e => e.id === employeeId);
-        if (!employee) continue; // Skip if employee not found
+        if (!employee) continue;
         
-        const salesRecord = {
-          employee_id: employeeId,
-          employee_name: employee.name, // Keep employee_name for backward compatibility
-          month: monthString,
-          sales_amount: parseInt(salesAmount, 10),
-        };
-
+        // Check if this employee already has a sales record for this month
+        const existingSale = existingEmployeeSalesByName.get(employee.name);
+        
         if (existingSale) {
-          // Include id for updates
-          upsertData.push({
+          // Update existing record
+          updateData.push({
             id: existingSale.id,
-            ...salesRecord
+            employee_name: employee.name,
+            month: monthString,
+            sales_amount: parseInt(salesAmount, 10),
           });
         } else {
-          // Generate a UUID for new records
-          upsertData.push({
-            id: uuidv4(),
-            ...salesRecord
+          // Insert new record - don't set an ID, let Supabase generate it
+          insertData.push({
+            employee_name: employee.name,
+            month: monthString,
+            sales_amount: parseInt(salesAmount, 10),
           });
         }
       }
       
-      logger.info('Data to upsert:', upsertData.length);
+      console.log('Data to update:', updateData);
+      console.log('Data to insert:', insertData);
       
-      // DO NOT CHANGE - PRESERVE API LOGIC
-      // Perform bulk upsert operation
-      if (upsertData.length > 0) {
+      // Update existing records first
+      if (updateData.length > 0) {
+        for (const record of updateData) {
+          const { error } = await supabase
+            .from('employee_sales')
+            .update({ 
+              sales_amount: record.sales_amount, 
+              employee_name: record.employee_name
+            })
+            .eq('id', record.id);
+          
+          if (error) throw error;
+        }
+      }
+      
+      // Insert new records
+      if (insertData.length > 0) {
         const { error } = await supabase
           .from('employee_sales')
-          .upsert(upsertData, { 
-            onConflict: 'id',
-            ignoreDuplicates: false // We want to update if there's a conflict
-          });
+          .insert(insertData);
         
-        if (error) throw new Error(error.message);
+        if (error) throw error;
       }
       
       // Refresh sales data to show the latest updates
       await fetchSalesData();
       
       return { success: true };
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Unknown error submitting sales data';
-      logger.error('Error submitting sales data:', errorMessage);
-      setError(err instanceof Error ? err : new Error(errorMessage));
-      throw err;
+    } catch (error) {
+      console.error('Error submitting sales data:', error);
+      throw error;
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  // Check if there are any unsaved changes
-  const hasUnsavedChanges = useCallback(() => {
-    // Create a map of existing sales for quick lookup
-    const existingSalesMap = new Map<string, number>();
-    existingSales.forEach(sale => {
-      if (sale.employee_id) {
-        existingSalesMap.set(sale.employee_id, sale.sales_amount);
-      }
-    });
-    
-    // Check if any sales input differs from the existing data
-    for (const [employeeId, inputValue] of Object.entries(salesInputs)) {
-      const existingValue = existingSalesMap.get(employeeId);
-      const numericInputValue = inputValue === '' ? 0 : parseInt(inputValue, 10);
-      
-      if (existingValue !== numericInputValue) {
-        return true;
-      }
-    }
-    
-    return false;
-  }, [salesInputs, existingSales]);
-
   return {
     salesInputs,
     existingSales,
     isSubmitting,
-    isLoading,
-    error,
     lastUpdated,
-    salesAnalytics,
     handleSalesChange,
-    submitSalesData,
-    hasUnsavedChanges,
-    fetchSalesData
+    submitSalesData
   };
 };

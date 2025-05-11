@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
@@ -14,10 +15,34 @@ const UpdateQRCodeUrl = ({ selectedQrCode }: UpdateQRCodeUrlProps) => {
   const queryClient = useQueryClient();
   const [newUrl, setNewUrl] = useState("");
 
+  const setOwnerAccess = async () => {
+    const { error } = await supabase.rpc('set_owner_access', { value: 'owner123' });
+    if (error) {
+      console.error('Error setting owner access:', error);
+      toast({
+        title: "Error",
+        description: "Failed to set owner access. Please try again.",
+        variant: "destructive",
+      });
+      return false;
+    }
+    return true;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newUrl || !selectedQrCode) return;
     
+    const ownerAccessSet = await setOwnerAccess();
+    if (!ownerAccessSet) {
+      toast({
+        title: "Error",
+        description: "Failed to set owner access",
+        variant: "destructive",
+      });
+      return;
+    }
+
     const { error } = await supabase
       .from("qr_codes")
       .update({ url: newUrl })

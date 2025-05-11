@@ -48,28 +48,24 @@ export const useBookingUpsells = (selectedServices: SelectedService[], language:
       // Create a map to store unique upsells with their lowest discount percentage
       const upsellMap = new Map();
 
-      if (data && Array.isArray(data)) {
-        data.forEach(upsell => {
-          if (!upsell.upsell) return;
+      data.forEach(upsell => {
+        const existingUpsell = upsellMap.get(upsell.upsell.id);
+        
+        if (!existingUpsell || upsell.discount_percentage < existingUpsell.discountPercentage) {
+          const discountedPrice = upsell.upsell.price - (upsell.upsell.price * (upsell.discount_percentage / 100));
           
-          const existingUpsell = upsellMap.get(upsell.upsell.id);
-          
-          if (!existingUpsell || upsell.discount_percentage < existingUpsell.discountPercentage) {
-            const discountedPrice = upsell.upsell.price - (upsell.upsell.price * (upsell.discount_percentage / 100));
-            
-            upsellMap.set(upsell.upsell.id, {
-              id: upsell.upsell.id,
-              name_en: upsell.upsell.name_en,
-              name_ar: upsell.upsell.name_ar,
-              price: upsell.upsell.price,
-              duration: upsell.upsell.duration,
-              discountPercentage: upsell.discount_percentage,
-              discountedPrice: discountedPrice,
-              mainServiceId: upsell.main_service_id // Store the main service ID
-            });
-          }
-        });
-      }
+          upsellMap.set(upsell.upsell.id, {
+            id: upsell.upsell.id,
+            name_en: upsell.upsell.name_en,
+            name_ar: upsell.upsell.name_ar,
+            price: upsell.upsell.price,
+            duration: upsell.upsell.duration,
+            discountPercentage: upsell.discount_percentage,
+            discountedPrice: discountedPrice,
+            mainServiceId: upsell.main_service_id // Store the main service ID
+          });
+        }
+      });
 
       return Array.from(upsellMap.values());
     },

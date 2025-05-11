@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useSalaryQueries } from './useSalaryQueries';
 import { useSalaryCalculation } from './useSalaryCalculation';
@@ -56,7 +57,7 @@ export const useSalaryData = ({
   useEffect(() => {
     if (
       isDataLoading || 
-      !employees || employees.length === 0
+      employees.length === 0
     ) {
       return;
     }

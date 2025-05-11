@@ -1,102 +1,106 @@
 
-import React from 'react';
-import { UIElement } from '../types/uiTypes';
-import { ActionButton } from './ActionButton';
-import { EidBookingsSection } from '../sections/EidBookingsSection';
-import { GoogleReviewsWrapper } from '../sections/GoogleReviewsWrapper';
-import { LoyaltySection } from '../sections/LoyaltySection';
+import { useLanguage } from "@/contexts/LanguageContext";
+import { Tables } from "@/types/supabase";
+import { ActionButton } from "./ActionButton";
+import { LoyaltySection } from "../sections/LoyaltySection";
+import { EidBookingsSection } from "../sections/EidBookingsSection";
+import { GoogleReviewsWrapper } from "../sections/GoogleReviewsWrapper";
+import { trackButtonClick } from "@/utils/tiktokTracking";
+import { useNavigate } from "react-router-dom";
 
 interface UIElementRendererProps {
-  visibleElements: UIElement[];
+  visibleElements: Tables<'ui_elements'>[];
   animatingElements: string[];
   isLoadingUiElements: boolean;
   onOpenBranchDialog: () => void;
   onOpenLocationDialog: () => void;
   onOpenEidDialog: () => void;
-  onOpenLoyaltyDialog?: () => void;
 }
 
-export const UIElementRenderer: React.FC<UIElementRendererProps> = ({
+export const UIElementRenderer = ({
   visibleElements,
   animatingElements,
   isLoadingUiElements,
   onOpenBranchDialog,
   onOpenLocationDialog,
-  onOpenEidDialog,
-  onOpenLoyaltyDialog = () => {}
-}) => {
+  onOpenEidDialog
+}: UIElementRendererProps) => {
+  const navigate = useNavigate();
+  const { language } = useLanguage();
+  
+  const handleElementAction = (element: Tables<'ui_elements'>) => {
+    trackButtonClick({
+      buttonId: element.name,
+      buttonName: language === 'ar' ? element.display_name_ar : element.display_name
+    });
+
+    if (element.action?.startsWith('http')) {
+      window.open(element.action, '_blank');
+    } else if (element.action === 'openBranchDialog') {
+      onOpenBranchDialog();
+    } else if (element.action === 'openLocationDialog') {
+      onOpenLocationDialog();
+    } else if (element.action === 'openEidBookingsDialog') {
+      onOpenEidDialog();
+    } else if (element.action) {
+      navigate(element.action);
+    }
+  };
+  
   if (isLoadingUiElements) {
     return (
-      <div className="w-full space-y-4 animate-pulse">
-        {[1, 2, 3].map(i => (
-          <div key={i} className="h-14 bg-gray-200 rounded w-full"></div>
-        ))}
+      <div className="w-full max-w-xs mx-auto space-y-4">
+        <div className="h-12 bg-gray-200 rounded animate-pulse"></div>
+        <div className="h-12 bg-gray-200 rounded animate-pulse"></div>
+        <div className="h-12 bg-gray-200 rounded animate-pulse"></div>
       </div>
     );
   }
-
-  const renderElement = (element: UIElement) => {
-    const isVisible = animatingElements.includes(element.id);
-    
-    if (!isVisible) return null;
-
-    switch (element.type) {
-      case 'button':
-        let clickHandler = () => {};
-        
-        switch(element.name) {
-          case 'view_menu':
-            clickHandler = () => window.location.href = '/menu';
-            break;
-          case 'book_now':
-            clickHandler = onOpenBranchDialog;
-            break;
-          case 'our_location': 
-            clickHandler = onOpenLocationDialog;
-            break;
-          default:
-            clickHandler = () => console.log('Action clicked:', element.name);
-        }
-        
-        return <ActionButton key={element.id} element={element} onClick={clickHandler} />;
-        
-      case 'eid_section':
-        return (
-          <EidBookingsSection 
-            key={element.id} 
-            element={element} 
-            isVisible={isVisible} 
-            onOpenEidDialog={onOpenEidDialog}
-          />
-        );
-        
-      case 'loyalty_section':
-        return (
-          <LoyaltySection 
-            key={element.id} 
-            element={element} 
-            isVisible={isVisible} 
-            onOpenLoyaltyDialog={onOpenLoyaltyDialog}
-          />
-        );
-        
-      case 'review_section':
-        return (
-          <GoogleReviewsWrapper 
-            key={element.id} 
-            element={element} 
-            isVisible={isVisible} 
-          />
-        );
-        
-      default:
-        return null;
-    }
-  };
-
+  
   return (
-    <div className="w-full space-y-3 mt-6">
-      {visibleElements.map(renderElement)}
+    <div className="w-full max-w-xs mx-auto space-y-4">
+      {visibleElements.map((element) => {
+        const isVisible = animatingElements.includes(element.id);
+        
+        if (element.type === 'button') {
+          return (
+            <div key={element.id}>
+              {isVisible && (
+                <ActionButton 
+                  element={element}
+                  onClick={() => handleElementAction(element)}
+                />
+              )}
+            </div>
+          );
+        } else if (element.type === 'section' && element.name === 'eid_bookings') {
+          return (
+            <EidBookingsSection
+              key={element.id}
+              element={element}
+              isVisible={isVisible}
+              onOpenEidDialog={onOpenEidDialog}
+            />
+          );
+        } else if (element.type === 'section' && element.name === 'loyalty_program') {
+          return (
+            <LoyaltySection 
+              key={element.id}
+              element={element}
+              isVisible={isVisible}
+            />
+          );
+        } else if (element.type === 'section' && element.name === 'google_reviews') {
+          return (
+            <GoogleReviewsWrapper
+              key={element.id} 
+              element={element}
+              isVisible={isVisible}
+            />
+          );
+        }
+        return null;
+      })}
     </div>
   );
 };

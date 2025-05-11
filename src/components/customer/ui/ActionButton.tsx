@@ -1,25 +1,13 @@
 
 import { Button } from "@/components/ui/button";
 import * as Icons from "lucide-react";
+import { Tables } from "@/types/supabase";
 import { motion } from "framer-motion";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { LucideIcon } from 'lucide-react';
 
-interface UIElement {
-  id: string;
-  type: string;
-  name: string;
-  display_name: string;
-  display_name_ar?: string;
-  description?: string;
-  description_ar?: string;
-  icon?: string;
-  is_visible?: boolean;
-  [key: string]: any;
-}
-
 interface ActionButtonProps {
-  element: UIElement;
+  element: Tables<'ui_elements'>;
   onClick: () => void;
 }
 
