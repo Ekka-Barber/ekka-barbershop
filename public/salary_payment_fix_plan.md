@@ -7,11 +7,11 @@
 ## Progress Overview
 - [####################] 100% Phase 1: Database Design & Setup - Complete
 - [####################] 100% Phase 2: Frontend - Updating Payment Confirmation Logic - Complete
-- [###############-----] 75% Phase 3: Frontend - New "Salary History" Sub-Tab in Salary Dashboard - In Progress (9/12 tasks)
+- [##################--] 83% Phase 3: Frontend - New "Salary History" Sub-Tab in Salary Dashboard - In Progress (10/12 tasks)
 - [--------------------] 0% Phase 4: Testing and Refinement - Not Started
 - [--------------------] 0% Phase 5: Future Considerations - Not Implemented (Optional)
 
-**Overall Progress: 70% Complete** (Calculated based on completion of 17 out of 24 core sub-tasks across Phases 1-4)
+**Overall Progress: 75% Complete** (Calculated based on completion of 18 out of 24 core sub-tasks across Phases 1-4)
 
 ## New Salary Payment Confirmation & History System
 
@@ -219,7 +219,7 @@ The payment confirmation functionality is now working correctly. Issues were res
 
 The remaining work focuses on implementing the Salary History tab to display the payment records:
 
-### Phase 3: Frontend - New "Salary History" Sub-Tab in Salary Dashboard (75% Complete)
+### Phase 3: Frontend - New "Salary History" Sub-Tab in Salary Dashboard (83% Complete)
 
 > ⚠️ **WARNING: This phase only involves adding a new display tab. DO NOT modify the salary calculation logic.**
 
@@ -284,7 +284,15 @@ The remaining work focuses on implementing the Salary History tab to display the
     * Added proper counting logic by individual month-year combinations
     * Fixed UI inconsistencies in empty state handling
 
-* 3.3.3 Add inline row-expander ("▶") to reveal base salary, commission, bonuses, deductions, loans (0% Complete)
+* 3.3.3 Add inline row-expander ("▶") to reveal base salary, commission, bonuses, deductions, loans (100% Complete)
+  * **Implementation Notes:**
+    * Added expandable rows with chevron toggle to show/hide salary details
+    * Implemented state management to track expanded rows
+    * Created an expanded view that displays base salary, commission, bonuses, deductions, and loans
+    * Added proper formatting for currency values in expanded view
+    * Created responsive grid layout for the expanded details
+    * Included visual cues (background color changes) to distinguish expanded rows
+    * Added accessibility attributes for toggle buttons
 
 #### 3.4 Detail-View Panel
 
