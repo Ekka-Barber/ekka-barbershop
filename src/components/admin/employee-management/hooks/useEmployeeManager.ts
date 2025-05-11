@@ -1,9 +1,9 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { ArchiveStatusFilter, Branch } from '../types/index';
+import { Branch } from '../types/index';
 
-export { type ArchiveStatusFilter } from '../types/index';
+export type ArchiveStatusFilter = 'all' | 'active' | 'archived';
 
 export const useEmployeeManager = (initialBranchId = null) => {
   const [employees, setEmployees] = useState([]);
@@ -72,15 +72,6 @@ export const useEmployeeManager = (initialBranchId = null) => {
     setArchiveFilter(status);
     setPagination((prev) => ({ ...prev, currentPage: 1 }));
   }, []);
-
-  const setCurrentPage = (page) => {
-    setPagination((prev) => ({ ...prev, currentPage: page }));
-  };
-
-  const filterByBranch = (branchId) => {
-    setSelectedBranch(branchId);
-    setCurrentPage(1);
-  };
 
   useEffect(() => {
     fetchEmployees();

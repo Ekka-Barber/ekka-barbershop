@@ -1,22 +1,7 @@
-
-import { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useEmployeeManager } from '../hooks/useEmployeeManager';
-import { ArchiveStatusFilter } from '../types/index';
 import EmployeeList from '../components/employee-list/EmployeeList';
-import { EmployeeCard } from '../components/employee-card/EmployeeCard';
-import { BranchSelector } from '../components/BranchSelector';
-import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
-import { useToast } from '@/components/ui/use-toast';
-import { Skeleton } from '@/components/ui/skeleton';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { EmployeesTabProps } from '../types';
 
 // Simple mock EmployeeDialog component
 const EmployeeDialog = ({ trigger }: { trigger: React.ReactNode }) => {
@@ -31,7 +16,7 @@ interface EmployeesTabProps {
   initialBranchId?: string;
 }
 
-export const EmployeesTab: React.FC<EmployeesTabProps> = ({ initialBranchId }) => {
+export const EmployeeTab: React.FC<EmployeesTabProps> = ({ initialBranchId }) => {
   const {
     employees,
     isLoading,
@@ -173,4 +158,4 @@ export const EmployeesTab: React.FC<EmployeesTabProps> = ({ initialBranchId }) =
   );
 };
 
-export default EmployeesTab;
+export default EmployeeTab;

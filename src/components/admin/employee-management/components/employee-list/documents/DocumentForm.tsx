@@ -1,269 +1,325 @@
 
-import React, { useEffect } from 'react';
-import { 
-  Form, 
-  FormField, 
-  FormItem, 
-  FormLabel, 
-  FormControl, 
-  FormMessage 
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
-} from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
-import { useForm } from 'react-hook-form';
-import { DocumentFormProps, DocumentType } from '../../../types/index';
-import { addDays, format } from 'date-fns';
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { CalendarIcon } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { format, addMonths } from "date-fns";
+import { DocumentType, DocumentFormProps } from "../../../types/document-types";
+import { cn } from "@/lib/utils";
 
-export const DocumentForm: React.FC<DocumentFormProps> = ({
-  document,
-  employeeId,
-  onSubmit,
-  onCancel,
-  isSubmitting
-}) => {
-  const form = useForm({
-    defaultValues: document || {
-      employeeId,
-      documentType: DocumentType.HEALTH_CERTIFICATE,
-      documentName: '',
-      notificationThresholdDays: 30,
-      durationMonths: 12,
+export const DocumentForm = ({ 
+  onSubmit, 
+  defaultValues = {}, 
+  documentType,
+  isSubmitting = false,
+  onCancel
+}: DocumentFormProps) => {
+  const [issueDate, setIssueDate] = useState<Date | undefined>(
+    defaultValues.issue_date ? new Date(defaultValues.issue_date) : undefined
+  );
+  
+  const [expiryDate, setExpiryDate] = useState<Date | undefined>(
+    defaultValues.expiry_date ? new Date(defaultValues.expiry_date) : undefined
+  );
+  
+  const [durationMonths, setDurationMonths] = useState<number>(
+    defaultValues.duration_months || 12
+  );
+  
+  const [notificationDays, setNotificationDays] = useState<number>(
+    defaultValues.notification_threshold_days || 30
+  );
+  
+  const [selectedDocType, setSelectedDocType] = useState<DocumentType>(
+    defaultValues.document_type || documentType || DocumentType.OTHER
+  );
+  
+  const [documentName, setDocumentName] = useState<string>(
+    defaultValues.document_name || getDefaultDocumentName(selectedDocType)
+  );
+  
+  const [documentNumber, setDocumentNumber] = useState<string>(
+    defaultValues.document_number || ""
+  );
+  
+  const [documentUrl, setDocumentUrl] = useState<string>(
+    defaultValues.document_url || ""
+  );
+  
+  const [notes, setNotes] = useState<string>(
+    defaultValues.notes || ""
+  );
+
+  function getDefaultDocumentName(type: DocumentType): string {
+    switch (type) {
+      case DocumentType.PASSPORT:
+        return "Passport";
+      case DocumentType.NATIONAL_ID:
+        return "National ID";
+      case DocumentType.RESIDENCE_PERMIT:
+        return "Residence Permit (Iqama)";
+      case DocumentType.WORK_PERMIT:
+        return "Work Permit";
+      case DocumentType.INSURANCE:
+        return "Health Insurance";
+      case DocumentType.CONTRACT:
+        return "Employment Contract";
+      case DocumentType.CERTIFICATE:
+        return "Certificate";
+      case DocumentType.LICENSE:
+        return "License";
+      case DocumentType.TAX_DOCUMENT:
+        return "Tax Document";
+      case DocumentType.MEDICAL_TEST:
+        return "Medical Test";
+      case DocumentType.EDUCATION:
+        return "Education Certificate";
+      case DocumentType.REFERENCE:
+        return "Reference Letter";
+      case DocumentType.VISA:
+        return "Visa";
+      case DocumentType.OTHER:
+      default:
+        return "Other Document";
     }
-  });
+  }
 
-  const watchDocumentType = form.watch('documentType');
-  const watchIssueDate = form.watch('issueDate');
-  const watchDurationMonths = form.watch('durationMonths');
-
-  // Set document name based on document type
-  useEffect(() => {
-    if (watchDocumentType && watchDocumentType !== DocumentType.CUSTOM) {
-      const documentNames: Record<string, string> = {
-        [DocumentType.HEALTH_CERTIFICATE]: 'Health Certificate',
-        [DocumentType.RESIDENCY_PERMIT]: 'Residency Permit',
-        [DocumentType.WORK_LICENSE]: 'Work License',
-        [DocumentType.PASSPORT]: 'Passport',
-        [DocumentType.ID_CARD]: 'ID Card',
-        [DocumentType.DRIVING_LICENSE]: 'Driving License',
-        [DocumentType.WORK_PERMIT]: 'Work Permit',
-        [DocumentType.RESIDENCE_PERMIT]: 'Residence Permit',
-        [DocumentType.INSURANCE]: 'Insurance',
-        [DocumentType.CONTRACT]: 'Contract',
-        [DocumentType.CUSTOM]: '',
-        [DocumentType.OTHER]: 'Other Document'
-      };
-      form.setValue('documentName', documentNames[watchDocumentType]);
+  const handleDocTypeChange = (value: string) => {
+    const newType = value as DocumentType;
+    setSelectedDocType(newType);
+    
+    // If the document name is empty or was a default name, update it
+    if (!documentName || documentName === getDefaultDocumentName(selectedDocType)) {
+      setDocumentName(getDefaultDocumentName(newType));
     }
-  }, [watchDocumentType, form]);
+  };
 
-  // Calculate expiry date based on issue date and duration
-  useEffect(() => {
-    if (watchIssueDate && watchDurationMonths) {
-      try {
-        const issueDate = new Date(watchIssueDate);
-        // Add months by converting to days (approximation)
-        const expiryDate = addDays(issueDate, watchDurationMonths * 30);
-        form.setValue('expiryDate', format(expiryDate, 'yyyy-MM-dd'));
-      } catch (error) {
-        console.error('Error calculating expiry date:', error);
-      }
+  const handleIssueDateChange = (date: Date | undefined) => {
+    setIssueDate(date);
+    
+    if (date && durationMonths) {
+      // Auto calculate expiry date based on issue date and duration
+      setExpiryDate(addMonths(date, durationMonths));
     }
-  }, [watchIssueDate, watchDurationMonths, form]);
+  };
 
-  const handleSubmit = form.handleSubmit(async (data) => {
-    try {
-      await onSubmit({
-        ...data,
-        employeeId,
-      });
-      form.reset();
-    } catch (error) {
-      console.error('Error submitting document:', error);
+  const handleDurationChange = (value: string) => {
+    const months = parseInt(value);
+    setDurationMonths(months);
+    
+    // Update expiry date based on new duration
+    if (issueDate) {
+      setExpiryDate(addMonths(issueDate, months));
     }
-  });
+  };
+
+  const handleExpiryDateChange = (date: Date | undefined) => {
+    setExpiryDate(date);
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!issueDate || !expiryDate || !documentName) {
+      return;
+    }
+    
+    onSubmit({
+      document_type: selectedDocType,
+      document_name: documentName,
+      document_number: documentNumber,
+      document_url: documentUrl,
+      issue_date: issueDate,
+      expiry_date: expiryDate,
+      duration_months: durationMonths,
+      notification_threshold_days: notificationDays,
+      notes: notes
+    });
+  };
 
   return (
-    <Form {...form}>
+    <Card className="p-4 border rounded-md">
       <form onSubmit={handleSubmit} className="space-y-4">
-        <FormField
-          control={form.control}
-          name="documentType"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Document Type</FormLabel>
-              <Select 
-                onValueChange={field.onChange} 
-                defaultValue={field.value}
-              >
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select document type" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem value={DocumentType.HEALTH_CERTIFICATE}>Health Certificate</SelectItem>
-                  <SelectItem value={DocumentType.RESIDENCY_PERMIT}>Residency Permit</SelectItem>
-                  <SelectItem value={DocumentType.WORK_LICENSE}>Work License</SelectItem>
-                  <SelectItem value={DocumentType.PASSPORT}>Passport</SelectItem>
-                  <SelectItem value={DocumentType.ID_CARD}>ID Card</SelectItem>
-                  <SelectItem value={DocumentType.CUSTOM}>Custom</SelectItem>
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Document Type Selection */}
+          <div className="space-y-2">
+            <Label htmlFor="document-type">Document Type</Label>
+            <Select
+              value={selectedDocType}
+              onValueChange={handleDocTypeChange}
+              disabled={!!documentType}
+            >
+              <SelectTrigger id="document-type">
+                <SelectValue placeholder="Select document type" />
+              </SelectTrigger>
+              <SelectContent>
+                {Object.values(DocumentType).map((type) => (
+                  <SelectItem key={type} value={type}>
+                    {getDefaultDocumentName(type as DocumentType)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
-        {watchDocumentType === DocumentType.CUSTOM && (
-          <FormField
-            control={form.control}
-            name="documentName"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Document Name</FormLabel>
-                <FormControl>
-                  <Input {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        )}
+          {/* Document Name */}
+          <div className="space-y-2">
+            <Label htmlFor="document-name">Document Name</Label>
+            <Input
+              id="document-name"
+              value={documentName}
+              onChange={(e) => setDocumentName(e.target.value)}
+              placeholder="Document Name"
+              required
+            />
+          </div>
 
-        <FormField
-          control={form.control}
-          name="documentNumber"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Document Number</FormLabel>
-              <FormControl>
-                <Input {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+          {/* Document Number */}
+          <div className="space-y-2">
+            <Label htmlFor="document-number">Document Number/ID</Label>
+            <Input
+              id="document-number"
+              value={documentNumber}
+              onChange={(e) => setDocumentNumber(e.target.value)}
+              placeholder="Document Number (Optional)"
+            />
+          </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="issueDate"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Issue Date</FormLabel>
-                <FormControl>
-                  <Input type="date" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          {/* Document URL */}
+          <div className="space-y-2">
+            <Label htmlFor="document-url">Document URL</Label>
+            <Input
+              id="document-url"
+              value={documentUrl}
+              onChange={(e) => setDocumentUrl(e.target.value)}
+              placeholder="Link to Document (Optional)"
+              type="url"
+            />
+          </div>
 
-          <FormField
-            control={form.control}
-            name="durationMonths"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Duration (Months)</FormLabel>
-                <FormControl>
-                  <Input 
-                    type="number" 
-                    {...field} 
-                    onChange={(e) => field.onChange(parseInt(e.target.value, 10))} 
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
+          {/* Issue Date */}
+          <div className="space-y-2">
+            <Label>Issue Date</Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant={"outline"}
+                  className={cn(
+                    "w-full justify-start text-left font-normal",
+                    !issueDate && "text-muted-foreground"
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {issueDate ? format(issueDate, "PPP") : <span>Select Issue Date</span>}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0">
+                <Calendar
+                  mode="single"
+                  selected={issueDate}
+                  onSelect={handleIssueDateChange}
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
+
+          {/* Duration */}
+          <div className="space-y-2">
+            <Label htmlFor="duration">Duration (Months)</Label>
+            <Select
+              value={durationMonths.toString()}
+              onValueChange={handleDurationChange}
+            >
+              <SelectTrigger id="duration">
+                <SelectValue placeholder="Select duration" />
+              </SelectTrigger>
+              <SelectContent>
+                {[1, 3, 6, 12, 24, 36, 60, 120].map((month) => (
+                  <SelectItem key={month} value={month.toString()}>
+                    {month === 1 ? "1 Month" : `${month} Months`}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Expiry Date */}
+          <div className="space-y-2">
+            <Label>Expiry Date</Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant={"outline"}
+                  className={cn(
+                    "w-full justify-start text-left font-normal",
+                    !expiryDate && "text-muted-foreground"
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {expiryDate ? format(expiryDate, "PPP") : <span>Select Expiry Date</span>}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0">
+                <Calendar
+                  mode="single"
+                  selected={expiryDate}
+                  onSelect={handleExpiryDateChange}
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
+
+          {/* Notification Threshold */}
+          <div className="space-y-2">
+            <Label htmlFor="notification">Notification Threshold (Days)</Label>
+            <Select
+              value={notificationDays.toString()}
+              onValueChange={(val) => setNotificationDays(parseInt(val))}
+            >
+              <SelectTrigger id="notification">
+                <SelectValue placeholder="Select notification threshold" />
+              </SelectTrigger>
+              <SelectContent>
+                {[7, 14, 30, 60, 90].map((days) => (
+                  <SelectItem key={days} value={days.toString()}>
+                    {days} Days Before Expiry
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        {/* Notes */}
+        <div className="space-y-2">
+          <Label htmlFor="notes">Notes</Label>
+          <Textarea
+            id="notes"
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            placeholder="Additional Notes (Optional)"
+            rows={3}
           />
         </div>
 
-        <FormField
-          control={form.control}
-          name="expiryDate"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Expiry Date</FormLabel>
-              <FormControl>
-                <Input 
-                  type="date" 
-                  {...field}
-                  disabled 
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="notificationThresholdDays"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Notification Threshold (Days)</FormLabel>
-              <FormControl>
-                <Input 
-                  type="number" 
-                  {...field}
-                  onChange={(e) => field.onChange(parseInt(e.target.value, 10))} 
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="documentUrl"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Document URL</FormLabel>
-              <FormControl>
-                <Input {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="notes"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Notes</FormLabel>
-              <FormControl>
-                <Textarea {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <div className="flex justify-end gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={onCancel}
-            disabled={isSubmitting}
-          >
+        {/* Form Actions */}
+        <div className="flex justify-end space-x-2 pt-2">
+          <Button type="button" variant="outline" onClick={onCancel}>
             Cancel
           </Button>
           <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? 'Saving...' : document?.id ? 'Update Document' : 'Add Document'}
+            {isSubmitting ? "Saving..." : defaultValues.id ? "Update Document" : "Add Document"}
           </Button>
         </div>
       </form>
-    </Form>
+    </Card>
   );
 };

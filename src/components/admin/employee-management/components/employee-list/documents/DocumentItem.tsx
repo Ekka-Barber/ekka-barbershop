@@ -1,126 +1,171 @@
 
-import React from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { PencilIcon, TrashIcon, FileIcon } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
-import { format } from 'date-fns';
-import { 
-  DocumentType,
-  DocumentCalculation,
-  EmployeeDocument,
-  DocumentStatus
-} from '../../../types/index';
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { DocumentWithStatus, DocumentType, DocumentStatus } from "../../../types/document-types";
+import { format } from "date-fns";
+import { CalendarIcon, FileIcon, Trash2, Edit, ExternalLink } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Badge } from "@/components/ui/badge";
 
 interface DocumentItemProps {
-  document: EmployeeDocument;
-  statusDetails: DocumentCalculation;
-  onEdit: () => void;
-  onDelete: () => void;
+  document: DocumentWithStatus;
+  onEdit: (document: DocumentWithStatus) => void;
+  onDelete: (documentId: string) => void;
 }
 
-export const DocumentItem: React.FC<DocumentItemProps> = ({ 
-  document, 
-  statusDetails,
-  onEdit, 
-  onDelete 
-}) => {
-  const getStatusColor = (status: 'valid' | 'expiring_soon' | 'expired') => {
+export const DocumentItem = ({ document, onEdit, onDelete }: DocumentItemProps) => {
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+
+  const getStatusColor = (status: DocumentStatus) => {
     switch (status) {
-      case 'valid': return 'bg-green-100 text-green-800';
-      case 'expiring_soon': return 'bg-amber-100 text-amber-800';
-      case 'expired': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case DocumentStatus.VALID:
+        return "bg-green-500 hover:bg-green-600";
+      case DocumentStatus.EXPIRING:
+        return "bg-amber-500 hover:bg-amber-600";
+      case DocumentStatus.EXPIRED:
+        return "bg-red-500 hover:bg-red-600";
+      default:
+        return "bg-gray-500 hover:bg-gray-600";
     }
   };
 
-  const getDocumentStatus = (): 'valid' | 'expiring_soon' | 'expired' => {
-    if (statusDetails.isExpired) return 'expired';
-    if (statusDetails.isWarning) return 'expiring_soon';
-    return 'valid';
+  const getDocumentTypeIcon = (type: DocumentType) => {
+    switch (type) {
+      case DocumentType.PASSPORT:
+        return "🛂";
+      case DocumentType.NATIONAL_ID:
+        return "🪪";
+      case DocumentType.RESIDENCE_PERMIT:
+        return "📄";
+      case DocumentType.WORK_PERMIT:
+        return "📋";
+      case DocumentType.INSURANCE:
+        return "🏥";
+      case DocumentType.CONTRACT:
+        return "📝";
+      case DocumentType.CERTIFICATE:
+        return "🎓";
+      case DocumentType.LICENSE:
+        return "🔑";
+      case DocumentType.TAX_DOCUMENT:
+        return "💰";
+      case DocumentType.MEDICAL_TEST:
+        return "🩺";
+      case DocumentType.EDUCATION:
+        return "🎓";
+      case DocumentType.REFERENCE:
+        return "📄";
+      case DocumentType.VISA:
+        return "🛂";
+      default:
+        return "📄";
+    }
   };
-
-  const documentTypeLabels: Record<string, string> = {
-    [DocumentType.HEALTH_CERTIFICATE]: 'Health Certificate',
-    [DocumentType.RESIDENCY_PERMIT]: 'Residency Permit',
-    [DocumentType.WORK_LICENSE]: 'Work License',
-    [DocumentType.PASSPORT]: 'Passport',
-    [DocumentType.ID_CARD]: 'ID Card',
-    [DocumentType.DRIVING_LICENSE]: 'Driving License',
-    [DocumentType.WORK_PERMIT]: 'Work Permit',
-    [DocumentType.RESIDENCE_PERMIT]: 'Residence Permit',
-    [DocumentType.INSURANCE]: 'Insurance',
-    [DocumentType.CONTRACT]: 'Contract',
-    [DocumentType.CUSTOM]: document.documentName || 'Custom Document',
-    [DocumentType.OTHER]: 'Other Document'
-  };
-
-  const formattedIssueDate = document.issueDate 
-    ? format(new Date(document.issueDate), 'MMM d, yyyy')
-    : 'N/A';
-    
-  const formattedExpiryDate = document.expiryDate
-    ? format(new Date(document.expiryDate), 'MMM d, yyyy')
-    : 'N/A';
-
-  const statusText = statusDetails.statusText || (
-    statusDetails.isExpired ? 'Expired' : 
-    statusDetails.isWarning ? `Expires in ${statusDetails.daysRemaining} days` : 
-    'Valid'
-  );
 
   return (
-    <Card className="border overflow-hidden">
-      <div className={`h-2 ${getStatusColor(getDocumentStatus()).split(' ')[0]}`} />
-      <CardContent className="p-4">
-        <div className="flex justify-between">
-          <div>
-            <div className="font-medium">
-              <FileIcon className="inline-block w-4 h-4 mr-2" />
-              {documentTypeLabels[document.documentType]}
-            </div>
-            {document.documentNumber && (
-              <div className="text-sm text-muted-foreground mt-1">
-                #{document.documentNumber}
+    <>
+      <Card className="border rounded-md shadow-sm hover:shadow transition-shadow">
+        <CardContent className="p-4">
+          <div className="flex justify-between items-start">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <span className="text-xl" role="img" aria-label={document.document_type}>
+                  {getDocumentTypeIcon(document.document_type)}
+                </span>
+                <h3 className="font-medium text-lg">{document.document_name}</h3>
               </div>
+              {document.document_number && (
+                <p className="text-sm text-gray-600">ID: {document.document_number}</p>
+              )}
+            </div>
+            <Badge className={getStatusColor(document.status)}>
+              {document.status}
+              {document.days_remaining !== undefined
+                ? document.status === DocumentStatus.EXPIRED
+                  ? ` (${Math.abs(document.days_remaining)} days ago)`
+                  : ` (${document.days_remaining} days left)`
+                : ""}
+            </Badge>
+          </div>
+
+          <div className="mt-3 space-y-1">
+            <div className="flex items-center text-sm text-gray-600">
+              <CalendarIcon className="h-4 w-4 mr-2" />
+              <span>
+                Issue: {format(new Date(document.issue_date), "PP")}
+              </span>
+            </div>
+            <div className="flex items-center text-sm text-gray-600">
+              <CalendarIcon className="h-4 w-4 mr-2" />
+              <span>
+                Expiry: {format(new Date(document.expiry_date), "PP")}
+              </span>
+            </div>
+            {document.notes && (
+              <p className="text-sm text-gray-600 italic mt-2">{document.notes}</p>
             )}
           </div>
+        </CardContent>
+        <CardFooter className="flex justify-between bg-gray-50 p-2 border-t">
           <div className="flex gap-2">
-            <Button variant="ghost" size="icon" onClick={onEdit}>
-              <PencilIcon className="w-4 h-4" />
-              <span className="sr-only">Edit</span>
+            <Button variant="ghost" size="sm" onClick={() => onEdit(document)}>
+              <Edit className="h-4 w-4 mr-1" />
+              Edit
             </Button>
-            <Button variant="ghost" size="icon" onClick={onDelete}>
-              <TrashIcon className="w-4 h-4" />
-              <span className="sr-only">Delete</span>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-red-500 hover:text-red-700 hover:bg-red-50"
+              onClick={() => setIsDeleteDialogOpen(true)}
+            >
+              <Trash2 className="h-4 w-4 mr-1" />
+              Delete
             </Button>
           </div>
-        </div>
-
-        <div className="mt-4 grid grid-cols-2 gap-2 text-sm">
-          <div>
-            <span className="text-muted-foreground">Issue Date:</span>
-            <div>{formattedIssueDate}</div>
-          </div>
-          <div>
-            <span className="text-muted-foreground">Expiry Date:</span>
-            <div>{formattedExpiryDate}</div>
-          </div>
-        </div>
-
-        <div className="mt-4 flex justify-between items-center">
-          <Badge className={getStatusColor(getDocumentStatus())}>
-            {statusText}
-          </Badge>
-          {document.documentUrl && (
-            <Button variant="link" size="sm" asChild>
-              <a href={document.documentUrl} target="_blank" rel="noopener noreferrer">
-                View Document
+          {document.document_url && (
+            <Button variant="outline" size="sm" asChild>
+              <a href={document.document_url} target="_blank" rel="noopener noreferrer">
+                <FileIcon className="h-4 w-4 mr-1" />
+                View
+                <ExternalLink className="h-3 w-3 ml-1" />
               </a>
             </Button>
           )}
-        </div>
-      </CardContent>
-    </Card>
+        </CardFooter>
+      </Card>
+
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Document</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this document? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-red-500 hover:bg-red-600"
+              onClick={() => {
+                onDelete(document.id);
+                setIsDeleteDialogOpen(false);
+              }}
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 };

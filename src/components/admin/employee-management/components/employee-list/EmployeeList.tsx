@@ -1,107 +1,81 @@
-
 import React from 'react';
 import { EmployeeListProps } from '../../types';
-import { Employee } from '../../types';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Skeleton } from "@/components/ui/skeleton"
-import {
-  Table,
-  TableBody,
-  TableCaption,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
-import { Badge } from "@/components/ui/badge"
-import { cn } from '@/lib/utils';
-import { Pagination } from '@/components/ui/pagination';
+import { Pagination } from "@/components/ui/pagination";
 
-const EmployeeList: React.FC<EmployeeListProps> = ({
+export const EmployeeList: React.FC<EmployeeListProps> = ({ 
   employees,
-  isLoading,
+  isLoading, 
   pagination,
   onEmployeeSelect,
   selectedEmployee,
   onPageChange
 }) => {
-  return (
-    <div className="space-y-4">
-      <Table>
-        <TableCaption>A list of your employees.</TableCaption>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Name</TableHead>
-            <TableHead>Role</TableHead>
-            <TableHead className="text-right">Status</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {isLoading ? (
-            // Render skeleton rows while loading
-            [...Array(pagination.pageSize)].map((_, i) => (
-              <TableRow key={`skeleton-${i}`}>
-                <TableCell>
-                  <div className="flex items-center space-x-2">
-                    <Skeleton className="h-10 w-10 rounded-full" />
-                    <div className="space-y-2">
-                      <Skeleton className="h-4 w-[250px]" />
-                      <Skeleton className="h-4 w-[200px]" />
-                    </div>
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <Skeleton className="h-4 w-[150px]" />
-                </TableCell>
-                <TableCell className="text-right">
-                  <Skeleton className="h-4 w-[100px]" />
-                </TableCell>
-              </TableRow>
-            ))
-          ) : employees.length > 0 ? (
-            // Render employee rows when data is available
-            employees.map((employee) => (
-              <TableRow
-                key={employee.id}
-                onClick={() => onEmployeeSelect(employee.id)}
-                className={cn("cursor-pointer", selectedEmployee === employee.id ? "bg-muted" : "")}
-              >
-                <TableCell>
-                  <div className="flex items-center space-x-2">
-                    <Avatar>
-                      <AvatarImage src={employee.photo_url} />
-                      <AvatarFallback>{employee.name.charAt(0)}</AvatarFallback>
-                    </Avatar>
-                    <span className="font-medium">{employee.name}</span>
-                  </div>
-                </TableCell>
-                <TableCell>{employee.role}</TableCell>
-                <TableCell className="text-right">
-                  {employee.is_archived ? (
-                    <Badge variant="outline">Archived</Badge>
-                  ) : (
-                    <Badge>Active</Badge>
-                  )}
-                </TableCell>
-              </TableRow>
-            ))
-          ) : (
-            // Render a message when there are no employees
-            <TableRow>
-              <TableCell colSpan={3} className="text-center">No employees found.</TableCell>
-            </TableRow>
-          )}
-        </TableBody>
-      </Table>
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center p-8">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+      </div>
+    );
+  }
 
-      {/* Pagination controls */}
-      {employees.length > 0 && (
+  if (employees.length === 0) {
+    return (
+      <div className="text-center p-8">
+        <p className="text-gray-500">No employees found</p>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {employees.map((employee) => (
+          <div
+            key={employee.id}
+            className={`p-4 border rounded-lg cursor-pointer transition-colors ${
+              selectedEmployee === employee.id
+                ? "bg-primary/10 border-primary"
+                : "hover:bg-gray-50"
+            }`}
+            onClick={() => onEmployeeSelect(employee.id)}
+          >
+            <div className="flex items-center space-x-3">
+              {employee.photo_url ? (
+                <img
+                  src={employee.photo_url}
+                  alt={employee.name}
+                  className="w-12 h-12 rounded-full object-cover"
+                />
+              ) : (
+                <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center">
+                  <span className="text-gray-500 text-lg font-medium">
+                    {employee.name.charAt(0)}
+                  </span>
+                </div>
+              )}
+              <div>
+                <h3 className="font-medium">{employee.name}</h3>
+                <p className="text-sm text-gray-500 capitalize">{employee.role}</p>
+              </div>
+            </div>
+            {employee.is_archived && (
+              <div className="mt-2">
+                <span className="px-2 py-1 text-xs bg-gray-100 text-gray-600 rounded-full">
+                  Archived
+                </span>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+      
+      <div className="mt-4">
         <Pagination
           currentPage={pagination.currentPage}
           totalPages={pagination.totalPages}
           onPageChange={onPageChange}
         />
-      )}
+      </div>
     </div>
   );
 };

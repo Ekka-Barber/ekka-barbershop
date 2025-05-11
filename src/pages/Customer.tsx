@@ -82,6 +82,19 @@ const Customer = () => {
     handleLocationDialog
   } = useDialogState(branches);
 
+  const handleOpenBranchDialog = () => {
+    setBranchDialogOpen(true);
+  };
+
+  const handleOpenLocationDialog = () => {
+    handleLocationDialog();
+  };
+
+  const handleOpenEidDialog = () => {
+    setEidBookingsDialogOpen(true);
+  };
+
+  // Make sure the UIElementRenderer component accepts the props we're passing
   return (
     <AppLayout>
       <PullToRefresh
@@ -94,13 +107,13 @@ const Customer = () => {
           <CustomerHeader animatingElements={animatingElements} />
 
           {/* UI Elements section */}
-          <UIElementRenderer
-            visibleElements={visibleElements}
+          <UIElementRenderer 
+            elements={visibleElements} 
             animatingElements={animatingElements}
-            isLoadingUiElements={isLoadingUiElements}
-            onOpenBranchDialog={() => setBranchDialogOpen(true)}
-            onOpenLocationDialog={() => handleLocationDialog()}
-            onOpenEidDialog={() => setEidBookingsDialogOpen(true)}
+            isLoading={isLoadingUiElements}
+            onOpenBranchDialog={handleOpenBranchDialog}
+            onOpenLocationDialog={handleOpenLocationDialog}
+            onOpenEidDialog={handleOpenEidDialog}
           />
         </div>
       </PullToRefresh>

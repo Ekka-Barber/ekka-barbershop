@@ -1,158 +1,109 @@
-import React from "react";
-import { 
-  Pagination, 
-  PaginationContent, 
-  PaginationEllipsis,
-  PaginationItem, 
-  PaginationLink, 
-  PaginationNext, 
-  PaginationPrevious 
-} from "@/components/ui/pagination";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
+import React from 'react';
+import { Button } from "@/components/ui/button";
+import { Pagination } from "@/components/ui/pagination";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface SalaryHistoryPaginationProps {
   currentPage: number;
   totalPages: number;
-  pageSize: number;
-  totalItems: number;
   onPageChange: (page: number) => void;
-  onPageSizeChange: (pageSize: number) => void;
 }
 
 export const SalaryHistoryPagination: React.FC<SalaryHistoryPaginationProps> = ({
   currentPage,
   totalPages,
-  pageSize,
-  totalItems,
-  onPageChange,
-  onPageSizeChange
+  onPageChange
 }) => {
-  // Generate page numbers to display
+  const canGoPrevious = currentPage > 1;
+  const canGoNext = currentPage < totalPages;
+
+  // Generate array of page numbers to display
   const getPageNumbers = () => {
-    const pageNumbers = [];
+    const pages = [];
     
-    // Always include first page, last page, current page, and one page before and after current
-    const includePages = new Set([
-      1, 
-      totalPages, 
-      currentPage, 
-      currentPage - 1, 
-      currentPage + 1
-    ]);
-    
-    // Add valid page numbers to array
-    for (let i = 1; i <= totalPages; i++) {
-      if (includePages.has(i) && i > 0 && i <= totalPages) {
-        pageNumbers.push(i);
-      }
+    // Always show first page
+    if (currentPage > 2) {
+      pages.push(1);
     }
     
-    // Sort and remove duplicates
-    return [...new Set(pageNumbers)].sort((a, b) => a - b);
-  };
-  
-  // Show ellipsis between non-consecutive pages
-  const renderPageLinks = () => {
-    const pageNumbers = getPageNumbers();
-    const result = [];
-    
-    for (let i = 0; i < pageNumbers.length; i++) {
-      const pageNumber = pageNumbers[i];
-      
-      // Add page link
-      result.push(
-        <PaginationItem key={`page-${pageNumber}`}>
-          <PaginationLink 
-            href="#" 
-            onClick={(e) => {
-              e.preventDefault();
-              onPageChange(pageNumber);
-            }}
-            isActive={pageNumber === currentPage}
-          >
-            {pageNumber}
-          </PaginationLink>
-        </PaginationItem>
-      );
-      
-      // Add ellipsis if needed
-      if (i < pageNumbers.length - 1 && pageNumbers[i + 1] - pageNumber > 1) {
-        result.push(
-          <PaginationItem key={`ellipsis-${pageNumber}`}>
-            <PaginationEllipsis />
-          </PaginationItem>
-        );
-      }
+    // Show ellipsis if needed
+    if (currentPage > 3) {
+      pages.push("ellipsis-start");
     }
-    
-    return result;
+
+    // Show current page and neighbors
+    const start = Math.max(2, currentPage - 1);
+    const end = Math.min(totalPages - 1, currentPage + 1);
+
+    for (let i = start; i <= end; i++) {
+      pages.push(i);
+    }
+
+    // Show ellipsis if needed
+    if (currentPage < totalPages - 2) {
+      pages.push("ellipsis-end");
+    }
+
+    // Always show last page if there is more than one page
+    if (totalPages > 1 && currentPage !== totalPages) {
+      pages.push(totalPages);
+    }
+
+    return pages;
   };
-  
-  // Calculate displaying records info text
-  const getItemsInfo = () => {
-    const start = (currentPage - 1) * pageSize + 1;
-    const end = Math.min(currentPage * pageSize, totalItems);
-    return `Showing ${start}-${end} of ${totalItems} records`;
-  };
-  
+
+  if (totalPages <= 1) {
+    return null;
+  }
+
   return (
-    <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-4">
-      <div className="text-sm text-muted-foreground">
-        {getItemsInfo()}
-      </div>
-      
-      <div className="flex items-center gap-3">
-        <Select
-          value={String(pageSize)}
-          onValueChange={(value) => onPageSizeChange(parseInt(value))}
-        >
-          <SelectTrigger className="w-[110px]">
-            <SelectValue placeholder="10 per page" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="10">10 per page</SelectItem>
-            <SelectItem value="25">25 per page</SelectItem>
-            <SelectItem value="50">50 per page</SelectItem>
-            <SelectItem value="100">100 per page</SelectItem>
-          </SelectContent>
-        </Select>
-        
-        <Pagination>
-          <PaginationContent>
-            <PaginationItem>
-              <PaginationPrevious 
-                href="#" 
-                onClick={(e) => {
-                  e.preventDefault();
-                  if (currentPage > 1) {
-                    onPageChange(currentPage - 1);
-                  }
-                }}
-                aria-disabled={currentPage === 1}
-                className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
-              />
-            </PaginationItem>
-            
-            {renderPageLinks()}
-            
-            <PaginationItem>
-              <PaginationNext 
-                href="#" 
-                onClick={(e) => {
-                  e.preventDefault();
-                  if (currentPage < totalPages) {
-                    onPageChange(currentPage + 1);
-                  }
-                }}
-                aria-disabled={currentPage === totalPages}
-                className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""}
-              />
-            </PaginationItem>
-          </PaginationContent>
-        </Pagination>
-      </div>
+    <div className="flex items-center justify-center space-x-1">
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => canGoPrevious && onPageChange(currentPage - 1)}
+        disabled={!canGoPrevious}
+        className="h-8 w-8 p-0"
+      >
+        <span className="sr-only">Previous page</span>
+        <ChevronLeft className="h-4 w-4" />
+      </Button>
+
+      {getPageNumbers().map((page, i) => {
+        if (page === "ellipsis-start" || page === "ellipsis-end") {
+          return (
+            <div key={`ellipsis-${i}`} className="flex items-center justify-center h-8 w-8">
+              <span className="text-sm text-muted-foreground">...</span>
+            </div>
+          );
+        }
+
+        return (
+          <Button
+            key={page}
+            variant={page === currentPage ? "default" : "outline"}
+            size="sm"
+            onClick={() => typeof page === "number" && onPageChange(page)}
+            className="h-8 w-8 p-0"
+          >
+            <span className="sr-only">Page {page}</span>
+            <span>{page}</span>
+          </Button>
+        );
+      })}
+
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => canGoNext && onPageChange(currentPage + 1)}
+        disabled={!canGoNext}
+        className="h-8 w-8 p-0"
+      >
+        <span className="sr-only">Next page</span>
+        <ChevronRight className="h-4 w-4" />
+      </Button>
     </div>
   );
 };
-
-export default SalaryHistoryPagination; 

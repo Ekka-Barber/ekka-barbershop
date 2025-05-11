@@ -12,7 +12,7 @@ interface UpsellService {
   discount_percentage: number;
 }
 
-interface UseBookingUpsellsResult {
+export interface UseBookingUpsellsResult {
   upsellServices: UpsellService[];
   isLoading: boolean;
   error: Error | null;

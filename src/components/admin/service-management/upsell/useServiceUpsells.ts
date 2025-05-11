@@ -62,59 +62,71 @@ export const useServiceUpsells = () => {
     }
   });
   
-  // Transform the data for the component
-  const servicesWithUpsells: ServiceWithUpsells[] = services.map(service => {
-    const serviceUpsells = upsellRelationships
-      .filter(rel => rel.main_service_id === service.id)
-      .map(rel => ({
-        id: rel.id,
-        upsell_service: rel.upsell_service as Service,
-        discount_percentage: rel.discount_percentage
-      }));
-    
-    return {
-      ...service,
-      upsells: serviceUpsells
-    };
-  }).filter(service => service.upsells.length > 0);
-  
   return {
     services,
     upsellRelationships,
     isLoadingServices,
-    isLoadingUpsells,
-    isLoading: isLoadingServices || isLoadingUpsells,
-    servicesWithUpsells,
-    allServices: services
+    isLoadingUpsells
   };
 };
 
-export const useUpsellMutations = ({ onSuccess }) => {
+export const useUpsellMutations = ({ onSuccess }: { onSuccess: () => void }) => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
   
   const addUpsellMutation = useMutation({
-    mutationFn: async ({ mainServiceId, upsellServiceId, discountPercentage }) => {
-      const { data, error } = await supabase
-        .from('service_upsells')
-        .insert({
-          main_service_id: mainServiceId,
-          upsell_service_id: upsellServiceId,
-          discount_percentage: discountPercentage
-        })
-        .select();
+    mutationFn: async ({ mainServiceId, upsellItems }: any) => {
+      if (!mainServiceId || !upsellItems || upsellItems.length === 0) {
+        throw new Error('Missing required data for upsell creation');
+      }
       
-      if (error) throw error;
-      return data;
+      // Check for duplicates
+      const insertPromises = [];
+      
+      for (const item of upsellItems) {
+        const { upsellServiceId, discountPercentage } = item;
+        
+        // Check if relation already exists
+        const { data: existing, error: checkError } = await supabase
+          .from('service_upsells')
+          .select('id')
+          .eq('main_service_id', mainServiceId)
+          .eq('upsell_service_id', upsellServiceId)
+          .maybeSingle();
+        
+        if (checkError) throw checkError;
+        
+        if (existing) {
+          throw new Error(`This upsell relationship already exists`);
+        }
+        
+        insertPromises.push(
+          supabase.from('service_upsells').insert({
+            main_service_id: mainServiceId,
+            upsell_service_id: upsellServiceId,
+            discount_percentage: discountPercentage
+          })
+        );
+      }
+      
+      const results = await Promise.all(insertPromises);
+      const errors = results.filter(r => r.error);
+      
+      if (errors.length > 0) {
+        throw new Error(errors[0].error?.message || 'Failed to create upsell relationship');
+      }
+      
+      return true;
     },
     onSuccess: () => {
       toast({
         title: "Upsell created",
         description: "The upsell relationship has been created successfully."
       });
-      onSuccess?.();
+      onSuccess();
+      queryClient.invalidateQueries({ queryKey: ['service-upsells'] });
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       toast({
         variant: "destructive",
         title: "Failed to create upsell",
@@ -124,7 +136,7 @@ export const useUpsellMutations = ({ onSuccess }) => {
   });
   
   const updateUpsellMutation = useMutation({
-    mutationFn: async ({ id, discount }) => {
+    mutationFn: async ({ id, discount }: { id: string, discount: number }) => {
       const { data, error } = await supabase
         .from('service_upsells')
         .update({
@@ -141,9 +153,10 @@ export const useUpsellMutations = ({ onSuccess }) => {
         title: "Upsell updated",
         description: "The discount has been updated successfully."
       });
-      onSuccess?.();
+      onSuccess();
+      queryClient.invalidateQueries({ queryKey: ['service-upsells'] });
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       toast({
         variant: "destructive",
         title: "Failed to update upsell",
@@ -167,9 +180,10 @@ export const useUpsellMutations = ({ onSuccess }) => {
         title: "Upsell deleted",
         description: "The upsell relationship has been removed."
       });
-      onSuccess?.();
+      onSuccess();
+      queryClient.invalidateQueries({ queryKey: ['service-upsells'] });
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       toast({
         variant: "destructive",
         title: "Failed to delete upsell",

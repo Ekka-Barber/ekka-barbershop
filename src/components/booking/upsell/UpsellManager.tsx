@@ -1,61 +1,69 @@
 
-import { useState } from "react";
-import { UpsellModal } from "@/components/booking/UpsellModal";
-import { useBookingUpsells } from "@/hooks/useBookingUpsells";
-import { useLanguage } from "@/contexts/LanguageContext";
-import { useBookingContext } from "@/contexts/BookingContext";
-import { BookingStep } from "@/components/booking/BookingProgress";
+import React from 'react';
+import { useBookingUpsells } from '@/hooks/useBookingUpsells';
+import { SelectedService } from '@/types/service';
 
 interface UpsellManagerProps {
-  onStepChange: (step: BookingStep) => void;
+  selectedServices: SelectedService[];
+  // Add other props as needed
 }
 
-export const UpsellManager = ({ onStepChange }: UpsellManagerProps) => {
-  const { language } = useLanguage();
-  const [showUpsellModal, setShowUpsellModal] = useState(false);
-  const [pendingStep, setPendingStep] = useState<BookingStep | null>(null);
+export const UpsellManager: React.FC<UpsellManagerProps> = ({ selectedServices }) => {
+  const selectedServiceIds = selectedServices.map(service => service.id);
   
   const {
-    selectedServices,
-    handleUpsellServiceAdd
-  } = useBookingContext();
+    upsellServices,
+    isLoading,
+    error,
+    originalPrice,
+    discountedPrice,
+    calculateTotalSavings,
+    calculatePercentageSaved
+  } = useBookingUpsells(selectedServiceIds);
 
-  const {
-    data: availableUpsells
-  } = useBookingUpsells(selectedServices, language);
+  // Handle loading and error states
+  if (isLoading) {
+    return <div>Loading upsell recommendations...</div>;
+  }
+  
+  if (error) {
+    return <div>Error loading upsell services</div>;
+  }
+  
+  if (upsellServices.length === 0) {
+    return null; // No upsells available
+  }
 
-  const initiateUpsellFlow = (nextStep: BookingStep) => {
-    if (availableUpsells?.length) {
-      setShowUpsellModal(true);
-      setPendingStep(nextStep);
-      return true;
-    }
-    return false;
-  };
-
-  const handleUpsellModalClose = () => {
-    setShowUpsellModal(false);
-    if (pendingStep) {
-      onStepChange(pendingStep);
-      setPendingStep(null);
-    }
-  };
-
-  const handleUpsellConfirm = (selectedUpsells: any[]) => {
-    handleUpsellServiceAdd(selectedUpsells);
-    handleUpsellModalClose();
-  };
-
+  // Render upsell services
   return (
-    <>
-      <UpsellModal 
-        isOpen={showUpsellModal} 
-        onClose={handleUpsellModalClose} 
-        onConfirm={handleUpsellConfirm} 
-        availableUpsells={availableUpsells || []} 
-      />
-      {/* Export the method so it can be called by a parent */}
-      <div style={{ display: 'none' }} id="upsell-manager-api" data-initiate-flow={initiateUpsellFlow.toString()} />
-    </>
+    <div className="mt-4">
+      <h3 className="text-lg font-medium mb-2">Recommended Services</h3>
+      <div className="space-y-3">
+        {upsellServices.map(service => (
+          <div key={service.id} className="p-3 border rounded-md flex justify-between items-center">
+            <div>
+              <div className="font-medium">{service.name_en}</div>
+              <div className="text-sm text-gray-500">{service.duration} min</div>
+            </div>
+            <div className="text-right">
+              <div className="line-through text-sm text-gray-500">{service.price} SAR</div>
+              <div className="font-bold text-green-600">
+                {(service.price * (100 - service.discount_percentage) / 100).toFixed(2)} SAR
+              </div>
+              <div className="text-xs text-green-500">Save {service.discount_percentage}%</div>
+            </div>
+          </div>
+        ))}
+      </div>
+      
+      <div className="mt-3 p-3 bg-gray-50 rounded-md">
+        <div className="flex justify-between">
+          <span>Total savings:</span>
+          <span className="font-bold text-green-600">{calculateTotalSavings().toFixed(2)} SAR</span>
+        </div>
+      </div>
+    </div>
   );
 };
+
+export default UpsellManager;
