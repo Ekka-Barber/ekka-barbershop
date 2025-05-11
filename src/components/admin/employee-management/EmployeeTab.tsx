@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, useEffect, Suspense, useCallback } from 'react';
 import { useBranchManager } from './hooks/useBranchManager';
 import { useEmployeeManager } from './hooks/useEmployeeManager';
@@ -47,16 +46,27 @@ const EmployeeGrid: React.FC<EmployeeGridProps> = (props) => (
   />
 );
 
-export const EmployeeTab = () => {
+// Update the props interface at the beginning of the file:
+interface EmployeeTabProps {
+  initialTab?: string;
+  initialBranchId?: string;
+  initialDate?: Date;
+}
+
+export const EmployeeTab: React.FC<EmployeeTabProps> = ({
+  initialTab,
+  initialBranchId,
+  initialDate
+}) => {
   const { currentState, syncUrlWithState } = useUrlState();
   const queryClient = useQueryClient();
   const { toast } = useToast();
   
   // Keep date state for tabs that need it like analytics
   const [selectedDate, setSelectedDate] = useState<Date>(() => 
-    new Date(currentState.date)
+    initialDate || new Date(currentState.date)
   );
-  const [activeTab, setActiveTab] = useState<string>(currentState.tab);
+  const [activeTab, setActiveTab] = useState<string>(initialTab || currentState.tab);
   
   const { 
     branches, 

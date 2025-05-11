@@ -1,7 +1,16 @@
+
 import { 
   Branch,
   ArchiveStatusFilter,
   PaginationState
+} from './types/index';
+
+// Use type imports for document types to avoid conflicts
+import type { 
+  DocumentType,
+  DocumentStatus,
+  DocumentCalculation,
+  EmployeeDocument
 } from './types/index';
 
 // Employee Types
@@ -53,7 +62,7 @@ export interface SalesContextType {
 
 // Component Props Types
 // Ensure PaginationState matches PaginationInfo requirements
-export { PaginationState } from './types/index';
+export type { PaginationState } from './types/index';
 
 export interface BranchSelectorProps {
   branches: Branch[];
@@ -61,7 +70,7 @@ export interface BranchSelectorProps {
   onChange: (branchId: string | null) => void;
 }
 
-export { EmployeeListProps } from './types/index';
+export type { EmployeeListProps } from './types/index';
 
 export interface EmployeeCardProps {
   employee: Employee;
@@ -118,10 +127,11 @@ export interface MonthYearPickerProps {
 }
 
 // Tab Props
-export { EmployeesTabProps } from './types/index';
+export type { EmployeesTabProps } from './types/index';
 
 export interface MonthlySalesTabProps {
   initialDate?: Date;
+  initialBranchId?: string;
 }
 
 // Hook Return Types
@@ -165,7 +175,7 @@ export interface PaginationInfo {
 }
 
 // Re-export types from types/index.ts to avoid duplication
-export {
+export type {
   Branch,
   ArchiveStatusFilter,
   Employee as EmployeeType

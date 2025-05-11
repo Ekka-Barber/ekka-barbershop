@@ -1,4 +1,3 @@
-
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from "@/contexts/LanguageContext";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
@@ -25,6 +24,16 @@ import { UIElementRenderer } from "@/components/customer/ui/UIElementRenderer";
 import { useUIElements } from "@/hooks/useUIElements";
 import { useElementAnimation } from "@/hooks/useElementAnimation";
 import { useDialogState } from "@/hooks/useDialogState";
+
+// Add the interface near the top of the file
+interface UIElementRendererProps {
+  visibleElements: any[]; // Update with the proper type if available
+  animatingElements: string[];
+  isLoadingUiElements: boolean;
+  onOpenBranchDialog: () => void;
+  onOpenLocationDialog: () => void;
+  onOpenEidDialog: () => void;
+}
 
 const Customer = () => {
   const navigate = useNavigate();

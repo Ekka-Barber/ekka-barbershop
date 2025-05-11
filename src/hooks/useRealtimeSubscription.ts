@@ -1,3 +1,4 @@
+
 import { useEffect, useRef, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/components/ui/use-toast';
@@ -10,7 +11,7 @@ export type PostgresChangesEvent = 'INSERT' | 'UPDATE' | 'DELETE' | '*';
 export interface RealtimeSubscriptionConfig {
   table: string;
   filter?: string;
-  queryKey: string | string[] | readonly unknown[];  // Update to accept queryKey formats
+  queryKey: string[] | readonly unknown[];  // Update to accept queryKey formats
   enableToast?: boolean;
   toastMessage?: string;
   onDataChange?: (payload: RealtimePostgresChangesPayload<any>) => void;
@@ -20,27 +21,6 @@ export interface RealtimeSubscriptionConfig {
 
 /**
  * Hook for setting up Supabase real-time subscriptions that invalidate React Query cache on data changes
- * 
- * @param options Configuration options for the subscription
- * @returns void
- * 
- * @example
- * ```tsx
- * // Basic usage
- * useRealtimeSubscription({
- *   table: 'employees',
- *   queryKey: ['employees', branchId]
- * });
- * 
- * // With custom filter and toast notifications
- * useRealtimeSubscription({
- *   table: 'employee_sales',
- *   filter: `employee_id=eq.${employeeId}`,
- *   queryKey: ['employee-sales', employeeId],
- *   enableToast: true,
- *   toastMessage: 'Sales data has been updated'
- * });
- * ```
  */
 export function useRealtimeSubscription({
   table,
@@ -92,7 +72,7 @@ export function useRealtimeSubscription({
     try {
       // Create channel with appropriate filters
       const channel = supabase
-        .channel(`${table}-changes-${Array.isArray(queryKey) ? queryKey.join('-') : queryKey}`)
+        .channel(`${table}-changes-${Array.isArray(queryKey) ? queryKey.join('-') : String(queryKey)}`)
         .on(
           'postgres_changes',
           {
@@ -100,7 +80,7 @@ export function useRealtimeSubscription({
             schema: 'public',
             table,
             filter: filter ? filter : undefined,
-          },
+          } as any,
           handleChange
         )
         .subscribe((status) => {
@@ -134,26 +114,7 @@ export function useRealtimeSubscription({
   return { hasError };
 }
 
-/**
- * Hook for managing multiple Supabase real-time subscriptions
- * 
- * @param subscriptions Array of subscription options
- * @returns void
- * 
- * @example
- * ```tsx
- * useMultipleRealtimeSubscriptions([
- *   {
- *     table: 'employees',
- *     queryKey: ['employees', branchId]
- *   },
- *   {
- *     table: 'salary_plans',
- *     queryKey: ['salary-plans']
- *   }
- * ]);
- * ```
- */
+// Fix the useMultipleRealtimeSubscriptions hook to use correct types
 export function useMultipleRealtimeSubscriptions(
   subscriptionsConfig: RealtimeSubscriptionConfig[]
 ) {
@@ -181,9 +142,14 @@ export function useMultipleRealtimeSubscriptions(
       };
       
       try {
+        // Use proper type casting and string handling
+        const channelId = Array.isArray(config.queryKey) 
+          ? `${config.table}-changes-${config.queryKey.join('-')}-${index}`
+          : `${config.table}-changes-${String(config.queryKey)}-${index}`;
+          
         // Set up Supabase subscription
         const channel = supabase
-          .channel(`${config.table}-changes-${config.queryKey.join('-')}-${index}`)
+          .channel(channelId)
           .on(
             'postgres_changes',
             {
@@ -191,40 +157,23 @@ export function useMultipleRealtimeSubscriptions(
               schema: 'public',
               table: config.table,
               filter: config.filter ? config.filter : undefined,
-            },
-            config.debounceMs && config.debounceMs > 0
-              ? debounce((payload: RealtimePostgresChangesPayload<any>) => {
-                  const queryClient = useQueryClient();
-                  queryClient.invalidateQueries(config.queryKey);
-                  
-                  if (config.enableToast && config.toastMessage) {
-                    const { toast } = useToast();
-                    toast({
-                      title: config.toastMessage,
-                      description: `${payload.eventType} at ${new Date().toLocaleTimeString()}`,
-                    });
-                  }
-                  
-                  if (config.onDataChange) {
-                    config.onDataChange(payload);
-                  }
-                }, config.debounceMs)
-              : (payload: RealtimePostgresChangesPayload<any>) => {
-                  const queryClient = useQueryClient();
-                  queryClient.invalidateQueries(config.queryKey);
-                  
-                  if (config.enableToast && config.toastMessage) {
-                    const { toast } = useToast();
-                    toast({
-                      title: config.toastMessage,
-                      description: `${payload.eventType} at ${new Date().toLocaleTimeString()}`,
-                    });
-                  }
-                  
-                  if (config.onDataChange) {
-                    config.onDataChange(payload);
-                  }
-                }
+            } as any,
+            (payload: RealtimePostgresChangesPayload<any>) => {
+              const queryClient = useQueryClient();
+              queryClient.invalidateQueries({ queryKey: config.queryKey });
+              
+              if (config.enableToast && config.toastMessage) {
+                const { toast } = useToast();
+                toast({
+                  title: config.toastMessage,
+                  description: `${payload.eventType} at ${new Date().toLocaleTimeString()}`,
+                });
+              }
+              
+              if (config.onDataChange) {
+                config.onDataChange(payload);
+              }
+            }
           )
           .subscribe((status) => {
             if (status !== 'SUBSCRIBED') {
