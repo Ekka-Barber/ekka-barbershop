@@ -26,5 +26,5 @@ employee_documents_with_status
 INSERT INTO "public"."employee_documents_with_status" ("id", "employee_id", "document_type", "document_name", "document_number", "issue_date", "expiry_date", "duration_months", "notification_threshold_days", "document_url", "notes", "created_at", "updated_at", "employee_name", "branch_id", "status", "days_remaining")
 
 
-salary_history
-INSERT INTO "public"."salary_history" ("id", "employee_id", "employee_name", "effective_date", "salary_plan_id", "salary_plan_name", "base_salary", "commission", "bonus", "deductions", "loans", "total_salary", "sales_amount", "month", "change_type", "change_reason", "previous_salary_json", "created_at", "updated_at")
+employee_monthly_salary
+INSERT INTO "public"."employee_monthly_salary" ("id", "employee_id", "employee_name_snapshot", "month_year", "payment_confirmation_date", "base_salary", "sales_amount", "commission_amount", "total_bonuses", "total_deductions", "total_loan_repayments", "net_salary_paid", "salary_plan_id_snapshot", "salary_plan_name_snapshot", "calculation_details_json", "created_at", "updated_at")

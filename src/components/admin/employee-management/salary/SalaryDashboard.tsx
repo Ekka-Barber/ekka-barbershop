@@ -10,7 +10,7 @@ import { SalaryTable } from './components/SalaryTable';
 /* import { useSalaryFiltering } from './hooks/useSalaryFiltering'; */
 import { useDashboardStats } from './hooks/useDashboardStats';
 import { Button } from '@/components/ui/button';
-import { Download, Calculator, List, FileText, ChevronLeft, ChevronRight, Search, RefreshCw, Filter, Clock } from 'lucide-react';
+import { Download, Calculator, List, FileText, ChevronLeft, ChevronRight, Search, RefreshCw, Filter, Clock, History } from 'lucide-react';
 import { EmployeeSalary } from './hooks/utils/salaryTypes';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import FormulaSalaryPlanList from './components/FormulaSalaryPlanList';
@@ -372,6 +372,10 @@ export const SalaryDashboard = React.memo(({
                 <FileText className="h-4 w-4 mr-1" />
                 Payslip Template
               </TabsTrigger>
+              <TabsTrigger value="salary-history" className="flex items-center gap-1 min-w-max">
+                <History className="h-4 w-4 mr-1" />
+                Salary History
+              </TabsTrigger>
             </TabsList>
             {salaryTab === "overview" && !isLoading && salaryData.length > 0 && !selectedEmployeeId && (
               <div className="hidden md:flex items-center gap-2">
@@ -505,6 +509,24 @@ export const SalaryDashboard = React.memo(({
               }}
             />
           )}
+        </TabsContent>
+        
+        <TabsContent value="salary-history">
+          <div className="space-y-6">
+            <div className="flex items-center mb-4">
+              <h2 className="text-2xl font-bold">Salary History</h2>
+              <p className="text-muted-foreground ml-4">
+                View confirmed salary payments history
+              </p>
+            </div>
+            
+            <Separator className="my-4" />
+            
+            {/* Placeholder for future salary history content */}
+            <div className="p-8 text-center text-muted-foreground">
+              Salary history content will be implemented here.
+            </div>
+          </div>
         </TabsContent>
       </Tabs>
       
