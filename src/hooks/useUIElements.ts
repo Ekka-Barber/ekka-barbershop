@@ -1,84 +1,52 @@
 
-import { useEffect } from 'react';
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { useState } from 'react';
-import { useToast } from "@/components/ui/use-toast";
+import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 
 export interface UIElement {
   id: string;
   type: string;
   name: string;
   display_name: string;
-  display_name_ar: string;
-  description: string | null;
-  description_ar: string | null;
+  display_name_ar?: string;
   is_visible: boolean;
   display_order: number;
-  icon: string | null;
-  action: string | null;
+  color?: string;
+  icon?: string;
+  action?: string;
+  description?: string;
+  description_ar?: string;
 }
 
 export const useUIElements = () => {
-  const { toast } = useToast();
-  const [visibleElements, setVisibleElements] = useState<UIElement[]>([]);
-  
-  const { data: uiElements, refetch: refetchUiElements, isLoading: isLoadingUiElements } = useQuery({
-    queryKey: ['ui-elements'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('ui_elements')
-        .select('*')
-        .order('display_order', { ascending: true });
-      
-      if (error) {
-        throw error;
-      }
-      return data as UIElement[];
-    }
-  });
+  const [elements, setElements] = useState<UIElement[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
 
-  // Filter visible elements
   useEffect(() => {
-    if (!uiElements) return;
-    setVisibleElements(uiElements.filter(el => el.is_visible));
-  }, [uiElements]);
+    const fetchUIElements = async () => {
+      try {
+        setIsLoading(true);
+        const { data, error } = await supabase
+          .from('ui_elements')
+          .select('*')
+          .eq('is_visible', true)
+          .order('display_order', { ascending: true });
 
-  // Set up real-time subscription
-  useEffect(() => {
-    const channel = supabase
-      .channel('ui_elements_changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'ui_elements'
-        },
-        () => {
-          refetchUiElements();
+        if (error) {
+          throw error;
         }
-      )
-      .subscribe();
 
-    return () => {
-      supabase.removeChannel(channel);
+        setElements(data as UIElement[]);
+      } catch (err) {
+        console.error('Error fetching UI elements:', err);
+        setError(err instanceof Error ? err : new Error('Failed to load UI elements'));
+      } finally {
+        setIsLoading(false);
+      }
     };
-  }, [refetchUiElements]);
 
-  const handleRefresh = async () => {
-    await refetchUiElements();
-    toast({
-      title: 'Refreshed',
-      description: 'Content has been updated',
-      duration: 2000,
-    });
-  };
+    fetchUIElements();
+  }, []);
 
-  return {
-    visibleElements,
-    isLoadingUiElements,
-    refetchUiElements,
-    handleRefresh
-  };
+  return { elements, isLoading, error };
 };

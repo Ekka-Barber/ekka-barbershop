@@ -1,7 +1,7 @@
 
 import React, { createContext, useContext, useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { differenceInDays, parseISO } from 'date-fns';
+import { differenceInDays, parseISO, format } from 'date-fns';
 import { 
   DocumentContextType, 
   EmployeeDocument, 
@@ -12,6 +12,12 @@ import {
 
 // Create context
 const DocumentContext = createContext<DocumentContextType | undefined>(undefined);
+
+// Helper function to ensure dates are converted to proper string format
+const formatDateForDB = (date: string | Date): string => {
+  if (typeof date === 'string') return date;
+  return format(date, 'yyyy-MM-dd');
+};
 
 // Provider component
 export const DocumentProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -90,8 +96,8 @@ export const DocumentProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         document_type: document.document_type,
         document_name: document.document_name,
         document_number: document.document_number,
-        issue_date: document.issue_date,
-        expiry_date: document.expiry_date,
+        issue_date: document.issue_date ? formatDateForDB(document.issue_date) : undefined,
+        expiry_date: document.expiry_date ? formatDateForDB(document.expiry_date) : undefined,
         duration_months: document.duration_months,
         notification_threshold_days: document.notification_threshold_days,
         document_url: document.document_url,
@@ -123,8 +129,8 @@ export const DocumentProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         document_type: document.document_type,
         document_name: document.document_name,
         document_number: document.document_number,
-        issue_date: document.issue_date,
-        expiry_date: document.expiry_date,
+        issue_date: document.issue_date ? formatDateForDB(document.issue_date) : undefined,
+        expiry_date: document.expiry_date ? formatDateForDB(document.expiry_date) : undefined,
         duration_months: document.duration_months,
         notification_threshold_days: document.notification_threshold_days,
         document_url: document.document_url,

@@ -1,129 +1,117 @@
 
-import React, { useState } from 'react';
-import { useEmployeeManager } from '../hooks/useEmployeeManager';
-import EmployeeList from '../components/employee-list/EmployeeList';
-import { EmployeesTabProps } from '../types';
-import { useToast } from '@/components/ui/use-toast';
+import React, { useState, useEffect } from 'react';
+import { EmployeeList } from '../components/employee-list/EmployeeList';
+import { useEmployeeData } from '@/hooks/useEmployeeData';
+import { type EmployeesTabProps, type Employee } from '../types';
+import { useToast } from '@/hooks/use-toast';
 import { BranchSelector } from '../components/BranchSelector';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { EmployeeCard } from '../components/EmployeeCard';
 import {
   DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuItem,
+  DropdownMenuSeparator
 } from '@/components/ui/dropdown-menu';
-import { EmployeeCard } from '../components/employee-card/EmployeeCard';
-import { useEmployeeData } from '@/hooks/useEmployeeData';
 
-// Simple mock EmployeeDialog component
-const EmployeeDialog = ({ trigger }: { trigger: React.ReactNode }) => {
-  return (
-    <>
-      {trigger}
-    </>
-  );
+// Initial state for pagination
+const INITIAL_PAGINATION = {
+  currentPage: 1,
+  totalPages: 1,
+  totalItems: 0,
+  pageSize: 10
 };
 
-// Use EmployeeTab as the component name to match imports elsewhere
 export const EmployeeTab: React.FC<EmployeesTabProps> = ({ initialBranchId }) => {
-  const {
-    employees,
-    isLoading,
-    error,
-    pagination,
-    setCurrentPage,
-    filterByBranch,
-    selectedBranch,
-    branches,
-    archiveFilter,
-    setArchiveFilter
-  } = useEmployeeManager(initialBranchId || null);
-  
+  // State for employees list
+  const [employees, setEmployees] = useState<Employee[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [pagination, setPagination] = useState(INITIAL_PAGINATION);
   const [selectedEmployee, setSelectedEmployee] = useState<string | null>(null);
+  const [selectedBranch, setSelectedBranch] = useState<string | null>(initialBranchId || null);
+  const [isDetailOpen, setIsDetailOpen] = useState(false);
   const { toast } = useToast();
-  const [isArchiveToggleLoading, setIsArchiveToggleLoading] = useState(false);
-  const { selectedEmployee: employeeData } = useEmployeeData(selectedEmployee);
 
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page);
-  };
-
-  const handleBranchChange = (branchId: string | null) => {
-    filterByBranch(branchId);
-    setSelectedEmployee(null);
-  };
-
-  const handleEmployeeSelect = (employeeId: string) => {
-    setSelectedEmployee(employeeId);
-  };
-
-  const handleEmployeeClose = () => {
-    setSelectedEmployee(null);
-  };
-
-  const handleArchiveToggle = async () => {
-    setIsArchiveToggleLoading(true);
+  // Fetch employees data
+  const fetchEmployees = async () => {
+    setIsLoading(true);
     try {
-      if (archiveFilter === 'active') {
-        setArchiveFilter('archived');
-        toast({
-          title: "Showing archived employees.",
+      // Here would go the API call to fetch employees with pagination and filtering
+      // For now, we'll simulate it
+      setTimeout(() => {
+        setEmployees([]); // Replace with actual API call
+        setPagination({
+          currentPage: 1,
+          totalPages: 1,
+          totalItems: 0,
+          pageSize: 10
         });
-      } else {
-        setArchiveFilter('active');
-        toast({
-          title: "Showing active employees.",
-        });
-      }
+        setIsLoading(false);
+      }, 1000);
     } catch (error) {
+      console.error('Error fetching employees:', error);
       toast({
-        variant: "destructive",
-        title: "Failed to toggle archive status.",
-        description: "Please try again.",
+        title: 'Error',
+        description: 'Failed to fetch employees. Please try again.',
+        variant: 'destructive'
       });
-    } finally {
-      setIsArchiveToggleLoading(false);
+      setIsLoading(false);
     }
   };
 
+  useEffect(() => {
+    fetchEmployees();
+  }, [selectedBranch]);
+
+  const handlePageChange = (page: number) => {
+    setPagination(prev => ({ ...prev, currentPage: page }));
+  };
+
+  const handleBranchChange = (branchId: string | null) => {
+    setSelectedBranch(branchId);
+  };
+
+  const handleEmployeeSelect = (id: string) => {
+    setSelectedEmployee(id);
+    setIsDetailOpen(true);
+  };
+
+  const handleCloseDetail = () => {
+    setIsDetailOpen(false);
+    setSelectedEmployee(null);
+  };
+
   return (
-    <div>
-      <div className="md:flex items-start justify-between gap-4 mb-4">
-        <div className="w-full md:w-1/3">
-          <div className="mb-4">
-            <BranchSelector
-              branches={branches}
-              selectedBranch={selectedBranch}
-              onChange={handleBranchChange}
-            />
-          </div>
-          <div className="flex items-center justify-between">
-            <h3 className="text-lg font-medium">Employee List</h3>
-            <EmployeeDialog
-              trigger={
-                <Button variant="outline" size="sm" className="gap-2">
-                  <Plus className="h-4 w-4" />
-                  Add Employee
-                </Button>
-              }
-            />
-          </div>
-          {isLoading ? (
-            <div className="space-y-2 mt-4">
-              {[...Array(3)].map((_, i) => (
-                <div key={i} className="p-4 opacity-60 animate-pulse">
-                  <Skeleton className="h-5 w-3/4" />
-                  <Skeleton className="h-4 w-1/2 mt-2" />
-                </div>
-              ))}
-            </div>
-          ) : error ? (
-            <p className="text-red-500 mt-4">Error: {error.message}</p>
-          ) : (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h2 className="text-2xl font-semibold">Employee Management</h2>
+        <div className="flex items-center gap-2">
+          <BranchSelector
+            selectedBranch={selectedBranch}
+            onChange={handleBranchChange}
+          />
+          <Button variant="outline" size="sm">
+            <Plus className="w-4 h-4 mr-2" />
+            Add Employee
+          </Button>
+          <Button size="sm">
+            View Documents
+          </Button>
+        </div>
+      </div>
+
+      {isLoading ? (
+        <div className="space-y-4">
+          <Skeleton className="h-10 w-full" />
+          <Skeleton className="h-10 w-full" />
+        </div>
+      ) : (
+        <div className="flex gap-4">
+          <div className="flex-1">
             <EmployeeList
               employees={employees}
               isLoading={isLoading}
@@ -132,45 +120,48 @@ export const EmployeeTab: React.FC<EmployeesTabProps> = ({ initialBranchId }) =>
               onEmployeeSelect={handleEmployeeSelect}
               selectedEmployee={selectedEmployee}
             />
-          )}
-        </div>
-
-        <div className="w-full md:w-2/3">
-          <div className="flex items-center justify-between mb-4">
-            <div></div>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm">
-                  Archive Status <span className="opacity-60">({archiveFilter})</span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onClick={handleArchiveToggle}
-                  disabled={isArchiveToggleLoading}
-                >
-                  Toggle Archive View
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
           </div>
-          {selectedEmployee && employeeData ? (
-            <EmployeeCard
-              employee={employeeData}
-              onClose={handleEmployeeClose}
-            />
-          ) : (
-            <div className="flex items-center justify-center p-8 bg-muted/30 rounded-lg">
-              <p className="text-muted-foreground">Select an employee to view details</p>
+          
+          {selectedEmployee && isDetailOpen && (
+            <div className="w-96 border rounded-lg p-4">
+              <div className="flex justify-between items-start mb-4">
+                <h3 className="text-lg font-medium">Employee Details</h3>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="sm">
+                      Actions
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem>Edit Employee</DropdownMenuItem>
+                    <DropdownMenuItem>View Documents</DropdownMenuItem>
+                    <DropdownMenuItem>Manage Schedule</DropdownMenuItem>
+                    <DropdownMenuItem className="text-red-600">Archive Employee</DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+              
+              {/* Find employee object from employees array and pass it to EmployeeCard */}
+              {employees.find(emp => emp.id === selectedEmployee) && (
+                <EmployeeCard 
+                  employee={employees.find(emp => emp.id === selectedEmployee)!} 
+                />
+              )}
+              
+              <div className="mt-4 flex justify-end">
+                <Button variant="outline" size="sm" onClick={handleCloseDetail}>
+                  Close
+                </Button>
+              </div>
             </div>
           )}
         </div>
-      </div>
+      )}
     </div>
   );
 };
 
-// Export as default and named export to support both import styles
-export default EmployeeTab;
+// Re-export EmployeeTab as EmployeesTab for backward compatibility
+export { EmployeeTab as EmployeesTab };
