@@ -16,6 +16,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import FormulaSalaryPlanList from './components/FormulaSalaryPlanList';
 import ExistingSalaryPlansList from './components/ExistingSalaryPlansList';
 import PayslipTemplateViewer from './components/PayslipTemplateViewer';
+import SalaryHistory from './components/SalaryHistory';
+import { useSalaryHistorySnapshots } from './hooks/useSalaryHistorySnapshots';
+import SalaryHistoryViewToggle from './components/SalaryHistoryViewToggle';
 
 interface SalaryDashboardProps {
   employees: Employee[];
@@ -512,21 +515,10 @@ export const SalaryDashboard = React.memo(({
         </TabsContent>
         
         <TabsContent value="salary-history">
-          <div className="space-y-6">
-            <div className="flex items-center mb-4">
-              <h2 className="text-2xl font-bold">Salary History</h2>
-              <p className="text-muted-foreground ml-4">
-                View confirmed salary payments history
-              </p>
-            </div>
-            
-            <Separator className="my-4" />
-            
-            {/* Placeholder for future salary history content */}
-            <div className="p-8 text-center text-muted-foreground">
-              Salary history content will be implemented here.
-            </div>
-          </div>
+          <SalaryHistory 
+            selectedMonth={selectedMonth} 
+            pickerDate={pickerDate} 
+          />
         </TabsContent>
       </Tabs>
       

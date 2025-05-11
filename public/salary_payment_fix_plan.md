@@ -7,11 +7,11 @@
 ## Progress Overview
 - [####################] 100% Phase 1: Database Design & Setup - Complete
 - [####################] 100% Phase 2: Frontend - Updating Payment Confirmation Logic - Complete
-- [####----------------] 20% Phase 3: Frontend - New "Salary History" Sub-Tab in Salary Dashboard - In Progress
+- [###############-----] 75% Phase 3: Frontend - New "Salary History" Sub-Tab in Salary Dashboard - In Progress (9/12 tasks)
 - [--------------------] 0% Phase 4: Testing and Refinement - Not Started
 - [--------------------] 0% Phase 5: Future Considerations - Not Implemented (Optional)
 
-**Overall Progress: 55% Complete** (Calculated based on completion of 11 out of 15 core sub-tasks across Phases 1-4)
+**Overall Progress: 70% Complete** (Calculated based on completion of 17 out of 24 core sub-tasks across Phases 1-4)
 
 ## New Salary Payment Confirmation & History System
 
@@ -219,74 +219,82 @@ The payment confirmation functionality is now working correctly. Issues were res
 
 The remaining work focuses on implementing the Salary History tab to display the payment records:
 
-### Phase 3: Frontend - New "Salary History" Sub-Tab in Salary Dashboard (20% Complete)
+### Phase 3: Frontend - New "Salary History" Sub-Tab in Salary Dashboard (75% Complete)
 
 > ⚠️ **WARNING: This phase only involves adding a new display tab. DO NOT modify the salary calculation logic.**
 
-#### Sub-Task 3.1.1: Add New Tab to Salary Dashboard (100% Complete)
-*   **File:** `src/components/admin/employee-management/salary/SalaryDashboard.tsx`
-*   **UI Element:**
-    *   Added a new `<TabsTrigger value="salary-history">Salary History</TabsTrigger>` to the TabsList component.
-    *   Added a corresponding `<TabsContent value="salary-history">...</TabsContent>` section with placeholder content.
-*   **Implementation:**
-    *   Used the History icon from Lucide icons to maintain consistency with other tabs
-    *   Added descriptive header text: "View confirmed salary payments history"
-    *   Created placeholder structure for the future implementation
+#### 3.1 Tab & Data Hook Setup
 
-> 📝 **After Completion:** Updated the plan to mark this sub-task as complete and update the overall progress. (Completed)
+* 3.1.1 Add `<TabsTrigger value="salary-history">Salary History</TabsTrigger>` and `<TabsContent value="salary-history">…</TabsContent>` in `SalaryDashboard.tsx` (100% Complete)
+  * **Implementation Notes:**
+    * Created a separate `SalaryHistory.tsx` component for better maintainability
+    * Connected it to the SalaryDashboard.tsx tab system
+    * Tab uses History icon from Lucide for visual consistency with other tabs
 
-#### Sub-Task 3.1.2: Create Data Fetching Hook for Salary History (0% Complete)
-*   **File Path (New):** `src/components/admin/employee-management/salary/hooks/useSalaryHistorySnapshots.ts`
-*   **Type Definition (Example for hook filters):**
-    ```typescript
-    export interface SalaryHistoryFilters {
-      employeeId?: string;
-      monthYear?: string; // YYYY-MM
-      startDate?: string; // YYYY-MM-DD (for payment_confirmation_date range)
-      endDate?: string;   // YYYY-MM-DD (for payment_confirmation_date range)
-      sortBy?: string;    // Column name for sorting
-      sortOrder?: 'asc' | 'desc';
-      limit?: number;
-      offset?: number;
-    }
-    ```
-*   **Function Signature:** `export const useSalaryHistorySnapshots = (filters: SalaryHistoryFilters) => { ... }`
-*   **Logic:**
-    *   Uses `@tanstack/react-query` (`useQuery`).
-    *   Query key should include all filter parameters to ensure proper caching and refetching.
-    *   Constructs a Supabase query to `employee_monthly_salary`.
+* 3.1.2 Create `hooks/useSalaryHistorySnapshots.ts` with `useSalaryHistorySnapshots(filters)` using React-Query + Supabase (100% Complete)
+  * **Implementation Notes:**
+    * Built a React Query v5 compatible hook with proper caching and stale time
+    * Implemented comprehensive filtering options with type safety
+    * Added pagination and sorting support (foundation for table implementation)
+    * Created helper functions for data filtering and display
 
-#### Sub-Task 3.1.3: Design and Implement Salary History Display Component (0% Complete)
-*   **File Path (New):** `src/components/admin/employee-management/salary/components/SalaryHistorySnapshotsTable.tsx`
-*   **UI Element:** A table component (e.g., using `@/components/ui/table`).
-*   **Columns to Display (suggestion):**
-    *   `Employee Name (Snapshot)`
-    *   `Month/Year` (Pay Period)
-    *   `Payment Confirmation Date` (Formatted)
-    *   `Salary Plan (Snapshot)`
-    *   `Base Salary` (Formatted currency)
-    *   `Sales Amount` (Formatted currency)
-    *   `Commission Amount` (Formatted currency)
-    *   `Total Bonuses` (Formatted currency)
-    *   `Total Deductions` (Formatted currency)
-    *   `Total Loan Repayments` (Formatted currency)
-    *   `Net Salary Paid` (Formatted currency)
-    *   Action column: "View Details" button/icon to open a modal/drawer displaying the formatted `calculation_details_json`.
+#### 3.2 Filters & View Controls
 
-#### Sub-Task 3.1.4: Integrate History Display into Salary Dashboard Tab (0% Complete)
-*   **File:** `src/components/admin/employee-management/salary/SalaryDashboard.tsx`
-*   **Inside `<TabsContent value="history">`:**
-    1.  **State Management for Filters and Pagination:**
-        *   Use `useState` for filter values (`filters: SalaryHistoryFilters`). Initialize with defaults.
-        *   Use `useState` for pagination (`currentPage: number`, `itemsPerPage: number`).
-    2.  **UI Elements for Filtering:**
-        *   Employee Selector (Dropdown): Populate with employees list. Updates `filters.employeeId`.
-        *   Month/Year Picker: Updates `filters.monthYear`.
-        *   Date Range Picker for `payment_confirmation_date`: Updates `filters.startDate` and `filters.endDate`.
-        *   "Apply Filters" Button: Triggers refetch or updates filter state.
-        *   "Reset Filters" Button: Resets filters to default and refetches.
-    3.  **Data Fetching and Display:**
-        *   Render filter components, SalaryHistorySnapshotsTable, and pagination.
+* 3.2.1 Implement Month vs. Year view toggle at the top of the tab (100% Complete)
+  * **Implementation Notes:**
+    * Created a reusable `SalaryHistoryViewToggle.tsx` component with clean styling
+    * Integrated appropriate Lucide icons (CalendarRange and CalendarClock)
+    * Added conditional display logic based on selected view mode
+    * Implemented placeholders for no-data and loading states
+  
+* 3.2.2 Build Date-Filter Accordion showing only years with data, expandable into available months (and "All months") (100% Complete)
+  * **Implementation Notes:**
+    * Created a dedicated `SalaryHistoryDateFilter.tsx` component with accordion functionality
+    * Implemented dynamic filtering based on available data
+    * Added visual indicators for the current month/year
+    * Used badge counters to show number of records per year/month
+    * Integrated with responsive layout in SalaryHistory component
+    * Added "Clear" button to reset filters
+  
+* 3.2.3 Render Employee Filter as pill-style buttons (one per employee) for multi-select (100% Complete)
+  * **Implementation Notes:**
+    * Created `useAllActiveEmployees.ts` hook to fetch all non-archived employees.
+    * Created `SalaryHistoryEmployeeFilter.tsx` component.
+    * Renders pill-style buttons for each employee using Shadcn `Button`.
+    * Manages selection state in `SalaryHistory.tsx` and passes down to the filter.
+    * `useSalaryHistorySnapshots` updated to filter by selected employee IDs.
+
+#### 3.3 Table Design & Interactions
+
+* 3.3.1 Create `SalaryHistorySnapshotsTable.tsx` with columns: Month/Year, Employee (avatar + name), Net Paid, Plan Snapshot, Payment Date, Actions (View Details + Regenerate Payslip) (100% Complete)
+  * **Implementation Notes:**
+    * Created `EmployeeMonthlySalary` type in `src/components/admin/employee-management/salary/types/index.ts`.
+    * Created `SalaryHistorySnapshotsTable.tsx` component using Shadcn `Table`.
+    * Displays columns: Month/Year, Employee (initials + name), Net Paid (formatted), Plan Snapshot, Payment Date (formatted).
+    * Includes placeholder action buttons (View Details, Regenerate Payslip) with Lucide icons.
+    * Handles loading and empty states.
+    * Integrated into `SalaryHistory.tsx`.
+
+* 3.3.2 Fix Date Filtering & Badge Count Issues (100% Complete)
+  * **Implementation Notes:**
+    * Fixed incorrect month count badges in `SalaryHistoryDateFilter`
+    * Updated `useSalaryHistorySnapshots` hook to include `allSnapshots` data for accurate counting
+    * Completely isolated `SalaryHistory` filtering from parent component influence
+    * Ensured filter controls remain visible even when no data is available for the selected period
+    * Added proper counting logic by individual month-year combinations
+    * Fixed UI inconsistencies in empty state handling
+
+* 3.3.3 Add inline row-expander ("▶") to reveal base salary, commission, bonuses, deductions, loans (0% Complete)
+
+#### 3.4 Detail-View Panel
+
+* 3.4.1 On "View Details," open a slide-in drawer showing the `calculation_details_json` as a human-readable list, with "Download PDF Payslip" link and "Send Email Payslip" button placeholder (0% Complete)
+
+#### 3.5 Performance & Polishing
+
+* 3.5.1 Add pagination or infinite-scroll with page-size selector (25/50/100) or lazy-load on scroll (0% Complete)
+* 3.5.2 Add tooltips on column headers and a "?" helper next to "Calculation Details" (0% Complete)
+* 3.5.3 Match visual style (cards, fonts, colors, hover shadows) to Overview tab and add subtle row hover states (0% Complete)
 
 ### Phase 4: Testing and Refinement (0% Complete)
 
