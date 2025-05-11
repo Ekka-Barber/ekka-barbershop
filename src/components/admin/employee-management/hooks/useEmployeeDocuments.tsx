@@ -1,6 +1,13 @@
+
 import { useState, useCallback } from 'react';
 import { differenceInDays } from 'date-fns';
-import { EmployeeDocument, DocumentCalculation } from '../types/document-types';
+import { 
+  EmployeeDocument, 
+  DocumentType, 
+  DocumentCalculation,
+  DocumentStatus,
+  EmployeeDocumentInput
+} from '../types';
 import { documentService } from '../services/documentService';
 
 // Use the real API implementation with Supabase
@@ -34,15 +41,15 @@ export const useEmployeeDocuments = () => {
     try {
       // Use the document service to add a document
       const newDocument = await documentService.createDocument({
-        employee_id: document.employee_id || '',
-        document_type: document.document_type || 'custom',
-        document_name: document.document_name || 'Untitled Document',
-        document_number: document.document_number || null,
-        issue_date: document.issue_date || new Date().toISOString(),
-        expiry_date: document.expiry_date || new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
-        duration_months: document.duration_months || 12,
-        notification_threshold_days: document.notification_threshold_days || 30,
-        document_url: document.document_url || null,
+        employee_id: document.employeeId || '',
+        document_type: document.documentType || DocumentType.OTHER,
+        document_name: document.documentName || 'Untitled Document',
+        document_number: document.documentNumber || null,
+        issue_date: document.issueDate || new Date().toISOString(),
+        expiry_date: document.expiryDate || new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
+        duration_months: document.durationMonths || 12,
+        notification_threshold_days: document.notificationThresholdDays || 30,
+        document_url: document.documentUrl || null,
         notes: document.notes || null,
       });
       
@@ -60,7 +67,7 @@ export const useEmployeeDocuments = () => {
   const updateDocument = useCallback(async (id: string, document: Partial<EmployeeDocument>) => {
     try {
       // Use the document service to update a document
-      const updatedDocument = await documentService.updateDocument(id, document);
+      const updatedDocument = await documentService.updateDocument(id, document as Partial<EmployeeDocumentInput>);
       
       // Update the local state
       setDocuments(prevDocuments => {
@@ -101,24 +108,24 @@ export const useEmployeeDocuments = () => {
   const calculateStatus = useCallback((document: EmployeeDocument): DocumentCalculation => {
     try {
       const today = new Date();
-      const expiryDate = new Date(document.expiry_date);
+      const expiryDate = new Date(document.expiryDate);
       
-      // Check if status is already in the document (from view)
-      const isExpired = document.status === 'expired' || today > expiryDate;
+      // Check if status is already in the document
+      const isExpired = document.status === DocumentStatus.EXPIRED || today > expiryDate;
       
       // Use days_remaining from the view if available, otherwise calculate
       const daysRemaining = document.days_remaining !== undefined 
         ? document.days_remaining 
         : differenceInDays(expiryDate, today);
       
-      const isExpiringSoon = !isExpired && 
-        (document.status === 'expiring_soon' || 
-         daysRemaining <= document.notification_threshold_days);
+      const isWarning = !isExpired && 
+        (document.status === DocumentStatus.WARNING || 
+         daysRemaining <= document.notificationThresholdDays);
       
       let statusText = '';
       if (isExpired) {
         statusText = 'Expired';
-      } else if (isExpiringSoon) {
+      } else if (isWarning) {
         statusText = `Expires in ${daysRemaining} days`;
       } else {
         statusText = 'Valid';
@@ -127,7 +134,7 @@ export const useEmployeeDocuments = () => {
       return {
         daysRemaining,
         isExpired,
-        isExpiringSoon,
+        isWarning,
         statusText,
         expiryDate,
       };
@@ -136,7 +143,7 @@ export const useEmployeeDocuments = () => {
       return {
         daysRemaining: 0,
         isExpired: false,
-        isExpiringSoon: false,
+        isWarning: false,
         statusText: 'Unknown',
         expiryDate: new Date(),
       };
@@ -175,4 +182,4 @@ export const useEmployeeDocuments = () => {
     getExpiringDocuments,
     getExpiredDocuments
   };
-}; 
+};

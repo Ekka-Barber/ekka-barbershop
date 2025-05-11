@@ -1,7 +1,18 @@
 
 // Re-export all types from document-types
-export type { DocumentCalculation, EmployeeDocument } from './document-types';
-export { DocumentType, DocumentStatus } from './document-types';
+export type { 
+  DocumentCalculation, 
+  EmployeeDocument,
+  DocumentWithStatus,
+  EmployeeDocumentInput,
+  DocumentService,
+  DocumentFormProps
+} from './document-types';
+
+export { 
+  DocumentType, 
+  DocumentStatus 
+} from './document-types';
 
 // Define PaginationState type
 export interface PaginationState {
@@ -10,6 +21,9 @@ export interface PaginationState {
   totalItems: number;
   pageSize: number;
 }
+
+// Define ArchiveStatusFilter type
+export type ArchiveStatusFilter = 'all' | 'active' | 'archived';
 
 // Define Employee type
 export interface Employee {
@@ -46,6 +60,7 @@ export interface DocumentContextType {
   documents: EmployeeDocument[];
   isLoading: boolean;
   error: Error | null;
+  fetchDocuments: (employeeId: string) => Promise<void>;
   addDocument: (document: Partial<EmployeeDocument>) => Promise<void>;
   updateDocument: (id: string, document: Partial<EmployeeDocument>) => Promise<void>;
   deleteDocument: (id: string) => Promise<void>;

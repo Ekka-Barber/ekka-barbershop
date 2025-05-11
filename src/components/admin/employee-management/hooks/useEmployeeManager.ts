@@ -1,7 +1,8 @@
+
 import { useState, useEffect, useCallback } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from "@/integrations/supabase/client";
 import { Employee } from '@/types/employee';
-import { PaginationState } from '../types';
+import { PaginationState, ArchiveStatusFilter } from '../types';
 
 // Export Branch type so it can be imported elsewhere
 export interface Branch {
@@ -16,9 +17,6 @@ export interface Branch {
   google_maps_url?: string | null;
   google_place_id?: string | null;
 }
-
-// Define the ArchiveStatusFilter type
-export type ArchiveStatusFilter = 'all' | 'active' | 'archived';
 
 /**
  * Hook for managing employee data with pagination and filtering

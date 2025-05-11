@@ -119,7 +119,7 @@ export const DocumentList: React.FC<DocumentListProps> = ({ employeeId }) => {
               document={document}
               statusDetails={calculateStatus(document)}
               onEdit={() => handleEditClick(document)}
-              onDelete={() => handleDeleteDocument(document.id!)}
+              onDelete={() => handleDeleteDocument(document.id)}
             />
           ))}
         </div>

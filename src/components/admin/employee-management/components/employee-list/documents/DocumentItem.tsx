@@ -6,9 +6,10 @@ import { PencilIcon, TrashIcon, FileIcon } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import { 
-  DocumentTypeEnum,
+  DocumentType,
   DocumentCalculation,
-  EmployeeDocument
+  EmployeeDocument,
+  DocumentStatus
 } from '../../../types';
 
 interface DocumentItemProps {
@@ -33,11 +34,25 @@ export const DocumentItem: React.FC<DocumentItemProps> = ({
     }
   };
 
-  const documentTypeLabels: Record<DocumentTypeEnum | string, string> = {
-    health_certificate: 'Health Certificate',
-    residency_permit: 'Residency Permit',
-    work_license: 'Work License',
-    custom: document.documentName || 'Custom Document'
+  const getDocumentStatus = (): 'valid' | 'expiring_soon' | 'expired' => {
+    if (statusDetails.isExpired) return 'expired';
+    if (statusDetails.isWarning) return 'expiring_soon';
+    return 'valid';
+  };
+
+  const documentTypeLabels: Record<DocumentType | string, string> = {
+    [DocumentType.HEALTH_CERTIFICATE]: 'Health Certificate',
+    [DocumentType.RESIDENCY_PERMIT]: 'Residency Permit',
+    [DocumentType.WORK_LICENSE]: 'Work License',
+    [DocumentType.PASSPORT]: 'Passport',
+    [DocumentType.ID_CARD]: 'ID Card',
+    [DocumentType.DRIVING_LICENSE]: 'Driving License',
+    [DocumentType.WORK_PERMIT]: 'Work Permit',
+    [DocumentType.RESIDENCE_PERMIT]: 'Residence Permit',
+    [DocumentType.INSURANCE]: 'Insurance',
+    [DocumentType.CONTRACT]: 'Contract',
+    [DocumentType.CUSTOM]: document.documentName || 'Custom Document',
+    [DocumentType.OTHER]: 'Other Document'
   };
 
   const formattedIssueDate = document.issueDate 
@@ -48,15 +63,21 @@ export const DocumentItem: React.FC<DocumentItemProps> = ({
     ? format(new Date(document.expiryDate), 'MMM d, yyyy')
     : 'N/A';
 
+  const statusText = statusDetails.statusText || (
+    statusDetails.isExpired ? 'Expired' : 
+    statusDetails.isWarning ? `Expires in ${statusDetails.daysRemaining} days` : 
+    'Valid'
+  );
+
   return (
     <Card className="border overflow-hidden">
-      <div className={`h-2 ${getStatusColor(document.status || 'valid').split(' ')[0]}`} />
+      <div className={`h-2 ${getStatusColor(getDocumentStatus()).split(' ')[0]}`} />
       <CardContent className="p-4">
         <div className="flex justify-between">
           <div>
             <div className="font-medium">
               <FileIcon className="inline-block w-4 h-4 mr-2" />
-              {documentTypeLabels[document.documentType as DocumentTypeEnum]}
+              {documentTypeLabels[document.documentType]}
             </div>
             {document.documentNumber && (
               <div className="text-sm text-muted-foreground mt-1">
@@ -88,8 +109,8 @@ export const DocumentItem: React.FC<DocumentItemProps> = ({
         </div>
 
         <div className="mt-4 flex justify-between items-center">
-          <Badge className={getStatusColor(document.status || 'valid')}>
-            {statusDetails.statusText}
+          <Badge className={getStatusColor(getDocumentStatus())}>
+            {statusText}
           </Badge>
           {document.documentUrl && (
             <Button variant="link" size="sm" asChild>

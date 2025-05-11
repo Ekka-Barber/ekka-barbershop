@@ -21,7 +21,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useForm } from 'react-hook-form';
 import { 
   DocumentFormProps,
-  DocumentTypeEnum
+  DocumentType
 } from '../../../types';
 import { addDays, format } from 'date-fns';
 
@@ -35,7 +35,7 @@ export const DocumentForm: React.FC<DocumentFormProps> = ({
   const form = useForm({
     defaultValues: document || {
       employeeId,
-      documentType: 'health_certificate' as DocumentTypeEnum,
+      documentType: DocumentType.HEALTH_CERTIFICATE,
       documentName: '',
       notificationThresholdDays: 30,
       durationMonths: 12,
@@ -48,14 +48,22 @@ export const DocumentForm: React.FC<DocumentFormProps> = ({
 
   // Set document name based on document type
   useEffect(() => {
-    if (watchDocumentType && watchDocumentType !== 'custom') {
-      const documentNames: Record<DocumentTypeEnum, string> = {
-        health_certificate: 'Health Certificate',
-        residency_permit: 'Residency Permit',
-        work_license: 'Work License',
-        custom: ''
+    if (watchDocumentType && watchDocumentType !== DocumentType.CUSTOM) {
+      const documentNames: Record<DocumentType, string> = {
+        [DocumentType.HEALTH_CERTIFICATE]: 'Health Certificate',
+        [DocumentType.RESIDENCY_PERMIT]: 'Residency Permit',
+        [DocumentType.WORK_LICENSE]: 'Work License',
+        [DocumentType.PASSPORT]: 'Passport',
+        [DocumentType.ID_CARD]: 'ID Card',
+        [DocumentType.DRIVING_LICENSE]: 'Driving License',
+        [DocumentType.WORK_PERMIT]: 'Work Permit',
+        [DocumentType.RESIDENCE_PERMIT]: 'Residence Permit',
+        [DocumentType.INSURANCE]: 'Insurance',
+        [DocumentType.CONTRACT]: 'Contract',
+        [DocumentType.CUSTOM]: '',
+        [DocumentType.OTHER]: 'Other Document'
       };
-      form.setValue('documentName', documentNames[watchDocumentType as DocumentTypeEnum]);
+      form.setValue('documentName', documentNames[watchDocumentType]);
     }
   }, [watchDocumentType, form]);
 
@@ -104,10 +112,12 @@ export const DocumentForm: React.FC<DocumentFormProps> = ({
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value="health_certificate">Health Certificate</SelectItem>
-                  <SelectItem value="residency_permit">Residency Permit</SelectItem>
-                  <SelectItem value="work_license">Work License</SelectItem>
-                  <SelectItem value="custom">Custom</SelectItem>
+                  <SelectItem value={DocumentType.HEALTH_CERTIFICATE}>Health Certificate</SelectItem>
+                  <SelectItem value={DocumentType.RESIDENCY_PERMIT}>Residency Permit</SelectItem>
+                  <SelectItem value={DocumentType.WORK_LICENSE}>Work License</SelectItem>
+                  <SelectItem value={DocumentType.PASSPORT}>Passport</SelectItem>
+                  <SelectItem value={DocumentType.ID_CARD}>ID Card</SelectItem>
+                  <SelectItem value={DocumentType.CUSTOM}>Custom</SelectItem>
                 </SelectContent>
               </Select>
               <FormMessage />
@@ -115,7 +125,7 @@ export const DocumentForm: React.FC<DocumentFormProps> = ({
           )}
         />
 
-        {watchDocumentType === 'custom' && (
+        {watchDocumentType === DocumentType.CUSTOM && (
           <FormField
             control={form.control}
             name="documentName"
