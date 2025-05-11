@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import { DocumentWithStatus, DocumentType, DocumentStatus, DocumentCalculation } from "../../../types/index";
+import { DocumentWithStatus, DocumentType, DocumentStatus } from "../../../types/document-types";
 import { format } from "date-fns";
 import { CalendarIcon, FileIcon, Trash2, Edit, ExternalLink } from "lucide-react";
 import {
@@ -19,12 +19,11 @@ import { Badge } from "@/components/ui/badge";
 
 interface DocumentItemProps {
   document: DocumentWithStatus;
-  statusDetails: DocumentCalculation;
   onEdit: (document: DocumentWithStatus) => void;
   onDelete: (documentId: string) => void;
 }
 
-export const DocumentItem = ({ document, statusDetails, onEdit, onDelete }: DocumentItemProps) => {
+export const DocumentItem = ({ document, onEdit, onDelete }: DocumentItemProps) => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   const getStatusColor = (status: DocumentStatus) => {
@@ -91,10 +90,10 @@ export const DocumentItem = ({ document, statusDetails, onEdit, onDelete }: Docu
             </div>
             <Badge className={getStatusColor(document.status)}>
               {document.status}
-              {statusDetails.days_remaining !== undefined
+              {document.days_remaining !== undefined
                 ? document.status === DocumentStatus.EXPIRED
-                  ? ` (${Math.abs(statusDetails.days_remaining)} days ago)`
-                  : ` (${statusDetails.days_remaining} days left)`
+                  ? ` (${Math.abs(document.days_remaining)} days ago)`
+                  : ` (${document.days_remaining} days left)`
                 : ""}
             </Badge>
           </div>

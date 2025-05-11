@@ -9,18 +9,12 @@ interface SalaryHistoryPaginationProps {
   currentPage: number;
   totalPages: number;
   onPageChange: (page: number) => void;
-  pageSize?: number;
-  totalItems?: number;
-  onPageSizeChange?: (size: number) => void;
 }
 
 export const SalaryHistoryPagination: React.FC<SalaryHistoryPaginationProps> = ({
   currentPage,
   totalPages,
-  onPageChange,
-  pageSize,
-  totalItems,
-  onPageSizeChange
+  onPageChange
 }) => {
   const canGoPrevious = currentPage > 1;
   const canGoNext = currentPage < totalPages;

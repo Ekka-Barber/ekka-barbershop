@@ -14,14 +14,14 @@ export const useEmployeeDocuments = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<Error | null>(null);
   
-  const calculateStatus = useCallback((document: EmployeeDocument): DocumentCalculation => {
+  const calculateDocumentStatus = useCallback((document: EmployeeDocument): DocumentCalculation => {
     try {
       const currentDate = new Date();
-      const expiryDate = parseISO(document.expiry_date as string);
+      const expiryDate = parseISO(document.expiryDate);
       const daysRemaining = differenceInDays(expiryDate, currentDate);
       
       const isExpired = daysRemaining < 0;
-      const isWarning = !isExpired && daysRemaining <= document.notification_threshold_days;
+      const isWarning = !isExpired && daysRemaining <= document.notificationThresholdDays;
       
       let statusText = '';
       if (isExpired) {
@@ -33,16 +33,19 @@ export const useEmployeeDocuments = () => {
       }
       
       return {
-        days_remaining: daysRemaining,
-        status: isExpired ? DocumentStatus.EXPIRED : 
-               isWarning ? DocumentStatus.EXPIRING : 
-               DocumentStatus.VALID
+        daysRemaining,
+        isExpired,
+        isWarning,
+        statusText,
+        expiryDate
       };
     } catch (error) {
       console.error('Error calculating document status:', error);
       return {
-        days_remaining: null,
-        status: DocumentStatus.MISSING
+        daysRemaining: null,
+        isExpired: false,
+        isWarning: false,
+        statusText: 'Error calculating status'
       };
     }
   }, []);
@@ -60,8 +63,23 @@ export const useEmployeeDocuments = () => {
       if (fetchError) throw new Error(fetchError.message);
       
       if (data) {
-        // Directly use data as it already has the correct property names
-        setDocuments(data as EmployeeDocument[]);
+        const processedDocuments = data.map(doc => ({
+          id: doc.id,
+          employeeId: doc.employee_id,
+          documentType: doc.document_type as DocumentType,
+          documentName: doc.document_name,
+          documentNumber: doc.document_number,
+          issueDate: doc.issue_date,
+          expiryDate: doc.expiry_date,
+          durationMonths: doc.duration_months,
+          notificationThresholdDays: doc.notification_threshold_days,
+          documentUrl: doc.document_url,
+          notes: doc.notes,
+          createdAt: doc.created_at,
+          updatedAt: doc.updated_at
+        })) as EmployeeDocument[];
+        
+        setDocuments(processedDocuments);
       } else {
         setDocuments([]);
       }
@@ -79,15 +97,15 @@ export const useEmployeeDocuments = () => {
     
     try {
       const documentData = {
-        employee_id: document.employee_id,
-        document_type: document.document_type,
-        document_name: document.document_name,
-        document_number: document.document_number,
-        issue_date: document.issue_date,
-        expiry_date: document.expiry_date,
-        duration_months: document.duration_months,
-        notification_threshold_days: document.notification_threshold_days,
-        document_url: document.document_url,
+        employee_id: document.employeeId,
+        document_type: document.documentType,
+        document_name: document.documentName,
+        document_number: document.documentNumber,
+        issue_date: document.issueDate,
+        expiry_date: document.expiryDate,
+        duration_months: document.durationMonths,
+        notification_threshold_days: document.notificationThresholdDays,
+        document_url: document.documentUrl,
         notes: document.notes
       };
       
@@ -97,8 +115,8 @@ export const useEmployeeDocuments = () => {
         
       if (insertError) throw new Error(insertError.message);
       
-      if (document.employee_id) {
-        await fetchDocuments(document.employee_id);
+      if (document.employeeId) {
+        await fetchDocuments(document.employeeId);
       }
     } catch (err) {
       setError(err instanceof Error ? err : new Error('An error occurred while adding document'));
@@ -113,14 +131,14 @@ export const useEmployeeDocuments = () => {
     
     try {
       const documentData = {
-        document_type: document.document_type,
-        document_name: document.document_name,
-        document_number: document.document_number,
-        issue_date: document.issue_date,
-        expiry_date: document.expiry_date,
-        duration_months: document.duration_months,
-        notification_threshold_days: document.notification_threshold_days,
-        document_url: document.document_url,
+        document_type: document.documentType,
+        document_name: document.documentName,
+        document_number: document.documentNumber,
+        issue_date: document.issueDate,
+        expiry_date: document.expiryDate,
+        duration_months: document.durationMonths,
+        notification_threshold_days: document.notificationThresholdDays,
+        document_url: document.documentUrl,
         notes: document.notes
       };
       
@@ -132,8 +150,8 @@ export const useEmployeeDocuments = () => {
       if (updateError) throw new Error(updateError.message);
       
       const existingDocument = documents.find(doc => doc.id === id);
-      if (existingDocument?.employee_id) {
-        await fetchDocuments(existingDocument.employee_id);
+      if (existingDocument?.employeeId) {
+        await fetchDocuments(existingDocument.employeeId);
       }
     } catch (err) {
       setError(err instanceof Error ? err : new Error('An error occurred while updating document'));
@@ -156,8 +174,8 @@ export const useEmployeeDocuments = () => {
         
       if (deleteError) throw new Error(deleteError.message);
       
-      if (documentToDelete?.employee_id) {
-        await fetchDocuments(documentToDelete.employee_id);
+      if (documentToDelete?.employeeId) {
+        await fetchDocuments(documentToDelete.employeeId);
       } else {
         setDocuments(documents.filter(doc => doc.id !== id));
       }
@@ -176,7 +194,7 @@ export const useEmployeeDocuments = () => {
     addDocument,
     updateDocument,
     deleteDocument,
-    calculateStatus
+    calculateDocumentStatus
   };
 };
 
