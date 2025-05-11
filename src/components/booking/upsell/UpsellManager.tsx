@@ -3,7 +3,7 @@ import React from 'react';
 
 export interface UpsellManagerProps {
   // Define the props that this component actually needs
-  onStepChange?: (step: any) => void;
+  onStepChange: (step: any) => void;
 }
 
 export const UpsellManager: React.FC<UpsellManagerProps> = ({ onStepChange }) => {

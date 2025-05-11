@@ -2,8 +2,7 @@
 import React, { useState } from 'react';
 import { useEmployeeManager } from '../hooks/useEmployeeManager';
 import EmployeeList from '../components/employee-list/EmployeeList';
-// Import EmployeesTabProps from types but rename it to avoid conflict
-import { EmployeesTabProps as EmployeesTabPropsType } from '../types';
+import { EmployeesTabProps } from '../types';
 import { useToast } from '@/components/ui/use-toast';
 import { BranchSelector } from '../components/BranchSelector';
 import { Button } from '@/components/ui/button';
@@ -29,7 +28,7 @@ const EmployeeDialog = ({ trigger }: { trigger: React.ReactNode }) => {
 };
 
 // Use EmployeeTab as the component name to match imports elsewhere
-export const EmployeeTab: React.FC<EmployeesTabPropsType> = ({ initialBranchId }) => {
+export const EmployeeTab: React.FC<EmployeesTabProps> = ({ initialBranchId }) => {
   const {
     employees,
     isLoading,

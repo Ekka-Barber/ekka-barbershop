@@ -1,13 +1,13 @@
 
 import { useState, useCallback } from 'react';
-import { supabase } from "@/integrations/supabase/client";
 import { differenceInDays, parseISO } from 'date-fns';
 import { 
-  EmployeeDocument,
+  EmployeeDocument, 
+  DocumentType, 
   DocumentCalculation,
-  DocumentStatus,
-  DocumentType
+  DocumentStatus
 } from '../types/index';
+import { documentService } from '../services/documentService';
 
 export const useEmployeeDocuments = () => {
   const [documents, setDocuments] = useState<EmployeeDocument[]>([]);
@@ -52,19 +52,8 @@ export const useEmployeeDocuments = () => {
     setError(null);
     
     try {
-      const { data, error: fetchError } = await supabase
-        .from('employee_documents')
-        .select('*')
-        .eq('employee_id', employeeId);
-        
-      if (fetchError) throw new Error(fetchError.message);
-      
-      if (data) {
-        // Directly use data as it already has the correct property names
-        setDocuments(data as EmployeeDocument[]);
-      } else {
-        setDocuments([]);
-      }
+      const data = await documentService.getDocumentsForEmployee(employeeId);
+      setDocuments(data);
     } catch (err) {
       setError(err instanceof Error ? err : new Error('An error occurred while fetching documents'));
       console.error('Error fetching documents:', err);
@@ -78,28 +67,12 @@ export const useEmployeeDocuments = () => {
     setError(null);
     
     try {
-      const documentData = {
-        employee_id: document.employee_id,
-        document_type: document.document_type,
-        document_name: document.document_name,
-        document_number: document.document_number,
-        issue_date: document.issue_date,
-        expiry_date: document.expiry_date,
-        duration_months: document.duration_months,
-        notification_threshold_days: document.notification_threshold_days,
-        document_url: document.document_url,
-        notes: document.notes
-      };
-      
-      const { error: insertError } = await supabase
-        .from('employee_documents')
-        .insert(documentData);
-        
-      if (insertError) throw new Error(insertError.message);
-      
-      if (document.employee_id) {
-        await fetchDocuments(document.employee_id);
+      if (!document.employee_id) {
+        throw new Error('Employee ID is required');
       }
+      
+      await documentService.createDocument(document);
+      await fetchDocuments(document.employee_id);
     } catch (err) {
       setError(err instanceof Error ? err : new Error('An error occurred while adding document'));
       console.error('Error adding document:', err);
@@ -112,24 +85,7 @@ export const useEmployeeDocuments = () => {
     setError(null);
     
     try {
-      const documentData = {
-        document_type: document.document_type,
-        document_name: document.document_name,
-        document_number: document.document_number,
-        issue_date: document.issue_date,
-        expiry_date: document.expiry_date,
-        duration_months: document.duration_months,
-        notification_threshold_days: document.notification_threshold_days,
-        document_url: document.document_url,
-        notes: document.notes
-      };
-      
-      const { error: updateError } = await supabase
-        .from('employee_documents')
-        .update(documentData)
-        .eq('id', id);
-        
-      if (updateError) throw new Error(updateError.message);
+      await documentService.updateDocument(id, document);
       
       const existingDocument = documents.find(doc => doc.id === id);
       if (existingDocument?.employee_id) {
@@ -149,14 +105,9 @@ export const useEmployeeDocuments = () => {
     try {
       const documentToDelete = documents.find(doc => doc.id === id);
       
-      const { error: deleteError } = await supabase
-        .from('employee_documents')
-        .delete()
-        .eq('id', id);
-        
-      if (deleteError) throw new Error(deleteError.message);
+      const success = await documentService.deleteDocument(id);
       
-      if (documentToDelete?.employee_id) {
+      if (success && documentToDelete?.employee_id) {
         await fetchDocuments(documentToDelete.employee_id);
       } else {
         setDocuments(documents.filter(doc => doc.id !== id));
@@ -179,5 +130,3 @@ export const useEmployeeDocuments = () => {
     calculateStatus
   };
 };
-
-export type { EmployeeDocument, DocumentCalculation, DocumentStatus, DocumentType };

@@ -1,14 +1,15 @@
 
+
 // Re-export all types from document-types
-export type { 
+export { 
   DocumentType, 
   DocumentStatus, 
-  DocumentCalculation,
-  EmployeeDocument,
-  DocumentWithStatus,
-  EmployeeDocumentInput,
-  DocumentService,
-  DocumentFormProps
+  type DocumentCalculation,
+  type EmployeeDocument,
+  type DocumentWithStatus,
+  type EmployeeDocumentInput,
+  type DocumentService,
+  type DocumentFormProps
 } from './document-types';
 
 // Define PaginationState type

@@ -1,9 +1,9 @@
-// Make sure the function returns a boolean
+
 import { supabase } from '@/integrations/supabase/client';
-import { EmployeeDocument, EmployeeDocumentInput } from '../types/index';
+import { EmployeeDocument, EmployeeDocumentInput, DocumentType } from '../types/index';
 
 export const documentService = {
-  fetchDocuments: async (employeeId: string): Promise<EmployeeDocument[]> => {
+  getDocumentsForEmployee: async (employeeId: string): Promise<EmployeeDocument[]> => {
     const { data, error } = await supabase
       .from('employee_documents')
       .select('*')
@@ -16,9 +16,9 @@ export const documentService = {
     return data as EmployeeDocument[];
   },
   
-  addDocument: async (employeeId: string, document: EmployeeDocumentInput): Promise<EmployeeDocument> => {
+  createDocument: async (document: Partial<EmployeeDocument>): Promise<EmployeeDocument> => {
     const documentData = {
-      employee_id: employeeId,
+      employee_id: document.employee_id,
       document_type: document.document_type,
       document_name: document.document_name,
       document_number: document.document_number,
@@ -81,5 +81,15 @@ export const documentService = {
     }
     
     return true; // Return true on successful deletion
+  },
+  
+  getExpiringDocuments: async (thresholdDays: number): Promise<EmployeeDocument[]> => {
+    // Implementation would fetch documents expiring soon
+    return [];
+  },
+  
+  getExpiredDocuments: async (): Promise<EmployeeDocument[]> => {
+    // Implementation would fetch expired documents
+    return [];
   }
 };
