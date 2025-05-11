@@ -3,6 +3,7 @@ import { format, subMonths } from 'date-fns';
 import { supabase } from "@/integrations/supabase/client";
 import { Employee, EmployeeSales } from '@/types/employee';
 import { logger } from '@/utils/logger';
+import { v4 as uuidv4 } from 'uuid';
 
 export interface SalesAnalytics {
   totalSales: number;
@@ -285,8 +286,11 @@ export const useEmployeeSales = (selectedDate: Date, employees: Employee[]) => {
             ...salesRecord
           });
         } else {
-          // No id for inserts
-          upsertData.push(salesRecord);
+          // Generate a UUID for new records
+          upsertData.push({
+            id: uuidv4(),
+            ...salesRecord
+          });
         }
       }
       
