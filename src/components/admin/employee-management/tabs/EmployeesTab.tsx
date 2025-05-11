@@ -1,254 +1,179 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { ErrorBoundary } from '@/components/common/ErrorBoundary';
-import { useEmployeeManager } from '../hooks/useEmployeeManager';
+import { useState, useEffect } from 'react';
 import { useBranchManager } from '../hooks/useBranchManager';
+import { useEmployeeManager } from '../hooks/useEmployeeManager';
+import { ArchiveStatusFilter } from '../types';
 import { EmployeeList } from '../components/employee-list/EmployeeList';
-import { EmployeesTabProps, ArchiveStatusFilter } from '../types';
-import { Employee } from '@/types/employee';
-import { useUrlState } from '../hooks/useUrlState';
-import { EmployeeEditModal } from '../components/employee-form/EmployeeEditModal';
-import { updateEmployee, createEmployee, setEmployeeArchiveStatus } from '@/services/employeeService';
-import { SalaryPlan } from '@/types/salaryPlan';
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { useToast } from "@/components/ui/use-toast";
-import { Button } from "@/components/ui/button";
-import { 
-  AlertDialog, 
-  AlertDialogAction, 
-  AlertDialogCancel, 
-  AlertDialogContent, 
-  AlertDialogDescription, 
-  AlertDialogFooter, 
-  AlertDialogHeader, 
-  AlertDialogTitle 
-} from "@/components/ui/alert-dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { EmployeeCard } from '../components/employee-card/EmployeeCard';
+import { EmployeesTabProps } from '../types';
+import { BranchSelector } from '../components/BranchSelector';
+import { Button } from '@/components/ui/button';
+import { Plus } from 'lucide-react';
+import { EmployeeDialog } from '../components/EmployeeDialog';
+import { useSearchParams } from 'next/navigation';
+import { useToast } from '@/components/ui/use-toast';
+import { Skeleton } from '@/components/ui/skeleton';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 
-export const EmployeesTab: React.FC<EmployeesTabProps> = ({ 
-  initialBranchId = null // This prop might still be useful if parent passes it
-}) => {
-  const { currentState, syncUrlWithState } = useUrlState();
-  const { toast } = useToast();
-  const [activeArchiveFilter, setActiveArchiveFilter] = useState<ArchiveStatusFilter>('active');
+interface Branch {
+  id: string;
+  name: string;
+}
 
-  const { 
-    branches, 
-    selectedBranch, 
-    isLoading: isBranchLoading
-  } = useBranchManager(initialBranchId);
-  
-  const { 
-    employees, 
-    isLoading: isEmployeeLoading,
-    fetchEmployees,
-    pagination,
-    setArchiveFilter,
-    archiveStatus
-  } = useEmployeeManager(selectedBranch, activeArchiveFilter);
-  
-  // Fetch Salary Plans
+export const EmployeesTab: React.FC<EmployeesTabProps> = ({ initialBranchId }) => {
   const {
-    data: salaryPlans = [],
-    isLoading: isSalaryPlansLoading,
-  } = useQuery<SalaryPlan[], Error>({
-    queryKey: ['salaryPlans'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('salary_plans')
-        .select('id, name, type');
-      if (error) {
-        console.error('Error fetching salary plans:', error);
-        throw new Error(error.message);
-      }
-      return data || [];
-    },
-  });
-  
-  const isLoading = useMemo(() => 
-    isBranchLoading || isEmployeeLoading || isSalaryPlansLoading, 
-    [isBranchLoading, isEmployeeLoading, isSalaryPlansLoading]
-  );
-  
-  // State for Edit Modal
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
+    employees,
+    isLoading,
+    error,
+    pagination,
+    setCurrentPage,
+    filterByBranch,
+    selectedBranch,
+    branches,
+    archiveFilter,
+    setArchiveFilter
+  } = useEmployeeManager(initialBranchId);
+  const [selectedEmployee, setSelectedEmployee] = useState<string | null>(null);
+  const searchParams = useSearchParams();
+  const { toast } = useToast();
+  const [isArchiveToggleLoading, setIsArchiveToggleLoading] = useState(false);
 
-  // State for Archive Confirmation Dialog
-  const [employeeToToggleArchive, setEmployeeToToggleArchive] = useState<Employee | null>(null);
-  const [isArchiveConfirmOpen, setIsArchiveConfirmOpen] = useState(false);
+  useEffect(() => {
+    const employeeId = searchParams.get('employee');
+    setSelectedEmployee(employeeId);
+  }, [searchParams]);
 
-  // Handlers for Edit Modal
-  const handleOpenEditModal = (employee: Employee) => {
-    setEditingEmployee(employee);
-    setIsEditModalOpen(true);
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
   };
 
-  const handleOpenCreateModal = () => {
-    setEditingEmployee(null);
-    setIsEditModalOpen(true);
+  const handleBranchChange = (branchId: string | null) => {
+    filterByBranch(branchId);
+    setSelectedEmployee(null);
   };
 
-  const handleCloseEditModal = () => {
-    setIsEditModalOpen(false);
-    setEditingEmployee(null);
+  const handleEmployeeSelect = (employeeId: string) => {
+    setSelectedEmployee(employeeId);
   };
 
-  const handleSaveEmployee = async (formData: Partial<Employee>) => {
+  const handleEmployeeClose = () => {
+    setSelectedEmployee(null);
+  };
+
+  const handleArchiveToggle = async () => {
+    setIsArchiveToggleLoading(true);
     try {
-      if (editingEmployee && editingEmployee.id) {
-        const { data: savedEmployee, error } = await updateEmployee(editingEmployee.id, formData);
-        if (error) {
-          console.error("Failed to update employee:", error);
-          toast({ title: "Update Failed", description: error.message || "Could not update employee details.", variant: "destructive" });
-        } else {
-          toast({ title: "Success", description: `Employee ${savedEmployee?.name || ''} updated successfully.` });
-          fetchEmployees();
-          handleCloseEditModal();
-        }
+      if (archiveFilter === 'active') {
+        setArchiveFilter('archived');
+        toast({
+          title: "Showing archived employees.",
+        })
       } else {
-        const savedEmployee = await createEmployee(formData);
-        toast({ title: "Success", description: `Employee ${savedEmployee?.name || ''} created successfully.` });
-        fetchEmployees();
-        handleCloseEditModal();
+        setArchiveFilter('active');
+        toast({
+          title: "Showing active employees.",
+        })
       }
     } catch (error) {
-      let errorMessage = "An unexpected error occurred while saving.";
-      if (error instanceof Error) errorMessage = error.message;
-      console.error("Exception when saving employee:", error);
-      toast({ title: "Save Error", description: errorMessage, variant: "destructive" });
-    }
-  };
-  
-  // Handlers for Archive Confirmation
-  const handleOpenArchiveConfirm = (employee: Employee) => {
-    setEmployeeToToggleArchive(employee);
-    setIsArchiveConfirmOpen(true);
-  };
-
-  const handleCloseArchiveConfirm = () => {
-    setEmployeeToToggleArchive(null);
-    setIsArchiveConfirmOpen(false);
-  };
-
-  const handleConfirmArchiveToggle = async () => {
-    if (!employeeToToggleArchive) return;
-
-    const newArchiveState = !employeeToToggleArchive.is_archived;
-    const actionText = newArchiveState ? "archived" : "restored";
-
-    try {
-      const { error } = await setEmployeeArchiveStatus(employeeToToggleArchive.id, newArchiveState);
-      if (error) {
-        console.error(`Failed to ${actionText} employee:`, error);
-        toast({ title: `${actionText.charAt(0).toUpperCase() + actionText.slice(1)} Failed`, description: error.message || `Could not ${actionText} employee.`, variant: "destructive" });
-      } else {
-        toast({ title: "Success", description: `Employee ${employeeToToggleArchive.name} ${actionText} successfully.` });
-        fetchEmployees();
-      }
-    } catch (e) {
-      let errorMessage = `An unexpected error occurred during ${actionText}.`;
-      if (e instanceof Error) errorMessage = e.message;
-      console.error(`Exception when ${actionText} employee:`, e);
-      toast({ title: `${actionText.charAt(0).toUpperCase() + actionText.slice(1)} Error`, description: errorMessage, variant: "destructive" });
+      toast({
+        variant: "destructive",
+        title: "Failed to toggle archive status.",
+        description: "Please try again.",
+      })
     } finally {
-      handleCloseArchiveConfirm();
+      setIsArchiveToggleLoading(false);
     }
   };
 
-  const handleArchiveFilterChange = (value: string) => {
-    const newFilter = value as ArchiveStatusFilter;
-    setActiveArchiveFilter(newFilter);
-    setArchiveFilter(newFilter);
-  };
-  
-  // Keep URL in sync with component state
-  useEffect(() => {
-    if (
-      selectedBranch !== currentState.branch ||
-      pagination.currentPage !== currentState.page
-    ) {
-      syncUrlWithState(
-        'employees', 
-        selectedBranch,
-        new Date(), 
-        pagination.currentPage
-      );
-    }
-  }, [selectedBranch, pagination.currentPage, syncUrlWithState, currentState]);
-  
+  // Use the Branch type from our own project
+  const branchOptions = branches;
+
   return (
-    <ErrorBoundary>
-      <div className="space-y-6">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <div>
-            <h2 className="text-2xl font-bold tracking-tight">Employees</h2>
-            <p className="text-muted-foreground">
-              Manage your employees and their information
-            </p>
+    <div>
+      <div className="md:flex items-start justify-between gap-4 mb-4">
+        <div className="w-full md:w-1/3">
+          <div className="mb-4">
+            <BranchSelector
+              branches={branchOptions}
+              selectedBranch={selectedBranch}
+              onChange={handleBranchChange}
+            />
           </div>
-          <div className="flex items-center gap-2">
-            <Select value={activeArchiveFilter} onValueChange={handleArchiveFilterChange}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Filter status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="active">Active Employees</SelectItem>
-                <SelectItem value="archived">Archived Employees</SelectItem>
-                <SelectItem value="all">All Employees</SelectItem>
-              </SelectContent>
-            </Select>
-            <Button onClick={handleOpenCreateModal}>Create Employee</Button>
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-medium">Employee List</h3>
+            <EmployeeDialog
+              trigger={
+                <Button variant="outline" size="sm" className="gap-2">
+                  <Plus className="h-4 w-4" />
+                  Add Employee
+                </Button>
+              }
+            />
           </div>
+          {isLoading ? (
+            <div className="space-y-2 mt-4">
+              {[...Array(3)].map((_, i) => (
+                <div key={i} className="p-4 opacity-60 animate-pulse">
+                  <Skeleton className="h-5 w-3/4" />
+                  <Skeleton className="h-4 w-1/2 mt-2" />
+                </div>
+              ))}
+            </div>
+          ) : error ? (
+            <p className="text-red-500 mt-4">Error: {error.message}</p>
+          ) : (
+            <EmployeeList
+              employees={employees}
+              isLoading={isLoading}
+              pagination={pagination}
+              onPageChange={handlePageChange}
+              onEmployeeSelect={handleEmployeeSelect}
+              selectedEmployee={selectedEmployee}
+            />
+          )}
         </div>
-        
-        <ErrorBoundary>
-          <EmployeeList
-            employees={employees}
-            isLoading={isLoading}
-            pagination={pagination}
-            branches={branches}
-            onEditEmployee={handleOpenEditModal}
-            onArchiveEmployee={handleOpenArchiveConfirm}
-          />
-        </ErrorBoundary>
 
-        {isEditModalOpen && (
-          <EmployeeEditModal
-            isOpen={isEditModalOpen}
-            onClose={handleCloseEditModal}
-            employeeToEdit={editingEmployee}
-            onSave={handleSaveEmployee}
-            branches={branches}
-            salaryPlans={salaryPlans}
-          />
-        )}
-
-        {employeeToToggleArchive && (
-          <AlertDialog open={isArchiveConfirmOpen} onOpenChange={setIsArchiveConfirmOpen}>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>
-                  {employeeToToggleArchive.is_archived ? "Restore Employee?" : "Archive Employee?"}
-                </AlertDialogTitle>
-                <AlertDialogDescription>
-                  {employeeToToggleArchive.is_archived 
-                    ? `Are you sure you want to restore the employee "${employeeToToggleArchive.name}"? They will become active again.`
-                    : `Are you sure you want to archive the employee "${employeeToToggleArchive.name}"? They will be hidden from active lists but their data will be preserved.`}
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel onClick={handleCloseArchiveConfirm}>Cancel</AlertDialogCancel>
-                <AlertDialogAction onClick={handleConfirmArchiveToggle}>
-                  {employeeToToggleArchive.is_archived ? "Confirm Restore" : "Confirm Archive"}
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-        )}
+        <div className="w-full md:w-2/3">
+          <div className="flex items-center justify-between mb-4">
+            <div></div>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm">
+                  Archive Status <span className="opacity-60">({archiveFilter})</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={handleArchiveToggle}
+                  disabled={isArchiveToggleLoading}
+                >
+                  Toggle Archive View
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+          {selectedEmployee ? (
+            <EmployeeCard
+              employeeId={selectedEmployee}
+              onClose={handleEmployeeClose}
+            />
+          ) : (
+            <div className="flex items-center justify-center p-8 bg-muted/30 rounded-lg">
+              <p className="text-muted-foreground">Select an employee to view details</p>
+            </div>
+          )}
+        </div>
       </div>
-    </ErrorBoundary>
+    </div>
   );
 };
-
-export default EmployeesTab;

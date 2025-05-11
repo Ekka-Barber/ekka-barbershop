@@ -1,3 +1,4 @@
+
 import React, { useEffect } from 'react';
 import { 
   Form, 
@@ -20,7 +21,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useForm } from 'react-hook-form';
 import { 
   DocumentFormProps,
-  DocumentTypeEnum,
+  DocumentTypeEnum
 } from '../../../types';
 import { addDays, format } from 'date-fns';
 
@@ -41,7 +42,7 @@ export const DocumentForm: React.FC<DocumentFormProps> = ({
     }
   });
 
-  const watchDocumentType = form.watch('documentType') as DocumentTypeEnum;
+  const watchDocumentType = form.watch('documentType');
   const watchIssueDate = form.watch('issueDate');
   const watchDurationMonths = form.watch('durationMonths');
 
@@ -54,7 +55,7 @@ export const DocumentForm: React.FC<DocumentFormProps> = ({
         work_license: 'Work License',
         custom: ''
       };
-      form.setValue('documentName', documentNames[watchDocumentType]);
+      form.setValue('documentName', documentNames[watchDocumentType as DocumentTypeEnum]);
     }
   }, [watchDocumentType, form]);
 
@@ -95,7 +96,7 @@ export const DocumentForm: React.FC<DocumentFormProps> = ({
               <FormLabel>Document Type</FormLabel>
               <Select 
                 onValueChange={field.onChange} 
-                defaultValue={field.value as string}
+                defaultValue={field.value}
               >
                 <FormControl>
                   <SelectTrigger>

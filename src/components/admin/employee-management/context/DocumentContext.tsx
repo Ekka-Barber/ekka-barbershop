@@ -36,13 +36,13 @@ export const DocumentProvider: React.FC<{
     fetchDocuments: async (employeeId: string) => {
       await documentManager.fetchDocuments(employeeId);
     },
-    addDocument: async (document) => {
+    addDocument: async (document: Partial<EmployeeDocument>) => {
       await documentManager.addDocument(document);
     },
-    updateDocument: async (id, document) => {
+    updateDocument: async (id: string, document: Partial<EmployeeDocument>) => {
       await documentManager.updateDocument(id, document);
     },
-    deleteDocument: async (id) => {
+    deleteDocument: async (id: string) => {
       await documentManager.deleteDocument(id);
     },
     calculateStatus: documentManager.calculateStatus,

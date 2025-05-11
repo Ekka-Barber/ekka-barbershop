@@ -1,10 +1,12 @@
-// Import document types from the dedicated file
+// Import types from the dedicated types directory
 import { 
-  EmployeeDocument as DocumentType,
-  DocumentStatus,
+  DocumentTypeEnum, 
+  DocumentStatus, 
   DocumentCalculation,
-  DocumentTypeEnum
-} from './types/document-types';
+  EmployeeDocument,
+  ArchiveStatusFilter,
+  Branch
+} from './types/index';
 
 // Employee Types
 export interface Employee {
@@ -18,13 +20,6 @@ export interface Employee {
   schedule?: WeeklySchedule;
   hireDate?: string;
   // Other employee properties as needed
-}
-
-export interface Branch {
-  id: string;
-  name: string;
-  address?: string;
-  isActive?: boolean;
 }
 
 export interface WeeklySchedule {
@@ -273,3 +268,13 @@ export interface UseEmployeeDocumentsReturn {
   expiringSoonDocuments: DocumentType[];
   expiredDocuments: DocumentType[];
 }
+
+// Re-export types from types/index.ts to avoid duplication
+export type { 
+  DocumentTypeEnum, 
+  DocumentStatus, 
+  DocumentCalculation,
+  EmployeeDocument,
+  ArchiveStatusFilter,
+  Branch
+} from './types/index';

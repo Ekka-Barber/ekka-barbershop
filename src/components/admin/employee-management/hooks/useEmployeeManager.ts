@@ -1,121 +1,126 @@
-
-import { useState, useCallback, useEffect } from 'react';
-import { supabase } from "@/integrations/supabase/client";
+import { useState, useEffect, useCallback } from 'react';
+import { supabase } from '@/lib/supabase';
 import { Employee } from '@/types/employee';
-import { ArchiveStatusFilter } from '../types';
+import { PaginationState, ArchiveStatusFilter } from '../types';
 
-export const useEmployeeManager = (initialBranchId: string | null = null, initialArchiveStatus: ArchiveStatusFilter = 'active') => {
+// Export Branch type so it can be imported elsewhere
+export interface Branch {
+  id: string;
+  name: string;
+  name_ar?: string | null;
+  working_hours?: Record<string, string[]> | null;
+  is_main?: boolean;
+  address?: string | null;
+  address_ar?: string | null;
+  whatsapp_number?: string | null;
+  google_maps_url?: string | null;
+  google_place_id?: string | null;
+}
+
+/**
+ * Hook for managing employee data with pagination and filtering
+ * @param initialBranchId - Initial selected branch ID
+ * @returns Employee management functionality
+ */
+export const useEmployeeManager = (initialBranchId: string | null = null) => {
   const [employees, setEmployees] = useState<Employee[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
-  const [totalItems, setTotalItems] = useState(0);
+  const [archiveFilter, setArchiveFilter] = useState<ArchiveStatusFilter>('active');
+  const [pagination, setPagination] = useState<PaginationState>({
+    currentPage: 1,
+    totalPages: 1,
+    totalItems: 0,
+    pageSize: 10,
+  });
   const [selectedBranch, setSelectedBranch] = useState<string | null>(initialBranchId);
-  const [archiveStatus, setArchiveStatus] = useState<ArchiveStatusFilter>(initialArchiveStatus);
+  const [branches, setBranches] = useState<Branch[]>([]);
 
-  const fetchEmployees = useCallback(async (page?: number, status?: ArchiveStatusFilter) => {
-    const currentPageToUse = page || currentPage;
-    const statusToUse = status || archiveStatus;
-    
+  const setCurrentPage = (page: number) => {
+    setPagination((prev) => ({ ...prev, currentPage: page }));
+  };
+
+  const filterByBranch = (branchId: string | null) => {
+    setSelectedBranch(branchId);
+    setCurrentPage(1); // Reset to first page when branch changes
+  };
+
+  const fetchEmployees = useCallback(async () => {
     setIsLoading(true);
     setError(null);
 
-    let query = supabase
-      .from('employees')
-      .select('*', { count: 'exact' })
-      .range((currentPageToUse - 1) * pageSize, currentPageToUse * pageSize - 1);
-    
-    if (statusToUse === 'active') {
-      query = query.eq('is_archived', false);
-    } else if (statusToUse === 'archived') {
-      query = query.eq('is_archived', true);
+    try {
+      let query = supabase
+        .from('employees')
+        .select('*', { count: 'exact' })
+        .range(
+          (pagination.currentPage - 1) * pagination.pageSize,
+          pagination.currentPage * pagination.pageSize - 1
+        )
+        .order('name', { ascending: true });
+
+      if (selectedBranch) {
+        query = query.eq('branch_id', selectedBranch);
+      }
+
+      if (archiveFilter === 'active') {
+        query = query.eq('is_archived', false);
+      } else if (archiveFilter === 'archived') {
+        query = query.eq('is_archived', true);
+      }
+
+      const { data, error: fetchError, count } = await query;
+
+      if (fetchError) {
+        throw new Error(fetchError.message);
+      }
+
+      if (data) {
+        setEmployees(data as Employee[]);
+        setPagination((prev) => ({
+          ...prev,
+          totalItems: count || 0,
+          totalPages: Math.ceil((count || 0) / pagination.pageSize),
+        }));
+      }
+    } catch (err: any) {
+      setError(err instanceof Error ? err : new Error('An unexpected error occurred'));
+    } finally {
+      setIsLoading(false);
     }
+  }, [pagination.currentPage, pagination.pageSize, selectedBranch, archiveFilter]);
 
-    if (selectedBranch && selectedBranch !== 'all') {
-      query = query.eq('branch_id', selectedBranch);
-    } else if (selectedBranch === 'all') {
-      query = query.not('branch_id', 'is', null);
-    }
-
-    const { data, error: fetchError, count } = await query;
-
-    if (fetchError) {
-      setError(fetchError);
-    } else {
-      setEmployees(data || []);
-      setTotalItems(count || 0);
-    }
-
-    setIsLoading(false);
-  }, [currentPage, pageSize, selectedBranch, archiveStatus]);
+  const setArchiveStatusFilter = useCallback((status: ArchiveStatusFilter) => {
+    setArchiveFilter(status);
+    // Reset to first page when filter changes
+    setCurrentPage(1);
+  }, []);
 
   useEffect(() => {
     fetchEmployees();
   }, [fetchEmployees]);
 
-  const updateEmployee = useCallback(async (id: string, updates: Partial<Employee>) => {
-    setIsLoading(true);
-    setError(null);
+  useEffect(() => {
+    const fetchBranches = async () => {
+      try {
+        const { data: branchData, error: branchError } = await supabase
+          .from('branches')
+          .select('id, name');
 
-    const { error: updateError } = await supabase
-      .from('employees')
-      .update(updates)
-      .eq('id', id);
+        if (branchError) {
+          throw new Error(branchError.message);
+        }
 
-    if (updateError) {
-      setError(updateError);
-    } else {
-      // Optimistically update the employee in the local state
-      setEmployees(prevEmployees =>
-        prevEmployees.map(employee =>
-          employee.id === id ? { ...employee, ...updates } : employee
-        )
-      );
-    }
+        if (branchData) {
+          setBranches(branchData as Branch[]);
+        }
+      } catch (branchErr: any) {
+        setError(branchErr instanceof Error ? branchErr : new Error('An unexpected error occurred'));
+      }
+    };
 
-    setIsLoading(false);
+    fetchBranches();
   }, []);
-
-  const archiveEmployee = useCallback(async (id: string, isArchived: boolean) => {
-    setIsLoading(true);
-    setError(null);
-
-    const { error: archiveError } = await supabase
-      .from('employees')
-      .update({ is_archived: isArchived })
-      .eq('id', id);
-
-    if (archiveError) {
-      setError(archiveError);
-    } else {
-      // Optimistically update the employee in the local state
-      setEmployees(prevEmployees =>
-        prevEmployees.map(employee =>
-          employee.id === id ? { ...employee, is_archived: isArchived } : employee
-        )
-      );
-    }
-
-    setIsLoading(false);
-  }, []);
-
-  const setBranchFilter = useCallback((branchId: string | null) => {
-    setSelectedBranch(branchId);
-    setCurrentPage(1); // Reset to the first page when the branch changes
-  }, []);
-
-  const setArchiveFilter = useCallback((status: ArchiveStatusFilter) => {
-    setArchiveStatus(status);
-    setCurrentPage(1); // Reset to the first page when the archive status changes
-  }, []);
-
-  const pagination = {
-    currentPage,
-    totalPages: Math.ceil(totalItems / pageSize),
-    totalItems,
-    pageSize,
-  };
 
   return {
     employees,
@@ -123,14 +128,10 @@ export const useEmployeeManager = (initialBranchId: string | null = null, initia
     error,
     pagination,
     setCurrentPage,
-    fetchEmployees,
-    updateEmployee,
-    archiveEmployee,
+    filterByBranch,
     selectedBranch,
-    setBranchFilter,
-    archiveStatus,
-    setArchiveFilter
+    branches,
+    archiveFilter,
+    setArchiveFilter: setArchiveStatusFilter
   };
 };
-
-export type { ArchiveStatusFilter };

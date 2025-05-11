@@ -6,7 +6,7 @@ import { Plus } from 'lucide-react';
 import { DocumentItem } from './DocumentItem';
 import { DocumentForm } from './DocumentForm';
 import { useEmployeeDocuments } from '../../../hooks/useEmployeeDocuments';
-import { EmployeeDocument } from '../../../types/document-types';
+import { EmployeeDocument } from '../../../types';
 
 interface DocumentListProps {
   employeeId: string;
