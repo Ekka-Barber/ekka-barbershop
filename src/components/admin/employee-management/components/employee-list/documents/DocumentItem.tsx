@@ -5,7 +5,11 @@ import { Button } from '@/components/ui/button';
 import { PencilIcon, TrashIcon, FileIcon } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
-import { EmployeeDocument, DocumentCalculation, DocumentTypeEnum } from '../../../types';
+import { 
+  EmployeeDocument, 
+  DocumentCalculation, 
+  DocumentTypeEnum 
+} from '../../../types';
 
 interface DocumentItemProps {
   document: EmployeeDocument;

@@ -19,7 +19,11 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { useForm } from 'react-hook-form';
-import { EmployeeDocument, DocumentTypeEnum, DocumentFormProps } from '../../../types';
+import { 
+  EmployeeDocument, 
+  DocumentTypeEnum, 
+  DocumentFormProps 
+} from '../../../types';
 import { addDays, format } from 'date-fns';
 
 export const DocumentForm: React.FC<DocumentFormProps> = ({
@@ -32,26 +36,27 @@ export const DocumentForm: React.FC<DocumentFormProps> = ({
   const form = useForm<Partial<EmployeeDocument>>({
     defaultValues: document || {
       employeeId,
-      documentType: 'health_certificate',
+      documentType: 'health_certificate' as DocumentTypeEnum,
       documentName: '',
       notificationThresholdDays: 30,
       durationMonths: 12,
     }
   });
 
-  const watchDocumentType = form.watch('documentType') as DocumentTypeEnum;
+  const watchDocumentType = form.watch('documentType');
   const watchIssueDate = form.watch('issueDate');
   const watchDurationMonths = form.watch('durationMonths');
 
   // Set document name based on document type
   useEffect(() => {
     if (watchDocumentType && watchDocumentType !== 'custom') {
-      const documentNames = {
+      const documentNames: Record<DocumentTypeEnum, string> = {
         health_certificate: 'Health Certificate',
         residency_permit: 'Residency Permit',
-        work_license: 'Work License'
+        work_license: 'Work License',
+        custom: ''
       };
-      form.setValue('documentName', documentNames[watchDocumentType]);
+      form.setValue('documentName', documentNames[watchDocumentType as DocumentTypeEnum]);
     }
   }, [watchDocumentType, form]);
 

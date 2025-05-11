@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
-import { EmployeeDocument, DocumentCalculation } from '../../../types';
+import { EmployeeDocument } from '../../../types';
 import { DocumentItem } from './DocumentItem';
 import { DocumentForm } from './DocumentForm';
 import { useEmployeeDocuments } from '../../../hooks/useEmployeeDocuments';
@@ -55,7 +55,7 @@ export const DocumentList: React.FC<DocumentListProps> = ({ employeeId }) => {
       } else {
         await addDocument({
           ...documentData,
-          employeeId // Use camelCase field name to match our interface
+          employeeId
         });
       }
       setShowForm(false);
@@ -117,7 +117,7 @@ export const DocumentList: React.FC<DocumentListProps> = ({ employeeId }) => {
             <DocumentItem 
               key={document.id}
               document={document}
-              statusDetails={calculateStatus(document) as DocumentCalculation}
+              statusDetails={calculateStatus(document)}
               onEdit={() => handleEditClick(document)}
               onDelete={() => handleDeleteDocument(document.id!)}
             />

@@ -1,39 +1,18 @@
 
-import { Employee } from '@/types/employee';
+// Re-export document-related types from document-types.ts
+export {
+  DocumentTypeEnum,
+  DocumentStatus,
+  DocumentCalculation,
+  EmployeeDocument,
+  EmployeeDocumentDB,
+  EmployeeDocumentInput,
+  DocumentWithStatus,
+  DocumentService
+} from './document-types';
 
-// Define document-related types
-export type DocumentTypeEnum = 'health_certificate' | 'residency_permit' | 'work_license' | 'custom';
-
-export type DocumentStatus = 'valid' | 'expiring_soon' | 'expired';
-
-export interface DocumentCalculation {
-  daysRemaining: number;
-  status: DocumentStatus;
-  statusText: string;
-}
-
-export interface EmployeeDocument {
-  id?: string;
-  employeeId: string;
-  documentType: DocumentTypeEnum;
-  documentName: string;
-  documentNumber?: string;
-  issueDate: string;
-  expiryDate?: string;
-  durationMonths: number;
-  notificationThresholdDays: number;
-  documentUrl?: string;
-  notes?: string;
-  status?: DocumentStatus;
-}
-
-// Define pagination-related types
-export interface PaginationInfo {
-  currentPage: number;
-  totalPages: number;
-  pageSize: number;
-  totalItems: number;
-}
+// Define Branch re-export from useBranchManager
+export { Branch } from '../hooks/useBranchManager';
 
 // Define employee tab props
 export interface EmployeesTabProps {
@@ -49,7 +28,13 @@ export interface DocumentFormProps {
   isSubmitting: boolean;
 }
 
+// Define pagination-related types
+export interface PaginationInfo {
+  currentPage: number;
+  totalPages: number;
+  pageSize: number;
+  totalItems: number;
+}
+
 // Archive Status Filter type needed for employee management
 export type ArchiveStatusFilter = 'active' | 'archived' | 'all';
-
-// All branch-related types are now exported from useBranchManager.ts

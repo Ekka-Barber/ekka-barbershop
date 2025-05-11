@@ -1,5 +1,5 @@
 
-import { Database } from '@/types/supabase-generated';
+import { Database } from '@/types/supabase';
 
 // Document type enum (matches CHECK constraint in database)
 export type DocumentTypeEnum = 'health_certificate' | 'residency_permit' | 'work_license' | 'custom';
@@ -7,8 +7,36 @@ export type DocumentTypeEnum = 'health_certificate' | 'residency_permit' | 'work
 // Document status enum
 export type DocumentStatus = 'valid' | 'expiring_soon' | 'expired';
 
-// Document type from database schema
+// Document calculation result interface
+export interface DocumentCalculation {
+  daysRemaining: number;
+  isExpired: boolean;
+  isExpiringSoon: boolean;
+  statusText: string;
+  expiryDate: Date;
+  status: DocumentStatus;
+}
+
+// Frontend document interface (camelCase)
 export interface EmployeeDocument {
+  id?: string;
+  employeeId: string;
+  documentType: DocumentTypeEnum;
+  documentName: string;
+  documentNumber?: string | null;
+  issueDate: string; // ISO date string
+  expiryDate?: string; // ISO date string
+  durationMonths: number;
+  notificationThresholdDays: number;
+  documentUrl?: string | null;
+  notes?: string | null;
+  status?: DocumentStatus;
+  createdAt?: string; // ISO date string
+  updatedAt?: string; // ISO date string
+}
+
+// Database document interface (snake_case)
+export interface EmployeeDocumentDB {
   id: string;
   employee_id: string;
   document_type: DocumentTypeEnum;
@@ -29,23 +57,14 @@ export interface EmployeeDocument {
 }
 
 // Document type for document creation/update
-export type EmployeeDocumentInput = Omit<EmployeeDocument, 'id' | 'created_at' | 'updated_at' | 'status' | 'days_remaining' | 'employee_name' | 'branch_id'>;
+export type EmployeeDocumentInput = Omit<EmployeeDocumentDB, 'id' | 'created_at' | 'updated_at' | 'status' | 'days_remaining' | 'employee_name' | 'branch_id'>;
 
 // Document type for API responses
-export interface DocumentWithStatus extends EmployeeDocument {
+export interface DocumentWithStatus extends EmployeeDocumentDB {
   status: DocumentStatus;
   days_remaining: number;
   employee_name: string;
   branch_id: string;
-}
-
-// Document status calculation details
-export interface DocumentCalculation {
-  daysRemaining: number;
-  isExpired: boolean;
-  isExpiringSoon: boolean;
-  statusText: string;
-  expiryDate: Date;
 }
 
 // Document service types
@@ -57,16 +76,3 @@ export interface DocumentService {
   getExpiringDocuments(thresholdDays?: number): Promise<DocumentWithStatus[]>;
   getExpiredDocuments(): Promise<DocumentWithStatus[]>;
 }
-
-// Database types
-export type DocumentsTable = Database['public']['Tables']['employees']['Row']; // Placeholder, replace with actual table when available
-export type DocumentsInsert = Database['public']['Tables']['employees']['Insert']; // Placeholder
-export type DocumentsUpdate = Database['public']['Tables']['employees']['Update']; // Placeholder
-
-// View types
-export type DocumentsView = DocumentsTable & {
-  status: DocumentStatus;
-  days_remaining: number;
-  employee_name: string;
-  branch_id: string;
-} 

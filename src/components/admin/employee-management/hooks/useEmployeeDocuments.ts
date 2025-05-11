@@ -1,7 +1,12 @@
 
 import { useState, useCallback, useMemo } from 'react';
 import { supabase } from "@/integrations/supabase/client";
-import { EmployeeDocument, DocumentStatus, DocumentCalculation } from '../types';
+import { 
+  EmployeeDocument, 
+  DocumentStatus, 
+  DocumentCalculation,
+  DocumentTypeEnum 
+} from '../types';
 import { differenceInDays, parseISO } from 'date-fns';
 
 export const useEmployeeDocuments = () => {
@@ -12,21 +17,25 @@ export const useEmployeeDocuments = () => {
   // Calculate status for a document
   const calculateStatus = useCallback((document: EmployeeDocument): DocumentCalculation => {
     // Default values
-    let status: DocumentStatus = 'valid';
+    let isExpired = false;
+    let isExpiringSoon = false;
     let statusText = 'Valid';
     let daysRemaining = 0;
+    let status: DocumentStatus = 'valid';
+    const expiryDate = document.expiryDate ? parseISO(document.expiryDate) : new Date();
 
     if (document.expiryDate) {
       const today = new Date();
-      const expiryDate = parseISO(document.expiryDate);
       daysRemaining = differenceInDays(expiryDate, today);
 
       // Determine status based on days remaining and notification threshold
       if (daysRemaining <= 0) {
         status = 'expired';
+        isExpired = true;
         statusText = 'Expired';
       } else if (daysRemaining <= document.notificationThresholdDays) {
         status = 'expiring_soon';
+        isExpiringSoon = true;
         statusText = `Expires in ${daysRemaining} days`;
       } else {
         status = 'valid';
@@ -34,7 +43,14 @@ export const useEmployeeDocuments = () => {
       }
     }
 
-    return { status, statusText, daysRemaining };
+    return { 
+      daysRemaining, 
+      isExpired, 
+      isExpiringSoon, 
+      statusText, 
+      expiryDate,
+      status 
+    };
   }, []);
 
   // Map database document format to our frontend format
@@ -42,7 +58,7 @@ export const useEmployeeDocuments = () => {
     const employeeDoc: EmployeeDocument = {
       id: dbDoc.id,
       employeeId: dbDoc.employee_id,
-      documentType: dbDoc.document_type,
+      documentType: dbDoc.document_type as DocumentTypeEnum,
       documentName: dbDoc.document_name,
       documentNumber: dbDoc.document_number,
       issueDate: dbDoc.issue_date,
@@ -51,9 +67,11 @@ export const useEmployeeDocuments = () => {
       notificationThresholdDays: dbDoc.notification_threshold_days,
       documentUrl: dbDoc.document_url,
       notes: dbDoc.notes,
+      createdAt: dbDoc.created_at,
+      updatedAt: dbDoc.updated_at
     };
     
-    // Calculate status
+    // Calculate status and add it to the document
     const statusDetails = calculateStatus(employeeDoc);
     employeeDoc.status = statusDetails.status;
     

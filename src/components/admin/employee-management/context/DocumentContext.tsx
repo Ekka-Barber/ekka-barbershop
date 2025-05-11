@@ -1,6 +1,22 @@
+
 import React, { createContext, useContext, useMemo } from 'react';
-import { DocumentContextType } from '../types';
+import { 
+  DocumentCalculation, 
+  EmployeeDocument 
+} from '../types';
 import { useEmployeeDocuments } from '../hooks/useEmployeeDocuments';
+
+// Create the DocumentContext type
+export interface DocumentContextType {
+  documents: EmployeeDocument[];
+  isLoading: boolean;
+  error: Error | null;
+  fetchDocuments: (employeeId: string) => Promise<void>;
+  addDocument: (document: Partial<EmployeeDocument>) => Promise<void>;
+  updateDocument: (id: string, document: Partial<EmployeeDocument>) => Promise<void>;
+  deleteDocument: (id: string) => Promise<void>;
+  calculateStatus: (document: EmployeeDocument) => DocumentCalculation;
+}
 
 // Create the DocumentContext
 const DocumentContext = createContext<DocumentContextType | undefined>(undefined);

@@ -2,7 +2,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import GoogleReviews from "@/components/customer/GoogleReviews";
 
-// Define the UI element type directly in the component instead of importing Tables
+// Define the UI element type directly in the component
 interface UIElement {
   id: string;
   type: string;

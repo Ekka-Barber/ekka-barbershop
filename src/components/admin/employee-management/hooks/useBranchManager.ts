@@ -10,6 +10,11 @@ export interface Branch {
   name_ar?: string | null;
   working_hours?: Record<string, string[]> | null;
   is_main?: boolean;
+  address?: string | null;
+  address_ar?: string | null;
+  whatsapp_number?: string | null;
+  google_maps_url?: string | null;
+  google_place_id?: string | null;
 }
 
 /**
