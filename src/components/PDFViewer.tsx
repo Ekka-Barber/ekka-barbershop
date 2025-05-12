@@ -3,11 +3,12 @@ import { Document, Page, pdfjs } from 'react-pdf';
 import 'react-pdf/dist/esm/Page/AnnotationLayer.css';
 import 'react-pdf/dist/esm/Page/TextLayer.css';
 import { useLanguage } from '@/contexts/LanguageContext';
-import PDFWorker from 'pdfjs-dist/build/pdf.worker.min.js?url';
+// import PDFWorker from 'pdfjs-dist/build/pdf.worker.min.js?url';
+// import * as pdfjsLib from 'pdfjs-dist'; // No longer needed if using pdfjs from react-pdf
 import { motion, animate } from 'framer-motion';
 
-// Configure PDF.js to use the bundled worker
-pdfjs.GlobalWorkerOptions.workerSrc = PDFWorker;
+// Configure PDF.js using the instance from react-pdf
+pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
 
 interface PDFViewerProps {
   pdfUrl: string;
