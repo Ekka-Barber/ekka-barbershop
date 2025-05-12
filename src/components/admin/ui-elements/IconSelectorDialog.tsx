@@ -5,7 +5,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useToast } from "@/components/ui/use-toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/types/supabase";
+import { supabase } from "@/integrations/supabase/client";
 import { useState, useMemo } from "react";
 // Import the static list
 import { lucideIconList } from '@/lib/lucide-icons-list';

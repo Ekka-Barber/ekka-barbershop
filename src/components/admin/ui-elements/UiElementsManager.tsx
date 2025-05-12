@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/types/supabase';
+import { supabase } from '@/integrations/supabase/client';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
@@ -13,7 +13,6 @@ import { IconSelectorDialog } from './IconSelectorDialog';
 import * as LucideIcons from 'lucide-react';
 import React from 'react';
 import type { LucideIcon } from 'lucide-react';
-import { Tables } from '@/types/supabase';
 
 interface UiElement {
   id: string;

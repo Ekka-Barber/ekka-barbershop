@@ -1,4 +1,3 @@
-
 import { lazy, Suspense } from 'react';
 import { TabsContent } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
@@ -10,7 +9,6 @@ const FileManagement = lazy(() => import('@/components/admin/FileManagement').th
 const QRCodeManager = lazy(() => import('@/components/admin/QRCodeManager'));
 const BookingManagement = lazy(() => import('@/components/admin/booking-management/BookingManagement').then(mod => ({ default: mod.BookingManagement })));
 const PackageManagement = lazy(() => import('@/components/admin/package-management/PackageManagement').then(mod => ({ default: mod.PackageManagement })));
-const EmployeeTab = lazy(() => import('@/components/admin/employee-management/EmployeeTab').then(mod => ({ default: mod.EmployeeTab })));
 const UiElementsManager = lazy(() => import('@/components/admin/ui-elements/UiElementsManager').then(mod => ({ default: mod.UiElementsManager })));
 const BranchesTab = lazy(() => import('@/components/admin/branch-management/BranchesTab').then(mod => ({ default: mod.BranchesTab })));
 
@@ -44,14 +42,6 @@ export const TabContent = () => {
         </ErrorBoundary>
       </TabsContent>
       
-      <TabsContent value="employee" className="space-y-4">
-        <ErrorBoundary>
-          <Suspense fallback={<TabLoader />}>
-            <EmployeeTab />
-          </Suspense>
-        </ErrorBoundary>
-      </TabsContent>
-
       <TabsContent value="branches" className="space-y-4">
         <h2 className="text-2xl font-bold">
           Branch Management
@@ -89,10 +79,6 @@ export const TabContent = () => {
       </TabsContent>
 
       <TabsContent value="ui-elements" className="space-y-4">
-        <h2 className="text-2xl font-bold">
-          UI Elements Management
-        </h2>
-        <Separator />
         <ErrorBoundary>
           <Suspense fallback={<TabLoader />}>
             <UiElementsManager />

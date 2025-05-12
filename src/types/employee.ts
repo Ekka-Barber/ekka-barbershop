@@ -1,34 +1,42 @@
+/**
+ * Types for the employee data used in barber booking functionality
+ */
 
-export type TimeRange = string; // Format: "HH:mm-HH:mm"
-
-export interface WorkingHours {
-  [day: string]: TimeRange[];
-}
-
+// Base employee type for barber booking
 export interface Employee {
   id: string;
   name: string;
-  name_ar: string; // Changed from optional to required
-  email: string;
-  phone?: string;
+  name_ar?: string;
+  branch_id: string;
   role: string;
-  branch_id?: string;
   photo_url?: string;
-  working_hours: WorkingHours;
-  off_days?: string[];
   nationality?: string;
-  salary_plan_id?: string;
+  email?: string;
   start_date?: string;
-  annual_leave_quota?: number;
-  created_at?: string;
-  updated_at?: string;
+  is_archived?: boolean;
+  working_hours?: {
+    [day: string]: string[];
+  };
+  off_days?: string[];
 }
 
+// Employee sales data type for performance metrics
 export interface EmployeeSales {
-  id: string;
   employee_name: string;
-  month: string;
   sales_amount: number;
-  created_at?: string;
-  updated_at?: string;
 }
+
+// Type for working hours slot
+export interface WorkingHoursSlot {
+  day: string;
+  slots: string[];
+}
+
+// Type for employee availability
+export interface EmployeeAvailability {
+  employeeId: string;
+  date: string;
+  isAvailable: boolean;
+  startTime?: string;
+  endTime?: string;
+} 
