@@ -1,4 +1,3 @@
-
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from "@/contexts/LanguageContext";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
@@ -15,7 +14,6 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Button } from "@/components/ui/button";
 import AppLayout from '@/components/layout/AppLayout';
 import { Branch } from "@/types/branch";
-import { transformWorkingHours } from "@/utils/workingHoursUtils";
 
 // Import our extracted components
 import { CustomerHeader } from "@/components/customer/layout/CustomerHeader";
@@ -44,13 +42,10 @@ const Customer = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('branches')
-        .select('id, name, name_ar, address, address_ar, is_main, whatsapp_number, google_maps_url, working_hours, google_place_id');
+        .select('id, name, name_ar, address, address_ar, is_main, whatsapp_number, google_maps_url, google_place_id');
       if (error) throw error;
       
-      return data?.map(branch => ({
-        ...branch,
-        working_hours: transformWorkingHours(branch.working_hours) || {}
-      })) as Branch[];
+      return data as Branch[];
     }
   });
 

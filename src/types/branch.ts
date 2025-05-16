@@ -1,5 +1,3 @@
-
-import { Json } from './supabase-generated';
 import { WorkingHours } from './service';
 
 export interface Branch {
@@ -11,6 +9,6 @@ export interface Branch {
   is_main: boolean;
   whatsapp_number: string;
   google_maps_url: string;
-  working_hours: WorkingHours;
+  working_hours?: WorkingHours;
   google_place_id: string;
 }
