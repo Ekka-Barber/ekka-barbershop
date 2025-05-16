@@ -1,4 +1,3 @@
-
 import { SelectedService } from "./service";
 
 export interface BookingDetails {
@@ -37,7 +36,7 @@ export interface Branch {
   name_ar: string | null;
   address: string;
   address_ar: string | null;
-  working_hours: Record<string, string[]>;
+  working_hours?: Record<string, string[]>;
   whatsapp_number?: string | null;
   google_maps_url?: string | null;
 }

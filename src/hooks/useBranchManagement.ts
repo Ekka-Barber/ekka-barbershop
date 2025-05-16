@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -15,7 +14,7 @@ export interface Branch {
   whatsapp_number: string | null;
   google_maps_url: string | null;
   google_place_id: string | null;
-  working_hours: Record<string, any>;
+  working_hours?: Record<string, any>;
   created_at: string;
   updated_at: string;
 }
@@ -29,7 +28,6 @@ export interface BranchFormData {
   whatsapp_number: string;
   google_maps_url: string;
   google_place_id?: string;
-  working_hours?: Record<string, any>;
 }
 
 export const useBranchManagement = () => {

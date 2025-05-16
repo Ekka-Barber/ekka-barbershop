@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -15,9 +14,6 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import { WorkingHoursEditor } from './WorkingHoursEditor';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { AlertTriangle } from 'lucide-react';
 
 const branchFormSchema = z.object({
   name: z.string().min(1, 'Branch name is required'),
@@ -28,12 +24,11 @@ const branchFormSchema = z.object({
   whatsapp_number: z.string().optional(),
   google_maps_url: z.string().url('Must be a valid URL').optional().or(z.literal('')),
   google_place_id: z.string().optional(),
-  // Working hours will be handled separately
 });
 
 interface BranchFormProps {
   branchData?: Branch;
-  onSubmit: (data: any) => void;
+  onSubmit: (data: z.infer<typeof branchFormSchema>) => void;
   onCancel: () => void;
   isSubmitting: boolean;
   formType: 'create' | 'edit';
@@ -46,8 +41,6 @@ export const BranchForm = ({
   isSubmitting,
   formType 
 }: BranchFormProps) => {
-  const [workingHours, setWorkingHours] = useState(branchData?.working_hours || {});
-  
   const form = useForm<z.infer<typeof branchFormSchema>>({
     resolver: zodResolver(branchFormSchema),
     defaultValues: {
@@ -65,7 +58,6 @@ export const BranchForm = ({
   const handleSubmit = (values: z.infer<typeof branchFormSchema>) => {
     const submitData = {
       ...values,
-      working_hours: workingHours,
       whatsapp_number: values.whatsapp_number || null,
       google_maps_url: values.google_maps_url || null,
       google_place_id: values.google_place_id || null,
@@ -203,20 +195,6 @@ export const BranchForm = ({
                 <FormMessage />
               </FormItem>
             )}
-          />
-        </div>
-
-        <div className="space-y-4">
-          <h3 className="text-lg font-medium">Working Hours</h3>
-          <Alert variant="warning">
-            <AlertTriangle className="h-4 w-4" />
-            <AlertDescription>
-              Changes to working hours will affect booking availability. Please update carefully.
-            </AlertDescription>
-          </Alert>
-          <WorkingHoursEditor 
-            workingHours={workingHours} 
-            onChange={setWorkingHours} 
           />
         </div>
 

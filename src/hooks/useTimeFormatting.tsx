@@ -1,12 +1,22 @@
-
 import { type ReactNode } from "react";
 import { formatTimeRange } from "@/utils/timeFormatting";
 import { transformWorkingHours } from "@/utils/workingHoursUtils";
-import { WorkingHoursDisplay } from "@/components/working-hours/WorkingHoursDisplay";
+
+// Inline WorkingHoursDisplay component
+interface WorkingHoursDisplayProps {
+  isArabic: boolean;
+  timeRanges: string[];
+}
+
+const WorkingHoursDisplay = ({ isArabic, timeRanges }: WorkingHoursDisplayProps) => (
+  <span className={`text-sm text-gray-600 ${isArabic ? 'text-right' : 'text-left'}`}>
+    {timeRanges.join(', ')}
+  </span>
+);
 
 type WorkingHoursType = {
   [key: string]: string[];
-} | null;
+} | null | undefined;
 
 interface FormattedHours {
   label: string;
