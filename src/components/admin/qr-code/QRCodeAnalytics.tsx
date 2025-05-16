@@ -1,4 +1,3 @@
-
 import { Loader2 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { QRCode } from '@/types/admin';
@@ -7,7 +6,6 @@ import { AnalyticsFilters } from "./analytics/AnalyticsFilters";
 import { OverviewCard } from "./analytics/OverviewCard";
 import { BreakdownCard } from "./analytics/BreakdownCard";
 import { ScanDetailsCard } from "./analytics/ScanDetailsCard";
-import { LocationMapCard } from "./analytics/LocationMapCard";
 
 export const QRCodeAnalytics = ({ qrCodes }: { qrCodes: QRCode[] }) => {
   const {
@@ -77,11 +75,6 @@ export const QRCodeAnalytics = ({ qrCodes }: { qrCodes: QRCode[] }) => {
           <BreakdownCard 
             deviceData={deviceData}
             referrerData={referrerData}
-          />
-          
-          <LocationMapCard 
-            scanLocations={analyticsData.scan_locations || []}
-            isLoading={isLoading}
           />
 
           <ScanDetailsCard 
