@@ -1,16 +1,8 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Category, Service } from '@/types/service';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { MoreVertical, Edit, Trash, Plus } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+import { Edit, Trash, Plus } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import {
   AlertDialog,
@@ -45,11 +37,9 @@ interface CategoryItemProps {
 const CategoryItem = React.memo(({ category, services = [], onDelete, onExpandedChange, isExpanded, index }: CategoryItemProps) => {
   const { toast } = useToast();
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [isConfirmationOpen, setIsConfirmationOpen] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [branchAssignments, setBranchAssignments] = useState<string[]>([]);
   const [isFetchingBranches, setIsFetchingBranches] = useState(false);
-  const [showConfirmation, setShowConfirmation] = useState(false);
 
   useEffect(() => {
     setExpanded(isExpanded || false);

@@ -2,10 +2,7 @@
 import { useEffect, useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { 
-  getPlatformType, 
-  getInstallationStatus,
-  canInstallPWA,
-  isServiceWorkerSupported 
+  getPlatformType
 } from '@/services/platformDetection';
 import {
   Dialog,
@@ -29,7 +26,6 @@ const InstallationGuide = ({
 }: InstallationGuideProps) => {
   const { language } = useLanguage();
   const [platform] = useState(getPlatformType());
-  const [installStatus, setInstallStatus] = useState(getInstallationStatus());
   
   useEffect(() => {
     const mediaQuery = window.matchMedia('(display-mode: standalone)');
