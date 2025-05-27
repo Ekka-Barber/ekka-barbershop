@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { FileEndDateManager } from "./FileEndDateManager";
 import { FileMetadata } from "@/types/admin";
@@ -50,7 +49,7 @@ export const FileListItem = ({
                   file.file_path?.toLowerCase().endsWith('.png');
   
   const fileDateDisplay = file.end_date ? format(new Date(file.end_date), "PPP") : null;
-  const fileTimeDisplay = file.end_time || null;
+  const fileTimeDisplay = file.end_date ? format(new Date(file.end_date), "HH:mm") : null;
 
   return (
     <Draggable draggableId={file.id} index={index}>

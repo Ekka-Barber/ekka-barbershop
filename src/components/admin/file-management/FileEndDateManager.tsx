@@ -1,11 +1,10 @@
-
 import { format } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FileEndDateManagerProps } from "@/types/file-management";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export const FileEndDateManager = ({
   file,
@@ -18,6 +17,15 @@ export const FileEndDateManager = ({
 }: FileEndDateManagerProps) => {
   const [dialogOpen, setDialogOpen] = useState(false);
   
+  // Initialize date and time from existing end_date when dialog opens
+  useEffect(() => {
+    if (dialogOpen && file.end_date) {
+      const existingDate = new Date(file.end_date);
+      setSelectedDate(existingDate);
+      setSelectedTime(format(existingDate, "HH:mm"));
+    }
+  }, [dialogOpen, file.end_date, setSelectedDate, setSelectedTime]);
+  
   return (
     <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
       <Button 
@@ -27,7 +35,7 @@ export const FileEndDateManager = ({
         onClick={() => setDialogOpen(true)}
       >
         {file.end_date 
-          ? `Expires on ${format(new Date(file.end_date), 'PPP')}${file.end_time ? ` at ${file.end_time}` : ''}`
+          ? `Expires on ${format(new Date(file.end_date), 'PPP')} at ${format(new Date(file.end_date), 'HH:mm')}`
           : "Set expiration date"}
       </Button>
       
@@ -82,7 +90,7 @@ export const FileEndDateManager = ({
 
           {file.end_date && (
             <div className="text-sm text-muted-foreground">
-              <p>Current expiration: {format(new Date(file.end_date), "PPP")}{file.end_time ? ` ${file.end_time}` : ''}</p>
+              <p>Current expiration: {format(new Date(file.end_date), "PPP")} at {format(new Date(file.end_date), "HH:mm")}</p>
             </div>
           )}
         </div>

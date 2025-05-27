@@ -1,4 +1,3 @@
-
 import { UseMutationResult } from '@tanstack/react-query';
 
 // Core file metadata type
@@ -14,7 +13,6 @@ export interface FileMetadata {
   branch_id?: string;
   is_all_branches?: boolean;
   end_date?: string | null;
-  end_time?: string | null;
   created_at?: string;
   file_url?: string;
 }
