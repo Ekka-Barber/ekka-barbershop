@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, TouchEvent } from 'react';
+import React, { useEffect, useState, useRef, TouchEvent, useCallback, useMemo } from 'react';
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Star, Quote } from 'lucide-react';
 import { Card, CardContent } from "@/components/ui/card";
@@ -13,6 +13,13 @@ interface ReviewCarouselProps {
   onReadMore: (review: Review) => void;
 }
 
+// Constants moved outside component to avoid dependency issues
+const REVIEWS_PER_PAGE = {
+  mobile: 1,    // <640px (sm)
+  tablet: 2,    // 640px-1024px (md)
+  desktop: 3    // >1024px (lg)
+} as const;
+
 export const ReviewCarousel = ({
   reviews,
   onReadMore
@@ -22,23 +29,21 @@ export const ReviewCarousel = ({
 
   // Track visible reviews
   const [currentPage, setCurrentPage] = useState(0);
-  const reviewsPerPage = {
-    mobile: 1,    // <640px (sm)
-    tablet: 2,    // 640px-1024px (md)
-    desktop: 3    // >1024px (lg)
-  };
 
   // Get viewport width to determine how many reviews to show
   const [viewportWidth, setViewportWidth] = useState(window.innerWidth);
-  const getReviewsPerPage = () => {
-    if (viewportWidth < 640) return reviewsPerPage.mobile;
-    if (viewportWidth < 1024) return reviewsPerPage.tablet;
-    return reviewsPerPage.desktop;
-  };
+  const getReviewsPerPage = useCallback(() => {
+    if (viewportWidth < 640) return REVIEWS_PER_PAGE.mobile;
+    if (viewportWidth < 1024) return REVIEWS_PER_PAGE.tablet;
+    return REVIEWS_PER_PAGE.desktop;
+  }, [viewportWidth]);
 
   // Refs for touch gesture handling
   const containerRef = useRef<HTMLDivElement>(null);
   const touchStartXRef = useRef<number | null>(null);
+
+  // Calculate total pages
+  const totalPages = useMemo(() => Math.ceil(reviews.length / getReviewsPerPage()), [reviews.length, getReviewsPerPage]);
 
   // Touch gesture handlers
   const handleTouchStart = (e: TouchEvent<HTMLDivElement>) => {
@@ -68,16 +73,13 @@ export const ReviewCarousel = ({
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Calculate total pages
-  const totalPages = Math.ceil(reviews.length / getReviewsPerPage());
-
   // Debug log the reviews being passed to the carousel
   useEffect(() => {
     logger.debug(`ReviewCarousel received ${reviews.length} reviews to render in ${language} mode`);
     logger.debug(`Viewport width: ${viewportWidth}px, showing ${getReviewsPerPage()} reviews per page`);
     logger.debug(`Total pages: ${totalPages}`);
     setCurrentPage(0); // Reset to first page on language change
-  }, [reviews, language, viewportWidth]);
+  }, [reviews, language, viewportWidth, getReviewsPerPage, totalPages]);
 
   if (!reviews || reviews.length === 0) {
     return null;
