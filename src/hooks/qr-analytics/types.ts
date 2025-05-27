@@ -1,5 +1,5 @@
 
-import { QRCode } from '@/types/admin';
+// Types defined locally - no external imports needed
 
 export interface QRScanData {
   qr_id: string;

@@ -69,7 +69,7 @@ const Offers = () => {
         // Validate URL format
         try {
           new URL(publicUrlData.publicUrl);
-        } catch (e) {
+        } catch {
           console.error('Invalid URL generated:', publicUrlData.publicUrl);
           return null;
         }

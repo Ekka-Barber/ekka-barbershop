@@ -43,7 +43,7 @@ export async function fetchReferrerBreakdown(selectedQrId: string, startDate: Da
         if (referrer !== 'Direct' && referrer.startsWith('http')) {
           referrer = new URL(referrer).hostname;
         }
-      } catch (e) {
+      } catch {
         // Keep original referrer if URL parsing fails
       }
       referrerBreakdown[referrer] = parseInt(item.count);

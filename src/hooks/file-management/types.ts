@@ -1,5 +1,5 @@
 
-import { FileMetadata, FilePreview } from '@/types/admin';
+// Types defined locally - no external imports needed
 
 export interface FileUploadParams {
   file: File;

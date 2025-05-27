@@ -21,7 +21,7 @@ export const useElementAnimation = (visibleElements: Tables<'ui_elements'>[]) =>
           
           const sortedElements = [...elements].sort((a, b) => a.display_order - b.display_order);
           
-          let delay = 300;
+          const delay = 300;
           sortedElements.forEach((element, index) => {
             setTimeout(() => {
               setAnimatingElements(prev => [...prev, element.id]);
