@@ -33,7 +33,7 @@ export const ServiceDialog = ({ categories, editService, onSuccess, trigger }: S
   const queryClient = useQueryClient();
   const isMobile = useIsMobile();
   const [selectedUpsells, setSelectedUpsells] = useState<Array<{ serviceId: string; discountPercentage: number }>>([]);
-  const [branches, setBranches] = useState<any[]>([]);
+  const [branches, setBranches] = useState<Array<{ id: string; name: string }>>([]);
   const [selectedBranchIds, setSelectedBranchIds] = useState<string[]>([]);
   const descriptionId = "service-dialog-description";
 

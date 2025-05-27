@@ -1,5 +1,5 @@
 
-import { Share, Check, X } from 'lucide-react';
+import { Share, Check } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import AddToHomeScreenIcon from '@/components/icons/AddToHomeScreenIcon';
 import {

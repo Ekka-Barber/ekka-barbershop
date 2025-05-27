@@ -4,7 +4,7 @@
  */
 export const isIOS = (): boolean => {
   return /iPad|iPhone|iPod/.test(navigator.userAgent) && 
-         !(window as any).MSStream;
+         !((window as Window & { MSStream?: unknown }).MSStream);
 };
 
 /**

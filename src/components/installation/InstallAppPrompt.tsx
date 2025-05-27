@@ -44,7 +44,7 @@ export const InstallAppPrompt = () => {
           title: t('install.success'),
           duration: 3000,
         });
-      } catch (error) {
+      } catch {
         toast({
           title: t('install.error'),
           variant: "destructive",

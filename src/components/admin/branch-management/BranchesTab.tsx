@@ -6,6 +6,7 @@ import { BranchForm } from './BranchForm';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import { Card } from '@/components/ui/card';
+import { Branch } from '@/types/branch';
 
 export const BranchesTab = () => {
   const [isAddingBranch, setIsAddingBranch] = useState(false);
@@ -25,12 +26,12 @@ export const BranchesTab = () => {
     isDeleting
   } = useBranchManagement();
 
-  const handleCreateBranch = (data: any) => {
+  const handleCreateBranch = (data: Partial<Branch>) => {
     createBranch(data);
     setIsAddingBranch(false);
   };
 
-  const handleUpdateBranch = (data: any) => {
+  const handleUpdateBranch = (data: Partial<Branch>) => {
     if (selectedBranchId) {
       updateBranch({ id: selectedBranchId, data });
       setIsEditing(false);
@@ -144,7 +145,7 @@ export const BranchesTab = () => {
   );
 };
 
-const BranchDetails = ({ branch }: { branch: any }) => {
+const BranchDetails = ({ branch }: { branch: Branch }) => {
   return (
     <div className="space-y-4">
       <div>

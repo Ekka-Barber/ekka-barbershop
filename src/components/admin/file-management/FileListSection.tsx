@@ -1,23 +1,24 @@
-import { DragDropContext, Droppable } from '@hello-pangea/dnd';
+import { DragDropContext, Droppable, DropResult } from '@hello-pangea/dnd';
 import { FileListItem } from "./FileListItem";
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { FileText, ChevronDown, ChevronUp } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
+import { FileMetadata } from "@/types/file-management";
 
 interface FileListSectionProps {
   category: string;
-  files: any[];
+  files: FileMetadata[];
   selectedDate: Date | undefined;
   setSelectedDate: (date: Date | undefined) => void;
   selectedTime: string;
   setSelectedTime: (time: string) => void;
-  handleEndDateUpdate: (file: any) => void;
+  handleEndDateUpdate: (file: FileMetadata) => void;
   handleRemoveEndDate: (fileId: string) => void;
   toggleActiveMutation: any;
   deleteMutation: any;
-  handleDragEnd: (result: any) => void;
+  handleDragEnd: (result: DropResult) => void;
 }
 
 export const FileListSection = ({
