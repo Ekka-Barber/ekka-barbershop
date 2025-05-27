@@ -1,5 +1,5 @@
 
-import { Json } from './supabase-generated';
+
 
 export interface Service {
   id: string;
@@ -27,8 +27,6 @@ export interface Category {
 }
 
 export interface SelectedService extends Service {
-  isBasePackageService?: boolean;
-  isPackageAddOn?: boolean;
   isUpsellItem?: boolean;
   originalPrice?: number;
   discountPercentage?: number;
@@ -38,13 +36,4 @@ export interface SelectedService extends Service {
 
 export type WorkingHours = Record<string, string[] | { start: string; end: string }>;
 
-export interface PackageSettings {
-  id: string;
-  discount_one_service: number;
-  discount_two_services: number;
-  discount_three_plus_services: number;
-  base_service_id: string;
-  max_services?: number;
-  created_at?: string;
-  updated_at?: string;
-}
+

@@ -98,8 +98,7 @@ export const translations: Translations = {
     'loading.services': 'Loading services...',
     'no.services.available': 'No services available',
     'learn.more': 'Learn more',
-    'build.package': 'Build Package',
-    'package.banner': 'Packages now available! Select Haircut & Beard Trim and add services at a discount 😉',
+
     'error.loading.services': 'Error loading services.',
     'validation.error': 'Validation error',
     'network.error': 'Network error. Please check your connection.',
@@ -197,9 +196,7 @@ export const translations: Translations = {
     'whatsapp.message.original': 'السعر الأصلي',
     'midnight': 'منتصف الليل',
     'next.day': 'اليوم التالي',
-    'package.savings': 'مجموع ما ستوفره مع هذه الباقة 😍',
-    'build.package': 'أصنع باقتك',
-    'package.discount': 'خصم الخدمات المضافة',
+
     
     'error.occurred': 'حدث خطأ.',
     'please.try.again': 'يرجى المحاولة مرة أخرى.',
@@ -208,7 +205,7 @@ export const translations: Translations = {
     'loading.services': 'جاري تحميل الخدمات...',
     'no.services.available': 'لا توجد خدمات متاحة',
     'learn.more': 'إعرف أكثر',
-    'package.banner': 'أصنع باقتك بنفسك .. خدمات أكثر خصم أكبر 😉',
+
     'error.loading.services': 'خطأ في تحميل الخدمات.',
     'validation.error': 'خطأ في التحقق',
     'network.error': 'خطأ في الاتصال. يرجى التحقق من اتصالك بالإنترنت.',

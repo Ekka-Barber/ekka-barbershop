@@ -7,7 +7,7 @@ import { ServicesTab } from './ServicesTab';
 // Lazy-loaded components
 const FileManagement = lazy(() => import('@/components/admin/FileManagement').then(mod => ({ default: mod.FileManagement })));
 const QRCodeManager = lazy(() => import('@/components/admin/QRCodeManager'));
-const PackageManagement = lazy(() => import('@/components/admin/package-management/PackageManagement').then(mod => ({ default: mod.PackageManagement })));
+
 const UiElementsManager = lazy(() => import('@/components/admin/ui-elements/UiElementsManager').then(mod => ({ default: mod.UiElementsManager })));
 const BranchesTab = lazy(() => import('@/components/admin/branch-management/BranchesTab').then(mod => ({ default: mod.BranchesTab })));
 
@@ -23,14 +23,6 @@ export const TabContent = () => {
     <>
       <TabsContent value="services" className="space-y-6">
         <ServicesTab />
-      </TabsContent>
-
-      <TabsContent value="packages" className="space-y-4">
-        <ErrorBoundary>
-          <Suspense fallback={<TabLoader />}>
-            <PackageManagement />
-          </Suspense>
-        </ErrorBoundary>
       </TabsContent>
 
 

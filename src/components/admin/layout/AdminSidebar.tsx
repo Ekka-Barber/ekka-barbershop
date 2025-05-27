@@ -1,5 +1,5 @@
 import React from 'react';
-import { Home, Package, FileText, QrCode, Layout } from 'lucide-react';
+import { Home, FileText, QrCode, Layout } from 'lucide-react';
 import { 
   Sidebar, 
   SidebarMenu, 
@@ -19,7 +19,6 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ activeTab, onTabChan
 
   const navigationItems = [
     { id: 'services', label: 'Services', icon: <Home /> },
-    { id: 'packages', label: 'Packages', icon: <Package /> },
     { id: 'files', label: 'Files', icon: <FileText /> },
     { id: 'qrcodes', label: 'QR Codes', icon: <QrCode /> },
     { id: 'ui-elements', label: 'UI Elements', icon: <Layout /> },
