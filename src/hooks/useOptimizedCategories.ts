@@ -105,8 +105,8 @@ export const useOptimizedCategories = () => {
     [categories]
   );
 
-  const debouncedSetSearch = useCallback(
-    debounce((value: string) => setSearchQuery(value), 300),
+  const debouncedSetSearch = useMemo(
+    () => debounce((value: string) => setSearchQuery(value), 300),
     []
   );
 

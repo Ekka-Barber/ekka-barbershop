@@ -52,7 +52,7 @@ export const logger = {
    * Debug level logging for development information
    * Only outputs when in non-production environments and enabled in config
    */
-  debug: (message: string, ...data: any[]) => {
+  debug: (message: string, ...data: unknown[]) => {
     if (shouldLog('debug') && (process.env.NODE_ENV !== 'production')) {
       console.log(`%c[DEBUG] ${message}`, LOG_STYLES.debug, ...data);
     }
@@ -61,7 +61,7 @@ export const logger = {
   /**
    * Standard info logging for general application flow information
    */
-  info: (message: string, ...data: any[]) => {
+  info: (message: string, ...data: unknown[]) => {
     if (shouldLog('info')) {
       console.log(`%c[INFO] ${message}`, LOG_STYLES.info, ...data);
     }
@@ -70,7 +70,7 @@ export const logger = {
   /**
    * Warning level logging for non-critical issues that should be addressed
    */
-  warn: (message: string, ...data: any[]) => {
+  warn: (message: string, ...data: unknown[]) => {
     if (shouldLog('warn')) {
       console.warn(`%c[WARN] ${message}`, LOG_STYLES.warn, ...data);
     }
@@ -79,7 +79,7 @@ export const logger = {
   /**
    * Error level logging for critical issues that affect functionality
    */
-  error: (message: string, ...data: any[]) => {
+  error: (message: string, ...data: unknown[]) => {
     if (shouldLog('error')) {
       console.error(`%c[ERROR] ${message}`, LOG_STYLES.error, ...data);
     }

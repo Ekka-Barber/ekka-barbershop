@@ -1,6 +1,15 @@
 
 import { logger } from "./logger";
 
+// Extend Window interface to include TikTok pixel
+declare global {
+  interface Window {
+    ttq?: {
+      track: (event: string, params: Record<string, unknown>) => void;
+    };
+  }
+}
+
 interface ViewContentEvent {
   pageId: string;
   pageName: string;
@@ -27,7 +36,7 @@ interface SocialMediaClickEvent {
 
 export const trackViewContent = (params: ViewContentEvent) => {
   try {
-    const ttq = (window as any).ttq;
+    const ttq = window.ttq;
     if (ttq) {
       logger.debug("Tracking view_content:", params);
       ttq.track('ViewContent', {
@@ -46,7 +55,7 @@ export const trackViewContent = (params: ViewContentEvent) => {
 
 export const trackButtonClick = (params: ButtonClickEvent) => {
   try {
-    const ttq = (window as any).ttq;
+    const ttq = window.ttq;
     if (ttq) {
       logger.debug("Tracking button_click:", params);
       ttq.track('ClickButton', {
@@ -64,7 +73,7 @@ export const trackButtonClick = (params: ButtonClickEvent) => {
 
 export const trackLocationView = (params: LocationViewEvent) => {
   try {
-    const ttq = (window as any).ttq;
+    const ttq = window.ttq;
     if (ttq) {
       logger.debug("Tracking location_view:", params);
       ttq.track('ViewLocation', {
@@ -82,7 +91,7 @@ export const trackLocationView = (params: LocationViewEvent) => {
 
 export const trackSocialMediaClick = (params: SocialMediaClickEvent) => {
   try {
-    const ttq = (window as any).ttq;
+    const ttq = window.ttq;
     if (ttq) {
       logger.debug("Tracking social_media_click:", params);
       ttq.track('SocialInteraction', {
