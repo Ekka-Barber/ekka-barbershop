@@ -1,13 +1,9 @@
 import { useLanguage } from "@/contexts/LanguageContext";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
-import { useEffect } from "react";
+import { useEffect, lazy, Suspense } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { BranchDialog } from "@/components/customer/BranchDialog";
-import { LocationDialog } from "@/components/customer/LocationDialog";
-import { EidBookingsDialog } from "@/components/customer/EidBookingsDialog";
 import { trackViewContent } from "@/utils/tiktokTracking";
-import { InstallAppPrompt } from "@/components/installation/InstallAppPrompt";
 import { PullToRefresh } from "@/components/common/PullToRefresh";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -22,6 +18,14 @@ import { UIElementRenderer } from "@/components/customer/ui/UIElementRenderer";
 import { useUIElements } from "@/hooks/useUIElements";
 import { useElementAnimation } from "@/hooks/useElementAnimation";
 import { useDialogState } from "@/hooks/useDialogState";
+
+// Lazy load heavy dialog components for better bundle optimization
+const BranchDialog = lazy(() => import("@/components/customer/BranchDialog").then(mod => ({ default: mod.BranchDialog })));
+const LocationDialog = lazy(() => import("@/components/customer/LocationDialog").then(mod => ({ default: mod.LocationDialog })));
+const EidBookingsDialog = lazy(() => import("@/components/customer/EidBookingsDialog").then(mod => ({ default: mod.EidBookingsDialog })));
+const InstallAppPrompt = lazy(() => import("@/components/installation/InstallAppPrompt").then(mod => ({ default: mod.InstallAppPrompt })));
+
+
 
 const Customer = () => {
   const { t } = useLanguage();
@@ -91,25 +95,34 @@ const Customer = () => {
 
       <LanguageSwitcher />
 
-      {/* Dialogs */}
-      <BranchDialog
-        open={branchDialogOpen}
-        onOpenChange={setBranchDialogOpen}
-        onBranchSelect={handleBranchSelect}
-        branches={branches || []}
-      />
-      <LocationDialog
-        open={locationDialogOpen}
-        onOpenChange={setLocationDialogOpen}
-        onLocationClick={handleLocationClick}
-        branches={branches || []}
-      />
-      <EidBookingsDialog
-        open={eidBookingsDialogOpen}
-        onOpenChange={setEidBookingsDialogOpen}
-        onBranchSelect={handleEidBranchSelect}
-        branches={branches || []}
-      />
+      {/* Lazy-loaded Dialogs with Suspense */}
+      <Suspense fallback={null}>
+        <BranchDialog
+          open={branchDialogOpen}
+          onOpenChange={setBranchDialogOpen}
+          onBranchSelect={handleBranchSelect}
+          branches={branches || []}
+        />
+      </Suspense>
+      
+      <Suspense fallback={null}>
+        <LocationDialog
+          open={locationDialogOpen}
+          onOpenChange={setLocationDialogOpen}
+          onLocationClick={handleLocationClick}
+          branches={branches || []}
+        />
+      </Suspense>
+      
+      <Suspense fallback={null}>
+        <EidBookingsDialog
+          open={eidBookingsDialogOpen}
+          onOpenChange={setEidBookingsDialogOpen}
+          onBranchSelect={handleEidBranchSelect}
+          branches={branches || []}
+        />
+      </Suspense>
+      
       <Dialog open={mapDialogOpen} onOpenChange={setMapDialogOpen}>
         <DialogContent>
           <DialogHeader>
@@ -122,7 +135,9 @@ const Customer = () => {
         </DialogContent>
       </Dialog>
 
-      <InstallAppPrompt />
+      <Suspense fallback={null}>
+        <InstallAppPrompt />
+      </Suspense>
     </AppLayout>
   );
 };

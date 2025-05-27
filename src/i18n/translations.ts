@@ -106,6 +106,14 @@ export const translations: Translations = {
     'unknown.error': 'Unknown error occurred.',
     'security.error': 'Security error. Please try again.',
     'data.error': 'Data error. Please refresh and try again.',
+
+    // Bundle optimization and loading messages
+    'loading.component': 'Loading component...',
+    'loading.pdf.viewer': 'Loading PDF viewer...',
+    'loading.admin.panel': 'Loading admin panel...',
+    'loading.menu.page': 'Loading menu...',
+    'loading.offers.page': 'Loading offers...',
+    'optimizing.performance': 'Optimizing performance...',
   },
   ar: {
     'select.branch': 'اختر فرعاً',
@@ -176,5 +184,13 @@ export const translations: Translations = {
     'unknown.error': 'حدث خطأ غير معروف.',
     'security.error': 'خطأ أمني. يرجى المحاولة مرة أخرى.',
     'data.error': 'خطأ في البيانات. يرجى تحديث الصفحة والمحاولة مرة أخرى.',
+
+    // Bundle optimization and loading messages
+    'loading.component': 'جاري تحميل المكون...',
+    'loading.pdf.viewer': 'جاري تحميل مُرؤية PDF...',
+    'loading.admin.panel': 'جاري تحميل لوحة الإدارة...',
+    'loading.menu.page': 'جاري تحميل القائمة...',
+    'loading.offers.page': 'جاري تحميل العروض...',
+    'optimizing.performance': 'تحسين الأداء...',
   }
 };

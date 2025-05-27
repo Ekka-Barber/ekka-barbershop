@@ -1,13 +1,25 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from "@/integrations/supabase/client";
-import PDFViewer from '@/components/PDFViewer';
 import { Button } from "@/components/ui/button";
 import { useNavigate, Link } from 'react-router-dom';
 import { Card } from "@/components/ui/card";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { useEffect, useState } from 'react';
+import { useEffect, useState, lazy, Suspense } from 'react';
 import { trackViewContent, trackButtonClick } from "@/utils/tiktokTracking";
 import AppLayout from '@/components/layout/AppLayout';
+
+// Lazy load PDFViewer for better bundle optimization
+const PDFViewer = lazy(() => import('@/components/PDFViewer'));
+
+// Loading component for PDFViewer
+const PDFViewerLoader = () => (
+  <div className="flex items-center justify-center py-12 bg-gray-50 rounded-lg">
+    <div className="flex flex-col items-center space-y-3">
+      <div className="w-12 h-12 border-4 border-[#C4A36F] border-t-transparent rounded-full animate-spin"></div>
+      <p className="text-[#222222] font-medium">Loading PDF viewer...</p>
+    </div>
+  </div>
+);
 
 const Menu = () => {
   const navigate = useNavigate();
@@ -135,7 +147,9 @@ const Menu = () => {
                 
                 {activeMenuUrl && (
                   menuFiles.find(f => f.url === activeMenuUrl)?.file_type.includes('pdf') ? (
-                    <PDFViewer pdfUrl={activeMenuUrl} />
+                    <Suspense fallback={<PDFViewerLoader />}>
+                      <PDFViewer pdfUrl={activeMenuUrl} />
+                    </Suspense>
                   ) : (
                     <img 
                       src={activeMenuUrl} 
