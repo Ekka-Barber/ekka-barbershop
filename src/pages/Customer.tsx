@@ -1,4 +1,3 @@
-import { useNavigate } from 'react-router-dom';
 import { useLanguage } from "@/contexts/LanguageContext";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { useEffect } from "react";
@@ -25,8 +24,7 @@ import { useElementAnimation } from "@/hooks/useElementAnimation";
 import { useDialogState } from "@/hooks/useDialogState";
 
 const Customer = () => {
-  const navigate = useNavigate();
-  const { t, language } = useLanguage();
+  const { t } = useLanguage();
 
   // Track page view
   useEffect(() => {
@@ -37,7 +35,7 @@ const Customer = () => {
   }, []);
 
   // Get branches data
-  const { data: branches, refetch } = useQuery({
+  const { data: branches } = useQuery({
     queryKey: ['branches'],
     queryFn: async () => {
       const { data, error } = await supabase

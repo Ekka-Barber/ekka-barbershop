@@ -11,7 +11,7 @@ import AppLayout from '@/components/layout/AppLayout';
 
 const Menu = () => {
   const navigate = useNavigate();
-  const { t, language } = useLanguage();
+  const { t } = useLanguage();
   const [activeMenuUrl, setActiveMenuUrl] = useState<string | null>(null);
   
   useEffect(() => {
