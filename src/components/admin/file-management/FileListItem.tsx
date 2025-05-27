@@ -2,12 +2,12 @@ import { Button } from "@/components/ui/button";
 import { FileEndDateManager } from "./FileEndDateManager";
 import { FileMetadata } from "@/types/admin";
 import { UseMutationResult } from "@tanstack/react-query";
-import { Loader2, FileText, Image as ImageIcon, Calendar, MapPin, ToggleRight, Trash2, ExternalLink } from "lucide-react";
+import { Loader2, FileText, Calendar, MapPin, ToggleRight, Trash2, ExternalLink } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { useState } from "react";
 import { format } from "date-fns";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Draggable } from "@hello-pangea/dnd";
 
 export interface FileListItemProps {
@@ -19,8 +19,8 @@ export interface FileListItemProps {
   setSelectedTime: (time: string) => void;
   handleEndDateUpdate: (file: FileMetadata) => void;
   handleRemoveEndDate: (fileId: string) => void;
-  toggleActiveMutation: UseMutationResult<any, Error, { id: string; isActive: boolean }>;
-  deleteMutation: UseMutationResult<any, Error, FileMetadata>;
+  toggleActiveMutation: UseMutationResult<void, Error, { id: string; isActive: boolean }>;
+  deleteMutation: UseMutationResult<void, Error, FileMetadata>;
 }
 
 export const FileListItem = ({

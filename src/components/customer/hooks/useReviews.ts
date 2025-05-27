@@ -11,7 +11,6 @@ export interface Review extends GoogleReview {
 }
 
 export const useReviews = (language: Language) => {
-  const [reviews, setReviews] = useState<Review[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [displayedReviews, setDisplayedReviews] = useState<Review[]>([]);
   const allReviewsPool = useRef<Review[]>([]);
@@ -130,11 +129,9 @@ export const useReviews = (language: Language) => {
       const randomSelection = getRandomReviews(reviewsData, reviewsToDisplay);
       
       logger.debug(`Displaying ${randomSelection.length} reviews out of ${reviewsData.length} available with language: ${language}`);
-      setReviews(randomSelection);
       setDisplayedReviews(randomSelection);
     } else if (reviewsData) {
       logger.debug(`No 5-star reviews found across all branches for language: ${language}`);
-      setReviews([]);
       setDisplayedReviews([]);
     }
   }, [reviewsData, getRandomReviews, language]);

@@ -1,14 +1,12 @@
 
-import { Tables } from "@/types/supabase";
 import { motion, AnimatePresence } from "framer-motion";
 import GoogleReviews from "@/components/customer/GoogleReviews";
 
 interface GoogleReviewsWrapperProps {
-  element: Tables<'ui_elements'>;
   isVisible: boolean;
 }
 
-export const GoogleReviewsWrapper = ({ element, isVisible }: GoogleReviewsWrapperProps) => {
+export const GoogleReviewsWrapper = ({ isVisible }: GoogleReviewsWrapperProps) => {
   const fadeUpVariants = {
     hidden: { opacity: 0, y: 20 },
     visible: { 

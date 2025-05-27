@@ -2,7 +2,6 @@
 import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { PackageSettings } from '@/types/admin';
 
 interface DiscountPyramidProps {
@@ -96,7 +95,7 @@ export const DiscountPyramid = ({
           Discount Tiers
         </h3>
         <div className="flex flex-col items-center space-y-2">
-          {pyramidLevels.map((level, index) => (
+          {pyramidLevels.map((level) => (
             <div
               key={level.key}
               className={`${level.height} ${level.width} ${level.color} rounded-md flex items-center justify-between px-4 transition-all`}

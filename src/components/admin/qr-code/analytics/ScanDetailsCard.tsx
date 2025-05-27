@@ -40,7 +40,7 @@ export const ScanDetailsCard = ({ recentScans }: ScanDetailsCardProps) => {
                   try {
                     const url = new URL(scan.referrer);
                     source = url.hostname;
-                  } catch (e) {
+                  } catch {
                     source = scan.referrer;
                   }
                 }

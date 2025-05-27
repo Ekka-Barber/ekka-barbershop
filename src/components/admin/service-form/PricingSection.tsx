@@ -16,7 +16,7 @@ interface PricingSectionProps {
   isMobile?: boolean;
 }
 
-export const PricingSection = ({ service, onChange, language, isMobile = false }: PricingSectionProps) => {
+export const PricingSection = ({ service, onChange, isMobile = false }: PricingSectionProps) => {
   const handleDiscountTypeChange = (value: string) => {
     onChange({ 
       ...service, 

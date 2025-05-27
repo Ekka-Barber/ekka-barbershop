@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect, ReactNode } from 'react';
+import React, { useRef, useState, ReactNode } from 'react';
 import { RefreshIndicator } from './pull-to-refresh/RefreshIndicator';
 import { getPlatformPullSettings, PlatformPullSettings } from '@/utils/platformUtils';
 

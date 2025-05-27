@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useToast } from "@/components/ui/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { Wifi, WifiOff } from 'lucide-react';
+import { WifiOff } from 'lucide-react';
 import { isOnline, listenForOnlineStatusChanges } from '@/services/offlineSupport';
 
 export const OfflineNotification = () => {
