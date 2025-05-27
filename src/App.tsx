@@ -7,7 +7,6 @@ import { LanguageProvider } from "@/contexts/LanguageContext";
 import Customer from "./pages/Customer";
 import Menu from "./pages/Menu";
 import Offers from "./pages/Offers";
-import Bookings from "./pages/Bookings";
 import { OfflineNotification } from "./components/common/OfflineNotification";
 import { ErrorBoundary } from "./components/common/ErrorBoundary";
 import { ServiceWorkerRegistration } from "./components/ServiceWorkerRegistration";
