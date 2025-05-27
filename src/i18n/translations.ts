@@ -186,8 +186,8 @@ export const translations: Translations = {
     'data.error': 'خطأ في البيانات. يرجى تحديث الصفحة والمحاولة مرة أخرى.',
 
     // Bundle optimization and loading messages
-    'loading.component': 'جاري تحميل المكون...',
-    'loading.pdf.viewer': 'جاري تحميل مُرؤية PDF...',
+    'loading.component': 'جاري التحميل...',
+    'loading.pdf.viewer': 'جاري تحميل ملف الـ PDF...',
     'loading.admin.panel': 'جاري تحميل لوحة الإدارة...',
     'loading.menu.page': 'جاري تحميل القائمة...',
     'loading.offers.page': 'جاري تحميل العروض...',
