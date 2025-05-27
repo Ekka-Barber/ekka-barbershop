@@ -1,5 +1,5 @@
 import React from 'react';
-import { Home, Package, Calendar, Users, FileText, QrCode, Layout } from 'lucide-react';
+import { Home, Package, FileText, QrCode, Layout } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { TabsList, TabsTrigger } from '@/components/ui/tabs';
 
@@ -43,22 +43,6 @@ export const TabNavigation: React.FC<TabNavigationProps> = ({ isMobile, activeTa
               <span className="text-[11px] font-medium">Packages</span>
             </TabsTrigger>
             <TabsTrigger 
-              value="bookings" 
-              onClick={() => onTabChange('bookings')}
-              className={cn(
-                "flex flex-col items-center py-3 px-1 h-auto",
-                "data-[state=active]:bg-accent data-[state=active]:text-accent-foreground",
-                "active:scale-95 transition-transform",
-                activeTab === 'bookings' && "bg-accent text-accent-foreground"
-              )}
-            >
-              <Calendar className="h-5 w-5 mb-1.5" />
-              <span className="text-[11px] font-medium">Bookings</span>
-            </TabsTrigger>
-          </div>
-          {/* Second row */}
-          <div className="grid grid-cols-3 gap-2 mt-2">
-            <TabsTrigger 
               value="files" 
               onClick={() => onTabChange('files')}
               className={cn(
@@ -71,6 +55,9 @@ export const TabNavigation: React.FC<TabNavigationProps> = ({ isMobile, activeTa
               <FileText className="h-5 w-5 mb-1.5" />
               <span className="text-[11px] font-medium">Files</span>
             </TabsTrigger>
+          </div>
+          {/* Second row */}
+          <div className="grid grid-cols-2 gap-2 mt-2">
             <TabsTrigger 
               value="qrcodes" 
               onClick={() => onTabChange('qrcodes')}
@@ -105,7 +92,7 @@ export const TabNavigation: React.FC<TabNavigationProps> = ({ isMobile, activeTa
 
   return (
     <div className="overflow-x-auto pb-2">
-      <TabsList className="w-full sm:w-auto grid grid-cols-6 sm:inline-flex gap-2">
+      <TabsList className="w-full sm:w-auto grid grid-cols-5 sm:inline-flex gap-2">
         <TabsTrigger 
           value="services" 
           onClick={() => onTabChange('services')}
@@ -125,16 +112,6 @@ export const TabNavigation: React.FC<TabNavigationProps> = ({ isMobile, activeTa
           )}
         >
           Packages
-        </TabsTrigger>
-        <TabsTrigger 
-          value="bookings" 
-          onClick={() => onTabChange('bookings')}
-          className={cn(
-            "px-4 py-2",
-            activeTab === 'bookings' && "bg-accent text-accent-foreground"
-          )}
-        >
-          Bookings
         </TabsTrigger>
         <TabsTrigger 
           value="files" 
