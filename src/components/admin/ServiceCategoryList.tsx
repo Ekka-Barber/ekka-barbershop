@@ -16,9 +16,6 @@ const ServiceCategoryList = () => {
   const {
     categories,
     isLoading,
-    totalServices,
-    setSearchQuery,
-    setSortBy,
     setupRealtimeSubscription
   } = useOptimizedCategories();
 
@@ -52,13 +49,17 @@ const ServiceCategoryList = () => {
         .delete()
         .eq('id', categoryId);
         
-      if (error) throw error;
+      if (error) {
+        console.error('Delete error:', error);
+        throw error;
+      }
       
       toast({
         title: "Category Deleted",
         description: "Category has been deleted successfully.",
       });
     } catch (error) {
+      console.error('Category deletion failed:', error);
       toast({
         title: "Error",
         description: "Failed to delete category. Please try again.",
@@ -89,7 +90,10 @@ const ServiceCategoryList = () => {
         .from('service_categories')
         .upsert(updates, { onConflict: 'id' });
         
-      if (error) throw error;
+      if (error) {
+        console.error('Update error:', error);
+        throw error;
+      }
 
       toast({
         title: "Order Updated",

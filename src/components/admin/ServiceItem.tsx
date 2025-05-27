@@ -2,14 +2,11 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Service } from '@/types/service';
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { Edit, Trash2, ChevronDown, ChevronUp } from 'lucide-react';
 import { useToast } from "@/components/ui/use-toast";
 import { ServiceDialog } from './ServiceDialog';
 import { formatPrice } from '@/utils/formatters';
-import { useIsMobile } from '@/hooks/use-mobile';
 import { Separator } from '@/components/ui/separator';
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { ServiceBranchAssignment } from './service-management/ServiceBranchAssignment';
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -21,7 +18,6 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 
 export interface ServiceItemProps {
@@ -31,11 +27,10 @@ export interface ServiceItemProps {
 }
 
 // Optimize with React.memo to prevent unnecessary re-renders
-const ServiceItem = React.memo(({ service, onEdit, onDelete }: ServiceItemProps) => {
+const ServiceItem = React.memo(({ service, onDelete }: ServiceItemProps) => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const { toast } = useToast();
-  const isMobile = useIsMobile();
   
   // Add branch assignment display
   const [branchAssignments, setBranchAssignments] = useState<string[]>([]);
