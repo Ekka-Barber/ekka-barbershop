@@ -30,6 +30,11 @@ Systematic removal of internal booking management functionality from the Ekka Ba
 - ✅ `src/types/booking.ts` removed
 - ✅ App.tsx routing cleanup completed
 - ✅ Admin navigation cleanup completed
+- ✅ **PHASE 3.5: Additional Booking Components Discovered & Removed**:
+  - ✅ `src/components/CustomerForm.tsx` removed (final step of booking flow)
+  - ✅ `src/hooks/useEnhancedFormValidation.ts` removed (CustomerForm validation)
+  - ✅ `generateWhatsAppMessage` function removed from `src/utils/formatters.ts`
+  - ✅ Fixed `src/components/InstallationGuide.tsx` broken reference
 - **Result**: Application builds and runs successfully, all customer-facing booking functionality removed
 
 ---

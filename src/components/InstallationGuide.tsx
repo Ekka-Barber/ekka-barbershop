@@ -30,7 +30,6 @@ const InstallationGuide = ({
   useEffect(() => {
     const mediaQuery = window.matchMedia('(display-mode: standalone)');
     const handleChange = (e: MediaQueryListEvent) => {
-      setInstallStatus(e.matches ? 'installed' : 'not-installed');
       if (e.matches && onComplete) {
         onComplete();
       }
