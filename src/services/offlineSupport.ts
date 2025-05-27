@@ -144,7 +144,7 @@ export const prefetchResources = async (resources: string[]): Promise<void> => {
  * @param message The message to send
  * @returns A promise that resolves when the message is sent
  */
-export const sendMessageToServiceWorker = async (message: any): Promise<void> => {
+export const sendMessageToServiceWorker = async (message: unknown): Promise<void> => {
   if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
     try {
       await navigator.serviceWorker.ready;
@@ -222,10 +222,10 @@ export const registerPeriodicSync = async (
   tag: string,
   minInterval: number
 ): Promise<boolean> => {
-  if ('serviceWorker' in navigator && 'periodicSync' in (navigator as any).serviceWorker) {
+  if ('serviceWorker' in navigator && 'periodicSync' in (navigator as unknown as { serviceWorker: { periodicSync: unknown } }).serviceWorker) {
     try {
       const registration = await navigator.serviceWorker.ready;
-      const periodicSync = (registration as any).periodicSync;
+      const periodicSync = (registration as unknown as { periodicSync: { register: (tag: string, options: { minInterval: number }) => Promise<void> } }).periodicSync;
       
       if (periodicSync) {
         await periodicSync.register(tag, {

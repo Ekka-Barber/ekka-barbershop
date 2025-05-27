@@ -17,7 +17,7 @@ export interface ReviewsResponse {
   reviews?: GoogleReview[];
   error?: string;
   error_message?: string;
-  debug_info?: Record<string, any>;
+  debug_info?: Record<string, unknown>;
 }
 
 /**

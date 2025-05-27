@@ -4,6 +4,14 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
 import { logger } from '@/utils/logger';
 
+interface WorkingHours {
+  [day: string]: {
+    isOpen: boolean;
+    openTime?: string;
+    closeTime?: string;
+  };
+}
+
 export interface Branch {
   id: string;
   name: string;
@@ -14,7 +22,7 @@ export interface Branch {
   whatsapp_number: string | null;
   google_maps_url: string | null;
   google_place_id: string | null;
-  working_hours?: Record<string, any>;
+  working_hours?: WorkingHours;
   created_at: string;
   updated_at: string;
 }

@@ -71,7 +71,7 @@ export interface DropResult {
 export interface EndDateManagerProps {
   selectedDate: Date | undefined;
   selectedTime: string;
-  updateEndDateMutation: UseMutationResult<any, unknown, FileEndDateParams, unknown>;
+  updateEndDateMutation: UseMutationResult<void, unknown, FileEndDateParams, unknown>;
 }
 
 // Component props types
@@ -99,8 +99,8 @@ export interface FileListSectionProps {
   setSelectedTime: (value: string) => void;
   handleEndDateUpdate: (file: FileMetadata) => void;
   handleRemoveEndDate: (fileId: string) => void;
-  toggleActiveMutation: UseMutationResult<any, unknown, FileToggleParams, unknown>;
-  deleteMutation: UseMutationResult<any, unknown, FileMetadata, unknown>;
+  toggleActiveMutation: UseMutationResult<void, unknown, FileToggleParams, unknown>;
+  deleteMutation: UseMutationResult<void, unknown, FileMetadata, unknown>;
   handleDragEnd: (result: DropResult) => void;
 }
 
@@ -113,8 +113,8 @@ export interface FileListItemProps {
   setSelectedTime: (time: string) => void;
   handleEndDateUpdate: (file: FileMetadata) => void;
   handleRemoveEndDate: (fileId: string) => void;
-  toggleActiveMutation: UseMutationResult<any, unknown, { id: string; isActive: boolean }, unknown>;
-  deleteMutation: UseMutationResult<any, unknown, FileMetadata, unknown>;
+  toggleActiveMutation: UseMutationResult<void, unknown, { id: string; isActive: boolean }, unknown>;
+  deleteMutation: UseMutationResult<void, unknown, FileMetadata, unknown>;
 }
 
 export interface FileEndDateManagerProps {

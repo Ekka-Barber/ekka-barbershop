@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/card";
 import { FileText, ChevronDown, ChevronUp } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { FileMetadata } from "@/types/file-management";
+import { UseMutationResult } from "@tanstack/react-query";
 
 interface FileListSectionProps {
   category: string;
@@ -16,8 +17,8 @@ interface FileListSectionProps {
   setSelectedTime: (time: string) => void;
   handleEndDateUpdate: (file: FileMetadata) => void;
   handleRemoveEndDate: (fileId: string) => void;
-  toggleActiveMutation: any;
-  deleteMutation: any;
+  toggleActiveMutation: UseMutationResult<void, Error, { id: string; isActive: boolean }>;
+  deleteMutation: UseMutationResult<void, Error, FileMetadata>;
   handleDragEnd: (result: DropResult) => void;
 }
 

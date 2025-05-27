@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { supabase } from '@/integrations/supabase/client';
@@ -42,7 +42,7 @@ export const ServiceBranchAssignment = ({ serviceId, serviceName, serviceNameAr 
     }
   };
 
-  const fetchAssignments = async () => {
+  const fetchAssignments = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from('branch_services')
@@ -61,7 +61,7 @@ export const ServiceBranchAssignment = ({ serviceId, serviceName, serviceNameAr 
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [serviceId]);
 
   const toggleBranchAssignment = async (branchId: string, isChecked: boolean) => {
     // Add branch to processing state
@@ -133,7 +133,7 @@ export const ServiceBranchAssignment = ({ serviceId, serviceName, serviceNameAr 
     if (serviceId) {
       fetchAssignments();
     }
-  }, [serviceId]);
+  }, [serviceId, fetchAssignments]);
 
   if (isLoading) {
     return (

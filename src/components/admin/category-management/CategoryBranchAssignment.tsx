@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { supabase } from '@/integrations/supabase/client';
@@ -34,7 +34,7 @@ export const CategoryBranchAssignment = ({ categoryId, categoryName }: CategoryB
     }
   };
 
-  const fetchAssignments = async () => {
+  const fetchAssignments = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from('branch_categories')
@@ -48,7 +48,7 @@ export const CategoryBranchAssignment = ({ categoryId, categoryName }: CategoryB
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [categoryId]);
 
   const toggleBranchAssignment = async (branchId: string, isChecked: boolean) => {
     try {
@@ -126,7 +126,7 @@ export const CategoryBranchAssignment = ({ categoryId, categoryName }: CategoryB
     if (categoryId) {
       fetchAssignments();
     }
-  }, [categoryId]);
+  }, [categoryId, fetchAssignments]);
 
   if (isLoading) {
     return <div className="text-sm text-gray-500">Loading branch assignments...</div>;

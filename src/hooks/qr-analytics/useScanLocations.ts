@@ -1,8 +1,14 @@
 
 import { supabase } from "@/integrations/supabase/client";
 
+interface QrScanLocation {
+  location: string | null;
+  latitude: number | null;
+  longitude: number | null;
+}
+
 export async function fetchScanLocations(selectedQrId: string, startDate: Date) {
-  let locationData: any[] = [];
+  let locationData: QrScanLocation[] = [];
   try {
     const { data, error } = await supabase
       .from('qr_scans')

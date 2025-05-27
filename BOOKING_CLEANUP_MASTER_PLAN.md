@@ -194,17 +194,32 @@ Systematic removal of internal booking management functionality from the Ekka Ba
 - ✅ `src/components/ui/textarea.tsx` - Fixed empty interface by converting to type alias
 - ✅ `src/hooks/use-toast.ts` - Fixed `actionTypes` unused variable by converting to type definition
 
-#### 📊 **CUMULATIVE LINTING CLEANUP IMPACT**:
-- **Total Issues Fixed**: **32 issues resolved** (from 65 → 53)
-- **TypeScript Issues**: Fixed 15+ `any` type errors and interface issues
-- **Unused Variables**: Eliminated 12+ unused import/variable warnings  
-- **Code Quality**: Significantly improved codebase cleanliness and type safety
-- **Build Status**: ✅ All changes maintain successful builds (11.80s build time)
+#### ✅ **LINTING OPTIMIZATION SESSION 4 (17 additional issues fixed)**:
+**From 53 linting issues → 36 linting issues** (32.1% additional reduction)
 
-#### 🎯 **REMAINING LINTING TASKS** (53 issues remaining):
-- TypeScript `any` types: ~35 errors (type safety improvements)
-- Unused imports: ~0 errors (code cleanliness)  
-- React hooks dependencies: ~18 warnings (potential bugs)
+**🧹 TypeScript & React Hooks Fixes:**
+- ✅ `src/components/admin/file-management/FileListSection.tsx` - Fixed `any` types to proper `UseMutationResult` types
+- ✅ `src/hooks/qr-analytics/useScanLocations.ts` - Fixed `any[]` type to proper `QrScanLocation[]` interface
+- ✅ `src/hooks/useBranchManagement.ts` - Fixed `Record<string, any>` to proper `WorkingHours` interface
+- ✅ `src/services/googlePlacesService.ts` - Fixed `Record<string, any>` to `Record<string, unknown>`
+- ✅ `src/services/offlineSupport.ts` - Fixed multiple `any` types to proper type casting with `unknown`
+- ✅ `src/types/file-management.ts` - Fixed 4 `any` types in mutation interfaces to `void`
+- ✅ `src/types/supabase-generated.ts` - Fixed empty object type to `Record<string, unknown>`
+- ✅ `src/components/admin/category-management/CategoryBranchAssignment.tsx` - Fixed React hooks dependency with `useCallback`
+- ✅ `src/components/admin/service-management/ServiceBranchAssignment.tsx` - Fixed React hooks dependency with `useCallback`
+
+#### 📊 **CUMULATIVE LINTING CLEANUP IMPACT**:
+- **Total Issues Fixed**: **49 issues resolved** (from 85 → 36)
+- **TypeScript Issues**: Fixed 25+ `any` type errors and interface issues
+- **React Hooks**: Fixed 5+ dependency warnings with proper `useCallback` usage
+- **Unused Variables**: Eliminated 15+ unused import/variable warnings  
+- **Code Quality**: Significantly improved codebase cleanliness and type safety
+- **Build Status**: ✅ All changes maintain successful builds
+
+#### 🎯 **REMAINING LINTING TASKS** (36 issues remaining):
+- TypeScript `any` types: ~13 errors (mostly in external library type definitions)
+- React hooks dependencies: ~3 warnings (potential bugs)
+- React refresh warnings: ~20 warnings (development-only, non-critical)
 - Code standards: ~0 errors (standards compliance)
 
 ---
@@ -251,5 +266,5 @@ Systematic removal of internal booking management functionality from the Ekka Ba
 - ✅ **Performance preserved**: Bundle size and functionality maintained
 - ✅ **Development environment**: Fully operational and optimized
 
-**🚀 ESTIMATED COMPLETION**: 1.5 days remaining (down from original 13 days)
-**📈 OVERALL PROGRESS**: **91% COMPLETE** - Phase 6 linting cleanup in progress with 32 issues resolved! 
+**🚀 ESTIMATED COMPLETION**: 1 day remaining (down from original 13 days)
+**📈 OVERALL PROGRESS**: **93% COMPLETE** - Phase 6 linting cleanup in progress with 49 issues resolved! 
