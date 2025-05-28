@@ -1,4 +1,5 @@
 
+/* eslint-disable react-refresh/only-export-components */
 // Export all sidebar components from a single index file
 export * from "./SidebarContext"
 export * from "./SidebarMain"
