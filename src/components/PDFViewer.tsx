@@ -1,7 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
 import { Document, Page, pdfjs } from 'react-pdf';
-import 'react-pdf/dist/esm/Page/AnnotationLayer.css';
-import 'react-pdf/dist/esm/Page/TextLayer.css';
 import { useLanguage } from '@/contexts/LanguageContext';
 // import PDFWorker from 'pdfjs-dist/build/pdf.worker.min.js?url';
 // import * as pdfjsLib from 'pdfjs-dist'; // No longer needed if using pdfjs from react-pdf

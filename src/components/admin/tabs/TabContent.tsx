@@ -9,6 +9,7 @@ const FileManagement = lazy(() => import('@/components/admin/FileManagement').th
 const QRCodeManager = lazy(() => import('@/components/admin/QRCodeManager'));
 const UiElementsManager = lazy(() => import('@/components/admin/ui-elements/UiElementsManager').then(mod => ({ default: mod.UiElementsManager })));
 const BranchesTab = lazy(() => import('@/components/admin/branch-management/BranchesTab').then(mod => ({ default: mod.BranchesTab })));
+const GoogleAdsTab = lazy(() => import('@/components/admin/GoogleAdsTab').then(mod => ({ default: mod.GoogleAdsTab })));
 
 // Enhanced loading component for heavy features
 const TabLoader = ({ feature }: { feature?: string }) => (
@@ -68,6 +69,14 @@ export const TabContent = () => {
         <ErrorBoundary>
           <Suspense fallback={<TabLoader feature="UI Elements Management" />}>
             <UiElementsManager />
+          </Suspense>
+        </ErrorBoundary>
+      </TabsContent>
+
+      <TabsContent value="google-ads" className="space-y-4">
+        <ErrorBoundary>
+          <Suspense fallback={<TabLoader feature="Google Ads Management" />}>
+            <GoogleAdsTab />
           </Suspense>
         </ErrorBoundary>
       </TabsContent>

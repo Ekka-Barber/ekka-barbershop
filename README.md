@@ -1,69 +1,77 @@
-# Welcome to your Lovable project
+# Ekka Barbershop
 
-## Project info
+A modern barbershop management application built with React and Supabase.
 
-**URL**: https://lovable.dev/projects/49be26fd-546f-48fc-bc3f-8b2bb3b18ee0
+## Features
 
-## How can I edit this code?
+- Customer booking system
+- Admin panel for managing services and staff
+- QR code generation for customer access
+- File management system
+- Multi-language support (Arabic/English)
+- Responsive design for mobile and desktop
 
-There are several ways of editing your application.
+## Getting Started
 
-**Use Lovable**
+### Prerequisites
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/49be26fd-546f-48fc-bc3f-8b2bb3b18ee0) and start prompting.
+- Node.js & npm - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
 
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
+### Installation
 
 ```sh
-# Step 1: Clone the repository using the project's Git URL.
+# Step 1: Clone the repository
 git clone <YOUR_GIT_URL>
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+# Step 2: Navigate to the project directory
+cd ekka-barbershop
 
-# Step 3: Install the necessary dependencies.
-npm i
+# Step 3: Install dependencies
+npm install
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# Step 4: Start the development server
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+### Development
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+The application will be available at `http://localhost:9913`
 
-**Use GitHub Codespaces**
+### Building for Production
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+```sh
+npm run build
+```
 
-## What technologies are used for this project?
+## Technologies Used
 
-This project is built with .
+- **Frontend**: React, TypeScript, Vite
+- **UI Components**: shadcn-ui, Tailwind CSS
+- **Backend**: Supabase (Database & Auth)
+- **State Management**: TanStack Query
+- **Routing**: React Router
+- **Styling**: Tailwind CSS
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+## Project Structure
 
-## How can I deploy this project?
+```
+src/
+├── components/          # Reusable UI components
+├── pages/              # Page components
+├── hooks/              # Custom React hooks
+├── services/           # API services
+├── types/              # TypeScript type definitions
+├── utils/              # Utility functions
+└── integrations/       # External service integrations
+```
 
-Simply open [Lovable](https://lovable.dev/projects/49be26fd-546f-48fc-bc3f-8b2bb3b18ee0) and click on Share -> Publish.
+## Contributing
 
-## I want to use a custom domain - is that possible?
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Submit a pull request
 
-We don't support custom domains (yet). If you want to deploy your project under your own domain then we recommend using Netlify. Visit our docs for more details: [Custom domains](https://docs.lovable.dev/tips-tricks/custom-domain/)
+## License
+
+This project is private and proprietary.
