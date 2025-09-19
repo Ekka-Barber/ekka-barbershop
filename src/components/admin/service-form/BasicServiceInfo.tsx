@@ -1,5 +1,5 @@
 
-import { Service } from '@/types/service';
+import type { Service } from '@/types/service';
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -8,7 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Category } from '@/types/service';
+import type { Category } from '@/types/service';
 import { useEffect, useState } from 'react';
 
 interface BasicServiceInfoProps {

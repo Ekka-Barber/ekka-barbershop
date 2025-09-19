@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
-import { FileEndDateParams } from '../types';
+import type { FileEndDateParams } from '../types';
 
 export const useUpdateEndDateMutation = () => {
   const { toast } = useToast();

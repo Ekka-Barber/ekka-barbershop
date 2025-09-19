@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
 import { ServiceDialog } from '../ServiceDialog';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { Category } from '@/types/service';
+import type { Category } from '@/types/service';
 
 interface CategoryActionsProps {
   categories: Category[] | undefined;

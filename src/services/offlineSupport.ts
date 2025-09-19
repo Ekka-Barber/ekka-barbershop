@@ -12,39 +12,48 @@ import { logger } from '@/utils/logger';
 export const registerServiceWorker = async (): Promise<ServiceWorkerRegistration | null> => {
   if ('serviceWorker' in navigator) {
     try {
-      // Unregister any existing service workers first to ensure clean installation
+      // Check if we already have a service worker registered
       const existingRegistrations = await navigator.serviceWorker.getRegistrations();
-      for (const registration of existingRegistrations) {
-        await registration.unregister();
+      const hasExistingSW = existingRegistrations.some(reg =>
+        reg.active && reg.scope === `${window.location.origin}/`
+      );
+
+      let registration: ServiceWorkerRegistration;
+
+      // Only register if we don't have an existing service worker
+      if (!hasExistingSW) {
+        // Use the updated registration method with more options
+        registration = await navigator.serviceWorker.register('/service-worker.js', {
+          scope: '/',
+          updateViaCache: 'none', // Ensure fresh service worker checks
+          type: 'classic'
+        });
+
+        // Log successful registration
+        logger.info('Service Worker registered with scope:', registration.scope);
+
+        // Event handler for when a new service worker is waiting
+        registration.addEventListener('updatefound', () => {
+          const newWorker = registration.installing;
+          if (newWorker) {
+            newWorker.addEventListener('statechange', () => {
+              if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                logger.info('New Service Worker installed and waiting to activate');
+                // Could show UI to prompt user to refresh
+              }
+            });
+          }
+        });
+      } else {
+        // Get the existing registration
+        registration = await navigator.serviceWorker.getRegistration() || existingRegistrations[0];
+        logger.info('Using existing Service Worker registration');
       }
-      
-      // Use the updated registration method with more options
-      const registration = await navigator.serviceWorker.register('/service-worker.js', {
-        scope: '/',
-        updateViaCache: 'none', // Ensure fresh service worker checks
-        type: 'classic'
-      });
-      
-      // Log successful registration
-      logger.info('Service Worker registered with scope:', registration.scope);
-      
-      // Event handler for when a new service worker is waiting
-      registration.addEventListener('updatefound', () => {
-        const newWorker = registration.installing;
-        if (newWorker) {
-          newWorker.addEventListener('statechange', () => {
-            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-              logger.info('New Service Worker installed and waiting to activate');
-              // Could show UI to prompt user to refresh
-            }
-          });
-        }
-      });
-      
+
       return registration;
     } catch (error) {
       logger.error('Service Worker registration failed:', error);
-      
+
       // Try to unregister any problematic service workers
       try {
         const existingRegistration = await navigator.serviceWorker.getRegistration();
@@ -55,11 +64,11 @@ export const registerServiceWorker = async (): Promise<ServiceWorkerRegistration
       } catch (unregError) {
         logger.error('Failed to unregister service worker:', unregError);
       }
-      
+
       return null;
     }
   }
-  
+
   logger.warn('Service workers are not supported in this browser');
   return null;
 };

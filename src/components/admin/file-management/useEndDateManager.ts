@@ -1,5 +1,5 @@
 
-import { EndDateManagerProps } from '@/types/file-management';
+import type { EndDateManagerProps } from '@/types/file-management';
 import { format } from 'date-fns';
 
 export const useEndDateManager = ({ 

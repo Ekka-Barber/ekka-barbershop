@@ -3,7 +3,7 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { motion } from "framer-motion";
 import { MapPin, ExternalLink, Building } from "lucide-react";
-import { Branch } from "@/types/branch";
+import type { Branch } from "@/types/branch";
 
 interface LocationDialogProps {
   open: boolean;

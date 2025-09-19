@@ -2,8 +2,8 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
-import { FilePreview } from '@/types/admin';
-import { FileUploadParams } from '../types';
+import type { FilePreview } from '@/types/admin';
+import type { FileUploadParams } from '../types';
 import { format } from 'date-fns';
 
 export const useUploadFileMutation = (
@@ -203,14 +203,15 @@ export const useUploadFileMutation = (
             }
             throw dbError;
           }
-        } catch (error: any) {
+        } catch (error: unknown) {
           console.error('Unexpected error during database insertion:', error);
-          console.error('Error type:', error.constructor.name);
-          console.error('Error status:', error.status);
-          console.error('Error statusText:', error.statusText);
-          if (error.response) {
-            console.error('Response status:', error.response.status);
-            console.error('Response data:', error.response.data);
+          const err = error as { constructor?: { name?: string }; status?: number; statusText?: string; response?: { status?: number; data?: unknown } };
+          console.error('Error type:', err.constructor?.name);
+          console.error('Error status:', err.status);
+          console.error('Error statusText:', err.statusText);
+          if (err.response) {
+            console.error('Response status:', err.response.status);
+            console.error('Response data:', err.response.data);
           }
           throw error;
         }

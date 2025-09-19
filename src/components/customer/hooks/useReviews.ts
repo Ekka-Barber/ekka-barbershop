@@ -1,8 +1,9 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { fetchBranchesWithGooglePlaces, fetchBranchReviews, GoogleReview } from '@/services/googlePlacesService';
+import type { GoogleReview } from '@/services/googlePlacesService';
+import { fetchBranchesWithGooglePlaces, fetchBranchReviews } from '@/services/googlePlacesService';
 import { logger } from '@/utils/logger';
-import { Language } from '@/types/language';
+import type { Language } from '@/types/language';
 
 // Interface for a review with branch information
 export interface Review extends GoogleReview {

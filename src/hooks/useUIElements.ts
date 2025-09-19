@@ -3,7 +3,7 @@ import { useEffect } from 'react';
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useState } from 'react';
-import { Tables } from "@/types/supabase";
+import type { Tables } from "@/types/supabase";
 import { useToast } from "@/components/ui/use-toast";
 
 export const useUIElements = () => {

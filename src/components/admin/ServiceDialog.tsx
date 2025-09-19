@@ -10,7 +10,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Category, Service } from '@/types/service';
+import type { Category, Service } from '@/types/service';
 import { ServiceForm } from './ServiceForm';
 import { useServiceForm } from '@/hooks/useServiceForm';
 import { useToast } from '@/components/ui/use-toast';

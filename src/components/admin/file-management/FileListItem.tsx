@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { FileEndDateManager } from "./FileEndDateManager";
-import { FileMetadata } from "@/types/admin";
-import { UseMutationResult } from "@tanstack/react-query";
+import type { FileMetadata } from "@/types/admin";
+import type { UseMutationResult } from "@tanstack/react-query";
 import { Loader2, FileText, Calendar, MapPin, ToggleRight, Trash2, ExternalLink } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";

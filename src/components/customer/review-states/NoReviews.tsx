@@ -1,6 +1,6 @@
 
 import { Star } from 'lucide-react';
-import { Language } from '@/types/language';
+import type { Language } from '@/types/language';
 
 interface NoReviewsProps {
   language: Language;

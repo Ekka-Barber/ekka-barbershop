@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { Tables } from "@/types/supabase";
+import type { Tables } from "@/types/supabase";
 
 export const useElementAnimation = (visibleElements: Tables<'ui_elements'>[]) => {
   const [animationComplete, setAnimationComplete] = useState(false);

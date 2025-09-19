@@ -2,7 +2,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
-import { FileMetadata } from '@/types/admin';
+import type { FileMetadata } from '@/types/admin';
 
 export const useDeleteFileMutation = () => {
   const { toast } = useToast();

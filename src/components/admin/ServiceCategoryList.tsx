@@ -6,8 +6,8 @@ import { CategoryActions } from './category-management/CategoryActions';
 import { ServiceCategorySkeleton } from './service-management/ServiceCategorySkeleton';
 import { EmptyServiceState } from './service-management/EmptyServiceState';
 import { useToast } from "@/components/ui/use-toast";
-import { DropResult } from '@hello-pangea/dnd';
-import { Category } from '@/types/service';
+import type { DropResult } from '@hello-pangea/dnd';
+import type { Category } from '@/types/service';
 
 const ServiceCategoryList = () => {
   const [expandedCategories, setExpandedCategories] = useState<string[]>([]);

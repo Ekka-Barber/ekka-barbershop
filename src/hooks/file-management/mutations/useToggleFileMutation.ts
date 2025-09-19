@@ -2,7 +2,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
-import { FileToggleParams } from '../types';
+import type { FileToggleParams } from '../types';
 
 export const useToggleFileMutation = () => {
   const { toast } = useToast();

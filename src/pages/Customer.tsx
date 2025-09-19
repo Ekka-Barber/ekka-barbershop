@@ -8,7 +8,7 @@ import { PullToRefresh } from "@/components/common/PullToRefresh";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import AppLayout from '@/components/layout/AppLayout';
-import { Branch } from "@/types/branch";
+import type { Branch } from "@/types/branch";
 
 // Import our extracted components
 import { CustomerHeader } from "@/components/customer/layout/CustomerHeader";

@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { QRCode } from "@/types/admin";
+import type { QRCode } from "@/types/admin";
 
 interface UpdateQRCodeUrlProps {
   selectedQrCode: QRCode;

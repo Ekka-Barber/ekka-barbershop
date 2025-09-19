@@ -1,6 +1,8 @@
-import React, { useRef, useState, ReactNode } from 'react';
+import type { ReactNode } from 'react';
+import React, { useRef, useState } from 'react';
 import { RefreshIndicator } from './pull-to-refresh/RefreshIndicator';
-import { getPlatformPullSettings, PlatformPullSettings } from '@/utils/platformUtils';
+import type { PlatformPullSettings } from '@/utils/platformUtils';
+import { getPlatformPullSettings } from '@/utils/platformUtils';
 
 interface PullToRefreshProps {
   children: ReactNode;

@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from "@/integrations/supabase/client";
-import { FileMetadata, FilePreview } from '@/types/admin';
+import type { FileMetadata, FilePreview } from '@/types/admin';
 import { useFileMutations } from './file-management/useFileMutations';
 
 export const useFileManagement = () => {

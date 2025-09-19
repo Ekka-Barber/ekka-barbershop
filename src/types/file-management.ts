@@ -1,4 +1,4 @@
-import { UseMutationResult } from '@tanstack/react-query';
+import type { UseMutationResult } from '@tanstack/react-query';
 
 // Core file metadata type
 export interface FileMetadata {

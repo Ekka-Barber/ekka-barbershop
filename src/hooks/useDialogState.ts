@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { trackButtonClick, trackLocationView } from "@/utils/tiktokTracking";
 import { useNavigate } from 'react-router-dom';
-import { Branch } from "@/types/branch";
+import type { Branch } from "@/types/branch";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useToast } from "@/components/ui/use-toast";
 

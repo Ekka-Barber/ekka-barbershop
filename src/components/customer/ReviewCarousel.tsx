@@ -1,10 +1,11 @@
-import React, { useEffect, useState, useRef, TouchEvent, useCallback, useMemo } from 'react';
+import type { TouchEvent} from 'react';
+import React, { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Star, Quote } from 'lucide-react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
-import { Review } from './hooks/useReviews';
+import type { Review } from './hooks/useReviews';
 import { logger } from '@/utils/logger';
 import { motion, AnimatePresence } from 'framer-motion';
 

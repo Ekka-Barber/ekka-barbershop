@@ -106,8 +106,8 @@ const testPDFUrls = async () => {
 
 // Make it globally available
 if (typeof window !== 'undefined') {
-  (window as any).testSupabaseInsert = testSupabaseInsert;
-  (window as any).testPDFUrls = testPDFUrls;
+  (window as Window & { testSupabaseInsert?: typeof testSupabaseInsert; testPDFUrls?: typeof testPDFUrls }).testSupabaseInsert = testSupabaseInsert;
+  (window as Window & { testSupabaseInsert?: typeof testSupabaseInsert; testPDFUrls?: typeof testPDFUrls }).testPDFUrls = testPDFUrls;
 }
 
 export const FileManagement = () => {

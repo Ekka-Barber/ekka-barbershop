@@ -53,6 +53,18 @@ const RouteLoader = ({ pageName }: { pageName: string }) => (
   </div>
 );
 
+// Route wrapper for logging navigation
+const RouteWrapper = ({ children }: { children: React.ReactNode }) => {
+  const location = useLocation();
+
+  // Log page navigation
+  React.useEffect(() => {
+    logger.info(`Page navigation: ${location.pathname}${location.search}`);
+  }, [location.pathname, location.search]);
+
+  return <>{children}</>;
+};
+
 // Protected route component
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const location = useLocation();
@@ -69,58 +81,55 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
 // App component
 const App = () => {
-  const location = useLocation();
-  
-  // Log page navigation
-  logger.info(`Page navigation: ${location.pathname}${location.search}`);
-  
   // Log initialization in production (only useful warnings/errors) and more verbose in development
   logger.info(`App initializing in ${process.env.NODE_ENV} mode`);
-  
+
   return (
     <LanguageProvider>
       <TooltipProvider>
         <ErrorBoundary>
-          <Routes>
-            {/* Redirect root to customer page */}
-            <Route path="/" element={<Navigate to="/customer" replace />} />
-            
-            {/* Public routes with lazy loading */}
-            <Route path="/customer" element={<Customer />} />
-            
-            <Route 
-              path="/menu" 
-              element={
-                <Suspense fallback={<RouteLoader pageName="Loading menu..." />}>
-                  <Menu />
-                </Suspense>
-              } 
-            />
-            
-            <Route 
-              path="/offers" 
-              element={
-                <Suspense fallback={<RouteLoader pageName="Loading offers..." />}>
-                  <Offers />
-                </Suspense>
-              } 
-            />
-            
-            {/* Protected routes */}
-            <Route 
-              path="/admin" 
-              element={
-                <ProtectedRoute>
-                  <Suspense fallback={<RouteLoader pageName="Loading admin panel..." />}>
-                    <Admin />
+          <RouteWrapper>
+            <Routes>
+              {/* Redirect root to customer page */}
+              <Route path="/" element={<Navigate to="/customer" replace />} />
+
+              {/* Public routes with lazy loading */}
+              <Route path="/customer" element={<Customer />} />
+
+              <Route
+                path="/menu"
+                element={
+                  <Suspense fallback={<RouteLoader pageName="Loading menu..." />}>
+                    <Menu />
                   </Suspense>
-                </ProtectedRoute>
-              } 
-            />
-            
-            {/* Catch all other routes and redirect to customer page */}
-            <Route path="*" element={<Navigate to="/customer" replace />} />
-          </Routes>
+                }
+              />
+
+              <Route
+                path="/offers"
+                element={
+                  <Suspense fallback={<RouteLoader pageName="Loading offers..." />}>
+                    <Offers />
+                  </Suspense>
+                }
+              />
+
+              {/* Protected routes */}
+              <Route
+                path="/admin"
+                element={
+                  <ProtectedRoute>
+                    <Suspense fallback={<RouteLoader pageName="Loading admin panel..." />}>
+                      <Admin />
+                    </Suspense>
+                  </ProtectedRoute>
+                }
+              />
+
+              {/* Catch all other routes and redirect to customer page */}
+              <Route path="*" element={<Navigate to="/customer" replace />} />
+            </Routes>
+          </RouteWrapper>
         </ErrorBoundary>
         <Toaster />
         <Sonner />

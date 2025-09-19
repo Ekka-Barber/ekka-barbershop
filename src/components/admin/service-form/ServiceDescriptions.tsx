@@ -1,5 +1,5 @@
 
-import { Service } from '@/types/service';
+import type { Service } from '@/types/service';
 import { Textarea } from "@/components/ui/textarea";
 
 interface ServiceDescriptionsProps {

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
-import { Service } from '@/types/service';
+import type { Service } from '@/types/service';
 
 export const useServiceForm = (onSuccess: () => void) => {
   const [newService, setNewService] = useState<Partial<Service>>({

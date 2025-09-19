@@ -1,5 +1,5 @@
 
-import { FilePreview } from '@/types/admin';
+import type { FilePreview } from '@/types/admin';
 import { useFileValidation } from './useFileValidation';
 import { useUploadFileMutation } from './mutations/useUploadFileMutation';
 import { useDeleteFileMutation } from './mutations/useDeleteFileMutation';

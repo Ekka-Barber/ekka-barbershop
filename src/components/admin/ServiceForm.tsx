@@ -1,6 +1,6 @@
 
-import { Service } from '@/types/service';
-import { Category } from '@/types/service';
+import type { Service } from '@/types/service';
+import type { Category } from '@/types/service';
 import { Card, CardContent } from "@/components/ui/card";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { BasicServiceInfo } from './service-form/BasicServiceInfo';

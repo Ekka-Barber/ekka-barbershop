@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from "@/integrations/supabase/client";
-import { Category } from '@/types/service';
+import type { Category } from '@/types/service';
 import debounce from 'lodash/debounce';
 
 const CATEGORIES_PER_PAGE = 10;

@@ -1,5 +1,6 @@
 
-import React, { useEffect } from 'react';
+import type React from 'react';
+import { useEffect } from 'react';
 import { registerServiceWorker } from "@/services/offlineSupport";
 import { logger } from "@/utils/logger";
 

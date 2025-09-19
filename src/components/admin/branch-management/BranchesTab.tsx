@@ -6,7 +6,7 @@ import { BranchForm } from './BranchForm';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import { Card } from '@/components/ui/card';
-import { Branch } from '@/types/branch';
+import type { Branch } from '@/types/branch';
 
 export const BranchesTab = () => {
   const [isAddingBranch, setIsAddingBranch] = useState(false);

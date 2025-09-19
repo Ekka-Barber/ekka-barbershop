@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { Service } from '@/types/service';
+import type { Service } from '@/types/service';
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Edit, Trash2, ChevronDown, ChevronUp } from 'lucide-react';

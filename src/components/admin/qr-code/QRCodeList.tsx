@@ -1,6 +1,6 @@
 
 import { Button } from "@/components/ui/button";
-import { QRCode } from "@/types/admin";
+import type { QRCode } from "@/types/admin";
 
 interface QRCodeListProps {
   qrCodes: QRCode[];

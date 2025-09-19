@@ -7,22 +7,13 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import CountdownTimer from '@/components/CountdownTimer';
-import { useEffect, lazy, Suspense } from 'react';
+import { useEffect } from 'react';
 import { trackViewContent, trackButtonClick } from "@/utils/tiktokTracking";
 import AppLayout from '@/components/layout/AppLayout';
 
-// Lazy load PDFViewer for better bundle optimization
-const PDFViewer = lazy(() => import('@/components/PDFViewer'));
+// Import PDFViewer component
+import PDFViewer from '@/components/PDFViewer';
 
-// Loading component for PDFViewer
-const PDFViewerLoader = () => (
-  <div className="flex items-center justify-center py-12 bg-gray-50 rounded-lg">
-    <div className="flex flex-col items-center space-y-3">
-      <div className="w-12 h-12 border-4 border-[#C4A36F] border-t-transparent rounded-full animate-spin"></div>
-      <p className="text-[#222222] font-medium">Loading PDF viewer...</p>
-    </div>
-  </div>
-);
 
 const Offers = () => {
   const navigate = useNavigate();
@@ -218,9 +209,7 @@ const Offers = () => {
                   <div className="relative">
                     {file.isExpired && renderExpiredSticker()}
                     {file.file_type.includes('pdf') ? (
-                      <Suspense fallback={<PDFViewerLoader />}>
-                        <PDFViewer pdfUrl={file.url} />
-                      </Suspense>
+                      <PDFViewer pdfUrl={file.url} />
                     ) : (
                       <div className={`relative ${file.isExpired ? 'filter grayscale blur-[2px]' : ''}`}>
                         <img 

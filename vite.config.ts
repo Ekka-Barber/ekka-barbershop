@@ -14,7 +14,10 @@ export default defineConfig(({ mode }) => ({
   },
   server: {
     port: 9913,
-    host: "::"
+    host: "localhost",
+    hmr: {
+      port: 9913,
+    },
   },
   build: {
     rollupOptions: {
@@ -26,7 +29,6 @@ export default defineConfig(({ mode }) => ({
           'vendor-query': ['@tanstack/react-query'],
           'vendor-supabase': ['@supabase/supabase-js'],
           'vendor-charts': ['recharts'],
-          'vendor-pdf': ['react-pdf'],
           'vendor-motion': ['framer-motion'],
           'vendor-utils': ['date-fns', 'lodash', 'clsx', 'class-variance-authority'],
           
@@ -36,7 +38,6 @@ export default defineConfig(({ mode }) => ({
             'src/components/admin/FileManagement.tsx',
             'src/components/admin/qr-code/QRCodeAnalytics.tsx'
           ],
-          'pdf-viewer': ['src/components/PDFViewer.tsx'],
           'customer-components': [
             'src/components/customer/GoogleReviews.tsx',
             'src/components/customer/BranchDialog.tsx'
@@ -60,8 +61,5 @@ export default defineConfig(({ mode }) => ({
       '@tanstack/react-query',
       '@supabase/supabase-js'
     ],
-    exclude: [
-      'react-pdf' // This will be lazy loaded
-    ]
   }
 }));
