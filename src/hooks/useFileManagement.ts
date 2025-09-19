@@ -39,9 +39,16 @@ export const useFileManagement = () => {
       console.log('Fetching marketing files...');
       const { data, error } = await supabase
         .from('marketing_files')
-        .select('*')
+        .select(`
+          *,
+          branch:branch_id (
+            id,
+            name,
+            name_ar
+          )
+        `)
         .order('display_order', { ascending: true });
-      
+
       if (error) throw error;
       return data as FileMetadata[];
     }

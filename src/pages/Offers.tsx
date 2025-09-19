@@ -40,10 +40,17 @@ const Offers = () => {
     queryKey: ['active-offers', language],
     queryFn: async () => {
       console.log('Fetching offers...');
-      
+
       const { data, error } = await supabase
         .from('marketing_files')
-        .select('*, branches(name, name_ar)')
+        .select(`
+          *,
+          branch:branch_id (
+            id,
+            name,
+            name_ar
+          )
+        `)
         .eq('category', 'offers')
         .eq('is_active', true)
         .order('display_order', { ascending: true });
@@ -53,7 +60,9 @@ const Offers = () => {
         toast.error(t('error.loading.offers'));
         throw error;
       }
-      
+
+      console.log('Offers query result:', { data, error, dataLength: data?.length || 0 });
+
       if (!data || data.length === 0) {
         console.log('No offers found in the database');
         return [];
@@ -71,12 +80,19 @@ const Offers = () => {
           filePath: file.file_path,
           generatedUrl: publicUrlData?.publicUrl
         });
-        
+
         // Verify URL is valid
         if (!publicUrlData?.publicUrl) {
           console.error('Failed to get public URL for file:', file.file_path);
           return null;
         }
+
+        console.log('File processing successful:', {
+          id: file.id,
+          fileName: file.file_name,
+          url: publicUrlData.publicUrl,
+          branchName: language === 'ar' ? file.branch?.name_ar : file.branch?.name
+        });
 
         // Validate URL format
         try {
@@ -99,10 +115,10 @@ const Offers = () => {
           });
         }
         
-        return { 
-          ...file, 
+        return {
+          ...file,
           url: publicUrlData.publicUrl,
-          branchName: language === 'ar' ? file.branch_name_ar : file.branch_name,
+          branchName: language === 'ar' ? file.branch?.name_ar : file.branch?.name,
           isExpired,
           isWithinThreeDays
         };

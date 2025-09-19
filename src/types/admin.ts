@@ -10,12 +10,18 @@ export interface FileMetadata {
   is_active: boolean;
   display_order?: number;
   branch_name?: string;
-  branch_id?: string;
+  branch_id?: string; // Primary relationship field
   is_all_branches?: boolean;
   end_date?: string | null;
   end_time?: string | null;
   created_at?: string;
   file_url?: string;
+  // Optional: Add populated branch data for UI
+  branch?: {
+    id: string;
+    name: string;
+    name_ar: string;
+  };
 }
 
 export interface FilePreview {

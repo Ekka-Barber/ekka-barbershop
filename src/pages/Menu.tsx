@@ -43,13 +43,14 @@ const Menu = () => {
       .eq('category', 'menu')
       .eq('is_active', true)
       .order('created_at', { ascending: false });
-    
+
     if (error) {
       console.error('Error fetching menu files:', error);
       throw error;
     }
-    
+
     console.log('Menu files returned:', data?.length || 0, 'files');
+    console.log('Menu files data:', data);
     
     if (data && data.length > 0) {
       // Get public URLs for all menu files

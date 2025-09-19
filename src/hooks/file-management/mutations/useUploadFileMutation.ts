@@ -20,7 +20,53 @@ export const useUploadFileMutation = (
     mutationFn: async ({ file, category, branchId, branchName, isAllBranches, endDate, endTime }: FileUploadParams) => {
       setUploading(true);
       console.log('Starting file upload:', { fileName: file.name, category, branchId, endDate });
-      
+
+      // Check Supabase client configuration
+      console.log('Supabase client config:', {
+        url: supabase.supabaseUrl,
+        key: supabase.supabaseKey ? 'present' : 'missing'
+      });
+
+      // Check authentication status
+      const { data: user, error: authError } = await supabase.auth.getUser();
+      console.log('Authentication status:', { user: user?.user?.id, error: authError });
+
+      // Check session
+      const { data: session, error: sessionError } = await supabase.auth.getSession();
+      console.log('Session status:', {
+        hasSession: !!session?.session,
+        hasAccessToken: !!session?.session?.access_token,
+        error: sessionError
+      });
+
+      // Test basic query to verify database connectivity
+      console.log('Testing database connectivity...');
+      const { data: testQuery, error: testError } = await supabase
+        .from('marketing_files')
+        .select('id')
+        .limit(1);
+
+      console.log('Database connectivity test:', {
+        data: testQuery,
+        error: testError,
+        success: !testError
+      });
+
+      if (authError) {
+        console.error('Authentication error:', authError);
+        throw new Error('Authentication error: ' + authError.message);
+      }
+
+      if (!session.session?.access_token) {
+        console.error('No valid session found');
+        throw new Error('No valid session. Please refresh the page and try again.');
+      }
+
+      if (testError) {
+        console.error('Database connectivity failed:', testError);
+        throw new Error('Database connectivity test failed: ' + testError.message);
+      }
+
       try {
         validateFile(file);
         const preview = await generatePreview(file, category);
@@ -30,11 +76,26 @@ export const useUploadFileMutation = (
         const fileName = `${crypto.randomUUID()}.${fileExt}`;
         
         console.log('Uploading to storage:', fileName);
-        const { error: uploadError } = await supabase.storage
+        const { data: authUser, error: authCheck } = await supabase.auth.getUser();
+        console.log('Supabase auth status:', { user: authUser?.user?.id, error: authCheck });
+
+        // Check if storage bucket exists and is accessible
+        console.log('Checking storage bucket...');
+        const { data: buckets, error: bucketsError } = await supabase.storage.listBuckets();
+        console.log('Available buckets:', buckets?.map(b => b.name));
+        console.log('Buckets error:', bucketsError);
+
+        const { data: uploadData, error: uploadError } = await supabase.storage
           .from('marketing_files')
           .upload(fileName, file);
-        
-        if (uploadError) throw uploadError;
+
+        console.log('Storage upload result:', uploadData);
+        console.log('Storage upload error:', uploadError);
+
+        if (uploadError) {
+          console.error('Storage upload failed:', uploadError);
+          throw uploadError;
+        }
 
         // Create the base record data with proper typing
         const recordData: {
@@ -43,15 +104,17 @@ export const useUploadFileMutation = (
           file_type: string;
           category: string;
           is_active: boolean;
+          display_order?: number;
           end_date?: string;
-          branch_name?: string | null;
-          branch_id?: string | null;
+          branch_id?: string | null;      // NEW: Use branch_id for relationship
+          branch_name?: string | null;    // Keep for backward compatibility
         } = {
           file_name: file.name,
           file_path: fileName,
           file_type: file.type,
           category,
-          is_active: true
+          is_active: true,
+          display_order: 0
         };
 
         // Only add end date if it's provided (for either category)
@@ -61,22 +124,95 @@ export const useUploadFileMutation = (
 
         // Only add branch data for offers category
         if (category === 'offers') {
-          recordData.branch_name = isAllBranches ? null : branchName;
-          recordData.branch_id = isAllBranches ? null : branchId;
+          if (!isAllBranches && branchName) {
+            // Verify that the branch name exists in the branches table and get its ID
+            console.log('Verifying branch exists:', branchName);
+            const { data: branchCheck, error: branchError } = await supabase
+              .from('branches')
+              .select('id, name')
+              .eq('name', branchName)
+              .single();
+
+            if (branchError || !branchCheck) {
+              console.error('Branch verification failed:', branchError);
+              throw new Error(`Branch "${branchName}" not found. Please select a valid branch.`);
+            }
+
+            console.log('Branch verified successfully:', branchCheck);
+
+            recordData.branch_id = branchCheck.id;      // NEW: Use branch ID for relationship
+            recordData.branch_name = branchCheck.name;  // Keep name for display
+          }
+          // For all branches, both fields remain null
         }
 
         console.log('Inserting file metadata into database:', recordData);
-        const { error: dbError } = await supabase
-          .from('marketing_files')
-          .insert(recordData);
+        console.log('Record data keys:', Object.keys(recordData));
+        console.log('Record data values:', Object.values(recordData));
 
-        if (dbError) {
-          console.error('Database insertion error:', dbError);
-          // Cleanup the uploaded file if the database insert fails
-          await supabase.storage
+        // Test a minimal insert first
+        console.log('Testing minimal insert...');
+        const minimalRecord = {
+          file_name: 'test.jpg',
+          file_path: 'test.jpg',
+          file_type: 'image/jpeg',
+          category: 'menu',
+          is_active: true
+        };
+
+        console.log('Minimal record to insert:', minimalRecord);
+
+        try {
+          const { data: minimalResult, error: minimalError } = await supabase
             .from('marketing_files')
-            .remove([fileName]);
-          throw dbError;
+            .insert(minimalRecord)
+            .select();
+
+          console.log('Minimal insert result:', minimalResult);
+          console.log('Minimal insert error:', minimalError);
+
+          if (minimalError) {
+            console.error('Minimal insert failed, this indicates a fundamental issue');
+            throw minimalError;
+          }
+
+          console.log('Minimal insert succeeded, proceeding with full insert');
+
+          // If minimal insert worked, try the full record
+          const { data: insertResult, error: dbError } = await supabase
+            .from('marketing_files')
+            .insert(recordData)
+            .select();
+
+          console.log('Insert result:', insertResult);
+
+          if (dbError) {
+            console.error('Database insertion error:', dbError);
+            console.error('Error code:', dbError.code);
+            console.error('Error message:', dbError.message);
+            console.error('Error details:', dbError.details);
+            console.error('Error hint:', dbError.hint);
+
+            // Cleanup the uploaded file if the database insert fails
+            try {
+              await supabase.storage
+                .from('marketing_files')
+                .remove([fileName]);
+            } catch (cleanupError) {
+              console.error('Failed to cleanup uploaded file:', cleanupError);
+            }
+            throw dbError;
+          }
+        } catch (error: any) {
+          console.error('Unexpected error during database insertion:', error);
+          console.error('Error type:', error.constructor.name);
+          console.error('Error status:', error.status);
+          console.error('Error statusText:', error.statusText);
+          if (error.response) {
+            console.error('Response status:', error.response.status);
+            console.error('Response data:', error.response.data);
+          }
+          throw error;
         }
       } catch (error) {
         console.error('Upload error:', error);

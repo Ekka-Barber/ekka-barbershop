@@ -8,6 +8,73 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useState } from 'react';
 
+// Temporary debug function - call testSupabaseInsert() in browser console
+const testSupabaseInsert = async () => {
+  console.log('=== TESTING SUPABASE INSERT ===');
+
+  try {
+    const { supabase } = await import("@/integrations/supabase/client");
+
+    // Test authentication
+    const { data: user, error: authError } = await supabase.auth.getUser();
+    console.log('Auth status:', { user: user?.user?.id, error: authError });
+
+    // Test session
+    const { data: session } = await supabase.auth.getSession();
+    console.log('Session:', { hasSession: !!session?.session });
+
+    // Test simple select
+    const { data: selectData, error: selectError } = await supabase
+      .from('marketing_files')
+      .select('id')
+      .limit(1);
+    console.log('Select test:', { data: selectData, error: selectError });
+
+    if (selectError) {
+      console.error('❌ Select failed:', selectError);
+      return;
+    }
+
+    // Test insert
+    const testRecord = {
+      file_name: 'test.jpg',
+      file_path: 'test-path.jpg',
+      file_type: 'image/jpeg',
+      category: 'menu',
+      is_active: true
+    };
+
+    console.log('Attempting insert with:', testRecord);
+
+    const { data: insertData, error: insertError } = await supabase
+      .from('marketing_files')
+      .insert(testRecord)
+      .select();
+
+    console.log('Insert result:', { data: insertData, error: insertError });
+
+    if (insertError) {
+      console.error('❌ Insert failed with details:', {
+        code: insertError.code,
+        message: insertError.message,
+        details: insertError.details,
+        hint: insertError.hint
+      });
+    } else {
+      console.log('✅ Insert succeeded!');
+    }
+  } catch (error) {
+    console.error('❌ Test failed with exception:', error);
+  }
+
+  console.log('=== END TEST ===');
+};
+
+// Make it globally available
+if (typeof window !== 'undefined') {
+  (window as any).testSupabaseInsert = testSupabaseInsert;
+}
+
 export const FileManagement = () => {
   const [activeTab, setActiveTab] = useState<string>("all");
   
@@ -42,28 +109,48 @@ export const FileManagement = () => {
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>, category: 'menu' | 'offers') => {
     const file = event.target.files?.[0];
     if (!file) return;
-    
+
+    console.log('=== FILE UPLOAD DEBUG ===');
+    console.log('File:', { name: file.name, type: file.type, size: file.size });
+    console.log('Category:', category);
+    console.log('isAllBranches:', isAllBranches);
+    console.log('selectedBranch:', selectedBranch);
+    console.log('selectedDate:', selectedDate);
+    console.log('selectedTime:', selectedTime);
+
     // For offers, we need branch information and optional end date/time
     if (category === 'offers') {
       // Find the selected branch details
       const selectedBranchDetails = branches?.find(branch => branch.id === selectedBranch);
-      
-      uploadMutation.mutate({ 
-        file, 
+      console.log('Selected branch details:', selectedBranchDetails);
+      console.log('Available branches:', branches?.map(b => ({ id: b.id, name: b.name })));
+
+      if (!isAllBranches && !selectedBranch) {
+        console.error('❌ Branch validation failed: No branch selected for offers');
+        return;
+      }
+
+      const uploadParams = {
+        file,
         category,
         branchId: selectedBranch,
         branchName: selectedBranchDetails?.name,
         isAllBranches,
         endDate: selectedDate,
         endTime: selectedTime
-      });
+      };
+
+      console.log('Upload params for offers:', uploadParams);
+
+      uploadMutation.mutate(uploadParams);
     } else {
       // For menu, don't include branch-related params or end date
-      uploadMutation.mutate({
-        file,
-        category
-      });
+      const uploadParams = { file, category };
+      console.log('Upload params for menu:', uploadParams);
+
+      uploadMutation.mutate(uploadParams);
     }
+    console.log('=== END FILE UPLOAD DEBUG ===');
   };
 
   const menuFiles = files?.filter(f => f.category === 'menu') || [];

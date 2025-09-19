@@ -5,8 +5,12 @@ import { useLanguage } from '@/contexts/LanguageContext';
 // import * as pdfjsLib from 'pdfjs-dist'; // No longer needed if using pdfjs from react-pdf
 import { motion, animate } from 'framer-motion';
 
-// Configure PDF.js using the instance from react-pdf
-pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
+// Configure PDF.js using the local worker file
+pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.js';
+
+// Disable CSS loading for layers to prevent 404 errors
+pdfjs.GlobalWorkerOptions.disableTextLayer = true;
+pdfjs.GlobalWorkerOptions.disableAnnotationLayer = true;
 
 interface PDFViewerProps {
   pdfUrl: string;

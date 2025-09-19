@@ -41,7 +41,8 @@ export const FileListItem = ({
   const isToggling = toggleActiveMutation.isPending && toggleActiveMutation.variables?.id === file.id;
   
   // Create file URL for display
-  const fileUrl = file.file_url || `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/marketing_files/${file.file_path}`;
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || "https://jfnjvphxhzxojxgptmtu.supabase.co";
+  const fileUrl = file.file_url || `${supabaseUrl}/storage/v1/object/public/marketing_files/${file.file_path}`;
   
   const isImage = file.file_type?.toLowerCase().includes('image') || 
                   file.file_path?.toLowerCase().endsWith('.jpg') || 
