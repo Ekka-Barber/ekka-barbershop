@@ -12,6 +12,9 @@ pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.js';
 pdfjs.GlobalWorkerOptions.disableTextLayer = true;
 pdfjs.GlobalWorkerOptions.disableAnnotationLayer = true;
 
+// Enable verbose logging for debugging
+pdfjs.GlobalWorkerOptions.verbosity = 1;
+
 interface PDFViewerProps {
   pdfUrl: string;
 }
@@ -25,7 +28,8 @@ const PDFViewer = ({ pdfUrl }: PDFViewerProps) => {
   const { language } = useLanguage();
   const [isDragging, setIsDragging] = useState(false);
   const [dragDistance, setDragDistance] = useState(0);
-  
+  const [loadingTimeout, setLoadingTimeout] = useState<NodeJS.Timeout | null>(null);
+
   // Reference for tracking touch events
   const touchStartRef = useRef<number | null>(null);
   const viewerRef = useRef<HTMLDivElement>(null);
@@ -43,18 +47,60 @@ const PDFViewer = ({ pdfUrl }: PDFViewerProps) => {
   }, []);
 
   useEffect(() => {
+    console.log('PDFViewer: URL changed to:', pdfUrl);
+
     // Reset states when PDF URL changes
     setIsLoading(true);
     setLoadError(null);
     setPageNumber(1);
     setNumPages(null);
-    
+
     // Validate URL
     if (!pdfUrl.startsWith('http')) {
+      console.error('PDFViewer: Invalid PDF URL format:', pdfUrl);
       setLoadError('Invalid PDF URL');
       setIsLoading(false);
       return;
     }
+
+    // Clear any existing timeout
+    if (loadingTimeout) {
+      clearTimeout(loadingTimeout);
+    }
+
+    // Test URL accessibility
+    fetch(pdfUrl, {
+      method: 'HEAD',
+      mode: 'cors',
+      cache: 'no-cache'
+    })
+    .then(response => {
+      console.log('PDFViewer: URL accessibility check:', {
+        url: pdfUrl,
+        status: response.status,
+        contentType: response.headers.get('content-type'),
+        contentLength: response.headers.get('content-length')
+      });
+    })
+    .catch(error => {
+      console.error('PDFViewer: URL accessibility check failed:', error);
+    });
+
+    // Set a timeout for loading (30 seconds)
+    const timeout = setTimeout(() => {
+      console.error('PDFViewer: Loading timeout after 30 seconds');
+      setLoadError('Loading timeout - PDF took too long to load');
+      setIsLoading(false);
+    }, 30000);
+
+    setLoadingTimeout(timeout);
+
+    // Cleanup function
+    return () => {
+      if (timeout) {
+        clearTimeout(timeout);
+      }
+    };
   }, [pdfUrl]);
 
   // Navigation functions
@@ -122,6 +168,13 @@ const PDFViewer = ({ pdfUrl }: PDFViewerProps) => {
 
   function onDocumentLoadSuccess({ numPages }: { numPages: number }) {
     console.log('PDF loaded successfully', { pdfUrl, numPages });
+
+    // Clear loading timeout
+    if (loadingTimeout) {
+      clearTimeout(loadingTimeout);
+      setLoadingTimeout(null);
+    }
+
     setNumPages(numPages);
     setIsLoading(false);
     setLoadError(null);
@@ -129,23 +182,53 @@ const PDFViewer = ({ pdfUrl }: PDFViewerProps) => {
 
   function onDocumentLoadError(error: Error) {
     console.error('PDF load error:', error, 'URL:', pdfUrl);
-    setLoadError(error.message);
+    console.error('Error details:', {
+      name: error.name,
+      message: error.message,
+      stack: error.stack
+    });
+
+    // Clear loading timeout
+    if (loadingTimeout) {
+      clearTimeout(loadingTimeout);
+      setLoadingTimeout(null);
+    }
+
+    setLoadError(`${error.name}: ${error.message}`);
     setIsLoading(false);
   }
 
   if (loadError) {
     return (
       <div className="text-center py-4">
-        <p className="text-red-500 mb-2">Failed to load PDF. Please try again later.</p>
-        <p className="text-sm text-gray-500">Error: {loadError}</p>
-        <a 
-          href={pdfUrl} 
-          target="_blank" 
-          rel="noopener noreferrer"
-          className="mt-4 inline-block text-blue-500 hover:underline"
-        >
-          {language === 'ar' ? 'فتح PDF في نافذة جديدة' : 'Open PDF in new window'}
-        </a>
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+          <p className="text-red-600 font-medium mb-2">PDF Loading Failed</p>
+          <p className="text-sm text-gray-600 mb-2">Error: {loadError}</p>
+          <p className="text-xs text-gray-500">URL: {pdfUrl.substring(0, 50)}...</p>
+        </div>
+        <div className="space-y-2">
+          <a
+            href={pdfUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-block bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
+          >
+            {language === 'ar' ? '📄 فتح PDF في نافذة جديدة' : '📄 Open PDF in new window'}
+          </a>
+          <br />
+          <button
+            onClick={() => {
+              console.log('Retrying PDF load...');
+              setLoadError(null);
+              setIsLoading(true);
+              setPageNumber(1);
+              setNumPages(null);
+            }}
+            className="inline-block bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition-colors mt-2"
+          >
+            {language === 'ar' ? '🔄 إعادة المحاولة' : '🔄 Retry Loading'}
+          </button>
+        </div>
       </div>
     );
   }
@@ -159,15 +242,38 @@ const PDFViewer = ({ pdfUrl }: PDFViewerProps) => {
   return (
     <div className="pdf-viewer w-full mx-auto" ref={viewerRef}>
       <Document
-        file={pdfUrl}
+        file={{
+          url: pdfUrl,
+          httpHeaders: {
+            'Cache-Control': 'no-cache'
+          },
+          withCredentials: false
+        }}
         onLoadSuccess={onDocumentLoadSuccess}
         onLoadError={onDocumentLoadError}
         className="flex flex-col items-center"
         loading={
           <div className="text-center py-4 h-[500px] flex items-center justify-center bg-gray-50 rounded-lg">
-            <div className="animate-pulse">Loading PDF...</div>
+            <div className="animate-pulse">
+              <div>Loading PDF...</div>
+              <div className="text-sm text-gray-500 mt-2">This may take a few moments</div>
+            </div>
           </div>
         }
+        options={{
+          cMapUrl: null,
+          cMapPacked: false,
+          disableAutoFetch: false,
+          disableCreateObjectURL: false,
+          disableFontFace: false,
+          disableRange: false,
+          disableStream: false,
+          docBaseUrl: null,
+          isEvalSupported: true,
+          maxImageSize: -1,
+          pdfBug: false,
+          verbosity: 1
+        }}
       >
         <div 
           ref={dragConstraintsRef}

@@ -70,9 +70,44 @@ const testSupabaseInsert = async () => {
   console.log('=== END TEST ===');
 };
 
+// Debug function to test PDF URL accessibility
+const testPDFUrls = async () => {
+  console.log('=== TESTING PDF URL ACCESSIBILITY ===');
+
+  const pdfUrls = [
+    'https://jfnjvphxhzxojxgptmtu.supabase.co/storage/v1/object/public/marketing_files/d0fa92ba-6e25-4fe6-ad2b-d3d53b5bc6c0.pdf',
+    'https://jfnjvphxhzxojxgptmtu.supabase.co/storage/v1/object/public/marketing_files/c2528c5b-8ba5-4ef5-8208-3fcd05157f3a.pdf',
+    'https://jfnjvphxhzxojxgptmtu.supabase.co/storage/v1/object/public/marketing_files/9f533fd8-56ad-44d4-8797-0428f1e4092c.pdf'
+  ];
+
+  for (const url of pdfUrls) {
+    try {
+      console.log(`Testing URL: ${url}`);
+      const response = await fetch(url, {
+        method: 'HEAD',
+        mode: 'cors',
+        cache: 'no-cache'
+      });
+
+      console.log(`✅ ${url}:`, {
+        status: response.status,
+        statusText: response.statusText,
+        contentType: response.headers.get('content-type'),
+        contentLength: response.headers.get('content-length'),
+        cacheControl: response.headers.get('cache-control')
+      });
+    } catch (error) {
+      console.error(`❌ ${url}:`, error);
+    }
+  }
+
+  console.log('=== END PDF URL TEST ===');
+};
+
 // Make it globally available
 if (typeof window !== 'undefined') {
   (window as any).testSupabaseInsert = testSupabaseInsert;
+  (window as any).testPDFUrls = testPDFUrls;
 }
 
 export const FileManagement = () => {
