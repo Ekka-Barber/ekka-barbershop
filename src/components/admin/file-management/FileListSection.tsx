@@ -12,10 +12,10 @@ interface FileListSectionProps {
   category: string;
   files: FileMetadata[];
   selectedDate: Date | undefined;
-  setSelectedDate: (date: Date | undefined) => void;
+  setSelectedDate: (value: Date | undefined) => void;
   selectedTime: string;
-  setSelectedTime: (time: string) => void;
-  handleEndDateUpdate: (file: FileMetadata) => void;
+  setSelectedTime: (value: string) => void;
+  handleEndDateUpdate: (fileId: string) => void;
   handleRemoveEndDate: (fileId: string) => void;
   toggleActiveMutation: UseMutationResult<void, Error, { id: string; isActive: boolean }>;
   deleteMutation: UseMutationResult<void, Error, FileMetadata>;

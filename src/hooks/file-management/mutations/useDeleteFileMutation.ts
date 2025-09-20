@@ -36,7 +36,8 @@ export const useDeleteFileMutation = () => {
         }
 
         console.log('File deletion completed successfully');
-        return { success: true };
+        // Return void to match expected type
+        return;
       } catch (error) {
         console.error('Deletion process error:', error);
         throw error;

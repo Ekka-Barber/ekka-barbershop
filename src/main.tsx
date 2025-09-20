@@ -5,12 +5,6 @@ import { BrowserRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import App from './App.tsx';
 import './index.css';
-import { disableConsoleLogging } from '@/utils/disableConsoleLogging';
-import { disableErrorLogging } from '@/utils/disableErrorLogging';
-
-// Disable all console and error logging
-disableConsoleLogging();
-disableErrorLogging();
 
 // Create a client
 const queryClient = new QueryClient({
@@ -33,7 +27,12 @@ const root = createRoot(rootElement);
 
 root.render(
   <React.StrictMode>
-    <BrowserRouter>
+    <BrowserRouter
+      future={{
+        v7_startTransition: true,
+        v7_relativeSplatPath: true,
+      }}
+    >
       <QueryClientProvider client={queryClient}>
         <App />
       </QueryClientProvider>

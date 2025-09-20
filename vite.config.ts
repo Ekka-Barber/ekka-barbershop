@@ -14,54 +14,86 @@ export default defineConfig(({ mode }) => ({
   },
   server: {
     port: 9913,
-    host: "::"
+    host: "0.0.0.0",
+    strictPort: false, // Allow Vite to automatically find available port if 9913 is busy
+    hmr: {
+      port: 9913,
+      host: "localhost",
+      overlay: false // Disable error overlay for better performance
+    }
   },
   build: {
     rollupOptions: {
       output: {
-        manualChunks: {
-          // Vendor chunks
-          'vendor-react': ['react', 'react-dom', 'react-router-dom'],
-          'vendor-ui': ['@radix-ui/react-dialog', '@radix-ui/react-select', '@radix-ui/react-tabs', '@radix-ui/react-toast'],
-          'vendor-query': ['@tanstack/react-query'],
-          'vendor-supabase': ['@supabase/supabase-js'],
-          'vendor-charts': ['recharts'],
-          'vendor-pdf': ['react-pdf'],
-          'vendor-motion': ['framer-motion'],
-          'vendor-utils': ['date-fns', 'lodash', 'clsx', 'class-variance-authority'],
-          
-          // Feature chunks
-          'admin-components': [
-            'src/components/admin/QRCodeManager.tsx',
-            'src/components/admin/FileManagement.tsx',
-            'src/components/admin/qr-code/QRCodeAnalytics.tsx'
-          ],
-          'pdf-viewer': ['src/components/PDFViewer.tsx'],
-          'customer-components': [
-            'src/components/customer/GoogleReviews.tsx',
-            'src/components/customer/BranchDialog.tsx'
-          ]
+        manualChunks(id) {
+          // Vendor libraries - group related packages
+          if (id.includes('node_modules')) {
+            if (id.includes('react') || id.includes('react-dom') || id.includes('react-router')) {
+              return 'vendor-react';
+            }
+            if (id.includes('@radix-ui')) {
+              return 'vendor-ui';
+            }
+            if (id.includes('@tanstack/react-query')) {
+              return 'vendor-query';
+            }
+            if (id.includes('@supabase')) {
+              return 'vendor-supabase';
+            }
+            if (id.includes('recharts')) {
+              return 'vendor-charts';
+            }
+            if (id.includes('framer-motion')) {
+              return 'vendor-motion';
+            }
+            if (id.includes('react-pdf') || id.includes('pdfjs')) {
+              return 'vendor-pdf';
+            }
+            // Group smaller utilities together
+            if (id.includes('date-fns') || id.includes('lodash') || id.includes('clsx') ||
+                id.includes('class-variance-authority') || id.includes('tailwind-merge')) {
+              return 'vendor-utils';
+            }
+          }
+
+          // Feature-based chunks for large components
+          if (id.includes('src/components/admin/')) {
+            return 'admin-components';
+          }
+          if (id.includes('src/components/customer/')) {
+            return 'customer-components';
+          }
+          if (id.includes('src/components/PDFViewer.tsx')) {
+            return 'pdf-viewer';
+          }
         }
       }
     },
     // Enable source maps for better debugging in production
     sourcemap: mode === 'development',
-    // Optimize chunk size threshold
-    chunkSizeWarningLimit: 1000,
-    // Enable minification
-    minify: mode === 'production' ? 'esbuild' : false,
+    // Increase chunk size warning limit to reduce noise
+    chunkSizeWarningLimit: 1500,
+    // Enable minification in development for better performance
+    minify: 'esbuild',
+    // Optimize build performance
+    target: 'esnext',
+    // Enable CSS code splitting
+    cssCodeSplit: true,
   },
   // Enable optimizations
   optimizeDeps: {
     include: [
       'react',
-      'react-dom',
       'react-router-dom',
       '@tanstack/react-query',
-      '@supabase/supabase-js'
+      '@supabase/supabase-js',
+      'framer-motion',
+      'recharts',
+      'date-fns',
+      'lodash',
+      'clsx'
     ],
-    exclude: [
-      'react-pdf' // This will be lazy loaded
-    ]
+    // Exclude problematic dependencies
+    exclude: []
   }
 }));

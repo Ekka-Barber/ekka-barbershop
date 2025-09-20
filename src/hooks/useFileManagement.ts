@@ -41,7 +41,7 @@ export const useFileManagement = () => {
         .from('marketing_files')
         .select(`
           *,
-          branch:branch_id (
+          branch:branch_name (
             id,
             name,
             name_ar

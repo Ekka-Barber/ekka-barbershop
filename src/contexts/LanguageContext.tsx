@@ -1,6 +1,6 @@
 
 /* eslint-disable react-refresh/only-export-components */
-import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useEffect, useMemo } from 'react';
 import { Language, LanguageContextType } from '@/types/language';
 import { translations } from '@/i18n/translations';
 import { detectSystemLanguage, updateManifestLanguage, storeLanguagePreference } from '@/utils/languageUtils';
@@ -28,11 +28,11 @@ export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }
     return translations[language][key] || key;
   };
 
-  const value = {
+  const value = useMemo(() => ({
     language,
     setLanguage,
     t
-  };
+  }), [language]);
 
   return (
     <LanguageContext.Provider value={value}>

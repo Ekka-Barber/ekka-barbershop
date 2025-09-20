@@ -1,10 +1,10 @@
 // This file is a bridge to the generated Supabase types
 // It helps with type imports across the application
 
-import type { 
+import type {
   Database,
   Json
-} from './supabase-generated';
+} from '../integrations/supabase/types';
 
 // Re-export basic types
 export type { 

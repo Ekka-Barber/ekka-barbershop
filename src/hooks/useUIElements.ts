@@ -1,8 +1,7 @@
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useState } from 'react';
 import { Tables } from "@/types/supabase";
 import { useToast } from "@/components/ui/use-toast";
 
@@ -28,7 +27,8 @@ export const useUIElements = () => {
   // Filter visible elements
   useEffect(() => {
     if (!uiElements) return;
-    setVisibleElements(uiElements.filter(el => el.is_visible));
+    const filtered = uiElements.filter(el => el.is_visible);
+    setVisibleElements(filtered);
   }, [uiElements]);
 
   // Set up real-time subscription
@@ -49,7 +49,15 @@ export const useUIElements = () => {
       .subscribe();
 
     return () => {
-      supabase.removeChannel(channel);
+      // Safely remove channel with error handling
+      try {
+        if (channel) {
+          supabase.removeChannel(channel);
+        }
+      } catch (error) {
+        // Silently handle cleanup errors - WebSocket might already be closed
+        console.debug('Channel cleanup warning:', error);
+      }
     };
   }, [refetchUiElements]);
 

@@ -21,7 +21,6 @@ export const EidBookingsDialog = ({
   const { language } = useLanguage();
   const isRTL = language === 'ar';
   
-  console.log("Number of branches in EidBookingsDialog:", branches?.length || 0);
 
   const fadeIn = {
     hidden: { opacity: 0 },

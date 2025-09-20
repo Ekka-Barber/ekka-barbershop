@@ -4,7 +4,7 @@
 export interface FileUploadParams {
   file: File;
   category: 'menu' | 'offers';
-  branchId?: string | null;
+  branchId?: string | null; // Keep for backward compatibility
   branchName?: string | null;
   isAllBranches?: boolean;
   endDate?: Date | null;

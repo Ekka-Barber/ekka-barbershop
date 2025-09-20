@@ -71,8 +71,14 @@ const testSupabaseInsert = async () => {
 };
 
 // Make it globally available
+declare global {
+  interface Window {
+    testSupabaseInsert?: typeof testSupabaseInsert;
+  }
+}
+
 if (typeof window !== 'undefined') {
-  (window as any).testSupabaseInsert = testSupabaseInsert;
+  window.testSupabaseInsert = testSupabaseInsert;
 }
 
 export const FileManagement = () => {

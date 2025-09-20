@@ -1,7 +1,9 @@
 
 import { useLanguage } from "@/contexts/LanguageContext";
-import { Tables } from "@/types/supabase";
+import type { Database } from '@/integrations/supabase/types';
 import { ActionButton } from "./ActionButton";
+
+type UiElement = Database['public']['Tables']['ui_elements']['Row'];
 import { LoyaltySection } from "../sections/LoyaltySection";
 import { EidBookingsSection } from "../sections/EidBookingsSection";
 import { GoogleReviewsWrapper } from "../sections/GoogleReviewsWrapper";
@@ -9,7 +11,7 @@ import { trackButtonClick } from "@/utils/tiktokTracking";
 import { useNavigate } from "react-router-dom";
 
 interface UIElementRendererProps {
-  visibleElements: Tables<'ui_elements'>[];
+  visibleElements: UiElement[];
   animatingElements: string[];
   isLoadingUiElements: boolean;
   onOpenBranchDialog: () => void;
@@ -28,7 +30,7 @@ export const UIElementRenderer = ({
   const navigate = useNavigate();
   const { language } = useLanguage();
   
-  const handleElementAction = (element: Tables<'ui_elements'>) => {
+  const handleElementAction = (element: UiElement) => {
     trackButtonClick({
       buttonId: element.name,
       buttonName: language === 'ar' ? element.display_name_ar : element.display_name

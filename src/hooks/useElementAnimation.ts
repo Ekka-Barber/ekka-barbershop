@@ -1,12 +1,14 @@
 
-import { useState, useEffect } from 'react';
-import { Tables } from "@/types/supabase";
+import { useState, useEffect, useMemo } from 'react';
+import type { Database } from '@/integrations/supabase/types';
 
-export const useElementAnimation = (visibleElements: Tables<'ui_elements'>[]) => {
+type UiElement = Database['public']['Tables']['ui_elements']['Row'];
+
+export const useElementAnimation = (visibleElements: UiElement[]) => {
   const [animationComplete, setAnimationComplete] = useState(false);
   const [animatingElements, setAnimatingElements] = useState<string[]>([]);
 
-  const startElementAnimation = (elements: Tables<'ui_elements'>[]) => {
+  const startElementAnimation = (elements: UiElement[]) => {
     setAnimatingElements([]);
     setAnimationComplete(false);
     
@@ -36,12 +38,18 @@ export const useElementAnimation = (visibleElements: Tables<'ui_elements'>[]) =>
     }, 100);
   };
   
+  // Create a stable reference for the dependency array
+  const elementIds = useMemo(() => 
+    visibleElements.map(el => el.id).sort().join(','), 
+    [visibleElements]
+  );
+
   // Start animations when visible elements change
   useEffect(() => {
     if (visibleElements.length > 0) {
       startElementAnimation(visibleElements);
     }
-  }, [visibleElements]);
+  }, [elementIds]);
 
   return {
     animationComplete,

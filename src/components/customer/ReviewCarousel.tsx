@@ -73,13 +73,17 @@ export const ReviewCarousel = ({
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  // Create stable references for dependencies
+  const reviewsLength = reviews.length;
+  const reviewsPerPage = getReviewsPerPage();
+  
   // Debug log the reviews being passed to the carousel
   useEffect(() => {
-    logger.debug(`ReviewCarousel received ${reviews.length} reviews to render in ${language} mode`);
-    logger.debug(`Viewport width: ${viewportWidth}px, showing ${getReviewsPerPage()} reviews per page`);
+    logger.debug(`ReviewCarousel received ${reviewsLength} reviews to render in ${language} mode`);
+    logger.debug(`Viewport width: ${viewportWidth}px, showing ${reviewsPerPage} reviews per page`);
     logger.debug(`Total pages: ${totalPages}`);
     setCurrentPage(0); // Reset to first page on language change
-  }, [reviews, language, viewportWidth, getReviewsPerPage, totalPages]);
+  }, [reviewsLength, language, viewportWidth, reviewsPerPage, totalPages]);
 
   if (!reviews || reviews.length === 0) {
     return null;

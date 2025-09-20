@@ -193,7 +193,7 @@ export const FileUploadSection = ({
             >
               <Upload className="h-10 w-10 text-muted-foreground mb-2" />
               <p className="mb-1 font-medium">Drag & drop or click to upload</p>
-              <p className="text-sm text-muted-foreground">PDF, PNG, or JPG (max 10MB)</p>
+              <p className="text-sm text-muted-foreground">PDF, PNG or JPG (max 10MB)</p>
               {uploading && filePreview?.type === 'menu' && (
                 <div className="mt-4 flex items-center gap-2">
                   <span className="animate-pulse">Uploading...</span>
@@ -330,7 +330,7 @@ export const FileUploadSection = ({
               >
                 <Upload className="h-10 w-10 text-muted-foreground mb-2" />
                 <p className="mb-1 font-medium">Drag & drop or click to upload</p>
-                <p className="text-sm text-muted-foreground">PDF, PNG, or JPG (max 10MB)</p>
+                <p className="text-sm text-muted-foreground">PDF, PNG or JPG (max 10MB)</p>
                 {!isAllBranches && !selectedBranch && (
                   <p className="mt-2 text-sm text-destructive font-medium">Please select a branch first</p>
                 )}

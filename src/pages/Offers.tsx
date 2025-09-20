@@ -7,28 +7,20 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import CountdownTimer from '@/components/CountdownTimer';
-import { useEffect, lazy, Suspense } from 'react';
+import { useEffect, useState } from 'react';
 import { trackViewContent, trackButtonClick } from "@/utils/tiktokTracking";
 import AppLayout from '@/components/layout/AppLayout';
-
-// Lazy load PDFViewer for better bundle optimization
-const PDFViewer = lazy(() => import('@/components/PDFViewer'));
-
-// Loading component for PDFViewer
-const PDFViewerLoader = () => (
-  <div className="flex items-center justify-center py-12 bg-gray-50 rounded-lg">
-    <div className="flex flex-col items-center space-y-3">
-      <div className="w-12 h-12 border-4 border-[#C4A36F] border-t-transparent rounded-full animate-spin"></div>
-      <p className="text-[#222222] font-medium">Loading PDF viewer...</p>
-    </div>
-  </div>
-);
+import PDFViewer from '@/components/PDFViewer';
 
 const Offers = () => {
   const navigate = useNavigate();
   const { t, language } = useLanguage();
+  const [isRouterReady, setIsRouterReady] = useState(false);
   
   useEffect(() => {
+    // Mark router as ready after component mounts
+    setIsRouterReady(true);
+
     // Track page view after component mounts
     trackViewContent({
       pageId: 'offers',
@@ -45,7 +37,7 @@ const Offers = () => {
         .from('marketing_files')
         .select(`
           *,
-          branch:branch_id (
+          branch:branch_name (
             id,
             name,
             name_ar
@@ -159,6 +151,17 @@ const Offers = () => {
     </div>
   );
 
+  // Don't render until router context is ready
+  if (!isRouterReady) {
+    return (
+      <AppLayout>
+        <div className="w-full flex flex-1 flex-col items-center justify-center max-w-md mx-auto">
+          <div className="text-center py-8 text-[#222222]">{t('loading.offers')}</div>
+        </div>
+      </AppLayout>
+    );
+  }
+
   return (
     <AppLayout>
       <div className="w-full flex flex-1 flex-col items-center justify-center max-w-md mx-auto">
@@ -201,12 +204,11 @@ const Offers = () => {
                       <Badge 
                         variant="secondary" 
                         className={`
-                          text-sm font-medium px-4 py-1.5 
-                          bg-gradient-to-r from-red-600 to-red-400 
-                          text-white shadow-sm 
+                          text-sm font-medium px-4 py-1.5
+                          bg-gradient-to-r from-red-600 to-red-400
+                          text-white shadow-sm
                           border-none
-                          transition-all duration-300 
-                          animate-flash
+                          transition-all duration-300
                           hover:opacity-90
                           ${language === 'ar' ? 'rtl' : 'ltr'}
                         `}
@@ -218,13 +220,13 @@ const Offers = () => {
                   <div className="relative">
                     {file.isExpired && renderExpiredSticker()}
                     {file.file_type.includes('pdf') ? (
-                      <Suspense fallback={<PDFViewerLoader />}>
+                      <div key={`pdf-${file.id}`}>
                         <PDFViewer pdfUrl={file.url} />
-                      </Suspense>
+                      </div>
                     ) : (
                       <div className={`relative ${file.isExpired ? 'filter grayscale blur-[2px]' : ''}`}>
-                        <img 
-                          src={file.url} 
+                        <img
+                          src={file.url}
                           alt={file.isExpired ? `Expired Offer - ${file.file_name || 'Special Offer'}` : "Special Offer"}
                           className="w-full max-w-full h-auto rounded-lg transition-all duration-300"
                           onLoad={() => console.log('Image loaded successfully:', file.url)}

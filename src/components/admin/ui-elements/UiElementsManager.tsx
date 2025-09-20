@@ -16,16 +16,18 @@ import type { LucideIcon } from 'lucide-react';
 
 interface UiElement {
   id: string;
-  type: 'button' | 'section';
+  type: string; // Database returns string, not literal types
   name: string;
   display_name: string;
   display_name_ar: string;
   description: string | null;
   description_ar: string | null;
-  is_visible: boolean;
+  is_visible: boolean | null; // Database allows null
   display_order: number;
   icon: string | null;
   action: string | null;
+  created_at: string | null; // Missing from interface
+  updated_at: string | null; // Missing from interface
 }
 
 type IconType = keyof typeof LucideIcons;
@@ -97,7 +99,7 @@ const DraggableItem = React.memo(({
               <Pencil className="h-4 w-4" />
             </Button>
             <Switch
-              checked={element.is_visible}
+              checked={element.is_visible ?? true} // Default to true if null
               onCheckedChange={(checked) => onVisibilityChange(element.id, checked)}
             />
           </div>

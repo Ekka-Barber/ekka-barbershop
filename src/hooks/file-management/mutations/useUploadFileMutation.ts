@@ -21,11 +21,8 @@ export const useUploadFileMutation = (
       setUploading(true);
       console.log('Starting file upload:', { fileName: file.name, category, branchId, endDate });
 
-      // Check Supabase client configuration
-      console.log('Supabase client config:', {
-        url: supabase.supabaseUrl,
-        key: supabase.supabaseKey ? 'present' : 'missing'
-      });
+      // Check Supabase client configuration (removed protected property access)
+      console.log('Supabase client config check initiated');
 
       // Check authentication status
       const { data: user, error: authError } = await supabase.auth.getUser();
@@ -98,23 +95,15 @@ export const useUploadFileMutation = (
         }
 
         // Create the base record data with proper typing
-        const recordData: {
-          file_name: string;
-          file_path: string;
-          file_type: string;
-          category: string;
-          is_active: boolean;
-          display_order?: number;
-          end_date?: string;
-          branch_id?: string | null;      // NEW: Use branch_id for relationship
-          branch_name?: string | null;    // Keep for backward compatibility
-        } = {
+        const recordData = {
           file_name: file.name,
           file_path: fileName,
           file_type: file.type,
           category,
           is_active: true,
-          display_order: 0
+          display_order: 0,
+          branch_name: undefined as string | undefined,
+          end_date: undefined as string | undefined
         };
 
         // Only add end date if it's provided (for either category)
@@ -125,11 +114,11 @@ export const useUploadFileMutation = (
         // Only add branch data for offers category
         if (category === 'offers') {
           if (!isAllBranches && branchName) {
-            // Verify that the branch name exists in the branches table and get its ID
+            // Verify that the branch name exists in the branches table
             console.log('Verifying branch exists:', branchName);
             const { data: branchCheck, error: branchError } = await supabase
               .from('branches')
-              .select('id, name')
+              .select('name')
               .eq('name', branchName)
               .single();
 
@@ -140,10 +129,9 @@ export const useUploadFileMutation = (
 
             console.log('Branch verified successfully:', branchCheck);
 
-            recordData.branch_id = branchCheck.id;      // NEW: Use branch ID for relationship
-            recordData.branch_name = branchCheck.name;  // Keep name for display
+            recordData.branch_name = branchCheck.name;  // Use branch name for relationship (matches database schema)
           }
-          // For all branches, both fields remain null
+          // For all branches, branch_name remains null (already set to undefined by default)
         }
 
         console.log('Inserting file metadata into database:', recordData);
@@ -156,7 +144,7 @@ export const useUploadFileMutation = (
           file_name: 'test.jpg',
           file_path: 'test.jpg',
           file_type: 'image/jpeg',
-          category: 'menu',
+          category: 'menu' as const,
           is_active: true
         };
 
@@ -203,14 +191,13 @@ export const useUploadFileMutation = (
             }
             throw dbError;
           }
-        } catch (error: any) {
+        } catch (error: unknown) {
           console.error('Unexpected error during database insertion:', error);
-          console.error('Error type:', error.constructor.name);
-          console.error('Error status:', error.status);
-          console.error('Error statusText:', error.statusText);
-          if (error.response) {
-            console.error('Response status:', error.response.status);
-            console.error('Response data:', error.response.data);
+          if (error instanceof Error) {
+            console.error('Error type:', error.constructor.name);
+            console.error('Error message:', error.message);
+          } else {
+            console.error('Error details:', error);
           }
           throw error;
         }

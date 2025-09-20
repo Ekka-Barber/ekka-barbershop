@@ -1,20 +1,28 @@
 import { UseMutationResult } from '@tanstack/react-query';
 
-// Core file metadata type
+// Core file metadata type - matches exact database schema from Supabase MCP
 export interface FileMetadata {
   id: string;
   file_name: string;
   file_path: string;
   file_type: string;
-  category: 'menu' | 'offers';
-  is_active: boolean;
-  display_order?: number;
-  branch_name?: string;
-  branch_id?: string;
-  is_all_branches?: boolean;
-  end_date?: string | null;
-  created_at?: string;
+  category: string; // Database returns string, not literal types
+  is_active: boolean | null;
+  display_order: number | null;
+  branch_name: string | null;
+  branch_name_ar: string | null;
+  end_date: string | null;
+  start_date: string | null;
+  branch_id: string | null; // Foreign key to branches.id
+  created_at: string;
+  updated_at: string;
   file_url?: string;
+  // Optional: Add populated branch data for UI
+  branch?: {
+    id: string;
+    name: string;
+    name_ar: string;
+  };
 }
 
 // Preview for uploaded files
@@ -91,16 +99,16 @@ export interface FileUploadSectionProps {
 }
 
 export interface FileListSectionProps {
-  category: 'menu' | 'offers';
+  category: string;
   files: FileMetadata[];
   selectedDate: Date | undefined;
   setSelectedDate: (value: Date | undefined) => void;
   selectedTime: string;
   setSelectedTime: (value: string) => void;
-  handleEndDateUpdate: (file: FileMetadata) => void;
+  handleEndDateUpdate: (fileId: string) => void;
   handleRemoveEndDate: (fileId: string) => void;
   toggleActiveMutation: UseMutationResult<void, unknown, FileToggleParams, unknown>;
-  deleteMutation: UseMutationResult<void, unknown, FileMetadata, unknown>;
+  deleteMutation: UseMutationResult<void, Error, FileMetadata, unknown>;
   handleDragEnd: (result: DropResult) => void;
 }
 
@@ -111,7 +119,7 @@ export interface FileListItemProps {
   setSelectedDate: (date: Date | undefined) => void;
   selectedTime: string;
   setSelectedTime: (time: string) => void;
-  handleEndDateUpdate: (file: FileMetadata) => void;
+  handleEndDateUpdate: (fileId: string) => void;
   handleRemoveEndDate: (fileId: string) => void;
   toggleActiveMutation: UseMutationResult<void, unknown, { id: string; isActive: boolean }, unknown>;
   deleteMutation: UseMutationResult<void, unknown, FileMetadata, unknown>;

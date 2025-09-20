@@ -1,4 +1,4 @@
-import React, { lazy, Suspense } from "react";
+import React, { lazy, Suspense, useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -11,10 +11,12 @@ import { ServiceWorkerRegistration } from "./components/ServiceWorkerRegistratio
 import { logger } from "@/utils/logger";
 
 // Configure logger based on environment
-logger.configure({
-  minLevel: process.env.NODE_ENV === 'production' ? 'warn' : 'debug',
-  enabled: true
-});
+if (typeof window !== 'undefined') {
+  logger.configure({
+    minLevel: process.env.NODE_ENV === 'production' ? 'warn' : 'debug',
+    enabled: true
+  });
+}
 
 // Lazy load heavy route components with preloading
 const Admin = lazy(() => import("./pages/Admin"));
@@ -67,60 +69,71 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
+// Inner component that uses router hooks
+const AppRouter = () => {
+  const location = useLocation();
+
+  // Log page navigation only when location changes
+  useEffect(() => {
+    logger.info(`Page navigation: ${location.pathname}${location.search}`);
+  }, [location.pathname, location.search]);
+
+  // Log initialization only once
+  useEffect(() => {
+    logger.info(`App initializing in ${process.env.NODE_ENV} mode`);
+  }, []);
+
+  return (
+    <Routes>
+      {/* Redirect root to customer page */}
+      <Route path="/" element={<Navigate to="/customer" replace />} />
+
+      {/* Public routes with lazy loading */}
+      <Route path="/customer" element={<Customer />} />
+
+      <Route
+        path="/menu"
+        element={
+          <Suspense fallback={<RouteLoader pageName="Loading menu..." />}>
+            <Menu />
+          </Suspense>
+        }
+      />
+
+      <Route
+        path="/offers"
+        element={
+          <Suspense fallback={<RouteLoader pageName="Loading offers..." />}>
+            <Offers />
+          </Suspense>
+        }
+      />
+
+      {/* Protected routes */}
+      <Route
+        path="/admin"
+        element={
+          <ProtectedRoute>
+            <Suspense fallback={<RouteLoader pageName="Loading admin panel..." />}>
+              <Admin />
+            </Suspense>
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Catch all other routes and redirect to customer page */}
+      <Route path="*" element={<Navigate to="/customer" replace />} />
+    </Routes>
+  );
+};
+
 // App component
 const App = () => {
-  const location = useLocation();
-  
-  // Log page navigation
-  logger.info(`Page navigation: ${location.pathname}${location.search}`);
-  
-  // Log initialization in production (only useful warnings/errors) and more verbose in development
-  logger.info(`App initializing in ${process.env.NODE_ENV} mode`);
-  
   return (
     <LanguageProvider>
       <TooltipProvider>
         <ErrorBoundary>
-          <Routes>
-            {/* Redirect root to customer page */}
-            <Route path="/" element={<Navigate to="/customer" replace />} />
-            
-            {/* Public routes with lazy loading */}
-            <Route path="/customer" element={<Customer />} />
-            
-            <Route 
-              path="/menu" 
-              element={
-                <Suspense fallback={<RouteLoader pageName="Loading menu..." />}>
-                  <Menu />
-                </Suspense>
-              } 
-            />
-            
-            <Route 
-              path="/offers" 
-              element={
-                <Suspense fallback={<RouteLoader pageName="Loading offers..." />}>
-                  <Offers />
-                </Suspense>
-              } 
-            />
-            
-            {/* Protected routes */}
-            <Route 
-              path="/admin" 
-              element={
-                <ProtectedRoute>
-                  <Suspense fallback={<RouteLoader pageName="Loading admin panel..." />}>
-                    <Admin />
-                  </Suspense>
-                </ProtectedRoute>
-              } 
-            />
-            
-            {/* Catch all other routes and redirect to customer page */}
-            <Route path="*" element={<Navigate to="/customer" replace />} />
-          </Routes>
+          <AppRouter />
         </ErrorBoundary>
         <Toaster />
         <Sonner />

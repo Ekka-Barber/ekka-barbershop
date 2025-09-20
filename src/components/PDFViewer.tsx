@@ -1,277 +1,144 @@
-import { useState, useEffect, useRef } from 'react';
-import { Document, Page, pdfjs } from 'react-pdf';
-import { useLanguage } from '@/contexts/LanguageContext';
-// import PDFWorker from 'pdfjs-dist/build/pdf.worker.min.js?url';
-// import * as pdfjsLib from 'pdfjs-dist'; // No longer needed if using pdfjs from react-pdf
-import { motion, animate } from 'framer-motion';
-
-// Configure PDF.js using the local worker file
-pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.js';
-
-// Disable CSS loading for layers to prevent 404 errors
-pdfjs.GlobalWorkerOptions.disableTextLayer = true;
-pdfjs.GlobalWorkerOptions.disableAnnotationLayer = true;
+import React, { useState, useEffect, useMemo, memo } from 'react';
 
 interface PDFViewerProps {
   pdfUrl: string;
+  height?: string; // Optional custom height, defaults to mobile-optimized
 }
 
-const PDFViewer = ({ pdfUrl }: PDFViewerProps) => {
-  const [numPages, setNumPages] = useState<number | null>(null);
-  const [pageNumber, setPageNumber] = useState(1);
-  const [pageWidth, setPageWidth] = useState(800);
-  const [isLoading, setIsLoading] = useState(true);
-  const [loadError, setLoadError] = useState<string | null>(null);
-  const { language } = useLanguage();
-  const [isDragging, setIsDragging] = useState(false);
-  const [dragDistance, setDragDistance] = useState(0);
-  
-  // Reference for tracking touch events
-  const touchStartRef = useRef<number | null>(null);
-  const viewerRef = useRef<HTMLDivElement>(null);
-  const dragConstraintsRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const updatePageWidth = () => {
-      const width = window.innerWidth;
-      setPageWidth(Math.min(width - 32, 800)); // 32px for padding
-    };
-
-    updatePageWidth();
-    window.addEventListener('resize', updatePageWidth);
-    return () => window.removeEventListener('resize', updatePageWidth);
+const PDFViewer = ({ pdfUrl, height }: PDFViewerProps) => {
+  // Get language directly from localStorage to avoid context re-renders
+  const language = useMemo(() => {
+    const stored = localStorage.getItem('ekka-language-preference');
+    return stored === 'en' ? 'en' : 'ar';
   }, []);
 
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Dynamic height calculation for better container fit
+  const viewerHeight = useMemo(() => {
+    if (height) return height;
+    // Use available viewport height with some space for page elements
+    return 'calc(100vh - 200px)';
+  }, [height]);
+
   useEffect(() => {
-    // Reset states when PDF URL changes
-    setIsLoading(true);
-    setLoadError(null);
-    setPageNumber(1);
-    setNumPages(null);
-    
-    // Validate URL
-    if (!pdfUrl.startsWith('http')) {
-      setLoadError('Invalid PDF URL');
+    // Simulate loading for iframe
+    const timer = setTimeout(() => {
       setIsLoading(false);
-      return;
-    }
+    }, 1000);
+
+    return () => clearTimeout(timer);
   }, [pdfUrl]);
 
-  // Navigation functions
-  const nextPage = () => {
-    if (numPages && pageNumber < numPages) {
-      setPageNumber(prev => prev + 1);
-    }
-  };
-
-  const prevPage = () => {
-    if (pageNumber > 1) {
-      setPageNumber(prev => prev - 1);
-    }
-  };
-
-  // Touch event handlers for swipe gestures
-  const handleTouchStart = (e: React.TouchEvent) => {
-    setIsDragging(true);
-    touchStartRef.current = e.touches[0].clientX;
-    setDragDistance(0);
-  };
-
-  const handleTouchMove = (e: React.TouchEvent) => {
-    if (touchStartRef.current === null || !isDragging) return;
-    
-    const touchX = e.touches[0].clientX;
-    const diff = touchStartRef.current - touchX;
-    
-    // Only allow dragging in valid directions 
-    // (can't go left at first page, can't go right at last page)
-    if ((pageNumber <= 1 && diff < 0) || (pageNumber >= (numPages || 1) && diff > 0)) {
-      // Add some resistance to overscrolling
-      setDragDistance(-diff * 0.3);
-    } else {
-      setDragDistance(-diff);
-    }
-  };
-
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    if (touchStartRef.current === null) return;
-    
-    const touchEnd = e.changedTouches[0].clientX;
-    const diff = touchStartRef.current - touchEnd;
-    
-    // Smooth animation back to center if not swiping far enough
-    setIsDragging(false);
-    animate(dragDistance, 0, {
-      duration: 0.3,
-      onUpdate: latest => setDragDistance(latest)
-    });
-    
-    // Determine swipe direction (larger threshold for page change: 80px)
-    if (Math.abs(diff) > 80) {
-      if (diff > 0 && pageNumber < (numPages || 1)) {
-        // Swiped left (go to next page)
-        nextPage();
-      } else if (diff < 0 && pageNumber > 1) {
-        // Swiped right (go to previous page)
-        prevPage();
-      }
-    }
-    
-    touchStartRef.current = null;
-  };
-
-  function onDocumentLoadSuccess({ numPages }: { numPages: number }) {
-    console.log('PDF loaded successfully', { pdfUrl, numPages });
-    setNumPages(numPages);
+  const handleIframeLoad = () => {
     setIsLoading(false);
-    setLoadError(null);
-  }
+    setError(null);
+  };
 
-  function onDocumentLoadError(error: Error) {
-    console.error('PDF load error:', error, 'URL:', pdfUrl);
-    setLoadError(error.message);
+  const handleIframeError = () => {
     setIsLoading(false);
-  }
-
-  if (loadError) {
-    return (
-      <div className="text-center py-4">
-        <p className="text-red-500 mb-2">Failed to load PDF. Please try again later.</p>
-        <p className="text-sm text-gray-500">Error: {loadError}</p>
-        <a 
-          href={pdfUrl} 
-          target="_blank" 
-          rel="noopener noreferrer"
-          className="mt-4 inline-block text-blue-500 hover:underline"
-        >
-          {language === 'ar' ? 'فتح PDF في نافذة جديدة' : 'Open PDF in new window'}
-        </a>
-      </div>
-    );
-  }
-
-  // Should we show the previous page preview?
-  const showPrevPagePreview = pageNumber > 1 && !isLoading && numPages !== null;
-  
-  // Should we show the next page preview?
-  const showNextPagePreview = numPages !== null && pageNumber < numPages && !isLoading;
+    setError(language === 'ar' ? 'فشل في تحميل PDF' : 'Failed to load PDF');
+  };
 
   return (
-    <div className="pdf-viewer w-full mx-auto" ref={viewerRef}>
-      <Document
-        file={pdfUrl}
-        onLoadSuccess={onDocumentLoadSuccess}
-        onLoadError={onDocumentLoadError}
-        className="flex flex-col items-center"
-        loading={
-          <div className="text-center py-4 h-[500px] flex items-center justify-center bg-gray-50 rounded-lg">
-            <div className="animate-pulse">Loading PDF...</div>
-          </div>
-        }
-      >
-        <div 
-          ref={dragConstraintsRef}
-          className="overflow-hidden relative"
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
-          style={{ touchAction: 'pan-y' }}
-        >
-          {!isLoading && numPages !== null && (
-            <div className="relative">
-              {/* Current page with drag effect */}
-              <motion.div
-                style={{ 
-                  x: dragDistance,
-                  position: 'relative',
-                  zIndex: 10
-                }}
-                transition={{ 
-                  type: 'spring', 
-                  stiffness: 1000, 
-                  damping: 100,
-                  restDelta: 0.001
-                }}
-              >
-                <Page 
-                  key={`page_${pageNumber}`}
-                  pageNumber={pageNumber} 
-                  width={pageWidth}
-                  renderTextLayer={false}
-                  renderAnnotationLayer={false}
-                  className="max-w-full shadow-lg rounded-lg"
-                  loading={
-                    <div className="h-[500px] flex items-center justify-center">
-                      <div className="animate-pulse">Loading page...</div>
-                    </div>
-                  }
-                />
-              </motion.div>
-              
-              {/* Next page preview (right side edge) */}
-              {showNextPagePreview && (
-                <motion.div 
-                  style={{ 
-                    position: 'absolute',
-                    top: 0,
-                    right: -pageWidth,
-                    x: dragDistance < 0 ? 0 : Math.min(pageWidth + dragDistance, 0),
-                    zIndex: 8,
-                    opacity: dragDistance < 0 ? Math.min(Math.abs(dragDistance) / 150, 1) : 0,
-                    boxShadow: '-5px 0 15px rgba(0,0,0,0.1)'
-                  }}
-                >
-                  <Page 
-                    key={`next_page_${pageNumber + 1}`}
-                    pageNumber={pageNumber + 1}
-                    width={pageWidth} 
-                    renderTextLayer={false}
-                    renderAnnotationLayer={false}
-                    className="max-w-full rounded-lg"
-                    loading={null}
-                  />
-                </motion.div>
-              )}
-              
-              {/* Previous page preview (left side edge) */}
-              {showPrevPagePreview && (
-                <motion.div 
-                  style={{ 
-                    position: 'absolute',
-                    top: 0,
-                    left: -pageWidth,
-                    x: dragDistance > 0 ? 0 : Math.max(-pageWidth + dragDistance, -pageWidth),
-                    zIndex: 8,
-                    opacity: dragDistance > 0 ? Math.min(Math.abs(dragDistance) / 150, 1) : 0,
-                    boxShadow: '5px 0 15px rgba(0,0,0,0.1)'
-                  }}
-                >
-                  <Page 
-                    key={`prev_page_${pageNumber - 1}`}
-                    pageNumber={pageNumber - 1}
-                    width={pageWidth}
-                    renderTextLayer={false}
-                    renderAnnotationLayer={false}
-                    className="max-w-full rounded-lg"
-                    loading={null}
-                  />
-                </motion.div>
-              )}
+    <div className="pdf-viewer w-full bg-white rounded-lg border border-gray-200 overflow-hidden">
+      <div className="flex flex-col" style={{ height: viewerHeight }}>
+        {/* PDF Viewer */}
+        <div className="flex-1 relative bg-gray-100">
+          {isLoading ? (
+            <div className="flex items-center justify-center h-full">
+              <div className="flex flex-col items-center space-y-3">
+                <div className="w-12 h-12 border-4 border-[#C4A36F] border-t-transparent rounded-full animate-spin"></div>
+                <p className="text-[#222222] font-medium">
+                  {language === 'ar' ? 'جاري تحميل PDF...' : 'Loading PDF...'}
+                </p>
+              </div>
             </div>
+          ) : error ? (
+            <div className="flex items-center justify-center h-full">
+              <div className="text-center p-8">
+                <div className="text-red-500 mb-4">
+                  <svg className="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                  </svg>
+                </div>
+                <p className="text-lg font-medium mb-4">{error}</p>
+                <div className="flex gap-4 justify-center">
+                  <a
+                    href={pdfUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
+                  >
+                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                    </svg>
+                    {language === 'ar' ? 'فتح PDF في نافذة جديدة' : 'Open PDF in new window'}
+                  </a>
+
+                  <a
+                    href={pdfUrl}
+                    download
+                    className="inline-flex items-center px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors"
+                  >
+                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    {language === 'ar' ? 'تحميل PDF' : 'Download PDF'}
+                  </a>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <iframe
+              src={pdfUrl}
+              className="w-full h-full border-0"
+              title="PDF Viewer"
+              onLoad={handleIframeLoad}
+              onError={handleIframeError}
+            />
           )}
         </div>
-      </Document>
-      
-      {/* Only show page indicator */}
-      {numPages && numPages > 1 && (
-        <div className="flex justify-center mt-4">
-          <p className="text-center px-4 py-2 bg-[#C4A36F]/10 rounded-full text-[#222222] font-medium">
-            {`${pageNumber} / ${numPages}`}
-          </p>
-        </div>
-      )}
+
+        {/* Footer with PDF info */}
+        {!isLoading && !error && (
+          <div className="bg-white border-t border-gray-200 p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <a
+                  href={pdfUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center px-3 py-2 bg-blue-500 text-white text-sm rounded-md hover:bg-blue-600 transition-colors"
+                >
+                  <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                  </svg>
+                  {language === 'ar' ? 'فتح في نافذة جديدة' : 'Open in new window'}
+                </a>
+
+                <a
+                  href={pdfUrl}
+                  download
+                  className="inline-flex items-center px-3 py-2 bg-green-500 text-white text-sm rounded-md hover:bg-green-600 transition-colors"
+                >
+                  <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  {language === 'ar' ? 'تحميل' : 'Download'}
+                </a>
+              </div>
+
+              <div className="text-sm text-gray-500">
+                {language === 'ar' ? 'PDF يتم عرضه باستخدام المشاهد الافتراضي للمتصفح' : 'PDF displayed using browser\'s default viewer'}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
 
-export default PDFViewer;
+export default memo(PDFViewer);

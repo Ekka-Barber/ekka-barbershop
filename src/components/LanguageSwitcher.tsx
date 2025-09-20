@@ -10,8 +10,11 @@ export const LanguageSwitcher = () => {
   // Set initial language based on system preference
   useEffect(() => {
     const detectedLanguage = detectSystemLanguage();
-    setLanguage(detectedLanguage);
-  }, [setLanguage]); // Run only once on mount
+    // Only set if different to avoid infinite loops
+    if (detectedLanguage !== language) {
+      setLanguage(detectedLanguage);
+    }
+  }, []); // Run only once on mount
 
   const handleLanguageToggle = () => {
     const nextLanguage = language === 'ar' ? 'en' : 'ar';

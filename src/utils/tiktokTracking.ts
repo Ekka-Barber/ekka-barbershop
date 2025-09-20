@@ -39,12 +39,19 @@ export const trackViewContent = (params: ViewContentEvent) => {
     const ttq = window.ttq;
     if (ttq) {
       logger.debug("Tracking view_content:", params);
-      ttq.track('ViewContent', {
+      const eventParams: Record<string, unknown> = {
         content_id: params.pageId,
         content_name: params.pageName,
         content_type: 'product',
-        value: params.value || 0,
-      });
+      };
+
+      // Only include value and currency if value is provided
+      if (params.value && params.value > 0) {
+        eventParams.value = params.value;
+        eventParams.currency = 'SAR'; // Saudi Riyal for Middle East barbershop
+      }
+
+      ttq.track('ViewContent', eventParams);
     } else {
       logger.debug("TikTok pixel not loaded, view_content event not fired");
     }
@@ -58,11 +65,18 @@ export const trackButtonClick = (params: ButtonClickEvent) => {
     const ttq = window.ttq;
     if (ttq) {
       logger.debug("Tracking button_click:", params);
-      ttq.track('ClickButton', {
+      const eventParams: Record<string, unknown> = {
         button_id: params.buttonId,
         button_name: params.buttonName,
-        value: params.value || 0,
-      });
+      };
+
+      // Only include value and currency if value is provided
+      if (params.value && params.value > 0) {
+        eventParams.value = params.value;
+        eventParams.currency = 'SAR'; // Saudi Riyal for Middle East barbershop
+      }
+
+      ttq.track('ClickButton', eventParams);
     } else {
       logger.debug("TikTok pixel not loaded, button_click event not fired");
     }
@@ -76,11 +90,18 @@ export const trackLocationView = (params: LocationViewEvent) => {
     const ttq = window.ttq;
     if (ttq) {
       logger.debug("Tracking location_view:", params);
-      ttq.track('ViewLocation', {
+      const eventParams: Record<string, unknown> = {
         location_id: params.id,
         location_name: params.name_en,
-        value: params.value || 0,
-      });
+      };
+
+      // Only include value and currency if value is provided
+      if (params.value && params.value > 0) {
+        eventParams.value = params.value;
+        eventParams.currency = 'SAR'; // Saudi Riyal for Middle East barbershop
+      }
+
+      ttq.track('ViewLocation', eventParams);
     } else {
       logger.debug("TikTok pixel not loaded, location_view event not fired");
     }
@@ -94,11 +115,18 @@ export const trackSocialMediaClick = (params: SocialMediaClickEvent) => {
     const ttq = window.ttq;
     if (ttq) {
       logger.debug("Tracking social_media_click:", params);
-      ttq.track('SocialInteraction', {
+      const eventParams: Record<string, unknown> = {
         platform: params.platform,
         url: params.url,
-        value: params.value || 0,
-      });
+      };
+
+      // Only include value and currency if value is provided
+      if (params.value && params.value > 0) {
+        eventParams.value = params.value;
+        eventParams.currency = 'SAR'; // Saudi Riyal for Middle East barbershop
+      }
+
+      ttq.track('SocialInteraction', eventParams);
     } else {
       logger.debug("TikTok pixel not loaded, social_media_click event not fired");
     }

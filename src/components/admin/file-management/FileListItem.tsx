@@ -17,7 +17,7 @@ export interface FileListItemProps {
   setSelectedDate: (date: Date | undefined) => void;
   selectedTime: string;
   setSelectedTime: (time: string) => void;
-  handleEndDateUpdate: (file: FileMetadata) => void;
+  handleEndDateUpdate: (fileId: string) => void;
   handleRemoveEndDate: (fileId: string) => void;
   toggleActiveMutation: UseMutationResult<void, Error, { id: string; isActive: boolean }>;
   deleteMutation: UseMutationResult<void, Error, FileMetadata>;
@@ -167,7 +167,7 @@ export const FileListItem = ({
               setSelectedDate={setSelectedDate}
               selectedTime={selectedTime}
               setSelectedTime={setSelectedTime}
-              handleEndDateUpdate={() => handleEndDateUpdate(file)}
+              handleEndDateUpdate={() => handleEndDateUpdate(file.id)}
               handleRemoveEndDate={handleRemoveEndDate}
               dialogOpen={showEndDateDialog}
               setDialogOpen={setShowEndDateDialog}

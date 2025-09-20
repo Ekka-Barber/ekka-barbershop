@@ -19,11 +19,20 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ activeTab, onTabChan
 
   const navigationItems = [
     { id: 'services', label: 'Services', icon: <Home /> },
+    { id: 'branches', label: 'Branches', icon: <Home /> },
     { id: 'files', label: 'Files', icon: <FileText /> },
     { id: 'qrcodes', label: 'QR Codes', icon: <QrCode /> },
     { id: 'ui-elements', label: 'UI Elements', icon: <Layout /> },
     { id: 'google-ads', label: 'Google Ads', icon: <TrendingUp /> },
   ];
+
+  const handleTabClick = (tabId: string) => {
+    onTabChange(tabId);
+    // On mobile, close sidebar after a brief delay for better UX
+    if (isMobile) {
+      setTimeout(() => setOpenMobile(false), 200);
+    }
+  };
 
   return (
     <Sidebar className="border-r bg-white">
@@ -35,17 +44,15 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ activeTab, onTabChan
           {navigationItems.map((item) => (
             <SidebarMenuItem key={item.id} className="px-2 bg-white">
               <SidebarMenuButton
-                onClick={() => {
-                  onTabChange(item.id);
-                  if (isMobile) setOpenMobile(false);
-                }}
+                onClick={() => handleTabClick(item.id)}
                 isActive={activeTab === item.id}
                 tooltip={item.label}
                 className={cn(
-                  "font-medium",
+                  "font-medium transition-colors duration-200",
                   activeTab === item.id
-                    ? "bg-blue-50 text-blue-700"
-                    : "hover:bg-gray-100 text-gray-900"
+                    ? "bg-blue-50 text-blue-700 border-l-2 border-blue-600"
+                    : "hover:bg-gray-100 text-gray-900",
+                  "touch-manipulation" // Better touch handling on mobile
                 )}
               >
                 <span className={cn(

@@ -23,7 +23,9 @@ import { useDialogState } from "@/hooks/useDialogState";
 const BranchDialog = lazy(() => import("@/components/customer/BranchDialog").then(mod => ({ default: mod.BranchDialog })));
 const LocationDialog = lazy(() => import("@/components/customer/LocationDialog").then(mod => ({ default: mod.LocationDialog })));
 const EidBookingsDialog = lazy(() => import("@/components/customer/EidBookingsDialog").then(mod => ({ default: mod.EidBookingsDialog })));
-const InstallAppPrompt = lazy(() => import("@/components/installation/InstallAppPrompt").then(mod => ({ default: mod.InstallAppPrompt })));
+
+// Import InstallAppPrompt normally to avoid React context issues
+import { InstallAppPrompt } from "@/components/installation/InstallAppPrompt";
 
 
 
@@ -135,9 +137,7 @@ const Customer = () => {
         </DialogContent>
       </Dialog>
 
-      <Suspense fallback={null}>
-        <InstallAppPrompt />
-      </Suspense>
+      <InstallAppPrompt />
     </AppLayout>
   );
 };
