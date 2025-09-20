@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, lazy, Suspense } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { getSupabaseClient } from '@/services/supabaseService';
 import { Loader2, PieChart, QrCode } from "lucide-react";
@@ -11,8 +11,20 @@ import QRCodeDisplay from "./QRCodeDisplay";
 import QRCodeList from "./qr-code/QRCodeList";
 import UpdateQRCodeUrl from "./qr-code/UpdateQRCodeUrl";
 import { useOwnerAccess } from "./qr-code/useOwnerAccess";
-import { QRCodeAnalytics } from "./qr-code/QRCodeAnalytics";
 import { useIsMobile } from "@/hooks/use-mobile";
+
+// Lazy load heavy analytics component to reduce initial bundle size
+const QRCodeAnalytics = lazy(() => import("./qr-code/QRCodeAnalytics").then(mod => ({ default: mod.QRCodeAnalytics })));
+
+// Loading component for analytics
+const AnalyticsLoader = () => (
+  <div className="flex items-center justify-center p-12">
+    <div className="flex flex-col items-center space-y-3">
+      <Loader2 className="h-8 w-8 animate-spin" />
+      <p className="text-sm text-muted-foreground">Loading analytics...</p>
+    </div>
+  </div>
+);
 
 const QRCodeManager = () => {
   const [selectedQrId, setSelectedQrId] = useState<string | null>(null);
@@ -173,7 +185,9 @@ const QRCodeManager = () => {
         </TabsContent>
         
         <TabsContent value="analytics">
-          <QRCodeAnalytics qrCodes={qrCodes || []} />
+          <Suspense fallback={<AnalyticsLoader />}>
+            <QRCodeAnalytics qrCodes={qrCodes || []} />
+          </Suspense>
         </TabsContent>
       </Tabs>
     </div>

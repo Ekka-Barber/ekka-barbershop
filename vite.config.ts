@@ -32,11 +32,59 @@ export default defineConfig(({ mode }) => ({
           'vendor-motion': ['framer-motion'],
           'vendor-utils': ['date-fns', 'lodash', 'clsx', 'class-variance-authority'],
           
-          // Feature chunks
-          'admin-components': [
+          // Granular admin feature chunks for better code splitting
+          'admin-qr-management': [
             'src/components/admin/QRCodeManager.tsx',
+            'src/components/admin/qr-code/QRCodeList.tsx',
+            'src/components/admin/qr-code/UpdateQRCodeUrl.tsx'
+          ],
+          'admin-qr-display': [
+            'src/components/admin/QRCodeDisplay.tsx',
+            'src/components/admin/CreateQRCodeForm.tsx'
+          ],
+          'admin-qr-analytics': [
+            'src/components/admin/qr-code/QRCodeAnalytics.tsx',
+            'src/components/admin/qr-code/analytics/AnalyticsFilters.tsx',
+            'src/components/admin/qr-code/analytics/BreakdownCard.tsx',
+            'src/components/admin/qr-code/analytics/OverviewCard.tsx',
+            'src/components/admin/qr-code/analytics/ScanDetailsCard.tsx'
+          ],
+          'admin-files': [
             'src/components/admin/FileManagement.tsx',
-            'src/components/admin/qr-code/QRCodeAnalytics.tsx'
+            'src/components/admin/file-management/FileListItem.tsx',
+            'src/components/admin/file-management/FileListSection.tsx',
+            'src/components/admin/file-management/FileUploadSection.tsx',
+            'src/components/admin/file-management/FileEndDateManager.tsx'
+          ],
+          'admin-services': [
+            'src/components/admin/ServiceCategoryList.tsx',
+            'src/components/admin/ServiceItem.tsx',
+            'src/components/admin/CategoryDialog.tsx',
+            'src/components/admin/ServiceDialog.tsx',
+            'src/components/admin/ServiceForm.tsx',
+            'src/components/admin/service-management/ServiceManagementHeader.tsx',
+            'src/components/admin/service-management/ServiceBranchAssignment.tsx',
+            'src/components/admin/service-management/EmptyServiceState.tsx',
+            'src/components/admin/service-management/ServiceCategorySkeleton.tsx',
+            'src/components/admin/service-form/BasicServiceInfo.tsx',
+            'src/components/admin/service-form/PricingSection.tsx',
+            'src/components/admin/service-form/ServiceDescriptions.tsx',
+            'src/components/admin/category-management/CategoryActions.tsx',
+            'src/components/admin/category-management/CategoryBranchAssignment.tsx',
+            'src/components/admin/category-management/CategoryList.tsx'
+          ],
+          'admin-branches': [
+            'src/components/admin/branch-management/BranchesTab.tsx',
+            'src/components/admin/branch-management/BranchForm.tsx',
+            'src/components/admin/branch-management/BranchList.tsx'
+          ],
+          'admin-ui-elements': [
+            'src/components/admin/ui-elements/UiElementsManager.tsx',
+            'src/components/admin/ui-elements/EditElementDialog.tsx',
+            'src/components/admin/ui-elements/IconSelectorDialog.tsx'
+          ],
+          'admin-google-ads': [
+            'src/components/admin/GoogleAdsTab.tsx'
           ],
           'customer-components': [
             'src/components/customer/GoogleReviews.tsx',
@@ -48,7 +96,7 @@ export default defineConfig(({ mode }) => ({
     // Enable source maps for better debugging in production
     sourcemap: mode === 'development',
     // Optimize chunk size threshold
-    chunkSizeWarningLimit: 1000,
+    chunkSizeWarningLimit: 500,
     // Enable minification
     minify: mode === 'production' ? 'esbuild' : false,
   },
