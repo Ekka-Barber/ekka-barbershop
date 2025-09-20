@@ -1,0 +1,12 @@
+{
+  "ignoreUnresolved": [],
+  "ignoreUnimported": [
+    "src/integrations/supabase/types.ts"
+  ],
+  "ignoreUnusedDependencies": [
+    "tailwindcss-animate"
+  ],
+  "ignoreUnused": [
+    "tailwindcss-animate"
+  ]
+}
