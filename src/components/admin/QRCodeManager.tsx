@@ -194,4 +194,5 @@ const QRCodeManager = () => {
   );
 };
 
+// Phase 5 build optimization test - hot reload check
 export default QRCodeManager;

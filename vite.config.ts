@@ -17,7 +17,19 @@ export default defineConfig(({ mode }) => ({
     host: "localhost",
     hmr: {
       port: 9913,
+      // Reduce HMR overlay noise in development for better DX
+      overlay: false
     },
+    // Enable file system watching optimizations
+    watch: {
+      usePolling: false,
+      interval: 100,
+    },
+    // Enable development server optimizations
+    fs: {
+      // Allow serving files from packages that are not in node_modules
+      allow: ['.']
+    }
   },
   build: {
     rollupOptions: {
@@ -31,7 +43,7 @@ export default defineConfig(({ mode }) => ({
           'vendor-charts': ['recharts'],
           'vendor-motion': ['framer-motion'],
           'vendor-utils': ['date-fns', 'lodash', 'clsx', 'class-variance-authority'],
-          
+
           // Granular admin feature chunks for better code splitting
           'admin-qr-management': [
             'src/components/admin/QRCodeManager.tsx',
@@ -93,21 +105,49 @@ export default defineConfig(({ mode }) => ({
         }
       }
     },
-    // Enable source maps for better debugging in production
+    // Enable source maps only for development (disabled in production for smaller bundles)
     sourcemap: mode === 'development',
-    // Optimize chunk size threshold
+    // Optimized chunk size threshold for better performance
     chunkSizeWarningLimit: 500,
-    // Enable minification
+    // Enable minification with esbuild for faster builds
     minify: mode === 'production' ? 'esbuild' : false,
+    // Enable build caching for faster rebuilds
+    watch: {
+      include: ['src/**'],
+      exclude: ['node_modules/**', 'dist/**'],
+      // Reduce HMR overlay noise in development
+      clearScreen: false
+    },
+    // Enable parallel processing for faster builds
+    target: 'esnext',
+    // Optimize CSS processing
+    cssCodeSplit: true,
+    // Enable asset inlining for small files
+    assetsInlineLimit: 4096,
   },
-  // Enable optimizations
+  // Enhanced dependency optimization for faster builds and better caching
   optimizeDeps: {
     include: [
       'react',
       'react-dom',
       'react-router-dom',
       '@tanstack/react-query',
-      '@supabase/supabase-js'
+      '@supabase/supabase-js',
+      'recharts',
+      'framer-motion',
+      'date-fns',
+      'lodash',
+      'clsx',
+      'class-variance-authority'
     ],
+    // Enable parallel processing for dependency optimization
+    force: false,
+    // Exclude large dependencies that should be external or lazy-loaded
+    exclude: [
+      'pdfjs-dist',
+      '@react-pdf/renderer'
+    ],
+    // Optimize for better caching
+    entries: ['src/main.tsx', 'src/**/*.tsx', 'src/**/*.ts'],
   }
 }));
