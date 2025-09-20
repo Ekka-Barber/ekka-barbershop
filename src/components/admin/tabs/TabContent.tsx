@@ -11,10 +11,6 @@ const UiElementsManager = lazy(() => import('@/components/admin/ui-elements/UiEl
 const BranchesTab = lazy(() => import('@/components/admin/branch-management/BranchesTab').then(mod => ({ default: mod.BranchesTab })));
 const GoogleAdsTab = lazy(() => import('@/components/admin/GoogleAdsTab').then(mod => ({ default: mod.GoogleAdsTab })));
 
-// Additional lazy loading for remaining heavy components (currently unused but kept for future expansion)
-const _CreateQRCodeForm = lazy(() => import('@/components/admin/CreateQRCodeForm'));
-const _QRCodeDisplay = lazy(() => import('@/components/admin/QRCodeDisplay'));
-
 // Enhanced loading component for heavy features
 const TabLoader = ({ feature }: { feature?: string }) => (
   <div className="flex items-center justify-center p-8">

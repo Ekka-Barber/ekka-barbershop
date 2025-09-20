@@ -1,9 +1,9 @@
 
 import { useEffect } from 'react';
 import { useQuery } from "@tanstack/react-query";
-import { getSupabaseClient } from '@/services/supabaseService';
+import { supabase } from "@/integrations/supabase/client";
 import { useState } from 'react';
-import type { Tables } from "@/types/supabase";
+import { Tables } from "@/types/supabase";
 import { useToast } from "@/components/ui/use-toast";
 
 export const useUIElements = () => {
@@ -13,13 +13,11 @@ export const useUIElements = () => {
   const { data: uiElements, refetch: refetchUiElements, isLoading: isLoadingUiElements } = useQuery({
     queryKey: ['ui-elements'],
     queryFn: async () => {
-      const supabase = await getSupabaseClient();
-
       const { data, error } = await supabase
         .from('ui_elements')
         .select('*')
         .order('display_order', { ascending: true });
-
+      
       if (error) {
         throw error;
       }
@@ -35,33 +33,23 @@ export const useUIElements = () => {
 
   // Set up real-time subscription
   useEffect(() => {
-    const setupSubscription = async () => {
-      const supabase = await getSupabaseClient();
-
-      const channel = supabase
-        .channel('ui_elements_changes')
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'ui_elements'
-          },
-          () => {
-            refetchUiElements();
-          }
-        )
-        .subscribe();
-
-      return () => {
-        supabase.removeChannel(channel);
-      };
-    };
-
-    const cleanup = setupSubscription();
+    const channel = supabase
+      .channel('ui_elements_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'ui_elements'
+        },
+        () => {
+          refetchUiElements();
+        }
+      )
+      .subscribe();
 
     return () => {
-      cleanup.then(cleanupFn => cleanupFn && cleanupFn());
+      supabase.removeChannel(channel);
     };
   }, [refetchUiElements]);
 

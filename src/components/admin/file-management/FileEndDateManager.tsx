@@ -3,7 +3,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import type { FileEndDateManagerProps } from "@/types/file-management";
+import { FileEndDateManagerProps } from "@/types/file-management";
 import { useState, useEffect } from "react";
 
 export const FileEndDateManager = ({

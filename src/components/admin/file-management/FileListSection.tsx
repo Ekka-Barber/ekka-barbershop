@@ -1,13 +1,12 @@
-import type { DropResult } from '@hello-pangea/dnd';
-import { DragDropContext, Droppable } from '@hello-pangea/dnd';
+import { DragDropContext, Droppable, DropResult } from '@hello-pangea/dnd';
 import { FileListItem } from "./FileListItem";
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { FileText, ChevronDown, ChevronUp } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
-import type { FileMetadata } from "@/types/file-management";
-import type { UseMutationResult } from "@tanstack/react-query";
+import { FileMetadata } from "@/types/file-management";
+import { UseMutationResult } from "@tanstack/react-query";
 
 interface FileListSectionProps {
   category: string;

@@ -1,6 +1,6 @@
 
 import { useLanguage } from "@/contexts/LanguageContext";
-import type { Tables } from "@/types/supabase";
+import { Tables } from "@/types/supabase";
 import { ActionButton } from "./ActionButton";
 import { LoyaltySection } from "../sections/LoyaltySection";
 import { EidBookingsSection } from "../sections/EidBookingsSection";

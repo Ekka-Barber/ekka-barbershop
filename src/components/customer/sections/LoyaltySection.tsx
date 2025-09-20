@@ -1,6 +1,6 @@
 
 import { useLanguage } from "@/contexts/LanguageContext";
-import type { Tables } from "@/types/supabase";
+import { Tables } from "@/types/supabase";
 import { motion, AnimatePresence } from "framer-motion";
 import { trackButtonClick } from "@/utils/tiktokTracking";
 import { Separator } from "@/components/ui/separator";

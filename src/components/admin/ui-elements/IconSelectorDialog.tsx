@@ -5,7 +5,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useToast } from "@/components/ui/use-toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { getSupabaseClient } from '@/services/supabaseService';
+import { supabase } from "@/integrations/supabase/client";
 import { useState, useMemo } from "react";
 // Import the static list
 import { lucideIconList } from '@/lib/lucide-icons-list';
@@ -53,8 +53,6 @@ export const IconSelectorDialog = ({
 
   const updateMutation = useMutation({
     mutationFn: async (iconName: string) => {
-      const supabase = await getSupabaseClient();
-
       const { error } = await supabase
         .from("ui_elements")
         .update({ icon: iconName })

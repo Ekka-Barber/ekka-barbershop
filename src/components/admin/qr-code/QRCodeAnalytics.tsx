@@ -1,6 +1,6 @@
 import { Loader2 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-import type { QRCode } from '@/types/admin';
+import { QRCode } from '@/types/admin';
 import { useQRCodeAnalytics } from "@/hooks/useQRCodeAnalytics";
 import { AnalyticsFilters } from "./analytics/AnalyticsFilters";
 import { OverviewCard } from "./analytics/OverviewCard";

@@ -1,8 +1,8 @@
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { getSupabaseClient } from '@/services/supabaseService';
+import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
-import type { FileToggleParams } from '../types';
+import { FileToggleParams } from '../types';
 
 export const useToggleFileMutation = () => {
   const { toast } = useToast();
@@ -11,13 +11,11 @@ export const useToggleFileMutation = () => {
   return useMutation({
     mutationFn: async ({ id, isActive }: FileToggleParams) => {
       console.log('Toggling file status:', { id, isActive });
-
-      const supabase = await getSupabaseClient();
       const { error } = await supabase
         .from('marketing_files')
         .update({ is_active: isActive })
         .eq('id', id);
-
+      
       if (error) throw error;
     },
     onSuccess: () => {

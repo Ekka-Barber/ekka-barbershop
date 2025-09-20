@@ -10,12 +10,12 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import type { Category, Service } from '@/types/service';
+import { Category, Service } from '@/types/service';
 import { ServiceForm } from './ServiceForm';
 import { useServiceForm } from '@/hooks/useServiceForm';
 import { useToast } from '@/components/ui/use-toast';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getSupabaseClient } from '@/services/supabaseService';
+import { supabase } from "@/integrations/supabase/client";
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
@@ -40,8 +40,6 @@ export const ServiceDialog = ({ categories, editService, onSuccess, trigger }: S
   const { data: services } = useQuery({
     queryKey: ['services'],
     queryFn: async () => {
-      const supabase = await getSupabaseClient();
-
       const { data, error } = await supabase
         .from('services')
         .select('*');

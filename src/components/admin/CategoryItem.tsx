@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import type { Category, Service } from '@/types/service';
+import { Category, Service } from '@/types/service';
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Edit, Trash, Plus } from "lucide-react";
@@ -19,7 +19,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import ServiceItem from './ServiceItem';
 import { ServiceDialog } from './ServiceDialog';
 import { CategoryDialog } from './CategoryDialog';
-import { getSupabaseClient } from '@/services/supabaseService';
+import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import { CategoryBranchAssignment } from './category-management/CategoryBranchAssignment';
 import { Draggable } from '@hello-pangea/dnd';
@@ -59,10 +59,9 @@ const CategoryItem = React.memo(({ category, services = [], onDelete, onExpanded
   useEffect(() => {
     const fetchBranchAssignments = async () => {
       if (!category.id) return;
-
+      
       setIsFetchingBranches(true);
       try {
-        const supabase = await getSupabaseClient();
         const { data, error } = await supabase
           .from('branch_categories')
           .select('branch_id, branch_name')

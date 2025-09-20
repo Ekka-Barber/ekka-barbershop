@@ -1,9 +1,7 @@
 
-import React, { lazy, Suspense } from 'react';
+import React from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
-
-// Lazy load charts bundle for better bundle optimization
-const OverviewCardCharts = lazy(() => import('./ChartsBundle').then(module => ({ default: module.OverviewCardCharts })));
+import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip } from 'recharts';
 
 interface OverviewCardProps {
   scanCount: number;
@@ -13,16 +11,6 @@ interface OverviewCardProps {
     count: number;
   }[];
 }
-
-// Loading component for charts
-const ChartsLoader = () => (
-  <div className="flex items-center justify-center py-8">
-    <div className="flex flex-col items-center space-y-2">
-      <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-      <p className="text-sm text-muted-foreground">Loading charts...</p>
-    </div>
-  </div>
-);
 
 export const OverviewCard = ({ scanCount, avgDailyScans, dailyScans }: OverviewCardProps) => {
   return (
@@ -43,16 +31,17 @@ export const OverviewCard = ({ scanCount, avgDailyScans, dailyScans }: OverviewC
               <p className="text-3xl font-bold">{avgDailyScans}</p>
             </div>
           </div>
-
+          
           <div className="mt-6">
             <h3 className="text-sm font-medium mb-2">Daily Scans</h3>
-            <Suspense fallback={<ChartsLoader />}>
-              <OverviewCardCharts
-                scanCount={scanCount}
-                avgDailyScans={avgDailyScans}
-                dailyScans={dailyScans}
-              />
-            </Suspense>
+            <ResponsiveContainer width="100%" height={200}>
+              <BarChart data={dailyScans}>
+                <XAxis dataKey="date" />
+                <YAxis />
+                <Tooltip />
+                <Bar dataKey="count" fill="#8884d8" />
+              </BarChart>
+            </ResponsiveContainer>
           </div>
         </div>
       </CardContent>

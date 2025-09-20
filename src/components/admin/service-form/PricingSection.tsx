@@ -1,5 +1,5 @@
 
-import type { Service } from '@/types/service';
+import { Service } from '@/types/service';
 import { Input } from "@/components/ui/input";
 import {
   Select,

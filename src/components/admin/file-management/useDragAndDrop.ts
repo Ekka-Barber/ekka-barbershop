@@ -1,4 +1,4 @@
-import type { DropResult, FileMetadata } from '@/types/file-management';
+import { DropResult, FileMetadata } from '@/types/file-management';
 
 export const useDragAndDrop = (files: FileMetadata[]) => {
   const handleDragEnd = (result: DropResult) => {

@@ -2,7 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useLanguage } from "@/contexts/LanguageContext";
-import type { Branch } from "@/types/branch";
+import { Branch } from "@/types/branch";
 
 interface BranchDialogProps {
   open: boolean;

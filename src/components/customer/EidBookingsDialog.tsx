@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { useLanguage } from "@/contexts/LanguageContext";
 import { motion } from "framer-motion";
 import { MapPin } from "lucide-react";
-import type { Branch } from "@/types/branch";
+import { Branch } from "@/types/branch";
 
 interface EidBookingsDialogProps {
   open: boolean;

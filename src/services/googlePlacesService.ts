@@ -1,5 +1,5 @@
 
-import { getSupabaseClient } from '@/services/supabaseService';
+import { supabase } from '@/integrations/supabase/client';
 import { logger } from '@/utils/logger';
 
 // Interface for Google Reviews
@@ -26,14 +26,12 @@ export interface ReviewsResponse {
 export async function fetchBranchReviews(placeId: string, language: string = 'en'): Promise<ReviewsResponse> {
   try {
     logger.debug(`Fetching reviews for Place ID: ${placeId}, language: ${language}`);
-
-    const supabase = await getSupabaseClient();
-
+    
     // Call the Supabase Edge Function directly without passing an API key
     const { data, error } = await supabase.functions.invoke('google-places', {
-      body: {
-        placeId,
-        language
+      body: { 
+        placeId, 
+        language 
       },
     });
     
@@ -77,9 +75,7 @@ export async function fetchBranchReviews(placeId: string, language: string = 'en
 export async function fetchBranchesWithGooglePlaces() {
   try {
     logger.debug("Fetching branches with Google Places configuration");
-
-    const supabase = await getSupabaseClient();
-
+    
     const { data, error } = await supabase
       .from('branches')
       .select('id, name, google_place_id, name_ar')

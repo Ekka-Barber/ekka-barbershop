@@ -1,5 +1,5 @@
 
-import type { Language } from "@/types/language";
+import { Language } from "@/types/language";
 
 // Key used for storing language preference
 const LANGUAGE_STORAGE_KEY = 'ekka-language-preference';

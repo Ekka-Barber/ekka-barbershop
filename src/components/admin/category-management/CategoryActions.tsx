@@ -2,13 +2,13 @@
 import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Plus, X } from 'lucide-react';
-import { getSupabaseClient } from '@/services/supabaseService';
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
 import { ServiceDialog } from '../ServiceDialog';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import type { Category } from '@/types/service';
+import { Category } from '@/types/service';
 
 interface CategoryActionsProps {
   categories: Category[] | undefined;
@@ -22,19 +22,17 @@ export const CategoryActions = ({ categories }: CategoryActionsProps) => {
 
   const addCategoryMutation = useMutation({
     mutationFn: async (category: { name_en: string; name_ar: string }) => {
-      const supabase = await getSupabaseClient();
-
       await supabase.rpc('set_branch_manager_code', { code: 'true' });
       const { data, error } = await supabase
         .from('service_categories')
-        .insert([{
-          name_en: category.name_en,
+        .insert([{ 
+          name_en: category.name_en, 
           name_ar: category.name_ar,
-          display_order: categories ? categories.length : 0
+          display_order: categories ? categories.length : 0 
         }])
         .select()
         .single();
-
+      
       if (error) throw error;
       return data;
     },

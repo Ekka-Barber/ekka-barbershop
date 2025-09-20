@@ -4,7 +4,7 @@ import { fetchDeviceBreakdown, fetchReferrerBreakdown } from "./useDeviceBreakdo
 import { fetchDailyScans, fetchTotalScanCount } from "./useDailyScans";
 import { fetchRecentScans } from "./useRecentScans";
 import { fetchScanLocations } from "./useScanLocations";
-import type { QRScanData } from "./types";
+import { QRScanData } from "./types";
 
 export function useQRAnalyticsData(selectedQrId: string | null, timeRange: string) {
   return useQuery({

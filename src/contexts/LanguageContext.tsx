@@ -1,8 +1,7 @@
 
 /* eslint-disable react-refresh/only-export-components */
-import type { ReactNode} from 'react';
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import type { Language, LanguageContextType } from '@/types/language';
+import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import { Language, LanguageContextType } from '@/types/language';
 import { translations } from '@/i18n/translations';
 import { detectSystemLanguage, updateManifestLanguage, storeLanguagePreference } from '@/utils/languageUtils';
 

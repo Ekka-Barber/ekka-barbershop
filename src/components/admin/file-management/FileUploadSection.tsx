@@ -9,8 +9,8 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { Clock, Upload, FileText, X, AlertCircle } from "lucide-react";
 import { format, isSameDay } from "date-fns"; // Import isSameDay from date-fns
-import type { FilePreview } from '@/types/admin';
-import type { Branch } from '@/types/branch';
+import { FilePreview } from '@/types/admin';
+import { Branch } from '@/types/branch';
 import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 

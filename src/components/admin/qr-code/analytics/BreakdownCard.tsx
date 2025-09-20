@@ -1,9 +1,9 @@
 
-import React, { lazy, Suspense } from 'react';
+import React from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 
-// Lazy load charts bundle for better bundle optimization
-const BreakdownCardCharts = lazy(() => import('./ChartsBundle').then(module => ({ default: module.BreakdownCardCharts })));
+const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#A569BD', '#5DADE2'];
 
 interface ChartData {
   name: string;
@@ -15,16 +15,6 @@ interface BreakdownCardProps {
   referrerData: ChartData[];
 }
 
-// Loading component for charts
-const ChartsLoader = () => (
-  <div className="flex items-center justify-center py-8">
-    <div className="flex flex-col items-center space-y-2">
-      <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-      <p className="text-sm text-muted-foreground">Loading charts...</p>
-    </div>
-  </div>
-);
-
 export const BreakdownCard = ({ deviceData, referrerData }: BreakdownCardProps) => {
   return (
     <Card>
@@ -33,12 +23,54 @@ export const BreakdownCard = ({ deviceData, referrerData }: BreakdownCardProps) 
         <CardDescription>Where and how your QR code is being scanned</CardDescription>
       </CardHeader>
       <CardContent>
-        <Suspense fallback={<ChartsLoader />}>
-          <BreakdownCardCharts
-            deviceData={deviceData}
-            referrerData={referrerData}
-          />
-        </Suspense>
+        <div className="grid grid-cols-2 gap-6">
+          <div>
+            <h3 className="text-sm font-medium mb-2 text-center">Device Types</h3>
+            <ResponsiveContainer width="100%" height={150}>
+              <PieChart>
+                <Pie
+                  data={deviceData}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={30}
+                  outerRadius={60}
+                  fill="#8884d8"
+                  paddingAngle={5}
+                  dataKey="value"
+                  label
+                >
+                  {deviceData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+          <div>
+            <h3 className="text-sm font-medium mb-2 text-center">Traffic Sources</h3>
+            <ResponsiveContainer width="100%" height={150}>
+              <PieChart>
+                <Pie
+                  data={referrerData}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={30}
+                  outerRadius={60}
+                  fill="#8884d8"
+                  paddingAngle={5}
+                  dataKey="value"
+                  label
+                >
+                  {referrerData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
       </CardContent>
     </Card>
   );

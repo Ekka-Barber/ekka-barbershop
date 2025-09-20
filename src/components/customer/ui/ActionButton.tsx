@@ -1,10 +1,10 @@
 
 import { Button } from "@/components/ui/button";
 import * as Icons from "lucide-react";
-import type { Tables } from "@/types/supabase";
+import { Tables } from "@/types/supabase";
 import { motion } from "framer-motion";
 import { useLanguage } from "@/contexts/LanguageContext";
-import type { LucideIcon } from 'lucide-react';
+import { LucideIcon } from 'lucide-react';
 
 interface ActionButtonProps {
   element: Tables<'ui_elements'>;

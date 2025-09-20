@@ -2,13 +2,13 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { useEffect, lazy, Suspense } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { getSupabaseClient } from '@/services/supabaseService';
+import { supabase } from "@/integrations/supabase/client";
 import { trackViewContent } from "@/utils/tiktokTracking";
 import { PullToRefresh } from "@/components/common/PullToRefresh";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import AppLayout from '@/components/layout/AppLayout';
-import type { Branch } from "@/types/branch";
+import { Branch } from "@/types/branch";
 
 // Import our extracted components
 import { CustomerHeader } from "@/components/customer/layout/CustomerHeader";
@@ -42,12 +42,11 @@ const Customer = () => {
   const { data: branches } = useQuery({
     queryKey: ['branches'],
     queryFn: async () => {
-      const supabase = await getSupabaseClient();
       const { data, error } = await supabase
         .from('branches')
         .select('id, name, name_ar, address, address_ar, is_main, whatsapp_number, google_maps_url, google_place_id');
       if (error) throw error;
-
+      
       return data as Branch[];
     }
   });

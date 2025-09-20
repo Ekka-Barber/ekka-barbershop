@@ -1,5 +1,5 @@
 
-import type { ComponentPropsWithoutRef } from 'react';
+import { ComponentPropsWithoutRef } from 'react';
 
 const RiyalIcon = ({ className, ...props }: ComponentPropsWithoutRef<"svg">) => {
   return (

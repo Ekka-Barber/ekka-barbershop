@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { getSupabaseClient } from '@/services/supabaseService';
-import type { Category } from '@/types/service';
+import { supabase } from "@/integrations/supabase/client";
+import { Category } from '@/types/service';
 import debounce from 'lodash/debounce';
 
 const CATEGORIES_PER_PAGE = 10;
@@ -18,7 +18,6 @@ export const useOptimizedCategories = () => {
     const start = (page - 1) * CATEGORIES_PER_PAGE;
     const end = start + CATEGORIES_PER_PAGE - 1;
 
-    const supabase = await getSupabaseClient();
     const { data: categories, error } = await supabase
       .from('service_categories')
       .select(`
@@ -90,13 +89,13 @@ export const useOptimizedCategories = () => {
     return [...filteredCategories].sort((a, b) => {
       switch (sortBy) {
         case 'newest':
-          return new Date(b.created_at || '').getTime() - new Date(a.created_at || '').getTime();
+          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
         case 'oldest':
-          return new Date(a.created_at || '').getTime() - new Date(b.created_at || '').getTime();
+          return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
         case 'services':
           return (b.services?.length || 0) - (a.services?.length || 0);
         default:
-          return (a.display_order || 0) - (b.display_order || 0);
+          return a.display_order - b.display_order;
       }
     });
   }, [filteredCategories, sortBy]);
@@ -115,12 +114,11 @@ export const useOptimizedCategories = () => {
     setSortBy(value as SortType);
   }, []);
 
-  const setupRealtimeSubscription = useCallback(async () => {
-    const supabase = await getSupabaseClient();
+  const setupRealtimeSubscription = useCallback(() => {
     const channel = supabase
       .channel('schema-db-changes')
-      .on('postgres_changes',
-        {
+      .on('postgres_changes', 
+        { 
           event: '*',
           schema: 'public',
           table: 'service_categories'

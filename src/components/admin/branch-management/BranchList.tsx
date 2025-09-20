@@ -1,5 +1,5 @@
 
-import type { Branch } from '@/hooks/useBranchManagement';
+import { Branch } from '@/hooks/useBranchManagement';
 import { Card } from '@/components/ui/card';
 import { Building, Star } from 'lucide-react';
 

@@ -1,4 +1,4 @@
-import type { WorkingHours } from './service';
+import { WorkingHours } from './service';
 
 export interface Branch {
   id: string;

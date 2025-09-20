@@ -1,9 +1,9 @@
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { getSupabaseClient } from '@/services/supabaseService';
+import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
-import type { FilePreview } from '@/types/admin';
-import type { FileUploadParams } from '../types';
+import { FilePreview } from '@/types/admin';
+import { FileUploadParams } from '../types';
 import { format } from 'date-fns';
 
 export const useUploadFileMutation = (
@@ -18,12 +18,14 @@ export const useUploadFileMutation = (
 
   return useMutation({
     mutationFn: async ({ file, category, branchId, branchName, isAllBranches, endDate, endTime }: FileUploadParams) => {
-      const supabase = await getSupabaseClient();
       setUploading(true);
       console.log('Starting file upload:', { fileName: file.name, category, branchId, endDate });
 
       // Check Supabase client configuration
-      console.log('Supabase client initialized successfully');
+      console.log('Supabase client config:', {
+        url: supabase.supabaseUrl,
+        key: supabase.supabaseKey ? 'present' : 'missing'
+      });
 
       // Check authentication status
       const { data: user, error: authError } = await supabase.auth.getUser();
@@ -201,15 +203,14 @@ export const useUploadFileMutation = (
             }
             throw dbError;
           }
-        } catch (error: unknown) {
+        } catch (error: any) {
           console.error('Unexpected error during database insertion:', error);
-          const err = error as { constructor?: { name?: string }; status?: number; statusText?: string; response?: { status?: number; data?: unknown } };
-          console.error('Error type:', err.constructor?.name);
-          console.error('Error status:', err.status);
-          console.error('Error statusText:', err.statusText);
-          if (err.response) {
-            console.error('Response status:', err.response.status);
-            console.error('Response data:', err.response.data);
+          console.error('Error type:', error.constructor.name);
+          console.error('Error status:', error.status);
+          console.error('Error statusText:', error.statusText);
+          if (error.response) {
+            console.error('Response status:', error.response.status);
+            console.error('Response data:', error.response.data);
           }
           throw error;
         }

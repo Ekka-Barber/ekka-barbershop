@@ -1,10 +1,19 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Document, Page, pdfjs } from 'react-pdf';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
+// import PDFWorker from 'pdfjs-dist/build/pdf.worker.min.js?url';
+// import * as pdfjsLib from 'pdfjs-dist'; // No longer needed if using pdfjs from react-pdf
+import { motion, animate } from 'framer-motion';
 
-// Set up PDF.js worker - using local file to avoid CORS issues
+// Configure PDF.js using the local worker file
 pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.js';
+
+// Disable CSS loading for layers to prevent 404 errors
+pdfjs.GlobalWorkerOptions.disableTextLayer = true;
+pdfjs.GlobalWorkerOptions.disableAnnotationLayer = true;
+
+// Enable verbose logging for debugging
+pdfjs.GlobalWorkerOptions.verbosity = 1;
 
 interface PDFViewerProps {
   pdfUrl: string;
@@ -13,48 +22,188 @@ interface PDFViewerProps {
 const PDFViewer = ({ pdfUrl }: PDFViewerProps) => {
   const [numPages, setNumPages] = useState<number | null>(null);
   const [pageNumber, setPageNumber] = useState(1);
-  const [error, setError] = useState<string | null>(null);
-  const [isMobile, setIsMobile] = useState(false);
+  const [pageWidth, setPageWidth] = useState(800);
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const { language } = useLanguage();
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragDistance, setDragDistance] = useState(0);
+  const [loadingTimeout, setLoadingTimeout] = useState<NodeJS.Timeout | null>(null);
 
-  // Detect mobile device for UI adjustments
+  // Reference for tracking touch events
+  const touchStartRef = useRef<number | null>(null);
+  const viewerRef = useRef<HTMLDivElement>(null);
+  const dragConstraintsRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
+    const updatePageWidth = () => {
+      const width = window.innerWidth;
+      setPageWidth(Math.min(width - 32, 800)); // 32px for padding
     };
 
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
+    updatePageWidth();
+    window.addEventListener('resize', updatePageWidth);
+    return () => window.removeEventListener('resize', updatePageWidth);
   }, []);
 
-  const onDocumentLoadSuccess = useCallback(({ numPages }: { numPages: number }) => {
-    setNumPages(numPages);
-    setError(null);
-    console.log('PDF loaded successfully:', { numPages, url: pdfUrl });
+  useEffect(() => {
+    console.log('PDFViewer: URL changed to:', pdfUrl);
+
+    // Reset states when PDF URL changes
+    setIsLoading(true);
+    setLoadError(null);
+    setPageNumber(1);
+    setNumPages(null);
+
+    // Validate URL
+    if (!pdfUrl.startsWith('http')) {
+      console.error('PDFViewer: Invalid PDF URL format:', pdfUrl);
+      setLoadError('Invalid PDF URL');
+      setIsLoading(false);
+      return;
+    }
+
+    // Clear any existing timeout
+    if (loadingTimeout) {
+      clearTimeout(loadingTimeout);
+    }
+
+    // Test URL accessibility
+    fetch(pdfUrl, {
+      method: 'HEAD',
+      mode: 'cors',
+      cache: 'no-cache'
+    })
+    .then(response => {
+      console.log('PDFViewer: URL accessibility check:', {
+        url: pdfUrl,
+        status: response.status,
+        contentType: response.headers.get('content-type'),
+        contentLength: response.headers.get('content-length')
+      });
+    })
+    .catch(error => {
+      console.error('PDFViewer: URL accessibility check failed:', error);
+    });
+
+    // Set a timeout for loading (30 seconds)
+    const timeout = setTimeout(() => {
+      console.error('PDFViewer: Loading timeout after 30 seconds');
+      setLoadError('Loading timeout - PDF took too long to load');
+      setIsLoading(false);
+    }, 30000);
+
+    setLoadingTimeout(timeout);
+
+    // Cleanup function
+    return () => {
+      if (timeout) {
+        clearTimeout(timeout);
+      }
+    };
   }, [pdfUrl]);
 
-  const onDocumentLoadError = useCallback((error: Error) => {
-    console.error('Failed to load PDF:', error);
-    setError('Failed to load PDF document');
-  }, []);
+  // Navigation functions
+  const nextPage = () => {
+    if (numPages && pageNumber < numPages) {
+      setPageNumber(prev => prev + 1);
+    }
+  };
 
-  const changePage = useCallback((offset: number) => {
-    setPageNumber(prevPageNumber => {
-      const newPageNumber = prevPageNumber + offset;
-      return Math.min(Math.max(1, newPageNumber), numPages || 1);
+  const prevPage = () => {
+    if (pageNumber > 1) {
+      setPageNumber(prev => prev - 1);
+    }
+  };
+
+  // Touch event handlers for swipe gestures
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setIsDragging(true);
+    touchStartRef.current = e.touches[0].clientX;
+    setDragDistance(0);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (touchStartRef.current === null || !isDragging) return;
+    
+    const touchX = e.touches[0].clientX;
+    const diff = touchStartRef.current - touchX;
+    
+    // Only allow dragging in valid directions 
+    // (can't go left at first page, can't go right at last page)
+    if ((pageNumber <= 1 && diff < 0) || (pageNumber >= (numPages || 1) && diff > 0)) {
+      // Add some resistance to overscrolling
+      setDragDistance(-diff * 0.3);
+    } else {
+      setDragDistance(-diff);
+    }
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartRef.current === null) return;
+    
+    const touchEnd = e.changedTouches[0].clientX;
+    const diff = touchStartRef.current - touchEnd;
+    
+    // Smooth animation back to center if not swiping far enough
+    setIsDragging(false);
+    animate(dragDistance, 0, {
+      duration: 0.3,
+      onUpdate: latest => setDragDistance(latest)
     });
-  }, [numPages]);
+    
+    // Determine swipe direction (larger threshold for page change: 80px)
+    if (Math.abs(diff) > 80) {
+      if (diff > 0 && pageNumber < (numPages || 1)) {
+        // Swiped left (go to next page)
+        nextPage();
+      } else if (diff < 0 && pageNumber > 1) {
+        // Swiped right (go to previous page)
+        prevPage();
+      }
+    }
+    
+    touchStartRef.current = null;
+  };
 
-  const previousPage = useCallback(() => changePage(-1), [changePage]);
-  const nextPage = useCallback(() => changePage(1), [changePage]);
+  function onDocumentLoadSuccess({ numPages }: { numPages: number }) {
+    console.log('PDF loaded successfully', { pdfUrl, numPages });
 
-  if (error) {
+    // Clear loading timeout
+    if (loadingTimeout) {
+      clearTimeout(loadingTimeout);
+      setLoadingTimeout(null);
+    }
+
+    setNumPages(numPages);
+    setIsLoading(false);
+    setLoadError(null);
+  }
+
+  function onDocumentLoadError(error: Error) {
+    console.error('PDF load error:', error, 'URL:', pdfUrl);
+    console.error('Error details:', {
+      name: error.name,
+      message: error.message,
+      stack: error.stack
+    });
+
+    // Clear loading timeout
+    if (loadingTimeout) {
+      clearTimeout(loadingTimeout);
+      setLoadingTimeout(null);
+    }
+
+    setLoadError(`${error.name}: ${error.message}`);
+    setIsLoading(false);
+  }
+
+  if (loadError) {
     return (
       <div className="text-center py-4">
         <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
           <p className="text-red-600 font-medium mb-2">PDF Loading Failed</p>
-          <p className="text-sm text-gray-600 mb-2">{error}</p>
+          <p className="text-sm text-gray-600 mb-2">Error: {loadError}</p>
           <p className="text-xs text-gray-500">URL: {pdfUrl.substring(0, 50)}...</p>
         </div>
         <div className="space-y-2">
@@ -66,99 +215,165 @@ const PDFViewer = ({ pdfUrl }: PDFViewerProps) => {
           >
             {language === 'ar' ? '📄 فتح PDF في نافذة جديدة' : '📄 Open PDF in new window'}
           </a>
+          <br />
+          <button
+            onClick={() => {
+              console.log('Retrying PDF load...');
+              setLoadError(null);
+              setIsLoading(true);
+              setPageNumber(1);
+              setNumPages(null);
+            }}
+            className="inline-block bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition-colors mt-2"
+          >
+            {language === 'ar' ? '🔄 إعادة المحاولة' : '🔄 Retry Loading'}
+          </button>
         </div>
       </div>
     );
   }
 
+  // Should we show the previous page preview?
+  const showPrevPagePreview = pageNumber > 1 && !isLoading && numPages !== null;
+  
+  // Should we show the next page preview?
+  const showNextPagePreview = numPages !== null && pageNumber < numPages && !isLoading;
+
   return (
-    <div className="pdf-viewer-container w-full">
+    <div className="pdf-viewer w-full mx-auto" ref={viewerRef}>
       <Document
-        file={pdfUrl}
+        file={{
+          url: pdfUrl,
+          httpHeaders: {
+            'Cache-Control': 'no-cache'
+          },
+          withCredentials: false
+        }}
         onLoadSuccess={onDocumentLoadSuccess}
         onLoadError={onDocumentLoadError}
+        className="flex flex-col items-center"
         loading={
-          <div className="flex items-center justify-center h-[400px] bg-gray-50 rounded-lg">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#C4A36F] mx-auto mb-4"></div>
-              <p className="text-gray-600">
-                {language === 'ar' ? 'جاري تحميل PDF...' : 'Loading PDF...'}
-              </p>
+          <div className="text-center py-4 h-[500px] flex items-center justify-center bg-gray-50 rounded-lg">
+            <div className="animate-pulse">
+              <div>Loading PDF...</div>
+              <div className="text-sm text-gray-500 mt-2">This may take a few moments</div>
             </div>
           </div>
         }
-        error={
-          <div className="flex items-center justify-center h-[400px] bg-red-50 rounded-lg border border-red-200">
-            <div className="text-center">
-              <p className="text-red-600 mb-2">
-                {language === 'ar' ? 'فشل في تحميل PDF' : 'Failed to load PDF'}
-              </p>
-              <a
-                href={pdfUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-blue-500 hover:text-blue-600 underline"
-              >
-                {language === 'ar' ? 'فتح في نافذة جديدة' : 'Open in new window'}
-              </a>
-            </div>
-          </div>
-        }
+        options={{
+          cMapUrl: null,
+          cMapPacked: false,
+          disableAutoFetch: false,
+          disableCreateObjectURL: false,
+          disableFontFace: false,
+          disableRange: false,
+          disableStream: false,
+          docBaseUrl: null,
+          isEvalSupported: true,
+          maxImageSize: -1,
+          pdfBug: false,
+          verbosity: 1
+        }}
       >
-        <Page
-          pageNumber={pageNumber}
-          renderTextLayer={false}
-          renderAnnotationLayer={false}
-          width={isMobile ? window.innerWidth - 32 : Math.min(window.innerWidth - 64, 800)}
-          className="shadow-lg rounded-lg overflow-hidden mx-auto"
-        />
+        <div 
+          ref={dragConstraintsRef}
+          className="overflow-hidden relative"
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+          style={{ touchAction: 'pan-y' }}
+        >
+          {!isLoading && numPages !== null && (
+            <div className="relative">
+              {/* Current page with drag effect */}
+              <motion.div
+                style={{ 
+                  x: dragDistance,
+                  position: 'relative',
+                  zIndex: 10
+                }}
+                transition={{ 
+                  type: 'spring', 
+                  stiffness: 1000, 
+                  damping: 100,
+                  restDelta: 0.001
+                }}
+              >
+                <Page 
+                  key={`page_${pageNumber}`}
+                  pageNumber={pageNumber} 
+                  width={pageWidth}
+                  renderTextLayer={false}
+                  renderAnnotationLayer={false}
+                  className="max-w-full shadow-lg rounded-lg"
+                  loading={
+                    <div className="h-[500px] flex items-center justify-center">
+                      <div className="animate-pulse">Loading page...</div>
+                    </div>
+                  }
+                />
+              </motion.div>
+              
+              {/* Next page preview (right side edge) */}
+              {showNextPagePreview && (
+                <motion.div 
+                  style={{ 
+                    position: 'absolute',
+                    top: 0,
+                    right: -pageWidth,
+                    x: dragDistance < 0 ? 0 : Math.min(pageWidth + dragDistance, 0),
+                    zIndex: 8,
+                    opacity: dragDistance < 0 ? Math.min(Math.abs(dragDistance) / 150, 1) : 0,
+                    boxShadow: '-5px 0 15px rgba(0,0,0,0.1)'
+                  }}
+                >
+                  <Page 
+                    key={`next_page_${pageNumber + 1}`}
+                    pageNumber={pageNumber + 1}
+                    width={pageWidth} 
+                    renderTextLayer={false}
+                    renderAnnotationLayer={false}
+                    className="max-w-full rounded-lg"
+                    loading={null}
+                  />
+                </motion.div>
+              )}
+              
+              {/* Previous page preview (left side edge) */}
+              {showPrevPagePreview && (
+                <motion.div 
+                  style={{ 
+                    position: 'absolute',
+                    top: 0,
+                    left: -pageWidth,
+                    x: dragDistance > 0 ? 0 : Math.max(-pageWidth + dragDistance, -pageWidth),
+                    zIndex: 8,
+                    opacity: dragDistance > 0 ? Math.min(Math.abs(dragDistance) / 150, 1) : 0,
+                    boxShadow: '5px 0 15px rgba(0,0,0,0.1)'
+                  }}
+                >
+                  <Page 
+                    key={`prev_page_${pageNumber - 1}`}
+                    pageNumber={pageNumber - 1}
+                    width={pageWidth}
+                    renderTextLayer={false}
+                    renderAnnotationLayer={false}
+                    className="max-w-full rounded-lg"
+                    loading={null}
+                  />
+                </motion.div>
+              )}
+            </div>
+          )}
+        </div>
       </Document>
-
-      {/* Page Navigation */}
+      
+      {/* Only show page indicator */}
       {numPages && numPages > 1 && (
-        <div className="flex items-center justify-center space-x-2">
-          <button
-            onClick={previousPage}
-            disabled={pageNumber <= 1}
-            className={`${
-              isMobile ? 'p-3' : 'p-2'
-            } bg-[#C4A36F] text-white rounded-full hover:bg-[#B39A5F] disabled:opacity-50 disabled:cursor-not-allowed transition-colors`}
-            aria-label="Previous page"
-          >
-            <ChevronLeft className={isMobile ? 'w-6 h-6' : 'w-5 h-5'} />
-          </button>
-
-          <div className="flex items-center space-x-2">
-            <input
-              type="number"
-              min="1"
-              max={numPages}
-              value={pageNumber}
-              onChange={(e) => {
-                const page = parseInt(e.target.value);
-                if (page >= 1 && page <= (numPages || 1)) {
-                  setPageNumber(page);
-                }
-              }}
-              className={`${
-                isMobile ? 'w-16' : 'w-12'
-              } text-center border border-gray-300 rounded px-2 py-1 text-sm`}
-            />
-            <span className="text-gray-600 text-sm">
-              {language === 'ar' ? 'من' : 'of'} {numPages}
-            </span>
-          </div>
-
-          <button
-            onClick={nextPage}
-            disabled={pageNumber >= numPages}
-            className={`${
-              isMobile ? 'p-3' : 'p-2'
-            } bg-[#C4A36F] text-white rounded-full hover:bg-[#B39A5F] disabled:opacity-50 disabled:cursor-not-allowed transition-colors`}
-            aria-label="Next page"
-          >
-            <ChevronRight className={isMobile ? 'w-6 h-6' : 'w-5 h-5'} />
-          </button>
+        <div className="flex justify-center mt-4">
+          <p className="text-center px-4 py-2 bg-[#C4A36F]/10 rounded-full text-[#222222] font-medium">
+            {`${pageNumber} / ${numPages}`}
+          </p>
         </div>
       )}
     </div>

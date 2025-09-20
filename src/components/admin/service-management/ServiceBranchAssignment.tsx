@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
-import { getSupabaseClient } from '@/services/supabaseService';
+import { supabase } from '@/integrations/supabase/client';
 import { Badge } from '@/components/ui/badge';
 import { toast } from '@/components/ui/use-toast';
 import { Loader2 } from 'lucide-react';
@@ -25,8 +25,6 @@ export const ServiceBranchAssignment = ({ serviceId, serviceName, serviceNameAr 
 
   const fetchBranches = async () => {
     try {
-      const supabase = await getSupabaseClient();
-
       const { data, error } = await supabase
         .from('branches')
         .select('id, name')
@@ -46,8 +44,6 @@ export const ServiceBranchAssignment = ({ serviceId, serviceName, serviceNameAr 
 
   const fetchAssignments = useCallback(async () => {
     try {
-      const supabase = await getSupabaseClient();
-
       const { data, error } = await supabase
         .from('branch_services')
         .select('branch_id')
@@ -70,10 +66,8 @@ export const ServiceBranchAssignment = ({ serviceId, serviceName, serviceNameAr 
   const toggleBranchAssignment = async (branchId: string, isChecked: boolean) => {
     // Add branch to processing state
     setProcessingBranchIds(prev => [...prev, branchId]);
-
+    
     try {
-      const supabase = await getSupabaseClient();
-
       if (isChecked) {
         // Check if assignment already exists to prevent duplicates
         const { data: existingAssignment } = await supabase
@@ -82,13 +76,13 @@ export const ServiceBranchAssignment = ({ serviceId, serviceName, serviceNameAr 
           .eq('branch_id', branchId)
           .eq('service_id', serviceId)
           .maybeSingle();
-
+          
         if (existingAssignment) {
           console.log('Assignment already exists, skipping insert');
           setAssignedBranchIds(prev => [...prev, branchId]);
           return;
         }
-
+        
         // Add assignment
         const { error } = await supabase
           .from('branch_services')

@@ -1,8 +1,8 @@
 import { Dialog, DialogContent, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Star, MapPin, Quote } from 'lucide-react';
-import type { Language } from '@/types/language';
-import type { Review } from '../hooks/useReviews';
+import { Language } from '@/types/language';
+import { Review } from '../hooks/useReviews';
 import { motion } from 'framer-motion';
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 

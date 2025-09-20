@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import type { QRCode } from '@/types/admin';
+import { QRCode } from '@/types/admin';
 
 export function useQRSelection(qrCodes: QRCode[]) {
   const [selectedQrId, setSelectedQrId] = useState<string | null>(null);

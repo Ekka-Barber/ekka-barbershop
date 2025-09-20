@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getSupabaseClient } from '@/services/supabaseService';
+import { supabase } from '@/integrations/supabase/client';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
@@ -119,13 +119,11 @@ export const UiElementsManager = () => {
   const { data: elements, isLoading } = useQuery({
     queryKey: ['ui-elements'],
     queryFn: async () => {
-      const supabase = await getSupabaseClient();
-
       const { data, error } = await supabase
         .from('ui_elements')
         .select('*')
         .order('display_order', { ascending: true });
-
+      
       if (error) throw error;
       return data as UiElement[];
     }
@@ -133,13 +131,11 @@ export const UiElementsManager = () => {
 
   const updateVisibilityMutation = useMutation({
     mutationFn: async ({ id, is_visible }: { id: string; is_visible: boolean }) => {
-      const supabase = await getSupabaseClient();
-
       const { error } = await supabase
         .from('ui_elements')
         .update({ is_visible })
         .eq('id', id);
-
+      
       if (error) throw error;
     },
     onSuccess: () => {
@@ -161,8 +157,6 @@ export const UiElementsManager = () => {
 
   const updateOrderMutation = useMutation({
     mutationFn: async (elements: UiElement[]) => {
-      const supabase = await getSupabaseClient();
-
       const updates = elements.map((element, index) => ({
         id: element.id,
         display_order: index,
@@ -175,7 +169,7 @@ export const UiElementsManager = () => {
       const { error } = await supabase
         .from('ui_elements')
         .upsert(updates);
-
+      
       if (error) throw error;
     },
     onSuccess: () => {

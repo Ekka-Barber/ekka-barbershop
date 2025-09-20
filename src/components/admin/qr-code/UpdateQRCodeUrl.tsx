@@ -1,10 +1,10 @@
 
 import { useState } from "react";
-import { getSupabaseClient } from '@/services/supabaseService';
+import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import type { QRCode } from "@/types/admin";
+import { QRCode } from "@/types/admin";
 
 interface UpdateQRCodeUrlProps {
   selectedQrCode: QRCode;
@@ -16,8 +16,6 @@ const UpdateQRCodeUrl = ({ selectedQrCode }: UpdateQRCodeUrlProps) => {
   const [newUrl, setNewUrl] = useState("");
 
   const setOwnerAccess = async () => {
-    const supabase = await getSupabaseClient();
-
     const { error } = await supabase.rpc('set_owner_access', { value: 'owner123' });
     if (error) {
       console.error('Error setting owner access:', error);
@@ -34,7 +32,7 @@ const UpdateQRCodeUrl = ({ selectedQrCode }: UpdateQRCodeUrlProps) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newUrl || !selectedQrCode) return;
-
+    
     const ownerAccessSet = await setOwnerAccess();
     if (!ownerAccessSet) {
       toast({
@@ -45,7 +43,6 @@ const UpdateQRCodeUrl = ({ selectedQrCode }: UpdateQRCodeUrlProps) => {
       return;
     }
 
-    const supabase = await getSupabaseClient();
     const { error } = await supabase
       .from("qr_codes")
       .update({ url: newUrl })

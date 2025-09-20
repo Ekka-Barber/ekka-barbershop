@@ -1,13 +1,13 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { getSupabaseClient } from '@/services/supabaseService';
+import { supabase } from "@/integrations/supabase/client";
 import { useOptimizedCategories } from '@/hooks/useOptimizedCategories';
 import { CategoryList } from './category-management/CategoryList';
 import { CategoryActions } from './category-management/CategoryActions';
 import { ServiceCategorySkeleton } from './service-management/ServiceCategorySkeleton';
 import { EmptyServiceState } from './service-management/EmptyServiceState';
 import { useToast } from "@/components/ui/use-toast";
-import type { DropResult } from '@hello-pangea/dnd';
-import type { Category } from '@/types/service';
+import { DropResult } from '@hello-pangea/dnd';
+import { Category } from '@/types/service';
 
 const ServiceCategoryList = () => {
   const [expandedCategories, setExpandedCategories] = useState<string[]>([]);
@@ -23,28 +23,14 @@ const ServiceCategoryList = () => {
     const searchParams = new URLSearchParams(window.location.search);
     const accessCode = searchParams.get('access');
     if (accessCode === 'owner123') {
-      const setCode = async () => {
-        const supabase = await getSupabaseClient();
-        await supabase.rpc('set_branch_manager_code', { code: 'true' });
-      };
-      void setCode();
+      void supabase.rpc('set_branch_manager_code', { code: 'true' });
     }
   }, []);
 
   useEffect(() => {
-    const setupSubscription = async () => {
-      const cleanup = await setupRealtimeSubscription();
-      return () => {
-        cleanup();
-      };
-    };
-
-    const cleanupPromise = setupSubscription();
-
+    const cleanup = setupRealtimeSubscription();
     return () => {
-      cleanupPromise.then(cleanupFn => {
-        if (cleanupFn) cleanupFn();
-      });
+      cleanup();
     };
   }, [setupRealtimeSubscription]);
 
@@ -58,18 +44,16 @@ const ServiceCategoryList = () => {
 
   const handleDeleteCategory = useCallback(async (categoryId: string) => {
     try {
-      const supabase = await getSupabaseClient();
-
       const { error } = await supabase
         .from('service_categories')
         .delete()
         .eq('id', categoryId);
-
+        
       if (error) {
         console.error('Delete error:', error);
         throw error;
       }
-
+      
       toast({
         title: "Category Deleted",
         description: "Category has been deleted successfully.",
@@ -102,12 +86,10 @@ const ServiceCategoryList = () => {
         display_order: index
       }));
 
-      const supabase = await getSupabaseClient();
-
       const { error } = await supabase
         .from('service_categories')
         .upsert(updates, { onConflict: 'id' });
-
+        
       if (error) {
         console.error('Update error:', error);
         throw error;

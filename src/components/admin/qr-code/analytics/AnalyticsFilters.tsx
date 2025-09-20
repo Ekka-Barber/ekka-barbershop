@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import type { QRCode } from '@/types/admin';
+import { QRCode } from '@/types/admin';
 
 interface AnalyticsFiltersProps {
   qrCodes: QRCode[];

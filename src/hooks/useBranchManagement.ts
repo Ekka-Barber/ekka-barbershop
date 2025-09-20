@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getSupabaseClient } from '@/services/supabaseService';
+import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
 import { logger } from '@/utils/logger';
 
@@ -47,18 +47,17 @@ export const useBranchManagement = () => {
   const { data: branches, isLoading } = useQuery({
     queryKey: ['branches'],
     queryFn: async () => {
-      const supabase = await getSupabaseClient();
       const { data, error } = await supabase
         .from('branches')
         .select('*')
         .order('is_main', { ascending: false })
         .order('name');
-
+        
       if (error) {
         logger.error('Error fetching branches:', error);
         throw error;
       }
-
+      
       return data as Branch[];
     },
   });
@@ -71,8 +70,6 @@ export const useBranchManagement = () => {
   // Create branch
   const createBranchMutation = useMutation({
     mutationFn: async (branchData: BranchFormData) => {
-      const supabase = await getSupabaseClient();
-
       // If this branch is marked as main, update all other branches to not be main
       if (branchData.is_main) {
         await supabase
@@ -80,18 +77,18 @@ export const useBranchManagement = () => {
           .update({ is_main: false })
           .neq('id', '00000000-0000-0000-0000-000000000000'); // This ensures all branches are updated
       }
-
+      
       const { data, error } = await supabase
         .from('branches')
         .insert([branchData])
         .select()
         .single();
-
+        
       if (error) {
         logger.error('Error creating branch:', error);
         throw error;
       }
-
+      
       return data;
     },
     onSuccess: () => {
@@ -113,8 +110,6 @@ export const useBranchManagement = () => {
   // Update branch
   const updateBranchMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: Partial<BranchFormData> }) => {
-      const supabase = await getSupabaseClient();
-
       // If this branch is marked as main, update all other branches to not be main
       if (data.is_main) {
         await supabase
@@ -122,19 +117,19 @@ export const useBranchManagement = () => {
           .update({ is_main: false })
           .neq('id', id);
       }
-
+      
       const { data: updatedBranch, error } = await supabase
         .from('branches')
         .update(data)
         .eq('id', id)
         .select()
         .single();
-
+        
       if (error) {
         logger.error('Error updating branch:', error);
         throw error;
       }
-
+      
       return updatedBranch;
     },
     onSuccess: () => {
@@ -156,34 +151,32 @@ export const useBranchManagement = () => {
   // Delete branch
   const deleteBranchMutation = useMutation({
     mutationFn: async (id: string) => {
-      const supabase = await getSupabaseClient();
-
       // Check if this is the main branch
       const { data: branchData } = await supabase
         .from('branches')
         .select('is_main')
         .eq('id', id)
         .single();
-
+      
       if (branchData && branchData.is_main) {
         throw new Error('Cannot delete the main branch');
       }
-
+      
       // Check if this branch has related data
       const { count: employeeCount } = await supabase
         .from('employees')
         .select('*', { count: 'exact', head: true })
         .eq('branch_id', id);
-
+        
       if (employeeCount && employeeCount > 0) {
         throw new Error(`Cannot delete branch with ${employeeCount} associated employees`);
       }
-
+      
       const { error } = await supabase
         .from('branches')
         .delete()
         .eq('id', id);
-
+        
       if (error) {
         logger.error('Error deleting branch:', error);
         throw error;

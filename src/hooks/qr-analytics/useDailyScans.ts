@@ -1,8 +1,7 @@
 
-import { getSupabaseClient } from '@/services/supabaseService';
+import { supabase } from "@/integrations/supabase/client";
 
 export async function fetchDailyScans(selectedQrId: string, startDate: Date, endDate: Date) {
-  const supabase = await getSupabaseClient();
   const { data: dailyScanData, error: dailyError } = await supabase
     .from('qr_scan_counts_daily')
     .select('*')
@@ -34,7 +33,6 @@ export async function fetchDailyScans(selectedQrId: string, startDate: Date, end
 }
 
 export async function fetchTotalScanCount(selectedQrId: string, startDate: Date) {
-  const supabase = await getSupabaseClient();
   const { count: scanCount, error: countError } = await supabase
     .from('qr_scans')
     .select('*', { count: 'exact', head: true })
