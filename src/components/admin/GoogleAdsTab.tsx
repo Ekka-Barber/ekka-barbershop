@@ -126,7 +126,7 @@ const mockData = {
   ]
 };
 
-export const GoogleAdsTab: React.FC = React.memo(() => {
+export const GoogleAdsTab: React.FC = () => {
   const [activeTab, setActiveTab] = useState("overview");
 
   const formatCurrency = (amount: number) => {
@@ -546,8 +546,6 @@ export const GoogleAdsTab: React.FC = React.memo(() => {
       </Tabs>
     </div>
   );
-});
-
-GoogleAdsTab.displayName = 'GoogleAdsTab';
+};
 
 export default GoogleAdsTab; 

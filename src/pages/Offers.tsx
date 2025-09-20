@@ -10,7 +10,6 @@ import CountdownTimer from '@/components/CountdownTimer';
 import { useEffect, lazy, Suspense } from 'react';
 import { trackViewContent, trackButtonClick } from "@/utils/tiktokTracking";
 import AppLayout from '@/components/layout/AppLayout';
-import type { FileMetadata } from '@/types/admin';
 
 // Lazy load PDFViewer for better bundle optimization
 const PDFViewer = lazy(() => import('@/components/PDFViewer'));
@@ -71,7 +70,7 @@ const Offers = () => {
         return [];
       }
       
-      const filesWithUrls = await Promise.all(data.map(async (file: FileMetadata) => {
+      const filesWithUrls = await Promise.all(data.map(async (file: any) => {
         console.log('Processing file:', file);
         const { data: publicUrlData } = supabase.storage
           .from('marketing_files')
@@ -127,9 +126,8 @@ const Offers = () => {
         };
       }));
       
-      // Filter out null values from failed URL generations  
-      const validFiles = filesWithUrls.filter((file): file is NonNullable<typeof file> => file !== null);
-      return validFiles.sort((a, b) => {
+      // Filter out null values from failed URL generations
+      return filesWithUrls.filter(Boolean).sort((a: any, b: any) => {
         if (a.isExpired !== b.isExpired) {
           return a.isExpired ? 1 : -1;
         }
@@ -197,7 +195,7 @@ const Offers = () => {
           {isLoading ? (
             <div className="text-center py-8 text-[#222222]">{t('loading.offers')}</div>
           ) : offersFiles && offersFiles.length > 0 ? (
-            offersFiles.map((file) => (
+            offersFiles.map((file: any) => (
               <Card key={file.id} className="overflow-hidden bg-white shadow-xl rounded-xl border-[#C4A36F]/20">
                 <div className="p-6">
                   {file.branchName && (

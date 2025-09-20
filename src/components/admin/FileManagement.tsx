@@ -7,8 +7,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useState } from 'react';
-import React from 'react';
-import type { FileMetadata, DropResult } from '@/types/file-management';
 
 // Temporary debug function - call testSupabaseInsert() in browser console
 const testSupabaseInsert = async () => {
@@ -112,7 +110,7 @@ if (typeof window !== 'undefined') {
   (window as Window & { testSupabaseInsert?: typeof testSupabaseInsert; testPDFUrls?: typeof testPDFUrls }).testPDFUrls = testPDFUrls;
 }
 
-export const FileManagement = React.memo(() => {
+export const FileManagement = () => {
   const [activeTab, setActiveTab] = useState<string>("all");
   
   const {
@@ -135,37 +133,15 @@ export const FileManagement = React.memo(() => {
     updateEndDateMutation,
   } = useFileManagement();
 
-  const { handleEndDateUpdate: originalHandleEndDateUpdate, handleRemoveEndDate } = useEndDateManager({
+  const { handleEndDateUpdate, handleRemoveEndDate } = useEndDateManager({
     selectedDate,
     selectedTime,
     updateEndDateMutation
   });
 
-  const { handleDragEnd: originalHandleDragEnd } = useDragAndDrop(files || []);
+  const { handleDragEnd } = useDragAndDrop(files || []);
 
-  // Wrapper functions to match expected types
-  const handleEndDateUpdate = (file: FileMetadata) => {
-    originalHandleEndDateUpdate(file.id);
-  };
-
-  const handleDragEnd = (result: DropResult) => {
-    // Only call the original handler if destination exists
-    if (result.destination) {
-      originalHandleDragEnd(result);
-    }
-  };
-
-  // Wrapper functions for mutations to match expected types
-  const wrappedToggleActiveMutation = {
-    ...toggleActiveMutation,
-    mutate: (variables: { id: string; isActive: boolean }) => {
-      toggleActiveMutation.mutate(variables);
-    }
-  };
-
-  const wrappedDeleteMutation = deleteMutation;
-
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>, category: string) => {
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>, category: 'menu' | 'offers') => {
     const file = event.target.files?.[0];
     if (!file) return;
 
@@ -191,7 +167,7 @@ export const FileManagement = React.memo(() => {
 
       const uploadParams = {
         file,
-        category: category as 'menu' | 'offers',
+        category,
         branchId: selectedBranch,
         branchName: selectedBranchDetails?.name,
         isAllBranches,
@@ -201,23 +177,23 @@ export const FileManagement = React.memo(() => {
 
       console.log('Upload params for offers:', uploadParams);
 
-      void uploadMutation.mutate(uploadParams);
+      uploadMutation.mutate(uploadParams);
     } else {
       // For menu, don't include branch-related params or end date
-      const uploadParams = { file, category: category as 'menu' | 'offers' };
+      const uploadParams = { file, category };
       console.log('Upload params for menu:', uploadParams);
 
-      void uploadMutation.mutate(uploadParams);
+      uploadMutation.mutate(uploadParams);
     }
     console.log('=== END FILE UPLOAD DEBUG ===');
   };
 
   const menuFiles = files?.filter(f => f.category === 'menu') || [];
   const offerFiles = files?.filter(f => f.category === 'offers') || [];
-  const filteredFiles = activeTab === 'all'
-    ? (files || [])
-    : activeTab === 'menu'
-      ? menuFiles
+  const filteredFiles = activeTab === 'all' 
+    ? files 
+    : activeTab === 'menu' 
+      ? menuFiles 
       : offerFiles;
 
   const fileCounts = {
@@ -322,8 +298,8 @@ export const FileManagement = React.memo(() => {
               setSelectedTime={setSelectedTime}
               handleEndDateUpdate={handleEndDateUpdate}
               handleRemoveEndDate={handleRemoveEndDate}
-              toggleActiveMutation={wrappedToggleActiveMutation}
-              deleteMutation={wrappedDeleteMutation}
+              toggleActiveMutation={toggleActiveMutation}
+              deleteMutation={deleteMutation}
               handleDragEnd={handleDragEnd}
             />
 
@@ -336,8 +312,8 @@ export const FileManagement = React.memo(() => {
               setSelectedTime={setSelectedTime}
               handleEndDateUpdate={handleEndDateUpdate}
               handleRemoveEndDate={handleRemoveEndDate}
-              toggleActiveMutation={wrappedToggleActiveMutation}
-              deleteMutation={wrappedDeleteMutation}
+              toggleActiveMutation={toggleActiveMutation}
+              deleteMutation={deleteMutation}
               handleDragEnd={handleDragEnd}
             />
           </TabsContent>
@@ -352,12 +328,12 @@ export const FileManagement = React.memo(() => {
               setSelectedTime={setSelectedTime}
               handleEndDateUpdate={handleEndDateUpdate}
               handleRemoveEndDate={handleRemoveEndDate}
-              toggleActiveMutation={wrappedToggleActiveMutation}
-              deleteMutation={wrappedDeleteMutation}
+              toggleActiveMutation={toggleActiveMutation}
+              deleteMutation={deleteMutation}
               handleDragEnd={handleDragEnd}
             />
           </TabsContent>
-
+          
           <TabsContent value="offers" className="space-y-6 mt-0">
             <FileListSection
               category="offers"
@@ -368,8 +344,8 @@ export const FileManagement = React.memo(() => {
               setSelectedTime={setSelectedTime}
               handleEndDateUpdate={handleEndDateUpdate}
               handleRemoveEndDate={handleRemoveEndDate}
-              toggleActiveMutation={wrappedToggleActiveMutation}
-              deleteMutation={wrappedDeleteMutation}
+              toggleActiveMutation={toggleActiveMutation}
+              deleteMutation={deleteMutation}
               handleDragEnd={handleDragEnd}
             />
           </TabsContent>
@@ -377,6 +353,4 @@ export const FileManagement = React.memo(() => {
       </div>
     </div>
   );
-});
-
-FileManagement.displayName = 'FileManagement';
+};

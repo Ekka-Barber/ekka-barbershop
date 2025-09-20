@@ -1,3 +1,4 @@
+import type { DropResult } from '@hello-pangea/dnd';
 import { DragDropContext, Droppable } from '@hello-pangea/dnd';
 import { FileListItem } from "./FileListItem";
 import { useState } from 'react';
@@ -5,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { FileText, ChevronDown, ChevronUp } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
-import type { FileMetadata, DropResult as CustomDropResult } from "@/types/file-management";
+import type { FileMetadata } from "@/types/file-management";
 import type { UseMutationResult } from "@tanstack/react-query";
 
 interface FileListSectionProps {
@@ -19,7 +20,7 @@ interface FileListSectionProps {
   handleRemoveEndDate: (fileId: string) => void;
   toggleActiveMutation: UseMutationResult<void, Error, { id: string; isActive: boolean }>;
   deleteMutation: UseMutationResult<void, Error, FileMetadata>;
-  handleDragEnd: (result: CustomDropResult) => void;
+  handleDragEnd: (result: DropResult) => void;
 }
 
 export const FileListSection = ({
@@ -81,18 +82,7 @@ export const FileListSection = ({
             transition={{ duration: 0.2 }}
           >
             <div className="p-4 bg-background border-t">
-              <DragDropContext onDragEnd={(result) => {
-                // Convert @hello-pangea/dnd DropResult to our custom DropResult
-                if (result.destination) {
-                  const convertedResult: CustomDropResult = {
-                    draggableId: result.draggableId,
-                    type: result.type,
-                    source: result.source,
-                    destination: result.destination
-                  };
-                  handleDragEnd(convertedResult);
-                }
-              }}>
+              <DragDropContext onDragEnd={(result) => handleDragEnd(result)}>
                 <Droppable droppableId={`${category}-list`}>
                   {(provided) => (
                     <div
