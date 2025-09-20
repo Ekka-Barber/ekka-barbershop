@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -16,11 +16,8 @@ import { Separator } from "@/components/ui/separator";
 import { getSupabaseClient } from '@/services/supabaseService';
 import { useToast } from "@/components/ui/use-toast";
 import { Checkbox } from "@/components/ui/checkbox";
-
-interface Branch {
-  id: string;
-  name: string;
-}
+import { useBranchAssignment } from '@/hooks/useBranchAssignment';
+import { useServiceAssignment } from '@/hooks/useServiceAssignment';
 
 interface CategoryDialogProps {
   trigger: React.ReactNode;
@@ -34,61 +31,16 @@ export const CategoryDialog = ({ trigger, onSuccess, categoryId, categoryEnName,
   const [isOpen, setIsOpen] = useState(false);
   const [nameEn, setNameEn] = useState(categoryEnName || '');
   const [nameAr, setNameAr] = useState(categoryArName || '');
-  const [branches, setBranches] = useState<Branch[]>([]);
-  const [selectedBranchIds, setSelectedBranchIds] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const isEditing = !!categoryId;
 
-  useEffect(() => {
-    const fetchBranches = async () => {
-      try {
-        const supabase = await getSupabaseClient();
-
-        const { data, error } = await supabase
-          .from('branches')
-          .select('id, name')
-          .order('is_main', { ascending: false });
-
-        if (error) throw error;
-        setBranches(data || []);
-      } catch (error) {
-        console.error('Error fetching branches:', error);
-      }
-    };
-
-    fetchBranches();
-  }, []);
-
-  useEffect(() => {
-    if (categoryId && isOpen) {
-      const fetchAssignedBranches = async () => {
-        try {
-          const supabase = await getSupabaseClient();
-
-          const { data, error } = await supabase
-            .from('branch_categories')
-            .select('branch_id')
-            .eq('category_id', categoryId);
-
-          if (error) throw error;
-          setSelectedBranchIds(data.map(item => item.branch_id));
-        } catch (error) {
-          console.error('Error fetching branch assignments:', error);
-        }
-      };
-
-      fetchAssignedBranches();
-    }
-  }, [categoryId, isOpen]);
-
-  const handleToggleBranch = (branchId: string, checked: boolean) => {
-    if (checked) {
-      setSelectedBranchIds(prev => [...prev, branchId]);
-    } else {
-      setSelectedBranchIds(prev => prev.filter(id => id !== branchId));
-    }
-  };
+  // Use custom hooks for branch and service assignment
+  const { branches, selectedBranchIds, handleToggleBranch } = useBranchAssignment({
+    categoryId,
+    isOpen
+  });
+  const { assignServicesToBranches, isAssigningServices } = useServiceAssignment();
 
   const handleSubmit = async () => {
     if (!nameEn || !nameAr) return;
@@ -156,38 +108,19 @@ export const CategoryDialog = ({ trigger, onSuccess, categoryId, categoryEnName,
             category_name_en: nameEn,
             category_name_ar: nameAr
           }));
-          
+
           const { error: insertError } = await supabase
             .from('branch_categories')
             .insert(assignments);
-            
+
           if (insertError) throw insertError;
-          
+
           // Automatically assign all services under this category to the selected branches
-          const { data: services, error: servicesError } = await supabase
-            .from('services')
-            .select('id, name_en, name_ar')
-            .eq('category_id', categoryResult.id);
-            
-          if (servicesError) throw servicesError;
-          
-          if (services && services.length > 0) {
-            for (const branchId of branchesToAdd) {
-              const serviceAssignments = services.map(service => ({
-                branch_id: branchId,
-                service_id: service.id,
-                branch_name: branches.find(b => b.id === branchId)?.name,
-                service_name_en: service.name_en,
-                service_name_ar: service.name_ar
-              }));
-              
-              const { error: bulkInsertError } = await supabase
-                .from('branch_services')
-                .upsert(serviceAssignments, { onConflict: 'branch_id,service_id' });
-                
-              if (bulkInsertError) throw bulkInsertError;
-            }
-          }
+          await assignServicesToBranches({
+            categoryResult,
+            selectedBranchIds: branchesToAdd,
+            branches
+          });
         }
         
         // Remove assignments
@@ -287,9 +220,9 @@ export const CategoryDialog = ({ trigger, onSuccess, categoryId, categoryEnName,
           </Button>
           <Button
             onClick={handleSubmit}
-            disabled={isLoading || !nameEn || !nameAr}
+            disabled={(isLoading || isAssigningServices) || !nameEn || !nameAr}
           >
-            {isLoading ? 'Saving...' : isEditing ? 'Update' : 'Add'}
+            {(isLoading || isAssigningServices) ? 'Saving...' : isEditing ? 'Update' : 'Add'}
           </Button>
         </DialogFooter>
       </DialogContent>

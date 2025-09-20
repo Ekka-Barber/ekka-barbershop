@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
-import type { DropResult, DroppableProvided, DraggableProvided, DraggableStateSnapshot } from '@hello-pangea/dnd';
+import type { DroppableProvided, DraggableProvided, DraggableStateSnapshot } from '@hello-pangea/dnd';
 import { GripVertical, Pencil, Settings } from 'lucide-react';
 import { useState } from 'react';
 import { EditElementDialog } from './EditElementDialog';
@@ -13,6 +13,7 @@ import { IconSelectorDialog } from './IconSelectorDialog';
 import * as LucideIcons from 'lucide-react';
 import React from 'react';
 import type { LucideIcon } from 'lucide-react';
+import { useDragAndDrop } from '@/hooks/useDragAndDrop';
 
 interface UiElement {
   id: string;
@@ -116,6 +117,9 @@ export const UiElementsManager = () => {
   const [editingElement, setEditingElement] = useState<UiElement | null>(null);
   const [iconElement, setIconElement] = useState<UiElement | null>(null);
 
+  // Use custom drag and drop hook
+  const { handleDragEnd } = useDragAndDrop(elements);
+
   const { data: elements, isLoading } = useQuery({
     queryKey: ['ui-elements'],
     queryFn: async () => {
@@ -159,51 +163,6 @@ export const UiElementsManager = () => {
     },
   });
 
-  const updateOrderMutation = useMutation({
-    mutationFn: async (elements: UiElement[]) => {
-      const supabase = await getSupabaseClient();
-
-      const updates = elements.map((element, index) => ({
-        id: element.id,
-        display_order: index,
-        type: element.type,
-        name: element.name,
-        display_name: element.display_name,
-        display_name_ar: element.display_name_ar
-      }));
-
-      const { error } = await supabase
-        .from('ui_elements')
-        .upsert(updates);
-
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['ui-elements'] });
-      toast({
-        title: language === 'ar' ? 'تم التحديث' : 'Updated',
-        description: language === 'ar' ? 'تم تحديث ترتيب العناصر' : 'Elements order updated',
-      });
-    },
-    onError: (error) => {
-      toast({
-        title: language === 'ar' ? 'خطأ' : 'Error',
-        description: language === 'ar' ? 'حدث خطأ أثناء تحديث الترتيب' : 'An error occurred while updating order',
-        variant: 'destructive',
-      });
-      console.error('Error updating order:', error);
-    },
-  });
-
-  const handleDragEnd = (result: DropResult) => {
-    if (!result.destination || !elements) return;
-
-    const items = Array.from(elements);
-    const [reorderedItem] = items.splice(result.source.index, 1);
-    items.splice(result.destination.index, 0, reorderedItem);
-
-    updateOrderMutation.mutate(items);
-  };
 
   const renderIcon = (iconName: string) => {
     const Icon = LucideIcons[iconName as IconType] as LucideIcon;

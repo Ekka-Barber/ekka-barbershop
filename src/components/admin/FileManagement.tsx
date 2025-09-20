@@ -7,6 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useState } from 'react';
+import React from 'react';
 
 // Temporary debug function - call testSupabaseInsert() in browser console
 const testSupabaseInsert = async () => {
@@ -110,7 +111,7 @@ if (typeof window !== 'undefined') {
   (window as Window & { testSupabaseInsert?: typeof testSupabaseInsert; testPDFUrls?: typeof testPDFUrls }).testPDFUrls = testPDFUrls;
 }
 
-export const FileManagement = () => {
+export const FileManagement = React.memo(() => {
   const [activeTab, setActiveTab] = useState<string>("all");
   
   const {
@@ -353,4 +354,6 @@ export const FileManagement = () => {
       </div>
     </div>
   );
-};
+});
+
+FileManagement.displayName = 'FileManagement';
