@@ -134,15 +134,39 @@ export const FileManagement = React.memo(() => {
     updateEndDateMutation,
   } = useFileManagement();
 
-  const { handleEndDateUpdate, handleRemoveEndDate } = useEndDateManager({
+  const { handleEndDateUpdate: originalHandleEndDateUpdate, handleRemoveEndDate } = useEndDateManager({
     selectedDate,
     selectedTime,
     updateEndDateMutation
   });
 
-  const { handleDragEnd } = useDragAndDrop(files || []);
+  const { handleDragEnd: originalHandleDragEnd } = useDragAndDrop(files || []);
 
-  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>, category: 'menu' | 'offers') => {
+  // Wrapper functions to match expected types
+  const handleEndDateUpdate = (fileId: string) => {
+    // Find the file by ID and call the original function
+    const file = files?.find(f => f.id === fileId);
+    if (file) {
+      originalHandleEndDateUpdate(file);
+    }
+  };
+
+  const handleDragEnd = (result: DropResult) => {
+    originalHandleDragEnd(result);
+  };
+
+  // Wrapper functions for mutations to match expected types
+  const wrappedToggleActiveMutation = {
+    ...toggleActiveMutation,
+    mutate: (variables: { id: string; isActive: boolean }) => toggleActiveMutation.mutate(variables)
+  };
+
+  const wrappedDeleteMutation = {
+    ...deleteMutation,
+    mutate: (file: FileMetadata) => deleteMutation.mutate(file)
+  };
+
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>, category: string) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
@@ -191,10 +215,10 @@ export const FileManagement = React.memo(() => {
 
   const menuFiles = files?.filter(f => f.category === 'menu') || [];
   const offerFiles = files?.filter(f => f.category === 'offers') || [];
-  const filteredFiles = activeTab === 'all' 
-    ? files 
-    : activeTab === 'menu' 
-      ? menuFiles 
+  const filteredFiles = activeTab === 'all'
+    ? (files || [])
+    : activeTab === 'menu'
+      ? menuFiles
       : offerFiles;
 
   const fileCounts = {
@@ -299,8 +323,8 @@ export const FileManagement = React.memo(() => {
               setSelectedTime={setSelectedTime}
               handleEndDateUpdate={handleEndDateUpdate}
               handleRemoveEndDate={handleRemoveEndDate}
-              toggleActiveMutation={toggleActiveMutation}
-              deleteMutation={deleteMutation}
+              toggleActiveMutation={wrappedToggleActiveMutation}
+              deleteMutation={wrappedDeleteMutation}
               handleDragEnd={handleDragEnd}
             />
 
@@ -313,8 +337,8 @@ export const FileManagement = React.memo(() => {
               setSelectedTime={setSelectedTime}
               handleEndDateUpdate={handleEndDateUpdate}
               handleRemoveEndDate={handleRemoveEndDate}
-              toggleActiveMutation={toggleActiveMutation}
-              deleteMutation={deleteMutation}
+              toggleActiveMutation={wrappedToggleActiveMutation}
+              deleteMutation={wrappedDeleteMutation}
               handleDragEnd={handleDragEnd}
             />
           </TabsContent>
@@ -329,12 +353,12 @@ export const FileManagement = React.memo(() => {
               setSelectedTime={setSelectedTime}
               handleEndDateUpdate={handleEndDateUpdate}
               handleRemoveEndDate={handleRemoveEndDate}
-              toggleActiveMutation={toggleActiveMutation}
-              deleteMutation={deleteMutation}
+              toggleActiveMutation={wrappedToggleActiveMutation}
+              deleteMutation={wrappedDeleteMutation}
               handleDragEnd={handleDragEnd}
             />
           </TabsContent>
-          
+
           <TabsContent value="offers" className="space-y-6 mt-0">
             <FileListSection
               category="offers"
@@ -345,8 +369,8 @@ export const FileManagement = React.memo(() => {
               setSelectedTime={setSelectedTime}
               handleEndDateUpdate={handleEndDateUpdate}
               handleRemoveEndDate={handleRemoveEndDate}
-              toggleActiveMutation={toggleActiveMutation}
-              deleteMutation={deleteMutation}
+              toggleActiveMutation={wrappedToggleActiveMutation}
+              deleteMutation={wrappedDeleteMutation}
               handleDragEnd={handleDragEnd}
             />
           </TabsContent>

@@ -117,9 +117,6 @@ export const UiElementsManager = () => {
   const [editingElement, setEditingElement] = useState<UiElement | null>(null);
   const [iconElement, setIconElement] = useState<UiElement | null>(null);
 
-  // Use custom drag and drop hook
-  const { handleDragEnd } = useDragAndDrop(elements);
-
   const { data: elements, isLoading } = useQuery({
     queryKey: ['ui-elements'],
     queryFn: async () => {
@@ -134,6 +131,9 @@ export const UiElementsManager = () => {
       return data as UiElement[];
     }
   });
+
+  // Use custom drag and drop hook
+  const { handleDragEnd } = useDragAndDrop(elements);
 
   const updateVisibilityMutation = useMutation({
     mutationFn: async ({ id, is_visible }: { id: string; is_visible: boolean }) => {
