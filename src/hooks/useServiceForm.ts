@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabaseClient } from '@/services/supabaseService';
 import { useToast } from "@/components/ui/use-toast";
 import type { Service } from '@/types/service';
 
@@ -9,12 +9,12 @@ export const useServiceForm = (onSuccess: () => void) => {
     category_id: '',
     name_en: '',
     name_ar: '',
-    description_en: null,
-    description_ar: null,
+    description_en: undefined,
+    description_ar: undefined,
     duration: 0,
     price: 0,
-    discount_type: null,
-    discount_value: null,
+    discount_type: undefined,
+    discount_value: undefined,
   });
 
   const { toast } = useToast();
@@ -22,11 +22,12 @@ export const useServiceForm = (onSuccess: () => void) => {
 
   const addServiceMutation = useMutation({
     mutationFn: async (service: Partial<Service>) => {
-      if (!service.category_id || !service.name_en || !service.name_ar || 
+      if (!service.category_id || !service.name_en || !service.name_ar ||
           service.duration === undefined || service.price === undefined) {
         throw new Error('Missing required fields');
       }
 
+      const supabase = await getSupabaseClient();
       await supabase.rpc('set_branch_manager_code', { code: 'true' });
       const { data, error } = await supabase
         .from('services')
@@ -44,7 +45,7 @@ export const useServiceForm = (onSuccess: () => void) => {
         })
         .select()
         .single();
-      
+
       if (error) throw error;
       return data;
     },
@@ -54,12 +55,12 @@ export const useServiceForm = (onSuccess: () => void) => {
         category_id: '',
         name_en: '',
         name_ar: '',
-        description_en: null,
-        description_ar: null,
+        description_en: undefined,
+        description_ar: undefined,
         duration: 0,
         price: 0,
-        discount_type: null,
-        discount_value: null,
+        discount_type: undefined,
+        discount_value: undefined,
       });
       onSuccess();
     },
@@ -75,11 +76,12 @@ export const useServiceForm = (onSuccess: () => void) => {
 
   const updateServiceMutation = useMutation({
     mutationFn: async (service: Partial<Service>) => {
-      if (!service.id || !service.category_id || !service.name_en || !service.name_ar || 
+      if (!service.id || !service.category_id || !service.name_en || !service.name_ar ||
           service.duration === undefined || service.price === undefined) {
         throw new Error('Missing required fields');
       }
 
+      const supabase = await getSupabaseClient();
       await supabase.rpc('set_branch_manager_code', { code: 'true' });
       const { data, error } = await supabase
         .from('services')
@@ -97,7 +99,7 @@ export const useServiceForm = (onSuccess: () => void) => {
         .eq('id', service.id)
         .select()
         .single();
-      
+
       if (error) throw error;
       return data;
     },
@@ -107,12 +109,12 @@ export const useServiceForm = (onSuccess: () => void) => {
         category_id: '',
         name_en: '',
         name_ar: '',
-        description_en: null,
-        description_ar: null,
+        description_en: undefined,
+        description_ar: undefined,
         duration: 0,
         price: 0,
-        discount_type: null,
-        discount_value: null,
+        discount_type: undefined,
+        discount_value: undefined,
       });
       onSuccess();
     },

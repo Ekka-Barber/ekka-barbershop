@@ -8,7 +8,7 @@ import { ServiceDialog } from './ServiceDialog';
 import { formatPrice } from '@/utils/formatters';
 import { Separator } from '@/components/ui/separator';
 import { ServiceBranchAssignment } from './service-management/ServiceBranchAssignment';
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabaseClient } from '@/services/supabaseService';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -43,6 +43,8 @@ const ServiceItem = React.memo(({ service, onDelete }: ServiceItemProps) => {
       
       setIsFetchingBranches(true);
       try {
+        const supabase = await getSupabaseClient();
+
         const { data, error } = await supabase
           .from('branch_services')
           .select('branch_id, branch_name')

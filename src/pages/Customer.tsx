@@ -2,7 +2,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { useEffect, lazy, Suspense } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabaseClient } from '@/services/supabaseService';
 import { trackViewContent } from "@/utils/tiktokTracking";
 import { PullToRefresh } from "@/components/common/PullToRefresh";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -42,11 +42,12 @@ const Customer = () => {
   const { data: branches } = useQuery({
     queryKey: ['branches'],
     queryFn: async () => {
+      const supabase = await getSupabaseClient();
       const { data, error } = await supabase
         .from('branches')
         .select('id, name, name_ar, address, address_ar, is_main, whatsapp_number, google_maps_url, google_place_id');
       if (error) throw error;
-      
+
       return data as Branch[];
     }
   });

@@ -2,7 +2,7 @@ import { Button } from '@/components/ui/button';
 import { ShieldAlert, Menu } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { getSupabaseClient } from '@/services/supabaseService';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useSidebar } from '@/components/ui/sidebar/SidebarContext';
 
@@ -14,10 +14,12 @@ export const AdminHeader = () => {
   const { data: branchCount } = useQuery({
     queryKey: ['branchCount'],
     queryFn: async () => {
+      const supabase = await getSupabaseClient();
+
       const { count, error } = await supabase
         .from('branches')
         .select('*', { count: 'exact', head: true });
-        
+
       if (error) throw error;
       return count || 0;
     },

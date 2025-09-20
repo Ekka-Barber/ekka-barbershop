@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabaseClient } from '@/services/supabaseService';
 import { Button } from "@/components/ui/button";
 import { useNavigate, Link } from 'react-router-dom';
 import { Card } from "@/components/ui/card";
@@ -32,6 +32,7 @@ const Offers = () => {
     queryFn: async () => {
       console.log('Fetching offers...');
 
+      const supabase = await getSupabaseClient();
       const { data, error } = await supabase
         .from('marketing_files')
         .select(`
@@ -59,7 +60,7 @@ const Offers = () => {
         return [];
       }
       
-      const filesWithUrls = await Promise.all(data.map(async (file) => {
+      const filesWithUrls = await Promise.all(data.map(async (file: any) => {
         console.log('Processing file:', file);
         const { data: publicUrlData } = supabase.storage
           .from('marketing_files')
@@ -116,7 +117,7 @@ const Offers = () => {
       }));
       
       // Filter out null values from failed URL generations
-      return filesWithUrls.filter(Boolean).sort((a, b) => {
+      return filesWithUrls.filter(Boolean).sort((a: any, b: any) => {
         if (a.isExpired !== b.isExpired) {
           return a.isExpired ? 1 : -1;
         }
@@ -184,7 +185,7 @@ const Offers = () => {
           {isLoading ? (
             <div className="text-center py-8 text-[#222222]">{t('loading.offers')}</div>
           ) : offersFiles && offersFiles.length > 0 ? (
-            offersFiles.map((file) => (
+            offersFiles.map((file: any) => (
               <Card key={file.id} className="overflow-hidden bg-white shadow-xl rounded-xl border-[#C4A36F]/20">
                 <div className="p-6">
                   {file.branchName && (

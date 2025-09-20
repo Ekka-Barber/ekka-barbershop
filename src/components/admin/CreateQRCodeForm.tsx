@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabaseClient } from '@/services/supabaseService';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
@@ -14,6 +14,7 @@ const CreateQRCodeForm = () => {
 
   // Set owner access before creating QR code
   const setOwnerAccess = async () => {
+    const supabase = await getSupabaseClient();
     const { error } = await supabase.rpc('set_owner_access', { value: 'owner123' });
     if (error) {
       console.error('Error setting owner access:', error);
@@ -32,10 +33,11 @@ const CreateQRCodeForm = () => {
       // Use provided ID or generate a random one
       const qrId = id || `qr-${Math.random().toString(36).substring(2, 9)}`;
 
+      const supabase = await getSupabaseClient();
       const { error } = await supabase
         .from("qr_codes")
-        .insert([{ 
-          id: qrId, 
+        .insert([{
+          id: qrId,
           url,
           is_active: true
         }]);

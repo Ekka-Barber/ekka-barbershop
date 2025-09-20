@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabaseClient } from '@/services/supabaseService';
 import { useOptimizedCategories } from '@/hooks/useOptimizedCategories';
 import { CategoryList } from './category-management/CategoryList';
 import { CategoryActions } from './category-management/CategoryActions';
@@ -23,14 +23,28 @@ const ServiceCategoryList = () => {
     const searchParams = new URLSearchParams(window.location.search);
     const accessCode = searchParams.get('access');
     if (accessCode === 'owner123') {
-      void supabase.rpc('set_branch_manager_code', { code: 'true' });
+      const setCode = async () => {
+        const supabase = await getSupabaseClient();
+        await supabase.rpc('set_branch_manager_code', { code: 'true' });
+      };
+      void setCode();
     }
   }, []);
 
   useEffect(() => {
-    const cleanup = setupRealtimeSubscription();
+    const setupSubscription = async () => {
+      const cleanup = await setupRealtimeSubscription();
+      return () => {
+        cleanup();
+      };
+    };
+
+    const cleanupPromise = setupSubscription();
+
     return () => {
-      cleanup();
+      cleanupPromise.then(cleanupFn => {
+        if (cleanupFn) cleanupFn();
+      });
     };
   }, [setupRealtimeSubscription]);
 
@@ -44,16 +58,18 @@ const ServiceCategoryList = () => {
 
   const handleDeleteCategory = useCallback(async (categoryId: string) => {
     try {
+      const supabase = await getSupabaseClient();
+
       const { error } = await supabase
         .from('service_categories')
         .delete()
         .eq('id', categoryId);
-        
+
       if (error) {
         console.error('Delete error:', error);
         throw error;
       }
-      
+
       toast({
         title: "Category Deleted",
         description: "Category has been deleted successfully.",
@@ -86,10 +102,12 @@ const ServiceCategoryList = () => {
         display_order: index
       }));
 
+      const supabase = await getSupabaseClient();
+
       const { error } = await supabase
         .from('service_categories')
         .upsert(updates, { onConflict: 'id' });
-        
+
       if (error) {
         console.error('Update error:', error);
         throw error;

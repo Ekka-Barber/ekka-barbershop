@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
-import { supabase } from '@/integrations/supabase/client';
+import { getSupabaseClient } from '@/services/supabaseService';
 import { Badge } from '@/components/ui/badge';
 import { toast } from '@/components/ui/use-toast';
 
@@ -22,6 +22,8 @@ export const CategoryBranchAssignment = ({ categoryId, categoryName }: CategoryB
 
   const fetchBranches = async () => {
     try {
+      const supabase = await getSupabaseClient();
+
       const { data, error } = await supabase
         .from('branches')
         .select('id, name')
@@ -36,6 +38,8 @@ export const CategoryBranchAssignment = ({ categoryId, categoryName }: CategoryB
 
   const fetchAssignments = useCallback(async () => {
     try {
+      const supabase = await getSupabaseClient();
+
       const { data, error } = await supabase
         .from('branch_categories')
         .select('branch_id')
@@ -52,6 +56,8 @@ export const CategoryBranchAssignment = ({ categoryId, categoryName }: CategoryB
 
   const toggleBranchAssignment = async (branchId: string, isChecked: boolean) => {
     try {
+      const supabase = await getSupabaseClient();
+
       if (isChecked) {
         // Add assignment
         const { error } = await supabase

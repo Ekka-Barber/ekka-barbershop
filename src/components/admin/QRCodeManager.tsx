@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabaseClient } from '@/services/supabaseService';
 import { Loader2, PieChart, QrCode } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -34,6 +34,8 @@ const QRCodeManager = () => {
         throw new Error("Failed to set owner access");
       }
 
+      const supabase = await getSupabaseClient();
+
       const { data, error } = await supabase
         .from("qr_codes")
         .select("*")
@@ -43,7 +45,7 @@ const QRCodeManager = () => {
         console.error("Error fetching QR codes:", error);
         throw error;
       }
-      
+
       return data;
     },
   });

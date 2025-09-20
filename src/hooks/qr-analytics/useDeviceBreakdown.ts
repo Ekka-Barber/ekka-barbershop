@@ -1,14 +1,16 @@
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabaseClient } from '@/services/supabaseService';
 
 export async function fetchDeviceBreakdown(selectedQrId: string, startDate: Date) {
+  const supabase = await getSupabaseClient();
+
   const { data: deviceData, error: deviceError } = await supabase.rpc(
     'get_device_breakdown',
-    { 
+    {
       p_qr_id: selectedQrId,
       p_start_date: startDate.toISOString()
     }
   );
-    
+
   if (deviceError) throw deviceError;
   
   // Process data for device breakdown
@@ -24,14 +26,16 @@ export async function fetchDeviceBreakdown(selectedQrId: string, startDate: Date
 }
 
 export async function fetchReferrerBreakdown(selectedQrId: string, startDate: Date) {
+  const supabase = await getSupabaseClient();
+
   const { data: referrerData, error: referrerError } = await supabase.rpc(
     'get_referrer_breakdown',
-    { 
+    {
       p_qr_id: selectedQrId,
       p_start_date: startDate.toISOString()
     }
   );
-    
+
   if (referrerError) throw referrerError;
   
   const referrerBreakdown: Record<string, number> = {};

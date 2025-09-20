@@ -1,6 +1,6 @@
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabaseClient } from '@/services/supabaseService';
 import { useToast } from "@/components/ui/use-toast";
 import type { FilePreview } from '@/types/admin';
 import type { FileUploadParams } from '../types';
@@ -18,14 +18,12 @@ export const useUploadFileMutation = (
 
   return useMutation({
     mutationFn: async ({ file, category, branchId, branchName, isAllBranches, endDate, endTime }: FileUploadParams) => {
+      const supabase = await getSupabaseClient();
       setUploading(true);
       console.log('Starting file upload:', { fileName: file.name, category, branchId, endDate });
 
       // Check Supabase client configuration
-      console.log('Supabase client config:', {
-        url: supabase.supabaseUrl,
-        key: supabase.supabaseKey ? 'present' : 'missing'
-      });
+      console.log('Supabase client initialized successfully');
 
       // Check authentication status
       const { data: user, error: authError } = await supabase.auth.getUser();

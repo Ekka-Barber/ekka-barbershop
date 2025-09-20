@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useToast } from "@/components/ui/use-toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabaseClient } from '@/services/supabaseService';
 import { useState, useEffect } from "react";
 
 interface EditElementDialogProps {
@@ -45,6 +45,8 @@ export const EditElementDialog = ({ isOpen, onClose, element }: EditElementDialo
 
   const updateMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
+      const supabase = await getSupabaseClient();
+
       const { error } = await supabase
         .from("ui_elements")
         .update({

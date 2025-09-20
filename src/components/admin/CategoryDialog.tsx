@@ -13,7 +13,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabaseClient } from '@/services/supabaseService';
 import { useToast } from "@/components/ui/use-toast";
 import { Checkbox } from "@/components/ui/checkbox";
 
@@ -43,6 +43,8 @@ export const CategoryDialog = ({ trigger, onSuccess, categoryId, categoryEnName,
   useEffect(() => {
     const fetchBranches = async () => {
       try {
+        const supabase = await getSupabaseClient();
+
         const { data, error } = await supabase
           .from('branches')
           .select('id, name')
@@ -62,6 +64,8 @@ export const CategoryDialog = ({ trigger, onSuccess, categoryId, categoryEnName,
     if (categoryId && isOpen) {
       const fetchAssignedBranches = async () => {
         try {
+          const supabase = await getSupabaseClient();
+
           const { data, error } = await supabase
             .from('branch_categories')
             .select('branch_id')
@@ -91,34 +95,36 @@ export const CategoryDialog = ({ trigger, onSuccess, categoryId, categoryEnName,
 
     setIsLoading(true);
     try {
+      const supabase = await getSupabaseClient();
+
       let categoryResult;
-      
+
       if (isEditing) {
         // Update existing category
         const { data, error } = await supabase
           .from('service_categories')
-          .update({ 
-            name_en: nameEn, 
-            name_ar: nameAr 
+          .update({
+            name_en: nameEn,
+            name_ar: nameAr
           })
           .eq('id', categoryId)
           .select()
           .single();
-          
+
         if (error) throw error;
         categoryResult = data;
       } else {
         // Create new category
         const { data, error } = await supabase
           .from('service_categories')
-          .insert({ 
-            name_en: nameEn, 
+          .insert({
+            name_en: nameEn,
             name_ar: nameAr,
             display_order: 0 // Default order
           })
           .select()
           .single();
-          
+
         if (error) throw error;
         categoryResult = data;
       }

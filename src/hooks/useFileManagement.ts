@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabaseClient } from '@/services/supabaseService';
 import type { FileMetadata, FilePreview } from '@/types/admin';
 import { useFileMutations } from './file-management/useFileMutations';
 
@@ -23,11 +23,12 @@ export const useFileManagement = () => {
   const { data: branches } = useQuery({
     queryKey: ['branches'],
     queryFn: async () => {
+      const supabase = await getSupabaseClient();
       const { data, error } = await supabase
         .from('branches')
         .select('*')
         .order('name', { ascending: true });
-      
+
       if (error) throw error;
       return data;
     }
@@ -37,6 +38,7 @@ export const useFileManagement = () => {
     queryKey: ['marketing-files'],
     queryFn: async () => {
       console.log('Fetching marketing files...');
+      const supabase = await getSupabaseClient();
       const { data, error } = await supabase
         .from('marketing_files')
         .select(`

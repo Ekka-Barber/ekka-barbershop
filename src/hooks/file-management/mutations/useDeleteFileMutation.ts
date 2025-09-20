@@ -1,6 +1,6 @@
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabaseClient } from '@/services/supabaseService';
 import { useToast } from "@/components/ui/use-toast";
 import type { FileMetadata } from '@/types/admin';
 
@@ -11,13 +11,15 @@ export const useDeleteFileMutation = () => {
   return useMutation({
     mutationFn: async (file: FileMetadata) => {
       console.log('Starting file deletion process:', file);
-      
+
+      const supabase = await getSupabaseClient();
+
       try {
         console.log('Deleting from storage:', file.file_path);
         const { error: storageError } = await supabase.storage
           .from('marketing_files')
           .remove([file.file_path]);
-        
+
         if (storageError) {
           console.error('Storage deletion error:', storageError);
           throw new Error(`Failed to delete file from storage: ${storageError.message}`);
@@ -28,7 +30,7 @@ export const useDeleteFileMutation = () => {
           .from('marketing_files')
           .delete()
           .eq('id', file.id);
-        
+
         if (dbError) {
           console.error('Database deletion error:', dbError);
           console.log('Attempting to rollback storage deletion...');

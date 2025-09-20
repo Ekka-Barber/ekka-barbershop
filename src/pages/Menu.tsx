@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabaseClient } from '@/services/supabaseService';
 import { Button } from "@/components/ui/button";
 import { useNavigate, Link } from 'react-router-dom';
 import { Card } from "@/components/ui/card";
@@ -37,6 +37,7 @@ const Menu = () => {
   // Separate the fetch function for better type inference
   const fetchMenu = async () => {
     console.log('Fetching active menu files...');
+    const supabase = await getSupabaseClient();
     const { data, error } = await supabase
       .from('marketing_files')
       .select('*')

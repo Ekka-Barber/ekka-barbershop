@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabaseClient } from '@/services/supabaseService';
 import { useToast } from "@/components/ui/use-toast";
 import type { FileEndDateParams } from '../types';
 
@@ -10,21 +10,23 @@ export const useUpdateEndDateMutation = () => {
   return useMutation({
     mutationFn: async ({ id, endDate, endTime }: FileEndDateParams) => {
       console.log('Updating end date:', { id, endDate, endTime });
-      
+
+      const supabase = await getSupabaseClient();
+
       // Create a full timestamp if both date and time are provided
-      const endDateTime = endDate && endTime 
-        ? `${endDate}T${endTime}:00` 
-        : endDate 
+      const endDateTime = endDate && endTime
+        ? `${endDate}T${endTime}:00`
+        : endDate
         ? `${endDate}T23:59:00`
         : null;
-      
+
       const { error } = await supabase
         .from('marketing_files')
-        .update({ 
+        .update({
           end_date: endDateTime
         })
         .eq('id', id);
-      
+
       if (error) throw error;
     },
     onSuccess: () => {
