@@ -12,7 +12,6 @@ const BranchesTab = lazy(() => import('@/components/admin/branch-management/Bran
 const GoogleAdsTab = lazy(() => import('@/components/admin/GoogleAdsTab').then(mod => ({ default: mod.GoogleAdsTab })));
 
 // Preload critical components
-const preloadServices = () => import('@/components/admin/ServiceCategoryList');
 const preloadBranches = () => import('@/components/admin/branch-management/BranchesTab');
 
 // Enhanced loading component for heavy features
@@ -31,7 +30,6 @@ const TabLoader = ({ feature }: { feature?: string }) => (
 // Preload critical components on mount
 if (typeof window !== 'undefined') {
   setTimeout(() => {
-    preloadServices();
     preloadBranches();
   }, 100);
 }

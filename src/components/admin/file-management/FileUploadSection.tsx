@@ -24,7 +24,7 @@ interface FileUploadSectionProps {
   setSelectedDate: (date: Date | undefined) => void;
   selectedTime: string;
   setSelectedTime: (time: string) => void;
-  handleFileUpload: (e: React.ChangeEvent<HTMLInputElement>, category: string) => void;
+  handleFileUpload: (e: React.ChangeEvent<HTMLInputElement>, category: "menu" | "offers") => void;
   uploading: boolean;
   filePreview: FilePreview | null;
 }

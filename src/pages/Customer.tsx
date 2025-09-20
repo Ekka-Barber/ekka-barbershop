@@ -1,9 +1,8 @@
 import { useLanguage } from "@/contexts/LanguageContext";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
-import { useEffect, lazy, Suspense } from "react";
+import { lazy, Suspense } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { trackViewContent } from "@/utils/tiktokTracking";
 import { PullToRefresh } from "@/components/common/PullToRefresh";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -32,13 +31,7 @@ import { InstallAppPrompt } from "@/components/installation/InstallAppPrompt";
 const Customer = () => {
   const { t } = useLanguage();
 
-  // Track page view
-  useEffect(() => {
-    trackViewContent({
-      pageId: 'home',
-      pageName: 'Home'
-    });
-  }, []);
+  // Page component logic
 
   // Get branches data
   const { data: branches } = useQuery({
@@ -131,7 +124,7 @@ const Customer = () => {
             <DialogTitle>{selectedBranch?.name}</DialogTitle>
             <DialogDescription>{selectedBranch?.address}</DialogDescription>
           </DialogHeader>
-          <Button onClick={() => handleLocationClick(selectedBranch ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(selectedBranch.address)}` : null)}>
+          <Button onClick={() => handleLocationClick(selectedBranch?.address ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(selectedBranch.address)}` : null)}>
             {t('open.maps')}
           </Button>
         </DialogContent>

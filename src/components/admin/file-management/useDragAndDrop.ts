@@ -1,7 +1,8 @@
-import { DropResult, FileMetadata } from '@/types/file-management';
+import { DropResult } from '@hello-pangea/dnd';
+import { FileMetadata } from '@/types/file-management';
 
 export const useDragAndDrop = (files: FileMetadata[]) => {
-  const handleDragEnd = (result: DropResult) => {
+  const handleDragEnd = (result: DropResult<string>) => {
     if (!result.destination) return;
     
     const { source, destination } = result;

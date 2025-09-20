@@ -1,5 +1,4 @@
 
-import { logger } from "./logger";
 
 // Extend Window interface to include TikTok pixel
 declare global {
@@ -38,7 +37,6 @@ export const trackViewContent = (params: ViewContentEvent) => {
   try {
     const ttq = window.ttq;
     if (ttq) {
-      logger.debug("Tracking view_content:", params);
       const eventParams: Record<string, unknown> = {
         content_id: params.pageId,
         content_name: params.pageName,
@@ -52,11 +50,9 @@ export const trackViewContent = (params: ViewContentEvent) => {
       }
 
       ttq.track('ViewContent', eventParams);
-    } else {
-      logger.debug("TikTok pixel not loaded, view_content event not fired");
     }
-  } catch (error) {
-    logger.error("Error tracking view_content:", error);
+  } catch {
+    // Silently handle tracking errors
   }
 };
 
@@ -64,7 +60,6 @@ export const trackButtonClick = (params: ButtonClickEvent) => {
   try {
     const ttq = window.ttq;
     if (ttq) {
-      logger.debug("Tracking button_click:", params);
       const eventParams: Record<string, unknown> = {
         button_id: params.buttonId,
         button_name: params.buttonName,
@@ -77,11 +72,9 @@ export const trackButtonClick = (params: ButtonClickEvent) => {
       }
 
       ttq.track('ClickButton', eventParams);
-    } else {
-      logger.debug("TikTok pixel not loaded, button_click event not fired");
     }
-  } catch (error) {
-    logger.error("Error tracking button_click:", error);
+  } catch {
+    // Silently handle tracking errors
   }
 };
 
@@ -89,7 +82,6 @@ export const trackLocationView = (params: LocationViewEvent) => {
   try {
     const ttq = window.ttq;
     if (ttq) {
-      logger.debug("Tracking location_view:", params);
       const eventParams: Record<string, unknown> = {
         location_id: params.id,
         location_name: params.name_en,
@@ -102,11 +94,9 @@ export const trackLocationView = (params: LocationViewEvent) => {
       }
 
       ttq.track('ViewLocation', eventParams);
-    } else {
-      logger.debug("TikTok pixel not loaded, location_view event not fired");
     }
-  } catch (error) {
-    logger.error("Error tracking location_view:", error);
+  } catch {
+    // Silently handle tracking errors
   }
 };
 
@@ -114,7 +104,6 @@ export const trackSocialMediaClick = (params: SocialMediaClickEvent) => {
   try {
     const ttq = window.ttq;
     if (ttq) {
-      logger.debug("Tracking social_media_click:", params);
       const eventParams: Record<string, unknown> = {
         platform: params.platform,
         url: params.url,
@@ -127,10 +116,8 @@ export const trackSocialMediaClick = (params: SocialMediaClickEvent) => {
       }
 
       ttq.track('SocialInteraction', eventParams);
-    } else {
-      logger.debug("TikTok pixel not loaded, social_media_click event not fired");
     }
-  } catch (error) {
-    logger.error("Error tracking social_media_click:", error);
+  } catch {
+    // Silently handle tracking errors
   }
 };

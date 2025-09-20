@@ -36,7 +36,6 @@ export const useFileManagement = () => {
   const { data: files, isLoading } = useQuery({
     queryKey: ['marketing-files'],
     queryFn: async () => {
-      console.log('Fetching marketing files...');
       const { data, error } = await supabase
         .from('marketing_files')
         .select(`

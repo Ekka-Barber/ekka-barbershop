@@ -11,10 +11,10 @@ type LoggerConfig = {
   enabled: boolean;
 };
 
-// Default configuration
+// Default configuration - disable all logging in production
 let config: LoggerConfig = {
-  minLevel: 'debug',
-  enabled: true
+  minLevel: 'error',
+  enabled: false
 };
 
 // Log level priority (higher number = higher priority)

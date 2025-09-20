@@ -5,7 +5,6 @@ import { useNavigate, Link } from 'react-router-dom';
 import { Card } from "@/components/ui/card";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useEffect, useState } from 'react';
-import { trackViewContent, trackButtonClick } from "@/utils/tiktokTracking";
 import AppLayout from '@/components/layout/AppLayout';
 import PDFViewer from '@/components/PDFViewer';
 
@@ -15,16 +14,11 @@ const Menu = () => {
   const [activeMenuUrl, setActiveMenuUrl] = useState<string | null>(null);
   
   useEffect(() => {
-    // Track page view after component mounts
-    trackViewContent({
-      pageId: 'menu',
-      pageName: 'Menu'
-    });
+    // Page initialization
   }, []);
 
   // Separate the fetch function for better type inference
   const fetchMenu = async () => {
-    console.log('Fetching active menu files...');
     const { data, error } = await supabase
       .from('marketing_files')
       .select('*')
@@ -53,13 +47,6 @@ const Menu = () => {
         };
       }));
       
-      console.log('Menu files with URLs:', menuFilesWithUrls);
-      
-      // Track menu view after successful load
-      trackViewContent({
-        pageId: 'menu_file',
-        pageName: 'Menu File'
-      });
       
       return menuFilesWithUrls;
     }
@@ -101,10 +88,6 @@ const Menu = () => {
           <div className="h-1 w-24 bg-[#C4A36F] mx-auto mb-6"></div>
           <Button 
             onClick={() => {
-              trackButtonClick({
-                buttonId: 'back_home',
-                buttonName: 'Back Home'
-              });
               navigate('/customer');
             }}
             className="bg-[#4A4A4A] hover:bg-[#3A3A3A] text-white transition-all duration-300 touch-target"

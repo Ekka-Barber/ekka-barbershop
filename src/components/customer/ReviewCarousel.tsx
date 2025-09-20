@@ -5,7 +5,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import { Review } from './hooks/useReviews';
-import { logger } from '@/utils/logger';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface ReviewCarouselProps {
@@ -77,11 +76,7 @@ export const ReviewCarousel = ({
   const reviewsLength = reviews.length;
   const reviewsPerPage = getReviewsPerPage();
   
-  // Debug log the reviews being passed to the carousel
   useEffect(() => {
-    logger.debug(`ReviewCarousel received ${reviewsLength} reviews to render in ${language} mode`);
-    logger.debug(`Viewport width: ${viewportWidth}px, showing ${reviewsPerPage} reviews per page`);
-    logger.debug(`Total pages: ${totalPages}`);
     setCurrentPage(0); // Reset to first page on language change
   }, [reviewsLength, language, viewportWidth, reviewsPerPage, totalPages]);
 
@@ -162,14 +157,14 @@ export const ReviewCarousel = ({
           {visibleReviews().map((review, index) => {
             const isLongReview = review.text && review.text.length > MAX_CHARS_BEFORE_TRUNCATE;
             return (
-              <motion.div 
+              <motion.div
                 key={`${review.author_name}-${index}-${review.time}`}
                 variants={cardVariants}
-                whileHover={{ 
-                  scale: 1.02, 
-                  boxShadow: "0 10px 25px -5px rgba(0,0,0,0.05), 0 8px 10px -6px rgba(0,0,0,0.01)",
+                whileHover={{
+                  scale: 1.02,
                   transition: { duration: 0.2 }
                 }}
+                className="hover:shadow-lg transition-shadow duration-200"
               >
                 <Card className="bg-white border border-gray-100 h-full flex flex-col rounded-xl overflow-hidden">
                   <motion.div 

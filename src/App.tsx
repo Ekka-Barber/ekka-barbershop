@@ -1,4 +1,4 @@
-import React, { lazy, Suspense, useEffect } from "react";
+import React, { lazy, Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -8,15 +8,6 @@ import Customer from "./pages/Customer";
 import { OfflineNotification } from "./components/common/OfflineNotification";
 import { ErrorBoundary } from "./components/common/ErrorBoundary";
 import { ServiceWorkerRegistration } from "./components/ServiceWorkerRegistration";
-import { logger } from "@/utils/logger";
-
-// Configure logger based on environment
-if (typeof window !== 'undefined') {
-  logger.configure({
-    minLevel: process.env.NODE_ENV === 'production' ? 'warn' : 'debug',
-    enabled: true
-  });
-}
 
 // Lazy load heavy route components with preloading
 const Admin = lazy(() => import("./pages/Admin"));
@@ -62,7 +53,6 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const access = searchParams.get('access');
 
   if (access !== 'owner123') {
-    logger.warn("Unauthorized access attempt to admin route");
     return <Navigate to="/customer" replace />;
   }
 
@@ -71,17 +61,6 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
 // Inner component that uses router hooks
 const AppRouter = () => {
-  const location = useLocation();
-
-  // Log page navigation only when location changes
-  useEffect(() => {
-    logger.info(`Page navigation: ${location.pathname}${location.search}`);
-  }, [location.pathname, location.search]);
-
-  // Log initialization only once
-  useEffect(() => {
-    logger.info(`App initializing in ${process.env.NODE_ENV} mode`);
-  }, []);
 
   return (
     <Routes>

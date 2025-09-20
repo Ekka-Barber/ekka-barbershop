@@ -14,7 +14,7 @@ export const LanguageSwitcher = () => {
     if (detectedLanguage !== language) {
       setLanguage(detectedLanguage);
     }
-  }, []); // Run only once on mount
+  }, [language, setLanguage]); // Include dependencies to satisfy ESLint - effect runs when language changes
 
   const handleLanguageToggle = () => {
     const nextLanguage = language === 'ar' ? 'en' : 'ar';

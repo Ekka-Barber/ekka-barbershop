@@ -19,7 +19,7 @@ interface FileListSectionProps {
   handleRemoveEndDate: (fileId: string) => void;
   toggleActiveMutation: UseMutationResult<void, Error, { id: string; isActive: boolean }>;
   deleteMutation: UseMutationResult<void, Error, FileMetadata>;
-  handleDragEnd: (result: DropResult) => void;
+  handleDragEnd: (result: DropResult<string>) => void;
 }
 
 export const FileListSection = ({

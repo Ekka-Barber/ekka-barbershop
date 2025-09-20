@@ -49,7 +49,7 @@ export const useElementAnimation = (visibleElements: UiElement[]) => {
     if (visibleElements.length > 0) {
       startElementAnimation(visibleElements);
     }
-  }, [elementIds]);
+  }, [elementIds, visibleElements]);
 
   return {
     animationComplete,

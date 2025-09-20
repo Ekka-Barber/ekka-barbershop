@@ -17,50 +17,30 @@ export const useUploadFileMutation = (
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ file, category, branchId, branchName, isAllBranches, endDate, endTime }: FileUploadParams) => {
+    mutationFn: async ({ file, category, branchName, isAllBranches, endDate, endTime }: FileUploadParams) => {
       setUploading(true);
-      console.log('Starting file upload:', { fileName: file.name, category, branchId, endDate });
-
-      // Check Supabase client configuration (removed protected property access)
-      console.log('Supabase client config check initiated');
 
       // Check authentication status
-      const { data: user, error: authError } = await supabase.auth.getUser();
-      console.log('Authentication status:', { user: user?.user?.id, error: authError });
+      const { error: authError } = await supabase.auth.getUser();
 
       // Check session
-      const { data: session, error: sessionError } = await supabase.auth.getSession();
-      console.log('Session status:', {
-        hasSession: !!session?.session,
-        hasAccessToken: !!session?.session?.access_token,
-        error: sessionError
-      });
+      const { data: session } = await supabase.auth.getSession();
 
       // Test basic query to verify database connectivity
-      console.log('Testing database connectivity...');
-      const { data: testQuery, error: testError } = await supabase
+      const { error: testError } = await supabase
         .from('marketing_files')
         .select('id')
         .limit(1);
 
-      console.log('Database connectivity test:', {
-        data: testQuery,
-        error: testError,
-        success: !testError
-      });
-
       if (authError) {
-        console.error('Authentication error:', authError);
         throw new Error('Authentication error: ' + authError.message);
       }
 
       if (!session.session?.access_token) {
-        console.error('No valid session found');
         throw new Error('No valid session. Please refresh the page and try again.');
       }
 
       if (testError) {
-        console.error('Database connectivity failed:', testError);
         throw new Error('Database connectivity test failed: ' + testError.message);
       }
 

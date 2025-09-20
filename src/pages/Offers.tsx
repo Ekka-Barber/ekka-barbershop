@@ -8,7 +8,6 @@ import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import CountdownTimer from '@/components/CountdownTimer';
 import { useEffect, useState } from 'react';
-import { trackViewContent, trackButtonClick } from "@/utils/tiktokTracking";
 import AppLayout from '@/components/layout/AppLayout';
 import PDFViewer from '@/components/PDFViewer';
 
@@ -20,18 +19,11 @@ const Offers = () => {
   useEffect(() => {
     // Mark router as ready after component mounts
     setIsRouterReady(true);
-
-    // Track page view after component mounts
-    trackViewContent({
-      pageId: 'offers',
-      pageName: 'Offers'
-    });
   }, []);
   
   const { data: offersFiles, isLoading, error: fetchError } = useQuery({
     queryKey: ['active-offers', language],
     queryFn: async () => {
-      console.log('Fetching offers...');
 
       const { data, error } = await supabase
         .from('marketing_files')
@@ -101,10 +93,7 @@ const Offers = () => {
           (now - endDate) < (3 * 24 * 60 * 60 * 1000) : false;
         
         if (!isExpired) {
-          trackViewContent({
-            pageId: `offer_${file.id}`,
-            pageName: 'Offer'
-          });
+          // Offer is active
         }
         
         return {
@@ -117,7 +106,8 @@ const Offers = () => {
       }));
       
       // Filter out null values from failed URL generations
-      return filesWithUrls.filter(Boolean).sort((a, b) => {
+      const validFiles = filesWithUrls.filter(item => item !== null && item !== undefined);
+      return validFiles.sort((a, b) => {
         if (a.isExpired !== b.isExpired) {
           return a.isExpired ? 1 : -1;
         }
@@ -180,10 +170,6 @@ const Offers = () => {
           <div className="h-1 w-24 bg-[#C4A36F] mx-auto mb-6"></div>
           <Button 
             onClick={() => {
-              trackButtonClick({
-                buttonId: 'back_home',
-                buttonName: 'Back Home'
-              });
               navigate('/customer');
             }}
             className="bg-[#4A4A4A] hover:bg-[#3A3A3A] text-white transition-all duration-300"
@@ -196,10 +182,10 @@ const Offers = () => {
           {isLoading ? (
             <div className="text-center py-8 text-[#222222]">{t('loading.offers')}</div>
           ) : offersFiles && offersFiles.length > 0 ? (
-            offersFiles.map((file) => (
-              <Card key={file.id} className="overflow-hidden bg-white shadow-xl rounded-xl border-[#C4A36F]/20">
+            offersFiles!.map((file) => (
+              <Card key={file!.id} className="overflow-hidden bg-white shadow-xl rounded-xl border-[#C4A36F]/20">
                 <div className="p-6">
-                  {file.branchName && (
+                  {file!.branchName && (
                     <div className="mb-4">
                       <Badge 
                         variant="secondary" 
@@ -213,31 +199,31 @@ const Offers = () => {
                           ${language === 'ar' ? 'rtl' : 'ltr'}
                         `}
                       >
-                        {getBadgeText(file.branchName)}
+                        {getBadgeText(file!.branchName)}
                       </Badge>
                     </div>
                   )}
                   <div className="relative">
-                    {file.isExpired && renderExpiredSticker()}
-                    {file.file_type.includes('pdf') ? (
-                      <div key={`pdf-${file.id}`}>
-                        <PDFViewer pdfUrl={file.url} />
+                    {file!.isExpired && renderExpiredSticker()}
+                    {file!.file_type.includes('pdf') ? (
+                      <div key={`pdf-${file!.id}`}>
+                        <PDFViewer pdfUrl={file!.url} />
                       </div>
                     ) : (
-                      <div className={`relative ${file.isExpired ? 'filter grayscale blur-[2px]' : ''}`}>
+                      <div className={`relative ${file!.isExpired ? 'filter grayscale blur-[2px]' : ''}`}>
                         <img
-                          src={file.url}
-                          alt={file.isExpired ? `Expired Offer - ${file.file_name || 'Special Offer'}` : "Special Offer"}
+                          src={file!.url}
+                          alt={file!.isExpired ? `Expired Offer - ${file!.file_name || 'Special Offer'}` : "Special Offer"}
                           className="w-full max-w-full h-auto rounded-lg transition-all duration-300"
-                          onLoad={() => console.log('Image loaded successfully:', file.url)}
+                          onLoad={() => console.log('Image loaded successfully:', file!.url)}
                           onError={(e) => {
-                            console.error('Image failed to load:', file.url);
+                            console.error('Image failed to load:', file!.url);
                             // Log detailed error information
                             console.error('Image error details:', {
-                              fileName: file.file_name,
-                              filePath: file.file_path,
-                              fileType: file.file_type,
-                              generatedUrl: file.url
+                              fileName: file!.file_name,
+                              filePath: file!.file_path,
+                              fileType: file!.file_type,
+                              generatedUrl: file!.url
                             });
                             e.currentTarget.src = '/placeholder.svg';
                             // Show toast for better user feedback
@@ -247,8 +233,8 @@ const Offers = () => {
                       </div>
                     )}
                   </div>
-                  {file.end_date && !file.isExpired && (
-                    <CountdownTimer endDate={file.end_date} />
+                  {file!.end_date && !file!.isExpired && (
+                    <CountdownTimer endDate={file!.end_date} />
                   )}
                 </div>
               </Card>
