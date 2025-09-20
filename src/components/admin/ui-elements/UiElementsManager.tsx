@@ -111,7 +111,7 @@ const DraggableItem = React.memo(({
 
 DraggableItem.displayName = 'DraggableItem';
 
-export const UiElementsManager = () => {
+const UiElementsManager = () => {
   const { toast } = useToast();
   const { language } = useLanguage();
   const queryClient = useQueryClient();
@@ -272,3 +272,5 @@ export const UiElementsManager = () => {
     </div>
   );
 };
+
+export default UiElementsManager;

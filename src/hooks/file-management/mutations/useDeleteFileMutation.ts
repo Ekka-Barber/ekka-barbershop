@@ -10,10 +10,7 @@ export const useDeleteFileMutation = () => {
 
   return useMutation({
     mutationFn: async (file: FileMetadata) => {
-      console.log('Starting file deletion process:', file);
-      
       try {
-        console.log('Deleting from storage:', file.file_path);
         const { error: storageError } = await supabase.storage
           .from('marketing_files')
           .remove([file.file_path]);
@@ -23,7 +20,6 @@ export const useDeleteFileMutation = () => {
           throw new Error(`Failed to delete file from storage: ${storageError.message}`);
         }
 
-        console.log('Deleting from database:', file.id);
         const { error: dbError } = await supabase
           .from('marketing_files')
           .delete()
@@ -31,11 +27,9 @@ export const useDeleteFileMutation = () => {
         
         if (dbError) {
           console.error('Database deletion error:', dbError);
-          console.log('Attempting to rollback storage deletion...');
           throw new Error(`Failed to delete file record: ${dbError.message}`);
         }
 
-        console.log('File deletion completed successfully');
         // Return void to match expected type
         return;
       } catch (error) {

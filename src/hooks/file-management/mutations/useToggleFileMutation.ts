@@ -10,7 +10,6 @@ export const useToggleFileMutation = () => {
 
   return useMutation({
     mutationFn: async ({ id, isActive }: FileToggleParams) => {
-      console.log('Toggling file status:', { id, isActive });
       const { error } = await supabase
         .from('marketing_files')
         .update({ is_active: isActive })

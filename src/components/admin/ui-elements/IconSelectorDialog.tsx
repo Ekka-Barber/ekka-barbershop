@@ -36,23 +36,22 @@ export const IconSelectorDialog = ({
 
   // Use the imported static list
   const allIcons = useMemo(() => {
-    console.log('[IconSelectorDialog] Using static icon list. Total icons:', lucideIconList.length);
     return lucideIconList;
   }, []);
 
   // Filter icons based on search term
   const filteredIcons = useMemo(() => {
-    console.log('[IconSelectorDialog] Filtering based on search term:', searchTerm);
     if (!searchTerm) return allIcons; // Return the full list if search is empty
-    const results = allIcons.filter((name) =>
+    return allIcons.filter((name) =>
       name.toLowerCase().includes(searchTerm.toLowerCase())
     );
-    console.log('[IconSelectorDialog] Filtered results count:', results.length);
-    return results;
   }, [allIcons, searchTerm]);
 
   const updateMutation = useMutation({
-    mutationFn: async (iconName: string) => {
+    mutationFn: async (iconName: string | null) => {
+      if (!iconName || !elementId) {
+        throw new Error('Icon name and element ID are required');
+      }
       const { error } = await supabase
         .from("ui_elements")
         .update({ icon: iconName })
@@ -84,7 +83,9 @@ export const IconSelectorDialog = ({
 
   const handleSave = () => {
     if (selectedIcon && elementId) {
-      updateMutation.mutate(selectedIcon);
+      if (selectedIcon) {
+        updateMutation.mutate(selectedIcon);
+      }
     }
   };
 

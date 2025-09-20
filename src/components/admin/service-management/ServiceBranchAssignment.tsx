@@ -78,7 +78,6 @@ export const ServiceBranchAssignment = ({ serviceId, serviceName, serviceNameAr 
           .maybeSingle();
           
         if (existingAssignment) {
-          console.log('Assignment already exists, skipping insert');
           setAssignedBranchIds(prev => [...prev, branchId]);
           return;
         }

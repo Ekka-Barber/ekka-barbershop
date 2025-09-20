@@ -1,5 +1,5 @@
 import React from 'react';
-import { Home, FileText, QrCode, Layout, TrendingUp } from 'lucide-react';
+import { Home, FileText, QrCode, Layout } from 'lucide-react';
 import { 
   Sidebar, 
   SidebarMenu, 
@@ -23,7 +23,6 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ activeTab, onTabChan
     { id: 'files', label: 'Files', icon: <FileText /> },
     { id: 'qrcodes', label: 'QR Codes', icon: <QrCode /> },
     { id: 'ui-elements', label: 'UI Elements', icon: <Layout /> },
-    { id: 'google-ads', label: 'Google Ads', icon: <TrendingUp /> },
   ];
 
   const handleTabClick = (tabId: string) => {

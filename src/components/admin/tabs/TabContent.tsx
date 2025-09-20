@@ -7,9 +7,8 @@ import { ServicesTab } from './ServicesTab';
 // Lazy-loaded components for better bundle optimization
 const FileManagement = lazy(() => import('@/components/admin/FileManagement').then(mod => ({ default: mod.FileManagement })));
 const QRCodeManager = lazy(() => import('@/components/admin/QRCodeManager'));
-const UiElementsManager = lazy(() => import('@/components/admin/ui-elements/UiElementsManager').then(mod => ({ default: mod.UiElementsManager })));
+const UiElementsManager = lazy(() => import('@/components/admin/ui-elements/UiElementsManager'));
 const BranchesTab = lazy(() => import('@/components/admin/branch-management/BranchesTab').then(mod => ({ default: mod.BranchesTab })));
-const GoogleAdsTab = lazy(() => import('@/components/admin/GoogleAdsTab').then(mod => ({ default: mod.GoogleAdsTab })));
 
 // Preload critical components
 const preloadBranches = () => import('@/components/admin/branch-management/BranchesTab');
@@ -85,13 +84,6 @@ export const TabContent = () => {
         </ErrorBoundary>
       </TabsContent>
 
-      <TabsContent value="google-ads" className="space-y-4 animate-in fade-in-0 slide-in-from-right-2 duration-300">
-        <ErrorBoundary>
-          <Suspense fallback={<TabLoader feature="Google Ads Management" />}>
-            <GoogleAdsTab />
-          </Suspense>
-        </ErrorBoundary>
-      </TabsContent>
     </>
   );
 };

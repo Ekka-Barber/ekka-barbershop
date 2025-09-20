@@ -45,38 +45,20 @@ const Offers = () => {
         throw error;
       }
 
-      console.log('Offers query result:', { data, error, dataLength: data?.length || 0 });
-
       if (!data || data.length === 0) {
-        console.log('No offers found in the database');
         return [];
       }
       
       const filesWithUrls = await Promise.all(data.map(async (file) => {
-        console.log('Processing file:', file);
         const { data: publicUrlData } = supabase.storage
           .from('marketing_files')
           .getPublicUrl(file.file_path);
-        
-        // Log URL generation details
-        console.log('Generated URL for file:', {
-          fileName: file.file_name,
-          filePath: file.file_path,
-          generatedUrl: publicUrlData?.publicUrl
-        });
 
         // Verify URL is valid
         if (!publicUrlData?.publicUrl) {
           console.error('Failed to get public URL for file:', file.file_path);
           return null;
         }
-
-        console.log('File processing successful:', {
-          id: file.id,
-          fileName: file.file_name,
-          url: publicUrlData.publicUrl,
-          branchName: language === 'ar' ? file.branch?.name_ar : file.branch?.name
-        });
 
         // Validate URL format
         try {
@@ -215,7 +197,7 @@ const Offers = () => {
                           src={file!.url}
                           alt={file!.isExpired ? `Expired Offer - ${file!.file_name || 'Special Offer'}` : "Special Offer"}
                           className="w-full max-w-full h-auto rounded-lg transition-all duration-300"
-                          onLoad={() => console.log('Image loaded successfully:', file!.url)}
+                          onLoad={() => {}}
                           onError={(e) => {
                             console.error('Image failed to load:', file!.url);
                             // Log detailed error information

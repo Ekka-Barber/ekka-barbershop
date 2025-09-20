@@ -21,9 +21,9 @@ const QRCodeManager = () => {
   const isMobile = useIsMobile();
   const { toast } = useToast();
   
-  // Debug mobile detection
+  // Debug mobile detection (removed console.log for cleaner output)
   useEffect(() => {
-    console.log("QRCodeManager - isMobile state:", isMobile);
+    // Mobile state tracking - no console output needed
   }, [isMobile]);
 
   const { data: qrCodes, isLoading, error: fetchError } = useQuery({

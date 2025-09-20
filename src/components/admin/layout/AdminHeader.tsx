@@ -1,14 +1,12 @@
 import { Button } from '@/components/ui/button';
-import { ShieldAlert, Menu } from 'lucide-react';
+import { ShieldAlert } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { useSidebar } from '@/components/ui/sidebar/SidebarContext';
 
 export const AdminHeader = () => {
   const isMobile = useIsMobile();
-  const { toggleSidebar } = useSidebar();
 
   // Fetch branch count for status badge
   const { data: branchCount } = useQuery({
@@ -17,7 +15,7 @@ export const AdminHeader = () => {
       const { count, error } = await supabase
         .from('branches')
         .select('*', { count: 'exact', head: true });
-        
+
       if (error) throw error;
       return count || 0;
     },
@@ -27,19 +25,9 @@ export const AdminHeader = () => {
     <header className="sticky top-0 z-10 border-b bg-white p-3 sm:p-4 shadow-sm">
       <div className="mx-auto flex justify-between items-center max-w-full overflow-hidden">
         <div className="flex items-center min-w-0 flex-1">
-          {isMobile && (
-            <Button
-              variant="ghost"
-              size="icon"
-              className="mr-2 md:hidden text-gray-700 hover:bg-gray-100 touch-manipulation"
-              onClick={toggleSidebar}
-            >
-              <Menu className="h-5 w-5" />
-              <span className="sr-only">Toggle menu</span>
-            </Button>
-          )}
-
-          <h1 className="text-lg sm:text-xl font-bold text-gray-900 truncate">Admin Dashboard</h1>
+          <h1 className={`${isMobile ? 'text-lg' : 'text-xl'} font-bold text-gray-900 truncate`}>
+            Admin Dashboard
+          </h1>
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>

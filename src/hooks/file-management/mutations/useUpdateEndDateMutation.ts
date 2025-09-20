@@ -9,8 +9,6 @@ export const useUpdateEndDateMutation = () => {
 
   return useMutation({
     mutationFn: async ({ id, endDate, endTime }: FileEndDateParams) => {
-      console.log('Updating end date:', { id, endDate, endTime });
-      
       // Create a full timestamp if both date and time are provided
       const endDateTime = endDate && endTime 
         ? `${endDate}T${endTime}:00` 

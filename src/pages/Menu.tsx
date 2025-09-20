@@ -31,9 +31,6 @@ const Menu = () => {
       throw error;
     }
 
-    console.log('Menu files returned:', data?.length || 0, 'files');
-    console.log('Menu files data:', data);
-    
     if (data && data.length > 0) {
       // Get public URLs for all menu files
       const menuFilesWithUrls = await Promise.all(data.map(async (file) => {

@@ -51,23 +51,15 @@ export const useUploadFileMutation = (
 
         const fileExt = file.name.split('.').pop();
         const fileName = `${crypto.randomUUID()}.${fileExt}`;
-        
-        console.log('Uploading to storage:', fileName);
+
         const { data: authUser, error: authCheck } = await supabase.auth.getUser();
-        console.log('Supabase auth status:', { user: authUser?.user?.id, error: authCheck });
 
         // Check if storage bucket exists and is accessible
-        console.log('Checking storage bucket...');
         const { data: buckets, error: bucketsError } = await supabase.storage.listBuckets();
-        console.log('Available buckets:', buckets?.map(b => b.name));
-        console.log('Buckets error:', bucketsError);
 
         const { data: uploadData, error: uploadError } = await supabase.storage
           .from('marketing_files')
           .upload(fileName, file);
-
-        console.log('Storage upload result:', uploadData);
-        console.log('Storage upload error:', uploadError);
 
         if (uploadError) {
           console.error('Storage upload failed:', uploadError);
@@ -95,7 +87,6 @@ export const useUploadFileMutation = (
         if (category === 'offers') {
           if (!isAllBranches && branchName) {
             // Verify that the branch name exists in the branches table
-            console.log('Verifying branch exists:', branchName);
             const { data: branchCheck, error: branchError } = await supabase
               .from('branches')
               .select('name')
@@ -107,19 +98,12 @@ export const useUploadFileMutation = (
               throw new Error(`Branch "${branchName}" not found. Please select a valid branch.`);
             }
 
-            console.log('Branch verified successfully:', branchCheck);
-
             recordData.branch_name = branchCheck.name;  // Use branch name for relationship (matches database schema)
           }
           // For all branches, branch_name remains null (already set to undefined by default)
         }
 
-        console.log('Inserting file metadata into database:', recordData);
-        console.log('Record data keys:', Object.keys(recordData));
-        console.log('Record data values:', Object.values(recordData));
-
         // Test a minimal insert first
-        console.log('Testing minimal insert...');
         const minimalRecord = {
           file_name: 'test.jpg',
           file_path: 'test.jpg',
@@ -128,7 +112,6 @@ export const useUploadFileMutation = (
           is_active: true
         };
 
-        console.log('Minimal record to insert:', minimalRecord);
 
         try {
           const { data: minimalResult, error: minimalError } = await supabase
@@ -136,15 +119,12 @@ export const useUploadFileMutation = (
             .insert(minimalRecord)
             .select();
 
-          console.log('Minimal insert result:', minimalResult);
-          console.log('Minimal insert error:', minimalError);
 
           if (minimalError) {
             console.error('Minimal insert failed, this indicates a fundamental issue');
             throw minimalError;
           }
 
-          console.log('Minimal insert succeeded, proceeding with full insert');
 
           // If minimal insert worked, try the full record
           const { data: insertResult, error: dbError } = await supabase
@@ -152,7 +132,6 @@ export const useUploadFileMutation = (
             .insert(recordData)
             .select();
 
-          console.log('Insert result:', insertResult);
 
           if (dbError) {
             console.error('Database insertion error:', dbError);

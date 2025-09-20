@@ -239,3 +239,5 @@ export const FileManagement = () => {
     </div>
   );
 };
+
+export default FileManagement;

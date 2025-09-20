@@ -74,16 +74,14 @@ export const FileEndDateManager = ({
                 <SelectValue placeholder="Select a time" />
               </SelectTrigger>
               <SelectContent>
-                {[...Array(24)].map((_, hour) => (
-                  <>
-                    <SelectItem key={`${hour}:00`} value={`${hour.toString().padStart(2, '0')}:00`}>
-                      {hour.toString().padStart(2, '0')}:00
-                    </SelectItem>
-                    <SelectItem key={`${hour}:30`} value={`${hour.toString().padStart(2, '0')}:30`}>
-                      {hour.toString().padStart(2, '0')}:30
-                    </SelectItem>
-                  </>
-                ))}
+                {[...Array(24)].map((_, hour) => [
+                  <SelectItem key={`${hour}:00`} value={`${hour.toString().padStart(2, '0')}:00`}>
+                    {hour.toString().padStart(2, '0')}:00
+                  </SelectItem>,
+                  <SelectItem key={`${hour}:30`} value={`${hour.toString().padStart(2, '0')}:30`}>
+                    {hour.toString().padStart(2, '0')}:30
+                  </SelectItem>
+                ]).flat()}
               </SelectContent>
             </Select>
           </div>

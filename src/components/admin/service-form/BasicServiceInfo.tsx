@@ -27,7 +27,6 @@ export const BasicServiceInfo = ({ service, categories, onChange, isMobile = fal
   useEffect(() => {
     if (service.category_id) {
       setSelectedCategory(service.category_id);
-      console.log("Category ID set:", service.category_id);
     }
   }, [service]);
 

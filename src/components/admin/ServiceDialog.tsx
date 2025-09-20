@@ -118,7 +118,6 @@ export const ServiceDialog = ({ categories, editService, onSuccess, trigger }: S
 
   useEffect(() => {
     if (editService && isOpen) {
-      console.log("Setting service data for editing:", editService);
       setNewService({
         ...editService,
         category_id: editService.category_id
