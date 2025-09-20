@@ -1,4 +1,4 @@
-import { Dialog, DialogContent, DialogDescription } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Star, MapPin, Quote } from 'lucide-react';
 import { Language } from '@/types/language';
@@ -21,6 +21,9 @@ export const ReviewModal = ({ isOpen, onClose, selectedReview, language }: Revie
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-h-[80vh] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 sm:max-w-xl p-0 border-0 shadow-xl rounded-xl" showCloseButton={false}>
+        <DialogTitle className="sr-only">
+          {language === 'ar' ? 'تقييم العميل' : 'Customer Review'}
+        </DialogTitle>
         {/* Decorative header with gradient */}
         <motion.div 
           className="bg-gradient-to-r from-[#4c4c4c] via-[#333333] to-[#C4A36F] px-6 py-5 rounded-t-xl relative overflow-hidden"

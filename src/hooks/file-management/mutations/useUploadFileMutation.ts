@@ -52,12 +52,7 @@ export const useUploadFileMutation = (
         const fileExt = file.name.split('.').pop();
         const fileName = `${crypto.randomUUID()}.${fileExt}`;
 
-        const { data: authUser, error: authCheck } = await supabase.auth.getUser();
-
-        // Check if storage bucket exists and is accessible
-        const { data: buckets, error: bucketsError } = await supabase.storage.listBuckets();
-
-        const { data: uploadData, error: uploadError } = await supabase.storage
+        const { error: uploadError } = await supabase.storage
           .from('marketing_files')
           .upload(fileName, file);
 
@@ -103,65 +98,41 @@ export const useUploadFileMutation = (
           // For all branches, branch_name remains null (already set to undefined by default)
         }
 
-        // Test a minimal insert first
-        const minimalRecord = {
-          file_name: 'test.jpg',
-          file_path: 'test.jpg',
-          file_type: 'image/jpeg',
-          category: 'menu' as const,
-          is_active: true
-        };
+        // Insert the record directly
+        const { data: insertedData, error: dbError } = await supabase
+          .from('marketing_files')
+          .insert(recordData)
+          .select();
 
 
-        try {
-          const { data: minimalResult, error: minimalError } = await supabase
-            .from('marketing_files')
-            .insert(minimalRecord)
-            .select();
+        if (dbError) {
+          console.error('Database insertion error:', dbError);
+          console.error('Error code:', dbError.code);
+          console.error('Error message:', dbError.message);
+          console.error('Error details:', dbError.details);
+          console.error('Error hint:', dbError.hint);
 
-
-          if (minimalError) {
-            console.error('Minimal insert failed, this indicates a fundamental issue');
-            throw minimalError;
+          // Cleanup the uploaded file if the database insert fails
+          try {
+            await supabase.storage
+              .from('marketing_files')
+              .remove([fileName]);
+          } catch (cleanupError) {
+            console.error('Failed to cleanup uploaded file:', cleanupError);
           }
-
-
-          // If minimal insert worked, try the full record
-          const { data: insertResult, error: dbError } = await supabase
-            .from('marketing_files')
-            .insert(recordData)
-            .select();
-
-
-          if (dbError) {
-            console.error('Database insertion error:', dbError);
-            console.error('Error code:', dbError.code);
-            console.error('Error message:', dbError.message);
-            console.error('Error details:', dbError.details);
-            console.error('Error hint:', dbError.hint);
-
-            // Cleanup the uploaded file if the database insert fails
-            try {
-              await supabase.storage
-                .from('marketing_files')
-                .remove([fileName]);
-            } catch (cleanupError) {
-              console.error('Failed to cleanup uploaded file:', cleanupError);
-            }
-            throw dbError;
-          }
-        } catch (error: unknown) {
-          console.error('Unexpected error during database insertion:', error);
-          if (error instanceof Error) {
-            console.error('Error type:', error.constructor.name);
-            console.error('Error message:', error.message);
-          } else {
-            console.error('Error details:', error);
-          }
-          throw error;
+          throw dbError;
         }
-      } catch (error) {
+
+        // Return the inserted data
+        return insertedData;
+      } catch (error: unknown) {
         console.error('Upload error:', error);
+        if (error instanceof Error) {
+          console.error('Error type:', error.constructor.name);
+          console.error('Error message:', error.message);
+        } else {
+          console.error('Error details:', error);
+        }
         throw error;
       } finally {
         setUploading(false);

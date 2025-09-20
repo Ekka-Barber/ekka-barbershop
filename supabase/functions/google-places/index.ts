@@ -41,16 +41,11 @@ serve(async (req) => {
       const body = await req.json();
       placeId = body.placeId;
       language = body.language || 'en';
-      console.log('Received POST request with body:', JSON.stringify({
-        placeId,
-        language
-      }));
     } else {
       // Parse the request URL to extract query parameters
       const url = new URL(req.url);
       placeId = url.searchParams.get('placeId');
       language = url.searchParams.get('language') || 'en';
-      console.log('Received GET request with query params:', placeId, language);
     }
 
     // Validate required parameters
@@ -67,16 +62,12 @@ serve(async (req) => {
       });
     }
 
-    console.log(`Processing request for placeId: ${placeId}, language: ${language}`);
-    
     // Construct the Google Places API URL
     const googlePlacesUrl = new URL('https://maps.googleapis.com/maps/api/place/details/json');
     googlePlacesUrl.searchParams.set('place_id', placeId);
     googlePlacesUrl.searchParams.set('fields', 'reviews');
     googlePlacesUrl.searchParams.set('key', apiKey);
     googlePlacesUrl.searchParams.set('language', language);
-
-    console.log(`Calling Google Places API at: ${googlePlacesUrl.toString().replace(apiKey, 'API_KEY_REDACTED')}`);
     
     // Fetch reviews from Google Places API
     const response = await fetch(googlePlacesUrl.toString(), {
@@ -103,11 +94,8 @@ serve(async (req) => {
     }
 
     const data = await response.json();
-    
-    // Log and return the response
-    console.log('Google Places API Response status:', data.status);
-    console.log('Reviews count:', data.result?.reviews?.length || 0);
-    
+
+    // Return the response
     return new Response(JSON.stringify({
       status: data.status,
       reviews: data.result?.reviews || []

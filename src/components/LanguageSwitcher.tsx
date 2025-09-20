@@ -1,20 +1,9 @@
 
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Globe } from "lucide-react";
-import { useEffect } from "react";
-import { detectSystemLanguage } from "@/utils/languageUtils";
 
 export const LanguageSwitcher = () => {
   const { language, setLanguage } = useLanguage();
-
-  // Set initial language based on system preference
-  useEffect(() => {
-    const detectedLanguage = detectSystemLanguage();
-    // Only set if different to avoid infinite loops
-    if (detectedLanguage !== language) {
-      setLanguage(detectedLanguage);
-    }
-  }, [language, setLanguage]); // Include dependencies to satisfy ESLint - effect runs when language changes
 
   const handleLanguageToggle = () => {
     const nextLanguage = language === 'ar' ? 'en' : 'ar';

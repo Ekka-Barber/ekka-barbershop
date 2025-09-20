@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Tables } from "@/types/supabase";
 import { useToast } from "@/components/ui/use-toast";
+import { logger } from "@/utils/logger";
 
 export const useUIElements = () => {
   const { toast } = useToast();
@@ -56,7 +57,7 @@ export const useUIElements = () => {
         }
       } catch (error) {
         // Silently handle cleanup errors - WebSocket might already be closed
-        console.debug('Channel cleanup warning:', error);
+        logger.debug('Channel cleanup warning:', error);
       }
     };
   }, [refetchUiElements]);

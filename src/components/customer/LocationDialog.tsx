@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { motion } from "framer-motion";
 import { MapPin, ExternalLink, Building } from "lucide-react";
@@ -53,7 +53,10 @@ export const LocationDialog = ({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-xl bg-white border-0 shadow-2xl p-0 overflow-hidden rounded-xl" showCloseButton={false}>
-        <motion.div 
+        <DialogTitle className="sr-only">
+          {isRTL ? 'فروعنا' : 'Our Branches'}
+        </DialogTitle>
+        <motion.div
           initial="hidden"
           animate="visible"
           variants={fadeIn}

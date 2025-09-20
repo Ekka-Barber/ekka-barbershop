@@ -17,7 +17,6 @@ export default defineConfig(({ mode }) => ({
     host: "0.0.0.0",
     strictPort: false, // Allow Vite to automatically find available port if 9913 is busy
     hmr: {
-      port: 9913,
       host: "localhost",
       overlay: false // Disable error overlay for better performance
     }

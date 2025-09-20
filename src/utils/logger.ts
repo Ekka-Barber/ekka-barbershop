@@ -11,10 +11,10 @@ type LoggerConfig = {
   enabled: boolean;
 };
 
-// Default configuration - disable all logging in production
+// Default configuration - enable logging in development, disable in production
 let config: LoggerConfig = {
-  minLevel: 'error',
-  enabled: false
+  minLevel: process.env.NODE_ENV === 'production' ? 'error' : 'info',
+  enabled: process.env.NODE_ENV !== 'production'
 };
 
 // Log level priority (higher number = higher priority)

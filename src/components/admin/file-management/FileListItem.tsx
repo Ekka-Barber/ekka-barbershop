@@ -7,7 +7,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { useState } from "react";
 import { format } from "date-fns";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Draggable } from "@hello-pangea/dnd";
 
 export interface FileListItemProps {
@@ -177,6 +177,7 @@ export const FileListItem = ({
           {/* Full preview dialog */}
           <Dialog open={showFilePreview} onOpenChange={setShowFilePreview}>
             <DialogContent className="max-w-3xl w-[90vw] p-0 overflow-hidden">
+              <DialogTitle className="sr-only">File Preview: {file.file_name}</DialogTitle>
               <div className="p-4 border-b">
                 <h2 className="font-semibold">{file.file_name}</h2>
               </div>

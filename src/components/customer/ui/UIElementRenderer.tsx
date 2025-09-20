@@ -9,6 +9,7 @@ import { EidBookingsSection } from "../sections/EidBookingsSection";
 import { GoogleReviewsWrapper } from "../sections/GoogleReviewsWrapper";
 import { trackButtonClick } from "@/utils/tiktokTracking";
 import { useNavigate } from "react-router-dom";
+import { useCallback } from "react";
 
 interface UIElementRendererProps {
   visibleElements: UiElement[];
@@ -29,8 +30,8 @@ export const UIElementRenderer = ({
 }: UIElementRendererProps) => {
   const navigate = useNavigate();
   const { language } = useLanguage();
-  
-  const handleElementAction = (element: UiElement) => {
+
+  const handleElementAction = useCallback((element: UiElement) => {
     trackButtonClick({
       buttonId: element.name,
       buttonName: language === 'ar' ? element.display_name_ar : element.display_name
@@ -47,7 +48,7 @@ export const UIElementRenderer = ({
     } else if (element.action) {
       navigate(element.action);
     }
-  };
+  }, [language, onOpenBranchDialog, onOpenLocationDialog, onOpenEidDialog, navigate]);
   
   if (isLoadingUiElements) {
     return (
