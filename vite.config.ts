@@ -39,8 +39,9 @@ export default defineConfig(({ mode }) => ({
             if (id.includes('@supabase')) {
               return 'vendor-supabase';
             }
+            // Bundle recharts with React to prevent initialization issues
             if (id.includes('recharts')) {
-              return 'vendor-charts';
+              return 'vendor-react';
             }
             if (id.includes('react-pdf') || id.includes('pdfjs')) {
               return 'vendor-pdf';
