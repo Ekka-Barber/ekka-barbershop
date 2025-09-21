@@ -2,7 +2,6 @@ import { lazy, Suspense } from 'react';
 import { TabsContent } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
 import { ErrorBoundary } from '@/components/common/ErrorBoundary';
-import { ServicesTab } from './ServicesTab';
 
 // Lazy-loaded components for better bundle optimization
 const FileManagement = lazy(() => import('@/components/admin/FileManagement').then(mod => ({ default: mod.FileManagement })));
@@ -36,9 +35,6 @@ if (typeof window !== 'undefined') {
 export const TabContent = () => {
   return (
     <>
-      <TabsContent value="services" className="space-y-6 animate-in fade-in-0 slide-in-from-right-2 duration-300">
-        <ServicesTab />
-      </TabsContent>
 
       <TabsContent value="branches" className="space-y-4 animate-in fade-in-0 slide-in-from-right-2 duration-300">
         <h2 className="text-2xl font-bold">

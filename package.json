@@ -13,7 +13,8 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
-    "unimported": "unimported"
+    "unimported": "unimported",
+    "analyze-tables": "node scripts/analyze-used-tables.js"
   },
   "dependencies": {
     "@hello-pangea/dnd": "^17.0.0",

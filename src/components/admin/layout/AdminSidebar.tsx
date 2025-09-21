@@ -18,7 +18,6 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ activeTab, onTabChan
   const { isMobile, setOpenMobile } = useSidebar();
 
   const navigationItems = [
-    { id: 'services', label: 'Services', icon: <Home /> },
     { id: 'branches', label: 'Branches', icon: <Home /> },
     { id: 'files', label: 'Files', icon: <FileText /> },
     { id: 'qrcodes', label: 'QR Codes', icon: <QrCode /> },

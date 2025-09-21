@@ -8,11 +8,10 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Home, FileText, QrCode, Layout } from 'lucide-react';
 
 const Admin = () => {
-  const [activeTab, setActiveTab] = useState('services');
+  const [activeTab, setActiveTab] = useState('branches');
   const isMobile = useIsMobile();
 
   const navigationItems = [
-    { id: 'services', label: 'Services', icon: Home },
     { id: 'branches', label: 'Branches', icon: Home },
     { id: 'files', label: 'Files', icon: FileText },
     { id: 'qrcodes', label: 'QR Codes', icon: QrCode },
@@ -33,7 +32,7 @@ const Admin = () => {
                 className={`
                   ${isMobile
                     ? 'grid w-full grid-cols-2 h-auto p-1 gap-1'
-                    : 'grid w-full grid-cols-5 h-12 p-1'
+                    : 'grid w-full grid-cols-4 h-12 p-1'
                   }
                   bg-gray-100 rounded-lg
                 `}
