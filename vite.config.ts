@@ -27,7 +27,7 @@ export default defineConfig(({ mode }) => ({
         manualChunks(id) {
           // Vendor libraries - group related packages
           if (id.includes('node_modules')) {
-            if (id.includes('react') || id.includes('react-dom') || id.includes('react-router')) {
+            if (id.includes('react') || id.includes('react-dom') || id.includes('react-router') || id.includes('framer-motion')) {
               return 'vendor-react';
             }
             if (id.includes('@radix-ui')) {
@@ -41,9 +41,6 @@ export default defineConfig(({ mode }) => ({
             }
             if (id.includes('recharts')) {
               return 'vendor-charts';
-            }
-            if (id.includes('framer-motion')) {
-              return 'vendor-motion';
             }
             if (id.includes('react-pdf') || id.includes('pdfjs')) {
               return 'vendor-pdf';
@@ -86,7 +83,6 @@ export default defineConfig(({ mode }) => ({
       'react-router-dom',
       '@tanstack/react-query',
       '@supabase/supabase-js',
-      'framer-motion',
       'recharts',
       'date-fns',
       'lodash',
