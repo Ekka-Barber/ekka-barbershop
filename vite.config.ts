@@ -81,7 +81,7 @@ export default defineConfig(({ mode }) => ({
     // Enable source maps for better debugging in development
     sourcemap: mode === 'development',
     // Increase chunk size warning limit to reduce noise
-    chunkSizeWarningLimit: 1500,
+    chunkSizeWarningLimit: 2000,
     // Enable minification in production only
     minify: mode === 'production' ? 'esbuild' : false,
     // Target modern browsers for better performance
