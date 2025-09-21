@@ -14,21 +14,8 @@ const Admin = lazy(() => import("./pages/Admin"));
 const Menu = lazy(() => import("./pages/Menu"));
 const Offers = lazy(() => import("./pages/Offers"));
 
-// Preloading function for better UX
-const preloadComponent = (componentImport: () => Promise<{ default: React.ComponentType<unknown> }>) => {
-  const componentImportFn = componentImport;
-  componentImportFn();
-};
-
-// Preload Menu and Offers components when the app initializes
-// This improves navigation performance as these are commonly accessed
-if (typeof window !== 'undefined') {
-  // Delay preloading to not impact initial load
-  setTimeout(() => {
-    preloadComponent(() => import("./pages/Menu"));
-    preloadComponent(() => import("./pages/Offers"));
-  }, 2000);
-}
+// Note: Components are lazy-loaded and will be loaded on-demand
+// Preloading removed to improve initial load performance
 
 // Enhanced loading component with better UX
 const RouteLoader = ({ pageName }: { pageName: string }) => (
@@ -46,12 +33,14 @@ const RouteLoader = ({ pageName }: { pageName: string }) => (
   </div>
 );
 
-// Protected route component
+// Protected route component - SECURITY ISSUE: This is a basic implementation
+// TODO: Replace with proper authentication system
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const location = useLocation();
   const searchParams = new URLSearchParams(location.search);
   const access = searchParams.get('access');
 
+  // WARNING: This is not secure authentication - replace with proper auth
   if (access !== 'owner123') {
     return <Navigate to="/customer" replace />;
   }

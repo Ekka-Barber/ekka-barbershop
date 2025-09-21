@@ -156,6 +156,15 @@ export const sendMessageToServiceWorker = async (message: unknown): Promise<void
 };
 
 /**
+ * Prefetches common resources for better offline performance
+ * @returns A promise that resolves when prefetching is complete
+ */
+export const prefetchCommonResources = async (): Promise<void> => {
+  await sendMessageToServiceWorker({ type: 'PREFETCH_COMMON' });
+  logger.info('Triggered prefetching of common resources');
+};
+
+/**
  * Forces an update of the service worker
  * @returns A promise that resolves when the update is complete
  */

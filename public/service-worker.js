@@ -1,35 +1,54 @@
 // Service Worker for Ekka Barbershop PWA
-// Version: 1.0.1 - Fixed scroll refreshes
+// Version: 1.0.2 - Enhanced caching and prefetching
 
 // Cache name - update this when making significant changes
-const CACHE_NAME = 'ekka-v1.1';
+const CACHE_NAME = 'ekka-v1.2';
 
 // Resources to cache immediately on service worker install
 const INITIAL_CACHED_RESOURCES = [
   '/',
   '/index.html',
   '/manifest.json',
-  '/offline.html'
+  '/offline.html',
+  '/placeholder.svg'
+];
+
+// Critical resources to prefetch for better performance
+const CRITICAL_RESOURCES = [
+  '/fonts/IBMPlexSansArabic-Regular.ttf',
+  '/logos/logo-192.png',
+  '/logos/badge-96.png'
 ];
 
 // Initialize the cache with important resources
 const initializeCache = async () => {
   const cache = await caches.open(CACHE_NAME);
-  
-  // Use individual cache adds with error handling instead of addAll
-  const cachePromises = INITIAL_CACHED_RESOURCES.map(async (resource) => {
+
+  // Cache initial resources
+  const initialPromises = INITIAL_CACHED_RESOURCES.map(async (resource) => {
     try {
       const response = await fetch(resource, { cache: 'reload' });
       if (response.ok) {
         return cache.put(resource, response);
       }
-      // Silent fail
     } catch (error) {
-      // Silent fail
+      // Silent fail for initial resources
     }
   });
-  
-  return Promise.allSettled(cachePromises);
+
+  // Cache critical resources with lower priority
+  const criticalPromises = CRITICAL_RESOURCES.map(async (resource) => {
+    try {
+      const response = await fetch(resource, { cache: 'default' });
+      if (response.ok) {
+        return cache.put(resource, response);
+      }
+    } catch (error) {
+      // Silent fail for critical resources
+    }
+  });
+
+  return Promise.allSettled([...initialPromises, ...criticalPromises]);
 };
 
 // Clean up old caches
@@ -90,38 +109,69 @@ const handleFetch = async (event) => {
   
   // For other GET requests like assets, API calls, etc.
   try {
-    // Check cache first for non-API requests
-    if (!event.request.url.includes('/api/')) {
-      const cachedResponse = await caches.match(event.request);
-      if (cachedResponse) {
-        // Return cached response and update cache in background (only if not navigating)
-        if (navigator.onLine && event.request.mode !== 'navigate') {
-          fetch(event.request)
-            .then(response => {
-              if (response.ok) {
-                const clonedResponse = response.clone();
-                caches.open(CACHE_NAME).then(cache => {
-                  cache.put(event.request, clonedResponse);
-                });
-              }
-            })
-            .catch(() => {/* ignore fetch errors */});
+    // Handle API requests with network-first strategy
+    if (event.request.url.includes('/api/') || event.request.url.includes('supabase')) {
+      try {
+        // Try network first for API calls
+        const networkResponse = await fetch(event.request);
+
+        // Cache successful API responses for offline use
+        if (networkResponse.ok && networkResponse.status !== 204) {
+          const clonedResponse = networkResponse.clone();
+          const cache = await caches.open(CACHE_NAME);
+          // Add cache control header for API responses
+          const responseToCache = new Response(clonedResponse.body, {
+            status: clonedResponse.status,
+            statusText: clonedResponse.statusText,
+            headers: {
+              ...Object.fromEntries(clonedResponse.headers.entries()),
+              'sw-cache-time': Date.now().toString()
+            }
+          });
+          cache.put(event.request, responseToCache);
         }
-        
-        return cachedResponse;
+
+        return networkResponse;
+      } catch (networkError) {
+        // Network failed, try cache for API requests
+        const cachedResponse = await caches.match(event.request);
+        if (cachedResponse) {
+          return cachedResponse;
+        }
+        throw networkError;
       }
     }
-    
-    // Not in cache or is API request, try network
+
+    // For assets and other resources, use cache-first with background update
+    const cachedResponse = await caches.match(event.request);
+    if (cachedResponse) {
+      // Return cached response and update cache in background
+      if (navigator.onLine && event.request.mode !== 'navigate') {
+        fetch(event.request)
+          .then(response => {
+            if (response.ok) {
+              const clonedResponse = response.clone();
+              caches.open(CACHE_NAME).then(cache => {
+                cache.put(event.request, clonedResponse);
+              });
+            }
+          })
+          .catch(() => {/* ignore fetch errors */});
+      }
+
+      return cachedResponse;
+    }
+
+    // Not in cache, fetch from network
     const response = await fetch(event.request);
-    
-    // Cache successful responses for non-API requests
-    if (response.ok && !event.request.url.includes('/api/')) {
+
+    // Cache successful responses
+    if (response.ok) {
       const clonedResponse = response.clone();
       const cache = await caches.open(CACHE_NAME);
       cache.put(event.request, clonedResponse);
     }
-    
+
     return response;
   } catch (error) {
     // Both network and cache failed
@@ -204,21 +254,49 @@ self.addEventListener('fetch', (event) => {
   event.respondWith(handleFetch(event));
 });
 
+// Prefetch common routes and resources for better performance
+const prefetchCommonResources = async () => {
+  const commonResources = [
+    '/customer',
+    '/menu',
+    '/offers'
+  ];
+
+  const cachePromises = commonResources.map(async (resource) => {
+    try {
+      const response = await fetch(resource, { cache: 'default' });
+      if (response.ok) {
+        const cache = await caches.open(CACHE_NAME);
+        return cache.put(resource, response);
+      }
+    } catch (error) {
+      // Silent fail for prefetching
+    }
+  });
+
+  return Promise.allSettled(cachePromises);
+};
+
 // Handle messages from the window
 self.addEventListener('message', (event) => {
   // Silent message handling
-  
+
   if (!event.data) return;
-  
+
   if (event.data.type === 'CACHE_URLS') {
     const urls = event.data.payload;
     event.waitUntil(cacheUrls(urls));
     return;
   }
-  
+
   if (event.data.type === 'CLEAR_ITEMS') {
     const urls = event.data.payload;
     event.waitUntil(clearCachedItems(urls));
+    return;
+  }
+
+  if (event.data.type === 'PREFETCH_COMMON') {
+    event.waitUntil(prefetchCommonResources());
     return;
   }
 });

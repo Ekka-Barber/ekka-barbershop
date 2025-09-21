@@ -4,12 +4,14 @@ import type { Database } from '@/integrations/supabase/types';
 import { ActionButton } from "./ActionButton";
 
 type UiElement = Database['public']['Tables']['ui_elements']['Row'];
-import { LoyaltySection } from "../sections/LoyaltySection";
-import { EidBookingsSection } from "../sections/EidBookingsSection";
-import { GoogleReviewsWrapper } from "../sections/GoogleReviewsWrapper";
 import { trackButtonClick } from "@/utils/tiktokTracking";
 import { useNavigate } from "react-router-dom";
-import { useCallback } from "react";
+import { useCallback, Suspense, lazy } from "react";
+
+// Lazy load heavy section components
+const LoyaltySection = lazy(() => import("../sections/LoyaltySection").then(mod => ({ default: mod.LoyaltySection })));
+const EidBookingsSection = lazy(() => import("../sections/EidBookingsSection").then(mod => ({ default: mod.EidBookingsSection })));
+const GoogleReviewsWrapper = lazy(() => import("../sections/GoogleReviewsWrapper").then(mod => ({ default: mod.GoogleReviewsWrapper })));
 
 interface UIElementRendererProps {
   visibleElements: UiElement[];
@@ -78,28 +80,30 @@ export const UIElementRenderer = ({
           );
         } else if (element.type === 'section' && element.name === 'eid_bookings') {
           return (
-            <EidBookingsSection
-              key={element.id}
-              element={element}
-              isVisible={isVisible}
-              onOpenEidDialog={onOpenEidDialog}
-            />
+            <Suspense key={element.id} fallback={<div className="h-32 bg-gray-100 rounded animate-pulse" />}>
+              <EidBookingsSection
+                element={element}
+                isVisible={isVisible}
+                onOpenEidDialog={onOpenEidDialog}
+              />
+            </Suspense>
           );
         } else if (element.type === 'section' && element.name === 'loyalty_program') {
           return (
-            <LoyaltySection 
-              key={element.id}
-              element={element}
-              isVisible={isVisible}
-            />
+            <Suspense key={element.id} fallback={<div className="h-32 bg-gray-100 rounded animate-pulse" />}>
+              <LoyaltySection
+                element={element}
+                isVisible={isVisible}
+              />
+            </Suspense>
           );
         } else if (element.type === 'section' && element.name === 'google_reviews') {
           return (
-            <GoogleReviewsWrapper
-              key={element.id} 
-              element={element}
-              isVisible={isVisible}
-            />
+            <Suspense key={element.id} fallback={<div className="h-20 bg-gray-100 rounded animate-pulse" />}>
+              <GoogleReviewsWrapper
+                isVisible={isVisible}
+              />
+            </Suspense>
           );
         }
         return null;

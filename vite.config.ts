@@ -53,26 +53,38 @@ export default defineConfig(({ mode }) => ({
           }
 
           // Feature-based chunks for large components
-          if (id.includes('src/components/admin/')) {
-            return 'admin-components';
-          }
-          if (id.includes('src/components/customer/')) {
-            return 'customer-components';
-          }
           if (id.includes('src/components/PDFViewer.tsx')) {
             return 'pdf-viewer';
           }
-        }
+        },
+        // Optimize chunk file names for better caching
+        chunkFileNames: (chunkInfo) => {
+          const facadeModuleId = chunkInfo.facadeModuleId
+            ? chunkInfo.facadeModuleId.split('/').pop()?.replace(/\.\w+$/, '')
+            : 'chunk';
+          return `assets/${facadeModuleId}-[hash].js`;
+        },
+        assetFileNames: (assetInfo) => {
+          const info = assetInfo.name?.split('.');
+          const extType = info?.[info.length - 1];
+          if (/png|jpe?g|svg|gif|tiff|bmp|ico/i.test(extType || '')) {
+            return `assets/images/[name]-[hash][extname]`;
+          }
+          if (/woff2?|eot|ttf|otf/i.test(extType || '')) {
+            return `assets/fonts/[name]-[hash][extname]`;
+          }
+          return `assets/[name]-[hash][extname]`;
+        },
       }
     },
-    // Enable source maps for better debugging in production
+    // Enable source maps for better debugging in development
     sourcemap: mode === 'development',
     // Increase chunk size warning limit to reduce noise
     chunkSizeWarningLimit: 1500,
-    // Enable minification in development for better performance
-    minify: 'esbuild',
-    // Optimize build performance
-    target: 'esnext',
+    // Enable minification in production only
+    minify: mode === 'production' ? 'esbuild' : false,
+    // Target modern browsers for better performance
+    target: 'es2020',
     // Enable CSS code splitting
     cssCodeSplit: true,
   },
