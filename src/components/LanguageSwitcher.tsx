@@ -3,7 +3,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { Globe } from "lucide-react";
 
 export const LanguageSwitcher = () => {
-  const { language, setLanguage } = useLanguage();
+  const { language, setLanguage, t } = useLanguage();
 
   const handleLanguageToggle = () => {
     const nextLanguage = language === 'ar' ? 'en' : 'ar';
@@ -20,7 +20,7 @@ export const LanguageSwitcher = () => {
         top-[calc(1.25rem+env(safe-area-inset-top))] 
         right-[calc(1.25rem+env(safe-area-inset-right))]
       `}
-      aria-label={language === 'ar' ? "Switch to English" : "التحويل الى العربية"}
+      aria-label={language === 'ar' ? t('switch.to.english') : t('switch.to.arabic')}
     >
       <Globe className="w-6 h-6" />
     </button>

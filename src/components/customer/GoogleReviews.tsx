@@ -7,7 +7,7 @@ import { ErrorState } from './review-states/ErrorState';
 import { ReviewModal } from './review-modal/ReviewModal';
 import { useReviews, Review } from './hooks/useReviews';
 import { ReviewsHeader } from './review-section/ReviewsHeader';
-import { motion } from 'framer-motion';
+import { motion } from '@/lib/motion';
 
 export default function GoogleReviews() {
   const { language } = useLanguage();

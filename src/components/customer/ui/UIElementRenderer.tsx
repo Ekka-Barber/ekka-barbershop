@@ -6,12 +6,22 @@ import { ActionButton } from "./ActionButton";
 type UiElement = Database['public']['Tables']['ui_elements']['Row'];
 import { trackButtonClick } from "@/utils/tiktokTracking";
 import { useNavigate } from "react-router-dom";
-import { useCallback, Suspense, lazy } from "react";
+import { useCallback, Suspense, lazy, useEffect } from "react";
 
 // Lazy load heavy section components
-const LoyaltySection = lazy(() => import("../sections/LoyaltySection").then(mod => ({ default: mod.LoyaltySection })));
-const EidBookingsSection = lazy(() => import("../sections/EidBookingsSection").then(mod => ({ default: mod.EidBookingsSection })));
-const GoogleReviewsWrapper = lazy(() => import("../sections/GoogleReviewsWrapper").then(mod => ({ default: mod.GoogleReviewsWrapper })));
+const loadLoyaltySection = () => import("../sections/LoyaltySection").then(mod => ({ default: mod.LoyaltySection }));
+const loadEidBookingsSection = () => import("../sections/EidBookingsSection").then(mod => ({ default: mod.EidBookingsSection }));
+const loadGoogleReviewsWrapper = () => import("../sections/GoogleReviewsWrapper").then(mod => ({ default: mod.GoogleReviewsWrapper }));
+
+const LoyaltySection = lazy(loadLoyaltySection);
+const EidBookingsSection = lazy(loadEidBookingsSection);
+const GoogleReviewsWrapper = lazy(loadGoogleReviewsWrapper);
+
+const preloadCustomerSections = () => {
+  void loadLoyaltySection();
+  void loadEidBookingsSection();
+  void loadGoogleReviewsWrapper();
+};
 
 interface UIElementRendererProps {
   visibleElements: UiElement[];
@@ -32,6 +42,10 @@ export const UIElementRenderer = ({
 }: UIElementRendererProps) => {
   const navigate = useNavigate();
   const { language } = useLanguage();
+
+  useEffect(() => {
+    preloadCustomerSections();
+  }, []);
 
   const handleElementAction = useCallback((element: UiElement) => {
     trackButtonClick({

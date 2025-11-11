@@ -1,11 +1,10 @@
 import { useLanguage } from "@/contexts/LanguageContext";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { PullToRefresh } from "@/components/common/PullToRefresh";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
+import { useToast } from "@/components/ui/use-toast";
 import AppLayout from '@/components/layout/AppLayout';
 import { Branch } from "@/types/branch";
 
@@ -30,35 +29,65 @@ import { InstallAppPrompt } from "@/components/installation/InstallAppPrompt";
 
 const Customer = () => {
   const { t } = useLanguage();
+  const { toast } = useToast();
 
   // Page component logic
 
   // Get branches data
-  const { data: branches } = useQuery({
+  const { data: branches, error: branchesError, isError: branchesIsError, refetch: refetchBranches } = useQuery({
     queryKey: ['branches'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('branches')
         .select('id, name, name_ar, address, address_ar, is_main, whatsapp_number, google_maps_url, google_place_id');
       if (error) throw error;
-      
+
       return data as Branch[];
     }
   });
 
+  // Show error toast when branches fail to load
+  useEffect(() => {
+    if (branchesIsError && branchesError) {
+      toast({
+        title: t('error.occurred'),
+        description: t('please.try.again'),
+        variant: "destructive"
+      });
+    }
+  }, [branchesIsError, branchesError, t, toast]);
+
   // Use our custom hooks
-  const { visibleElements, isLoadingUiElements, handleRefresh } = useUIElements();
+  const { visibleElements, isLoadingUiElements, refetchUiElements } = useUIElements();
+
+  // Combined refresh function for pull-to-refresh
+  const handleRefresh = async () => {
+    try {
+      await Promise.all([
+        refetchUiElements(),
+        refetchBranches()
+      ]);
+      toast({
+        title: t('loading'),
+        description: 'Content has been updated',
+        duration: 2000,
+      });
+    } catch {
+      toast({
+        title: t('error.occurred'),
+        description: t('please.try.again'),
+        variant: "destructive"
+      });
+    }
+  };
   const { animatingElements } = useElementAnimation(visibleElements);
-  const { 
-    branchDialogOpen, 
+  const {
+    branchDialogOpen,
     setBranchDialogOpen,
-    eidBookingsDialogOpen, 
+    eidBookingsDialogOpen,
     setEidBookingsDialogOpen,
-    locationDialogOpen, 
+    locationDialogOpen,
     setLocationDialogOpen,
-    mapDialogOpen, 
-    setMapDialogOpen,
-    selectedBranch,
     handleBranchSelect,
     handleEidBranchSelect,
     handleLocationClick,
@@ -117,18 +146,6 @@ const Customer = () => {
           branches={branches || []}
         />
       </Suspense>
-      
-      <Dialog open={mapDialogOpen} onOpenChange={setMapDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{selectedBranch?.name}</DialogTitle>
-            <DialogDescription>{selectedBranch?.address}</DialogDescription>
-          </DialogHeader>
-          <Button onClick={() => handleLocationClick(selectedBranch?.address ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(selectedBranch.address)}` : null)}>
-            {t('open.maps')}
-          </Button>
-        </DialogContent>
-      </Dialog>
 
       <InstallAppPrompt />
     </AppLayout>

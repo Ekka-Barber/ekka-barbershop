@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { ArrowDownUp } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface RefreshIndicatorProps {
   isPulling?: boolean;
@@ -23,11 +24,12 @@ export const RefreshIndicator: React.FC<RefreshIndicatorProps> = ({
   color = '#000',
   backgroundColor = 'transparent'
 }) => {
+  const { t } = useLanguage();
   // Default pulling content
   const defaultPullingContent = (
     <div className="flex items-center justify-center text-gray-500">
       <ArrowDownUp className={`mr-2 ${pullDistance >= pullDownThreshold ? 'text-green-500' : ''}`} style={{ color: pullDistance >= pullDownThreshold ? 'green' : color }} />
-      <span>{pullDistance >= pullDownThreshold ? 'Release to refresh' : 'Pull down to refresh'}</span>
+      <span>{pullDistance >= pullDownThreshold ? t('release.refresh') : t('pull.down.refresh')}</span>
     </div>
   );
 
@@ -35,7 +37,7 @@ export const RefreshIndicator: React.FC<RefreshIndicatorProps> = ({
   const defaultRefreshingContent = (
     <div className="flex items-center justify-center text-gray-500">
       <div className="animate-spin h-5 w-5 border-2 border-t-transparent border-primary rounded-full mr-2" style={{ borderColor: color }} />
-      <span>Refreshing...</span>
+      <span>{t('refreshing')}</span>
     </div>
   );
 

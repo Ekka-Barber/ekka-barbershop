@@ -8,7 +8,7 @@ type AppLayoutProps = {
 const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
   return (
     // Outer flex container to center content horizontally
-    <div className="flex flex-1 justify-center w-full h-full momentum-scroll overflow-y-auto overscroll-contain">
+    <div className="flex flex-1 justify-center w-full h-full">
       {/* Removed max-w-md to allow content width to be page-specific */}
       <div className="w-full flex flex-1 flex-col">
         {/* Main content area with padding for safe areas */}

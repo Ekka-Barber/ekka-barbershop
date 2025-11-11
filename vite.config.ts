@@ -11,6 +11,7 @@ export default defineConfig(({ mode }) => ({
     alias: {
       '@': path.resolve(__dirname, './src'),
     },
+    dedupe: ['react', 'react-dom', 'framer-motion'],
   },
   server: {
     port: 9913,
@@ -25,9 +26,20 @@ export default defineConfig(({ mode }) => ({
     rollupOptions: {
       output: {
         manualChunks(id) {
-          // Vendor libraries - group related packages
+          // CRITICAL: React and React-DOM must NEVER be split - they must always be in the main bundle
+          // This ensures lazy-loaded components always use the same React instance
           if (id.includes('node_modules')) {
-            if (id.includes('react') || id.includes('react-dom') || id.includes('react-router') || id.includes('framer-motion')) {
+            // React core - must be in main bundle, never split
+            // Check for any React-related paths and exclude them from chunking
+            if (id.includes('node_modules/react/') && !id.includes('react-router') && !id.includes('react-dom')) {
+              // Don't return a chunk name - this keeps React in the main bundle
+              return;
+            }
+            if (id.includes('node_modules/react-dom/')) {
+              // Don't return a chunk name - this keeps React-DOM in the main bundle
+              return;
+            }
+            if (id.includes('react-router') || id.includes('framer-motion')) {
               return 'vendor-react';
             }
             if (id.includes('@radix-ui')) {
@@ -93,15 +105,24 @@ export default defineConfig(({ mode }) => ({
   optimizeDeps: {
     include: [
       'react',
+      'react-dom',
+      'react/jsx-runtime',
       'react-router-dom',
       '@tanstack/react-query',
       '@supabase/supabase-js',
       'recharts',
       'date-fns',
       'lodash',
-      'clsx'
+      'clsx',
+      'framer-motion',
+      '@emotion/is-prop-valid',
+      '@emotion/memoize'
     ],
     // Exclude problematic dependencies
-    exclude: []
+    exclude: [],
+    // Force React to be deduplicated and always available
+    esbuildOptions: {
+      resolveExtensions: ['.tsx', '.ts', '.jsx', '.js'],
+    },
   }
 }));

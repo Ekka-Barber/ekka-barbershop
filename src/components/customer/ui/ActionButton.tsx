@@ -2,7 +2,7 @@
 import { Button } from "@/components/ui/button";
 import * as Icons from "lucide-react";
 import { Tables } from "@/types/supabase";
-import { motion } from "framer-motion";
+import { motion } from "@/lib/motion";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { LucideIcon } from 'lucide-react';
 

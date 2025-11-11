@@ -20,6 +20,12 @@
     scroll-behavior: smooth;
     overscroll-behavior-y: contain;
   }
+
+  /* Touch target accessibility utility */
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
 }
 
 /* Prevent pull-to-refresh on the body level */

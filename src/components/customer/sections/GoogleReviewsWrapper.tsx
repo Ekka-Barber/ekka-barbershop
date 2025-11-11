@@ -1,5 +1,5 @@
 
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "@/lib/motion";
 import GoogleReviews from "@/components/customer/GoogleReviews";
 
 interface GoogleReviewsWrapperProps {
@@ -18,17 +18,17 @@ export const GoogleReviewsWrapper = ({ isVisible }: GoogleReviewsWrapperProps) =
     }
   };
   
+  if (!isVisible) {
+    return null;
+  }
+
   return (
-    <AnimatePresence>
-      {isVisible && (
-        <motion.div 
-          variants={fadeUpVariants}
-          initial="hidden"
-          animate="visible"
-        >
-          <GoogleReviews />
-        </motion.div>
-      )}
-    </AnimatePresence>
+    <motion.div 
+      variants={fadeUpVariants}
+      initial="hidden"
+      animate="visible"
+    >
+      <GoogleReviews />
+    </motion.div>
   );
 };

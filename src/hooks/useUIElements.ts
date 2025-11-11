@@ -3,11 +3,9 @@ import { useEffect, useState } from 'react';
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Tables } from "@/types/supabase";
-import { useToast } from "@/components/ui/use-toast";
 import { logger } from "@/utils/logger";
 
 export const useUIElements = () => {
-  const { toast } = useToast();
   const [visibleElements, setVisibleElements] = useState<Tables<'ui_elements'>[]>([]);
   
   const { data: uiElements, refetch: refetchUiElements, isLoading: isLoadingUiElements } = useQuery({
@@ -62,19 +60,10 @@ export const useUIElements = () => {
     };
   }, [refetchUiElements]);
 
-  const handleRefresh = async () => {
-    await refetchUiElements();
-    toast({
-      title: 'Refreshed',
-      description: 'Content has been updated',
-      duration: 2000,
-    });
-  };
 
   return {
     visibleElements,
     isLoadingUiElements,
-    refetchUiElements,
-    handleRefresh
+    refetchUiElements
   };
 };

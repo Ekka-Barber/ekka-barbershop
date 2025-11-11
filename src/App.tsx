@@ -13,6 +13,7 @@ import { ServiceWorkerRegistration } from "./components/ServiceWorkerRegistratio
 const Admin = lazy(() => import("./pages/Admin"));
 const Menu = lazy(() => import("./pages/Menu"));
 const Offers = lazy(() => import("./pages/Offers"));
+const Customer1 = lazy(() => import("./pages/customer1/Customer1"));
 
 // Note: Components are lazy-loaded and will be loaded on-demand
 // Preloading removed to improve initial load performance
@@ -58,6 +59,14 @@ const AppRouter = () => {
 
       {/* Public routes with lazy loading */}
       <Route path="/customer" element={<Customer />} />
+      <Route
+        path="/customer1"
+        element={
+          <Suspense fallback={<RouteLoader pageName="Preparing Ekka experience..." />}>
+            <Customer1 />
+          </Suspense>
+        }
+      />
 
       <Route
         path="/menu"

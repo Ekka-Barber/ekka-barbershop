@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Star, MapPin, Quote } from 'lucide-react';
 import { Language } from '@/types/language';
 import { Review } from '../hooks/useReviews';
-import { motion } from 'framer-motion';
+import { motion } from '@/lib/motion';
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 interface ReviewModalProps {

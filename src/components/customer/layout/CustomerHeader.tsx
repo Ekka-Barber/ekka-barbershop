@@ -1,6 +1,6 @@
 
 import { useLanguage } from "@/contexts/LanguageContext";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from "@/lib/motion";
 
 interface CustomerHeaderProps {
   animatingElements: string[];
@@ -15,7 +15,7 @@ export const CustomerHeader = ({ animatingElements }: CustomerHeaderProps) => {
         {animatingElements.includes('logo') && (
           <motion.img 
             key="logo"
-            src="lovable-uploads/7eb81221-fbf5-4b1d-8327-eb0e707236d8.png" 
+            src="/lovable-uploads/7eb81221-fbf5-4b1d-8327-eb0e707236d8.png" 
             alt="Ekka Barbershop Logo" 
             className="h-28 md:h-32 mx-auto mb-4 md:mb-6 object-contain"
             loading="eager"

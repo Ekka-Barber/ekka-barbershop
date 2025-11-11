@@ -12,8 +12,6 @@ export const useDialogState = (branches: Branch[] | undefined) => {
   const [branchDialogOpen, setBranchDialogOpen] = useState(false);
   const [eidBookingsDialogOpen, setEidBookingsDialogOpen] = useState(false);
   const [locationDialogOpen, setLocationDialogOpen] = useState(false);
-  const [mapDialogOpen, setMapDialogOpen] = useState(false);
-  const [selectedBranch, setSelectedBranch] = useState<Branch | null>(null);
   
   const handleBranchSelect = (branchId: string) => {
     trackButtonClick({
@@ -33,16 +31,19 @@ export const useDialogState = (branches: Branch[] | undefined) => {
     
     if (branches) {
       const selectedBranch = branches.find(branch => branch.id === branchId);
-      
+
       if (selectedBranch) {
-        if (selectedBranch.name === "Ash-Sharai" || selectedBranch.name_ar === "الشرائع") {
-          const url = language === 'ar' 
+        // Use branch IDs instead of hard-coded names for better maintainability
+        if (selectedBranch.id === "4b11ca76-a282-4a14-947b-0fad49239d3b") {
+          // Ash-Sharai branch
+          const url = language === 'ar'
             ? "https://www.fresha.com/ar/book-now/ekka-gspkudll/all-offer?id=1532757&share&pId=881059"
             : "https://www.fresha.com/book-now/ekka-gspkudll/all-offer?id=1532757&share&pId=881059";
           window.open(url, '_blank');
           return;
-        } else if (selectedBranch.name === "Al-Waslyia" || selectedBranch.name_ar === "الوصلية") {
-          const url = language === 'ar' 
+        } else if (selectedBranch.id === "bc505e80-db4f-4617-b81e-4593a53a219d") {
+          // Al-Waslyia branch
+          const url = language === 'ar'
             ? "https://www.fresha.com/ar/book-now/ekka-gspkudll/all-offer?id=935949&share&pId=881059"
             : "https://www.fresha.com/book-now/ekka-gspkudll/all-offer?id=935949&share&pId=881059";
           window.open(url, '_blank');
@@ -78,16 +79,12 @@ export const useDialogState = (branches: Branch[] | undefined) => {
   };
 
   return {
-    branchDialogOpen, 
+    branchDialogOpen,
     setBranchDialogOpen,
-    eidBookingsDialogOpen, 
+    eidBookingsDialogOpen,
     setEidBookingsDialogOpen,
-    locationDialogOpen, 
+    locationDialogOpen,
     setLocationDialogOpen,
-    mapDialogOpen, 
-    setMapDialogOpen,
-    selectedBranch,
-    setSelectedBranch,
     handleBranchSelect,
     handleEidBranchSelect,
     handleLocationClick,
