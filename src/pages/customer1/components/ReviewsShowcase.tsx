@@ -1,6 +1,8 @@
 import { useLanguage } from "@/contexts/LanguageContext";
-import { useReviews, Review } from "@/components/customer/hooks/useReviews";
+import { useReviews } from "@/components/customer/hooks/useReviews";
+import { Review } from "@/services/reviewsService";
 import { Skeleton } from "@/components/ui/skeleton";
+import { CachedAvatar } from "@/components/ui/cached-avatar";
 import clsx from "clsx";
 import { motion } from "@/lib/motion";
 import { Quote } from "lucide-react";
@@ -13,9 +15,6 @@ export const ReviewsShowcase = () => {
   const featuredReviews = displayedReviews.slice(0, 3);
 
   const renderCard = (review: Review, index: number) => {
-    const avatarUrl = review.profile_photo_url;
-    const fallbackInitial = review.author_name?.charAt(0)?.toUpperCase() ?? "E";
-
     return (
       <motion.article
         key={`${review.author_name}-${index}`}
@@ -32,19 +31,14 @@ export const ReviewsShowcase = () => {
             )}
           >
             <div className="relative flex h-12 w-12 flex-shrink-0 items-center justify-center overflow-hidden rounded-full border border-white/20 bg-white/10">
-              {avatarUrl ? (
-                <img
-                  src={avatarUrl}
-                  alt={review.author_name}
-                  className="h-full w-full object-cover"
-                  loading="lazy"
-                  referrerPolicy="no-referrer"
-                />
-              ) : (
-                <span className="text-lg font-semibold text-white/80">
-                  {fallbackInitial}
-                </span>
-              )}
+              <CachedAvatar
+                googleAvatarUrl={review.profile_photo_url || null}
+                cachedAvatarUrl={review.cached_avatar_url || null}
+                authorName={review.author_name}
+                className="h-full w-full"
+                fallbackClassName="bg-white/10 text-white/80 text-lg font-semibold"
+                size={48}
+              />
               <div className="absolute inset-0 rounded-full ring-1 ring-white/10" />
             </div>
             <div className="flex min-w-0 flex-col">

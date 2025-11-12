@@ -1,21 +1,22 @@
 
+import { useCallback, Suspense, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
-import type { Database } from '@/integrations/supabase/types';
+import type { Database } from "@/integrations/supabase/types";
+import { trackButtonClick } from "@/utils/tiktokTracking";
+import { lazyWithRetry } from "@/utils/lazyWithRetry";
 import { ActionButton } from "./ActionButton";
 
 type UiElement = Database['public']['Tables']['ui_elements']['Row'];
-import { trackButtonClick } from "@/utils/tiktokTracking";
-import { useNavigate } from "react-router-dom";
-import { useCallback, Suspense, lazy, useEffect } from "react";
 
 // Lazy load heavy section components
 const loadLoyaltySection = () => import("../sections/LoyaltySection").then(mod => ({ default: mod.LoyaltySection }));
 const loadEidBookingsSection = () => import("../sections/EidBookingsSection").then(mod => ({ default: mod.EidBookingsSection }));
 const loadGoogleReviewsWrapper = () => import("../sections/GoogleReviewsWrapper").then(mod => ({ default: mod.GoogleReviewsWrapper }));
 
-const LoyaltySection = lazy(loadLoyaltySection);
-const EidBookingsSection = lazy(loadEidBookingsSection);
-const GoogleReviewsWrapper = lazy(loadGoogleReviewsWrapper);
+const LoyaltySection = lazyWithRetry(loadLoyaltySection);
+const EidBookingsSection = lazyWithRetry(loadEidBookingsSection);
+const GoogleReviewsWrapper = lazyWithRetry(loadGoogleReviewsWrapper);
 
 const preloadCustomerSections = () => {
   void loadLoyaltySection();

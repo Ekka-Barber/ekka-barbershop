@@ -1,19 +1,20 @@
-import React, { lazy, Suspense } from "react";
+import React, { Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { LanguageProvider } from "@/contexts/LanguageContext";
+import { lazyWithRetry } from "@/utils/lazyWithRetry";
 import Customer from "./pages/Customer";
 import { OfflineNotification } from "./components/common/OfflineNotification";
 import { ErrorBoundary } from "./components/common/ErrorBoundary";
 import { ServiceWorkerRegistration } from "./components/ServiceWorkerRegistration";
 
 // Lazy load heavy route components with preloading
-const Admin = lazy(() => import("./pages/Admin"));
-const Menu = lazy(() => import("./pages/Menu"));
-const Offers = lazy(() => import("./pages/Offers"));
-const Customer1 = lazy(() => import("./pages/customer1/Customer1"));
+const Admin = lazyWithRetry(() => import("./pages/Admin"));
+const Menu = lazyWithRetry(() => import("./pages/Menu"));
+const Offers = lazyWithRetry(() => import("./pages/Offers"));
+const Customer1 = lazyWithRetry(() => import("./pages/customer1/Customer1"));
 
 // Note: Components are lazy-loaded and will be loaded on-demand
 // Preloading removed to improve initial load performance

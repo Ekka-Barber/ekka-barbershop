@@ -81,15 +81,19 @@ export const InstallAppPrompt = () => {
     />
   );
 
-  if (platform === 'ios') {
-    return (
+  const content = platform === 'ios'
+    ? (
       <IOSInstallGuide
         language={language}
         onCancel={handleDismiss}
         trigger={installButton}
       />
-    );
-  }
+    )
+    : installButton;
 
-  return installButton;
+  return (
+    <div className="w-full mt-8">
+      {content}
+    </div>
+  );
 };

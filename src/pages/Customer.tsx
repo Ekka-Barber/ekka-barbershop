@@ -1,12 +1,13 @@
 import { useLanguage } from "@/contexts/LanguageContext";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
-import { lazy, Suspense, useEffect } from "react";
+import { Suspense, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { PullToRefresh } from "@/components/common/PullToRefresh";
 import { useToast } from "@/components/ui/use-toast";
 import AppLayout from '@/components/layout/AppLayout';
 import { Branch } from "@/types/branch";
+import { lazyWithRetry } from "@/utils/lazyWithRetry";
 
 // Import our extracted components
 import { CustomerHeader } from "@/components/customer/layout/CustomerHeader";
@@ -18,9 +19,9 @@ import { useElementAnimation } from "@/hooks/useElementAnimation";
 import { useDialogState } from "@/hooks/useDialogState";
 
 // Lazy load heavy dialog components for better bundle optimization
-const BranchDialog = lazy(() => import("@/components/customer/BranchDialog").then(mod => ({ default: mod.BranchDialog })));
-const LocationDialog = lazy(() => import("@/components/customer/LocationDialog").then(mod => ({ default: mod.LocationDialog })));
-const EidBookingsDialog = lazy(() => import("@/components/customer/EidBookingsDialog").then(mod => ({ default: mod.EidBookingsDialog })));
+const BranchDialog = lazyWithRetry(() => import("@/components/customer/BranchDialog").then(mod => ({ default: mod.BranchDialog })));
+const LocationDialog = lazyWithRetry(() => import("@/components/customer/LocationDialog").then(mod => ({ default: mod.LocationDialog })));
+const EidBookingsDialog = lazyWithRetry(() => import("@/components/customer/EidBookingsDialog").then(mod => ({ default: mod.EidBookingsDialog })));
 
 // Import InstallAppPrompt normally to avoid React context issues
 import { InstallAppPrompt } from "@/components/installation/InstallAppPrompt";
@@ -114,6 +115,8 @@ const Customer = () => {
             onOpenLocationDialog={() => handleLocationDialog()}
             onOpenEidDialog={() => setEidBookingsDialogOpen(true)}
           />
+
+          <InstallAppPrompt />
         </div>
       </PullToRefresh>
 
@@ -146,8 +149,6 @@ const Customer = () => {
           branches={branches || []}
         />
       </Suspense>
-
-      <InstallAppPrompt />
     </AppLayout>
   );
 };

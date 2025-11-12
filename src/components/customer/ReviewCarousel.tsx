@@ -2,9 +2,9 @@ import React, { useEffect, useState, useRef, TouchEvent, useCallback, useMemo } 
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Star, Quote } from 'lucide-react';
 import { Card, CardContent } from "@/components/ui/card";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { CachedAvatar } from "@/components/ui/cached-avatar";
 import { cn } from "@/lib/utils";
-import { Review } from './hooks/useReviews';
+import { Review } from '@/services/reviewsService';
 import { motion, AnimatePresence } from '@/lib/motion';
 
 interface ReviewCarouselProps {
@@ -158,7 +158,7 @@ export const ReviewCarousel = ({
             const isLongReview = review.text && review.text.length > MAX_CHARS_BEFORE_TRUNCATE;
             return (
               <motion.div
-                key={`${review.author_name}-${index}-${review.time}`}
+                key={`${review.id ?? review.google_review_time}-${index}`}
                 variants={cardVariants}
                 whileHover={{
                   scale: 1.02,
@@ -189,12 +189,14 @@ export const ReviewCarousel = ({
                           animate={{ scale: 1, opacity: 1 }}
                           transition={{ duration: 0.3, delay: 0.1 }}
                         >
-                          <Avatar className="w-10 h-10 border border-gray-200">
-                            <AvatarImage src={review.profile_photo_url} alt={review.author_name} className="object-cover" />
-                            <AvatarFallback className="bg-[#C4A36F]/10 text-[#C4A36F] text-xs">
-                              {review.author_name ? review.author_name.charAt(0) : '?'}
-                            </AvatarFallback>
-                          </Avatar>
+                          <CachedAvatar
+                            googleAvatarUrl={review.profile_photo_url || null}
+                            cachedAvatarUrl={review.cached_avatar_url || null}
+                            authorName={review.author_name}
+                            className="w-10 h-10 border border-gray-200"
+                            fallbackClassName="bg-[#C4A36F]/10 text-[#C4A36F] text-xs"
+                            size={40}
+                          />
                         </motion.div>
                         <div className="flex-1">
                           <motion.h4 

@@ -2,9 +2,9 @@ import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/compone
 import { Button } from "@/components/ui/button";
 import { Star, MapPin, Quote } from 'lucide-react';
 import { Language } from '@/types/language';
-import { Review } from '../hooks/useReviews';
+import { Review } from '@/services/reviewsService';
 import { motion } from '@/lib/motion';
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { CachedAvatar } from "@/components/ui/cached-avatar";
 
 interface ReviewModalProps {
   isOpen: boolean;
@@ -77,12 +77,14 @@ export const ReviewModal = ({ isOpen, onClose, selectedReview, language }: Revie
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.3, delay: 0.3 }}
             >
-              <Avatar className="w-12 h-12 border-2 border-[#C4A36F]/20 mr-3">
-                <AvatarImage src={selectedReview.profile_photo_url} alt={selectedReview.author_name} className="object-cover" />
-                <AvatarFallback className="bg-[#C4A36F]/10 text-[#C4A36F]">
-                  {selectedReview.author_name ? selectedReview.author_name.charAt(0).toUpperCase() : '?'}
-                </AvatarFallback>
-              </Avatar>
+              <CachedAvatar
+                googleAvatarUrl={selectedReview.profile_photo_url || null}
+                cachedAvatarUrl={selectedReview.cached_avatar_url || null}
+                authorName={selectedReview.author_name}
+                className="w-12 h-12 border-2 border-[#C4A36F]/20 mr-3"
+                fallbackClassName="bg-[#C4A36F]/10 text-[#C4A36F]"
+                size={48}
+              />
               <div>
                 <h3 className="font-bold text-gray-800">{selectedReview.author_name}</h3>
                 <p className="text-xs text-gray-500 flex items-center mt-1">

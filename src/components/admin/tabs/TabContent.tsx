@@ -1,13 +1,14 @@
-import { lazy, Suspense } from 'react';
+import { Suspense } from 'react';
 import { TabsContent } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
 import { ErrorBoundary } from '@/components/common/ErrorBoundary';
+import { lazyWithRetry } from '@/utils/lazyWithRetry';
 
 // Lazy-loaded components for better bundle optimization
-const FileManagement = lazy(() => import('@/components/admin/FileManagement').then(mod => ({ default: mod.FileManagement })));
-const QRCodeManager = lazy(() => import('@/components/admin/QRCodeManager'));
-const UiElementsManager = lazy(() => import('@/components/admin/ui-elements/UiElementsManager'));
-const BranchesTab = lazy(() => import('@/components/admin/branch-management/BranchesTab').then(mod => ({ default: mod.BranchesTab })));
+const FileManagement = lazyWithRetry(() => import('@/components/admin/FileManagement').then(mod => ({ default: mod.FileManagement })));
+const QRCodeManager = lazyWithRetry(() => import('@/components/admin/QRCodeManager'));
+const UiElementsManager = lazyWithRetry(() => import('@/components/admin/ui-elements/UiElementsManager'));
+const BranchesTab = lazyWithRetry(() => import('@/components/admin/branch-management/BranchesTab').then(mod => ({ default: mod.BranchesTab })));
 
 // Preload critical components
 const preloadBranches = () => import('@/components/admin/branch-management/BranchesTab');

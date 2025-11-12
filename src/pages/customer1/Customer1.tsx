@@ -5,7 +5,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Branch } from "@/types/branch";
-import { lazy, Suspense, useCallback, useEffect, useMemo } from "react";
+import { Suspense, useCallback, useEffect, useMemo } from "react";
 import { useUIElements } from "@/hooks/useUIElements";
 import { useElementAnimation } from "@/hooks/useElementAnimation";
 import { useDialogState } from "@/hooks/useDialogState";
@@ -20,18 +20,19 @@ import { trackButtonClick } from "@/utils/tiktokTracking";
 import { useNavigate } from "react-router-dom";
 import type { Database } from "@/integrations/supabase/types";
 import { Skeleton } from "@/components/ui/skeleton";
+import { lazyWithRetry } from "@/utils/lazyWithRetry";
 
-const BranchDialog = lazy(() =>
+const BranchDialog = lazyWithRetry(() =>
   import("@/components/customer/BranchDialog").then((mod) => ({
     default: mod.BranchDialog,
   }))
 );
-const LocationDialog = lazy(() =>
+const LocationDialog = lazyWithRetry(() =>
   import("@/components/customer/LocationDialog").then((mod) => ({
     default: mod.LocationDialog,
   }))
 );
-const EidBookingsDialog = lazy(() =>
+const EidBookingsDialog = lazyWithRetry(() =>
   import("@/components/customer/EidBookingsDialog").then((mod) => ({
     default: mod.EidBookingsDialog,
   }))
