@@ -13,7 +13,7 @@ export default function GoogleReviews() {
   const { language } = useLanguage();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedReview, setSelectedReview] = useState<Review | null>(null);
-  const { displayedReviews, isLoading, error } = useReviews(language);
+  const { displayedReviews, isLoading, error, hasReviewsInOtherLanguages } = useReviews(language);
 
   // Handle read more button click
   const handleReadMoreClick = (review: Review) => {
@@ -53,7 +53,7 @@ export default function GoogleReviews() {
         {error && !isLoading && <ErrorState error={typeof error === 'object' && error !== null ? String(error) : String(error)} language={language} />}
 
         {/* Empty State */}
-        {!isLoading && !error && displayedReviews.length === 0 && <NoReviews language={language} />}
+        {!isLoading && !error && displayedReviews.length === 0 && <NoReviews language={language} hasReviewsInOtherLanguage={hasReviewsInOtherLanguages} />}
 
         {/* Reviews Display */}
         {!isLoading && !error && displayedReviews.length > 0 && (

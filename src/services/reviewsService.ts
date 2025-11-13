@@ -75,7 +75,7 @@ export async function syncReviewsFromGoogle(): Promise<{ success: boolean; messa
 
     return {
       success: data?.success || false,
-      message: data?.message || 'Sync completed',
+      message: data?.message || `Synced ${data?.synced || 0} reviews from ${data?.branches || 0} branches`,
     };
   } catch (error) {
     console.error('Error syncing reviews:', error);

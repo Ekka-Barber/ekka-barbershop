@@ -6,8 +6,9 @@ import { Language } from '@/types/language';
 export const useReviews = (language: Language) => {
   const [error, setError] = useState<string | null>(null);
   const [displayedReviews, setDisplayedReviews] = useState<Review[]>([]);
+  const [hasReviewsInOtherLanguages, setHasReviewsInOtherLanguages] = useState(false);
   const allReviewsPool = useRef<Review[]>([]);
-  
+
   // Cache time - reviews are stored in DB, so we can cache longer
   const CACHE_STALE_TIME = 5 * 60 * 1000; // 5 minutes
 
@@ -20,6 +21,21 @@ export const useReviews = (language: Language) => {
   } = useQuery({
     queryKey: ['google-reviews', language],
     queryFn: () => fetchReviewsFromDatabase(language),
+    staleTime: CACHE_STALE_TIME,
+    refetchOnWindowFocus: false,
+    refetchOnMount: true
+  });
+
+  // Fetch all reviews to check if there are reviews in other languages
+  const {
+    data: allReviewsData,
+  } = useQuery({
+    queryKey: ['google-reviews-all'],
+    queryFn: async () => {
+      const arabicReviews = await fetchReviewsFromDatabase('ar');
+      const englishReviews = await fetchReviewsFromDatabase('en');
+      return { arabic: arabicReviews, english: englishReviews };
+    },
     staleTime: CACHE_STALE_TIME,
     refetchOnWindowFocus: false,
     refetchOnMount: true
@@ -40,6 +56,20 @@ export const useReviews = (language: Language) => {
     
     return shuffled.slice(0, count);
   }, []);
+
+  // Check for reviews in other languages
+  useEffect(() => {
+    if (allReviewsData) {
+      const hasArabicReviews = allReviewsData.arabic && allReviewsData.arabic.length > 0;
+      const hasEnglishReviews = allReviewsData.english && allReviewsData.english.length > 0;
+
+      if (language === 'ar') {
+        setHasReviewsInOtherLanguages(hasEnglishReviews);
+      } else {
+        setHasReviewsInOtherLanguages(hasArabicReviews);
+      }
+    }
+  }, [allReviewsData, language]);
 
   // Process and randomize reviews when data changes
   useEffect(() => {
@@ -68,6 +98,7 @@ export const useReviews = (language: Language) => {
     displayedReviews,
     isLoading: isReviewsLoading,
     error,
-    refetch
+    refetch,
+    hasReviewsInOtherLanguages
   };
 };

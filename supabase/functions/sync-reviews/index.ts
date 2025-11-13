@@ -63,9 +63,11 @@ Deno.serve(async (req: Request) => {
       try {
         // Fetch reviews WITHOUT language parameter to get original language content
         // Google Places API should return reviews in their original language when no language is specified
+        // Try different field combinations to potentially get more reviews
         const googlePlacesUrl = new URL('https://maps.googleapis.com/maps/api/place/details/json');
         googlePlacesUrl.searchParams.set('place_id', branch.google_place_id);
-        googlePlacesUrl.searchParams.set('fields', 'reviews');
+        googlePlacesUrl.searchParams.set('fields', 'reviews,name,rating,user_ratings_total');
+        googlePlacesUrl.searchParams.set('reviews_sort', 'most_relevant');
         googlePlacesUrl.searchParams.set('key', googlePlacesApiKey);
 
         // Make the request with Arabic locale headers to potentially get original reviews
