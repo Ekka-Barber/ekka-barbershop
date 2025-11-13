@@ -69,7 +69,7 @@ const Menu = () => {
 
   return (
     <AppLayout>
-      <div className="flex flex-col items-center justify-center w-full max-w-md mx-auto">
+      <div className="flex flex-col items-center justify-center w-full max-w-2xl mx-auto">
         <div className="text-center w-full max-w-2xl mx-auto flex-shrink-0 pt-safe">
           <Link to="/customer" className="transition-opacity hover:opacity-80 block">
             <img 

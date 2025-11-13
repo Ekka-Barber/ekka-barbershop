@@ -127,7 +127,7 @@ const Offers = () => {
   if (!isRouterReady) {
     return (
       <AppLayout>
-        <div className="w-full flex flex-1 flex-col items-center justify-center max-w-md mx-auto">
+        <div className="w-full flex flex-1 flex-col items-center justify-center max-w-2xl mx-auto">
           <div className="text-center py-8 text-[#222222]">{t('loading.offers')}</div>
         </div>
       </AppLayout>
@@ -136,7 +136,7 @@ const Offers = () => {
 
   return (
     <AppLayout>
-      <div className="w-full flex flex-1 flex-col items-center justify-center max-w-md mx-auto">
+      <div className="w-full flex flex-1 flex-col items-center justify-center max-w-2xl mx-auto">
         <div className="flex flex-col items-center mb-8 pt-safe w-full">
           <Link to="/customer" className="transition-opacity hover:opacity-80">
             <img 
@@ -160,12 +160,12 @@ const Offers = () => {
           </Button>
         </div>
         
-        <div className="space-y-8">
+        <div className="w-full max-w-2xl space-y-8">
           {isLoading ? (
             <div className="text-center py-8 text-[#222222]">{t('loading.offers')}</div>
           ) : offersFiles && offersFiles.length > 0 ? (
             offersFiles!.map((file) => (
-              <Card key={file!.id} className="overflow-hidden bg-white shadow-xl rounded-xl border-[#C4A36F]/20">
+              <Card key={file!.id} className="w-full overflow-hidden bg-white shadow-xl rounded-xl border-[#C4A36F]/20">
                 <div className="p-6">
                   {file!.branchName && (
                     <div className="mb-4">
