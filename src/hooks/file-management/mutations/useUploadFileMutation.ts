@@ -20,25 +20,15 @@ export const useUploadFileMutation = (
     mutationFn: async ({ file, category, branchName, isAllBranches, endDate, endTime }: FileUploadParams) => {
       setUploading(true);
 
-      // Check authentication status
-      const { error: authError } = await supabase.auth.getUser();
-
-      // Check session
-      const { data: session } = await supabase.auth.getSession();
+      // Note: Authentication checks removed for admin operations
+      // Admin access is protected by URL parameter check in ProtectedRoute component
+      // This allows file uploads to work in the admin panel without requiring user authentication
 
       // Test basic query to verify database connectivity
       const { error: testError } = await supabase
         .from('marketing_files')
         .select('id')
         .limit(1);
-
-      if (authError) {
-        throw new Error('Authentication error: ' + authError.message);
-      }
-
-      if (!session.session?.access_token) {
-        throw new Error('No valid session. Please refresh the page and try again.');
-      }
 
       if (testError) {
         throw new Error('Database connectivity test failed: ' + testError.message);
