@@ -5,14 +5,24 @@ const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
 const supabaseServiceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 const googlePlacesApiKey = Deno.env.get('GOOGLE_PLACES_API_KEY')!;
 
-// Simple language detection (basic - can be improved)
-function detectLanguage(text: string): string {
-  // Check for Arabic characters
+// Improved language detection for reviews
+function detectLanguage(text: string, authorName?: string): string {
+  // Check for Arabic characters in the text
   const arabicPattern = /[\u0600-\u06FF]/;
+
   if (arabicPattern.test(text)) {
     return 'ar';
   }
-  // Default to English
+
+  // If no Arabic in text, check author name (Arabic names often indicate Arabic reviews)
+  if (authorName && arabicPattern.test(authorName)) {
+    // Author has Arabic name but text doesn't have Arabic characters
+    // This might indicate the review was originally in Arabic but got translated
+    // We'll assume it's Arabic based on the author name
+    return 'ar';
+  }
+
+  // Default to English for all other cases
   return 'en';
 }
 
@@ -51,34 +61,49 @@ Deno.serve(async (req: Request) => {
       if (!branch.google_place_id) continue;
 
       try {
-        // Fetch reviews from Google Places API (no language parameter = get all original reviews)
+        // Fetch reviews WITHOUT language parameter to get original language content
+        // Google Places API should return reviews in their original language when no language is specified
         const googlePlacesUrl = new URL('https://maps.googleapis.com/maps/api/place/details/json');
         googlePlacesUrl.searchParams.set('place_id', branch.google_place_id);
         googlePlacesUrl.searchParams.set('fields', 'reviews');
         googlePlacesUrl.searchParams.set('key', googlePlacesApiKey);
-        // Don't set language parameter - we want original reviews in their original language
 
-        const response = await fetch(googlePlacesUrl.toString());
+        // Make the request with Arabic locale headers to potentially get original reviews
+        // Try setting Accept-Language to Arabic to see if it helps preserve original language
+        const response = await fetch(googlePlacesUrl.toString(), {
+          headers: {
+            'Accept-Language': 'ar-SA,en;q=0.9'
+          }
+        });
 
         if (!response.ok) {
-          errors.push(`Failed to fetch reviews for ${branch.name}: ${response.status}`);
+          console.error(`Failed to fetch reviews for ${branch.name}: ${response.status} ${response.statusText}`);
+          errors.push(`Failed to fetch reviews for ${branch.name}: ${response.statusText}`);
           continue;
         }
 
         const data = await response.json();
 
-        if (data.status !== 'OK' || !data.result?.reviews) {
+        if (data.status !== 'OK') {
+          console.error(`Google Places API error for ${branch.name}: ${data.status}`);
+          errors.push(`Google Places API error for ${branch.name}: ${data.status}`);
           continue;
         }
 
-        const reviews = data.result.reviews;
+        const reviews = data.result?.reviews || [];
         let branchSynced = 0;
 
         // Process each review
         for (const review of reviews) {
           try {
-            // Detect language
-            const detectedLanguage = detectLanguage(review.text || '');
+            // Get the review text (should be in original language since no translation was requested)
+            const reviewText = review.text || '';
+
+            // Detect language from the text and author name
+            const detectedLanguage = detectLanguage(reviewText, review.author_name);
+
+            // Log the detected language for verification
+            console.log(`Review by ${review.author_name}: detected language "${detectedLanguage}" - Text preview: ${reviewText.substring(0, 50)}...`);
 
             // Get cached avatar URL if exists
             let cachedAvatarUrl: string | null = null;
@@ -107,8 +132,8 @@ Deno.serve(async (req: Request) => {
               branch_id: branch.id,
               author_name: review.author_name,
               rating: review.rating,
-              text: review.text,
-              original_text: review.text, // Store original
+              text: reviewText, // Use the original text (may be Arabic or English)
+              original_text: reviewText, // Store original text
               language: detectedLanguage,
               profile_photo_url: review.profile_photo_url || null,
               cached_avatar_url: cachedAvatarUrl,

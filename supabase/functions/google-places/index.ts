@@ -35,17 +35,15 @@ serve(async (req) => {
     }
     
     // Parse the request body for POST requests or URL for GET requests
-    let placeId, language;
-    
+    let placeId;
+
     if (req.method === 'POST') {
       const body = await req.json();
       placeId = body.placeId;
-      language = body.language || 'en';
     } else {
       // Parse the request URL to extract query parameters
       const url = new URL(req.url);
       placeId = url.searchParams.get('placeId');
-      language = url.searchParams.get('language') || 'en';
     }
 
     // Validate required parameters
@@ -63,11 +61,11 @@ serve(async (req) => {
     }
 
     // Construct the Google Places API URL
+    // NOTE: No language parameter to ensure original reviews are returned
     const googlePlacesUrl = new URL('https://maps.googleapis.com/maps/api/place/details/json');
     googlePlacesUrl.searchParams.set('place_id', placeId);
     googlePlacesUrl.searchParams.set('fields', 'reviews');
     googlePlacesUrl.searchParams.set('key', apiKey);
-    googlePlacesUrl.searchParams.set('language', language);
     
     // Fetch reviews from Google Places API
     const response = await fetch(googlePlacesUrl.toString(), {
