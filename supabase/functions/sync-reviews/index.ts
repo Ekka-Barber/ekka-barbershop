@@ -26,7 +26,8 @@ function detectLanguage(text: string, authorName?: string): string {
   return 'en';
 }
 
-Deno.serve(async (req: Request) => {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+Deno.serve(async (_req: Request) => {
   try {
     // Create admin client
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceRoleKey, {

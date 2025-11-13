@@ -2,7 +2,7 @@ import type { ComponentType, LazyExoticComponent } from "react";
 import { lazy } from "react";
 import { logger } from "@/utils/logger";
 
-type AsyncFactory<T extends ComponentType<any>> = () => Promise<{
+type AsyncFactory<T extends ComponentType<unknown>> = () => Promise<{
   default: T;
 }>;
 
@@ -35,7 +35,7 @@ const isChunkLoadError = (error: unknown): boolean => {
   return CHUNK_ERROR_PATTERNS.some((pattern) => message.includes(pattern));
 };
 
-const retryImport = <T extends ComponentType<any>>(
+const retryImport = <T extends ComponentType<unknown>>(
   factory: AsyncFactory<T>,
   attempt: number,
   maxAttempts: number,
@@ -77,7 +77,7 @@ const retryImport = <T extends ComponentType<any>>(
   });
 };
 
-export const lazyWithRetry = <T extends ComponentType<any>>(
+export const lazyWithRetry = <T extends ComponentType<unknown>>(
   factory: AsyncFactory<T>,
   options?: LazyRetryOptions
 ): LazyExoticComponent<T> => {

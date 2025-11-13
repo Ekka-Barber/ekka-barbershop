@@ -23,7 +23,7 @@ export function CachedAvatar({
   size = 40,
 }: CachedAvatarProps) {
   // If we have a pre-cached URL from database, use it directly (no need to call hook)
-  const { cachedUrl, isLoading } = useCachedAvatar(
+  const { cachedUrl } = useCachedAvatar(
     cachedAvatarUrl ? null : googleAvatarUrl, // Only fetch if not already cached
     authorName
   );

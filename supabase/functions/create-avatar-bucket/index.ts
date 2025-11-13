@@ -4,7 +4,8 @@ import { createClient } from 'jsr:@supabase/supabase-js@2';
 const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
 const supabaseServiceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
-Deno.serve(async (req: Request) => {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+Deno.serve(async (_req: Request) => {
   try {
     // Create admin client
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceRoleKey, {
