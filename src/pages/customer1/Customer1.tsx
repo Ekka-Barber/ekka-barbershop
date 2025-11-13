@@ -1,107 +1,88 @@
 import { useLanguage } from "@/contexts/LanguageContext";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
-import { PullToRefresh } from "@/components/common/PullToRefresh";
-import { useToast } from "@/components/ui/use-toast";
+import { Suspense, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { PullToRefresh } from "@/components/common/PullToRefresh";
+import { useToast } from "@/components/ui/use-toast";
+import { Card, CardContent } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import AppLayout from '@/components/layout/AppLayout';
 import { Branch } from "@/types/branch";
-import { Suspense, useCallback, useEffect, useMemo } from "react";
+import { lazyWithRetry } from "@/utils/lazyWithRetry";
+import { motion } from "@/lib/motion";
+
+// Import our extracted components
+import { CustomerHeader } from "@/components/customer/layout/CustomerHeader";
+import { UIElementRenderer } from "@/components/customer/ui/UIElementRenderer";
+
+// Import our custom hooks
 import { useUIElements } from "@/hooks/useUIElements";
 import { useElementAnimation } from "@/hooks/useElementAnimation";
 import { useDialogState } from "@/hooks/useDialogState";
+
+// Lazy load heavy dialog components for better bundle optimization
+const BranchDialog = lazyWithRetry(() => import("@/components/customer/BranchDialog").then(mod => ({ default: mod.BranchDialog })));
+const LocationDialog = lazyWithRetry(() => import("@/components/customer/LocationDialog").then(mod => ({ default: mod.LocationDialog })));
+const EidBookingsDialog = lazyWithRetry(() => import("@/components/customer/EidBookingsDialog").then(mod => ({ default: mod.EidBookingsDialog })));
+
+// Import InstallAppPrompt normally to avoid React context issues
 import { InstallAppPrompt } from "@/components/installation/InstallAppPrompt";
-import { HeroSection } from "./components/HeroSection";
-import { FeaturesAndActions } from "./components/FeaturesAndActions";
-import { SectionSeparator } from "./components/SectionSeparator";
-import { ServicesShowcase } from "./components/ServicesShowcase";
-import { BranchShowcase } from "./components/BranchShowcase";
-import { ReviewsShowcase } from "./components/ReviewsShowcase";
-import { trackButtonClick } from "@/utils/tiktokTracking";
-import { useNavigate } from "react-router-dom";
-import type { Database } from "@/integrations/supabase/types";
-import { Skeleton } from "@/components/ui/skeleton";
-import { lazyWithRetry } from "@/utils/lazyWithRetry";
-
-const BranchDialog = lazyWithRetry(() =>
-  import("@/components/customer/BranchDialog").then((mod) => ({
-    default: mod.BranchDialog,
-  }))
-);
-const LocationDialog = lazyWithRetry(() =>
-  import("@/components/customer/LocationDialog").then((mod) => ({
-    default: mod.LocationDialog,
-  }))
-);
-const EidBookingsDialog = lazyWithRetry(() =>
-  import("@/components/customer/EidBookingsDialog").then((mod) => ({
-    default: mod.EidBookingsDialog,
-  }))
-);
-
-type UiElement = Database["public"]["Tables"]["ui_elements"]["Row"];
-
-const ActionSkeleton = () => (
-  <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-    {[0, 1, 2, 3].map((item) => (
-      <div
-        key={item}
-        className="group relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-[#1f1f1f]/80 to-[#1a1a1a]/60 p-5 backdrop-blur-sm shadow-[0_20px_50px_-30px_rgba(0,0,0,0.5)] transition-all duration-300 hover:border-white/15"
-      >
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(214,179,90,0.08),_transparent_70%)] opacity-0 transition-opacity group-hover:opacity-100" />
-        <div className="relative flex items-center gap-4">
-          <Skeleton className="h-12 w-12 flex-shrink-0 rounded-2xl bg-gradient-to-br from-white/15 to-white/5 shadow-inner" />
-          <div className="flex flex-1 flex-col gap-3">
-            <Skeleton className="h-4 w-3/4 bg-gradient-to-r from-white/15 via-white/10 to-white/5" />
-            <Skeleton className="h-3 w-1/2 bg-gradient-to-r from-white/10 via-white/5 to-transparent" />
-          </div>
-        </div>
-      </div>
-    ))}
-  </div>
-);
 
 const Customer1 = () => {
-  const { language, t } = useLanguage();
-  const navigate = useNavigate();
+  const { t } = useLanguage();
   const { toast } = useToast();
 
-  const {
-    data: branches,
-    error: branchesError,
-    isError: branchesIsError,
-    refetch: refetchBranches,
-  } = useQuery({
-    queryKey: ["branches"],
+  // Page component logic
+
+  // Get branches data
+  const { data: branches, error: branchesError, isError: branchesIsError, refetch: refetchBranches } = useQuery({
+    queryKey: ['branches'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("branches")
-        .select(
-          "id, name, name_ar, address, address_ar, is_main, whatsapp_number, google_maps_url, google_place_id"
-        );
+        .from('branches')
+        .select('id, name, name_ar, address, address_ar, is_main, whatsapp_number, google_maps_url, google_place_id');
       if (error) throw error;
 
       return data as Branch[];
-    },
+    }
   });
 
+  // Show error toast when branches fail to load
   useEffect(() => {
     if (branchesIsError && branchesError) {
       toast({
-        title: t("error.occurred"),
-        description: t("please.try.again"),
-        variant: "destructive",
+        title: t('error.occurred'),
+        description: t('please.try.again'),
+        variant: "destructive"
       });
     }
   }, [branchesIsError, branchesError, t, toast]);
 
-  const {
-    visibleElements,
-    isLoadingUiElements,
-    refetchUiElements,
-  } = useUIElements();
+  // Use our custom hooks
+  const { visibleElements, isLoadingUiElements, refetchUiElements } = useUIElements();
 
+  // Combined refresh function for pull-to-refresh
+  const handleRefresh = async () => {
+    try {
+      await Promise.all([
+        refetchUiElements(),
+        refetchBranches()
+      ]);
+      toast({
+        title: t('loading'),
+        description: 'Content has been updated',
+        duration: 2000,
+      });
+    } catch {
+      toast({
+        title: t('error.occurred'),
+        description: t('please.try.again'),
+        variant: "destructive"
+      });
+    }
+  };
   const { animatingElements } = useElementAnimation(visibleElements);
-
   const {
     branchDialogOpen,
     setBranchDialogOpen,
@@ -112,127 +93,55 @@ const Customer1 = () => {
     handleBranchSelect,
     handleEidBranchSelect,
     handleLocationClick,
-    handleLocationDialog,
+    handleLocationDialog
   } = useDialogState(branches);
 
-  const heroPrimaryElement = useMemo(
-    () => visibleElements.find((element) => element.name === "book_now"),
-    [visibleElements]
-  );
-
-  const heroSecondaryElement = useMemo(
-    () => visibleElements.find((element) => element.name === "view_menu"),
-    [visibleElements]
-  );
-
-  const quickActionElements = useMemo(() => {
-    const excludedIds = new Set(
-      [heroPrimaryElement?.id, heroSecondaryElement?.id].filter(Boolean) as string[]
-    );
-    return visibleElements.filter(
-      (element) => element.type === "button" && !excludedIds.has(element.id)
-    );
-  }, [visibleElements, heroPrimaryElement?.id, heroSecondaryElement?.id]);
-
-  const loyaltyElement = useMemo(
-    () =>
-      visibleElements.find(
-        (element) => element.type === "section" && element.name === "loyalty_program"
-      ),
-    [visibleElements]
-  );
-
-  const eidElement = useMemo(
-    () =>
-      visibleElements.find(
-        (element) => element.type === "section" && element.name === "eid_bookings"
-      ),
-    [visibleElements]
-  );
-
-  const mainBranch = useMemo(() => {
-    if (!branches || branches.length === 0) return null;
-    return branches.find((branch) => branch.is_main) ?? branches[0];
-  }, [branches]);
-
-  const handleElementAction = useCallback(
-    (element: UiElement) => {
-      trackButtonClick({
-        buttonId: element.name,
-        buttonName:
-          language === "ar" ? element.display_name_ar : element.display_name,
-      });
-
-      if (element.action?.startsWith("http")) {
-        window.open(element.action, "_blank");
-      } else if (element.action === "openBranchDialog") {
-        setBranchDialogOpen(true);
-      } else if (element.action === "openLocationDialog") {
-        handleLocationDialog();
-      } else if (element.action === "openEidBookingsDialog") {
-        setEidBookingsDialogOpen(true);
-      } else if (element.action) {
-        navigate(element.action);
-      }
-    },
-    [
-      handleLocationDialog,
-      language,
-      navigate,
-      setBranchDialogOpen,
-      setEidBookingsDialogOpen,
-    ]
-  );
-
-  const handleRefresh = async () => {
-    try {
-      await Promise.all([refetchUiElements(), refetchBranches()]);
-      toast({
-        title: t("customer1.refresh.success.title"),
-        description: t("customer1.refresh.success.body"),
-        duration: 2200,
-      });
-    } catch {
-      toast({
-        title: t("error.occurred"),
-        description: t("please.try.again"),
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleLoyaltyActivate = useCallback(() => {
-    if (!loyaltyElement) return;
-
-    trackButtonClick({
-      buttonId: "loyalty_program",
-      buttonName:
-        language === "ar"
-          ? loyaltyElement.display_name_ar
-          : loyaltyElement.display_name,
-    });
-
-    if (loyaltyElement.action) {
-      window.open(loyaltyElement.action, "_blank");
-      return;
-    }
-
-    const fallbackUrl =
-      "https://enroll.boonus.app/64b7c34953090f001de0fb6c/wallet/64b7efed53090f001de815b4";
-    window.open(fallbackUrl, "_blank");
-  }, [language, loyaltyElement]);
-
   return (
-    <div className="relative min-h-full w-full bg-gradient-to-br from-[#1a1a1a] via-[#2a2a2a] to-[#1f1f1f] text-white">
+    <AppLayout>
       {/* Enhanced Background Effects */}
       <div className="pointer-events-none fixed inset-0 overflow-hidden">
         {/* Animated gradient orbs */}
-        <div className="absolute -top-1/4 -left-1/4 h-[800px] w-[800px] rounded-full bg-gradient-to-br from-[#D6B35A]/15 via-[#C79A2A]/10 to-transparent blur-[180px] animate-pulse" />
-        <div className="absolute top-1/3 -right-1/4 h-[600px] w-[600px] rounded-full bg-gradient-to-br from-[#4a4a4a]/20 via-[#3a3a3a]/15 to-transparent blur-[150px]" />
-        <div className="absolute bottom-1/4 left-1/3 h-[500px] w-[500px] rounded-full bg-gradient-to-br from-[#5a5a5a]/12 via-transparent to-transparent blur-[120px]" />
-        
+        <motion.div
+          className="absolute -top-1/4 -left-1/4 h-[800px] w-[800px] rounded-full bg-gradient-to-br from-[#D6B35A]/25 via-[#C79A2A]/20 to-transparent blur-[180px]"
+          animate={{
+            scale: [1, 1.1, 1],
+            opacity: [0.15, 0.25, 0.15]
+          }}
+          transition={{
+            duration: 8,
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+        />
+        <motion.div
+          className="absolute top-1/3 -right-1/4 h-[600px] w-[600px] rounded-full bg-gradient-to-br from-[#2a2a2a]/30 via-[#1a1a1a]/25 to-transparent blur-[150px]"
+          animate={{
+            scale: [1.1, 1, 1.1],
+            opacity: [0.25, 0.35, 0.25]
+          }}
+          transition={{
+            duration: 6,
+            repeat: Infinity,
+            ease: "easeInOut",
+            delay: 2
+          }}
+        />
+        <motion.div
+          className="absolute bottom-1/4 left-1/3 h-[500px] w-[500px] rounded-full bg-gradient-to-br from-[#3a3a3a]/20 via-transparent to-transparent blur-[120px]"
+          animate={{
+            scale: [1, 1.2, 1],
+            opacity: [0.15, 0.08, 0.15]
+          }}
+          transition={{
+            duration: 10,
+            repeat: Infinity,
+            ease: "easeInOut",
+            delay: 4
+          }}
+        />
+
         {/* Subtle grid overlay */}
-        <div 
+        <div
           className="absolute inset-0 opacity-[0.03]"
           style={{
             backgroundImage: `
@@ -242,73 +151,83 @@ const Customer1 = () => {
             backgroundSize: '60px 60px'
           }}
         />
-        
+
         {/* Ambient light rays */}
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_rgba(214,179,90,0.08),_transparent_50%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,_rgba(100,100,100,0.12),_transparent_60%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_rgba(214,179,90,0.12),_transparent_50%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,_rgba(50,50,50,0.18),_transparent_60%)]" />
       </div>
 
       <PullToRefresh
         onRefresh={handleRefresh}
         pullDownThreshold={100}
-        autoDisableOnPlatforms
+        autoDisableOnPlatforms={true}
         refreshIndicatorColor="#D6B35A"
         backgroundColor="rgba(26,26,26,0.95)"
       >
-        <div className="relative mx-auto flex w-full max-w-4xl flex-col gap-10 px-5 pb-24 pt-16 sm:gap-12 sm:px-8 sm:pt-20">
-          {/* Content wrapper with depth */}
-          <div className="relative z-10 flex flex-col gap-10 sm:gap-12">
-            <HeroSection
-              onPrimaryAction={
-                heroPrimaryElement
-                  ? () => handleElementAction(heroPrimaryElement)
-                  : undefined
-              }
-              onSecondaryAction={
-                heroSecondaryElement
-                  ? () => handleElementAction(heroSecondaryElement)
-                  : undefined
-              }
-            />
+        <motion.div
+          className="flex flex-1 flex-col justify-start items-center w-full max-w-md mx-auto pb-40 relative z-10"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
+        >
+          {/* Enhanced Header section */}
+          <motion.div
+            className="w-full mb-6"
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+          >
+            <Card className="border-0 bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-md shadow-2xl">
+              <CardContent className="p-0">
+                <CustomerHeader animatingElements={animatingElements} />
+              </CardContent>
+            </Card>
+          </motion.div>
 
-            <SectionSeparator />
 
-            {isLoadingUiElements ? (
-              <ActionSkeleton />
-            ) : (
-              <FeaturesAndActions
-                actions={quickActionElements}
-                animatingElements={animatingElements}
-                onAction={handleElementAction}
-              />
-            )}
-
-            <SectionSeparator />
-
-            <ServicesShowcase
-              loyaltyElement={loyaltyElement}
-              eidElement={eidElement}
-              onLoyaltyActivate={handleLoyaltyActivate}
+          {/* UI Elements section with enhanced styling */}
+          <motion.div
+            className="w-full space-y-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.6, delay: 0.4 }}
+          >
+            <UIElementRenderer
+              visibleElements={visibleElements}
+              animatingElements={animatingElements}
+              isLoadingUiElements={isLoadingUiElements}
+              onOpenBranchDialog={() => setBranchDialogOpen(true)}
+              onOpenLocationDialog={() => handleLocationDialog()}
               onOpenEidDialog={() => setEidBookingsDialogOpen(true)}
             />
+          </motion.div>
 
-            <SectionSeparator />
+          {/* Enhanced separator */}
+          <motion.div
+            className="w-full max-w-xs mx-auto my-6"
+            initial={{ opacity: 0, scaleX: 0 }}
+            animate={{ opacity: 1, scaleX: 1 }}
+            transition={{ duration: 0.6, delay: 0.6 }}
+            style={{ originX: 0.5 }}
+          >
+            <Separator className="bg-gradient-to-r from-transparent via-[#D6B35A]/30 to-transparent h-[1px]" />
+          </motion.div>
 
-            <BranchShowcase
-              mainBranch={mainBranch}
-              onViewAllBranches={handleLocationDialog}
-              onOpenMaps={handleLocationClick}
-            />
+          {/* Enhanced InstallAppPrompt */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.8 }}
+          >
+            <InstallAppPrompt />
+          </motion.div>
+        </motion.div>
 
-            <SectionSeparator />
-
-            <ReviewsShowcase />
-          </div>
-        </div>
       </PullToRefresh>
 
       <LanguageSwitcher />
 
+      {/* Lazy-loaded Dialogs with Suspense */}
       <Suspense fallback={null}>
         <BranchDialog
           open={branchDialogOpen}
@@ -335,9 +254,7 @@ const Customer1 = () => {
           branches={branches || []}
         />
       </Suspense>
-
-      <InstallAppPrompt />
-    </div>
+    </AppLayout>
   );
 };
 
