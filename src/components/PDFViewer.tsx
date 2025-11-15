@@ -23,7 +23,6 @@ import {
   ZoomIn,
   ZoomOut,
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
 
 pdfjs.GlobalWorkerOptions.workerSrc = pdfWorker;
 

@@ -11,6 +11,10 @@ import AppLayout from '@/components/layout/AppLayout';
 import { Branch } from "@/types/branch";
 import { lazyWithRetry } from "@/utils/lazyWithRetry";
 import { motion } from "@/lib/motion";
+import { AnimatedBackground } from "@/components/common/AnimatedBackground";
+import { AnimatedSection } from "@/components/common/AnimatedSection";
+import { useMotionPreferences } from "@/hooks/useMotionPreferences";
+import { ENTRANCE_ANIMATIONS, ANIMATION_PERFORMANCE } from "@/constants/animations";
 
 // Import our extracted components
 import { CustomerHeader } from "@/components/customer/layout/CustomerHeader";
@@ -32,6 +36,7 @@ import { InstallAppPrompt } from "@/components/installation/InstallAppPrompt";
 const Customer1 = () => {
   const { t } = useLanguage();
   const { toast } = useToast();
+  const prefersReducedMotion = useMotionPreferences();
 
   // Page component logic
 
@@ -99,63 +104,7 @@ const Customer1 = () => {
   return (
     <AppLayout>
       {/* Enhanced Background Effects */}
-      <div className="pointer-events-none fixed inset-0 overflow-hidden">
-        {/* Animated gradient orbs */}
-        <motion.div
-          className="absolute -top-1/4 -left-1/4 h-[800px] w-[800px] rounded-full bg-gradient-to-br from-[#D6B35A]/25 via-[#C79A2A]/20 to-transparent blur-[180px]"
-          animate={{
-            scale: [1, 1.1, 1],
-            opacity: [0.15, 0.25, 0.15]
-          }}
-          transition={{
-            duration: 8,
-            repeat: Infinity,
-            ease: "easeInOut"
-          }}
-        />
-        <motion.div
-          className="absolute top-1/3 -right-1/4 h-[600px] w-[600px] rounded-full bg-gradient-to-br from-[#2a2a2a]/30 via-[#1a1a1a]/25 to-transparent blur-[150px]"
-          animate={{
-            scale: [1.1, 1, 1.1],
-            opacity: [0.25, 0.35, 0.25]
-          }}
-          transition={{
-            duration: 6,
-            repeat: Infinity,
-            ease: "easeInOut",
-            delay: 2
-          }}
-        />
-        <motion.div
-          className="absolute bottom-1/4 left-1/3 h-[500px] w-[500px] rounded-full bg-gradient-to-br from-[#3a3a3a]/20 via-transparent to-transparent blur-[120px]"
-          animate={{
-            scale: [1, 1.2, 1],
-            opacity: [0.15, 0.08, 0.15]
-          }}
-          transition={{
-            duration: 10,
-            repeat: Infinity,
-            ease: "easeInOut",
-            delay: 4
-          }}
-        />
-
-        {/* Subtle grid overlay */}
-        <div
-          className="absolute inset-0 opacity-[0.03]"
-          style={{
-            backgroundImage: `
-              linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
-              linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)
-            `,
-            backgroundSize: '60px 60px'
-          }}
-        />
-
-        {/* Ambient light rays */}
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_rgba(214,179,90,0.12),_transparent_50%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,_rgba(50,50,50,0.18),_transparent_60%)]" />
-      </div>
+      <AnimatedBackground prefersReducedMotion={prefersReducedMotion} />
 
       <PullToRefresh
         onRefresh={handleRefresh}
@@ -166,31 +115,36 @@ const Customer1 = () => {
       >
         <motion.div
           className="flex flex-1 flex-col justify-start items-center w-full max-w-md mx-auto pb-40 relative z-10"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, ease: "easeOut" }}
+          style={{
+            willChange: prefersReducedMotion ? ANIMATION_PERFORMANCE.WILL_CHANGE.AUTO : ANIMATION_PERFORMANCE.WILL_CHANGE.TRANSFORM_OPACITY,
+            backfaceVisibility: ANIMATION_PERFORMANCE.HARDWARE_ACCELERATION.BACKFACE_VISIBILITY
+          }}
+          initial={prefersReducedMotion ? {} : ENTRANCE_ANIMATIONS.MAIN_CONTAINER.initial}
+          animate={prefersReducedMotion ? {} : ENTRANCE_ANIMATIONS.MAIN_CONTAINER.animate}
+          transition={{
+            duration: ENTRANCE_ANIMATIONS.MAIN_CONTAINER.duration,
+            ease: ENTRANCE_ANIMATIONS.MAIN_CONTAINER.ease
+          }}
         >
           {/* Enhanced Header section */}
-          <motion.div
+          <AnimatedSection
+            animationType="HEADER"
+            prefersReducedMotion={prefersReducedMotion}
             className="w-full mb-6"
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
           >
             <Card className="border-0 bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-md shadow-2xl">
               <CardContent className="p-0">
                 <CustomerHeader animatingElements={animatingElements} />
               </CardContent>
             </Card>
-          </motion.div>
+          </AnimatedSection>
 
 
           {/* UI Elements section with enhanced styling */}
-          <motion.div
+          <AnimatedSection
+            animationType="UI_ELEMENTS"
+            prefersReducedMotion={prefersReducedMotion}
             className="w-full space-y-4"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.6, delay: 0.4 }}
           >
             <UIElementRenderer
               visibleElements={visibleElements}
@@ -200,27 +154,25 @@ const Customer1 = () => {
               onOpenLocationDialog={() => handleLocationDialog()}
               onOpenEidDialog={() => setEidBookingsDialogOpen(true)}
             />
-          </motion.div>
+          </AnimatedSection>
 
           {/* Enhanced separator */}
-          <motion.div
+          <AnimatedSection
+            animationType="SEPARATOR"
+            prefersReducedMotion={prefersReducedMotion}
             className="w-full max-w-xs mx-auto my-6"
-            initial={{ opacity: 0, scaleX: 0 }}
-            animate={{ opacity: 1, scaleX: 1 }}
-            transition={{ duration: 0.6, delay: 0.6 }}
             style={{ originX: 0.5 }}
           >
             <Separator className="bg-gradient-to-r from-transparent via-[#D6B35A]/30 to-transparent h-[1px]" />
-          </motion.div>
+          </AnimatedSection>
 
           {/* Enhanced InstallAppPrompt */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.8 }}
+          <AnimatedSection
+            animationType="INSTALL_PROMPT"
+            prefersReducedMotion={prefersReducedMotion}
           >
             <InstallAppPrompt />
-          </motion.div>
+          </AnimatedSection>
         </motion.div>
 
       </PullToRefresh>

@@ -5,7 +5,6 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { lazyWithRetry } from "@/utils/lazyWithRetry";
-import Customer from "./pages/Customer";
 import { OfflineNotification } from "./components/common/OfflineNotification";
 import { ErrorBoundary } from "./components/common/ErrorBoundary";
 import { ServiceWorkerRegistration } from "./components/ServiceWorkerRegistration";
@@ -59,7 +58,14 @@ const AppRouter = () => {
       <Route path="/" element={<Navigate to="/customer" replace />} />
 
       {/* Public routes with lazy loading */}
-      <Route path="/customer" element={<Customer />} />
+      <Route
+        path="/customer"
+        element={
+          <Suspense fallback={<RouteLoader pageName="Preparing Ekka experience..." />}>
+            <Customer1 />
+          </Suspense>
+        }
+      />
       <Route
         path="/customer1"
         element={
