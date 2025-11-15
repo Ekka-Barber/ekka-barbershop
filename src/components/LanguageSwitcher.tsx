@@ -1,6 +1,5 @@
 
 import { useLanguage } from "@/contexts/LanguageContext";
-import { Languages } from "lucide-react";
 
 export const LanguageSwitcher = () => {
   const { language, setLanguage, t } = useLanguage();
@@ -22,7 +21,7 @@ export const LanguageSwitcher = () => {
       `}
       aria-label={language === 'ar' ? t('switch.to.english') : t('switch.to.arabic')}
     >
-      <Languages className="w-6 h-6" />
+      <span className="text-sm font-semibold">ع/EN</span>
     </button>
   );
 };
