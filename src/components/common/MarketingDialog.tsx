@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -10,8 +10,6 @@ import {
   Calendar,
   FileText,
   Image as ImageIcon,
-  Download,
-  ExternalLink,
   Maximize2
 } from 'lucide-react';
 import { LazyPDFViewer } from '@/components/LazyPDFViewer';
@@ -29,13 +27,12 @@ export interface MarketingDialogProps {
 const ContentMetadata: React.FC<{
   content: PDFFile;
   language: string;
-  onDownload: () => void;
-  onOpenExternal: () => void;
-}> = ({ content, language, onDownload, onOpenExternal }) => {
+}> = ({ content, language }) => {
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString(language === 'ar' ? 'ar-SA' : 'en-US', {
+    const locale = language === 'ar' ? 'ar-SA-u-ca-gregory' : 'en-US';
+    return date.toLocaleDateString(locale, {
       year: 'numeric',
       month: 'short',
       day: 'numeric'
@@ -43,8 +40,8 @@ const ContentMetadata: React.FC<{
   };
 
   return (
-    <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center justify-between gap-2 p-3 sm:p-4 bg-gray-50 border-t border-gray-100">
-      <div className="flex flex-wrap items-center gap-2 sm:gap-3 order-2 sm:order-1">
+    <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-2 p-3 sm:p-4 bg-gray-50 border-t border-gray-100">
+      <div className="flex flex-wrap items-center gap-2 sm:gap-3">
         {/* Content type badge */}
         <Badge variant="secondary" className="flex items-center gap-1 text-xs">
           {content.file_type.includes('pdf') ? (
@@ -90,32 +87,6 @@ const ContentMetadata: React.FC<{
           </span>
         )}
       </div>
-
-      {/* Action buttons */}
-      <div className="flex items-center gap-1 sm:gap-2 order-1 sm:order-2">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={onOpenExternal}
-          className="flex items-center gap-1 min-h-[44px] px-2 sm:px-3 touch-target"
-        >
-          <ExternalLink className="w-4 h-4" />
-          <span className="hidden sm:inline text-xs sm:text-sm">
-            {language === 'ar' ? 'فتح خارجياً' : 'Open External'}
-          </span>
-        </Button>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={onDownload}
-          className="flex items-center gap-1 min-h-[44px] px-2 sm:px-3 touch-target"
-        >
-          <Download className="w-4 h-4" />
-          <span className="hidden sm:inline text-xs sm:text-sm">
-            {language === 'ar' ? 'تحميل' : 'Download'}
-          </span>
-        </Button>
-      </div>
     </div>
   );
 };
@@ -131,7 +102,12 @@ const ContentRenderer: React.FC<{
   if (content.file_type.includes('pdf')) {
     return (
       <div className="relative w-full h-full">
-        <LazyPDFViewer pdfUrl={content.url} className="w-full h-full" />
+        <LazyPDFViewer
+          pdfUrl={content.url}
+          className="w-full h-full"
+          height="100%"
+          variant="dialog"
+        />
         <Button
           variant="secondary"
           size="sm"
@@ -145,11 +121,11 @@ const ContentRenderer: React.FC<{
   }
 
   return (
-    <div className="relative w-full h-full flex items-center justify-center bg-gray-50">
+    <div className="relative w-full h-full flex items-center justify-center bg-gray-50 rounded-xl">
       <img
         src={content.url}
         alt={content.file_name || (language === 'ar' ? 'محتوى تسويقي' : 'Marketing Content')}
-        className="max-w-full max-h-full object-contain"
+        className="w-full h-full object-contain"
         onError={(e) => {
           e.currentTarget.src = '/placeholder.svg';
         }}
@@ -196,22 +172,6 @@ export const MarketingDialog: React.FC<MarketingDialogProps> = ({
     setCurrentIndex((prev) => (prev < initialContent.length - 1 ? prev + 1 : 0));
   };
 
-  const handleDownload = () => {
-    if (currentContent) {
-      const link = document.createElement('a');
-      link.href = currentContent.url;
-      link.download = currentContent.file_name || 'marketing-content';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    }
-  };
-
-  const handleOpenExternal = () => {
-    if (currentContent) {
-      window.open(currentContent.url, '_blank', 'noopener,noreferrer');
-    }
-  };
 
   const handleToggleFullscreen = () => {
     setIsFullscreen(!isFullscreen);
@@ -246,8 +206,8 @@ export const MarketingDialog: React.FC<MarketingDialogProps> = ({
                 <div className="flex items-center gap-3">
                   <h2 className="text-xl font-bold text-[#222222]">
                     {contentType === 'menu'
-                      ? (language === 'ar' ? 'قائمة الطعام' : 'Menu')
-                      : (language === 'ar' ? 'العروض الخاصة' : 'Special Offers')
+                      ? (language === 'ar' ? 'قائمة الأسعار' : 'Menu')
+                      : (language === 'ar' ? 'العروض' : 'Special Offers')
                     }
                   </h2>
                   {initialContent.length > 1 && (
@@ -279,10 +239,16 @@ export const MarketingDialog: React.FC<MarketingDialogProps> = ({
                   </div>
                 )}
               </div>
+              <DialogDescription className="sr-only">
+                {contentType === 'menu'
+                  ? (language === 'ar' ? 'عرض قائمة الأسعار' : 'View menu and pricing information')
+                  : (language === 'ar' ? 'عرض العروض الحالية' : 'View special offers and promotions')
+                }
+              </DialogDescription>
             </DialogHeader>
 
             {/* Content area */}
-            <div className="flex-1 overflow-hidden">
+            <div className="flex-1 overflow-hidden min-h-0">
               <ContentRenderer
                 content={currentContent}
                 isFullscreen={isFullscreen}
@@ -294,8 +260,6 @@ export const MarketingDialog: React.FC<MarketingDialogProps> = ({
             <ContentMetadata
               content={currentContent}
               language={language}
-              onDownload={handleDownload}
-              onOpenExternal={handleOpenExternal}
             />
           </motion.div>
         </AnimatePresence>
