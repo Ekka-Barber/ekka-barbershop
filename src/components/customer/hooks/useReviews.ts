@@ -7,6 +7,7 @@ export const useReviews = (language: Language) => {
   const [error, setError] = useState<string | null>(null);
   const [displayedReviews, setDisplayedReviews] = useState<Review[]>([]);
   const [hasReviewsInOtherLanguages, setHasReviewsInOtherLanguages] = useState(false);
+  const [shouldFetchAllReviews, setShouldFetchAllReviews] = useState(false);
   const allReviewsPool = useRef<Review[]>([]);
 
   // Cache time - reviews are stored in DB, so we can cache longer
@@ -26,7 +27,7 @@ export const useReviews = (language: Language) => {
     refetchOnMount: true
   });
 
-  // Fetch all reviews to check if there are reviews in other languages
+  // Fetch all reviews to check if there are reviews in other languages - only when needed
   const {
     data: allReviewsData,
   } = useQuery({
@@ -38,7 +39,8 @@ export const useReviews = (language: Language) => {
     },
     staleTime: CACHE_STALE_TIME,
     refetchOnWindowFocus: false,
-    refetchOnMount: true
+    refetchOnMount: false, // Don't fetch immediately on mount
+    enabled: shouldFetchAllReviews // Only fetch when explicitly enabled
   });
 
   // Get a random selection of reviews from the pool
@@ -57,9 +59,9 @@ export const useReviews = (language: Language) => {
     return shuffled.slice(0, count);
   }, []);
 
-  // Check for reviews in other languages
+  // Check for reviews in other languages - only when all reviews query is enabled and data is available
   useEffect(() => {
-    if (allReviewsData) {
+    if (shouldFetchAllReviews && allReviewsData) {
       const hasArabicReviews = allReviewsData.arabic && allReviewsData.arabic.length > 0;
       const hasEnglishReviews = allReviewsData.english && allReviewsData.english.length > 0;
 
@@ -69,7 +71,7 @@ export const useReviews = (language: Language) => {
         setHasReviewsInOtherLanguages(hasArabicReviews);
       }
     }
-  }, [allReviewsData, language]);
+  }, [allReviewsData, language, shouldFetchAllReviews]);
 
   // Process and randomize reviews when data changes
   useEffect(() => {
@@ -82,8 +84,11 @@ export const useReviews = (language: Language) => {
       const randomSelection = getRandomReviews(reviewsData, reviewsToDisplay);
 
       setDisplayedReviews(randomSelection);
-    } else if (reviewsData) {
+      setHasReviewsInOtherLanguages(false); // Reset when we have reviews
+    } else if (reviewsData && reviewsData.length === 0) {
+      // No reviews in current language - check for other languages
       setDisplayedReviews([]);
+      setShouldFetchAllReviews(true); // Trigger the "all reviews" query
     }
   }, [reviewsData, getRandomReviews, language]);
   

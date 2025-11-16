@@ -11,7 +11,7 @@ export default defineConfig(({ mode }) => ({
     alias: {
       '@': path.resolve(__dirname, './src'),
     },
-    dedupe: ['react', 'react-dom', 'framer-motion'],
+    dedupe: ['react', 'react-dom', 'react/jsx-runtime', 'framer-motion'],
   },
   server: {
     port: 9913,
@@ -30,16 +30,11 @@ export default defineConfig(({ mode }) => ({
           // This ensures lazy-loaded components always use the same React instance
           if (id.includes('node_modules')) {
             // React core - must be in main bundle, never split
-            // Check for any React-related paths and exclude them from chunking
-            if (id.includes('node_modules/react/') && !id.includes('react-router') && !id.includes('react-dom')) {
-              // Don't return a chunk name - this keeps React in the main bundle
+            if (id.includes('/react/') || id.includes('/react-dom/')) {
+              // Don't return a chunk name - this keeps React/React-DOM in the main bundle
               return;
             }
-            if (id.includes('node_modules/react-dom/')) {
-              // Don't return a chunk name - this keeps React-DOM in the main bundle
-              return;
-            }
-            if (id.includes('react-router') || id.includes('framer-motion')) {
+            if (id.includes('react-router') || id.includes('framer-motion') || id.includes('recharts')) {
               return 'vendor-react';
             }
             if (id.includes('@radix-ui')) {
@@ -50,10 +45,6 @@ export default defineConfig(({ mode }) => ({
             }
             if (id.includes('@supabase')) {
               return 'vendor-supabase';
-            }
-            // Bundle recharts with React to prevent initialization issues
-            if (id.includes('recharts')) {
-              return 'vendor-react';
             }
             if (id.includes('react-pdf') || id.includes('pdfjs')) {
               return 'vendor-pdf';

@@ -1,5 +1,5 @@
 
-import { useCallback, Suspense, useEffect } from "react";
+import { useCallback, Suspense, useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
 import type { Database } from "@/integrations/supabase/types";
@@ -9,20 +9,15 @@ import { ActionButton } from "./ActionButton";
 
 type UiElement = Database['public']['Tables']['ui_elements']['Row'];
 
-// Lazy load heavy section components
+// Lazy load heavy section components - now loaded on-demand only
 const loadLoyaltySection = () => import("../sections/LoyaltySection").then(mod => ({ default: mod.LoyaltySection }));
-const loadEidBookingsSection = () => import("../sections/EidBookingsSection").then(mod => ({ default: mod.EidBookingsSection }));
+const loadBookingsSection = () => import("../sections/BookingsSection").then(mod => ({ default: mod.BookingsSection }));
 const loadGoogleReviewsWrapper = () => import("../sections/GoogleReviewsWrapper").then(mod => ({ default: mod.GoogleReviewsWrapper }));
 
+// Components are now loaded lazily when actually needed
 const LoyaltySection = lazyWithRetry(loadLoyaltySection);
-const EidBookingsSection = lazyWithRetry(loadEidBookingsSection);
+const BookingsSection = lazyWithRetry(loadBookingsSection);
 const GoogleReviewsWrapper = lazyWithRetry(loadGoogleReviewsWrapper);
-
-const preloadCustomerSections = () => {
-  void loadLoyaltySection();
-  void loadEidBookingsSection();
-  void loadGoogleReviewsWrapper();
-};
 
 interface UIElementRendererProps {
   visibleElements: UiElement[];
@@ -30,7 +25,7 @@ interface UIElementRendererProps {
   isLoadingUiElements: boolean;
   onOpenBranchDialog: () => void;
   onOpenLocationDialog: () => void;
-  onOpenEidDialog: () => void;
+  onOpenBookingsDialog: () => void;
 }
 
 export const UIElementRenderer = ({
@@ -39,14 +34,79 @@ export const UIElementRenderer = ({
   isLoadingUiElements,
   onOpenBranchDialog,
   onOpenLocationDialog,
-  onOpenEidDialog
+  onOpenBookingsDialog
 }: UIElementRendererProps) => {
   const navigate = useNavigate();
   const { language } = useLanguage();
 
+  // Track which sections have been loaded to avoid duplicate loading
+  const [loadedSections, setLoadedSections] = useState<Set<string>>(new Set());
+  const preloadTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Visibility-based preloading: only load sections that are actually visible
   useEffect(() => {
-    preloadCustomerSections();
-  }, []);
+    if (animatingElements.length === 0) return;
+
+    // Clear any existing preload timeout
+    if (preloadTimeoutRef.current) {
+      clearTimeout(preloadTimeoutRef.current);
+    }
+
+    // Preload sections that are currently animating (visible) immediately
+    const sectionsToLoad = visibleElements
+      .filter(element => animatingElements.includes(element.id) && element.type === 'section')
+      .map(element => element.name);
+
+    sectionsToLoad.forEach(sectionName => {
+      if (!loadedSections.has(sectionName)) {
+        // Load the section component
+        switch (sectionName) {
+          case 'loyalty_program':
+            loadLoyaltySection().catch(console.error);
+            break;
+          case 'bookings':
+            loadBookingsSection().catch(console.error);
+            break;
+          case 'google_reviews':
+            loadGoogleReviewsWrapper().catch(console.error);
+            break;
+        }
+        setLoadedSections(prev => new Set(prev).add(sectionName));
+      }
+    });
+
+    // For non-visible sections, add a small delay before preloading (for smoother UX)
+    const nonVisibleSections = visibleElements
+      .filter(element => !animatingElements.includes(element.id) && element.type === 'section')
+      .map(element => element.name);
+
+    if (nonVisibleSections.length > 0) {
+      preloadTimeoutRef.current = setTimeout(() => {
+        nonVisibleSections.forEach(sectionName => {
+          if (!loadedSections.has(sectionName)) {
+            switch (sectionName) {
+              case 'loyalty_program':
+                loadLoyaltySection().catch(console.error);
+                break;
+              case 'bookings':
+                loadBookingsSection().catch(console.error);
+                break;
+              case 'google_reviews':
+                loadGoogleReviewsWrapper().catch(console.error);
+                break;
+            }
+            setLoadedSections(prev => new Set(prev).add(sectionName));
+          }
+        });
+      }, 1000); // 1 second delay for non-visible sections
+    }
+
+    return () => {
+      if (preloadTimeoutRef.current) {
+        clearTimeout(preloadTimeoutRef.current);
+      }
+    };
+  }, [animatingElements, visibleElements, loadedSections]);
 
   const handleElementAction = useCallback((element: UiElement) => {
     trackButtonClick({
@@ -60,12 +120,12 @@ export const UIElementRenderer = ({
       onOpenBranchDialog();
     } else if (element.action === 'openLocationDialog') {
       onOpenLocationDialog();
-    } else if (element.action === 'openEidBookingsDialog') {
-      onOpenEidDialog();
+    } else if (element.action === 'openBookingsDialog') {
+      onOpenBookingsDialog();
     } else if (element.action) {
       navigate(element.action);
     }
-  }, [language, onOpenBranchDialog, onOpenLocationDialog, onOpenEidDialog, navigate]);
+  }, [language, onOpenBranchDialog, onOpenLocationDialog, onOpenBookingsDialog, navigate]);
   
   if (isLoadingUiElements) {
     return (
@@ -93,13 +153,13 @@ export const UIElementRenderer = ({
               )}
             </div>
           );
-        } else if (element.type === 'section' && element.name === 'eid_bookings') {
+        } else if (element.type === 'section' && element.name === 'bookings') {
           return (
             <Suspense key={element.id} fallback={<div className="h-32 bg-gray-100 rounded animate-pulse" />}>
-              <EidBookingsSection
+              <BookingsSection
                 element={element}
                 isVisible={isVisible}
-                onOpenEidDialog={onOpenEidDialog}
+                onOpenBookingsDialog={onOpenBookingsDialog}
               />
             </Suspense>
           );

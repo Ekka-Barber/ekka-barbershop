@@ -526,7 +526,7 @@ const PDFViewer = ({ pdfUrl, height }: PDFViewerProps) => {
               <div className="flex flex-1 flex-wrap items-center gap-2">
                 <Button
                   size="sm"
-                  className="bg-[#222222] text-white hover:bg-[#111111]"
+                  className="bg-[#222222] text-white hover:bg-[#111111] min-h-[44px] touch-target"
                   onClick={() => setIsModalOpen(true)}
                 >
                   <Maximize2 className="h-4 w-4" />
@@ -587,7 +587,7 @@ const PDFViewer = ({ pdfUrl, height }: PDFViewerProps) => {
               </div>
 
               <div className="flex flex-wrap items-center gap-2">
-                <Button variant="ghost" size="sm" asChild>
+                <Button variant="ghost" size="sm" className="min-h-[44px] touch-target" asChild>
                   <a
                     href={pdfUrl}
                     target="_blank"
@@ -598,7 +598,7 @@ const PDFViewer = ({ pdfUrl, height }: PDFViewerProps) => {
                     {t('pdf.viewer.openExternal')}
                   </a>
                 </Button>
-                <Button size="sm" asChild>
+                <Button size="sm" className="min-h-[44px] touch-target" asChild>
                   <a href={pdfUrl} download className="flex items-center gap-2">
                     <Download className="h-4 w-4" />
                     {t('pdf.viewer.download')}

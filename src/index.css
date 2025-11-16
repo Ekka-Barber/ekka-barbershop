@@ -81,9 +81,21 @@ html, body {
     --ring: 38 45% 60%;
 
     --radius: 0.5rem;
-    
+
     /* Font family variable */
     --font-sans: 'IBM Plex Sans Arabic', sans-serif;
+
+    /* Safe area variables for iOS notch support */
+    --sal: env(safe-area-inset-left);
+    --sar: env(safe-area-inset-right);
+    --sat: env(safe-area-inset-top);
+    --sab: env(safe-area-inset-bottom);
+
+    /* Fallbacks for browsers that don't support env() */
+    --sal: 0px;
+    --sar: 0px;
+    --sat: 0px;
+    --sab: 0px;
   }
 
   .dark {

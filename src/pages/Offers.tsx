@@ -1,5 +1,3 @@
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useNavigate, Link } from 'react-router-dom';
 import { Card } from "@/components/ui/card";
@@ -9,7 +7,9 @@ import { Badge } from "@/components/ui/badge";
 import CountdownTimer from '@/components/CountdownTimer';
 import { useEffect, useState } from 'react';
 import AppLayout from '@/components/layout/AppLayout';
-import PDFViewer from '@/components/PDFViewer';
+import { LazyPDFViewer } from '@/components/LazyPDFViewer';
+import { MarketingErrorBoundary } from '@/components/common/MarketingErrorBoundary';
+import { usePDFFetch } from '@/hooks/usePDFFetch';
 
 const Offers = () => {
   const navigate = useNavigate();
@@ -21,84 +21,8 @@ const Offers = () => {
     setIsRouterReady(true);
   }, []);
   
-  const { data: offersFiles, isLoading, error: fetchError } = useQuery({
-    queryKey: ['active-offers', language],
-    queryFn: async () => {
-
-      const { data, error } = await supabase
-        .from('marketing_files')
-        .select(`
-          *,
-          branch:branch_name (
-            id,
-            name,
-            name_ar
-          )
-        `)
-        .eq('category', 'offers')
-        .eq('is_active', true)
-        .order('display_order', { ascending: true });
-      
-      if (error) {
-        console.error('Error fetching offers:', error);
-        toast.error(t('error.loading.offers'));
-        throw error;
-      }
-
-      if (!data || data.length === 0) {
-        return [];
-      }
-      
-      const filesWithUrls = await Promise.all(data.map(async (file) => {
-        const { data: publicUrlData } = supabase.storage
-          .from('marketing_files')
-          .getPublicUrl(file.file_path);
-
-        // Verify URL is valid
-        if (!publicUrlData?.publicUrl) {
-          console.error('Failed to get public URL for file:', file.file_path);
-          return null;
-        }
-
-        // Validate URL format
-        try {
-          new URL(publicUrlData.publicUrl);
-        } catch {
-          console.error('Invalid URL generated:', publicUrlData.publicUrl);
-          return null;
-        }
-
-        const now = new Date().getTime();
-        const endDate = file.end_date ? new Date(file.end_date).getTime() : null;
-        const isExpired = endDate ? endDate < now : false;
-        const isWithinThreeDays = endDate ? 
-          (now - endDate) < (3 * 24 * 60 * 60 * 1000) : false;
-        
-        if (!isExpired) {
-          // Offer is active
-        }
-        
-        return {
-          ...file,
-          url: publicUrlData.publicUrl,
-          branchName: language === 'ar' ? file.branch?.name_ar : file.branch?.name,
-          isExpired,
-          isWithinThreeDays
-        };
-      }));
-      
-      // Filter out null values from failed URL generations
-      const validFiles = filesWithUrls.filter(item => item !== null && item !== undefined);
-      return validFiles.sort((a, b) => {
-        if (a.isExpired !== b.isExpired) {
-          return a.isExpired ? 1 : -1;
-        }
-        return (a.display_order || 0) - (b.display_order || 0);
-      });
-    },
-    retry: 1,
-    staleTime: 1000 * 60 * 5, // 5 minutes
-  });
+  // Use the shared PDF fetch hook with branch information
+  const { pdfFiles: offersFiles, isLoading, error: fetchError } = usePDFFetch('offers', true);
 
   if (fetchError) {
     // Error handling is done through the UI, no need for console.error
@@ -136,7 +60,8 @@ const Offers = () => {
 
   return (
     <AppLayout>
-      <div className="w-full flex flex-1 flex-col items-center justify-center max-w-2xl mx-auto">
+      <MarketingErrorBoundary fallbackType="offers">
+        <div className="w-full flex flex-1 flex-col items-center justify-center max-w-2xl mx-auto">
         <div className="flex flex-col items-center mb-8 pt-safe w-full">
           <Link to="/customer" className="transition-opacity hover:opacity-80">
             <img 
@@ -187,11 +112,11 @@ const Offers = () => {
                   )}
                   <div className="relative">
                     {file!.isExpired && renderExpiredSticker()}
-                    {file!.file_type.includes('pdf') ? (
-                      <div key={`pdf-${file!.id}`}>
-                        <PDFViewer pdfUrl={file!.url} />
-                      </div>
-                    ) : (
+                      {file!.file_type.includes('pdf') ? (
+                        <div key={`pdf-${file!.id}`}>
+                          <LazyPDFViewer pdfUrl={file!.url} />
+                        </div>
+                      ) : (
                       <div className={`relative ${file!.isExpired ? 'filter grayscale blur-[2px]' : ''}`}>
                         <img
                           src={file!.url}
@@ -226,6 +151,7 @@ const Offers = () => {
           )}
         </div>
       </div>
+      </MarketingErrorBoundary>
     </AppLayout>
   );
 };

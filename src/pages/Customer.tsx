@@ -21,7 +21,7 @@ import { useDialogState } from "@/hooks/useDialogState";
 // Lazy load heavy dialog components for better bundle optimization
 const BranchDialog = lazyWithRetry(() => import("@/components/customer/BranchDialog").then(mod => ({ default: mod.BranchDialog })));
 const LocationDialog = lazyWithRetry(() => import("@/components/customer/LocationDialog").then(mod => ({ default: mod.LocationDialog })));
-const EidBookingsDialog = lazyWithRetry(() => import("@/components/customer/EidBookingsDialog").then(mod => ({ default: mod.EidBookingsDialog })));
+const BookingsDialog = lazyWithRetry(() => import("@/components/customer/BookingsDialog").then(mod => ({ default: mod.BookingsDialog })));
 
 // Import InstallAppPrompt normally to avoid React context issues
 import { InstallAppPrompt } from "@/components/installation/InstallAppPrompt";
@@ -85,12 +85,12 @@ const Customer = () => {
   const {
     branchDialogOpen,
     setBranchDialogOpen,
-    eidBookingsDialogOpen,
-    setEidBookingsDialogOpen,
+    bookingsDialogOpen,
+    setBookingsDialogOpen,
     locationDialogOpen,
     setLocationDialogOpen,
     handleBranchSelect,
-    handleEidBranchSelect,
+    handleBranchSelectForBookings,
     handleLocationClick,
     handleLocationDialog
   } = useDialogState(branches);
@@ -107,14 +107,14 @@ const Customer = () => {
           <CustomerHeader animatingElements={animatingElements} />
 
           {/* UI Elements section */}
-          <UIElementRenderer
-            visibleElements={visibleElements}
-            animatingElements={animatingElements}
-            isLoadingUiElements={isLoadingUiElements}
-            onOpenBranchDialog={() => setBranchDialogOpen(true)}
-            onOpenLocationDialog={() => handleLocationDialog()}
-            onOpenEidDialog={() => setEidBookingsDialogOpen(true)}
-          />
+            <UIElementRenderer
+              visibleElements={visibleElements}
+              animatingElements={animatingElements}
+              isLoadingUiElements={isLoadingUiElements}
+              onOpenBranchDialog={() => setBranchDialogOpen(true)}
+              onOpenLocationDialog={() => handleLocationDialog()}
+              onOpenBookingsDialog={() => setBookingsDialogOpen(true)}
+            />
 
           <InstallAppPrompt />
         </div>
@@ -142,10 +142,10 @@ const Customer = () => {
       </Suspense>
       
       <Suspense fallback={null}>
-        <EidBookingsDialog
-          open={eidBookingsDialogOpen}
-          onOpenChange={setEidBookingsDialogOpen}
-          onBranchSelect={handleEidBranchSelect}
+        <BookingsDialog
+          open={bookingsDialogOpen}
+          onOpenChange={setBookingsDialogOpen}
+          onBranchSelect={handleBranchSelectForBookings}
           branches={branches || []}
         />
       </Suspense>
