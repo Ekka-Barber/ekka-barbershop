@@ -26,6 +26,7 @@ interface UIElementRendererProps {
   onOpenBranchDialog: () => void;
   onOpenLocationDialog: () => void;
   onOpenBookingsDialog: () => void;
+  onOpenMarketingDialog?: (contentType: 'menu' | 'offers', initialIndex?: number) => void;
 }
 
 export const UIElementRenderer = ({
@@ -34,7 +35,8 @@ export const UIElementRenderer = ({
   isLoadingUiElements,
   onOpenBranchDialog,
   onOpenLocationDialog,
-  onOpenBookingsDialog
+  onOpenBookingsDialog,
+  onOpenMarketingDialog
 }: UIElementRendererProps) => {
   const navigate = useNavigate();
   const { language } = useLanguage();
@@ -122,10 +124,14 @@ export const UIElementRenderer = ({
       onOpenLocationDialog();
     } else if (element.action === 'openBookingsDialog') {
       onOpenBookingsDialog();
+    } else if (element.action === '/menu' && onOpenMarketingDialog) {
+      onOpenMarketingDialog('menu', 0);
+    } else if (element.action === '/offers' && onOpenMarketingDialog) {
+      onOpenMarketingDialog('offers', 0);
     } else if (element.action) {
       navigate(element.action);
     }
-  }, [language, onOpenBranchDialog, onOpenLocationDialog, onOpenBookingsDialog, navigate]);
+  }, [language, onOpenBranchDialog, onOpenLocationDialog, onOpenBookingsDialog, onOpenMarketingDialog, navigate]);
   
   if (isLoadingUiElements) {
     return (

@@ -1,0 +1,305 @@
+import React, { useState, useEffect } from 'react';
+import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { motion, AnimatePresence } from '@/lib/motion';
+import {
+  ChevronLeft,
+  ChevronRight,
+  Calendar,
+  FileText,
+  Image as ImageIcon,
+  Download,
+  ExternalLink,
+  Maximize2
+} from 'lucide-react';
+import { LazyPDFViewer } from '@/components/LazyPDFViewer';
+import type { PDFFile } from '@/hooks/usePDFFetch';
+
+export interface MarketingDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  contentType: 'menu' | 'offers';
+  initialContent?: PDFFile[];
+  initialIndex?: number;
+}
+
+// Metadata display component
+const ContentMetadata: React.FC<{
+  content: PDFFile;
+  language: string;
+  onDownload: () => void;
+  onOpenExternal: () => void;
+}> = ({ content, language, onDownload, onOpenExternal }) => {
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString(language === 'ar' ? 'ar-SA' : 'en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+  };
+
+  return (
+    <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center justify-between gap-2 p-3 sm:p-4 bg-gray-50 border-t border-gray-100">
+      <div className="flex flex-wrap items-center gap-2 sm:gap-3 order-2 sm:order-1">
+        {/* Content type badge */}
+        <Badge variant="secondary" className="flex items-center gap-1 text-xs">
+          {content.file_type.includes('pdf') ? (
+            <FileText className="w-3 h-3" />
+          ) : (
+            <ImageIcon className="w-3 h-3" />
+          )}
+          <span className="hidden xs:inline">{content.file_type.toUpperCase()}</span>
+        </Badge>
+
+        {/* Branch badge */}
+        {content.branchName && (
+          <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200 text-xs px-2 py-1">
+            {content.branchName}
+          </Badge>
+        )}
+
+        {/* New/Updated badge */}
+        {content.created_at && (
+          <Badge
+            variant="outline"
+            className={`flex items-center gap-1 text-xs px-2 py-1 ${
+              new Date(content.created_at).getTime() > Date.now() - (7 * 24 * 60 * 60 * 1000)
+                ? 'bg-green-50 text-green-700 border-green-200'
+                : 'bg-blue-50 text-blue-700 border-blue-200'
+            }`}
+          >
+            <Calendar className="w-3 h-3" />
+            <span className="hidden xs:inline">
+              {new Date(content.created_at).getTime() > Date.now() - (7 * 24 * 60 * 60 * 1000)
+                ? 'New'
+                : 'Updated'
+              }
+            </span>
+          </Badge>
+        )}
+
+        {/* Date - hidden on very small screens */}
+        {content.created_at && (
+          <span className="text-xs text-gray-500 flex items-center gap-1 hidden sm:flex">
+            <Calendar className="w-3 h-3" />
+            {formatDate(content.created_at)}
+          </span>
+        )}
+      </div>
+
+      {/* Action buttons */}
+      <div className="flex items-center gap-1 sm:gap-2 order-1 sm:order-2">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={onOpenExternal}
+          className="flex items-center gap-1 min-h-[44px] px-2 sm:px-3 touch-target"
+        >
+          <ExternalLink className="w-4 h-4" />
+          <span className="hidden sm:inline text-xs sm:text-sm">
+            {language === 'ar' ? 'فتح خارجياً' : 'Open External'}
+          </span>
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={onDownload}
+          className="flex items-center gap-1 min-h-[44px] px-2 sm:px-3 touch-target"
+        >
+          <Download className="w-4 h-4" />
+          <span className="hidden sm:inline text-xs sm:text-sm">
+            {language === 'ar' ? 'تحميل' : 'Download'}
+          </span>
+        </Button>
+      </div>
+    </div>
+  );
+};
+
+// Content renderer component
+const ContentRenderer: React.FC<{
+  content: PDFFile;
+  isFullscreen: boolean;
+  onToggleFullscreen: () => void;
+}> = ({ content, onToggleFullscreen }) => {
+  const { language } = useLanguage();
+
+  if (content.file_type.includes('pdf')) {
+    return (
+      <div className="relative w-full h-full">
+        <LazyPDFViewer pdfUrl={content.url} className="w-full h-full" />
+        <Button
+          variant="secondary"
+          size="sm"
+          className="absolute top-4 right-4 bg-white/90 hover:bg-white shadow-lg"
+          onClick={onToggleFullscreen}
+        >
+          <Maximize2 className="w-4 h-4" />
+        </Button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="relative w-full h-full flex items-center justify-center bg-gray-50">
+      <img
+        src={content.url}
+        alt={content.file_name || (language === 'ar' ? 'محتوى تسويقي' : 'Marketing Content')}
+        className="max-w-full max-h-full object-contain"
+        onError={(e) => {
+          e.currentTarget.src = '/placeholder.svg';
+        }}
+      />
+      <Button
+        variant="secondary"
+        size="sm"
+        className="absolute top-4 right-4 bg-white/90 hover:bg-white shadow-lg"
+        onClick={onToggleFullscreen}
+      >
+        <Maximize2 className="w-4 h-4" />
+      </Button>
+    </div>
+  );
+};
+
+// Main MarketingDialog component
+export const MarketingDialog: React.FC<MarketingDialogProps> = ({
+  open,
+  onOpenChange,
+  contentType,
+  initialContent = [],
+  initialIndex = 0
+}) => {
+  const { language } = useLanguage();
+  const [currentIndex, setCurrentIndex] = useState(initialIndex);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  // Reset to initial index when dialog opens
+  useEffect(() => {
+    if (open) {
+      setCurrentIndex(initialIndex);
+      setIsFullscreen(false);
+    }
+  }, [open, initialIndex]);
+
+  const currentContent = initialContent[currentIndex];
+
+  const handlePrevious = () => {
+    setCurrentIndex((prev) => (prev > 0 ? prev - 1 : initialContent.length - 1));
+  };
+
+  const handleNext = () => {
+    setCurrentIndex((prev) => (prev < initialContent.length - 1 ? prev + 1 : 0));
+  };
+
+  const handleDownload = () => {
+    if (currentContent) {
+      const link = document.createElement('a');
+      link.href = currentContent.url;
+      link.download = currentContent.file_name || 'marketing-content';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  };
+
+  const handleOpenExternal = () => {
+    if (currentContent) {
+      window.open(currentContent.url, '_blank', 'noopener,noreferrer');
+    }
+  };
+
+  const handleToggleFullscreen = () => {
+    setIsFullscreen(!isFullscreen);
+  };
+
+  if (!currentContent) {
+    return null;
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent
+        className={`w-full p-0 overflow-hidden touch-target
+          ${isFullscreen
+            ? 'max-w-none w-screen h-screen fixed inset-0'
+            : 'max-w-6xl h-[90vh] mx-4 sm:mx-auto'
+          }`}
+        showCloseButton={!isFullscreen}
+      >
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={currentIndex}
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            transition={{ duration: 0.3 }}
+            className="flex flex-col h-full"
+          >
+            {/* Header */}
+            <DialogHeader className="px-6 py-4 border-b border-gray-100 flex-shrink-0">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <h2 className="text-xl font-bold text-[#222222]">
+                    {contentType === 'menu'
+                      ? (language === 'ar' ? 'قائمة الطعام' : 'Menu')
+                      : (language === 'ar' ? 'العروض الخاصة' : 'Special Offers')
+                    }
+                  </h2>
+                  {initialContent.length > 1 && (
+                    <span className="text-sm text-gray-500">
+                      {currentIndex + 1} / {initialContent.length}
+                    </span>
+                  )}
+                </div>
+
+                {/* Navigation buttons */}
+                {initialContent.length > 1 && (
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handlePrevious}
+                      disabled={initialContent.length <= 1}
+                    >
+                      <ChevronLeft className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleNext}
+                      disabled={initialContent.length <= 1}
+                    >
+                      <ChevronRight className="w-4 h-4" />
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </DialogHeader>
+
+            {/* Content area */}
+            <div className="flex-1 overflow-hidden">
+              <ContentRenderer
+                content={currentContent}
+                isFullscreen={isFullscreen}
+                onToggleFullscreen={handleToggleFullscreen}
+              />
+            </div>
+
+            {/* Metadata footer */}
+            <ContentMetadata
+              content={currentContent}
+              language={language}
+              onDownload={handleDownload}
+              onOpenExternal={handleOpenExternal}
+            />
+          </motion.div>
+        </AnimatePresence>
+      </DialogContent>
+    </Dialog>
+  );
+};

@@ -17,11 +17,13 @@ import { UIElementRenderer } from "@/components/customer/ui/UIElementRenderer";
 import { useUIElements } from "@/hooks/useUIElements";
 import { useElementAnimation } from "@/hooks/useElementAnimation";
 import { useDialogState } from "@/hooks/useDialogState";
+import { useMarketingDialog } from "@/hooks/useMarketingDialog";
 
 // Lazy load heavy dialog components for better bundle optimization
 const BranchDialog = lazyWithRetry(() => import("@/components/customer/BranchDialog").then(mod => ({ default: mod.BranchDialog })));
 const LocationDialog = lazyWithRetry(() => import("@/components/customer/LocationDialog").then(mod => ({ default: mod.LocationDialog })));
 const BookingsDialog = lazyWithRetry(() => import("@/components/customer/BookingsDialog").then(mod => ({ default: mod.BookingsDialog })));
+const LazyMarketingDialog = lazyWithRetry(() => import("@/components/common/LazyMarketingDialog").then(mod => ({ default: mod.LazyMarketingDialog })));
 
 // Import InstallAppPrompt normally to avoid React context issues
 import { InstallAppPrompt } from "@/components/installation/InstallAppPrompt";
@@ -95,6 +97,15 @@ const Customer = () => {
     handleLocationDialog
   } = useDialogState(branches);
 
+  // Marketing dialog for menus and offers
+  const {
+    dialogState: marketingDialogState,
+    openMarketingDialog,
+    closeMarketingDialog,
+    menuContent,
+    offersContent
+  } = useMarketingDialog();
+
   return (
     <AppLayout>
       <PullToRefresh
@@ -114,6 +125,7 @@ const Customer = () => {
               onOpenBranchDialog={() => setBranchDialogOpen(true)}
               onOpenLocationDialog={() => handleLocationDialog()}
               onOpenBookingsDialog={() => setBookingsDialogOpen(true)}
+              onOpenMarketingDialog={openMarketingDialog}
             />
 
           <InstallAppPrompt />
@@ -147,6 +159,19 @@ const Customer = () => {
           onOpenChange={setBookingsDialogOpen}
           onBranchSelect={handleBranchSelectForBookings}
           branches={branches || []}
+        />
+      </Suspense>
+
+      {/* Marketing Dialog for Menus and Offers */}
+      <Suspense fallback={null}>
+        <LazyMarketingDialog
+          open={marketingDialogState.open}
+          onOpenChange={closeMarketingDialog}
+          contentType={marketingDialogState.contentType}
+          initialContent={marketingDialogState.contentType === 'menu'
+            ? menuContent
+            : offersContent}
+          initialIndex={marketingDialogState.currentIndex}
         />
       </Suspense>
     </AppLayout>
