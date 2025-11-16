@@ -3,6 +3,9 @@ import { useQuery } from '@tanstack/react-query';
 import { fetchReviewsFromDatabase, Review } from '@/services/reviewsService';
 import { Language } from '@/types/language';
 
+// Export Review type
+export type { Review };
+
 export const useReviews = (language: Language) => {
   const [error, setError] = useState<string | null>(null);
   const [displayedReviews, setDisplayedReviews] = useState<Review[]>([]);

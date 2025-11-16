@@ -10,14 +10,9 @@ import { ActionButton } from "./ActionButton";
 type UiElement = Database['public']['Tables']['ui_elements']['Row'];
 
 // Lazy load heavy section components - now loaded on-demand only
-const loadLoyaltySection = () => import("../sections/LoyaltySection").then(mod => ({ default: mod.LoyaltySection }));
-const loadBookingsSection = () => import("../sections/BookingsSection").then(mod => ({ default: mod.BookingsSection }));
-const loadGoogleReviewsWrapper = () => import("../sections/GoogleReviewsWrapper").then(mod => ({ default: mod.GoogleReviewsWrapper }));
-
-// Components are now loaded lazily when actually needed
-const LoyaltySection = lazyWithRetry(loadLoyaltySection);
-const BookingsSection = lazyWithRetry(loadBookingsSection);
-const GoogleReviewsWrapper = lazyWithRetry(loadGoogleReviewsWrapper);
+const LoyaltySection = lazyWithRetry(() => import("../sections/LoyaltySection"));
+const BookingsSection = lazyWithRetry(() => import("../sections/BookingsSection"));
+const GoogleReviewsWrapper = lazyWithRetry(() => import("../sections/GoogleReviewsWrapper"));
 
 interface UIElementRendererProps {
   visibleElements: UiElement[];
@@ -64,13 +59,13 @@ export const UIElementRenderer = ({
         // Load the section component
         switch (sectionName) {
           case 'loyalty_program':
-            loadLoyaltySection().catch(console.error);
+            import("../sections/LoyaltySection").catch(console.error);
             break;
           case 'bookings':
-            loadBookingsSection().catch(console.error);
+            import("../sections/BookingsSection").catch(console.error);
             break;
           case 'google_reviews':
-            loadGoogleReviewsWrapper().catch(console.error);
+            import("../sections/GoogleReviewsWrapper").catch(console.error);
             break;
         }
         setLoadedSections(prev => new Set(prev).add(sectionName));
@@ -84,19 +79,19 @@ export const UIElementRenderer = ({
 
     if (nonVisibleSections.length > 0) {
       preloadTimeoutRef.current = setTimeout(() => {
-        nonVisibleSections.forEach(sectionName => {
-          if (!loadedSections.has(sectionName)) {
-            switch (sectionName) {
-              case 'loyalty_program':
-                loadLoyaltySection().catch(console.error);
-                break;
-              case 'bookings':
-                loadBookingsSection().catch(console.error);
-                break;
-              case 'google_reviews':
-                loadGoogleReviewsWrapper().catch(console.error);
-                break;
-            }
+          nonVisibleSections.forEach(sectionName => {
+            if (!loadedSections.has(sectionName)) {
+              switch (sectionName) {
+                case 'loyalty_program':
+                  import("../sections/LoyaltySection").catch(console.error);
+                  break;
+                case 'bookings':
+                  import("../sections/BookingsSection").catch(console.error);
+                  break;
+                case 'google_reviews':
+                  import("../sections/GoogleReviewsWrapper").catch(console.error);
+                  break;
+              }
             setLoadedSections(prev => new Set(prev).add(sectionName));
           }
         });

@@ -92,3 +92,5 @@ export const LoyaltySection = ({ element, isVisible }: LoyaltySectionProps) => {
     </>
   );
 };
+
+export default LoyaltySection;

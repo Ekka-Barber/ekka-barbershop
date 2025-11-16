@@ -58,12 +58,12 @@ export const BranchForm = ({
   const handleSubmit = (values: z.infer<typeof branchFormSchema>) => {
     const submitData = {
       ...values,
-      whatsapp_number: values.whatsapp_number || null,
-      google_maps_url: values.google_maps_url || null,
-      google_place_id: values.google_place_id || null,
+      whatsapp_number: values.whatsapp_number || undefined,
+      google_maps_url: values.google_maps_url || undefined,
+      google_place_id: values.google_place_id || undefined,
     };
     
-    onSubmit(submitData);
+    onSubmit(submitData as any);
   };
 
   return (

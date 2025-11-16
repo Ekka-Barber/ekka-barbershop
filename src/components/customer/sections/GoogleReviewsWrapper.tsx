@@ -32,3 +32,5 @@ export const GoogleReviewsWrapper = ({ isVisible }: GoogleReviewsWrapperProps) =
     </motion.div>
   );
 };
+
+export default GoogleReviewsWrapper;

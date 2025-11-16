@@ -79,3 +79,5 @@ export const BookingsSection = ({ element, isVisible, onOpenBookingsDialog }: Bo
     </motion.div>
   );
 };
+
+export default BookingsSection;
