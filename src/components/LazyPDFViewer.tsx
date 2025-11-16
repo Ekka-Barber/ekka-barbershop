@@ -8,23 +8,33 @@ const PDFViewer = lazy(() => import('./PDFViewer'));
 interface LazyPDFViewerProps {
   pdfUrl: string;
   className?: string;
+  height?: string;
+  variant?: 'default' | 'dialog';
 }
 
-const PDFViewerSkeleton: React.FC = () => {
+const PDFViewerSkeleton: React.FC<{ variant: 'default' | 'dialog' }> = ({ variant }) => {
   const { t } = useLanguage();
+
+  if (variant === 'dialog') {
+    return (
+      <div className="w-full h-full flex flex-col items-center justify-center bg-[#FBF7F2] rounded-xl">
+        <div className="w-20 h-20 border-4 border-[#C4A36F]/30 border-t-[#C4A36F] rounded-full animate-spin mb-3" />
+        <p className="text-sm text-gray-600">
+          {t('pdf.viewer.loading') || 'Loading PDF...'}
+        </p>
+      </div>
+    );
+  }
 
   return (
     <Card className="w-full border-[#C4A36F]/20">
       <CardContent className="p-6">
         <div className="flex flex-col items-center justify-center space-y-4 py-8">
-          {/* PDF-like skeleton */}
           <div className="w-full max-w-md space-y-3">
             <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
             <div className="h-4 bg-gray-200 rounded animate-pulse w-3/4"></div>
             <div className="h-4 bg-gray-200 rounded animate-pulse w-1/2"></div>
           </div>
-
-          {/* Document icon placeholder */}
           <div className="flex items-center justify-center w-16 h-16 bg-gray-100 rounded-lg">
             <svg
               className="w-8 h-8 text-gray-400"
@@ -40,7 +50,6 @@ const PDFViewerSkeleton: React.FC = () => {
               />
             </svg>
           </div>
-
           <div className="text-center">
             <p className="text-sm text-gray-600 mb-2">
               {t('pdf.viewer.loading') || 'Loading PDF...'}
@@ -55,8 +64,27 @@ const PDFViewerSkeleton: React.FC = () => {
   );
 };
 
-const LazyPDFViewerErrorFallback: React.FC<{ error: Error; retry: () => void }> = ({ error, retry }) => {
+const LazyPDFViewerErrorFallback: React.FC<{ error: Error; retry: () => void; variant: 'default' | 'dialog' }> = ({ error, retry, variant }) => {
   const { t } = useLanguage();
+
+  if (variant === 'dialog') {
+    return (
+      <div className="w-full h-full flex flex-col items-center justify-center bg-red-50/60 rounded-xl p-6 text-center">
+        <p className="text-lg font-semibold text-red-700 mb-2">
+          {t('pdf.viewer.error.title') || 'PDF Loading Error'}
+        </p>
+        <p className="text-sm text-red-600 mb-4 max-w-xs">
+          {t('pdf.viewer.error.message') || 'Unable to load the PDF document. Please try again.'}
+        </p>
+        <button
+          onClick={retry}
+          className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors text-sm font-medium"
+        >
+          {t('pdf.viewer.retry') || 'Retry'}
+        </button>
+      </div>
+    );
+  }
 
   return (
     <Card className="w-full border-red-200 bg-red-50/50">
@@ -110,7 +138,7 @@ const LazyPDFViewerErrorFallback: React.FC<{ error: Error; retry: () => void }> 
   );
 };
 
-export const LazyPDFViewer: React.FC<LazyPDFViewerProps> = ({ pdfUrl, className }) => {
+export const LazyPDFViewer: React.FC<LazyPDFViewerProps> = ({ pdfUrl, className, height, variant = 'default' }) => {
   const [retryKey, setRetryKey] = React.useState(0);
 
   const handleRetry = () => {
@@ -118,14 +146,14 @@ export const LazyPDFViewer: React.FC<LazyPDFViewerProps> = ({ pdfUrl, className 
   };
 
   return (
-    <Suspense fallback={<PDFViewerSkeleton />}>
+    <Suspense fallback={<PDFViewerSkeleton variant={variant} />}>
       <ErrorBoundary
         FallbackComponent={({ error }) => (
-          <LazyPDFViewerErrorFallback error={error} retry={handleRetry} />
+          <LazyPDFViewerErrorFallback error={error} retry={handleRetry} variant={variant} />
         )}
         resetKeys={[retryKey]}
       >
-        <PDFViewer key={retryKey} pdfUrl={pdfUrl} className={className} />
+        <PDFViewer key={retryKey} pdfUrl={pdfUrl} className={className} height={height} variant={variant} />
       </ErrorBoundary>
     </Suspense>
   );

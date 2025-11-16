@@ -12,6 +12,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Skeleton } from '@/components/ui/skeleton';
+import { cn } from '@/lib/utils';
 import {
   ChevronLeft,
   ChevronRight,
@@ -29,6 +30,8 @@ pdfjs.GlobalWorkerOptions.workerSrc = pdfWorker;
 interface PDFViewerProps {
   pdfUrl: string;
   height?: string;
+  className?: string;
+  variant?: 'default' | 'dialog';
 }
 
 const MIN_SCALE = 0.75;
@@ -38,7 +41,7 @@ const SCALE_STEP = 0.2;
 const clamp = (value: number, min: number, max: number) =>
   Math.min(Math.max(value, min), max);
 
-const PDFViewer = ({ pdfUrl, height }: PDFViewerProps) => {
+const PDFViewer = ({ pdfUrl, height, className, variant = 'default' }: PDFViewerProps) => {
   const { t } = useLanguage();
   const previewContainerRef = useRef<HTMLDivElement | null>(null);
   const previewSurfaceRef = useRef<HTMLDivElement | null>(null);
@@ -71,6 +74,7 @@ const PDFViewer = ({ pdfUrl, height }: PDFViewerProps) => {
   const [nativeModalError, setNativeModalError] = useState<string | null>(null);
 
   const resolvedMinHeight = height ?? '360px';
+  const isFullHeight = height === '100%';
 
   useEffect(() => {
     setPreviewLoading(true);
@@ -268,11 +272,15 @@ const PDFViewer = ({ pdfUrl, height }: PDFViewerProps) => {
     <>
       <div
         ref={previewContainerRef}
-        className="relative w-full rounded-2xl border border-[#E4D8C8] bg-[#FBF7F2] shadow-sm"
-        style={{ minHeight: resolvedMinHeight }}
+        className={cn(
+          "relative w-full rounded-2xl border border-[#E4D8C8] bg-[#FBF7F2] shadow-sm",
+          variant === 'dialog' && "h-full rounded-xl border border-transparent bg-transparent shadow-none",
+          className
+        )}
+        style={isFullHeight ? { height: '100%' } : { minHeight: resolvedMinHeight }}
       >
-        <div ref={previewSurfaceRef} className="px-3 py-4">
-          <div className="flex w-full items-center justify-center">
+        <div ref={previewSurfaceRef} className={cn("px-3 py-4", isFullHeight && "h-full")}>
+          <div className={cn("flex w-full items-center justify-center", isFullHeight && "h-full")}>
             {previewMode === 'pdfjs' ? (
               shouldRenderPreviewDocument ? (
                 <Document
@@ -288,25 +296,25 @@ const PDFViewer = ({ pdfUrl, height }: PDFViewerProps) => {
                   onLoadSuccess={handlePreviewLoadSuccess}
                   onLoadError={handlePreviewError}
                   renderMode="canvas"
-                  className="flex items-center justify-center"
+                  className={cn("flex items-center justify-center", isFullHeight && "h-full")}
                 >
                   <Page
                     pageNumber={1}
                     width={previewWidth ?? undefined}
-                    className="!m-0 rounded-lg bg-white shadow-lg"
+                    className={cn("!m-0 rounded-lg bg-white shadow-lg", isFullHeight && "h-full")}
                     renderAnnotationLayer={false}
                     renderTextLayer={false}
                   />
                 </Document>
               ) : (
-                <Skeleton className="h-[280px] w-full rounded-xl" />
+                <Skeleton className={isFullHeight ? "h-full w-full rounded-xl" : "h-[280px] w-full rounded-xl"} />
               )
             ) : (
               <iframe
                 key={`preview-native-${previewAttempt}-${pdfUrl}`}
                 src={`${pdfUrl}#toolbar=0&navpanes=0&view=fitH`}
                 title="PDF preview"
-                className="h-[420px] w-full rounded-xl border-0 bg-white shadow-lg lg:h-[520px]"
+                className={isFullHeight ? "h-full w-full rounded-xl border-0 bg-white shadow-lg" : "h-[420px] w-full rounded-xl border-0 bg-white shadow-lg lg:h-[520px]"}
                 onLoad={() => {
                   setNativePreviewLoading(false);
                   setNativePreviewError(null);
@@ -385,6 +393,7 @@ const PDFViewer = ({ pdfUrl, height }: PDFViewerProps) => {
 
       </div>
 
+      {variant !== 'dialog' && (
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
         <DialogContent
           className="w-[min(100vw-1rem,930px)] max-h-[95vh] overflow-hidden rounded-2xl border-0 bg-transparent p-0 shadow-2xl"
@@ -609,6 +618,7 @@ const PDFViewer = ({ pdfUrl, height }: PDFViewerProps) => {
           </div>
         </DialogContent>
       </Dialog>
+      )}
     </>
   );
 };

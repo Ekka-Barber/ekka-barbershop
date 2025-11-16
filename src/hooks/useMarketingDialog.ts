@@ -1,36 +1,52 @@
 import { useState, useCallback } from 'react';
-import { usePDFFetch, PDFFile } from './usePDFFetch';
+import { usePDFFetch } from './usePDFFetch';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export interface MarketingDialogState {
   open: boolean;
   contentType: 'menu' | 'offers';
-  content: PDFFile[];
   currentIndex: number;
 }
 
 export const useMarketingDialog = () => {
+  const { language } = useLanguage();
   const [dialogState, setDialogState] = useState<MarketingDialogState>({
     open: false,
     contentType: 'menu',
-    content: [],
     currentIndex: 0
   });
+  const [menuEnabled, setMenuEnabled] = useState(false);
+  const [offersEnabled, setOffersEnabled] = useState(false);
 
   // Fetch content when opening dialog
-  const { pdfFiles: menuFiles, isLoading: menuLoading } = usePDFFetch('menu');
-  const { pdfFiles: offersFiles, isLoading: offersLoading } = usePDFFetch('offers', true);
+  const { pdfFiles: menuFiles, isLoading: menuLoading } = usePDFFetch('menu', {
+    enabled: menuEnabled,
+    language
+  });
+  const { pdfFiles: offersFiles, isLoading: offersLoading } = usePDFFetch('offers', {
+    includeBranchInfo: true,
+    enabled: offersEnabled,
+    language
+  });
 
   const openMarketingDialog = useCallback((
     contentType: 'menu' | 'offers',
     initialIndex: number = 0
   ) => {
+    if (contentType === 'menu') {
+      setMenuEnabled(true);
+    } else {
+      setOffersEnabled(true);
+    }
+
     const content = contentType === 'menu' ? menuFiles : offersFiles;
+    const hasContent = content.length > 0;
+    const safeIndex = hasContent ? Math.min(initialIndex, content.length - 1) : 0;
 
     setDialogState({
       open: true,
       contentType,
-      content,
-      currentIndex: Math.min(initialIndex, content.length - 1)
+      currentIndex: safeIndex
     });
   }, [menuFiles, offersFiles]);
 
@@ -38,14 +54,6 @@ export const useMarketingDialog = () => {
     setDialogState(prev => ({
       ...prev,
       open: false
-    }));
-  }, []);
-
-  const updateDialogContent = useCallback((content: PDFFile[], currentIndex: number = 0) => {
-    setDialogState(prev => ({
-      ...prev,
-      content,
-      currentIndex: Math.min(currentIndex, content.length - 1)
     }));
   }, []);
 
@@ -68,7 +76,6 @@ export const useMarketingDialog = () => {
     openMenuDialog,
     openOffersDialog,
     closeMarketingDialog,
-    updateDialogContent,
 
     // Loading states
     menuLoading,

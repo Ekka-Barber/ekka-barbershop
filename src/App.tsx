@@ -1,4 +1,4 @@
-import React, { Suspense } from "react";
+import React, { Suspense, useEffect, useState } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -36,13 +36,41 @@ const RouteLoader = ({ pageName }: { pageName: string }) => (
 
 // Protected route component - SECURITY ISSUE: This is a basic implementation
 // TODO: Replace with proper authentication system
+const ADMIN_ACCESS_TOKEN = import.meta.env.VITE_ADMIN_ACCESS_TOKEN;
+
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const location = useLocation();
-  const searchParams = new URLSearchParams(location.search);
-  const access = searchParams.get('access');
+  const [status, setStatus] = useState<'checking' | 'granted' | 'denied'>('checking');
 
-  // WARNING: This is not secure authentication - replace with proper auth
-  if (access !== 'owner123') {
+  useEffect(() => {
+    if (!ADMIN_ACCESS_TOKEN) {
+      console.error("Missing VITE_ADMIN_ACCESS_TOKEN");
+      setStatus('denied');
+      return;
+    }
+
+    const storedToken = localStorage.getItem('ekka-admin-token');
+    if (storedToken === ADMIN_ACCESS_TOKEN) {
+      setStatus('granted');
+      return;
+    }
+
+    const searchParams = new URLSearchParams(location.search);
+    const token = searchParams.get('token');
+    if (token && token === ADMIN_ACCESS_TOKEN) {
+      localStorage.setItem('ekka-admin-token', token);
+      setStatus('granted');
+      return;
+    }
+
+    setStatus('denied');
+  }, [location.search]);
+
+  if (status === 'checking') {
+    return <RouteLoader pageName="Validating access..." />;
+  }
+
+  if (status === 'denied') {
     return <Navigate to="/customer" replace />;
   }
 

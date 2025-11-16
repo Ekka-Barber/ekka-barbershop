@@ -22,7 +22,10 @@ const Offers = () => {
   }, []);
   
   // Use the shared PDF fetch hook with branch information
-  const { pdfFiles: offersFiles, isLoading, error: fetchError } = usePDFFetch('offers', true);
+  const { pdfFiles: offersFiles, isLoading, error: fetchError } = usePDFFetch('offers', {
+    includeBranchInfo: true,
+    language
+  });
 
   if (fetchError) {
     // Error handling is done through the UI, no need for console.error

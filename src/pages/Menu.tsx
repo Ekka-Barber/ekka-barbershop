@@ -10,7 +10,7 @@ import { usePDFFetch } from '@/hooks/usePDFFetch';
 
 const Menu = () => {
   const navigate = useNavigate();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [activeMenuUrl, setActiveMenuUrl] = useState<string | null>(null);
   
   useEffect(() => {
@@ -18,7 +18,7 @@ const Menu = () => {
   }, []);
 
   // Use the shared PDF fetch hook
-  const { pdfFiles: menuFiles, isLoading, error } = usePDFFetch('menu');
+  const { pdfFiles: menuFiles, isLoading, error } = usePDFFetch('menu', { language });
 
   // Use the first menu file as the active one when data loads
   useEffect(() => {

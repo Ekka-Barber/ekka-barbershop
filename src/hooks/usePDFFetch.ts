@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from "@/integrations/supabase/client";
+import { Language } from "@/types/language";
 
 export interface PDFFile {
   id: string;
@@ -16,13 +17,32 @@ export interface PDFFile {
   display_order?: number;
 }
 
+interface PDFFetchOptions {
+  includeBranchInfo?: boolean;
+  enabled?: boolean;
+  language?: Language;
+}
+
 export const usePDFFetch = (
   category: 'menu' | 'offers',
-  includeBranchInfo: boolean = false
+  {
+    includeBranchInfo = false,
+    enabled = true,
+    language = 'en'
+  }: PDFFetchOptions = {}
 ) => {
-  const queryKey = includeBranchInfo ? ['active-offers'] : [`active-${category}-files`];
+  const queryKey = [
+    'marketing-files',
+    category,
+    includeBranchInfo ? 'with-branch' : 'basic',
+    language
+  ];
 
   const fetchPDFFiles = async (): Promise<PDFFile[]> => {
+    if (!enabled) {
+      return [];
+    }
+
     let query = supabase
       .from('marketing_files')
       .select(includeBranchInfo
@@ -81,7 +101,9 @@ export const usePDFFetch = (
         // Add branch information for offers
         if (includeBranchInfo && 'branch' in file) {
           const branchData = file as { branch?: { name?: string; name_ar?: string } };
-          enhancedFile.branchName = branchData.branch?.name;
+          enhancedFile.branchName = language === 'ar'
+            ? (branchData.branch?.name_ar || branchData.branch?.name)
+            : branchData.branch?.name;
 
           // Add expiration logic for offers
           if (file.end_date) {
@@ -121,7 +143,8 @@ export const usePDFFetch = (
     queryKey,
     queryFn: fetchPDFFiles,
     staleTime: 5 * 60 * 1000, // 5 minutes
-    retry: 1
+    retry: 1,
+    enabled
   });
 
   return {

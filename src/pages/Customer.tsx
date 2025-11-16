@@ -103,7 +103,9 @@ const Customer = () => {
     openMarketingDialog,
     closeMarketingDialog,
     menuContent,
-    offersContent
+    offersContent,
+    menuLoading,
+    offersLoading
   } = useMarketingDialog();
 
   return (
@@ -172,6 +174,7 @@ const Customer = () => {
             ? menuContent
             : offersContent}
           initialIndex={marketingDialogState.currentIndex}
+          isLoading={marketingDialogState.contentType === 'menu' ? menuLoading : offersLoading}
         />
       </Suspense>
     </AppLayout>

@@ -21,6 +21,7 @@ export interface MarketingDialogProps {
   contentType: 'menu' | 'offers';
   initialContent?: PDFFile[];
   initialIndex?: number;
+  isLoading?: boolean;
 }
 
 // Metadata display component
@@ -148,7 +149,8 @@ export const MarketingDialog: React.FC<MarketingDialogProps> = ({
   onOpenChange,
   contentType,
   initialContent = [],
-  initialIndex = 0
+  initialIndex = 0,
+  isLoading = false
 }) => {
   const { language } = useLanguage();
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
@@ -163,6 +165,40 @@ export const MarketingDialog: React.FC<MarketingDialogProps> = ({
   }, [open, initialIndex]);
 
   const currentContent = initialContent[currentIndex];
+  const hasContent = Boolean(currentContent);
+
+  if (!hasContent) {
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent
+          className="w-full max-w-2xl h-[70vh] flex items-center justify-center rounded-2xl border-0 bg-white p-0"
+          showCloseButton
+        >
+          <div className="flex flex-col items-center justify-center w-full h-full gap-4">
+            {isLoading ? (
+              <>
+                <div className="w-16 h-16 border-4 border-[#C4A36F]/30 border-t-[#C4A36F] rounded-full animate-spin" />
+                <p className="text-sm text-[#555]">
+                  {language === 'ar' ? 'جاري تحميل المحتوى...' : 'Loading marketing content...'}
+                </p>
+              </>
+            ) : (
+              <>
+                <p className="text-lg font-semibold text-[#222222]">
+                  {language === 'ar' ? 'لا يوجد محتوى متاح حالياً' : 'No content available yet'}
+                </p>
+                <p className="text-sm text-[#555] text-center px-4">
+                  {language === 'ar'
+                    ? 'تحقق من لوحة التحكم للتأكد من نشر الملفات لهذا القسم.'
+                    : 'Please verify in the dashboard that files are published for this section.'}
+                </p>
+              </>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
 
   const handlePrevious = () => {
     setCurrentIndex((prev) => (prev > 0 ? prev - 1 : initialContent.length - 1));
@@ -176,10 +212,6 @@ export const MarketingDialog: React.FC<MarketingDialogProps> = ({
   const handleToggleFullscreen = () => {
     setIsFullscreen(!isFullscreen);
   };
-
-  if (!currentContent) {
-    return null;
-  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
