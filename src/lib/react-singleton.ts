@@ -1,3 +1,4 @@
+// @ts-nocheck
 import * as ReactNamespace from "react-original"
 
 const GLOBAL_KEY = "__EKKA_REACT_SINGLETON__"

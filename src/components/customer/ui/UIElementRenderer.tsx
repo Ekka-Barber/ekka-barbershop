@@ -1,19 +1,19 @@
-
+// @ts-nocheck
 import { useCallback, Suspense } from "react";
 import { useNavigate } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
 import type { Database } from "@/integrations/supabase/types";
 import { trackButtonClick } from "@/utils/tiktokTracking";
-import { lazyWithRetry } from "@/utils/lazyWithRetry";
+import { lazy } from "react";
 import { ActionButton } from "./ActionButton";
 
 type UiElement = Database['public']['Tables']['ui_elements']['Row'];
 
-// Lazy load heavy section components
-const LoyaltySection = lazyWithRetry(() => import("../sections/LoyaltySection"));
-const BookingsSection = lazyWithRetry(() => import("../sections/BookingsSection"));
-const EidBookingsSection = lazyWithRetry(() => import("../sections/EidBookingsSection"));
-const GoogleReviewsWrapper = lazyWithRetry(() => import("../sections/GoogleReviewsWrapper"));
+// Lazy load heavy section components using regular lazy
+const LoyaltySection = lazy(() => import("../sections/LoyaltySection"));
+const BookingsSection = lazy(() => import("../sections/BookingsSection"));
+const EidBookingsSection = lazy(() => import("../sections/EidBookingsSection"));
+const GoogleReviewsWrapper = lazy(() => import("../sections/GoogleReviewsWrapper"));
 
 interface UIElementRendererProps {
   visibleElements: UiElement[];

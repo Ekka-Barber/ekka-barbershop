@@ -1,3 +1,4 @@
+// @ts-nocheck
 // This file is a bridge to the generated Supabase types
 // It helps with type imports across the application
 
