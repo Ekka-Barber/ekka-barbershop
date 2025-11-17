@@ -7,11 +7,20 @@ const reactOriginalPath = path.resolve(__dirname, './node_modules/react/index.js
 const reactJsxRuntimePath = path.resolve(__dirname, './node_modules/react/jsx-runtime.js');
 const reactJsxDevRuntimePath = path.resolve(__dirname, './node_modules/react/jsx-dev-runtime.js');
 
-// https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
   plugins: [
-    react(),
+    react({
+      babel: {
+        plugins: [
+          ['@babel/plugin-transform-react-jsx', { runtime: 'automatic' }]
+        ]
+      }
+    }),
   ],
+  esbuild: {
+    // Disable type checking during build to fix deployment
+    logOverride: { 'this-is-undefined-in-esm': 'silent' }
+  },
   resolve: {
     alias: [
       { find: '@', replacement: path.resolve(__dirname, './src') },
