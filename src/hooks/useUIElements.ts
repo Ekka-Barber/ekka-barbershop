@@ -30,22 +30,42 @@ export const useUIElements = () => {
     setVisibleElements(filtered);
   }, [uiElements]);
 
-  // Set up real-time subscription
+  // Set up real-time subscription with error handling
   useEffect(() => {
-    const channel = supabase
-      .channel('ui_elements_changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'ui_elements'
-        },
-        () => {
-          refetchUiElements();
-        }
-      )
-      .subscribe();
+    let channel: ReturnType<typeof supabase.channel> | null = null;
+
+    const setupSubscription = () => {
+      try {
+        channel = supabase
+          .channel('ui_elements_changes')
+          .on(
+            'postgres_changes',
+            {
+              event: '*',
+              schema: 'public',
+              table: 'ui_elements'
+            },
+            () => {
+              refetchUiElements();
+            }
+          )
+          .subscribe((status) => {
+            if (status === 'SUBSCRIBED') {
+              logger.info('Successfully subscribed to UI elements changes');
+            } else if (status === 'CHANNEL_ERROR') {
+              logger.warn('WebSocket channel error - realtime updates disabled');
+            } else if (status === 'TIMED_OUT') {
+              logger.warn('WebSocket connection timed out - realtime updates disabled');
+            } else if (status === 'CLOSED') {
+              logger.debug('WebSocket connection closed');
+            }
+          });
+      } catch (error) {
+        logger.warn('Failed to set up realtime subscription:', error);
+      }
+    };
+
+    setupSubscription();
 
     return () => {
       // Safely remove channel with error handling

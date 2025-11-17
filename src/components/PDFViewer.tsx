@@ -9,6 +9,27 @@ import React, {
 import { Document, Page, pdfjs } from 'react-pdf';
 import pdfWorker from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 import { useLanguage } from '@/contexts/LanguageContext';
+
+// Configure PDF.js worker and disable JPX decoding to prevent WebAssembly warnings
+pdfjs.GlobalWorkerOptions.workerSrc = pdfWorker;
+
+// Disable JPX image decoding to prevent WebAssembly initialization warnings
+// This helps suppress "JpxImage#instantiateWasm: UnknownErrorException" warnings
+if (typeof window !== 'undefined') {
+  // Override console.warn to suppress PDF.js JPX warnings
+  const originalWarn = console.warn;
+  console.warn = (...args) => {
+    const message = args.join(' ');
+    if (message.includes('JpxImage') ||
+        message.includes('OpenJPEG failed') ||
+        message.includes('Failed to resolve module specifier') ||
+        message.includes('Unable to decode image')) {
+      // Suppress these specific PDF.js warnings
+      return;
+    }
+    originalWarn.apply(console, args);
+  };
+}
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Skeleton } from '@/components/ui/skeleton';

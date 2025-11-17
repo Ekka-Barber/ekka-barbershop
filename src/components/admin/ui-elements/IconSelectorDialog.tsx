@@ -1,4 +1,4 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -101,6 +101,9 @@ export const IconSelectorDialog = ({
           <DialogTitle>
             {language === "ar" ? "اختر أيقونة" : "Select Icon"}
           </DialogTitle>
+          <DialogDescription>
+            {language === "ar" ? "اختر أيقونة من المكتبة لعنصر واجهة المستخدم" : "Choose an icon from the library for the UI element"}
+          </DialogDescription>
         </DialogHeader>
         <div className="space-y-6">
           <Input

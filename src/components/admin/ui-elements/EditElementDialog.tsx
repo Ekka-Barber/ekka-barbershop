@@ -1,4 +1,4 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -87,6 +87,9 @@ export const EditElementDialog = ({ isOpen, onClose, element }: EditElementDialo
           <DialogTitle>
             {language === "ar" ? "تحرير النص" : "Edit Text"}
           </DialogTitle>
+          <DialogDescription>
+            {language === "ar" ? "قم بتحديث النص والوصف لعنصر واجهة المستخدم" : "Update the text and description for the UI element"}
+          </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-4">

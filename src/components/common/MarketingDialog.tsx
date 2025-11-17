@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogDescription } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -234,6 +234,12 @@ export const MarketingDialog: React.FC<MarketingDialogProps> = ({
           >
             {/* Header */}
             <DialogHeader className="px-6 py-4 border-b border-gray-100 flex-shrink-0">
+              <DialogTitle className="sr-only">
+                {contentType === 'menu'
+                  ? (language === 'ar' ? 'قائمة الأسعار' : 'Menu')
+                  : (language === 'ar' ? 'العروض' : 'Special Offers')
+                }
+              </DialogTitle>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <h2 className="text-xl font-bold text-[#222222]">
