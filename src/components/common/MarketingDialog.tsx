@@ -298,7 +298,7 @@ export const MarketingDialog: React.FC<MarketingDialogProps> = ({
             </DialogHeader>
 
             {/* Content area */}
-            <div className="flex-1 overflow-hidden min-h-0">
+            <div className="flex-1 overflow-y-auto overflow-x-hidden min-h-0">
               <ContentRenderer
                 content={currentContent}
                 isFullscreen={isFullscreen}

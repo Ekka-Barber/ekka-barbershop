@@ -319,6 +319,7 @@ const PDFViewer = ({ pdfUrl, height, className, variant = 'default' }: PDFViewer
                   renderMode="canvas"
                   className={cn("flex items-center justify-center", isFullHeight && "h-full")}
                 >
+                  {/* Preview mode: Show only first page for performance */}
                   <Page
                     pageNumber={1}
                     width={previewWidth ?? undefined}
@@ -466,17 +467,21 @@ const PDFViewer = ({ pdfUrl, height, className, variant = 'default' }: PDFViewer
                     onLoadSuccess={handleReaderLoadSuccess}
                     onLoadError={handleReaderError}
                     renderMode="canvas"
-                    className="flex items-center justify-center"
+                    className="flex flex-col items-center justify-start gap-4"
                   >
-                    <Page
-                      pageNumber={currentPage}
-                      width={modalWidth ? Math.max(modalWidth - 16, 280) : undefined}
-                      scale={scale}
-                      rotate={rotation}
-                      renderAnnotationLayer={false}
-                      renderTextLayer={false}
-                      className="!m-0 rounded-xl bg-white shadow-xl"
-                    />
+                    {/* Render all pages for scrolling */}
+                    {numPages && Array.from(new Array(numPages), (_, index) => (
+                      <Page
+                        key={`page-${index + 1}`}
+                        pageNumber={index + 1}
+                        width={modalWidth ? Math.max(modalWidth - 16, 280) : undefined}
+                        scale={scale}
+                        rotate={rotation}
+                        renderAnnotationLayer={false}
+                        renderTextLayer={false}
+                        className="!m-0 rounded-xl bg-white shadow-xl"
+                      />
+                    ))}
                   </Document>
                 ) : readerError ? (
                   <div className="flex flex-col items-center justify-center gap-4 text-center">
