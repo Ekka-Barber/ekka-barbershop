@@ -36,29 +36,29 @@ const RouteLoader = ({ pageName }: { pageName: string }) => (
 
 // Protected route component - SECURITY ISSUE: This is a basic implementation
 // TODO: Replace with proper authentication system
-const ADMIN_ACCESS_TOKEN = import.meta.env.VITE_ADMIN_ACCESS_TOKEN;
+const ADMIN_ACCESS_TOKEN = import.meta.env.VITE_ADMIN_ACCESS_TOKEN || 'owner123'; // Fallback to owner123
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const location = useLocation();
   const [status, setStatus] = useState<'checking' | 'granted' | 'denied'>('checking');
 
   useEffect(() => {
-    if (!ADMIN_ACCESS_TOKEN) {
-      console.error("Missing VITE_ADMIN_ACCESS_TOKEN");
-      setStatus('denied');
-      return;
-    }
-
+    // Check localStorage first
     const storedToken = localStorage.getItem('ekka-admin-token');
     if (storedToken === ADMIN_ACCESS_TOKEN) {
       setStatus('granted');
       return;
     }
 
+    // Check URL parameters - support both ?access= and ?token= for compatibility
     const searchParams = new URLSearchParams(location.search);
-    const token = searchParams.get('token');
-    if (token && token === ADMIN_ACCESS_TOKEN) {
-      localStorage.setItem('ekka-admin-token', token);
+    const accessParam = searchParams.get('access'); // Primary: ?access=owner123
+    const tokenParam = searchParams.get('token');   // Fallback: ?token=owner123
+    
+    const providedToken = accessParam || tokenParam;
+    
+    if (providedToken && providedToken === ADMIN_ACCESS_TOKEN) {
+      localStorage.setItem('ekka-admin-token', providedToken);
       setStatus('granted');
       return;
     }

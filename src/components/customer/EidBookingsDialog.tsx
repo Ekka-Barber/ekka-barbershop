@@ -5,19 +5,19 @@ import { motion } from "@/lib/motion";
 import { MapPin } from "lucide-react";
 import { Branch } from "@/types/branch";
 
-interface BookingsDialogProps {
+interface EidBookingsDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   branches: Branch[] | undefined;
   onBranchSelect: (branchId: string) => void;
 }
 
-export const BookingsDialog = ({
+const EidBookingsDialog = ({
   open,
   onOpenChange,
   branches,
   onBranchSelect
-}: BookingsDialogProps) => {
+}: EidBookingsDialogProps) => {
   const { language } = useLanguage();
   const isRTL = language === 'ar';
   
@@ -175,3 +175,5 @@ export const BookingsDialog = ({
     </Dialog>
   );
 };
+
+export default EidBookingsDialog;

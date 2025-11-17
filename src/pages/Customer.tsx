@@ -22,7 +22,8 @@ import { useMarketingDialog } from "@/hooks/useMarketingDialog";
 // Lazy load heavy dialog components for better bundle optimization
 const BranchDialog = lazyWithRetry(() => import("@/components/customer/BranchDialog").then(mod => ({ default: mod.BranchDialog })));
 const LocationDialog = lazyWithRetry(() => import("@/components/customer/LocationDialog").then(mod => ({ default: mod.LocationDialog })));
-const BookingsDialog = lazyWithRetry(() => import("@/components/customer/BookingsDialog").then(mod => ({ default: mod.BookingsDialog })));
+const BookingsDialog = lazyWithRetry(() => import("@/components/customer/BookingsDialog"));
+const EidBookingsDialog = lazyWithRetry(() => import("@/components/customer/EidBookingsDialog"));
 const LazyMarketingDialog = lazyWithRetry(() => import("@/components/common/LazyMarketingDialog").then(mod => ({ default: mod.LazyMarketingDialog })));
 
 // Import InstallAppPrompt normally to avoid React context issues
@@ -89,10 +90,13 @@ const Customer = () => {
     setBranchDialogOpen,
     bookingsDialogOpen,
     setBookingsDialogOpen,
+    eidBookingsDialogOpen,
+    setEidBookingsDialogOpen,
     locationDialogOpen,
     setLocationDialogOpen,
     handleBranchSelect,
     handleBranchSelectForBookings,
+    handleEidBranchSelect,
     handleLocationClick,
     handleLocationDialog
   } = useDialogState(branches);
@@ -127,6 +131,7 @@ const Customer = () => {
               onOpenBranchDialog={() => setBranchDialogOpen(true)}
               onOpenLocationDialog={() => handleLocationDialog()}
               onOpenBookingsDialog={() => setBookingsDialogOpen(true)}
+              onOpenEidDialog={() => setEidBookingsDialogOpen(true)}
               onOpenMarketingDialog={openMarketingDialog}
             />
 
@@ -160,6 +165,15 @@ const Customer = () => {
           open={bookingsDialogOpen}
           onOpenChange={setBookingsDialogOpen}
           onBranchSelect={handleBranchSelectForBookings}
+          branches={branches || []}
+        />
+      </Suspense>
+
+      <Suspense fallback={null}>
+        <EidBookingsDialog
+          open={eidBookingsDialogOpen}
+          onOpenChange={setEidBookingsDialogOpen}
+          onBranchSelect={handleEidBranchSelect}
           branches={branches || []}
         />
       </Suspense>

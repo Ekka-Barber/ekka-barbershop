@@ -11,7 +11,7 @@ interface BookingsSectionProps {
   onOpenBookingsDialog: () => void;
 }
 
-export const BookingsSection = ({ element, isVisible, onOpenBookingsDialog }: BookingsSectionProps) => {
+const BookingsSection = ({ element, isVisible, onOpenBookingsDialog }: BookingsSectionProps) => {
   const { language } = useLanguage();
   
   const fadeUpVariants = {

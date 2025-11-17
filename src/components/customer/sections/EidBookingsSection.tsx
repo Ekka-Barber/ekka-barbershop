@@ -5,13 +5,13 @@ import { motion } from "@/lib/motion";
 import { trackButtonClick } from "@/utils/tiktokTracking";
 import freshaLogo from "@/assets/fresha-logo.svg";
 
-interface BookingsSectionProps {
+interface EidBookingsSectionProps {
   element: Tables<'ui_elements'>;
   isVisible: boolean;
-  onOpenBookingsDialog: () => void;
+  onOpenEidDialog: () => void;
 }
 
-export const BookingsSection = ({ element, isVisible, onOpenBookingsDialog }: BookingsSectionProps) => {
+const EidBookingsSection = ({ element, isVisible, onOpenEidDialog }: EidBookingsSectionProps) => {
   const { language } = useLanguage();
   
   const fadeUpVariants = {
@@ -25,12 +25,12 @@ export const BookingsSection = ({ element, isVisible, onOpenBookingsDialog }: Bo
     }
   };
   
-  const handleBookingsClick = () => {
+  const handleEidClick = () => {
     trackButtonClick({
-      buttonId: 'bookings',
+      buttonId: 'eid_bookings',
       buttonName: language === 'ar' ? element.display_name_ar : element.display_name
     });
-    onOpenBookingsDialog();
+    onOpenEidDialog();
   };
   
   if (!isVisible) {
@@ -48,11 +48,11 @@ export const BookingsSection = ({ element, isVisible, onOpenBookingsDialog }: Bo
       }}
       whileTap={{ scale: 0.98 }}
       transition={{ type: "spring", stiffness: 400, damping: 17 }}
-      onClick={handleBookingsClick}
+      onClick={handleEidClick}
       role="button"
       tabIndex={0}
       aria-label={language === 'ar' ? element.display_name_ar : element.display_name}
-      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleBookingsClick(); }}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleEidClick(); }}
     >
       <div className="mt-3 bg-white rounded-lg shadow-md border border-gray-200 p-4 cursor-pointer hover:shadow-lg transition-shadow duration-200">
         <div className="flex items-center justify-between">
@@ -79,3 +79,5 @@ export const BookingsSection = ({ element, isVisible, onOpenBookingsDialog }: Bo
     </motion.div>
   );
 };
+
+export default EidBookingsSection;

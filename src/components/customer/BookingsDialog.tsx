@@ -12,7 +12,7 @@ interface BookingsDialogProps {
   onBranchSelect: (branchId: string) => void;
 }
 
-export const BookingsDialog = ({
+const BookingsDialog = ({
   open,
   onOpenChange,
   branches,
@@ -175,3 +175,5 @@ export const BookingsDialog = ({
     </Dialog>
   );
 };
+
+export default BookingsDialog;

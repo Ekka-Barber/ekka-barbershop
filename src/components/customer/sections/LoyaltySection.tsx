@@ -11,7 +11,7 @@ interface LoyaltySectionProps {
   isVisible: boolean;
 }
 
-export const LoyaltySection = ({ element, isVisible }: LoyaltySectionProps) => {
+const LoyaltySection = ({ element, isVisible }: LoyaltySectionProps) => {
   const { language } = useLanguage();
   
   const fadeUpVariants = {

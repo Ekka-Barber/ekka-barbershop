@@ -10,9 +10,16 @@ import { ActionButton } from "./ActionButton";
 type UiElement = Database['public']['Tables']['ui_elements']['Row'];
 
 // Lazy load heavy section components - now loaded on-demand only
-const LoyaltySection = lazyWithRetry(() => import("../sections/LoyaltySection"));
-const BookingsSection = lazyWithRetry(() => import("../sections/BookingsSection"));
-const GoogleReviewsWrapper = lazyWithRetry(() => import("../sections/GoogleReviewsWrapper"));
+const loadLoyaltySection = () => import("../sections/LoyaltySection");
+const loadBookingsSection = () => import("../sections/BookingsSection");
+const loadEidBookingsSection = () => import("../sections/EidBookingsSection");
+const loadGoogleReviewsWrapper = () => import("../sections/GoogleReviewsWrapper");
+
+// Components are now loaded lazily when actually needed
+const LoyaltySection = lazyWithRetry(loadLoyaltySection);
+const BookingsSection = lazyWithRetry(loadBookingsSection);
+const EidBookingsSection = lazyWithRetry(loadEidBookingsSection);
+const GoogleReviewsWrapper = lazyWithRetry(loadGoogleReviewsWrapper);
 
 interface UIElementRendererProps {
   visibleElements: UiElement[];
@@ -21,6 +28,7 @@ interface UIElementRendererProps {
   onOpenBranchDialog: () => void;
   onOpenLocationDialog: () => void;
   onOpenBookingsDialog: () => void;
+  onOpenEidDialog: () => void;
   onOpenMarketingDialog?: (contentType: 'menu' | 'offers', initialIndex?: number) => void;
 }
 
@@ -31,6 +39,7 @@ export const UIElementRenderer = ({
   onOpenBranchDialog,
   onOpenLocationDialog,
   onOpenBookingsDialog,
+  onOpenEidDialog,
   onOpenMarketingDialog
 }: UIElementRendererProps) => {
   const navigate = useNavigate();
@@ -54,18 +63,21 @@ export const UIElementRenderer = ({
       .filter(element => animatingElements.includes(element.id) && element.type === 'section')
       .map(element => element.name);
 
-    sectionsToLoad.forEach(sectionName => {
+        sectionsToLoad.forEach(sectionName => {
       if (!loadedSections.has(sectionName)) {
         // Load the section component
         switch (sectionName) {
           case 'loyalty_program':
-            import("../sections/LoyaltySection").catch(console.error);
+            loadLoyaltySection().catch(console.error);
             break;
           case 'bookings':
-            import("../sections/BookingsSection").catch(console.error);
+            loadBookingsSection().catch(console.error);
+            break;
+          case 'eid_bookings':
+            loadEidBookingsSection().catch(console.error);
             break;
           case 'google_reviews':
-            import("../sections/GoogleReviewsWrapper").catch(console.error);
+            loadGoogleReviewsWrapper().catch(console.error);
             break;
         }
         setLoadedSections(prev => new Set(prev).add(sectionName));
@@ -79,19 +91,22 @@ export const UIElementRenderer = ({
 
     if (nonVisibleSections.length > 0) {
       preloadTimeoutRef.current = setTimeout(() => {
-          nonVisibleSections.forEach(sectionName => {
-            if (!loadedSections.has(sectionName)) {
-              switch (sectionName) {
-                case 'loyalty_program':
-                  import("../sections/LoyaltySection").catch(console.error);
-                  break;
-                case 'bookings':
-                  import("../sections/BookingsSection").catch(console.error);
-                  break;
-                case 'google_reviews':
-                  import("../sections/GoogleReviewsWrapper").catch(console.error);
-                  break;
-              }
+        nonVisibleSections.forEach(sectionName => {
+          if (!loadedSections.has(sectionName)) {
+            switch (sectionName) {
+              case 'loyalty_program':
+                loadLoyaltySection().catch(console.error);
+                break;
+              case 'bookings':
+                loadBookingsSection().catch(console.error);
+                break;
+              case 'eid_bookings':
+                loadEidBookingsSection().catch(console.error);
+                break;
+              case 'google_reviews':
+                loadGoogleReviewsWrapper().catch(console.error);
+                break;
+            }
             setLoadedSections(prev => new Set(prev).add(sectionName));
           }
         });
@@ -119,14 +134,17 @@ export const UIElementRenderer = ({
       onOpenLocationDialog();
     } else if (element.action === 'openBookingsDialog') {
       onOpenBookingsDialog();
+    } else if (element.action === 'openEidBookingsDialog') {
+      onOpenEidDialog();
     } else if (element.action === '/menu' && onOpenMarketingDialog) {
       onOpenMarketingDialog('menu', 0);
     } else if (element.action === '/offers' && onOpenMarketingDialog) {
       onOpenMarketingDialog('offers', 0);
     } else if (element.action) {
+      // Fallback: try to navigate if action looks like a route
       navigate(element.action);
     }
-  }, [language, onOpenBranchDialog, onOpenLocationDialog, onOpenBookingsDialog, onOpenMarketingDialog, navigate]);
+  }, [language, onOpenBranchDialog, onOpenLocationDialog, onOpenBookingsDialog, onOpenEidDialog, onOpenMarketingDialog, navigate]);
   
   if (isLoadingUiElements) {
     return (
@@ -161,6 +179,16 @@ export const UIElementRenderer = ({
                 element={element}
                 isVisible={isVisible}
                 onOpenBookingsDialog={onOpenBookingsDialog}
+              />
+            </Suspense>
+          );
+        } else if (element.type === 'section' && element.name === 'eid_bookings') {
+          return (
+            <Suspense key={element.id} fallback={<div className="h-32 bg-gray-100 rounded animate-pulse" />}>
+              <EidBookingsSection
+                element={element}
+                isVisible={isVisible}
+                onOpenEidDialog={onOpenEidDialog}
               />
             </Suspense>
           );
