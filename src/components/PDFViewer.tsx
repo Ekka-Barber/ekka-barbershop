@@ -417,13 +417,17 @@ const PDFViewer = ({ pdfUrl, height, className, variant = 'default' }: PDFViewer
       {variant !== 'dialog' && (
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
         <DialogContent
-          className="w-[min(100vw-1rem,930px)] max-h-[95vh] overflow-hidden rounded-2xl border-0 bg-transparent p-0 shadow-2xl"
+          className="w-[calc(100vw-2rem)] max-w-[930px] overflow-hidden rounded-2xl border-0 bg-transparent p-0 shadow-2xl"
+          style={{
+            maxHeight: 'calc(95vh - var(--sat, 0px) - var(--sab, 0px))',
+            height: 'calc(95vh - var(--sat, 0px) - var(--sab, 0px))'
+          }}
           showCloseButton={false}
         >
           <div className="flex h-full flex-col overflow-hidden rounded-2xl bg-white">
-            <header className="flex items-center justify-between border-b border-gray-100 px-4 py-3">
-              <div>
-                <p className="text-base font-semibold text-[#222222]">
+            <header className="flex items-center justify-between border-b border-gray-100 px-3 sm:px-4 py-3 flex-shrink-0">
+              <div className="flex-1 min-w-0 mr-2">
+                <p className="text-sm sm:text-base font-semibold text-[#222222] truncate">
                   {t('pdf.viewer.fullscreenTitle')}
                 </p>
                 {numPages && (
@@ -435,7 +439,7 @@ const PDFViewer = ({ pdfUrl, height, className, variant = 'default' }: PDFViewer
               <Button
                 size="icon"
                 variant="ghost"
-                className="text-[#222222]"
+                className="text-[#222222] touch-target flex-shrink-0"
                 onClick={() => setIsModalOpen(false)}
                 aria-label={t('pdf.viewer.close')}
               >
@@ -552,19 +556,20 @@ const PDFViewer = ({ pdfUrl, height, className, variant = 'default' }: PDFViewer
               )}
             </div>
 
-            <footer className="flex flex-wrap items-center gap-3 border-t border-gray-100 bg-white px-4 py-3 text-[#222222]">
-              <div className="flex flex-1 flex-wrap items-center gap-2">
+            <footer className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-2 sm:gap-3 border-t border-gray-100 bg-white px-3 sm:px-4 py-3 text-[#222222]">
+              <div className="flex flex-1 flex-wrap items-center justify-center sm:justify-start gap-2">
                 <Button
                   size="sm"
-                  className="bg-[#222222] text-white hover:bg-[#111111] min-h-[44px] touch-target"
+                  className="bg-[#222222] text-white hover:bg-[#111111] touch-target"
                   onClick={() => setIsModalOpen(true)}
                 >
                   <Maximize2 className="h-4 w-4" />
-                  {t('pdf.viewer.openFull')}
+                  <span className="hidden sm:inline">{t('pdf.viewer.openFull')}</span>
                 </Button>
                 <Button
                   size="icon"
                   variant="outline"
+                  className="touch-target"
                   onClick={() => handleZoom('out')}
                   disabled={modalMode !== 'pdfjs' || scale <= MIN_SCALE}
                   aria-label={t('pdf.viewer.zoomOut')}
@@ -574,6 +579,7 @@ const PDFViewer = ({ pdfUrl, height, className, variant = 'default' }: PDFViewer
                 <Button
                   size="icon"
                   variant="outline"
+                  className="touch-target"
                   onClick={() => handleZoom('in')}
                   disabled={modalMode !== 'pdfjs' || scale >= MAX_SCALE}
                   aria-label={t('pdf.viewer.zoomIn')}
@@ -583,6 +589,7 @@ const PDFViewer = ({ pdfUrl, height, className, variant = 'default' }: PDFViewer
                 <Button
                   size="icon"
                   variant="outline"
+                  className="touch-target"
                   onClick={handleRotate}
                   disabled={modalMode !== 'pdfjs'}
                   aria-label={t('pdf.viewer.rotate')}
@@ -590,22 +597,24 @@ const PDFViewer = ({ pdfUrl, height, className, variant = 'default' }: PDFViewer
                   <RotateCcw className="h-4 w-4" />
                 </Button>
 
-                <div className="flex items-center gap-1 rounded-md border border-gray-200 px-2 py-1 text-sm font-medium">
+                <div className="flex items-center gap-1 rounded-md border border-gray-200 px-2 py-1 text-sm font-medium min-h-[44px]">
                   <Button
                     size="icon"
                     variant="ghost"
+                    className="h-10 w-10"
                     onClick={() => handlePageChange('prev')}
                     disabled={modalMode !== 'pdfjs' || currentPage <= 1}
                     aria-label={t('pdf.viewer.prev')}
                   >
                     <ChevronLeft className="h-4 w-4" />
                   </Button>
-                  <span className="px-2 text-sm">
+                  <span className="px-2 text-xs sm:text-sm whitespace-nowrap">
                     {currentPage} / {numPages ?? '-'}
                   </span>
                   <Button
                     size="icon"
                     variant="ghost"
+                    className="h-10 w-10"
                     onClick={() => handlePageChange('next')}
                     disabled={modalMode !== 'pdfjs' || !numPages || currentPage >= numPages}
                     aria-label={t('pdf.viewer.next')}
@@ -616,22 +625,22 @@ const PDFViewer = ({ pdfUrl, height, className, variant = 'default' }: PDFViewer
 
               </div>
 
-              <div className="flex flex-wrap items-center gap-2">
-                <Button variant="ghost" size="sm" className="min-h-[44px] touch-target" asChild>
+              <div className="flex flex-wrap items-center justify-center gap-2 w-full sm:w-auto">
+                <Button variant="ghost" size="sm" className="touch-target flex-1 sm:flex-initial" asChild>
                   <a
                     href={pdfUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-2"
+                    className="flex items-center justify-center gap-2"
                   >
                     <ExternalLink className="h-4 w-4" />
-                    {t('pdf.viewer.openExternal')}
+                    <span className="text-xs sm:text-sm">{t('pdf.viewer.openExternal')}</span>
                   </a>
                 </Button>
-                <Button size="sm" className="min-h-[44px] touch-target" asChild>
-                  <a href={pdfUrl} download className="flex items-center gap-2">
+                <Button size="sm" className="touch-target flex-1 sm:flex-initial" asChild>
+                  <a href={pdfUrl} download className="flex items-center justify-center gap-2">
                     <Download className="h-4 w-4" />
-                    {t('pdf.viewer.download')}
+                    <span className="text-xs sm:text-sm">{t('pdf.viewer.download')}</span>
                   </a>
                 </Button>
               </div>

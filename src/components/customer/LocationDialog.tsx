@@ -52,7 +52,7 @@ export const LocationDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-xl bg-gradient-to-br from-white/98 to-white/95 border-2 border-white/40 shadow-[0_40px_100px_-40px_rgba(0,0,0,0.5),0_20px_50px_-20px_rgba(74,74,74,0.2)] p-0 overflow-hidden rounded-2xl backdrop-blur-xl" showCloseButton={false}>
+      <DialogContent className="w-[calc(100vw-2rem)] sm:max-w-xl bg-gradient-to-br from-white/98 to-white/95 border-2 border-white/40 shadow-[0_40px_100px_-40px_rgba(0,0,0,0.5),0_20px_50px_-20px_rgba(74,74,74,0.2)] p-0 overflow-hidden rounded-2xl backdrop-blur-xl max-h-[90vh] overflow-y-auto" showCloseButton={false}>
         <DialogTitle className="sr-only">
           {isRTL ? 'فروعنا' : 'Our Branches'}
         </DialogTitle>
@@ -102,7 +102,7 @@ export const LocationDialog = ({
             variants={containerVariants}
             initial="hidden"
             animate="visible" 
-            className="grid grid-cols-2 gap-3 p-6"
+            className="grid grid-cols-1 xs:grid-cols-2 gap-3 p-4 sm:p-6"
           >
             {branches?.map((branch) => (
               <motion.div

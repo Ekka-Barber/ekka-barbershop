@@ -59,7 +59,7 @@ const Menu = () => {
           </div>
 
           <Card className="overflow-hidden bg-white shadow-xl rounded-xl border-[#C4A36F]/20 w-full max-w-2xl mt-8 mb-8">
-            <div className="p-6">
+            <div className="p-4 sm:p-6">
               {isLoading ? (
                 <div className="text-center py-8 text-[#222222]">{t('loading.menu')}</div>
               ) : menuFiles && menuFiles.length > 0 ? (

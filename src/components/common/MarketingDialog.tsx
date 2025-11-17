@@ -170,10 +170,14 @@ export const MarketingDialog: React.FC<MarketingDialogProps> = ({
   if (!hasContent) {
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent
-          className="w-full max-w-2xl h-[70vh] flex items-center justify-center rounded-2xl border-0 bg-white p-0"
-          showCloseButton
-        >
+      <DialogContent
+        className="w-full max-w-2xl flex items-center justify-center rounded-2xl border-0 bg-white p-0"
+        style={{
+          height: 'calc(70vh - var(--sat, 0px) - var(--sab, 0px))',
+          maxHeight: 'calc(100vh - 4rem - var(--sat, 0px) - var(--sab, 0px))'
+        }}
+        showCloseButton
+      >
           <div className="flex flex-col items-center justify-center w-full h-full gap-4">
             {isLoading ? (
               <>
@@ -219,8 +223,12 @@ export const MarketingDialog: React.FC<MarketingDialogProps> = ({
         className={`w-full p-0 overflow-hidden touch-target
           ${isFullscreen
             ? 'max-w-none w-screen h-screen fixed inset-0'
-            : 'max-w-6xl h-[90vh] mx-4 sm:mx-auto'
+            : 'max-w-6xl w-[calc(100vw-2rem)] mx-auto'
           }`}
+        style={!isFullscreen ? {
+          height: 'calc(90vh - var(--sat, 0px) - var(--sab, 0px))',
+          maxHeight: 'calc(100vh - 4rem - var(--sat, 0px) - var(--sab, 0px))'
+        } : undefined}
         showCloseButton={!isFullscreen}
       >
         <AnimatePresence mode="wait">
@@ -233,23 +241,23 @@ export const MarketingDialog: React.FC<MarketingDialogProps> = ({
             className="flex flex-col h-full"
           >
             {/* Header */}
-            <DialogHeader className="px-6 py-4 border-b border-gray-100 flex-shrink-0">
+            <DialogHeader className="px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-100 flex-shrink-0">
               <DialogTitle className="sr-only">
                 {contentType === 'menu'
                   ? (language === 'ar' ? 'قائمة الأسعار' : 'Menu')
                   : (language === 'ar' ? 'العروض' : 'Special Offers')
                 }
               </DialogTitle>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <h2 className="text-xl font-bold text-[#222222]">
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+                  <h2 className="text-lg sm:text-xl font-bold text-[#222222] truncate">
                     {contentType === 'menu'
                       ? (language === 'ar' ? 'قائمة الأسعار' : 'Menu')
                       : (language === 'ar' ? 'العروض' : 'Special Offers')
                     }
                   </h2>
                   {initialContent.length > 1 && (
-                    <span className="text-sm text-gray-500">
+                    <span className="text-xs sm:text-sm text-gray-500 whitespace-nowrap">
                       {currentIndex + 1} / {initialContent.length}
                     </span>
                   )}
@@ -257,20 +265,24 @@ export const MarketingDialog: React.FC<MarketingDialogProps> = ({
 
                 {/* Navigation buttons */}
                 {initialContent.length > 1 && (
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
                     <Button
                       variant="outline"
-                      size="sm"
+                      size="icon"
+                      className="h-9 w-9 sm:h-10 sm:w-10"
                       onClick={handlePrevious}
                       disabled={initialContent.length <= 1}
+                      aria-label="Previous"
                     >
                       <ChevronLeft className="w-4 h-4" />
                     </Button>
                     <Button
                       variant="outline"
-                      size="sm"
+                      size="icon"
+                      className="h-9 w-9 sm:h-10 sm:w-10"
                       onClick={handleNext}
                       disabled={initialContent.length <= 1}
+                      aria-label="Next"
                     >
                       <ChevronRight className="w-4 h-4" />
                     </Button>
