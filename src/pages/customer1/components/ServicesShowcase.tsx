@@ -92,7 +92,7 @@ export const ServicesShowcase = ({
                   onClick={() => onLoyaltyActivate?.()}
                   disabled={!onLoyaltyActivate}
                   className={clsx(
-                    "rounded-full border border-[#FCE9AE]/50 bg-[#FCE9AE] px-6 py-3 text-sm font-semibold text-[#1A1F2D] shadow-[0_20px_40px_-25px_rgba(244,212,122,0.9)]",
+                    "rounded-full border border-[#FCE9AE]/50 bg-[#FCE9AE] px-6 py-3 text-sm font-medium text-[#1A1F2D] shadow-[0_20px_40px_-25px_rgba(244,212,122,0.9)]",
                     "focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FCE9AE]/80"
                   )}
                 >
@@ -160,7 +160,7 @@ export const ServicesShowcase = ({
                     whileTap={{ scale: onOpenEidDialog ? 0.98 : 1 }}
                     onClick={() => onOpenEidDialog?.()}
                     disabled={!onOpenEidDialog}
-                    className="rounded-full border border-[#D1D5DB]/50 bg-transparent px-6 py-3 text-sm font-semibold text-[#F3F4F6] backdrop-blur focus:outline-none focus-visible:ring-2 focus-visible:ring-[#D1D5DB]/70"
+                    className="rounded-full border border-[#D1D5DB]/50 bg-transparent px-6 py-3 text-sm font-medium text-[#F3F4F6] backdrop-blur focus:outline-none focus-visible:ring-2 focus-visible:ring-[#D1D5DB]/70"
                   >
                     {t("customer1.services.eid.cta")}
                   </motion.button>

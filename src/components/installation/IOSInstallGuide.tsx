@@ -29,7 +29,7 @@ export const IOSInstallGuide = ({ language, onCancel, trigger }: IOSInstallGuide
       </SheetTrigger>
       <SheetContent 
         side="bottom" 
-        className={`${isRTL ? 'rtl' : 'ltr'} font-changa rounded-t-xl p-0 bg-white pb-[calc(var(--sab)+1rem)]`}
+        className={`${isRTL ? 'rtl' : 'ltr'} rounded-t-xl p-0 bg-white pb-[calc(var(--sab)+1rem)]`}
       >
         <div className="p-6 space-y-6">
           <div className="w-12 h-1 bg-gray-300 rounded-full mx-auto mb-2" />

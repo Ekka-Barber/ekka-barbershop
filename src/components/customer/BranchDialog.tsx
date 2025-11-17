@@ -50,7 +50,7 @@ export const BranchDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-2xl bg-white border-0 shadow-2xl p-0 overflow-hidden rounded-2xl">
+      <DialogContent className="sm:max-w-2xl bg-gradient-to-br from-white/98 to-white/95 border-2 border-white/40 shadow-[0_40px_100px_-40px_rgba(0,0,0,0.5),0_20px_50px_-20px_rgba(232,198,111,0.2)] p-0 overflow-hidden rounded-2xl backdrop-blur-xl">
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -58,7 +58,7 @@ export const BranchDialog = ({
           className="relative"
         >
           {/* Modern Header */}
-          <div className="relative h-24 bg-gradient-to-br from-[#D6B35A] via-[#C79A2A] to-[#B39260] flex items-center justify-center overflow-hidden">
+          <div className="relative h-28 bg-gradient-to-br from-[#E8C66F] via-[#D6B35A] to-[#C79A2A] flex items-center justify-center overflow-hidden shadow-[0_10px_40px_-10px_rgba(232,198,111,0.4)]">
             <motion.div
               className="absolute inset-0 opacity-10"
               animate={{
@@ -85,11 +85,11 @@ export const BranchDialog = ({
               <motion.div
                 animate={{ scale: [1, 1.1, 1] }}
                 transition={{ duration: 2, repeat: Infinity }}
-                className="mb-2"
+                className="mb-3"
               >
-                <MapPin className="w-7 h-7 text-white drop-shadow-lg" />
+                <MapPin className="w-8 h-8 text-white drop-shadow-[0_4px_12px_rgba(0,0,0,0.3)]" />
               </motion.div>
-              <h1 className="text-white text-xl font-bold drop-shadow-lg">
+              <h1 className="text-white text-2xl font-bold drop-shadow-[0_4px_12px_rgba(0,0,0,0.25)]">
                 {t('select.branch')}
               </h1>
             </motion.div>
@@ -110,7 +110,7 @@ export const BranchDialog = ({
               </p>
             </motion.div>
 
-            <Separator className="mb-6 bg-gradient-to-r from-transparent via-gray-200 to-transparent" />
+            <Separator className="mb-6 bg-gradient-to-r from-transparent via-[#E8C66F]/30 to-transparent h-[2px] shadow-[0_0_15px_rgba(232,198,111,0.2)]" />
 
             {/* Enhanced Branch Grid */}
             <motion.div
@@ -123,31 +123,32 @@ export const BranchDialog = ({
                 <motion.div
                   key={branch.id}
                   variants={branchVariants}
-                  whileHover={{ y: -2, scale: 1.01 }}
-                  whileTap={{ scale: 0.99 }}
-                  transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                  className="rounded-2xl"
+                  whileHover={{ y: -4, scale: 1.02, boxShadow: "0 25px 50px -12px rgba(232,198,111,0.35), 0 15px 30px -10px rgba(214,179,90,0.25)" }}
+                  whileTap={{ scale: 0.99, y: 0 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 20 }}
                 >
                   <Card
-                    className="group cursor-pointer border-2 border-gray-100 hover:border-[#D6B35A] transition-all duration-300 hover:shadow-lg bg-gradient-to-br from-white to-gray-50/30"
+                    className="group cursor-pointer border-2 border-white/60 hover:border-[#E8C66F]/50 transition-all duration-300 shadow-[0_15px_35px_-10px_rgba(0,0,0,0.1),0_5px_15px_-5px_rgba(232,198,111,0.1)] bg-gradient-to-br from-white/95 to-white/85 backdrop-blur-sm rounded-2xl"
                     onClick={() => onBranchSelect(branch.id)}
                   >
                     <CardContent className="p-5">
                       <div className="flex items-start justify-between mb-4">
                         <div className="flex items-start gap-3 flex-1">
                           <motion.div
-                            whileHover={{ rotate: 15, scale: 1.1 }}
-                            className="w-10 h-10 rounded-full bg-[#D6B35A]/10 flex items-center justify-center group-hover:bg-[#D6B35A]/20 transition-colors flex-shrink-0 mt-0.5"
+                            whileHover={{ rotate: 15, scale: 1.15 }}
+                            className="w-11 h-11 rounded-full bg-gradient-to-br from-[#E8C66F]/20 to-[#D6B35A]/10 flex items-center justify-center group-hover:bg-gradient-to-br group-hover:from-[#E8C66F]/30 group-hover:to-[#D6B35A]/20 transition-all flex-shrink-0 mt-0.5 shadow-[0_4px_12px_-4px_rgba(232,198,111,0.3)]"
                           >
-                            <MapPin className="w-5 h-5 text-[#D6B35A]" />
+                            <MapPin className="w-5 h-5 text-[#E8C66F] drop-shadow-[0_2px_4px_rgba(0,0,0,0.1)]" />
                           </motion.div>
 
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 mb-2">
-                              <h3 className="font-bold text-lg text-gray-900 group-hover:text-[#D6B35A] transition-colors truncate">
+                              <h3 className="font-bold text-lg text-[#1a1a1a] group-hover:text-[#E8C66F] transition-colors truncate drop-shadow-[0_1px_3px_rgba(0,0,0,0.1)]">
                                 {isRTL ? branch.name_ar : branch.name}
                               </h3>
                               {branch.is_main && (
-                                <Badge variant="outline" className="bg-[#D6B35A]/10 text-[#D6B35A] border-[#D6B35A]/20 text-xs flex-shrink-0">
+                                <Badge variant="outline" className="bg-gradient-to-r from-[#E8C66F]/20 to-[#D6B35A]/10 text-[#E8C66F] border-[#E8C66F]/30 text-xs flex-shrink-0 shadow-[0_2px_8px_-2px_rgba(232,198,111,0.3)]">
                                   <Star className="w-3 h-3 mr-1 fill-current" />
                                   {isRTL ? 'رئيسي' : 'Main'}
                                 </Badge>
@@ -182,14 +183,14 @@ export const BranchDialog = ({
                         </div>
 
                         <motion.div
-                          whileHover={{ x: 3 }}
+                          whileHover={{ x: 4, scale: 1.1 }}
                           className="flex-shrink-0 ml-3"
                         >
-                          <div className="w-8 h-8 rounded-full bg-[#D6B35A]/10 flex items-center justify-center group-hover:bg-[#D6B35A]/20 transition-colors">
+                          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#E8C66F]/20 to-[#D6B35A]/10 flex items-center justify-center group-hover:bg-gradient-to-br group-hover:from-[#E8C66F]/30 group-hover:to-[#D6B35A]/20 transition-all shadow-[0_4px_12px_-4px_rgba(232,198,111,0.3)]">
                             <motion.div
-                              animate={{ x: [0, 3, 0] }}
+                              animate={{ x: [0, 4, 0] }}
                               transition={{ duration: 1.5, repeat: Infinity }}
-                              className="text-[#D6B35A] text-sm font-bold"
+                              className="text-[#E8C66F] text-base font-bold drop-shadow-[0_2px_4px_rgba(0,0,0,0.1)]"
                             >
                               →
                             </motion.div>

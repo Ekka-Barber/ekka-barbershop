@@ -53,14 +53,14 @@ const EidBookingsDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-xl bg-white border-0 shadow-2xl p-0 overflow-hidden rounded-xl" showCloseButton={false}>
+      <DialogContent className="sm:max-w-xl bg-gradient-to-br from-white/98 to-white/95 border-2 border-white/40 shadow-[0_40px_100px_-40px_rgba(0,0,0,0.5),0_20px_50px_-20px_rgba(117,106,248,0.25)] p-0 overflow-hidden rounded-2xl backdrop-blur-xl" showCloseButton={false}>
         <motion.div 
           initial="hidden"
           animate="visible"
           variants={fadeIn}
           className="relative w-full"
         >
-          <div className="h-20 bg-gradient-to-r from-[#9490fa] to-[#756af8] flex items-center justify-center relative overflow-hidden">
+          <div className="h-24 bg-gradient-to-r from-[#9B6CF6] via-[#8B5CF6] to-[#7C3AED] flex items-center justify-center relative overflow-hidden shadow-[0_10px_40px_-10px_rgba(139,92,246,0.5)]">
             <motion.div
               className="absolute inset-0 w-full h-full opacity-20"
               style={{
@@ -99,7 +99,7 @@ const EidBookingsDialog = ({
                   fill="white"
                 />
               </svg>
-              <h1 className="text-white text-xl font-bold">
+              <h1 className="text-white text-2xl font-bold drop-shadow-[0_4px_12px_rgba(0,0,0,0.25)]">
                 {isRTL ? 'احجز موعدك أونلاين' : 'Book Online'}
               </h1>
             </motion.div>
@@ -126,13 +126,13 @@ const EidBookingsDialog = ({
               <motion.div
                 key={branch.id}
                 variants={branchVariants}
-                whileHover={{ scale: 1.03 }}
-                whileTap={{ scale: 0.98 }}
-                className="relative"
+                className="rounded-2xl relative"
+                whileHover={{ scale: 1.04, y: -4, boxShadow: "0 25px 50px -12px rgba(139,92,246,0.35), 0 15px 30px -10px rgba(124,58,237,0.25)" }}
+                whileTap={{ scale: 0.98, y: 0 }}
               >
                 <Button
                   variant="outline"
-                  className="w-full min-h-[110px] flex flex-col items-start justify-between gap-3 px-4 py-4 bg-white hover:bg-[#756af8]/5 border-2 border-gray-200 hover:border-[#756af8] transition-all duration-300 rounded-lg group"
+                  className="w-full min-h-[120px] flex flex-col items-start justify-between gap-3 px-5 py-5 bg-gradient-to-br from-white/95 to-white/85 hover:from-white/98 hover:to-white/90 hover:bg-[#8B5CF6]/[0.03] border-2 border-white/60 hover:border-[#9B6CF6]/40 transition-all duration-300 rounded-2xl group shadow-[0_15px_35px_-10px_rgba(0,0,0,0.12),0_5px_15px_-5px_rgba(139,92,246,0.15)] backdrop-blur-sm"
                   onClick={() => {
                     onBranchSelect(branch.id);
                   }}
@@ -140,17 +140,17 @@ const EidBookingsDialog = ({
                 >
                   <div className={`flex flex-col items-${isRTL ? 'end' : 'start'} flex-shrink min-w-0 w-full`}>
                     <div className="w-full flex items-center mb-2">
-                      <MapPin className={`w-4 h-4 text-[#756af8] ${isRTL ? 'ml-1.5' : 'mr-1.5'}`} />
-                      <span className="font-bold text-base text-[#222222] group-hover:text-[#756af8] transition-colors truncate">
+                      <MapPin className={`w-4.5 h-4.5 text-[#9B6CF6] ${isRTL ? 'ml-1.5' : 'mr-1.5'} drop-shadow-[0_2px_4px_rgba(155,108,246,0.3)]`} />
+                      <span className="font-semibold text-base text-[#1a1a1a] group-hover:text-[#9B6CF6] transition-colors truncate drop-shadow-[0_1px_3px_rgba(0,0,0,0.08)]">
                         {isRTL ? branch.name_ar : branch.name}
                       </span>
                     </div>
-                    <span className="w-full text-sm text-gray-600 group-hover:text-[#756af8]/70 transition-colors truncate flex items-center">
-                      <MapPin className={`w-3 h-3 ${isRTL ? 'ml-1.5' : 'mr-1.5'} text-gray-400`} />
+                    <span className="w-full text-sm text-[#5a5a5a] group-hover:text-[#8B5CF6] transition-colors truncate flex items-center">
+                      <MapPin className={`w-3.5 h-3.5 ${isRTL ? 'ml-1.5' : 'mr-1.5'} text-[#9B6CF6]/60`} />
                       {isRTL ? branch.address_ar : branch.address}
                     </span>
-                    <div className="text-xs mt-2 text-[#756af8]">
-                      {isRTL ? 'انقر للحجز أونلاين' : 'Click to book online'}
+                    <div className="text-xs mt-2.5 text-[#9B6CF6] font-medium">
+                      {isRTL ? 'انقر للحجز أونلاين ←' : 'Click to book online →'}
                     </div>
                   </div>
                 </Button>
@@ -158,7 +158,7 @@ const EidBookingsDialog = ({
             ))}
           </motion.div>
           
-          <div className="p-4 bg-gray-50 border-t border-gray-100 text-center">
+          <div className="p-4 bg-gradient-to-b from-white/50 to-purple-50/60 border-t border-white/60 text-center backdrop-blur-sm">
             <motion.p 
               className="text-xs text-gray-500"
               initial={{ opacity: 0 }}

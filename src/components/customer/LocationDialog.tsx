@@ -52,7 +52,7 @@ export const LocationDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-xl bg-white border-0 shadow-2xl p-0 overflow-hidden rounded-xl" showCloseButton={false}>
+      <DialogContent className="sm:max-w-xl bg-gradient-to-br from-white/98 to-white/95 border-2 border-white/40 shadow-[0_40px_100px_-40px_rgba(0,0,0,0.5),0_20px_50px_-20px_rgba(74,74,74,0.2)] p-0 overflow-hidden rounded-2xl backdrop-blur-xl" showCloseButton={false}>
         <DialogTitle className="sr-only">
           {isRTL ? 'فروعنا' : 'Our Branches'}
         </DialogTitle>
@@ -63,7 +63,7 @@ export const LocationDialog = ({
           className="relative w-full"
         >
           {/* Decorative top banner */}
-          <div className="h-20 bg-gradient-to-r from-[#6c6c6c] to-[#4c4c4c] flex items-center justify-center relative overflow-hidden">
+          <div className="h-24 bg-gradient-to-r from-[#5a5a5a] via-[#4a4a4a] to-[#3a3a3a] flex items-center justify-center relative overflow-hidden shadow-[0_10px_40px_-10px_rgba(0,0,0,0.4)]">
             <motion.div 
               className="absolute inset-0 w-full h-full opacity-20"
               initial={{ backgroundPosition: '0% 0%' }}
@@ -91,8 +91,8 @@ export const LocationDialog = ({
               transition={{ duration: 0.5 }}
               className="z-10"
             >
-              <MapPin className="text-white w-10 h-10 mb-2 mx-auto" />
-              <h1 className="text-white text-xl font-bold">
+              <MapPin className="text-white w-11 h-11 mb-3 mx-auto drop-shadow-[0_4px_12px_rgba(0,0,0,0.3)]" />
+              <h1 className="text-white text-2xl font-bold drop-shadow-[0_4px_12px_rgba(0,0,0,0.25)]">
                 {isRTL ? 'فروعنا' : 'Our Branches'}
               </h1>
             </motion.div>
@@ -108,32 +108,32 @@ export const LocationDialog = ({
               <motion.div
                 key={branch.id}
                 variants={branchVariants}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                className="relative"
+                className="rounded-2xl relative"
+                whileHover={{ scale: 1.04, y: -4, boxShadow: "0 25px 50px -12px rgba(0,0,0,0.25), 0 15px 30px -10px rgba(90,90,90,0.15)" }}
+                whileTap={{ scale: 0.98, y: 0 }}
               >
                 <Button
                   variant="outline"
-                  className="w-full h-full flex flex-col items-center justify-center gap-2 px-4 py-3 bg-white hover:bg-gray-100 border border-gray-200 hover:border-gray-400 transition-all duration-300 rounded-lg group shadow-sm"
+                  className="w-full h-full flex flex-col items-center justify-center gap-2 px-4 py-4 bg-gradient-to-br from-white/95 to-white/85 hover:from-white/98 hover:to-white/90 border-2 border-white/60 hover:border-[#5a5a5a]/40 transition-all duration-300 rounded-2xl group shadow-[0_15px_35px_-10px_rgba(0,0,0,0.12),0_5px_15px_-5px_rgba(90,90,90,0.1)] backdrop-blur-sm"
                   onClick={() => onLocationClick(branch.google_maps_url)}
                 >
                   <div className={`flex-1 flex flex-col items-center text-center`}>
-                    <div className="flex-shrink-0 bg-[#4c4c4c]/10 p-2 rounded-full mb-2">
-                      <Building className="w-5 h-5 text-[#4c4c4c]" />
+                    <div className="flex-shrink-0 bg-gradient-to-br from-[#5a5a5a]/20 to-[#4a4a4a]/10 p-2.5 rounded-full mb-2 shadow-[0_4px_12px_-4px_rgba(0,0,0,0.2)]">
+                      <Building className="w-5 h-5 text-[#4a4a4a] drop-shadow-[0_2px_4px_rgba(0,0,0,0.1)]" />
                     </div>
                     <div className="flex flex-col min-w-0">
-                      <span className="font-bold text-base text-gray-800 group-hover:text-[#4c4c4c] transition-colors truncate">
+                      <span className="font-semibold text-base text-[#1a1a1a] group-hover:text-[#4a4a4a] transition-colors truncate drop-shadow-[0_1px_3px_rgba(0,0,0,0.08)]">
                         {isRTL ? branch.name_ar : branch.name}
                       </span>
-                      <span className="text-xs text-gray-500 group-hover:text-[#4c4c4c]/70 transition-colors truncate max-w-full">
+                      <span className="text-xs text-[#5a5a5a] group-hover:text-[#4a4a4a] transition-colors truncate max-w-full mt-0.5">
                         {isRTL ? branch.address_ar : branch.address}
                       </span>
                     </div>
                   </div>
 
                   <div className="mt-2">
-                    <div className="bg-[#4c4c4c] text-white p-1.5 rounded-full transform transition-transform group-hover:scale-110 group-hover:bg-[#3a3a3a]">
-                      <ExternalLink className="w-3 h-3" />
+                    <div className="bg-gradient-to-br from-[#5a5a5a] to-[#4a4a4a] text-white p-2 rounded-full transform transition-all group-hover:scale-115 group-hover:from-[#4a4a4a] group-hover:to-[#3a3a3a] shadow-[0_4px_12px_-4px_rgba(0,0,0,0.3)]">
+                      <ExternalLink className="w-3.5 h-3.5 drop-shadow-[0_2px_4px_rgba(0,0,0,0.2)]" />
                     </div>
                   </div>
                 </Button>
@@ -141,7 +141,7 @@ export const LocationDialog = ({
             ))}
           </motion.div>
           
-          <div className="p-4 bg-gray-50 border-t border-gray-100 text-center">
+          <div className="p-4 bg-gradient-to-b from-white/50 to-gray-50/80 border-t border-white/60 text-center backdrop-blur-sm">
             <motion.p 
               className="text-xs text-gray-500"
               initial={{ opacity: 0 }}

@@ -83,7 +83,7 @@ export const BranchShowcase = ({
                 whileHover={{ y: -2 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={() => onOpenMaps(mainBranch.google_maps_url)}
-                className="flex h-14 items-center justify-center gap-3 rounded-2xl border border-[#F4D47A]/60 bg-[#F4D47A] text-sm font-semibold text-[#1A1F2D] shadow-[0_25px_45px_-25px_rgba(244,212,122,0.85)] transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[#F4D47A]/70"
+                className="flex h-14 items-center justify-center gap-3 rounded-2xl border border-[#F4D47A]/60 bg-[#F4D47A] text-sm font-medium text-[#1A1F2D] shadow-[0_25px_45px_-25px_rgba(244,212,122,0.85)] transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[#F4D47A]/70"
               >
                 <MapPin className="h-5 w-5" />
                 {t("customer1.branch.primary")}
@@ -95,7 +95,7 @@ export const BranchShowcase = ({
                   whileHover={{ y: -2 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={handleWhatsApp}
-                  className="flex h-14 items-center justify-center gap-3 rounded-2xl border border-white/15 bg-white/8 text-sm font-semibold text-white transition focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+                  className="flex h-14 items-center justify-center gap-3 rounded-2xl border border-white/15 bg-white/8 text-sm font-medium text-white transition focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
                 >
                   <MessageCircle className="h-5 w-5" />
                   {t("customer1.branch.secondary")}

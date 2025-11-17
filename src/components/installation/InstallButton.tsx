@@ -69,20 +69,22 @@ export const InstallButton = React.forwardRef<HTMLDivElement, InstallButtonProps
           </button>
         </div>
         <Button
-          className="w-full flex items-center justify-center gap-3 py-6 text-lg font-medium bg-gradient-to-r from-[#8B5CF6] via-[#D946EF] to-[#F97316] hover:opacity-90 text-white transition-all duration-300 group shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:opacity-70"
+          className="w-full flex items-center justify-center gap-3 py-6 text-lg font-semibold bg-gradient-to-r from-[#9B6CF6] via-[#E956FF] to-[#FF7326] hover:from-[#AB7CFF] hover:via-[#F966FF] hover:to-[#FF8336] text-white transition-all duration-300 group shadow-[0_20px_45px_-15px_rgba(139,92,246,0.5),0_10px_25px_-10px_rgba(217,70,239,0.3)] hover:shadow-[0_25px_55px_-15px_rgba(139,92,246,0.6),0_15px_35px_-10px_rgba(217,70,239,0.4)] transform hover:-translate-y-1 active:translate-y-0 disabled:opacity-70 border-2 border-white/20 backdrop-blur-sm rounded-2xl"
           onClick={onClickHandler}
           disabled={isInstalling}
         >
           <div className={`flex items-center justify-center gap-6 ${isRTL ? 'flex-row-reverse' : 'flex-row'}`}>
-            <Icon />
-            <span className="font-changa text-xl font-bold animate-[heart-beat_2s_cubic-bezier(0.4,0,0.6,1)_infinite]">
+            <div className="drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]">
+              <Icon />
+            </div>
+            <span className="text-xl font-semibold animate-[heart-beat_2s_cubic-bezier(0.4,0,0.6,1)_infinite] drop-shadow-[0_2px_4px_rgba(0,0,0,0.2)]">
               {isInstalling 
                 ? (isRTL ? 'جاري التثبيت...' : 'Installing...') 
                 : (isRTL ? 'حمل تطبيق إكّـه الآن' : 'Download Ekka App')}
             </span>
           </div>
         </Button>
-        <p className={`text-sm text-muted-foreground text-center font-changa font-semibold ${isRTL ? 'rtl' : 'ltr'}`}>
+        <p className={`text-sm text-muted-foreground text-center font-semibold ${isRTL ? 'rtl' : 'ltr'}`}>
           {isRTL 
             ? 'حجوزات أسرع، عروض حصرية، ومزايا إضافية بانتظارك' 
             : 'Faster bookings, exclusive offers, and more features await you'}

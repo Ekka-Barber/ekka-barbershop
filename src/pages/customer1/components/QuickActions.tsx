@@ -91,7 +91,7 @@ export const QuickActions = ({
                   <Icon className="h-6 w-6" />
                 </span>
                 <div className="flex min-w-0 flex-col gap-2">
-                  <span className="text-lg font-semibold leading-tight text-white">
+                  <span className="text-lg font-medium leading-tight text-white">
                     {language === "ar"
                       ? action.display_name_ar
                       : action.display_name}

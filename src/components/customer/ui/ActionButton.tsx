@@ -33,36 +33,49 @@ export const ActionButton = ({ element, onClick }: ActionButtonProps) => {
   
   return (
     <motion.div
+      className="rounded-2xl"
       variants={fadeUpVariants}
       initial="hidden"
       animate="visible"
       whileHover={{ 
-        scale: 1.03, 
-        boxShadow: "0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.05)" 
+        scale: 1.04, 
+        y: -3,
+        boxShadow: element.name === 'view_menu' || element.name === 'book_now' 
+          ? "0 25px 50px -12px rgba(232,198,111,0.4), 0 15px 30px -10px rgba(214,179,90,0.3)" 
+          : "0 25px 50px -12px rgba(0,0,0,0.3), 0 15px 30px -10px rgba(255,255,255,0.1)"
       }}
-      whileTap={{ scale: 0.97 }}
-      transition={{ type: "spring", stiffness: 400, damping: 17 }}
+      whileTap={{ scale: 0.98, y: 0 }}
+      transition={{ type: "spring", stiffness: 400, damping: 20 }}
     >
       <Button
-        className={`w-full h-auto min-h-[56px] text-lg font-medium flex items-center justify-center px-4 py-3 ${
+        className={`w-full h-auto min-h-[60px] text-lg font-medium flex items-center justify-center px-5 py-4 ${
           element.name === 'view_menu' || element.name === 'book_now'
-            ? 'bg-[#C4A36F] hover:bg-[#B39260]'
-            : 'bg-[#4A4A4A] hover:bg-[#3A3A3A]'
-        } text-white transition-all duration-300 shadow-lg hover:shadow-xl touch-target`}
+            ? 'bg-gradient-to-r from-[#E8C66F] via-[#D6B35A] to-[#C79A2A] hover:from-[#F0D280] hover:via-[#E8C66F] hover:to-[#D6B35A] shadow-[0_20px_45px_-15px_rgba(232,198,111,0.5),0_10px_25px_-10px_rgba(214,179,90,0.3)]'
+            : 'bg-gradient-to-br from-[#4A4A4A] via-[#3A3A3A] to-[#2A2A2A] hover:from-[#5A5A5A] hover:via-[#4A4A4A] hover:to-[#3A3A3A] shadow-[0_20px_45px_-15px_rgba(0,0,0,0.4),inset_0_1px_2px_rgba(255,255,255,0.1)]'
+        } text-white transition-all duration-300 border-2 ${
+          element.name === 'view_menu' || element.name === 'book_now'
+            ? 'border-[#F0D280]/30'
+            : 'border-white/10'
+        } backdrop-blur-sm rounded-2xl touch-target`}
         onClick={onClick}
       >
         <motion.div 
           whileHover={{ rotate: [0, -10, 10, -10, 0] }}
           transition={{ duration: 0.5, ease: "easeInOut" }}
+          className={element.name === 'view_menu' || element.name === 'book_now' ? 'drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]' : ''}
         >
           {renderIcon(element.icon)}
         </motion.div>
         <div className="flex flex-col text-center">
-          <span className="text-lg font-medium">
+          <span className={`text-lg font-semibold ${
+            element.name === 'view_menu' || element.name === 'book_now' 
+              ? 'drop-shadow-[0_2px_4px_rgba(0,0,0,0.2)]' 
+              : ''
+          }`}>
             {language === 'ar' ? element.display_name_ar : element.display_name}
           </span>
           {element.description && (
-            <span className="text-xs font-normal text-gray-200 mt-1">
+            <span className="text-xs font-normal text-gray-100/90 mt-1">
               {language === 'ar' ? element.description_ar : element.description}
             </span>
           )}

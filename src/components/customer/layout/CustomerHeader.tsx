@@ -51,7 +51,7 @@ export const CustomerHeader = ({ animatingElements }: CustomerHeaderProps) => {
         {animatingElements.includes('divider') && (
           <motion.div 
             key="divider"
-            className="h-1 w-24 bg-[#C4A36F] mx-auto mt-3 md:mt-4 mb-6"
+            className="h-1.5 w-24 bg-gradient-to-r from-[#E8C66F] via-[#D6B35A] to-[#C4A36F] mx-auto mt-3 md:mt-4 mb-6 shadow-[0_4px_20px_rgba(232,198,111,0.4)]"
             initial={{ scaleX: 0, opacity: 0 }}
             animate={{ scaleX: 1, opacity: 1 }}
             transition={{ duration: 0.5 }}

@@ -16,13 +16,13 @@ export const HeroSection = ({
   const isRTL = language === "ar";
 
   return (
-    <section className="relative overflow-hidden rounded-[28px] bg-gradient-to-br from-[#1a1a1a] via-[#252525] to-[#2a2a2a] px-5 py-8 text-white shadow-[0_40px_120px_-60px_rgba(0,0,0,0.7)] sm:px-8">
+    <section className="relative overflow-hidden rounded-[32px] bg-gradient-to-br from-[#1a1a1a] via-[#222222] to-[#1f1f1f] px-5 py-8 text-white shadow-[0_50px_140px_-60px_rgba(0,0,0,0.85),0_20px_60px_-30px_rgba(214,179,90,0.25)] sm:px-8">
       <div className="pointer-events-none absolute inset-0">
-        <div className="absolute -top-32 left-1/2 h-64 w-64 -translate-x-1/2 rounded-full bg-[#D6B35A]/20 blur-[140px]" />
-        <div className="absolute bottom-0 right-0 h-72 w-72 rounded-full bg-[#4a4a4a]/60 blur-[120px]" />
-        <div className="absolute left-6 top-6 h-16 w-16 rounded-full border border-white/15" />
-        <div className="absolute bottom-8 right-10 flex h-20 w-20 items-center justify-center rounded-full border border-[#D6B35A]/40">
-          <Scissors className="h-7 w-7 text-[#D6B35A]" />
+        <div className="absolute -top-32 left-1/2 h-72 w-72 -translate-x-1/2 rounded-full bg-[#E8C66F]/30 blur-[160px]" />
+        <div className="absolute bottom-0 right-0 h-80 w-80 rounded-full bg-[#3a3a3a]/70 blur-[140px]" />
+        <div className="absolute left-6 top-6 h-16 w-16 rounded-full border border-white/20 shadow-[0_0_40px_rgba(214,179,90,0.2)]" />
+        <div className="absolute bottom-8 right-10 flex h-20 w-20 items-center justify-center rounded-full border-2 border-[#E8C66F]/50 bg-[#D6B35A]/10 shadow-[0_0_50px_rgba(232,198,111,0.3)]">
+          <Scissors className="h-7 w-7 text-[#E8C66F]" />
         </div>
       </div>
 
@@ -43,11 +43,11 @@ export const HeroSection = ({
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
             className={clsx(
-              "relative flex items-center gap-5 rounded-[28px] border border-white/15 bg-white/10/5 px-5 py-4 backdrop-blur-xl shadow-[0_45px_120px_-60px_rgba(26,26,26,0.9)]",
+              "relative flex items-center gap-5 rounded-[32px] border border-white/20 bg-white/[0.08] px-5 py-4 backdrop-blur-2xl shadow-[0_50px_130px_-60px_rgba(0,0,0,0.95),0_20px_50px_-20px_rgba(214,179,90,0.15)]",
               isRTL ? "flex-row-reverse" : "flex-row"
             )}
           >
-            <div className="relative flex h-20 w-20 items-center justify-center overflow-hidden rounded-3xl border border-white/20 bg-gradient-to-br from-white/20 to-white/5 p-2 shadow-[0_25px_50px_-35px_rgba(0,0,0,0.8)]">
+            <div className="relative flex h-20 w-20 items-center justify-center overflow-hidden rounded-[24px] border-2 border-white/25 bg-gradient-to-br from-white/25 to-white/10 p-2 shadow-[0_30px_60px_-35px_rgba(0,0,0,0.9),0_10px_30px_-10px_rgba(232,198,111,0.3)]">
               <img
                 src="/lovable-uploads/7eb81221-fbf5-4b1d-8327-eb0e707236d8.png"
                 alt={t("customer1.hero.logo.alt")}
@@ -56,7 +56,7 @@ export const HeroSection = ({
                 width={80}
                 height={80}
               />
-              <span className="absolute inset-0 rounded-3xl ring-1 ring-white/20" />
+              <span className="absolute inset-0 rounded-[24px] ring-1 ring-white/30" />
             </div>
             <div
               className={clsx(
@@ -64,10 +64,10 @@ export const HeroSection = ({
                 isRTL ? "items-end text-right" : "items-start text-left"
               )}
             >
-              <span className="text-xs font-semibold uppercase tracking-[0.45em] text-[#FCEED1]/70">
+              <span className="text-xs font-semibold uppercase tracking-[0.45em] text-[#FCEED1]/80">
                 {t("customer1.hero.logo.caption")}
               </span>
-              <span className="mt-1 text-lg font-bold uppercase tracking-[0.3em] text-white">
+              <span className="mt-1 text-lg font-bold uppercase tracking-[0.3em] text-white drop-shadow-[0_2px_10px_rgba(232,198,111,0.3)]">
                 {t("customer1.hero.logo.title")}
               </span>
             </div>
@@ -82,11 +82,11 @@ export const HeroSection = ({
 
           <span
             className={clsx(
-              "inline-flex items-center gap-3 rounded-full bg-white/10 px-5 py-2 text-xs font-semibold uppercase tracking-[0.5em] text-[#FCEED1]",
+              "inline-flex items-center gap-3 rounded-full bg-white/[0.12] border border-white/10 px-5 py-2.5 text-xs font-semibold uppercase tracking-[0.5em] text-[#FCEED1] shadow-[0_10px_30px_-10px_rgba(232,198,111,0.2)]",
               isRTL && "flex-row-reverse tracking-[0.3em]"
             )}
           >
-            <Sparkles className="h-4 w-4 text-[#FBC252]" />
+            <Sparkles className="h-4 w-4 text-[#FBC252] drop-shadow-[0_0_8px_rgba(251,194,82,0.5)]" />
             {t("customer1.hero.tagline")}
           </span>
 
@@ -106,19 +106,19 @@ export const HeroSection = ({
             )}
           >
             <motion.button
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.96 }}
+              whileHover={{ scale: 1.04, y: -2 }}
+              whileTap={{ scale: 0.97 }}
               onClick={onPrimaryAction}
-              className="group flex h-14 w-full items-center justify-center gap-3 rounded-full bg-gradient-to-r from-[#D6B35A] to-[#C79A2A] text-base font-semibold text-[#181C27] shadow-[0_20px_40px_-20px_rgba(198,152,56,0.7)] transition"
+              className="group flex h-14 w-full items-center justify-center gap-3 rounded-full bg-gradient-to-r from-[#E8C66F] via-[#D6B35A] to-[#C79A2A] text-base font-semibold text-[#181C27] shadow-[0_25px_50px_-20px_rgba(232,198,111,0.8),0_10px_25px_-10px_rgba(214,179,90,0.4)] transition-all hover:shadow-[0_30px_60px_-20px_rgba(232,198,111,0.9),0_15px_35px_-10px_rgba(214,179,90,0.5)]"
             >
               {t("customer1.hero.primary")}
-              <Crown className="h-5 w-5 transition group-hover:translate-x-1" />
+              <Crown className="h-5 w-5 transition-transform group-hover:translate-x-1 drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]" />
             </motion.button>
             <motion.button
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.96 }}
+              whileHover={{ scale: 1.04, y: -2 }}
+              whileTap={{ scale: 0.97 }}
               onClick={onSecondaryAction}
-              className="flex h-14 w-full items-center justify-center gap-3 rounded-full border border-white/15 bg-white/5 text-base font-semibold text-white transition hover:border-white/25 hover:bg-white/10"
+              className="flex h-14 w-full items-center justify-center gap-3 rounded-full border-2 border-white/20 bg-white/[0.08] text-base font-medium text-white shadow-[0_15px_35px_-15px_rgba(255,255,255,0.1)] transition-all hover:border-white/30 hover:bg-white/[0.15] hover:shadow-[0_20px_45px_-15px_rgba(255,255,255,0.15)] backdrop-blur-sm"
             >
               {t("customer1.hero.secondary")}
             </motion.button>
@@ -130,7 +130,7 @@ export const HeroSection = ({
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
           className={clsx(
-            "relative overflow-hidden rounded-[28px] border border-white/10 bg-gradient-to-br from-white/5 to-white/0 p-8 text-white backdrop-blur-xl",
+            "relative overflow-hidden rounded-[32px] border-2 border-white/15 bg-gradient-to-br from-white/[0.08] to-white/[0.02] p-8 text-white backdrop-blur-2xl shadow-[0_30px_70px_-30px_rgba(0,0,0,0.6),inset_0_1px_2px_rgba(255,255,255,0.1)]",
             isRTL ? "md:order-1" : "md:order-2"
           )}
         >
@@ -146,18 +146,18 @@ export const HeroSection = ({
             </div>
 
             <div className="space-y-5">
-              <p className="text-lg font-semibold leading-relaxed text-slate-50">
+              <p className="text-lg font-semibold leading-relaxed text-slate-50 drop-shadow-[0_2px_8px_rgba(0,0,0,0.3)]">
                 {t("customer1.hero.card.copy")}
               </p>
               <div className="grid grid-cols-2 gap-4 text-sm text-slate-200">
-                <div className="rounded-2xl border border-white/10 bg-white/5 p-4 text-center">
-                  <p className="text-2xl font-bold text-[#FBC252]">+150</p>
+                <div className="rounded-[20px] border-2 border-white/15 bg-white/[0.08] p-4 text-center shadow-[0_15px_35px_-15px_rgba(0,0,0,0.4),inset_0_1px_2px_rgba(255,255,255,0.1)] backdrop-blur-sm">
+                  <p className="text-2xl font-bold text-[#FBC252] drop-shadow-[0_2px_10px_rgba(251,194,82,0.4)]">+150</p>
                   <p className="text-xs uppercase tracking-[0.3em] text-slate-300">
                     {t("customer1.hero.card.stat1")}
                   </p>
                 </div>
-                <div className="rounded-2xl border border-white/10 bg-white/5 p-4 text-center">
-                  <p className="text-2xl font-bold text-[#FBC252]">4.9</p>
+                <div className="rounded-[20px] border-2 border-white/15 bg-white/[0.08] p-4 text-center shadow-[0_15px_35px_-15px_rgba(0,0,0,0.4),inset_0_1px_2px_rgba(255,255,255,0.1)] backdrop-blur-sm">
+                  <p className="text-2xl font-bold text-[#FBC252] drop-shadow-[0_2px_10px_rgba(251,194,82,0.4)]">4.9</p>
                   <p className="text-xs uppercase tracking-[0.3em] text-slate-300">
                     {t("customer1.hero.card.stat2")}
                   </p>

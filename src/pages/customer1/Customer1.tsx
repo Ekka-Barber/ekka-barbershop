@@ -149,7 +149,7 @@ const Customer1 = () => {
             prefersReducedMotion={prefersReducedMotion}
             className="w-full mb-6"
           >
-            <Card className="border-0 bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-md shadow-2xl">
+            <Card className="border-2 border-white/15 bg-gradient-to-br from-white/[0.12] to-white/[0.06] backdrop-blur-2xl shadow-[0_40px_100px_-40px_rgba(0,0,0,0.8),0_15px_40px_-15px_rgba(214,179,90,0.2),inset_0_1px_2px_rgba(255,255,255,0.15)]">
               <CardContent className="p-0">
                 <CustomerHeader animatingElements={animatingElements} />
               </CardContent>
@@ -182,7 +182,7 @@ const Customer1 = () => {
             className="w-full max-w-xs mx-auto my-6"
             style={{ originX: 0.5 }}
           >
-            <Separator className="bg-gradient-to-r from-transparent via-[#D6B35A]/30 to-transparent h-[1px]" />
+            <Separator className="bg-gradient-to-r from-transparent via-[#E8C66F]/40 to-transparent h-[2px] shadow-[0_0_20px_rgba(232,198,111,0.3)]" />
           </AnimatedSection>
 
           {/* Enhanced InstallAppPrompt */}
