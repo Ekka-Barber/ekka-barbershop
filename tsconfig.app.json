@@ -20,7 +20,8 @@
 
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "react-original": ["./node_modules/@types/react/index.d.ts"]
     }
   },
   "include": ["src"]

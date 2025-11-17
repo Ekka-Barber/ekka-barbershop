@@ -2,16 +2,29 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
 
+const reactSingletonPath = path.resolve(__dirname, './src/lib/react-singleton.ts');
+const reactOriginalPath = path.resolve(__dirname, './node_modules/react/index.js');
+const reactJsxRuntimePath = path.resolve(__dirname, './node_modules/react/jsx-runtime.js');
+const reactJsxDevRuntimePath = path.resolve(__dirname, './node_modules/react/jsx-dev-runtime.js');
+
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
   plugins: [
     react(),
   ],
   resolve: {
-    alias: {
-      '@': path.resolve(__dirname, './src'),
-    },
+    alias: [
+      { find: '@', replacement: path.resolve(__dirname, './src') },
+      { find: /^react$/, replacement: reactSingletonPath },
+      { find: /^react-original$/, replacement: reactOriginalPath },
+      { find: /^react\/jsx-runtime$/, replacement: reactJsxRuntimePath },
+      { find: /^react\/jsx-dev-runtime$/, replacement: reactJsxDevRuntimePath },
+    ],
     dedupe: ['react', 'react-dom', 'react/jsx-runtime', 'framer-motion'],
+  },
+  // Ensure React is always available globally
+  define: {
+    global: 'globalThis',
   },
   server: {
     port: 9913,
@@ -30,7 +43,7 @@ export default defineConfig(({ mode }) => ({
           // This ensures lazy-loaded components always use the same React instance
           if (id.includes('node_modules')) {
             // React core - must be in main bundle, never split
-            if (id.includes('/react/') || id.includes('/react-dom/')) {
+            if (id.includes('/react/') || id.includes('/react-dom/') || id.includes('/react/jsx-runtime')) {
               // Don't return a chunk name - this keeps React/React-DOM in the main bundle
               return;
             }
@@ -98,6 +111,7 @@ export default defineConfig(({ mode }) => ({
       'react',
       'react-dom',
       'react/jsx-runtime',
+      'react/jsx-dev-runtime',
       'react-router-dom',
       '@tanstack/react-query',
       '@supabase/supabase-js',
@@ -109,9 +123,8 @@ export default defineConfig(({ mode }) => ({
       '@emotion/is-prop-valid',
       '@emotion/memoize'
     ],
-    // Exclude problematic dependencies
-    exclude: [],
     // Force React to be deduplicated and always available
+    force: true,
     esbuildOptions: {
       resolveExtensions: ['.tsx', '.ts', '.jsx', '.js'],
     },
