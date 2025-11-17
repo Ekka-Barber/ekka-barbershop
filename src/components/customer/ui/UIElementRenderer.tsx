@@ -9,17 +9,11 @@ import { ActionButton } from "./ActionButton";
 
 type UiElement = Database['public']['Tables']['ui_elements']['Row'];
 
-// Lazy load heavy section components - now loaded on-demand only
-const loadLoyaltySection = () => import("../sections/LoyaltySection");
-const loadBookingsSection = () => import("../sections/BookingsSection");
-const loadEidBookingsSection = () => import("../sections/EidBookingsSection");
-const loadGoogleReviewsWrapper = () => import("../sections/GoogleReviewsWrapper");
-
-// Components are now loaded lazily when actually needed
-const LoyaltySection = lazyWithRetry(loadLoyaltySection);
-const BookingsSection = lazyWithRetry(loadBookingsSection);
-const EidBookingsSection = lazyWithRetry(loadEidBookingsSection);
-const GoogleReviewsWrapper = lazyWithRetry(loadGoogleReviewsWrapper);
+// Lazy load heavy section components
+const LoyaltySection = lazyWithRetry(() => import("../sections/LoyaltySection"));
+const BookingsSection = lazyWithRetry(() => import("../sections/BookingsSection"));
+const EidBookingsSection = lazyWithRetry(() => import("../sections/EidBookingsSection"));
+const GoogleReviewsWrapper = lazyWithRetry(() => import("../sections/GoogleReviewsWrapper"));
 
 interface UIElementRendererProps {
   visibleElements: UiElement[];
@@ -45,80 +39,6 @@ export const UIElementRenderer = ({
   const navigate = useNavigate();
   const { language } = useLanguage();
 
-  // Track which sections have been loaded to avoid duplicate loading
-  const [loadedSections, setLoadedSections] = useState<Set<string>>(new Set());
-  const preloadTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-
-  // Visibility-based preloading: only load sections that are actually visible
-  useEffect(() => {
-    if (animatingElements.length === 0) return;
-
-    // Clear any existing preload timeout
-    if (preloadTimeoutRef.current) {
-      clearTimeout(preloadTimeoutRef.current);
-    }
-
-    // Preload sections that are currently animating (visible) immediately
-    const sectionsToLoad = visibleElements
-      .filter(element => animatingElements.includes(element.id) && element.type === 'section')
-      .map(element => element.name);
-
-        sectionsToLoad.forEach(sectionName => {
-      if (!loadedSections.has(sectionName)) {
-        // Load the section component
-        switch (sectionName) {
-          case 'loyalty_program':
-            loadLoyaltySection().catch(console.error);
-            break;
-          case 'bookings':
-            loadBookingsSection().catch(console.error);
-            break;
-          case 'eid_bookings':
-            loadEidBookingsSection().catch(console.error);
-            break;
-          case 'google_reviews':
-            loadGoogleReviewsWrapper().catch(console.error);
-            break;
-        }
-        setLoadedSections(prev => new Set(prev).add(sectionName));
-      }
-    });
-
-    // For non-visible sections, add a small delay before preloading (for smoother UX)
-    const nonVisibleSections = visibleElements
-      .filter(element => !animatingElements.includes(element.id) && element.type === 'section')
-      .map(element => element.name);
-
-    if (nonVisibleSections.length > 0) {
-      preloadTimeoutRef.current = setTimeout(() => {
-        nonVisibleSections.forEach(sectionName => {
-          if (!loadedSections.has(sectionName)) {
-            switch (sectionName) {
-              case 'loyalty_program':
-                loadLoyaltySection().catch(console.error);
-                break;
-              case 'bookings':
-                loadBookingsSection().catch(console.error);
-                break;
-              case 'eid_bookings':
-                loadEidBookingsSection().catch(console.error);
-                break;
-              case 'google_reviews':
-                loadGoogleReviewsWrapper().catch(console.error);
-                break;
-            }
-            setLoadedSections(prev => new Set(prev).add(sectionName));
-          }
-        });
-      }, 1000); // 1 second delay for non-visible sections
-    }
-
-    return () => {
-      if (preloadTimeoutRef.current) {
-        clearTimeout(preloadTimeoutRef.current);
-      }
-    };
-  }, [animatingElements, visibleElements, loadedSections]);
 
   const handleElementAction = useCallback((element: UiElement) => {
     trackButtonClick({
