@@ -8,6 +8,9 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      screens: {
+        'xs': '375px',
+      },
       fontFamily: {
         sans: ['IBM Plex Sans Arabic', 'sans-serif'],
       },

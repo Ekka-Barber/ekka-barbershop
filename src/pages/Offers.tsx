@@ -94,7 +94,7 @@ const Offers = () => {
           ) : offersFiles && offersFiles.length > 0 ? (
             offersFiles!.map((file) => (
               <Card key={file!.id} className="w-full overflow-hidden bg-white shadow-xl rounded-xl border-[#C4A36F]/20">
-                <div className="p-6">
+                <div className="p-4 sm:p-6">
                   {file!.branchName && (
                     <div className="mb-4">
                       <Badge 
