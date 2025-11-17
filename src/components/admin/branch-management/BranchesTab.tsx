@@ -1,5 +1,4 @@
 
-// @ts-nocheck
 import { useState } from 'react';
 import { useBranchManagement } from '@/hooks/useBranchManagement';
 import { BranchList } from './BranchList';

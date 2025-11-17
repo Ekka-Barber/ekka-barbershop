@@ -1,5 +1,5 @@
 
-import { useCallback, Suspense, useEffect, useState, useRef } from "react";
+import { useCallback, Suspense } from "react";
 import { useNavigate } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
 import type { Database } from "@/integrations/supabase/types";

@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { useLanguage } from "@/contexts/LanguageContext";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { Suspense, useEffect } from "react";

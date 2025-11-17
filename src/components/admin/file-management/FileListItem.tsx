@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { Button } from "@/components/ui/button";
 import { FileEndDateManager } from "./FileEndDateManager";
 import { FileMetadata } from "@/types/admin";

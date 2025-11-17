@@ -1,5 +1,3 @@
-import { Json } from './supabase';
-
 export interface Branch {
   id: string;
   name: string;
