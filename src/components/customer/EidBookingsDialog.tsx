@@ -120,7 +120,7 @@ const EidBookingsDialog = ({
             variants={containerVariants}
             initial="hidden"
             animate="visible" 
-            className="grid grid-cols-1 gap-4 p-4 sm:p-6"
+            className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-4 sm:p-6"
           >
             {branches?.map((branch) => (
               <motion.div

@@ -1,5 +1,5 @@
-import { render, screen } from '@testing-library/react';
 // @ts-nocheck
+import { render, screen } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
 import { MemoryRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
