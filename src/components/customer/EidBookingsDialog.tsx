@@ -53,12 +53,12 @@ const EidBookingsDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[calc(100vw-2rem)] sm:max-w-xl bg-gradient-to-br from-white/98 to-white/95 border-2 border-white/40 shadow-[0_40px_100px_-40px_rgba(0,0,0,0.5),0_20px_50px_-20px_rgba(117,106,248,0.25)] p-0 overflow-hidden rounded-2xl backdrop-blur-xl max-h-[90vh] overflow-y-auto" showCloseButton={false}>
+      <DialogContent className="w-[calc(100vw-2rem)] sm:max-w-xl bg-gradient-to-br from-white/98 to-white/95 border-2 border-white/40 shadow-[0_40px_100px_-40px_rgba(0,0,0,0.5),0_20px_50px_-20px_rgba(117,106,248,0.25)] p-0 overflow-hidden rounded-2xl backdrop-blur-xl max-h-[90vh] flex flex-col" showCloseButton={false}>
         <motion.div 
           initial="hidden"
           animate="visible"
           variants={fadeIn}
-          className="relative w-full"
+          className="relative w-full flex flex-col max-h-full"
         >
           <div className="h-24 bg-gradient-to-r from-[#9B6CF6] via-[#8B5CF6] to-[#7C3AED] flex items-center justify-center relative overflow-hidden shadow-[0_10px_40px_-10px_rgba(139,92,246,0.5)]">
             <motion.div
@@ -116,13 +116,14 @@ const EidBookingsDialog = ({
             </p>
           </DialogHeader>
 
-          <motion.div 
-            variants={containerVariants}
-            initial="hidden"
-            animate="visible" 
-            className="grid grid-cols-1 xs:grid-cols-2 gap-3 p-4 sm:p-6"
-          >
-            {branches?.map((branch) => (
+          <div className="flex-1 overflow-y-auto">
+            <motion.div 
+              variants={containerVariants}
+              initial="hidden"
+              animate="visible" 
+              className="grid grid-cols-1 xs:grid-cols-2 gap-3 p-4 sm:p-6"
+            >
+              {branches?.map((branch) => (
               <motion.div
                 key={branch.id}
                 variants={branchVariants}
@@ -156,9 +157,10 @@ const EidBookingsDialog = ({
                 </Button>
               </motion.div>
             ))}
-          </motion.div>
+            </motion.div>
+          </div>
           
-          <div className="p-4 bg-gradient-to-b from-white/50 to-purple-50/60 border-t border-white/60 text-center backdrop-blur-sm">
+          <div className="p-4 bg-gradient-to-b from-white/50 to-purple-50/60 border-t border-white/60 text-center backdrop-blur-sm flex-shrink-0">
             <motion.p 
               className="text-xs text-gray-500"
               initial={{ opacity: 0 }}
