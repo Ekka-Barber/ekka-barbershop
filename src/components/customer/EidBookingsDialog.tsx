@@ -105,7 +105,7 @@ const EidBookingsDialog = ({
             </motion.div>
           </div>
 
-          <DialogHeader className="px-6 pt-6 pb-2">
+          <DialogHeader className="px-4 sm:px-6 pt-4 sm:pt-6 pb-2">
             <DialogTitle className="text-center text-xl font-bold text-[#222222] mb-4">
               {isRTL ? 'اختر الفرع' : 'Select Branch'}
             </DialogTitle>
@@ -120,7 +120,7 @@ const EidBookingsDialog = ({
             variants={containerVariants}
             initial="hidden"
             animate="visible" 
-            className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-6"
+            className="grid grid-cols-1 gap-4 p-4 sm:p-6"
           >
             {branches?.map((branch) => (
               <motion.div
