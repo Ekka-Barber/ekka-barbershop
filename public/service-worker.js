@@ -72,37 +72,26 @@ const handleFetch = async (event) => {
   // First check if the request is a navigation request
   if (event.request.mode === 'navigate') {
     try {
-      // Check cache first
-      const cachedResponse = await caches.match(event.request);
-      if (cachedResponse) {
-        // Return cached response and update cache in background
-        fetch(event.request)
-          .then(networkResponse => {
-            if (networkResponse.ok) {
-              const clonedResponse = networkResponse.clone();
-              caches.open(CACHE_NAME).then(cache => {
-                cache.put(event.request, clonedResponse);
-              });
-            }
-          })
-          .catch(() => {/* ignore fetch errors */});
-        
-        return cachedResponse;
-      }
-      
-      // If not in cache, use network
+      // Try network first to ensure bots and users get fresh content
       const networkResponse = await fetch(event.request);
       
       // Cache the response for next time
       if (networkResponse.ok) {
         const clonedResponse = networkResponse.clone();
-        const cache = await caches.open(CACHE_NAME);
-        cache.put(event.request, clonedResponse);
+        caches.open(CACHE_NAME).then(cache => {
+          cache.put(event.request, clonedResponse);
+        });
       }
       
       return networkResponse;
     } catch (error) {
-      // Both cache and network failed, show offline page
+      // Network failed, try cache
+      const cachedResponse = await caches.match(event.request);
+      if (cachedResponse) {
+        return cachedResponse;
+      }
+      
+      // Both network and cache failed, show offline page
       return caches.match('/offline.html');
     }
   }

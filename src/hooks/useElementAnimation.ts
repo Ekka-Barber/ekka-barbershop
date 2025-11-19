@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import type { Database } from '@/integrations/supabase/types';
 

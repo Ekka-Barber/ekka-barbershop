@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { useCallback, Suspense } from "react";
 import { useNavigate } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";

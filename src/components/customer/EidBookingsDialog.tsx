@@ -53,12 +53,12 @@ const EidBookingsDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[calc(100vw-2rem)] sm:max-w-xl bg-gradient-to-br from-white/98 to-white/95 border-2 border-white/40 shadow-[0_40px_100px_-40px_rgba(0,0,0,0.5),0_20px_50px_-20px_rgba(117,106,248,0.25)] p-0 overflow-hidden rounded-2xl backdrop-blur-xl max-h-[90vh] flex flex-col" showCloseButton={false}>
-        <motion.div 
+      <DialogContent className="w-[calc(100vw-2rem)] sm:max-w-xl bg-gradient-to-br from-white/98 to-white/95 border-2 border-white/40 shadow-[0_40px_100px_-40px_rgba(0,0,0,0.5),0_20px_50px_-20px_rgba(117,106,248,0.25)] p-0 overflow-hidden rounded-2xl backdrop-blur-xl max-h-[90vh] overflow-y-auto" showCloseButton={false}>
+        <motion.div
           initial="hidden"
           animate="visible"
           variants={fadeIn}
-          className="relative w-full flex flex-col max-h-full"
+          className="relative w-full"
         >
           <div className="h-24 bg-gradient-to-r from-[#9B6CF6] via-[#8B5CF6] to-[#7C3AED] flex items-center justify-center relative overflow-hidden shadow-[0_10px_40px_-10px_rgba(139,92,246,0.5)]">
             <motion.div
@@ -116,13 +116,12 @@ const EidBookingsDialog = ({
             </p>
           </DialogHeader>
 
-          <div className="flex-1 overflow-y-auto">
-            <motion.div 
-              variants={containerVariants}
-              initial="hidden"
-              animate="visible" 
-              className="grid grid-cols-1 xs:grid-cols-2 gap-3 p-4 sm:p-6"
-            >
+          <motion.div
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+            className="grid grid-cols-1 xs:grid-cols-2 gap-3 p-4 sm:p-6"
+          >
               {branches?.map((branch) => (
               <motion.div
                 key={branch.id}
@@ -133,33 +132,37 @@ const EidBookingsDialog = ({
               >
                 <Button
                   variant="outline"
-                  className="w-full min-h-[120px] flex flex-col items-start justify-between gap-3 px-5 py-5 bg-gradient-to-br from-white/95 to-white/85 hover:from-white/98 hover:to-white/90 hover:bg-[#8B5CF6]/[0.03] border-2 border-white/60 hover:border-[#9B6CF6]/40 transition-all duration-300 rounded-2xl group shadow-[0_15px_35px_-10px_rgba(0,0,0,0.12),0_5px_15px_-5px_rgba(139,92,246,0.15)] backdrop-blur-sm"
+                  className="w-full min-h-[160px] flex flex-col items-center justify-center gap-4 px-4 py-6 bg-gradient-to-br from-white/95 to-white/85 hover:from-white/98 hover:to-white/90 hover:bg-[#8B5CF6]/[0.03] border-2 border-white/60 hover:border-[#9B6CF6]/40 transition-all duration-300 rounded-2xl group shadow-[0_15px_35px_-10px_rgba(0,0,0,0.12),0_5px_15px_-5px_rgba(139,92,246,0.15)] backdrop-blur-sm"
                   onClick={() => {
                     onBranchSelect(branch.id);
                   }}
                   aria-label={`Select ${isRTL ? branch.name_ar : branch.name} branch`}
                 >
-                  <div className={`flex flex-col items-${isRTL ? 'end' : 'start'} flex-shrink min-w-0 w-full`}>
-                    <div className="w-full flex items-center mb-2">
-                      <MapPin className={`w-4.5 h-4.5 text-[#9B6CF6] ${isRTL ? 'ml-1.5' : 'mr-1.5'} drop-shadow-[0_2px_4px_rgba(155,108,246,0.3)]`} />
-                      <span className="font-semibold text-base text-[#1a1a1a] group-hover:text-[#9B6CF6] transition-colors truncate drop-shadow-[0_1px_3px_rgba(0,0,0,0.08)]">
+                  <div className={`flex-1 flex flex-col items-center text-center`}>
+                    <div className="flex-shrink-0 bg-gradient-to-br from-[#9B6CF6]/20 to-[#7C3AED]/10 p-3.5 rounded-full mb-3 shadow-[0_4px_12px_-4px_rgba(155,108,246,0.2)]">
+                      <MapPin className="w-6 h-6 text-[#9B6CF6] drop-shadow-[0_2px_4px_rgba(155,108,246,0.2)]" />
+                    </div>
+                    <div className="flex flex-col min-w-0 gap-1">
+                      <span className="font-bold text-lg text-[#1a1a1a] group-hover:text-[#9B6CF6] transition-colors truncate drop-shadow-[0_1px_3px_rgba(0,0,0,0.08)]">
                         {isRTL ? branch.name_ar : branch.name}
                       </span>
+                      <span className="text-sm text-[#5a5a5a] group-hover:text-[#8B5CF6] transition-colors truncate max-w-full">
+                        {isRTL ? branch.address_ar : branch.address}
+                      </span>
                     </div>
-                    <span className="w-full text-sm text-[#5a5a5a] group-hover:text-[#8B5CF6] transition-colors truncate flex items-center">
-                      <MapPin className={`w-3.5 h-3.5 ${isRTL ? 'ml-1.5' : 'mr-1.5'} text-[#9B6CF6]/60`} />
-                      {isRTL ? branch.address_ar : branch.address}
+                  </div>
+
+                  <div className="mt-2 text-sm text-[#9B6CF6] font-medium flex items-center gap-1">
+                    {isRTL ? 'انقر للحجز أونلاين' : 'Click to book online'}
+                    <span className="transform transition-transform group-hover:translate-x-1 rtl:group-hover:-translate-x-1">
+                      {isRTL ? '←' : '→'}
                     </span>
-                    <div className="text-xs mt-2.5 text-[#9B6CF6] font-medium">
-                      {isRTL ? 'انقر للحجز أونلاين ←' : 'Click to book online →'}
-                    </div>
                   </div>
                 </Button>
               </motion.div>
             ))}
             </motion.div>
-          </div>
-          
+
           <div className="p-4 bg-gradient-to-b from-white/50 to-purple-50/60 border-t border-white/60 text-center backdrop-blur-sm flex-shrink-0">
             <motion.p 
               className="text-xs text-gray-500"

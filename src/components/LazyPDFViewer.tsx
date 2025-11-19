@@ -1,4 +1,3 @@
-// @ts-nocheck
 import React, { Suspense, lazy } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Card, CardContent } from '@/components/ui/card';
