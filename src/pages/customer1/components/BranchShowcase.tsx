@@ -95,10 +95,15 @@ export const BranchShowcase = ({
                   whileHover={{ y: -2 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={handleWhatsApp}
-                  className="flex h-14 items-center justify-center gap-3 rounded-2xl border border-white/15 bg-white/8 text-sm font-medium text-white transition focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+                  className="flex h-14 items-center justify-center gap-3 rounded-2xl border border-white/15 bg-white/8 text-sm font-medium text-white transition focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40 relative group"
                 >
                   <MessageCircle className="h-5 w-5" />
-                  {t("customer1.branch.secondary")}
+                  <div className="flex flex-col items-center">
+                    <span>{t("customer1.branch.secondary")}</span>
+                    <span className="text-xs opacity-70 group-hover:opacity-100 transition-opacity">
+                      Free • Reply within 2hrs
+                    </span>
+                  </div>
                 </motion.button>
               )}
             </div>

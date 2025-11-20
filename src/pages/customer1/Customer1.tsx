@@ -192,6 +192,49 @@ const Customer1 = () => {
           >
             <InstallAppPrompt />
           </AnimatedSection>
+
+          {/* Footer with Policy Links - Google Ads Compliance */}
+          <footer className="mt-8 py-6 border-t border-white/10">
+            <div className="max-w-xs mx-auto text-center space-y-3">
+              <div className="flex flex-wrap justify-center gap-4 text-sm">
+                <a
+                  href="/privacy-policy.html"
+                  className="text-white/70 hover:text-[#E8C66F] transition-colors"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Privacy Policy
+                </a>
+                <a
+                  href="/terms-of-service.html"
+                  className="text-white/70 hover:text-[#E8C66F] transition-colors"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Terms of Service
+                </a>
+                <a
+                  href="/refund-policy.html"
+                  className="text-white/70 hover:text-[#E8C66F] transition-colors"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Refund Policy
+                </a>
+                <a
+                  href="/contact.html"
+                  className="text-white/70 hover:text-[#E8C66F] transition-colors"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Contact
+                </a>
+              </div>
+              <p className="text-white/50 text-xs">
+                © 2025 Ekka Barbershop. All rights reserved.
+              </p>
+            </div>
+          </footer>
         </motion.div>
 
       </PullToRefresh>
