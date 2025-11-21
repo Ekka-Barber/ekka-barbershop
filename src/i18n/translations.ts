@@ -192,6 +192,13 @@ export const translations: Translations = {
     'pull.down.refresh': 'Pull down to refresh',
     'release.refresh': 'Release to refresh',
     'refreshing': 'Refreshing...',
+
+    // Footer Links
+    'footer.privacy': 'Privacy Policy',
+    'footer.terms': 'Terms of Service',
+    'footer.refund': 'Refund Policy',
+    'footer.contact': 'Contact',
+    'footer.copyright': '© 2025 Ekka Barbershop. All rights reserved.',
   },
   ar: {
     'select.branch': 'اختر فرعاً',
@@ -348,5 +355,12 @@ export const translations: Translations = {
     'pull.down.refresh': 'اسحب لأسفل للتحديث',
     'release.refresh': 'اترك للتحديث',
     'refreshing': 'جاري التحديث...',
+
+    // روابط التذييل
+    'footer.privacy': 'سياسة الخصوصية',
+    'footer.terms': 'شروط الخدمة',
+    'footer.refund': 'سياسة الاسترداد',
+    'footer.contact': 'اتصل بنا',
+    'footer.copyright': '© 2025 صالون إكا للحلاقة. جميع الحقوق محفوظة.',
   }
 };

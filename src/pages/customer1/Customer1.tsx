@@ -203,7 +203,7 @@ const Customer1 = () => {
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  Privacy Policy
+                  {t('footer.privacy')}
                 </a>
                 <a
                   href="/terms-of-service.html"
@@ -211,7 +211,7 @@ const Customer1 = () => {
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  Terms of Service
+                  {t('footer.terms')}
                 </a>
                 <a
                   href="/refund-policy.html"
@@ -219,7 +219,7 @@ const Customer1 = () => {
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  Refund Policy
+                  {t('footer.refund')}
                 </a>
                 <a
                   href="/contact.html"
@@ -227,11 +227,11 @@ const Customer1 = () => {
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  Contact
+                  {t('footer.contact')}
                 </a>
               </div>
               <p className="text-white/50 text-xs">
-                © 2025 Ekka Barbershop. All rights reserved.
+                {t('footer.copyright')}
               </p>
             </div>
           </footer>

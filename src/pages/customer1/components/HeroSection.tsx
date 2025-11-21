@@ -17,7 +17,7 @@ export const HeroSection = ({
   const { t, language } = useLanguage();
   const isRTL = language === "ar";
 
-  // Fetch main branch information for business details
+  // Fetch main branch information for business details - Google Ads Compliance
   const { data: mainBranch } = useQuery({
     queryKey: ['main-branch'],
     queryFn: async () => {
@@ -31,6 +31,13 @@ export const HeroSection = ({
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
+
+  // Fallback business information for Google Ads compliance - ensures bots see same info as users
+  const fallbackBusinessInfo = {
+    address: "[Full Business Address]",
+    address_ar: "[العنوان التجاري الكامل]",
+    whatsapp_number: "[+966-XX-XXXXXXX]"
+  };
 
   return (
     <section className="relative overflow-hidden rounded-[32px] bg-gradient-to-br from-[#1a1a1a] via-[#222222] to-[#1f1f1f] px-5 py-8 text-white shadow-[0_50px_140px_-60px_rgba(0,0,0,0.85),0_20px_60px_-30px_rgba(214,179,90,0.25)] sm:px-8">
@@ -55,41 +62,40 @@ export const HeroSection = ({
             isRTL ? "text-right md:order-2" : "text-left md:order-1"
           )}
         >
-          {/* Business Information - Google Ads Compliance */}
-          {mainBranch && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              className={clsx(
-                "mb-6 flex flex-wrap items-center gap-4 rounded-[24px] border border-white/15 bg-white/[0.05] px-6 py-4 backdrop-blur-xl",
-                isRTL ? "flex-row-reverse text-right" : "flex-row text-left"
-              )}
-            >
-              <div className={clsx("flex items-center gap-2", isRTL ? "flex-row-reverse" : "flex-row")}>
-                <MapPin className="h-4 w-4 text-[#E8C66F]" />
-                <span className="text-sm text-white/90">
-                  {language === "ar" ? mainBranch.address_ar : mainBranch.address}
-                </span>
-              </div>
+          {/* Business Information - Google Ads Compliance - Always visible */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className={clsx(
+              "mb-6 flex flex-wrap items-center gap-4 rounded-[24px] border border-white/15 bg-white/[0.05] px-6 py-4 backdrop-blur-xl",
+              isRTL ? "flex-row-reverse text-right" : "flex-row text-left"
+            )}
+          >
+            <div className={clsx("flex items-center gap-2", isRTL ? "flex-row-reverse" : "flex-row")}>
+              <MapPin className="h-4 w-4 text-[#E8C66F]" />
+              <span className="text-sm text-white/90">
+                {language === "ar"
+                  ? (mainBranch?.address_ar || fallbackBusinessInfo.address_ar)
+                  : (mainBranch?.address || fallbackBusinessInfo.address)
+                }
+              </span>
+            </div>
 
-              {mainBranch.whatsapp_number && (
-                <div className={clsx("flex items-center gap-2", isRTL ? "flex-row-reverse" : "flex-row")}>
-                  <Phone className="h-4 w-4 text-[#E8C66F]" />
-                  <span className="text-sm text-white/90">
-                    {mainBranch.whatsapp_number}
-                  </span>
-                </div>
-              )}
+            <div className={clsx("flex items-center gap-2", isRTL ? "flex-row-reverse" : "flex-row")}>
+              <Phone className="h-4 w-4 text-[#E8C66F]" />
+              <span className="text-sm text-white/90">
+                {mainBranch?.whatsapp_number || fallbackBusinessInfo.whatsapp_number}
+              </span>
+            </div>
 
-              <div className={clsx("flex items-center gap-2", isRTL ? "flex-row-reverse" : "flex-row")}>
-                <Clock className="h-4 w-4 text-[#E8C66F]" />
-                <span className="text-sm text-white/90">
-                  {t("customer1.branch.hours.value")}
-                </span>
-              </div>
-            </motion.div>
-          )}
+            <div className={clsx("flex items-center gap-2", isRTL ? "flex-row-reverse" : "flex-row")}>
+              <Clock className="h-4 w-4 text-[#E8C66F]" />
+              <span className="text-sm text-white/90">
+                {t("customer1.branch.hours.value")}
+              </span>
+            </div>
+          </motion.div>
 
           <motion.div
             initial={{ opacity: 0, y: -20 }}
@@ -105,7 +111,7 @@ export const HeroSection = ({
                 src="/lovable-uploads/7eb81221-fbf5-4b1d-8327-eb0e707236d8.png"
                 alt={t("customer1.hero.logo.alt")}
                 className="h-full w-full object-contain"
-                loading="lazy"
+                loading="eager"
                 width={80}
                 height={80}
               />

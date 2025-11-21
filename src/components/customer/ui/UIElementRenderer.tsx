@@ -93,7 +93,19 @@ export const UIElementRenderer = ({
           );
         } else if (element.type === 'section' && element.name === 'bookings') {
           return (
-            <Suspense key={element.id} fallback={<div className="h-32 bg-gray-100 rounded animate-pulse" />}>
+            <Suspense key={element.id} fallback={
+              <div className="h-32 rounded-2xl border border-white/10 bg-white/[0.02] p-6 animate-pulse">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="h-4 bg-white/10 rounded w-24"></div>
+                  <div className="h-6 bg-white/10 rounded w-16"></div>
+                </div>
+                <div className="space-y-3">
+                  <div className="h-3 bg-white/10 rounded w-full"></div>
+                  <div className="h-3 bg-white/10 rounded w-3/4"></div>
+                  <div className="h-8 bg-[#C4A36F]/20 rounded-xl w-full mt-4"></div>
+                </div>
+              </div>
+            }>
               <BookingsSection
                 element={element}
                 isVisible={isVisible}
@@ -103,7 +115,19 @@ export const UIElementRenderer = ({
           );
         } else if (element.type === 'section' && element.name === 'eid_bookings') {
           return (
-            <Suspense key={element.id} fallback={<div className="h-32 bg-gray-100 rounded animate-pulse" />}>
+            <Suspense key={element.id} fallback={
+              <div className="h-32 rounded-2xl border border-white/10 bg-white/[0.02] p-6 animate-pulse">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="h-4 bg-white/10 rounded w-28"></div>
+                  <div className="h-6 bg-white/10 rounded w-20"></div>
+                </div>
+                <div className="space-y-3">
+                  <div className="h-3 bg-white/10 rounded w-full"></div>
+                  <div className="h-3 bg-white/10 rounded w-2/3"></div>
+                  <div className="h-8 bg-[#C4A36F]/20 rounded-xl w-full mt-4"></div>
+                </div>
+              </div>
+            }>
               <EidBookingsSection
                 element={element}
                 isVisible={isVisible}
@@ -113,7 +137,19 @@ export const UIElementRenderer = ({
           );
         } else if (element.type === 'section' && element.name === 'loyalty_program') {
           return (
-            <Suspense key={element.id} fallback={<div className="h-32 bg-gray-100 rounded animate-pulse" />}>
+            <Suspense key={element.id} fallback={
+              <div className="h-32 rounded-2xl border border-white/10 bg-white/[0.02] p-6 animate-pulse">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="h-8 w-8 bg-white/10 rounded-full"></div>
+                  <div className="h-4 bg-white/10 rounded w-32"></div>
+                </div>
+                <div className="space-y-3">
+                  <div className="h-3 bg-white/10 rounded w-full"></div>
+                  <div className="h-3 bg-white/10 rounded w-4/5"></div>
+                  <div className="h-8 bg-[#C4A36F]/20 rounded-xl w-full mt-4"></div>
+                </div>
+              </div>
+            }>
               <LoyaltySection
                 element={element}
                 isVisible={isVisible}
@@ -122,7 +158,17 @@ export const UIElementRenderer = ({
           );
         } else if (element.type === 'section' && element.name === 'google_reviews') {
           return (
-            <Suspense key={element.id} fallback={<div className="h-20 bg-gray-100 rounded animate-pulse" />}>
+            <Suspense key={element.id} fallback={
+              <div className="h-20 rounded-2xl border border-white/10 bg-white/[0.02] p-4 animate-pulse">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="flex gap-1">
+                    {[1,2,3,4,5].map(i => <div key={i} className="h-3 w-3 bg-[#C4A36F]/30 rounded"></div>)}
+                  </div>
+                  <div className="h-3 bg-white/10 rounded w-16"></div>
+                </div>
+                <div className="h-3 bg-white/10 rounded w-full"></div>
+              </div>
+            }>
               <GoogleReviewsWrapper
                 isVisible={isVisible}
               />

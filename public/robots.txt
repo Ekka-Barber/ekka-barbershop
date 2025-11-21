@@ -10,4 +10,4 @@ Allow: /
 User-agent: Googlebot
 Allow: /
 
-Sitemap: https://ekka-barbershop.lovable.app/sitemap.xml
+Sitemap: https://ekka-barbershop.com/sitemap.xml
