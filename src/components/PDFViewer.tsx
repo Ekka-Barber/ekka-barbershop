@@ -300,8 +300,8 @@ const PDFViewer = ({ pdfUrl, height, className, variant = 'default' }: PDFViewer
         )}
         style={isFullHeight ? { height: '100%' } : { minHeight: resolvedMinHeight }}
       >
-        <div ref={previewSurfaceRef} className={cn("px-3 py-4", isFullHeight && "h-full")}>
-          <div className={cn("flex w-full items-center justify-center", isFullHeight && "h-full")}>
+        <div ref={previewSurfaceRef} className={cn("px-3 py-4 overflow-auto", isFullHeight && "h-full")}>
+          <div className={cn("flex w-full items-center justify-center min-h-full", isFullHeight && "h-full")}>
             {previewMode === 'pdfjs' ? (
               shouldRenderPreviewDocument ? (
                 <Document
@@ -317,16 +317,29 @@ const PDFViewer = ({ pdfUrl, height, className, variant = 'default' }: PDFViewer
                   onLoadSuccess={handlePreviewLoadSuccess}
                   onLoadError={handlePreviewError}
                   renderMode="canvas"
-                  className={cn("flex items-center justify-center", isFullHeight && "h-full")}
+                  className={cn("flex flex-col items-center justify-start gap-4", isFullHeight && "h-full")}
                 >
-                  {/* Preview mode: Show only first page for performance */}
-                  <Page
-                    pageNumber={1}
-                    width={previewWidth ?? undefined}
-                    className={cn("!m-0 rounded-lg bg-white shadow-lg", isFullHeight && "h-full")}
-                    renderAnnotationLayer={false}
-                    renderTextLayer={false}
-                  />
+                  {/* Render all pages for scrolling in dialog mode */}
+                  {variant === 'dialog' && numPages ? (
+                    Array.from(new Array(numPages), (_, index) => (
+                      <Page
+                        key={`preview-page-${index + 1}`}
+                        pageNumber={index + 1}
+                        width={previewWidth ? Math.max(previewWidth - 32, 280) : undefined}
+                        className={cn("!m-0 rounded-lg bg-white shadow-lg")}
+                        renderAnnotationLayer={false}
+                        renderTextLayer={false}
+                      />
+                    ))
+                  ) : (
+                    <Page
+                      pageNumber={1}
+                      width={previewWidth ?? undefined}
+                      className={cn("!m-0 rounded-lg bg-white shadow-lg", isFullHeight && "h-full")}
+                      renderAnnotationLayer={false}
+                      renderTextLayer={false}
+                    />
+                  )}
                 </Document>
               ) : (
                 <Skeleton className={isFullHeight ? "h-full w-full rounded-xl" : "h-[280px] w-full rounded-xl"} />

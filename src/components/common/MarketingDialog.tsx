@@ -9,8 +9,7 @@ import {
   ChevronRight,
   Calendar,
   FileText,
-  Image as ImageIcon,
-  Maximize2
+  Image as ImageIcon
 } from 'lucide-react';
 import { LazyPDFViewer } from '@/components/LazyPDFViewer';
 import type { PDFFile } from '@/hooks/usePDFFetch';
@@ -95,34 +94,24 @@ const ContentMetadata: React.FC<{
 // Content renderer component
 const ContentRenderer: React.FC<{
   content: PDFFile;
-  isFullscreen: boolean;
-  onToggleFullscreen: () => void;
-}> = ({ content, onToggleFullscreen }) => {
+}> = ({ content }) => {
   const { language } = useLanguage();
 
   if (content.file_type.includes('pdf')) {
     return (
-      <div className="relative w-full h-full">
+      <div className="relative w-full h-full overflow-hidden">
         <LazyPDFViewer
           pdfUrl={content.url}
           className="w-full h-full"
           height="100%"
           variant="dialog"
         />
-        <Button
-          variant="secondary"
-          size="sm"
-          className="absolute top-4 right-4 bg-white/90 hover:bg-white shadow-lg"
-          onClick={onToggleFullscreen}
-        >
-          <Maximize2 className="w-4 h-4" />
-        </Button>
       </div>
     );
   }
 
   return (
-    <div className="relative w-full h-full flex items-center justify-center bg-gray-50 rounded-xl">
+    <div className="relative w-full h-full flex items-center justify-center bg-gray-50 rounded-xl overflow-auto">
       <img
         src={content.url}
         alt={content.file_name || (language === 'ar' ? 'محتوى تسويقي' : 'Marketing Content')}
@@ -131,14 +120,6 @@ const ContentRenderer: React.FC<{
           e.currentTarget.src = '/placeholder.svg';
         }}
       />
-      <Button
-        variant="secondary"
-        size="sm"
-        className="absolute top-4 right-4 bg-white/90 hover:bg-white shadow-lg"
-        onClick={onToggleFullscreen}
-      >
-        <Maximize2 className="w-4 h-4" />
-      </Button>
     </div>
   );
 };
@@ -154,13 +135,11 @@ export const MarketingDialog: React.FC<MarketingDialogProps> = ({
 }) => {
   const { language } = useLanguage();
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
-  const [isFullscreen, setIsFullscreen] = useState(false);
 
   // Reset to initial index when dialog opens
   useEffect(() => {
     if (open) {
       setCurrentIndex(initialIndex);
-      setIsFullscreen(false);
     }
   }, [open, initialIndex]);
 
@@ -212,24 +191,15 @@ export const MarketingDialog: React.FC<MarketingDialogProps> = ({
     setCurrentIndex((prev) => (prev < initialContent.length - 1 ? prev + 1 : 0));
   };
 
-
-  const handleToggleFullscreen = () => {
-    setIsFullscreen(!isFullscreen);
-  };
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className={`w-full p-0 overflow-hidden touch-target
-          ${isFullscreen
-            ? 'max-w-none w-screen h-screen fixed inset-0'
-            : 'max-w-6xl w-[calc(100vw-2rem)] mx-auto'
-          }`}
-        style={!isFullscreen ? {
+        className="w-full p-0 overflow-hidden touch-target max-w-6xl w-[calc(100vw-2rem)] mx-auto"
+        style={{
           height: 'calc(90vh - var(--sat, 0px) - var(--sab, 0px))',
           maxHeight: 'calc(100vh - 4rem - var(--sat, 0px) - var(--sab, 0px))'
-        } : undefined}
-        showCloseButton={!isFullscreen}
+        }}
+        showCloseButton
       >
         <AnimatePresence mode="wait">
           <motion.div
@@ -301,8 +271,6 @@ export const MarketingDialog: React.FC<MarketingDialogProps> = ({
             <div className="flex-1 overflow-y-auto overflow-x-hidden min-h-0">
               <ContentRenderer
                 content={currentContent}
-                isFullscreen={isFullscreen}
-                onToggleFullscreen={handleToggleFullscreen}
               />
             </div>
 

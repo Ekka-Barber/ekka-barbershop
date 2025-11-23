@@ -19,6 +19,7 @@ export const CustomerHeader = ({ animatingElements }: CustomerHeaderProps) => {
             alt="Ekka Barbershop Logo" 
             className="h-28 md:h-32 mx-auto mb-4 md:mb-6 object-contain"
             loading="eager"
+            fetchPriority="high"
             width="320" 
             height="128"
             initial={{ opacity: 0, y: -20 }}

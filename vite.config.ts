@@ -51,7 +51,11 @@ export default defineConfig(({ mode }) => ({
         warn(warning);
       },
       output: {
-        manualChunks: undefined
+        manualChunks: {
+          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+          'ui-vendor': ['framer-motion', 'lucide-react', 'clsx', 'tailwind-merge'],
+          'data-vendor': ['@tanstack/react-query', '@supabase/supabase-js', 'date-fns'],
+        }
       }
     },
     sourcemap: false,
