@@ -14,6 +14,10 @@ const Admin = lazyWithRetry(() => import("./pages/Admin"));
 const Menu = lazyWithRetry(() => import("./pages/Menu"));
 const Offers = lazyWithRetry(() => import("./pages/Offers"));
 const Customer1 = lazyWithRetry(() => import("./pages/customer1/Customer1"));
+const PrivacyPolicy = lazyWithRetry(() => import("./pages/legal/PrivacyPolicy"));
+const TermsOfService = lazyWithRetry(() => import("./pages/legal/TermsOfService"));
+const RefundPolicy = lazyWithRetry(() => import("./pages/legal/RefundPolicy"));
+const Contact = lazyWithRetry(() => import("./pages/legal/Contact"));
 
 // Note: Components are lazy-loaded and will be loaded on-demand
 // Preloading removed to improve initial load performance
@@ -117,6 +121,40 @@ const AppRouter = () => {
         element={
           <Suspense fallback={<RouteLoader pageName="Loading offers..." />}>
             <Offers />
+          </Suspense>
+        }
+      />
+
+      {/* Legal pages */}
+      <Route
+        path="/privacy"
+        element={
+          <Suspense fallback={<RouteLoader pageName="Loading privacy policy..." />}>
+            <PrivacyPolicy />
+          </Suspense>
+        }
+      />
+      <Route
+        path="/terms"
+        element={
+          <Suspense fallback={<RouteLoader pageName="Loading terms of service..." />}>
+            <TermsOfService />
+          </Suspense>
+        }
+      />
+      <Route
+        path="/refund"
+        element={
+          <Suspense fallback={<RouteLoader pageName="Loading refund policy..." />}>
+            <RefundPolicy />
+          </Suspense>
+        }
+      />
+      <Route
+        path="/contact"
+        element={
+          <Suspense fallback={<RouteLoader pageName="Loading contact page..." />}>
+            <Contact />
           </Suspense>
         }
       />

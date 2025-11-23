@@ -9,6 +9,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import AppLayout from '@/components/layout/AppLayout';
 import { Branch } from "@/types/branch";
+import { Link } from "react-router-dom";
 import { lazyWithRetry } from "@/utils/lazyWithRetry";
 import { motion } from "@/lib/motion";
 import { AnimatedBackground } from "@/components/common/AnimatedBackground";
@@ -197,38 +198,30 @@ const Customer1 = () => {
           <footer className="mt-8 py-6 border-t border-white/10">
             <div className="max-w-xs mx-auto text-center space-y-3">
               <div className="flex flex-wrap justify-center gap-4 text-sm">
-                <a
-                  href="/privacy-policy.html"
+                <Link
+                  to="/privacy"
                   className="text-white/70 hover:text-[#E8C66F] transition-colors"
-                  target="_blank"
-                  rel="noopener noreferrer"
                 >
                   {t('footer.privacy')}
-                </a>
-                <a
-                  href="/terms-of-service.html"
+                </Link>
+                <Link
+                  to="/terms"
                   className="text-white/70 hover:text-[#E8C66F] transition-colors"
-                  target="_blank"
-                  rel="noopener noreferrer"
                 >
                   {t('footer.terms')}
-                </a>
-                <a
-                  href="/refund-policy.html"
+                </Link>
+                <Link
+                  to="/refund"
                   className="text-white/70 hover:text-[#E8C66F] transition-colors"
-                  target="_blank"
-                  rel="noopener noreferrer"
                 >
                   {t('footer.refund')}
-                </a>
-                <a
-                  href="/contact.html"
+                </Link>
+                <Link
+                  to="/contact"
                   className="text-white/70 hover:text-[#E8C66F] transition-colors"
-                  target="_blank"
-                  rel="noopener noreferrer"
                 >
                   {t('footer.contact')}
-                </a>
+                </Link>
               </div>
               <p className="text-white/50 text-xs">
                 {t('footer.copyright')}
