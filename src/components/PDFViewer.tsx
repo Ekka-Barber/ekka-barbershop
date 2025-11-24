@@ -21,9 +21,9 @@ if (typeof window !== 'undefined') {
   console.warn = (...args) => {
     const message = args.join(' ');
     if (message.includes('JpxImage') ||
-        message.includes('OpenJPEG failed') ||
-        message.includes('Failed to resolve module specifier') ||
-        message.includes('Unable to decode image')) {
+      message.includes('OpenJPEG failed') ||
+      message.includes('Failed to resolve module specifier') ||
+      message.includes('Unable to decode image')) {
       // Suppress these specific PDF.js warnings
       return;
     }
@@ -31,7 +31,7 @@ if (typeof window !== 'undefined') {
   };
 }
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 import {
@@ -295,12 +295,13 @@ const PDFViewer = ({ pdfUrl, height, className, variant = 'default' }: PDFViewer
         ref={previewContainerRef}
         className={cn(
           "relative w-full rounded-2xl border border-[#E4D8C8] bg-[#FBF7F2] shadow-sm",
-          variant === 'dialog' && "h-full rounded-xl border border-transparent bg-transparent shadow-none",
+          variant === 'dialog' && "rounded-xl border border-transparent bg-transparent shadow-none",
+          isFullHeight && "h-full",
           className
         )}
         style={isFullHeight ? { height: '100%' } : { minHeight: resolvedMinHeight }}
       >
-        <div ref={previewSurfaceRef} className={cn("px-3 py-4 overflow-auto", isFullHeight && "h-full")}>
+        <div ref={previewSurfaceRef} className={cn("px-3 py-4", variant !== 'dialog' && "overflow-auto", variant === 'dialog' && "px-0 py-2", isFullHeight && "h-full")}>
           <div className={cn("flex w-full items-center justify-center min-h-full", isFullHeight && "h-full")}>
             {previewMode === 'pdfjs' ? (
               shouldRenderPreviewDocument ? (
@@ -325,7 +326,7 @@ const PDFViewer = ({ pdfUrl, height, className, variant = 'default' }: PDFViewer
                       <Page
                         key={`preview-page-${index + 1}`}
                         pageNumber={index + 1}
-                        width={previewWidth ? Math.max(previewWidth - 32, 280) : undefined}
+                        width={previewWidth ? Math.max(previewWidth - (variant === 'dialog' ? 0 : 32), 280) : undefined}
                         className={cn("!m-0 rounded-lg bg-white shadow-lg")}
                         renderAnnotationLayer={false}
                         renderTextLayer={false}
@@ -429,76 +430,134 @@ const PDFViewer = ({ pdfUrl, height, className, variant = 'default' }: PDFViewer
       </div>
 
       {variant !== 'dialog' && (
-      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent
-          className="w-[calc(100vw-2rem)] max-w-[930px] overflow-hidden rounded-2xl border-0 bg-transparent p-0 shadow-2xl"
-          style={{
-            maxHeight: 'calc(95vh - var(--sat, 0px) - var(--sab, 0px))',
-            height: 'calc(95vh - var(--sat, 0px) - var(--sab, 0px))'
-          }}
-          showCloseButton={false}
-        >
-          <div className="flex h-full flex-col overflow-hidden rounded-2xl bg-white">
-            <header className="flex items-center justify-between border-b border-gray-100 px-3 sm:px-4 py-3 flex-shrink-0">
-              <div className="flex-1 min-w-0 mr-2">
-                <p className="text-sm sm:text-base font-semibold text-[#222222] truncate">
-                  {t('pdf.viewer.fullscreenTitle')}
-                </p>
-                {numPages && (
-                  <p className="text-xs text-muted-foreground">
-                    {t('pdf.viewer.page')} {currentPage} {t('pdf.viewer.of')} {numPages}
-                  </p>
-                )}
-              </div>
-              <Button
-                size="icon"
-                variant="ghost"
-                className="text-[#222222] touch-target flex-shrink-0"
-                onClick={() => setIsModalOpen(false)}
-                aria-label={t('pdf.viewer.close')}
-              >
-                <X className="h-5 w-5" />
-              </Button>
-            </header>
+        <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+          <DialogContent
+            className="w-[calc(100vw-2rem)] max-w-[930px] overflow-hidden rounded-2xl border-0 bg-transparent p-0 shadow-2xl"
+            style={{
+              maxHeight: 'calc(95vh - var(--sat, 0px) - var(--sab, 0px))',
+              height: 'calc(95vh - var(--sat, 0px) - var(--sab, 0px))'
+            }}
+            showCloseButton={false}
+          >
+            <DialogDescription className="sr-only">
+              {t('pdf.viewer.fullscreenTitle')}
+            </DialogDescription>
+            <div className="flex h-full flex-col overflow-hidden rounded-2xl bg-white">
+              <header className="flex items-center justify-between border-b border-gray-100 px-3 sm:px-4 py-3 flex-shrink-0">
+                <div className="flex-1 min-w-0 mr-2">
+                  <DialogTitle className="text-sm sm:text-base font-semibold text-[#222222] truncate">
+                    {t('pdf.viewer.fullscreenTitle')}
+                  </DialogTitle>
+                  {numPages && (
+                    <p className="text-xs text-muted-foreground">
+                      {t('pdf.viewer.page')} {currentPage} {t('pdf.viewer.of')} {numPages}
+                    </p>
+                  )}
+                </div>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="text-[#222222] touch-target flex-shrink-0"
+                  onClick={() => setIsModalOpen(false)}
+                  aria-label={t('pdf.viewer.close')}
+                >
+                  <X className="h-5 w-5" />
+                </Button>
+              </header>
 
-            <div
-              ref={modalSurfaceRef}
-              className="relative flex flex-1 items-center justify-center overflow-auto bg-[#F4F1EA] px-3 py-4"
-            >
-              {modalMode === 'pdfjs' ? (
-                shouldRenderReaderDocument ? (
-                  <Document
-                    key={`reader-${readerAttempt}-${pdfUrl}`}
-                    file={pdfUrl}
-                    loading={null}
-                    error={null}
-                    onLoadProgress={({ loaded, total }) => {
-                      if (total) {
-                        setReaderProgress(Math.min(100, Math.round((loaded / total) * 100)));
-                      }
+              <div
+                ref={modalSurfaceRef}
+                className="relative flex flex-1 items-center justify-center overflow-auto bg-[#F4F1EA] px-3 py-4"
+              >
+                {modalMode === 'pdfjs' ? (
+                  shouldRenderReaderDocument ? (
+                    <Document
+                      key={`reader-${readerAttempt}-${pdfUrl}`}
+                      file={pdfUrl}
+                      loading={null}
+                      error={null}
+                      onLoadProgress={({ loaded, total }) => {
+                        if (total) {
+                          setReaderProgress(Math.min(100, Math.round((loaded / total) * 100)));
+                        }
+                      }}
+                      onLoadSuccess={handleReaderLoadSuccess}
+                      onLoadError={handleReaderError}
+                      renderMode="canvas"
+                      className="flex flex-col items-center justify-start gap-4"
+                    >
+                      {/* Render all pages for scrolling */}
+                      {numPages && Array.from(new Array(numPages), (_, index) => (
+                        <Page
+                          key={`page-${index + 1}`}
+                          pageNumber={index + 1}
+                          width={modalWidth ? Math.max(modalWidth - 16, 280) : undefined}
+                          scale={scale}
+                          rotate={rotation}
+                          renderAnnotationLayer={false}
+                          renderTextLayer={false}
+                          className="!m-0 rounded-xl bg-white shadow-xl"
+                        />
+                      ))}
+                    </Document>
+                  ) : readerError ? (
+                    <div className="flex flex-col items-center justify-center gap-4 text-center">
+                      <p className="text-base font-semibold text-[#8C1D18]">{readerError}</p>
+                      <div className="flex flex-wrap items-center justify-center gap-3">
+                        <Button variant="outline" onClick={handleReaderRetry}>
+                          {t('pdf.viewer.retry')}
+                        </Button>
+                        <Button asChild>
+                          <a
+                            href={pdfUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-2"
+                          >
+                            <ExternalLink className="h-4 w-4" />
+                            {t('pdf.viewer.openExternal')}
+                          </a>
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <Skeleton className="h-24 w-24 rounded-full" />
+                  )
+                ) : (
+                  <iframe
+                    key={`reader-native-${readerAttempt}-${pdfUrl}`}
+                    src={`${pdfUrl}#view=fitH`}
+                    title="PDF full view"
+                    className="h-full w-full rounded-xl border-0 bg-white shadow-xl"
+                    onLoad={() => {
+                      setNativeModalLoading(false);
+                      setNativeModalError(null);
                     }}
-                    onLoadSuccess={handleReaderLoadSuccess}
-                    onLoadError={handleReaderError}
-                    renderMode="canvas"
-                    className="flex flex-col items-center justify-start gap-4"
-                  >
-                    {/* Render all pages for scrolling */}
-                    {numPages && Array.from(new Array(numPages), (_, index) => (
-                      <Page
-                        key={`page-${index + 1}`}
-                        pageNumber={index + 1}
-                        width={modalWidth ? Math.max(modalWidth - 16, 280) : undefined}
-                        scale={scale}
-                        rotate={rotation}
-                        renderAnnotationLayer={false}
-                        renderTextLayer={false}
-                        className="!m-0 rounded-xl bg-white shadow-xl"
-                      />
-                    ))}
-                  </Document>
-                ) : readerError ? (
-                  <div className="flex flex-col items-center justify-center gap-4 text-center">
-                    <p className="text-base font-semibold text-[#8C1D18]">{readerError}</p>
+                    onError={() => {
+                      setNativeModalLoading(false);
+                      setNativeModalError(t('pdf.viewer.failed'));
+                    }}
+                    allowFullScreen
+                  />
+                )}
+
+                {modalMode === 'pdfjs' && readerLoading && shouldRenderReaderDocument && (
+                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-white/70 backdrop-blur-sm">
+                    <div className="h-12 w-12 animate-spin rounded-full border-4 border-[#C4A36F] border-t-transparent" />
+                    <p className="text-sm font-medium text-[#222222]">{readerProgressLabel}</p>
+                  </div>
+                )}
+
+                {modalMode === 'native' && nativeModalLoading && (
+                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-white/70 backdrop-blur-sm">
+                    <div className="h-12 w-12 animate-spin rounded-full border-4 border-[#C4A36F] border-t-transparent" />
+                    <p className="text-sm font-medium text-[#222222]">{t('loading.pdf.viewer')}</p>
+                  </div>
+                )}
+
+                {modalMode === 'native' && nativeModalError && (
+                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-white/90 px-6 text-center">
+                    <p className="text-base font-semibold text-[#8C1D18]">{nativeModalError}</p>
                     <div className="flex flex-wrap items-center justify-center gap-3">
                       <Button variant="outline" onClick={handleReaderRetry}>
                         {t('pdf.viewer.retry')}
@@ -516,156 +575,101 @@ const PDFViewer = ({ pdfUrl, height, className, variant = 'default' }: PDFViewer
                       </Button>
                     </div>
                   </div>
-                ) : (
-                  <Skeleton className="h-24 w-24 rounded-full" />
-                )
-              ) : (
-                <iframe
-                  key={`reader-native-${readerAttempt}-${pdfUrl}`}
-                  src={`${pdfUrl}#view=fitH`}
-                  title="PDF full view"
-                  className="h-full w-full rounded-xl border-0 bg-white shadow-xl"
-                  onLoad={() => {
-                    setNativeModalLoading(false);
-                    setNativeModalError(null);
-                  }}
-                  onError={() => {
-                    setNativeModalLoading(false);
-                    setNativeModalError(t('pdf.viewer.failed'));
-                  }}
-                  allowFullScreen
-                />
-              )}
+                )}
+              </div>
 
-              {modalMode === 'pdfjs' && readerLoading && shouldRenderReaderDocument && (
-                <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-white/70 backdrop-blur-sm">
-                  <div className="h-12 w-12 animate-spin rounded-full border-4 border-[#C4A36F] border-t-transparent" />
-                  <p className="text-sm font-medium text-[#222222]">{readerProgressLabel}</p>
-                </div>
-              )}
+              <footer className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-2 sm:gap-3 border-t border-gray-100 bg-white px-3 sm:px-4 py-3 text-[#222222]">
+                <div className="flex flex-1 flex-wrap items-center justify-center sm:justify-start gap-2">
+                  <Button
+                    size="sm"
+                    className="bg-[#222222] text-white hover:bg-[#111111] touch-target"
+                    onClick={() => setIsModalOpen(true)}
+                  >
+                    <Maximize2 className="h-4 w-4" />
+                    <span className="hidden sm:inline">{t('pdf.viewer.openFull')}</span>
+                  </Button>
+                  <Button
+                    size="icon"
+                    variant="outline"
+                    className="touch-target"
+                    onClick={() => handleZoom('out')}
+                    disabled={modalMode !== 'pdfjs' || scale <= MIN_SCALE}
+                    aria-label={t('pdf.viewer.zoomOut')}
+                  >
+                    <ZoomOut className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    size="icon"
+                    variant="outline"
+                    className="touch-target"
+                    onClick={() => handleZoom('in')}
+                    disabled={modalMode !== 'pdfjs' || scale >= MAX_SCALE}
+                    aria-label={t('pdf.viewer.zoomIn')}
+                  >
+                    <ZoomIn className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    size="icon"
+                    variant="outline"
+                    className="touch-target"
+                    onClick={handleRotate}
+                    disabled={modalMode !== 'pdfjs'}
+                    aria-label={t('pdf.viewer.rotate')}
+                  >
+                    <RotateCcw className="h-4 w-4" />
+                  </Button>
 
-              {modalMode === 'native' && nativeModalLoading && (
-                <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-white/70 backdrop-blur-sm">
-                  <div className="h-12 w-12 animate-spin rounded-full border-4 border-[#C4A36F] border-t-transparent" />
-                  <p className="text-sm font-medium text-[#222222]">{t('loading.pdf.viewer')}</p>
-                </div>
-              )}
-
-              {modalMode === 'native' && nativeModalError && (
-                <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-white/90 px-6 text-center">
-                  <p className="text-base font-semibold text-[#8C1D18]">{nativeModalError}</p>
-                  <div className="flex flex-wrap items-center justify-center gap-3">
-                    <Button variant="outline" onClick={handleReaderRetry}>
-                      {t('pdf.viewer.retry')}
+                  <div className="flex items-center gap-1 rounded-md border border-gray-200 px-2 py-1 text-sm font-medium min-h-[44px]">
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="h-10 w-10"
+                      onClick={() => handlePageChange('prev')}
+                      disabled={modalMode !== 'pdfjs' || currentPage <= 1}
+                      aria-label={t('pdf.viewer.prev')}
+                    >
+                      <ChevronLeft className="h-4 w-4" />
                     </Button>
-                    <Button asChild>
-                      <a
-                        href={pdfUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-2"
-                      >
-                        <ExternalLink className="h-4 w-4" />
-                        {t('pdf.viewer.openExternal')}
-                      </a>
+                    <span className="px-2 text-xs sm:text-sm whitespace-nowrap">
+                      {currentPage} / {numPages ?? '-'}
+                    </span>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="h-10 w-10"
+                      onClick={() => handlePageChange('next')}
+                      disabled={modalMode !== 'pdfjs' || !numPages || currentPage >= numPages}
+                      aria-label={t('pdf.viewer.next')}
+                    >
+                      <ChevronRight className="h-4 w-4" />
                     </Button>
                   </div>
+
                 </div>
-              )}
+
+                <div className="flex flex-wrap items-center justify-center gap-2 w-full sm:w-auto">
+                  <Button variant="ghost" size="sm" className="touch-target flex-1 sm:flex-initial" asChild>
+                    <a
+                      href={pdfUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center justify-center gap-2"
+                    >
+                      <ExternalLink className="h-4 w-4" />
+                      <span className="text-xs sm:text-sm">{t('pdf.viewer.openExternal')}</span>
+                    </a>
+                  </Button>
+                  <Button size="sm" className="touch-target flex-1 sm:flex-initial" asChild>
+                    <a href={pdfUrl} download className="flex items-center justify-center gap-2">
+                      <Download className="h-4 w-4" />
+                      <span className="text-xs sm:text-sm">{t('pdf.viewer.download')}</span>
+                    </a>
+                  </Button>
+                </div>
+              </footer>
             </div>
-
-            <footer className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-2 sm:gap-3 border-t border-gray-100 bg-white px-3 sm:px-4 py-3 text-[#222222]">
-              <div className="flex flex-1 flex-wrap items-center justify-center sm:justify-start gap-2">
-                <Button
-                  size="sm"
-                  className="bg-[#222222] text-white hover:bg-[#111111] touch-target"
-                  onClick={() => setIsModalOpen(true)}
-                >
-                  <Maximize2 className="h-4 w-4" />
-                  <span className="hidden sm:inline">{t('pdf.viewer.openFull')}</span>
-                </Button>
-                <Button
-                  size="icon"
-                  variant="outline"
-                  className="touch-target"
-                  onClick={() => handleZoom('out')}
-                  disabled={modalMode !== 'pdfjs' || scale <= MIN_SCALE}
-                  aria-label={t('pdf.viewer.zoomOut')}
-                >
-                  <ZoomOut className="h-4 w-4" />
-                </Button>
-                <Button
-                  size="icon"
-                  variant="outline"
-                  className="touch-target"
-                  onClick={() => handleZoom('in')}
-                  disabled={modalMode !== 'pdfjs' || scale >= MAX_SCALE}
-                  aria-label={t('pdf.viewer.zoomIn')}
-                >
-                  <ZoomIn className="h-4 w-4" />
-                </Button>
-                <Button
-                  size="icon"
-                  variant="outline"
-                  className="touch-target"
-                  onClick={handleRotate}
-                  disabled={modalMode !== 'pdfjs'}
-                  aria-label={t('pdf.viewer.rotate')}
-                >
-                  <RotateCcw className="h-4 w-4" />
-                </Button>
-
-                <div className="flex items-center gap-1 rounded-md border border-gray-200 px-2 py-1 text-sm font-medium min-h-[44px]">
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    className="h-10 w-10"
-                    onClick={() => handlePageChange('prev')}
-                    disabled={modalMode !== 'pdfjs' || currentPage <= 1}
-                    aria-label={t('pdf.viewer.prev')}
-                  >
-                    <ChevronLeft className="h-4 w-4" />
-                  </Button>
-                  <span className="px-2 text-xs sm:text-sm whitespace-nowrap">
-                    {currentPage} / {numPages ?? '-'}
-                  </span>
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    className="h-10 w-10"
-                    onClick={() => handlePageChange('next')}
-                    disabled={modalMode !== 'pdfjs' || !numPages || currentPage >= numPages}
-                    aria-label={t('pdf.viewer.next')}
-                  >
-                    <ChevronRight className="h-4 w-4" />
-                  </Button>
-                </div>
-
-              </div>
-
-              <div className="flex flex-wrap items-center justify-center gap-2 w-full sm:w-auto">
-                <Button variant="ghost" size="sm" className="touch-target flex-1 sm:flex-initial" asChild>
-                  <a
-                    href={pdfUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center justify-center gap-2"
-                  >
-                    <ExternalLink className="h-4 w-4" />
-                    <span className="text-xs sm:text-sm">{t('pdf.viewer.openExternal')}</span>
-                  </a>
-                </Button>
-                <Button size="sm" className="touch-target flex-1 sm:flex-initial" asChild>
-                  <a href={pdfUrl} download className="flex items-center justify-center gap-2">
-                    <Download className="h-4 w-4" />
-                    <span className="text-xs sm:text-sm">{t('pdf.viewer.download')}</span>
-                  </a>
-                </Button>
-              </div>
-            </footer>
-          </div>
-        </DialogContent>
-      </Dialog>
+          </DialogContent>
+        </Dialog>
       )}
     </>
   );

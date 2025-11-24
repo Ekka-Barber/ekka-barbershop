@@ -63,11 +63,10 @@ const ContentMetadata: React.FC<{
         {content.created_at && (
           <Badge
             variant="outline"
-            className={`flex items-center gap-1 text-xs px-2 py-1 ${
-              new Date(content.created_at).getTime() > Date.now() - (7 * 24 * 60 * 60 * 1000)
-                ? 'bg-green-50 text-green-700 border-green-200'
-                : 'bg-blue-50 text-blue-700 border-blue-200'
-            }`}
+            className={`flex items-center gap-1 text-xs px-2 py-1 ${new Date(content.created_at).getTime() > Date.now() - (7 * 24 * 60 * 60 * 1000)
+              ? 'bg-green-50 text-green-700 border-green-200'
+              : 'bg-blue-50 text-blue-700 border-blue-200'
+              }`}
           >
             <Calendar className="w-3 h-3" />
             <span className="hidden xs:inline">
@@ -99,11 +98,10 @@ const ContentRenderer: React.FC<{
 
   if (content.file_type.includes('pdf')) {
     return (
-      <div className="relative w-full h-full overflow-hidden">
+      <div className="relative w-full">
         <LazyPDFViewer
           pdfUrl={content.url}
-          className="w-full h-full"
-          height="100%"
+          className="w-full"
           variant="dialog"
         />
       </div>
@@ -149,14 +147,14 @@ export const MarketingDialog: React.FC<MarketingDialogProps> = ({
   if (!hasContent) {
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent
-        className="w-full max-w-2xl flex items-center justify-center rounded-2xl border-0 bg-white p-0"
-        style={{
-          height: 'calc(70vh - var(--sat, 0px) - var(--sab, 0px))',
-          maxHeight: 'calc(100vh - 4rem - var(--sat, 0px) - var(--sab, 0px))'
-        }}
-        showCloseButton
-      >
+        <DialogContent
+          className="w-full max-w-2xl flex items-center justify-center rounded-2xl border-0 bg-white p-0"
+          style={{
+            height: 'calc(70vh - var(--sat, 0px) - var(--sab, 0px))',
+            maxHeight: 'calc(100vh - 4rem - var(--sat, 0px) - var(--sab, 0px))'
+          }}
+          showCloseButton
+        >
           <div className="flex flex-col items-center justify-center w-full h-full gap-4">
             {isLoading ? (
               <>
@@ -167,14 +165,14 @@ export const MarketingDialog: React.FC<MarketingDialogProps> = ({
               </>
             ) : (
               <>
-                <p className="text-lg font-semibold text-[#222222]">
+                <DialogTitle className="text-lg font-semibold text-[#222222]">
                   {language === 'ar' ? 'لا يوجد محتوى متاح حالياً' : 'No content available yet'}
-                </p>
-                <p className="text-sm text-[#555] text-center px-4">
+                </DialogTitle>
+                <DialogDescription className="text-sm text-[#555] text-center px-4">
                   {language === 'ar'
                     ? 'تحقق من لوحة التحكم للتأكد من نشر الملفات لهذا القسم.'
                     : 'Please verify in the dashboard that files are published for this section.'}
-                </p>
+                </DialogDescription>
               </>
             )}
           </div>
@@ -194,7 +192,7 @@ export const MarketingDialog: React.FC<MarketingDialogProps> = ({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="w-full p-0 overflow-hidden touch-target max-w-6xl w-[calc(100vw-2rem)] mx-auto"
+        className="w-full p-0 overflow-hidden max-w-6xl w-[calc(100vw-1rem)] sm:w-[calc(100vw-2rem)] mx-auto"
         style={{
           height: 'calc(90vh - var(--sat, 0px) - var(--sab, 0px))',
           maxHeight: 'calc(100vh - 4rem - var(--sat, 0px) - var(--sab, 0px))'
@@ -268,7 +266,7 @@ export const MarketingDialog: React.FC<MarketingDialogProps> = ({
             </DialogHeader>
 
             {/* Content area */}
-            <div className="flex-1 overflow-y-auto overflow-x-hidden min-h-0">
+            <div className="flex-1 overflow-y-auto overflow-x-hidden min-h-0 momentum-scroll" style={{ WebkitOverflowScrolling: 'touch' }}>
               <ContentRenderer
                 content={currentContent}
               />
