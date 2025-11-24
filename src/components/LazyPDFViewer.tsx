@@ -3,7 +3,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { Card, CardContent } from '@/components/ui/card';
 
 // Lazy load the PDFViewer component
-const PDFViewer = lazy(() => import('./PDFViewer'));
+const PDFViewer = lazy(() => import('./pdf-viewer/PDFViewer'));
 
 interface LazyPDFViewerProps {
   pdfUrl: string;

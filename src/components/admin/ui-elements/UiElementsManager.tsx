@@ -1,8 +1,5 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
-import { useToast } from '@/components/ui/use-toast';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import type { DropResult, DroppableProvided, DraggableProvided, DraggableStateSnapshot } from '@hello-pangea/dnd';
@@ -13,34 +10,21 @@ import { IconSelectorDialog } from './IconSelectorDialog';
 import * as LucideIcons from 'lucide-react';
 import React from 'react';
 import type { LucideIcon } from 'lucide-react';
-
-interface UiElement {
-  id: string;
-  type: string; // Database returns string, not literal types
-  name: string;
-  display_name: string;
-  display_name_ar: string;
-  description: string | null;
-  description_ar: string | null;
-  is_visible: boolean | null; // Database allows null
-  display_order: number;
-  icon: string | null;
-  action: string | null;
-  created_at: string | null; // Missing from interface
-  updated_at: string | null; // Missing from interface
-}
+import { useUiElementsData } from './hooks/useUiElementsData';
+import { useElementMutations } from './hooks/useElementMutations';
+import type { UiElement } from './types';
 
 type IconType = keyof typeof LucideIcons;
 
-const DraggableItem = React.memo(({ 
-  element, 
-  index, 
-  language, 
-  renderIcon, 
-  onEditClick, 
-  onIconClick, 
-  onVisibilityChange 
-}: { 
+const DraggableItem = React.memo(({
+  element,
+  index,
+  language,
+  renderIcon,
+  onEditClick,
+  onIconClick,
+  onVisibilityChange
+}: {
   element: UiElement;
   index: number;
   language: string;
@@ -55,9 +39,8 @@ const DraggableItem = React.memo(({
         <div
           ref={provided.innerRef}
           {...provided.draggableProps}
-          className={`flex items-center gap-4 p-4 bg-white rounded-lg border shadow-sm ${
-            snapshot.isDragging ? 'opacity-50' : ''
-          }`}
+          className={`flex items-center gap-4 p-4 bg-white rounded-lg border shadow-sm ${snapshot.isDragging ? 'opacity-50' : ''
+            }`}
         >
           <div
             {...provided.dragHandleProps}
@@ -112,84 +95,13 @@ const DraggableItem = React.memo(({
 DraggableItem.displayName = 'DraggableItem';
 
 const UiElementsManager = () => {
-  const { toast } = useToast();
   const { language } = useLanguage();
-  const queryClient = useQueryClient();
   const [editingElement, setEditingElement] = useState<UiElement | null>(null);
   const [iconElement, setIconElement] = useState<UiElement | null>(null);
 
-  const { data: elements, isLoading } = useQuery({
-    queryKey: ['ui-elements'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('ui_elements')
-        .select('*')
-        .order('display_order', { ascending: true });
-      
-      if (error) throw error;
-      return data as UiElement[];
-    }
-  });
-
-  const updateVisibilityMutation = useMutation({
-    mutationFn: async ({ id, is_visible }: { id: string; is_visible: boolean }) => {
-      const { error } = await supabase
-        .from('ui_elements')
-        .update({ is_visible })
-        .eq('id', id);
-      
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['ui-elements'] });
-      toast({
-        title: language === 'ar' ? 'تم التحديث' : 'Updated',
-        description: language === 'ar' ? 'تم تحديث حالة العنصر' : 'Element visibility updated',
-      });
-    },
-    onError: (error) => {
-      toast({
-        title: language === 'ar' ? 'خطأ' : 'Error',
-        description: language === 'ar' ? 'حدث خطأ أثناء التحديث' : 'An error occurred while updating',
-        variant: 'destructive',
-      });
-      console.error('Error updating visibility:', error);
-    },
-  });
-
-  const updateOrderMutation = useMutation({
-    mutationFn: async (elements: UiElement[]) => {
-      const updates = elements.map((element, index) => ({
-        id: element.id,
-        display_order: index,
-        type: element.type,
-        name: element.name,
-        display_name: element.display_name,
-        display_name_ar: element.display_name_ar
-      }));
-
-      const { error } = await supabase
-        .from('ui_elements')
-        .upsert(updates);
-      
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['ui-elements'] });
-      toast({
-        title: language === 'ar' ? 'تم التحديث' : 'Updated',
-        description: language === 'ar' ? 'تم تحديث ترتيب العناصر' : 'Elements order updated',
-      });
-    },
-    onError: (error) => {
-      toast({
-        title: language === 'ar' ? 'خطأ' : 'Error',
-        description: language === 'ar' ? 'حدث خطأ أثناء تحديث الترتيب' : 'An error occurred while updating order',
-        variant: 'destructive',
-      });
-      console.error('Error updating order:', error);
-    },
-  });
+  // Use custom hooks for data and mutations
+  const { data: elements, isLoading } = useUiElementsData();
+  const { updateVisibility, updateOrder } = useElementMutations({ language });
 
   const handleDragEnd = (result: DropResult) => {
     if (!result.destination || !elements) return;
@@ -198,7 +110,7 @@ const UiElementsManager = () => {
     const [reorderedItem] = items.splice(result.source.index, 1);
     items.splice(result.destination.index, 0, reorderedItem);
 
-    updateOrderMutation.mutate(items);
+    updateOrder.mutate(items);
   };
 
   const renderIcon = (iconName: string) => {
@@ -207,7 +119,7 @@ const UiElementsManager = () => {
   };
 
   const handleVisibilityChange = (id: string, is_visible: boolean) => {
-    updateVisibilityMutation.mutate({ id, is_visible });
+    updateVisibility.mutate({ id, is_visible });
   };
 
   if (isLoading) {
@@ -225,8 +137,8 @@ const UiElementsManager = () => {
           {language === 'ar' ? 'إدارة عناصر الواجهة' : 'UI Elements Management'}
         </h2>
         <p className="text-sm text-gray-500">
-          {language === 'ar' 
-            ? 'اسحب العناصر لإعادة ترتيبها أو استخدم المفتاح لتفعيل/تعطيل العناصر' 
+          {language === 'ar'
+            ? 'اسحب العناصر لإعادة ترتيبها أو استخدم المفتاح لتفعيل/تعطيل العناصر'
             : 'Drag elements to reorder or use the toggle to show/hide elements'}
         </p>
       </div>

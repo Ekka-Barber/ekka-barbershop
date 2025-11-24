@@ -15,17 +15,17 @@ export const AnimatedBackground: React.FC<AnimatedBackgroundProps> = ({
 }) => {
   return (
     <div className="pointer-events-none fixed inset-0 overflow-hidden">
-      {/* Animated gradient orbs - disabled if user prefers reduced motion */}
+      {/* Animated gradient orbs - disabled on mobile and if user prefers reduced motion */}
+      {/* Hidden on mobile (< 768px) for better performance */}
       <motion.div
-        className="absolute -top-1/4 -left-1/4 h-[900px] w-[900px] rounded-full bg-gradient-to-br from-[#E8C66F]/30 via-[#D6B35A]/25 to-[#C79A2A]/15 blur-[200px]"
+        className="absolute -top-1/4 -left-1/4 h-[900px] w-[900px] rounded-full bg-gradient-to-br from-[#E8C66F]/30 via-[#D6B35A]/25 to-[#C79A2A]/15 blur-[80px] hidden md:block"
         style={{
-          willChange: prefersReducedMotion ? ANIMATION_PERFORMANCE.WILL_CHANGE.AUTO : ANIMATION_PERFORMANCE.WILL_CHANGE.TRANSFORM_OPACITY,
+          willChange: prefersReducedMotion ? ANIMATION_PERFORMANCE.WILL_CHANGE.AUTO : 'transform',
           backfaceVisibility: ANIMATION_PERFORMANCE.HARDWARE_ACCELERATION.BACKFACE_VISIBILITY,
           transform: ANIMATION_PERFORMANCE.HARDWARE_ACCELERATION.TRANSFORM_Z
         }}
         animate={prefersReducedMotion ? {} : {
-          scale: BACKGROUND_ANIMATIONS.ORB_1.scale,
-          opacity: BACKGROUND_ANIMATIONS.ORB_1.opacity
+          scale: BACKGROUND_ANIMATIONS.ORB_1.scale
         }}
         transition={{
           duration: BACKGROUND_ANIMATIONS.ORB_1.duration,
@@ -35,15 +35,14 @@ export const AnimatedBackground: React.FC<AnimatedBackgroundProps> = ({
         }}
       />
       <motion.div
-        className="absolute top-1/3 -right-1/4 h-[700px] w-[700px] rounded-full bg-gradient-to-br from-[#3a3a3a]/40 via-[#2a2a2a]/30 to-transparent blur-[170px]"
+        className="absolute top-1/3 -right-1/4 h-[700px] w-[700px] rounded-full bg-gradient-to-br from-[#3a3a3a]/40 via-[#2a2a2a]/30 to-transparent blur-[70px] hidden md:block"
         style={{
-          willChange: prefersReducedMotion ? ANIMATION_PERFORMANCE.WILL_CHANGE.AUTO : ANIMATION_PERFORMANCE.WILL_CHANGE.TRANSFORM_OPACITY,
+          willChange: prefersReducedMotion ? ANIMATION_PERFORMANCE.WILL_CHANGE.AUTO : 'transform',
           backfaceVisibility: ANIMATION_PERFORMANCE.HARDWARE_ACCELERATION.BACKFACE_VISIBILITY,
           transform: ANIMATION_PERFORMANCE.HARDWARE_ACCELERATION.TRANSFORM_Z
         }}
         animate={prefersReducedMotion ? {} : {
-          scale: BACKGROUND_ANIMATIONS.ORB_2.scale,
-          opacity: BACKGROUND_ANIMATIONS.ORB_2.opacity
+          scale: BACKGROUND_ANIMATIONS.ORB_2.scale
         }}
         transition={{
           duration: BACKGROUND_ANIMATIONS.ORB_2.duration,
@@ -53,15 +52,14 @@ export const AnimatedBackground: React.FC<AnimatedBackgroundProps> = ({
         }}
       />
       <motion.div
-        className="absolute bottom-1/4 left-1/3 h-[600px] w-[600px] rounded-full bg-gradient-to-br from-[#4a4a4a]/25 via-[#3a3a3a]/15 to-transparent blur-[140px]"
+        className="absolute bottom-1/4 left-1/3 h-[600px] w-[600px] rounded-full bg-gradient-to-br from-[#4a4a4a]/25 via-[#3a3a3a]/15 to-transparent blur-[60px] hidden md:block"
         style={{
-          willChange: prefersReducedMotion ? ANIMATION_PERFORMANCE.WILL_CHANGE.AUTO : ANIMATION_PERFORMANCE.WILL_CHANGE.TRANSFORM_OPACITY,
+          willChange: prefersReducedMotion ? ANIMATION_PERFORMANCE.WILL_CHANGE.AUTO : 'transform',
           backfaceVisibility: ANIMATION_PERFORMANCE.HARDWARE_ACCELERATION.BACKFACE_VISIBILITY,
           transform: ANIMATION_PERFORMANCE.HARDWARE_ACCELERATION.TRANSFORM_Z
         }}
         animate={prefersReducedMotion ? {} : {
-          scale: BACKGROUND_ANIMATIONS.ORB_3.scale,
-          opacity: BACKGROUND_ANIMATIONS.ORB_3.opacity
+          scale: BACKGROUND_ANIMATIONS.ORB_3.scale
         }}
         transition={{
           duration: BACKGROUND_ANIMATIONS.ORB_3.duration,

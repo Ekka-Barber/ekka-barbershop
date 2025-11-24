@@ -4,23 +4,21 @@
  */
 
 // Background animation configurations
+// Optimized: removed opacity animations for better performance
 export const BACKGROUND_ANIMATIONS = {
   ORB_1: {
-    duration: 8,
+    duration: 10,
     scale: [1, 1.1, 1],
-    opacity: [0.15, 0.25, 0.15],
     delay: 0,
   },
   ORB_2: {
-    duration: 6,
+    duration: 8,
     scale: [1.1, 1, 1.1],
-    opacity: [0.25, 0.35, 0.25],
     delay: 2,
   },
   ORB_3: {
-    duration: 10,
-    scale: [1, 1.2, 1],
-    opacity: [0.15, 0.08, 0.15],
+    duration: 12,
+    scale: [1, 1.15, 1],
     delay: 4,
   },
 };

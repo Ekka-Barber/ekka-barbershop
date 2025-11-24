@@ -10,16 +10,17 @@ export const detectSystemLanguage = (): Language => {
   if (storedLanguage === 'en' || storedLanguage === 'ar') {
     return storedLanguage;
   }
-  
+
   // Fall back to system language detection
   const systemLanguages = navigator.languages || [navigator.language];
-  
-  // Check if any of the system languages start with 'ar'
-  const hasArabic = systemLanguages.some(lang => 
-    lang.toLowerCase().startsWith('ar')
+
+  // Check if any of the system languages start with 'en' (English)
+  const hasEnglish = systemLanguages.some(lang =>
+    lang.toLowerCase().startsWith('en')
   );
-  
-  return hasArabic ? 'ar' : 'en';
+
+  // Default to Arabic, unless system language is English
+  return hasEnglish ? 'en' : 'ar';
 };
 
 export const storeLanguagePreference = (language: Language): void => {
@@ -30,7 +31,7 @@ export const updateManifestLanguage = (language: Language) => {
   const manifestLink = document.querySelector('link[rel="manifest"]');
   if (manifestLink) {
     const currentHref = manifestLink.getAttribute('href');
-    const newHref = currentHref?.includes('?') 
+    const newHref = currentHref?.includes('?')
       ? `${currentHref}&lang=${language}`
       : `${currentHref}?lang=${language}`;
     manifestLink.setAttribute('href', newHref);

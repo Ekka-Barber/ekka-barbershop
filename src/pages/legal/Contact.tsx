@@ -4,7 +4,6 @@ import { LegalPageLayout } from '@/components/legal/LegalPageLayout';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Phone, MapPin, Clock, Mail, ExternalLink } from 'lucide-react';
-import clsx from 'clsx';
 import { motion } from '@/lib/motion';
 
 interface Branch {
@@ -19,7 +18,7 @@ interface Branch {
 
 const Contact: React.FC = () => {
   const { t, language } = useLanguage();
-  const isRTL = language === 'ar';
+
 
   // Fetch branches from database
   const { data: branches, isLoading } = useQuery({

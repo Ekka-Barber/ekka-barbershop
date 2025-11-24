@@ -98,11 +98,12 @@ const ContentRenderer: React.FC<{
 
   if (content.file_type.includes('pdf')) {
     return (
-      <div className="relative w-full">
+      <div className="relative w-full h-full">
         <LazyPDFViewer
           pdfUrl={content.url}
           className="w-full"
           variant="dialog"
+          height="100%"
         />
       </div>
     );
@@ -202,10 +203,10 @@ export const MarketingDialog: React.FC<MarketingDialogProps> = ({
         <AnimatePresence mode="wait">
           <motion.div
             key={currentIndex}
-            initial={{ opacity: 0, x: 20 }}
+            initial={{ opacity: 0, x: window.innerWidth < 768 ? 0 : 20 }}
             animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            transition={{ duration: 0.3 }}
+            exit={{ opacity: 0, x: window.innerWidth < 768 ? 0 : -20 }}
+            transition={{ duration: 0.15 }}
             className="flex flex-col h-full"
           >
             {/* Header */}
