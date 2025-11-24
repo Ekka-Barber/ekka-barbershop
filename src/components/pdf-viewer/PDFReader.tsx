@@ -142,7 +142,7 @@ export const PDFReader: React.FC<PDFReaderProps> = ({
                     {/* Content area */}
                     <div
                         ref={modalSurfaceRef}
-                        className="relative flex flex-1 items-center justify-start overflow-auto bg-[#F4F1EA] px-3 py-4"
+                        className="relative flex-1 overflow-y-auto overflow-x-hidden bg-[#F4F1EA] px-3 py-4"
                     >
                         {mode === 'pdfjs' ? (
                             shouldRenderDocument ? (
@@ -155,21 +155,22 @@ export const PDFReader: React.FC<PDFReaderProps> = ({
                                     onLoadSuccess={onLoadSuccess}
                                     onLoadError={onLoadError}
                                     renderMode="canvas"
-                                    className="flex flex-col items-center justify-start gap-4"
+                                    className="w-full space-y-4"
                                 >
                                     {/* Render all pages for scrolling */}
                                     {numPages &&
                                         Array.from(new Array(numPages), (_, index) => (
-                                            <Page
-                                                key={`page-${index + 1}`}
-                                                pageNumber={index + 1}
-                                                width={modalWidth ? Math.max(modalWidth - 16, 280) : undefined}
-                                                scale={scale}
-                                                rotate={rotation}
-                                                renderAnnotationLayer={false}
-                                                renderTextLayer={false}
-                                                className="!m-0 rounded-xl bg-white shadow-xl"
-                                            />
+                                            <div key={`page-wrapper-${index + 1}`} className="flex justify-center w-full mb-4">
+                                                <Page
+                                                    pageNumber={index + 1}
+                                                    width={modalWidth ? Math.max(modalWidth - 32, 280) : undefined}
+                                                    scale={scale}
+                                                    rotate={rotation}
+                                                    renderAnnotationLayer={false}
+                                                    renderTextLayer={false}
+                                                    className="rounded-xl bg-white shadow-xl"
+                                                />
+                                            </div>
                                         ))}
                                 </Document>
                             ) : error ? (
