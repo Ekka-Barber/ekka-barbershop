@@ -142,7 +142,7 @@ export const PDFReader: React.FC<PDFReaderProps> = ({
                     {/* Content area */}
                     <div
                         ref={modalSurfaceRef}
-                        className="relative flex flex-1 items-center justify-center overflow-auto bg-[#F4F1EA] px-3 py-4"
+                        className="relative flex flex-1 items-center justify-start overflow-auto bg-[#F4F1EA] px-3 py-4"
                     >
                         {mode === 'pdfjs' ? (
                             shouldRenderDocument ? (
