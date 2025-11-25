@@ -97,13 +97,13 @@ const ContentRenderer: React.FC<{
   const { language } = useLanguage();
 
   if (content.file_type.includes('pdf')) {
+    // Don't constrain height for PDFs - let pages grow naturally for scrolling
     return (
-      <div className="relative w-full h-full">
+      <div className="relative w-full">
         <LazyPDFViewer
           pdfUrl={content.url}
           className="w-full"
           variant="dialog"
-          height="100%"
         />
       </div>
     );
