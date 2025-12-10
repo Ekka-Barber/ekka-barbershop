@@ -1,5 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+  SheetFooter,
+} from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -148,14 +155,14 @@ export const MarketingDialog: React.FC<MarketingDialogProps> = ({
 
   if (!hasContent) {
     return (
-      <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent
-          className="w-full max-w-2xl flex items-center justify-center rounded-2xl border-0 bg-white p-0"
+      <Sheet open={open} onOpenChange={onOpenChange}>
+        <SheetContent
+          side="bottom"
+          className="flex items-center justify-center rounded-t-2xl bg-white pb-[calc(var(--sab)+1rem)] sm:max-w-2xl sm:mx-auto sm:rounded-2xl"
           style={{
             height: 'calc(70vh - var(--sat, 0px) - var(--sab, 0px))',
             maxHeight: 'calc(100vh - 4rem - var(--sat, 0px) - var(--sab, 0px))'
           }}
-          showCloseButton
         >
           <div className="flex flex-col items-center justify-center w-full h-full gap-4">
             {isLoading ? (
@@ -167,19 +174,19 @@ export const MarketingDialog: React.FC<MarketingDialogProps> = ({
               </>
             ) : (
               <>
-                <DialogTitle className="text-lg font-semibold text-[#222222]">
+                <SheetTitle className="text-lg font-semibold text-[#222222]">
                   {language === 'ar' ? 'لا يوجد محتوى متاح حالياً' : 'No content available yet'}
-                </DialogTitle>
-                <DialogDescription className="text-sm text-[#555] text-center px-4">
+                </SheetTitle>
+                <SheetDescription className="text-sm text-[#555] text-center px-4">
                   {language === 'ar'
                     ? 'تحقق من لوحة التحكم للتأكد من نشر الملفات لهذا القسم.'
                     : 'Please verify in the dashboard that files are published for this section.'}
-                </DialogDescription>
+                </SheetDescription>
               </>
             )}
           </div>
-        </DialogContent>
-      </Dialog>
+        </SheetContent>
+      </Sheet>
     );
   }
 
@@ -192,14 +199,14 @@ export const MarketingDialog: React.FC<MarketingDialogProps> = ({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent
-        className="w-full p-0 overflow-hidden max-w-6xl w-[calc(100vw-1rem)] sm:w-[calc(100vw-2rem)] mx-auto"
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent
+        side="bottom"
+        className="p-0 max-w-6xl w-[calc(100vw-1rem)] sm:w-[calc(100vw-2rem)] mx-auto rounded-t-2xl pb-[calc(var(--sab)+1rem)] overflow-hidden"
         style={{
           height: 'calc(90vh - var(--sat, 0px) - var(--sab, 0px))',
           maxHeight: 'calc(100vh - 4rem - var(--sat, 0px) - var(--sab, 0px))'
         }}
-        showCloseButton
       >
         <AnimatePresence mode="wait">
           <motion.div
@@ -210,22 +217,22 @@ export const MarketingDialog: React.FC<MarketingDialogProps> = ({
             transition={{ duration: 0.15 }}
             className="flex flex-col h-full min-h-0"
           >
-            {/* Header */}
-            <DialogHeader className="px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-100 flex-shrink-0">
+            {/* Pinned Header */}
+            <SheetHeader className="px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-100 flex-shrink-0 bg-white/95 backdrop-blur-sm">
               <VisuallyHidden>
-                <DialogTitle>
+                <SheetTitle>
                   {contentType === 'menu'
                     ? (language === 'ar' ? 'قائمة الأسعار' : 'Menu')
                     : (language === 'ar' ? 'العروض' : 'Special Offers')
                   }
-                </DialogTitle>
+                </SheetTitle>
               </VisuallyHidden>
-              <DialogDescription className="sr-only">
+              <SheetDescription className="sr-only">
                 {contentType === 'menu'
                   ? (language === 'ar' ? 'عرض قائمة الأسعار والأسعار' : 'View menu and pricing information')
                   : (language === 'ar' ? 'عرض العروض والخصومات الحالية' : 'View current special offers and promotions')
                 }
-              </DialogDescription>
+              </SheetDescription>
               <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
                   <h2 className="text-lg sm:text-xl font-bold text-[#222222] truncate">
@@ -241,55 +248,84 @@ export const MarketingDialog: React.FC<MarketingDialogProps> = ({
                   )}
                 </div>
 
-                {/* Navigation buttons */}
-                {initialContent.length > 1 && (
-                  <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      className="h-9 w-9 sm:h-10 sm:w-10"
-                      onClick={handlePrevious}
-                      disabled={initialContent.length <= 1}
-                      aria-label="Previous"
-                    >
-                      <ChevronLeft className="w-4 h-4" />
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      className="h-9 w-9 sm:h-10 sm:w-10"
-                      onClick={handleNext}
-                      disabled={initialContent.length <= 1}
-                      aria-label="Next"
-                    >
-                      <ChevronRight className="w-4 h-4" />
-                    </Button>
-                  </div>
-                )}
               </div>
-              <DialogDescription className="sr-only">
+              <SheetDescription className="sr-only">
                 {contentType === 'menu'
                   ? (language === 'ar' ? 'عرض قائمة الأسعار' : 'View menu and pricing information')
                   : (language === 'ar' ? 'عرض العروض الحالية' : 'View special offers and promotions')
                 }
-              </DialogDescription>
-            </DialogHeader>
+              </SheetDescription>
+            </SheetHeader>
 
-            {/* Content area */}
-            <div className="flex-1 overflow-y-auto overflow-x-hidden min-h-0 momentum-scroll" style={{ WebkitOverflowScrolling: 'touch' }}>
+            {/* Scrollable Content area */}
+            <div className="flex-1 overflow-y-auto overflow-x-hidden min-h-0 momentum-scroll custom-scrollbar" style={{ WebkitOverflowScrolling: 'touch' }}>
               <ContentRenderer
                 content={currentContent}
               />
             </div>
 
-            {/* Metadata footer */}
-            <ContentMetadata
-              content={currentContent}
-              language={language}
-            />
+            {/* Pinned Footer with metadata and navigation */}
+            <SheetFooter className="border-t border-gray-100 bg-white/95 backdrop-blur-sm flex-shrink-0">
+              <div className="w-full">
+                <ContentMetadata
+                  content={currentContent}
+                  language={language}
+                />
+                {/* Navigation and Full PDF action */}
+                <div className="flex items-center justify-between px-4 sm:px-6 py-3 border-t border-gray-100">
+                  <div className="flex items-center gap-2">
+                    {initialContent.length > 1 && (
+                      <div className="flex items-center gap-1">
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          className="h-9 w-9"
+                          onClick={handlePrevious}
+                          disabled={initialContent.length <= 1}
+                          aria-label="Previous"
+                        >
+                          <ChevronLeft className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          className="h-9 w-9"
+                          onClick={handleNext}
+                          disabled={initialContent.length <= 1}
+                          aria-label="Next"
+                        >
+                          <ChevronRight className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {currentContent?.file_type.includes('pdf') && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          // Open full PDF viewer - this would need to be implemented
+                          window.open(currentContent.url, '_blank');
+                        }}
+                        className="text-xs"
+                      >
+                        {language === 'ar' ? 'فتح PDF كامل' : 'Open Full PDF'}
+                      </Button>
+                    )}
+                    {initialContent.length > 1 && (
+                      <span className="text-xs text-gray-500 px-2">
+                        {currentIndex + 1} / {initialContent.length}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </SheetFooter>
           </motion.div>
         </AnimatePresence>
-      </DialogContent>
-    </Dialog>
+      </SheetContent>
+    </Sheet>
   );
 };
+

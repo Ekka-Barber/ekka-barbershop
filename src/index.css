@@ -26,6 +26,27 @@
     min-height: 44px;
     min-width: 44px;
   }
+
+  /* Subtle, brand-aligned scrollbar styling for scrollable areas */
+  .custom-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: #c4a36f rgba(0, 0, 0, 0.08);
+  }
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 10px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.04);
+    border-radius: 9999px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #e8c66f, #d6b35a);
+    border-radius: 9999px;
+    border: 2px solid rgba(255, 255, 255, 0.6);
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, #f2d98d, #e0c27a);
+  }
 }
 
 /* Prevent pull-to-refresh on the body level */

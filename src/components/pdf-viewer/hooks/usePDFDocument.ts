@@ -37,7 +37,7 @@ export function usePDFDocument({ pdfUrl, t }: UsePDFDocumentProps) {
         setError(null);
     }, []);
 
-    const handleLoadError = useCallback((error?: any) => {
+    const handleLoadError = useCallback((error?: Error | unknown) => {
         setLoading(false);
 
         // Check if the error is related to JPEG 2000 decoding
