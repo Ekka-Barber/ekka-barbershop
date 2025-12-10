@@ -1,17 +1,8 @@
 
 {
-  "name": {
-    "ar": "صالون إكّـه",
-    "en": "Ekka Barbershop"
-  },
-  "short_name": {
-    "ar": "إكّـه",
-    "en": "Ekka"
-  },
-  "description": {
-    "ar": "احجز موعدك في صالون إكّـه",
-    "en": "Book your appointment at Ekka Barbershop"
-  },
+  "name": "Ekka Barbershop",
+  "short_name": "Ekka",
+  "description": "Book your appointment at Ekka Barbershop",
   "start_url": "/?source=pwa",
   "display": "standalone",
   "background_color": "#ffffff",
@@ -30,10 +21,7 @@
   "scope": "/",
   "shortcuts": [
     {
-      "name": {
-        "ar": "حجز موعد",
-        "en": "Book Appointment"
-      },
+      "name": "Book Appointment",
       "url": "/bookings",
       "icons": [
         {
@@ -44,10 +32,7 @@
       ]
     },
     {
-      "name": {
-        "ar": "عروض خاصة",
-        "en": "Special Offers"
-      },
+      "name": "Special Offers",
       "url": "/offers",
       "icons": [
         {

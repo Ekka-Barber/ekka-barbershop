@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { motion } from "@/lib/motion";
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { MapPin, Star, Clock, Navigation, Phone } from "lucide-react";
 import { Branch } from "@/types/branch";
 
@@ -51,14 +52,16 @@ export const BranchDialog = ({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="w-[calc(100vw-2rem)] sm:max-w-2xl bg-gradient-to-br from-white/98 to-white/95 border-2 border-white/40 shadow-[0_40px_100px_-40px_rgba(0,0,0,0.5),0_20px_50px_-20px_rgba(232,198,111,0.2)] p-0 overflow-hidden rounded-2xl backdrop-blur-xl max-h-[90vh] overflow-y-auto">
-        <DialogTitle className="sr-only">
-          {t('select.branch')}
-        </DialogTitle>
-        <DialogDescription className="sr-only">
-          {isRTL
-            ? 'اختر الفرع الأقرب إليك للحصول على أفضل خدمة'
-            : 'Choose the branch closest to you for the best service experience'}
-        </DialogDescription>
+        <VisuallyHidden>
+          <DialogTitle>
+            {t('select.branch')}
+          </DialogTitle>
+          <DialogDescription>
+            {isRTL
+              ? 'اختر الفرع الأقرب إليك للحصول على أفضل خدمة'
+              : 'Choose the branch closest to you for the best service experience'}
+          </DialogDescription>
+        </VisuallyHidden>
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}

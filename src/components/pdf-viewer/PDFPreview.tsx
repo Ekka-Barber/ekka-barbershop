@@ -11,7 +11,6 @@ interface PDFPreviewProps {
     variant: 'default' | 'dialog';
     numPages: number | null;
     loading: boolean;
-    progress: number;
     error: string | null;
     mode: PDFMode;
     attempt: number;
@@ -36,7 +35,6 @@ export const PDFPreview: React.FC<PDFPreviewProps> = ({
     variant,
     numPages,
     loading,
-    progress,
     error,
     mode,
     attempt,
@@ -81,6 +79,7 @@ export const PDFPreview: React.FC<PDFPreviewProps> = ({
             className={cn(
                 'px-3 py-4',
                 variant !== 'dialog' && 'overflow-auto',
+                variant === 'dialog' && 'overflow-auto',
                 variant === 'dialog' && 'px-0 py-2',
                 isFullHeight && 'h-full'
             )}
@@ -99,8 +98,8 @@ export const PDFPreview: React.FC<PDFPreviewProps> = ({
                             renderMode="canvas"
                             className={cn('flex flex-col items-center justify-start gap-4', isFullHeight && 'h-full')}
                         >
-                            {/* Render all pages for scrolling in dialog mode */}
-                            {variant === 'dialog' && numPages ? (
+                            {/* Render all pages for scrolling in both modes when available */}
+                            {numPages ? (
                                 Array.from(new Array(numPages), (_, index) => (
                                     <Page
                                         key={`preview-page-${index + 1}`}

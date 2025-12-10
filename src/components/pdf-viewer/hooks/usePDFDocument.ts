@@ -37,17 +37,30 @@ export function usePDFDocument({ pdfUrl, t }: UsePDFDocumentProps) {
         setError(null);
     }, []);
 
-    const handleLoadError = useCallback(() => {
+    const handleLoadError = useCallback((error?: any) => {
         setLoading(false);
-        if (mode === 'pdfjs') {
-            // Try native mode as fallback
+
+        // Check if the error is related to JPEG 2000 decoding
+        const isJPXError = error?.message?.includes('JpxImage') ||
+                          error?.message?.includes('OpenJPEG') ||
+                          error?.message?.includes('JPEG 2000') ||
+                          error?.message?.includes('JPX');
+
+        if (mode === 'pdfjs' && !isJPXError) {
+            // Try native mode as fallback for non-JPX errors
             setError(null);
             setMode('native');
             setNativeLoading(true);
             setNativeError(null);
             return;
         }
-        setError(t('pdf.viewer.failed'));
+
+        // For JPX errors or when native mode also fails, show download fallback
+        if (isJPXError) {
+            setError('jpx_unsupported');
+        } else {
+            setError(t('pdf.viewer.failed'));
+        }
     }, [mode, t]);
 
     const handleRetry = useCallback(() => {

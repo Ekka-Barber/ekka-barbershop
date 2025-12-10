@@ -8,12 +8,24 @@ import { PDFReader } from './PDFReader';
 import { usePDFDocument } from './hooks/usePDFDocument';
 import { usePDFControls } from './hooks/usePDFControls';
 import type { PDFViewerProps } from './types';
+import { Button } from '@/components/ui/button';
 
 // Configure PDF.js worker
 pdfjs.GlobalWorkerOptions.workerSrc = pdfWorker;
 
-// Suppress PDF.js JPX warnings
+// Configure PDF.js for better compatibility
 if (typeof window !== 'undefined') {
+    // Configure standard font and cmap URLs
+    pdfjs.GlobalWorkerOptions.cMapUrl = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/cmaps/`;
+    pdfjs.GlobalWorkerOptions.cMapPacked = true;
+
+    // Set standard font URL
+    pdfjs.GlobalWorkerOptions.standardFontDataUrl = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/standard_fonts/`;
+
+    // Configure OpenJPEG WebAssembly for JPEG 2000 support
+    pdfjs.GlobalWorkerOptions.imageResourcesPath = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/image_decoders/`;
+
+    // Suppress PDF.js JPX warnings but allow important errors
     const originalWarn = console.warn;
     console.warn = (...args) => {
         const message = args.join(' ');
@@ -21,9 +33,10 @@ if (typeof window !== 'undefined') {
             message.includes('JpxImage') ||
             message.includes('OpenJPEG failed') ||
             message.includes('Failed to resolve module specifier') ||
-            message.includes('Unable to decode image')
+            message.includes('Unable to decode image') ||
+            message.includes('Dependent image isn\'t ready yet')
         ) {
-            return;
+            return; // Suppress these specific warnings
         }
         originalWarn.apply(console, args);
     };
@@ -88,7 +101,6 @@ const PDFViewer = ({ pdfUrl, height, className, variant = 'default' }: PDFViewer
                     variant={variant}
                     numPages={previewDoc.numPages}
                     loading={previewDoc.loading}
-                    progress={previewDoc.progress}
                     error={previewDoc.error}
                     mode={previewDoc.mode}
                     attempt={previewDoc.attempt}
@@ -109,6 +121,14 @@ const PDFViewer = ({ pdfUrl, height, className, variant = 'default' }: PDFViewer
                     t={t}
                 />
             </div>
+
+            {variant !== 'dialog' && (
+                <div className="mt-3 flex justify-end">
+                    <Button size="sm" variant="outline" onClick={() => setIsModalOpen(true)}>
+                        {t('pdf.viewer.openFull')}
+                    </Button>
+                </div>
+            )}
 
             {/* Full-screen reader dialog (only for non-dialog variant) */}
             {variant !== 'dialog' && (

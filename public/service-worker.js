@@ -22,33 +22,47 @@ const CRITICAL_RESOURCES = [
 
 // Initialize the cache with important resources
 const initializeCache = async () => {
-  const cache = await caches.open(CACHE_NAME);
+  try {
+    const cache = await caches.open(CACHE_NAME);
 
-  // Cache initial resources
-  const initialPromises = INITIAL_CACHED_RESOURCES.map(async (resource) => {
-    try {
-      const response = await fetch(resource, { cache: 'reload' });
-      if (response.ok) {
-        return cache.put(resource, response);
+    // Cache initial resources
+    const initialPromises = INITIAL_CACHED_RESOURCES.map(async (resource) => {
+      try {
+        const response = await fetch(resource, { cache: 'reload' });
+        if (response.ok) {
+          return cache.put(resource, response);
+        }
+      } catch (error) {
+        // Silent fail for initial resources
       }
-    } catch (error) {
-      // Silent fail for initial resources
-    }
-  });
+    });
 
-  // Cache critical resources with lower priority
-  const criticalPromises = CRITICAL_RESOURCES.map(async (resource) => {
-    try {
-      const response = await fetch(resource, { cache: 'default' });
-      if (response.ok) {
-        return cache.put(resource, response);
+    // Cache critical resources with lower priority
+    const criticalPromises = CRITICAL_RESOURCES.map(async (resource) => {
+      try {
+        const response = await fetch(resource, { cache: 'default' });
+        if (response.ok) {
+          return cache.put(resource, response);
+        }
+      } catch (error) {
+        // Silent fail for critical resources
       }
-    } catch (error) {
-      // Silent fail for critical resources
-    }
-  });
+    });
 
-  return Promise.allSettled([...initialPromises, ...criticalPromises]);
+    return Promise.allSettled([...initialPromises, ...criticalPromises]);
+  } catch (error) {
+    console.warn('Failed to initialize cache:', error);
+    // Try to clear corrupted cache and retry once
+    try {
+      await caches.delete(CACHE_NAME);
+      const cache = await caches.open(CACHE_NAME);
+      console.log('Cache reinitialized after clearing corrupted data');
+      return cache;
+    } catch (retryError) {
+      console.error('Failed to reinitialize cache:', retryError);
+      return null;
+    }
+  }
 };
 
 // Clean up old caches
@@ -142,6 +156,8 @@ const handleFetch = async (event) => {
               const clonedResponse = response.clone();
               caches.open(CACHE_NAME).then(cache => {
                 cache.put(event.request, clonedResponse);
+              }).catch(error => {
+                console.warn('Failed to update cache in background:', error);
               });
             }
           })
@@ -157,8 +173,12 @@ const handleFetch = async (event) => {
     // Cache successful responses
     if (response.ok) {
       const clonedResponse = response.clone();
-      const cache = await caches.open(CACHE_NAME);
-      cache.put(event.request, clonedResponse);
+      try {
+        const cache = await caches.open(CACHE_NAME);
+        cache.put(event.request, clonedResponse);
+      } catch (error) {
+        console.warn('Failed to cache response:', error);
+      }
     }
 
     return response;
@@ -255,8 +275,13 @@ const prefetchCommonResources = async () => {
     try {
       const response = await fetch(resource, { cache: 'default' });
       if (response.ok) {
-        const cache = await caches.open(CACHE_NAME);
-        return cache.put(resource, response);
+        const cache = await caches.open(CACHE_NAME).catch(error => {
+          console.warn('Failed to open cache for prefetching:', error);
+          return null;
+        });
+        if (cache) {
+          return cache.put(resource, response);
+        }
       }
     } catch (error) {
       // Silent fail for prefetching

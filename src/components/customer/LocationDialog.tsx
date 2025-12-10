@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { motion } from "@/lib/motion";
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { MapPin, ExternalLink, Building } from "lucide-react";
 import { Branch } from "@/types/branch";
 
@@ -53,14 +54,16 @@ export const LocationDialog = ({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="w-[calc(100vw-2rem)] sm:max-w-xl bg-gradient-to-br from-white/98 to-white/95 border-2 border-white/40 shadow-[0_40px_100px_-40px_rgba(0,0,0,0.5),0_20px_50px_-20px_rgba(74,74,74,0.2)] p-0 overflow-hidden rounded-2xl backdrop-blur-xl max-h-[90vh] overflow-y-auto" showCloseButton={false}>
-        <DialogTitle className="sr-only">
-          {isRTL ? 'فروعنا' : 'Our Branches'}
-        </DialogTitle>
-        <DialogDescription className="sr-only">
-          {isRTL
-            ? 'انقر على أي فرع للانتقال مباشرة إلى خرائط جوجل'
-            : 'Click on any branch to navigate directly to Google Maps'}
-        </DialogDescription>
+        <VisuallyHidden>
+          <DialogTitle>
+            {isRTL ? 'فروعنا' : 'Our Branches'}
+          </DialogTitle>
+          <DialogDescription>
+            {isRTL
+              ? 'انقر على أي فرع للانتقال مباشرة إلى خرائط جوجل'
+              : 'Click on any branch to navigate directly to Google Maps'}
+          </DialogDescription>
+        </VisuallyHidden>
         <motion.div
           initial="hidden"
           animate="visible"

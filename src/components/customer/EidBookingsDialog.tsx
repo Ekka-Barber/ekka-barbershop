@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { motion } from "@/lib/motion";
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { MapPin } from "lucide-react";
 import { Branch } from "@/types/branch";
 
@@ -54,14 +55,16 @@ const EidBookingsDialog = ({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="w-[calc(100vw-2rem)] sm:max-w-2xl bg-gradient-to-br from-white/98 to-white/95 border-2 border-white/40 shadow-[0_40px_100px_-40px_rgba(0,0,0,0.5),0_20px_50px_-20px_rgba(117,106,248,0.25)] p-0 overflow-hidden rounded-2xl backdrop-blur-xl max-h-[90vh] overflow-y-auto" showCloseButton={false}>
-        <DialogTitle className="sr-only">
-          {isRTL ? 'احجز موعدك أونلاين' : 'Book Online'}
-        </DialogTitle>
-        <DialogDescription className="sr-only">
-          {isRTL
-            ? 'احجز موعدك أونلاين عبر منصة فريشا واختر الخدمات التي تناسبك في أي وقت وفي أي مكان.'
-            : 'Book your appointment online through Fresha platform and choose services that suit you anytime, anywhere.'}
-        </DialogDescription>
+        <VisuallyHidden>
+          <DialogTitle>
+            {isRTL ? 'احجز موعدك أونلاين' : 'Book Online'}
+          </DialogTitle>
+          <DialogDescription>
+            {isRTL
+              ? 'احجز موعدك أونلاين عبر منصة فريشا واختر الخدمات التي تناسبك في أي وقت وفي أي مكان.'
+              : 'Book your appointment online through Fresha platform and choose services that suit you anytime, anywhere.'}
+          </DialogDescription>
+        </VisuallyHidden>
 
         <motion.div
           initial="hidden"

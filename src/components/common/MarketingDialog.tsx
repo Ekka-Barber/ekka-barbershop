@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { motion, AnimatePresence } from '@/lib/motion';
+import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 import {
   ChevronLeft,
   ChevronRight,
@@ -207,16 +208,24 @@ export const MarketingDialog: React.FC<MarketingDialogProps> = ({
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: window.innerWidth < 768 ? 0 : -20 }}
             transition={{ duration: 0.15 }}
-            className="flex flex-col h-full"
+            className="flex flex-col h-full min-h-0"
           >
             {/* Header */}
             <DialogHeader className="px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-100 flex-shrink-0">
-              <DialogTitle className="sr-only">
+              <VisuallyHidden>
+                <DialogTitle>
+                  {contentType === 'menu'
+                    ? (language === 'ar' ? 'قائمة الأسعار' : 'Menu')
+                    : (language === 'ar' ? 'العروض' : 'Special Offers')
+                  }
+                </DialogTitle>
+              </VisuallyHidden>
+              <DialogDescription className="sr-only">
                 {contentType === 'menu'
-                  ? (language === 'ar' ? 'قائمة الأسعار' : 'Menu')
-                  : (language === 'ar' ? 'العروض' : 'Special Offers')
+                  ? (language === 'ar' ? 'عرض قائمة الأسعار والأسعار' : 'View menu and pricing information')
+                  : (language === 'ar' ? 'عرض العروض والخصومات الحالية' : 'View current special offers and promotions')
                 }
-              </DialogTitle>
+              </DialogDescription>
               <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
                   <h2 className="text-lg sm:text-xl font-bold text-[#222222] truncate">
