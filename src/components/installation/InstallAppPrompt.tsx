@@ -76,7 +76,6 @@ export const InstallAppPrompt = () => {
       onClick={handleInstallClick}
       isInstalling={isInstalling}
       onDismiss={handleDismiss}
-      showInstructions={showInstructions}
       handleInstallClick={handleInstallClick}
     />
   );

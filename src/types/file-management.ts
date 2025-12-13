@@ -17,6 +17,7 @@ export interface FileMetadata {
   created_at: string;
   updated_at: string;
   file_url?: string;
+  is_all_branches?: boolean; // UI flag for files applicable to all branches
   // Optional: Add populated branch data for UI
   branch?: {
     id: string;
