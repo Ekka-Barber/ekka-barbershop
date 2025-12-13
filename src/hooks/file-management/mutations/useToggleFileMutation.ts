@@ -3,6 +3,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { FileToggleParams } from '../types';
+import { updateData } from '@/lib/supabase-helpers';
 
 export const useToggleFileMutation = () => {
   const { toast } = useToast();
@@ -12,7 +13,7 @@ export const useToggleFileMutation = () => {
     mutationFn: async ({ id, isActive }: FileToggleParams) => {
       const { error } = await supabase
         .from('marketing_files')
-        .update({ is_active: isActive })
+        .update(updateData('marketing_files', { is_active: isActive }))
         .eq('id', id);
       
       if (error) throw error;

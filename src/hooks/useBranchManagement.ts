@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
 import { logger } from '@/utils/logger';
 import { BranchFormData } from '@/types/branch';
+import { updateData, insertData } from '@/lib/supabase-helpers';
 
 interface WorkingHours {
   [day: string]: {
@@ -64,13 +65,13 @@ export const useBranchManagement = () => {
       if (branchData.is_main) {
         await supabase
           .from('branches')
-          .update({ is_main: false })
+          .update(updateData('branches', { is_main: false }))
           .neq('id', '00000000-0000-0000-0000-000000000000'); // This ensures all branches are updated
       }
       
-      const { data, error } = await supabase
+      const { data, error} = await supabase
         .from('branches')
-        .insert([branchData])
+        .insert(insertData('branches', [branchData]))
         .select()
         .single();
         
