@@ -148,12 +148,12 @@ export const LazyPDFViewer: React.FC<LazyPDFViewerProps> = ({ pdfUrl, className,
   return (
     <Suspense fallback={<PDFViewerSkeleton variant={variant} />}>
       <ErrorBoundary
+        key={retryKey}
         FallbackComponent={({ error }) => (
           <LazyPDFViewerErrorFallback error={error} retry={handleRetry} variant={variant} />
         )}
-        resetKeys={[retryKey]}
       >
-        <PDFViewer key={retryKey} pdfUrl={pdfUrl} className={className} height={height} variant={variant} />
+        <PDFViewer pdfUrl={pdfUrl} className={className} height={height} variant={variant} />
       </ErrorBoundary>
     </Suspense>
   );

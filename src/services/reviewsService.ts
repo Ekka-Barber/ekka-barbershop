@@ -42,10 +42,11 @@ export async function fetchReviewsFromDatabase(language: 'ar' | 'en'): Promise<R
     }
 
     // Map the data to include branch names
-    return (data || []).map((review: {
-      [key: string]: unknown;
+    type ReviewWithBranches = Omit<Review, 'branch_name' | 'branch_name_ar'> & {
       branches?: { name?: string; name_ar?: string } | null;
-    }) => ({
+    };
+    
+    return (data || []).map((review: ReviewWithBranches): Review => ({
       ...review,
       branch_name: review.branches?.name || '',
       branch_name_ar: review.branches?.name_ar || null,

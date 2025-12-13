@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { FileEndDateParams } from '../types';
+import { updateData } from '@/lib/supabase-helpers';
 
 export const useUpdateEndDateMutation = () => {
   const { toast } = useToast();
@@ -18,9 +19,9 @@ export const useUpdateEndDateMutation = () => {
       
       const { error } = await supabase
         .from('marketing_files')
-        .update({ 
+        .update(updateData('marketing_files', { 
           end_date: endDateTime
-        })
+        }))
         .eq('id', id);
       
       if (error) throw error;

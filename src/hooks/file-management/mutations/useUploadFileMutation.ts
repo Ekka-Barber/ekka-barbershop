@@ -5,6 +5,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { FilePreview } from '@/types/admin';
 import { FileUploadParams } from '../types';
 import { format } from 'date-fns';
+import { insertData } from '@/lib/supabase-helpers';
 
 export const useUploadFileMutation = (
   setUploading: (value: boolean) => void,
@@ -91,7 +92,7 @@ export const useUploadFileMutation = (
         // Insert the record directly
         const { data: insertedData, error: dbError } = await supabase
           .from('marketing_files')
-          .insert(recordData)
+          .insert(insertData('marketing_files', recordData))
           .select();
 
 

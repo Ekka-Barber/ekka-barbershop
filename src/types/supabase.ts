@@ -17,8 +17,12 @@ export type Tables<T extends keyof Database['public']['Tables']> = Database['pub
 export type Enums<T extends keyof Database['public']['Enums']> = Database['public']['Enums'][T];
 
 // Define additional utility types that might be needed
-export type TablesInsert<T extends keyof Database['public']['Tables']> = Database['public']['Tables'][T]['Insert'];
-export type TablesUpdate<T extends keyof Database['public']['Tables']> = Database['public']['Tables'][T]['Update'];
+// Fixed: Handle Database type with __InternalSupabase properly
+type DatabaseTables = Database['public']['Tables'];
+export type TablesInsert<T extends keyof DatabaseTables> = 
+  DatabaseTables[T] extends { Insert: infer I } ? I : never;
+export type TablesUpdate<T extends keyof DatabaseTables> = 
+  DatabaseTables[T] extends { Update: infer U } ? U : never;
 
 // === APP-SPECIFIC TYPE SUBSETS ===
 // Only include types for tables actually used by this barber shop app

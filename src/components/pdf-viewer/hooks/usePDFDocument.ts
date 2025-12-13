@@ -41,10 +41,11 @@ export function usePDFDocument({ pdfUrl, t }: UsePDFDocumentProps) {
         setLoading(false);
 
         // Check if the error is related to JPEG 2000 decoding
-        const isJPXError = error?.message?.includes('JpxImage') ||
-                          error?.message?.includes('OpenJPEG') ||
-                          error?.message?.includes('JPEG 2000') ||
-                          error?.message?.includes('JPX');
+        const errorMessage = error instanceof Error ? error.message : '';
+        const isJPXError = errorMessage.includes('JpxImage') ||
+                          errorMessage.includes('OpenJPEG') ||
+                          errorMessage.includes('JPEG 2000') ||
+                          errorMessage.includes('JPX');
 
         if (mode === 'pdfjs' && !isJPXError) {
             // Try native mode as fallback for non-JPX errors

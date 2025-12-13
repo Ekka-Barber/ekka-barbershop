@@ -5,6 +5,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { QRCode } from "@/types/admin";
+import { updateData, rpcParams } from "@/lib/supabase-helpers";
 
 interface UpdateQRCodeUrlProps {
   selectedQrCode: QRCode;
@@ -16,7 +17,7 @@ const UpdateQRCodeUrl = ({ selectedQrCode }: UpdateQRCodeUrlProps) => {
   const [newUrl, setNewUrl] = useState("");
 
   const setOwnerAccess = async () => {
-    const { error } = await supabase.rpc('set_owner_access', { value: 'owner123' });
+    const { error } = await supabase.rpc('set_owner_access', rpcParams({ value: 'owner123' }));
     if (error) {
       console.error('Error setting owner access:', error);
       toast({
@@ -45,7 +46,7 @@ const UpdateQRCodeUrl = ({ selectedQrCode }: UpdateQRCodeUrlProps) => {
 
     const { error } = await supabase
       .from("qr_codes")
-      .update({ url: newUrl })
+      .update(updateData('qr_codes', { url: newUrl }))
       .eq("id", selectedQrCode.id);
 
     if (error) {
