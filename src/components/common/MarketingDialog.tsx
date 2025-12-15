@@ -40,7 +40,7 @@ const ContentMetadata: React.FC<{
     new Date(content.created_at).getTime() > Date.now() - (7 * 24 * 60 * 60 * 1000);
 
   return (
-    <div className="flex flex-wrap items-center gap-2 px-4 py-2.5 bg-[#FBF7F2]">
+    <div className="flex flex-wrap items-center gap-2 px-4 bg-[#FBF7F2]" style={{ height: '25px', paddingTop: 0, paddingBottom: 0 }}>
       {/* Content type badge */}
       <Badge 
         variant="secondary" 
@@ -189,7 +189,7 @@ export const MarketingDialog: React.FC<MarketingDialogProps> = ({
             className="flex flex-col h-full"
           >
             {/* Compact Header */}
-            <SheetHeader className="px-4 py-2.5 border-b border-[#E4D8C8]/50 flex-shrink-0 bg-white">
+            <SheetHeader className="px-4 py-2.5 border-b border-[#E4D8C8]/50 flex-shrink-0 bg-white" style={{ height: '45px' }}>
               <VisuallyHidden>
                 <SheetTitle>
                   {contentType === 'menu'
@@ -225,7 +225,7 @@ export const MarketingDialog: React.FC<MarketingDialogProps> = ({
             </div>
 
             {/* Compact Footer */}
-            <SheetFooter className="flex-shrink-0 bg-white border-t border-[#E4D8C8]/50">
+            <SheetFooter className="border-t border-gray-100 bg-white/95 backdrop-blur-sm flex-shrink-0">
               <div className="w-full">
                 {/* Metadata row */}
                 <ContentMetadata
@@ -233,7 +233,7 @@ export const MarketingDialog: React.FC<MarketingDialogProps> = ({
                   language={language}
                 />
                 {/* Actions row */}
-                <div className="flex items-center justify-between px-4 py-2.5 border-t border-[#E4D8C8]/30">
+                <div className="flex items-center justify-between px-4 sm:px-6 py-3 border-t border-gray-100" style={{ height: '48px' }}>
                   {/* Navigation */}
                   <div className="flex items-center gap-1.5">
                     {initialContent.length > 1 && (
