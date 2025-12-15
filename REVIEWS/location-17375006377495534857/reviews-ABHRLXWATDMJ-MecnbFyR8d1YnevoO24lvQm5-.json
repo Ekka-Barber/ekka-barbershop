@@ -1,257 +1,0 @@
-{
-  "reviews": [{
-    "reviewer": {
-      "displayName": "بدر العتيبي"
-    },
-    "starRating": "FIVE",
-    "createTime": "2024-09-01T15:57:27.365351Z",
-    "updateTime": "2024-09-01T15:57:27.365351Z",
-    "reviewReply": {
-      "comment": "❤️🌹",
-      "updateTime": "2024-09-14T17:06:19.027995Z"
-    },
-    "name": "accounts/101966824514574841442/locations/17375006377495534857/reviews/ChdDSUhNMG9nS0VJQ0FnSUNIMU9hMzJnRRAB"
-  }, {
-    "reviewer": {
-      "displayName": "Yazeed"
-    },
-    "starRating": "FIVE",
-    "comment": "يستحق الزياره اهتمام في المواعيد وتنظيم ماتحتاج تنتظر احجز اون لاين وتعال على موعدك خدمتهم الجديد تظيف بشره بريموم تحس بالفرق من اول مرة\n\n(Translated by Google)\nWorth a visit. They pay attention to appointments and organize what you need to wait for. Book online and come to your appointment. Their new service is premium skin cleansing. You will feel the difference from the first time.",
-    "createTime": "2024-08-27T15:03:00.105668Z",
-    "updateTime": "2024-08-27T15:03:00.105668Z",
-    "reviewReply": {
-      "comment": "شكرًا جزيلًا يا يزيد على تقييمك الرائع وكلماتك الطيبة! 😊 نحن سعداء جدًا لسماع أنك استمتعت بخدمتنا وتنظيم المواعيد. هدفنا دائمًا هو تقديم أفضل تجربة لعملائنا، ويسعدنا أنك لاحظت الفرق مع خدمة تنظيف البشرة بريموم من أول مرة. نتطلع لرؤيتك قريبًا في زيارتك القادمة!",
-      "updateTime": "2024-08-30T14:32:21.657638Z"
-    },
-    "name": "accounts/101966824514574841442/locations/17375006377495534857/reviews/ChZDSUhNMG9nS0VJQ0FnSUQ3dlliRGZREAE"
-  }, {
-    "reviewer": {
-      "displayName": "يحيى الحارثي"
-    },
-    "starRating": "FIVE",
-    "createTime": "2024-08-26T20:26:57.890088Z",
-    "updateTime": "2024-08-26T20:26:57.890088Z",
-    "reviewReply": {
-      "comment": "❤️🌹",
-      "updateTime": "2024-08-30T14:32:32.927455Z"
-    },
-    "name": "accounts/101966824514574841442/locations/17375006377495534857/reviews/ChdDSUhNMG9nS0VJQ0FnSUQ3dGNxRXZnRRAB"
-  }, {
-    "reviewer": {
-      "displayName": "الملكي الراقي"
-    },
-    "starRating": "FOUR",
-    "comment": "لايوجد\n\n(Translated by Google)\nnothing",
-    "createTime": "2024-08-26T02:22:50.568054Z",
-    "updateTime": "2024-08-26T02:22:50.568054Z",
-    "reviewReply": {
-      "comment": "شكرًا جزيلاً على تقييمك! 🌟 نحن نقدر أنك اخترت صالون إكّه ونسعى دائمًا لتحسين خدماتنا لتكون تجربة زيارتك المقبلة ممتازة بكل المقاييس. إذا كان لديك أي ملاحظات أو اقتراحات، سنكون سعيدين بسماعها!",
-      "updateTime": "2024-08-30T14:34:12.939661Z"
-    },
-    "name": "accounts/101966824514574841442/locations/17375006377495534857/reviews/ChZDSUhNMG9nS0VJQ0FnSUQ3MmNQaVdnEAE"
-  }, {
-    "reviewer": {
-      "displayName": "Taiel Alharthi"
-    },
-    "starRating": "FIVE",
-    "comment": "ممتاز جداً 🩶🩶\n\n(Translated by Google)\nVery excellent 🩶🩶",
-    "createTime": "2024-08-25T23:56:43.903002Z",
-    "updateTime": "2024-08-25T23:56:43.903002Z",
-    "reviewReply": {
-      "comment": "\"شكرًا لك يا طآيل على تقييمك الرائع! 😊 نحن سعداء لأن تجربتك كانت ممتازة ونتطلع لاستقبالك مجددًا في صالون إكّه.\"",
-      "updateTime": "2024-08-30T14:34:54.878588Z"
-    },
-    "name": "accounts/101966824514574841442/locations/17375006377495534857/reviews/ChdDSUhNMG9nS0VJQ0FnSUQ3bWVmR3NnRRAB"
-  }, {
-    "reviewer": {
-      "displayName": "‫عبدالباقي السميري (‪Lamb on the sheet‬‏)‬‎"
-    },
-    "starRating": "FIVE",
-    "createTime": "2024-08-25T23:05:41.259366Z",
-    "updateTime": "2024-08-25T23:05:41.259366Z",
-    "reviewReply": {
-      "comment": "❤️🫡",
-      "updateTime": "2024-08-30T14:35:01.525435Z"
-    },
-    "name": "accounts/101966824514574841442/locations/17375006377495534857/reviews/ChdDSUhNMG9nS0VJQ0FnSUQ3bVpuVHVBRRAB"
-  }, {
-    "reviewer": {
-      "displayName": "خالد العتيبي"
-    },
-    "starRating": "FIVE",
-    "comment": "‏علاقتهم جميلة رائعة ممتازة الجميع هادي🫡🫡🫡\n\n(Translated by Google)\nTheir relationship is beautiful, wonderful, excellent, everyone is calm 🫡🫡🫡",
-    "createTime": "2024-08-23T12:12:55.749955Z",
-    "updateTime": "2024-08-23T12:12:55.749955Z",
-    "reviewReply": {
-      "comment": "\"شكرًا جزيلًا يا خالد على كلماتك الجميلة وتقييمك الرائع! 😊 نحن فخورون بأننا قدمنا لك تجربة هادئة وممتازة. نتطلع لاستقبالك مرة أخرى قريبًا في صالون إكّه.\"",
-      "updateTime": "2024-08-30T14:35:47.466392Z"
-    },
-    "name": "accounts/101966824514574841442/locations/17375006377495534857/reviews/ChdDSUhNMG9nS0VJQ0FnSUQ3NnMtdDlBRRAB"
-  }, {
-    "reviewer": {
-      "displayName": "ABDULAZIZ"
-    },
-    "starRating": "FIVE",
-    "comment": "أروح للصالون هذا من فترة الشباب مرحبين وعارفين وش يسوون ودائما أحصل الخدمة بالضبط زي ما أبي\nالمكان جدا مريح ونظيف\n\n(Translated by Google)\nI\u0027ve been going to this salon since my youth. They\u0027re welcoming and know what they\u0027re doing. I always get exactly the service I want. The place is very comfortable and clean.",
-    "createTime": "2024-08-19T18:45:38.851692Z",
-    "updateTime": "2024-08-19T18:45:38.851692Z",
-    "reviewReply": {
-      "comment": "شكرًا جزيلًا يا عبدالعزيز على كلماتك الرائعة وتقييمك المميز! 😊 نحن فخورون بأنك تجد دائمًا الخدمة التي تتوقعها وأنك مرتاح في صالون إكّه. رضاك هو هدفنا الأساسي، ونتطلع لاستقبالك دائمًا في أجواء نظيفة ومريحة.",
-      "updateTime": "2024-08-30T14:41:37.393732Z"
-    },
-    "name": "accounts/101966824514574841442/locations/17375006377495534857/reviews/ChZDSUhNMG9nS0VJQ0FnSUM3djRYbWJ3EAE"
-  }, {
-    "reviewer": {
-      "displayName": "Sami Almalki"
-    },
-    "starRating": "FIVE",
-    "comment": "روحو لخالد 👍🏻👍🏻👍🏻\n\n(Translated by Google)\nGo to Khaled 👍🏻👍🏻👍🏻",
-    "createTime": "2024-08-18T20:15:53.556954Z",
-    "updateTime": "2024-08-18T20:15:53.556954Z",
-    "reviewReply": {
-      "comment": "شكرًا لك يا سامي على تقييمك ودعمك! 😊 خالد دائمًا يسعى لتقديم أفضل خدمة لعملائنا، وسعداء أن تجربتك كانت مميزة. ننتظرك في زيارتك القادمة!",
-      "updateTime": "2024-08-30T14:42:33.106162Z"
-    },
-    "name": "accounts/101966824514574841442/locations/17375006377495534857/reviews/ChdDSUhNMG9nS0VJQ0FnSUM3bC15enpnRRAB"
-  }, {
-    "reviewer": {
-      "displayName": "أبو سعد"
-    },
-    "starRating": "THREE",
-    "comment": "لا بالعكس قيمت على تجربه\n\nمره جبت ولدي ٣سنوات\n\nطلبت تخفيف\n\nبكل امانه والله شغل اي كلام ولا عجبني مرررره\nوالسعر غالي جدا مع العلم انها كانت ايام تخفيضات\n\nعلى كل حال الله يوفقكم وارجو تقبل النقد بصدر رحب\n\n(Translated by Google)\nNo, on the contrary, I evaluated it based on experience.\n\nOnce I brought my 3-year-old son.\n\nI asked for a reduction.\n\nHonestly, I swear, the product didn\u0027t appeal to me at all.\nAnd the price is very high, even though it was a sales day.\n\nIn any case, may God bless you, and I hope you accept criticism with open arms.",
-    "createTime": "2024-08-16T20:45:36.447573Z",
-    "updateTime": "2024-08-18T02:31:02.441097Z",
-    "reviewReply": {
-      "comment": "يبدو أنك تقيّم الأماكن بشكل عشوائي بناءً على إشعارات Google Maps !!\n\n ومن غير الواضح أنك زرت صالوننا بالفعل !!\n\nمن المؤسف أن تستخدم تقييماتك فقط لزيادة نقاط حسابك، خاصة وأنك تدعي أنك تقدم تقييمات بما يرضي الله. نحن نأخذ سمعتنا بجدية ونتوقع من المقيّمين أن يكونوا صادقين ومنصفين. إذا كنت قد زرتنا بالفعل وكان لديك ملاحظات حقيقية، فنحن هنا لنستمع ونتحسن. أما إذا لم تكن قد زرتنا، فنطلب منك تصحيح تقييمك. \n\nالكلمة أمانة. ⚖️🙏",
-      "updateTime": "2024-08-17T12:24:44.732549Z"
-    },
-    "name": "accounts/101966824514574841442/locations/17375006377495534857/reviews/ChdDSUhNMG9nS0VJQ0FnSUM3cWRhSDRRRRAB"
-  }, {
-    "reviewer": {
-      "displayName": "turki alshlawi"
-    },
-    "starRating": "FIVE",
-    "comment": "يستاهل للمره الثانيه احلق عنده\n\n(Translated by Google)\nHe deserves to be shaved by him for the second time",
-    "createTime": "2024-08-17T15:27:20.240885Z",
-    "updateTime": "2024-08-17T15:27:20.240885Z",
-    "reviewReply": {
-      "comment": "شكرًا لك يا تركي على ثقتك بنا 😊 نسعد دائمًا بزيارتك ونتطلع لاستقبالك مرات أخرى كثيرة.",
-      "updateTime": "2024-08-30T14:45:21.644143Z"
-    },
-    "name": "accounts/101966824514574841442/locations/17375006377495534857/reviews/ChdDSUhNMG9nS0VJQ0FnSUM3bGJ2N3NBRRAB"
-  }, {
-    "reviewer": {
-      "displayName": "Abdul Aziz Al-Subaie"
-    },
-    "starRating": "FIVE",
-    "createTime": "2024-08-17T11:38:21.214958Z",
-    "updateTime": "2024-08-17T11:38:21.214958Z",
-    "reviewReply": {
-      "comment": "❤️🌹",
-      "updateTime": "2024-08-17T12:24:58.038317Z"
-    },
-    "name": "accounts/101966824514574841442/locations/17375006377495534857/reviews/ChZDSUhNMG9nS0VJQ0FnSUM3cFo2a09nEAE"
-  }, {
-    "reviewer": {
-      "displayName": "mashari alzahraniu"
-    },
-    "starRating": "FIVE",
-    "createTime": "2024-08-11T18:23:27.061559Z",
-    "updateTime": "2024-08-11T18:23:27.061559Z",
-    "reviewReply": {
-      "comment": "❤️🌹",
-      "updateTime": "2024-08-17T12:25:02.651037Z"
-    },
-    "name": "accounts/101966824514574841442/locations/17375006377495534857/reviews/ChZDSUhNMG9nS0VJQ0FnSUM3OE9xTGRREAE"
-  }, {
-    "reviewer": {
-      "displayName": "Meshari"
-    },
-    "starRating": "FIVE",
-    "createTime": "2024-08-09T23:11:50.706161Z",
-    "updateTime": "2024-08-09T23:11:50.706161Z",
-    "reviewReply": {
-      "comment": "\"شكرًا لك يا أبو العز على تقييمك المميز! 😊 نتمنى دائمًا أن نكون عند حسن ظنك. ✂️🌟\"",
-      "updateTime": "2024-08-09T23:26:39.699415Z"
-    },
-    "name": "accounts/101966824514574841442/locations/17375006377495534857/reviews/ChdDSUhNMG9nS0VJQ0FnSURiaF96SXdnRRAB"
-  }, {
-    "reviewer": {
-      "displayName": "Ammar Alzahrani"
-    },
-    "starRating": "FIVE",
-    "comment": "شغلهم ممتاز وعنايتهم بالمكان والزباين جدا فوق التقيم الاسعار شوي لك عليها\n\n(Translated by Google)\nTheir work is excellent and their care for the place and customers is above average. The prices are a little high.",
-    "createTime": "2024-08-08T19:41:33.214053Z",
-    "updateTime": "2024-08-08T19:41:33.214053Z",
-    "reviewReply": {
-      "comment": "\"شكرًا لك يا عمار على تقييمك الرائع! 😊 نسعد بمعرفتنا أن العناية بالمكان والزباين نالت إعجابك. بخصوص الأسعار، نسعى دائمًا لتقديم أفضل قيمة مقابل الخدمة. ✂️🌟\"",
-      "updateTime": "2024-08-09T23:25:39.441486Z"
-    },
-    "name": "accounts/101966824514574841442/locations/17375006377495534857/reviews/ChZDSUhNMG9nS0VJQ0FnSURidzdxQ2F3EAE"
-  }, {
-    "reviewer": {
-      "displayName": "m"
-    },
-    "starRating": "ONE",
-    "comment": "غير لايق جدا\n\n(Translated by Google)\nNot very suitable",
-    "createTime": "2024-08-06T15:03:59.018290Z",
-    "updateTime": "2024-08-06T15:03:59.018290Z",
-    "reviewReply": {
-      "comment": "شكرًا على ملاحظاتك. نحن نأسف أن تجربتك لم تكن كما توقعت💔. نحرص على توفير بيئة احترافية ومرحبة، ونود معرفة المزيد حول ما جعلك تشعر بعدم الراحة. فضلاً، تواصل معنا على واتساب المحل لنتمكن من معالجة الأمر. نأمل أن نكون عند حسن ظنك في المستقبل.",
-      "updateTime": "2024-08-07T17:09:24.833137Z"
-    },
-    "name": "accounts/101966824514574841442/locations/17375006377495534857/reviews/ChZDSUhNMG9nS0VJQ0FnSURic2VIMVNREAE"
-  }, {
-    "reviewer": {
-      "displayName": "محمد الخثعمي"
-    },
-    "starRating": "FIVE",
-    "comment": "الله يعطيهم العافيه جداً حلاقين راقين وجيدين واشكر الحلاق هادي\n\n(Translated by Google)\nMay God bless them. They are very elegant and good barbers. I thank this barber, Hadi.",
-    "createTime": "2024-08-06T11:55:57.564624Z",
-    "updateTime": "2024-08-06T11:55:57.564624Z",
-    "reviewReply": {
-      "comment": "الله يعافيك يا محمد، وشكرًا لك على تقديرك. نسعد بخدمتك دائمًا، وتعليقك يشجعنا على تقديم الأفضل باستمرار. نتطلع لرؤيتك قريبًا. 🌹❤️",
-      "updateTime": "2024-08-07T17:10:45.394146Z"
-    },
-    "name": "accounts/101966824514574841442/locations/17375006377495534857/reviews/ChZDSUhNMG9nS0VJQ0FnSURia1ltTUtnEAE"
-  }, {
-    "reviewer": {
-      "displayName": "Turki Adajani"
-    },
-    "starRating": "FIVE",
-    "comment": "صالون ممتاز واسعارهم كويسه مقارنة بالخدمات وأخص بالشكر الحلاق خالد على أخلاقه المتواضعه\n\n(Translated by Google)\nExcellent salon and their prices are good compared to the services they provide. I would like to thank the barber Khaled for his humble manners.",
-    "createTime": "2024-08-03T15:06:56.612868Z",
-    "updateTime": "2024-08-03T15:06:56.612868Z",
-    "reviewReply": {
-      "comment": "\"نحن سعيدون جداً بسماع رأيك! 🙏🏼 خالد يشكرك على كلماتك الطيبة، ونتمنى دايمًا نكون عند حسن ظنك. 🌟✂️\"",
-      "updateTime": "2024-08-03T15:34:00.439950Z"
-    },
-    "name": "accounts/101966824514574841442/locations/17375006377495534857/reviews/ChZDSUhNMG9nS0VJQ0FnSURiNHBERFdBEAE"
-  }, {
-    "reviewer": {
-      "displayName": "سالم بن صالح المالكي"
-    },
-    "starRating": "THREE",
-    "comment": "جيد\n\n(Translated by Google)\ngood",
-    "createTime": "2024-08-02T13:44:36.742724Z",
-    "updateTime": "2024-08-02T13:44:36.742724Z",
-    "reviewReply": {
-      "comment": "\"شكرًا لك على تقييمك! 😊 نتطلع لتحسين تجربتك في المرة القادمة ونرتقي لتقييم الخمس نجوم. 🌟✂️\"",
-      "updateTime": "2024-08-03T15:34:41.755077Z"
-    },
-    "name": "accounts/101966824514574841442/locations/17375006377495534857/reviews/ChZDSUhNMG9nS0VJQ0FnSURiOUtLOEJnEAE"
-  }, {
-    "reviewer": {
-      "displayName": "Mm Marz"
-    },
-    "starRating": "FIVE",
-    "comment": "خدمة ممتازة وجودة عالية والمكان جمييل جدًا\nواشكر عبدالكريم على الخدمة الممتازة والاخلاق الجميله\nوالشباب عامةً يعطيهم العافية ⭐️\nوللابد تفتحون فرع فالرياض\n\n(Translated by Google)\nExcellent service, high quality, and a very beautiful place.\nI thank Abdul Karim for the excellent service and beautiful manners.\nAnd may God bless the youth in general.\nYou must open a branch in Riyadh.",
-    "createTime": "2024-07-18T12:44:34.166704Z",
-    "updateTime": "2024-07-18T12:44:34.166704Z",
-    "reviewReply": {
-      "comment": "\"شكرًا لك على هذه الكلمات الرائعة! 😊 عبدالكريم والشباب كلهم يشكروك على دعمك، وإن شاء الله نشوفكم في فرعنا القادم بالرياض قريبًا! 🌟✂️\"",
-      "updateTime": "2024-08-03T15:35:10.711028Z"
-    },
-    "name": "accounts/101966824514574841442/locations/17375006377495534857/reviews/ChdDSUhNMG9nS0VJQ0FnSURyNmFTNndRRRAB"
-  }]
-}
