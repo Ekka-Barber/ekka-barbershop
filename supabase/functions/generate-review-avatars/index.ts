@@ -19,17 +19,13 @@ const DICEBEAR_STYLES = [
   'thumbs'        // Simple thumbs up style (neutral)
 ];
 
-function getRandomStyle(): string {
-  return DICEBEAR_STYLES[Math.floor(Math.random() * DICEBEAR_STYLES.length)];
-}
-
 // Generate a consistent style for each author (deterministic)
 function getStyleForAuthor(authorName: string): string {
   const hash = authorName.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
   return DICEBEAR_STYLES[hash % DICEBEAR_STYLES.length];
 }
 
-Deno.serve(async (_req: Request) => {
+Deno.serve(async () => {
   try {
     // Validate environment variables
     if (!supabaseUrl) {
@@ -96,7 +92,7 @@ Deno.serve(async (_req: Request) => {
           const fileName = `review-avatar-${review.id}-${Date.now()}.png`;
 
           // Upload to Supabase Storage
-          const { data: uploadData, error: uploadError } = await supabaseAdmin.storage
+          const { error: uploadError } = await supabaseAdmin.storage
             .from('review_avatars')
             .upload(fileName, avatarBlob, {
               contentType: 'image/png',

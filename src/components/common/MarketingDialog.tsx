@@ -31,101 +31,69 @@ export interface MarketingDialogProps {
   isLoading?: boolean;
 }
 
-// Metadata display component
+// Metadata display component - compact, brand-aligned
 const ContentMetadata: React.FC<{
   content: PDFFile;
   language: string;
 }> = ({ content, language }) => {
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    const locale = language === 'ar' ? 'ar-SA-u-ca-gregory' : 'en-US';
-    return date.toLocaleDateString(locale, {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
-  };
+  const isNew = content.created_at && 
+    new Date(content.created_at).getTime() > Date.now() - (7 * 24 * 60 * 60 * 1000);
 
   return (
-    <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-2 p-3 sm:p-4 bg-gray-50 border-t border-gray-100">
-      <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-        {/* Content type badge */}
-        <Badge variant="secondary" className="flex items-center gap-1 text-xs">
-          {content.file_type.includes('pdf') ? (
-            <FileText className="w-3 h-3" />
-          ) : (
-            <ImageIcon className="w-3 h-3" />
-          )}
-          <span className="hidden xs:inline">{content.file_type.toUpperCase()}</span>
+    <div className="flex flex-wrap items-center gap-2 px-4 py-2.5 bg-[#FBF7F2]">
+      {/* Content type badge */}
+      <Badge 
+        variant="secondary" 
+        className="flex items-center gap-1 text-xs bg-white border border-[#E4D8C8] text-[#8B7355]"
+      >
+        {content.file_type.includes('pdf') ? (
+          <FileText className="w-3 h-3" />
+        ) : (
+          <ImageIcon className="w-3 h-3" />
+        )}
+        {content.file_type.toUpperCase().replace('APPLICATION/', '')}
+      </Badge>
+
+      {/* New badge - only show if new */}
+      {isNew && (
+        <Badge
+          variant="outline"
+          className="flex items-center gap-1 text-xs bg-[#C4A36F]/10 text-[#8B7355] border-[#C4A36F]/30"
+        >
+          <Calendar className="w-3 h-3" />
+          {language === 'ar' ? 'جديد' : 'New'}
         </Badge>
-
-        {/* Branch badge */}
-        {content.branchName && (
-          <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200 text-xs px-2 py-1">
-            {content.branchName}
-          </Badge>
-        )}
-
-        {/* New/Updated badge */}
-        {content.created_at && (
-          <Badge
-            variant="outline"
-            className={`flex items-center gap-1 text-xs px-2 py-1 ${new Date(content.created_at).getTime() > Date.now() - (7 * 24 * 60 * 60 * 1000)
-              ? 'bg-green-50 text-green-700 border-green-200'
-              : 'bg-blue-50 text-blue-700 border-blue-200'
-              }`}
-          >
-            <Calendar className="w-3 h-3" />
-            <span className="hidden xs:inline">
-              {new Date(content.created_at).getTime() > Date.now() - (7 * 24 * 60 * 60 * 1000)
-                ? 'New'
-                : 'Updated'
-              }
-            </span>
-          </Badge>
-        )}
-
-        {/* Date - hidden on very small screens */}
-        {content.created_at && (
-          <span className="text-xs text-gray-500 flex items-center gap-1 hidden sm:flex">
-            <Calendar className="w-3 h-3" />
-            {formatDate(content.created_at)}
-          </span>
-        )}
-      </div>
+      )}
     </div>
   );
 };
 
-// Content renderer component
+// Content renderer component - fills available space, single scroll context
 const ContentRenderer: React.FC<{
   content: PDFFile;
 }> = ({ content }) => {
   const { language } = useLanguage();
 
   if (content.file_type.includes('pdf')) {
-    // Don't constrain height for PDFs - let pages grow naturally for scrolling
     return (
-      <div className="relative w-full">
-        <LazyPDFViewer
-          pdfUrl={content.url}
-          className="w-full"
-          variant="dialog"
-        />
-      </div>
+      <LazyPDFViewer
+        pdfUrl={content.url}
+        className="w-full h-full"
+        variant="dialog"
+      />
     );
   }
 
+  // Image content - scrollable container with custom scrollbar
   return (
     <div
-      className="relative w-full h-full flex items-center justify-center bg-gray-50 rounded-xl overflow-auto momentum-scroll custom-scrollbar"
+      className="relative w-full h-full overflow-auto custom-scrollbar momentum-scroll bg-[#FBF7F2]"
       style={{ WebkitOverflowScrolling: 'touch' }}
     >
       <img
         src={content.url}
         alt={content.file_name || (language === 'ar' ? 'محتوى تسويقي' : 'Marketing Content')}
-        className="w-full h-full object-contain"
+        className="w-full h-auto object-contain"
         onError={(e) => {
           e.currentTarget.src = '/placeholder.svg';
         }}
@@ -205,23 +173,23 @@ export const MarketingDialog: React.FC<MarketingDialogProps> = ({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
         side="bottom"
-        className="p-0 max-w-6xl w-[calc(100vw-1rem)] sm:w-[calc(100vw-2rem)] mx-auto rounded-t-2xl pb-[calc(var(--sab)+1rem)] overflow-hidden"
+        className="p-0 max-w-4xl w-full mx-auto rounded-t-2xl overflow-hidden bg-[#FBF7F2]"
         style={{
-          height: 'calc(90vh - var(--sat, 0px) - var(--sab, 0px))',
-          maxHeight: 'calc(100vh - 4rem - var(--sat, 0px) - var(--sab, 0px))'
+          height: '85vh',
+          maxHeight: 'calc(100dvh - 2rem)'
         }}
       >
         <AnimatePresence mode="wait">
           <motion.div
             key={currentIndex}
-            initial={{ opacity: 0, x: window.innerWidth < 768 ? 0 : 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: window.innerWidth < 768 ? 0 : -20 }}
-            transition={{ duration: 0.15 }}
-            className="flex flex-col h-full min-h-0"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.12 }}
+            className="flex flex-col h-full"
           >
-            {/* Pinned Header */}
-            <SheetHeader className="px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-100 flex-shrink-0 bg-white/95 backdrop-blur-sm">
+            {/* Compact Header */}
+            <SheetHeader className="px-4 py-2.5 border-b border-[#E4D8C8]/50 flex-shrink-0 bg-white">
               <VisuallyHidden>
                 <SheetTitle>
                   {contentType === 'menu'
@@ -236,92 +204,72 @@ export const MarketingDialog: React.FC<MarketingDialogProps> = ({
                   : (language === 'ar' ? 'عرض العروض والخصومات الحالية' : 'View current special offers and promotions')
                 }
               </SheetDescription>
-              <div className="flex items-center justify-between gap-2">
-                <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
-                  <h2 className="text-lg sm:text-xl font-bold text-[#222222] truncate">
-                    {contentType === 'menu'
-                      ? (language === 'ar' ? 'قائمة الأسعار' : 'Menu')
-                      : (language === 'ar' ? 'العروض' : 'Special Offers')
-                    }
-                  </h2>
-                  {initialContent.length > 1 && (
-                    <span className="text-xs sm:text-sm text-gray-500 whitespace-nowrap">
-                      {currentIndex + 1} / {initialContent.length}
-                    </span>
-                  )}
-                </div>
-
+              <div className="flex items-center justify-between">
+                <h2 className="text-base font-bold text-[#222222]">
+                  {contentType === 'menu'
+                    ? (language === 'ar' ? 'قائمة الأسعار' : 'Menu')
+                    : (language === 'ar' ? 'العروض' : 'Special Offers')
+                  }
+                </h2>
+                {initialContent.length > 1 && (
+                  <span className="text-xs text-[#8B7355] font-medium">
+                    {currentIndex + 1} / {initialContent.length}
+                  </span>
+                )}
               </div>
-              <SheetDescription className="sr-only">
-                {contentType === 'menu'
-                  ? (language === 'ar' ? 'عرض قائمة الأسعار' : 'View menu and pricing information')
-                  : (language === 'ar' ? 'عرض العروض الحالية' : 'View special offers and promotions')
-                }
-              </SheetDescription>
             </SheetHeader>
 
-            {/* Scrollable Content area */}
-            <div className="flex-1 overflow-y-auto overflow-x-hidden min-h-0 momentum-scroll custom-scrollbar" style={{ WebkitOverflowScrolling: 'touch' }}>
-              <ContentRenderer
-                content={currentContent}
-              />
+            {/* Content area - fills remaining space */}
+            <div className="flex-1 min-h-0">
+              <ContentRenderer content={currentContent} />
             </div>
 
-            {/* Pinned Footer with metadata and navigation */}
-            <SheetFooter className="border-t border-gray-100 bg-white/95 backdrop-blur-sm flex-shrink-0">
+            {/* Compact Footer */}
+            <SheetFooter className="flex-shrink-0 bg-white border-t border-[#E4D8C8]/50">
               <div className="w-full">
+                {/* Metadata row */}
                 <ContentMetadata
                   content={currentContent}
                   language={language}
                 />
-                {/* Navigation and Full PDF action */}
-                <div className="flex items-center justify-between px-4 sm:px-6 py-3 border-t border-gray-100">
-                  <div className="flex items-center gap-2">
+                {/* Actions row */}
+                <div className="flex items-center justify-between px-4 py-2.5 border-t border-[#E4D8C8]/30">
+                  {/* Navigation */}
+                  <div className="flex items-center gap-1.5">
                     {initialContent.length > 1 && (
-                      <div className="flex items-center gap-1">
+                      <>
                         <Button
                           variant="outline"
                           size="icon"
-                          className="h-9 w-9"
+                          className="h-8 w-8 border-[#E4D8C8] hover:bg-[#FBF7F2] hover:border-[#C4A36F]"
                           onClick={handlePrevious}
-                          disabled={initialContent.length <= 1}
                           aria-label="Previous"
                         >
-                          <ChevronLeft className="w-4 h-4" />
+                          <ChevronLeft className="w-4 h-4 text-[#8B7355]" />
                         </Button>
                         <Button
                           variant="outline"
                           size="icon"
-                          className="h-9 w-9"
+                          className="h-8 w-8 border-[#E4D8C8] hover:bg-[#FBF7F2] hover:border-[#C4A36F]"
                           onClick={handleNext}
-                          disabled={initialContent.length <= 1}
                           aria-label="Next"
                         >
-                          <ChevronRight className="w-4 h-4" />
+                          <ChevronRight className="w-4 h-4 text-[#8B7355]" />
                         </Button>
-                      </div>
+                      </>
                     )}
                   </div>
-                  <div className="flex items-center gap-2">
-                    {currentContent?.file_type.includes('pdf') && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => {
-                          // Open full PDF viewer - this would need to be implemented
-                          window.open(currentContent.url, '_blank');
-                        }}
-                        className="text-xs"
-                      >
-                        {language === 'ar' ? 'فتح PDF كامل' : 'Open Full PDF'}
-                      </Button>
-                    )}
-                    {initialContent.length > 1 && (
-                      <span className="text-xs text-gray-500 px-2">
-                        {currentIndex + 1} / {initialContent.length}
-                      </span>
-                    )}
-                  </div>
+                  {/* Open PDF button */}
+                  {currentContent?.file_type.includes('pdf') && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => window.open(currentContent.url, '_blank')}
+                      className="h-8 text-xs border-[#C4A36F] text-[#8B7355] hover:bg-[#C4A36F] hover:text-white"
+                    >
+                      {language === 'ar' ? 'فتح PDF كامل' : 'Open Full PDF'}
+                    </Button>
+                  )}
                 </div>
               </div>
             </SheetFooter>
