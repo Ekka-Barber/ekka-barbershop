@@ -19,6 +19,64 @@ const REVIEWS_PER_PAGE = {
   desktop: 3    // >1024px (lg)
 } as const;
 
+/**
+ * Creates a balanced array that ensures fair representation of both branches
+ * Duplicates reviews from underrepresented branches to achieve balance
+ */
+function createBalancedReviews<T extends { branch_name_ar?: string }>(reviews: T[]): T[] {
+  if (!reviews || reviews.length === 0) return [];
+
+  // Separate reviews by branch
+  const alWasliyaReviews = reviews.filter(review => review.branch_name_ar === 'الواصلية');
+  const ashSharaiReviews = reviews.filter(review => review.branch_name_ar === 'الشرائع');
+
+  // If we don't have both branches or they're already balanced, just shuffle normally
+  if (alWasliyaReviews.length === 0 || ashSharaiReviews.length === 0) {
+    return shuffleArray(reviews);
+  }
+
+  const maxReviews = Math.max(alWasliyaReviews.length, ashSharaiReviews.length);
+
+  // Duplicate the smaller group to match the larger group
+  const balancedReviews: T[] = [];
+
+  // Add all reviews from both branches
+  balancedReviews.push(...alWasliyaReviews, ...ashSharaiReviews);
+
+  // Duplicate Ash-Sharai reviews to balance representation
+  if (ashSharaiReviews.length < maxReviews) {
+    const duplicatesNeeded = maxReviews - ashSharaiReviews.length;
+    for (let i = 0; i < duplicatesNeeded; i++) {
+      const randomIndex = Math.floor(Math.random() * ashSharaiReviews.length);
+      balancedReviews.push(ashSharaiReviews[randomIndex]);
+    }
+  }
+
+  // Duplicate Al-Wasliya reviews if needed (though this is less likely)
+  if (alWasliyaReviews.length < maxReviews) {
+    const duplicatesNeeded = maxReviews - alWasliyaReviews.length;
+    for (let i = 0; i < duplicatesNeeded; i++) {
+      const randomIndex = Math.floor(Math.random() * alWasliyaReviews.length);
+      balancedReviews.push(alWasliyaReviews[randomIndex]);
+    }
+  }
+
+  // Final shuffle of the balanced array
+  return shuffleArray(balancedReviews);
+}
+
+/**
+ * Fisher-Yates shuffle algorithm for randomizing array order
+ */
+function shuffleArray<T>(array: T[]): T[] {
+  const shuffled = [...array];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+}
+
 export const ReviewCarousel = ({
   reviews,
   onReadMore
@@ -40,9 +98,31 @@ export const ReviewCarousel = ({
   // Refs for touch gesture handling
   const containerRef = useRef<HTMLDivElement>(null);
   const touchStartXRef = useRef<number | null>(null);
+  
+  // Track previous reviews to detect changes
+  const previousReviewsRef = useRef<Review[]>([]);
 
-  // Calculate total pages
-  const totalPages = useMemo(() => Math.ceil(reviews.length / getReviewsPerPage()), [reviews.length, getReviewsPerPage]);
+  // Create balanced reviews on every mount or when reviews array changes
+  // Using useState with lazy initialization ensures balance happens on every mount
+  const [balancedReviews, setBalancedReviews] = useState<Review[]>(() => {
+    // This function runs only on mount, ensuring fresh balance on each page load
+    return createBalancedReviews(reviews);
+  });
+
+  // Re-balance when reviews array changes (by reference or length)
+  useEffect(() => {
+    const reviewsChanged =
+      previousReviewsRef.current.length !== reviews.length ||
+      previousReviewsRef.current !== reviews;
+
+    if (reviewsChanged) {
+      previousReviewsRef.current = reviews;
+      setBalancedReviews(createBalancedReviews(reviews));
+    }
+  }, [reviews]);
+
+  // Calculate total pages based on balanced reviews
+  const totalPages = useMemo(() => Math.ceil(balancedReviews.length / getReviewsPerPage()), [balancedReviews.length, getReviewsPerPage]);
 
   // Touch gesture handlers
   const handleTouchStart = (e: TouchEvent<HTMLDivElement>) => {
@@ -73,14 +153,14 @@ export const ReviewCarousel = ({
   }, []);
 
   // Create stable references for dependencies
-  const reviewsLength = reviews.length;
+  const reviewsLength = balancedReviews.length;
   const reviewsPerPage = getReviewsPerPage();
   
   useEffect(() => {
-    setCurrentPage(0); // Reset to first page on language change
+    setCurrentPage(0); // Reset to first page on language change or reviews change
   }, [reviewsLength, language, viewportWidth, reviewsPerPage, totalPages]);
 
-  if (!reviews || reviews.length === 0) {
+  if (!balancedReviews || balancedReviews.length === 0) {
     return null;
   }
 
@@ -92,10 +172,10 @@ export const ReviewCarousel = ({
     setCurrentPage(prev => (prev - 1 + totalPages) % totalPages);
   };
 
-  // Get current visible reviews
+  // Get current visible reviews from balanced array
   const visibleReviews = () => {
     const startIndex = currentPage * getReviewsPerPage();
-    return reviews.slice(startIndex, startIndex + getReviewsPerPage());
+    return balancedReviews.slice(startIndex, startIndex + getReviewsPerPage());
   };
 
   // Animation variants

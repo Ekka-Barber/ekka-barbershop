@@ -118,7 +118,10 @@ const ContentRenderer: React.FC<{
   }
 
   return (
-    <div className="relative w-full h-full flex items-center justify-center bg-gray-50 rounded-xl overflow-auto">
+    <div
+      className="relative w-full h-full flex items-center justify-center bg-gray-50 rounded-xl overflow-auto momentum-scroll custom-scrollbar"
+      style={{ WebkitOverflowScrolling: 'touch' }}
+    >
       <img
         src={content.url}
         alt={content.file_name || (language === 'ar' ? 'محتوى تسويقي' : 'Marketing Content')}

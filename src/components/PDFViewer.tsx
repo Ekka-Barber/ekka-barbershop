@@ -301,7 +301,15 @@ const PDFViewer = ({ pdfUrl, height, className, variant = 'default' }: PDFViewer
         )}
         style={isFullHeight ? { height: '100%' } : { minHeight: resolvedMinHeight }}
       >
-        <div ref={previewSurfaceRef} className={cn("px-3 py-4", variant !== 'dialog' && "overflow-auto", variant === 'dialog' && "px-0 py-2", isFullHeight && "h-full")}>
+        <div
+          ref={previewSurfaceRef}
+          className={cn(
+            "px-3 py-4 overflow-auto momentum-scroll custom-scrollbar",
+            variant === 'dialog' && "px-0 py-2",
+            isFullHeight && "h-full"
+          )}
+          style={{ WebkitOverflowScrolling: 'touch' }}
+        >
           <div className={cn("flex w-full items-center justify-center min-h-full", isFullHeight && "h-full")}>
             {previewMode === 'pdfjs' ? (
               shouldRenderPreviewDocument ? (
@@ -467,7 +475,8 @@ const PDFViewer = ({ pdfUrl, height, className, variant = 'default' }: PDFViewer
 
               <div
                 ref={modalSurfaceRef}
-                className="relative flex flex-1 items-center justify-center overflow-auto bg-[#F4F1EA] px-3 py-4"
+                className="relative flex flex-1 items-center justify-center overflow-auto bg-[#F4F1EA] px-3 py-4 momentum-scroll custom-scrollbar"
+                style={{ WebkitOverflowScrolling: 'touch' }}
               >
                 {modalMode === 'pdfjs' ? (
                   shouldRenderReaderDocument ? (

@@ -97,7 +97,7 @@ const ErrorFallback = ({ error, errorInfo, componentName, resetErrorBoundary }: 
             : 'We apologize for the inconvenience. Please try again.'}
         </p>
         {error && process.env.NODE_ENV === 'development' && (
-          <div className="mt-4 p-4 bg-gray-100 rounded-lg text-left text-sm overflow-auto">
+          <div className="mt-4 p-4 bg-gray-100 rounded-lg text-left text-sm overflow-auto custom-scrollbar momentum-scroll" style={{ WebkitOverflowScrolling: 'touch' }}>
             {componentName && (
               <div className="font-semibold text-red-600 mb-2">
                 Component: {componentName}

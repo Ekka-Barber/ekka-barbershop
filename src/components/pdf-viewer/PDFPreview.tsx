@@ -78,12 +78,11 @@ export const PDFPreview: React.FC<PDFPreviewProps> = ({
         <div
             ref={previewSurfaceRef}
             className={cn(
-                'px-3 py-4',
-                variant !== 'dialog' && 'overflow-auto',
-                variant === 'dialog' && 'overflow-auto',
+                'px-3 py-4 overflow-auto momentum-scroll custom-scrollbar',
                 variant === 'dialog' && 'px-0 py-2',
                 isFullHeight && 'h-full'
             )}
+            style={{ WebkitOverflowScrolling: 'touch' }}
         >
             <div className={cn('flex w-full items-center justify-center min-h-full', isFullHeight && 'h-full')}>
                 {mode === 'pdfjs' ? (

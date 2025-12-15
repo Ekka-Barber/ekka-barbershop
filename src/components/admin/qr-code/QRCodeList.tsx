@@ -10,7 +10,7 @@ interface QRCodeListProps {
 
 const QRCodeList = ({ qrCodes, selectedQrId, onSelectQrId }: QRCodeListProps) => {
   return (
-    <div className="flex gap-4 overflow-x-auto pb-2">
+    <div className="flex gap-4 overflow-x-auto pb-2 custom-scrollbar momentum-scroll" style={{ WebkitOverflowScrolling: 'touch' }}>
       {qrCodes.map((qr) => (
         <Button
           key={qr.id}

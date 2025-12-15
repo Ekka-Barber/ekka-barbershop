@@ -127,7 +127,7 @@ const LazyPDFViewerErrorFallback: React.FC<{ error: Error; retry: () => void; va
               <summary className="cursor-pointer text-xs text-red-500 hover:text-red-700">
                 Error Details (Development Only)
               </summary>
-              <pre className="mt-2 p-2 bg-red-100 rounded text-xs overflow-auto max-h-20">
+              <pre className="mt-2 p-2 bg-red-100 rounded text-xs overflow-auto max-h-20 custom-scrollbar">
                 {error.message}
               </pre>
             </details>
