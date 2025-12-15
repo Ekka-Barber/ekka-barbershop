@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { Loader2, Plus } from "lucide-react";
+import { insertData, rpcParams } from "@/lib/supabase-helpers";
 
 const CreateQRCodeForm = () => {
   const { toast } = useToast();
@@ -14,7 +15,7 @@ const CreateQRCodeForm = () => {
 
   // Set owner access before creating QR code
   const setOwnerAccess = async () => {
-    const { error } = await supabase.rpc('set_owner_access', { value: 'owner123' });
+    const { error } = await supabase.rpc('set_owner_access', rpcParams({ value: 'owner123' }));
     if (error) {
       console.error('Error setting owner access:', error);
       return false;
@@ -34,11 +35,11 @@ const CreateQRCodeForm = () => {
 
       const { error } = await supabase
         .from("qr_codes")
-        .insert([{ 
+        .insert(insertData('qr_codes', [{ 
           id: qrId, 
           url,
           is_active: true
-        }]);
+        }]));
 
       if (error) throw error;
     },

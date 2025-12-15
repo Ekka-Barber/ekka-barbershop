@@ -4,6 +4,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 import { PDFLoadingState } from './PDFLoadingState';
 import { PDFErrorState } from './PDFErrorState';
+import { pdfOptions } from './PDFViewer';
 import type { PDFMode } from './types';
 
 interface PDFPreviewProps {
@@ -95,6 +96,7 @@ export const PDFPreview: React.FC<PDFPreviewProps> = ({
                             onLoadProgress={onLoadProgress}
                             onLoadSuccess={onLoadSuccess}
                             onLoadError={onLoadError}
+                            options={pdfOptions}
                             renderMode="canvas"
                             className={cn('flex flex-col items-center justify-start gap-4', isFullHeight && 'h-full')}
                         >

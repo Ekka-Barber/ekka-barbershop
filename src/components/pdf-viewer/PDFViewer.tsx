@@ -13,19 +13,16 @@ import { Button } from '@/components/ui/button';
 // Configure PDF.js worker
 pdfjs.GlobalWorkerOptions.workerSrc = pdfWorker;
 
-// Configure PDF.js for better compatibility
+// PDF.js configuration options for Document components
+// These are passed to Document components via options prop, not GlobalWorkerOptions
+export const pdfOptions = {
+    cMapUrl: `https://unpkg.com/pdfjs-dist@${pdfjs.version}/cmaps/`,
+    cMapPacked: true,
+    standardFontDataUrl: `https://unpkg.com/pdfjs-dist@${pdfjs.version}/standard_fonts/`,
+};
+
+// Suppress PDF.js JPX warnings but allow important errors
 if (typeof window !== 'undefined') {
-    // Configure standard font and cmap URLs
-    pdfjs.GlobalWorkerOptions.cMapUrl = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/cmaps/`;
-    pdfjs.GlobalWorkerOptions.cMapPacked = true;
-
-    // Set standard font URL
-    pdfjs.GlobalWorkerOptions.standardFontDataUrl = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/standard_fonts/`;
-
-    // Configure OpenJPEG WebAssembly for JPEG 2000 support
-    pdfjs.GlobalWorkerOptions.imageResourcesPath = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/image_decoders/`;
-
-    // Suppress PDF.js JPX warnings but allow important errors
     const originalWarn = console.warn;
     console.warn = (...args) => {
         const message = args.join(' ');

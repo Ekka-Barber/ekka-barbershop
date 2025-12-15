@@ -7,6 +7,7 @@ import { X } from 'lucide-react';
 import { PDFLoadingState } from './PDFLoadingState';
 import { PDFErrorState } from './PDFErrorState';
 import { PDFToolbar } from './PDFToolbar';
+import { pdfOptions } from './PDFViewer';
 import type { PDFMode } from './types';
 
 interface PDFReaderProps {
@@ -154,6 +155,7 @@ export const PDFReader: React.FC<PDFReaderProps> = ({
                                     onLoadProgress={onLoadProgress}
                                     onLoadSuccess={onLoadSuccess}
                                     onLoadError={onLoadError}
+                                    options={pdfOptions}
                                     renderMode="canvas"
                                     className="w-full space-y-4"
                                 >
@@ -198,10 +200,10 @@ export const PDFReader: React.FC<PDFReaderProps> = ({
 
                         {/* Loading states */}
                         {mode === 'pdfjs' && loading && shouldRenderDocument && (
-                            <PDFLoadingState progress={progress} label={progressLabel} />
+                            <PDFLoadingState label={progressLabel} />
                         )}
 
-                        {mode === 'native' && nativeLoading && <PDFLoadingState progress={0} label={t('loading.pdf.viewer')} />}
+                        {mode === 'native' && nativeLoading && <PDFLoadingState label={t('loading.pdf.viewer')} />}
 
                         {/* Native error state */}
                         {mode === 'native' && nativeError && (
