@@ -4,7 +4,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 import { PDFLoadingState } from './PDFLoadingState';
 import { PDFErrorState } from './PDFErrorState';
-import { pdfOptions } from './PDFViewer';
+import { pdfOptions } from './pdfConfig';
 import type { PDFMode } from './types';
 
 interface PDFPreviewProps {

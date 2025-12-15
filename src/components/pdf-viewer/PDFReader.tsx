@@ -7,7 +7,7 @@ import { X } from 'lucide-react';
 import { PDFLoadingState } from './PDFLoadingState';
 import { PDFErrorState } from './PDFErrorState';
 import { PDFToolbar } from './PDFToolbar';
-import { pdfOptions } from './PDFViewer';
+import { pdfOptions } from './pdfConfig';
 import type { PDFMode } from './types';
 
 interface PDFReaderProps {
@@ -16,7 +16,6 @@ interface PDFReaderProps {
     pdfUrl: string;
     numPages: number | null;
     loading: boolean;
-    progress: number;
     error: string | null;
     mode: PDFMode;
     attempt: number;
@@ -53,7 +52,6 @@ export const PDFReader: React.FC<PDFReaderProps> = ({
     pdfUrl,
     numPages,
     loading,
-    progress,
     error,
     mode,
     attempt,
