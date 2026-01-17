@@ -42,7 +42,7 @@ export default function GoogleReviews() {
 
         {/* Loading State */}
         {isLoading && (
-          <div className="overflow-x-auto -mx-4 px-4">
+          <div className="overflow-x-auto -mx-4 px-4 custom-scrollbar momentum-scroll" style={{ WebkitOverflowScrolling: 'touch' }}>
             <div className="flex gap-4 pb-4">
               {[...Array(3)].map((_, index) => <ReviewSkeleton key={`skeleton-${index}`} />)}
             </div>

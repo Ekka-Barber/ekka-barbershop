@@ -37,7 +37,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ activeTab, onTabChan
       <div className="flex h-14 items-center border-b px-4 bg-white">
         <h2 className="text-lg font-semibold">Admin</h2>
       </div>
-      <div className="flex-1 overflow-auto py-2 bg-white">
+      <div className="flex-1 overflow-auto momentum-scroll custom-scrollbar py-2 bg-white" style={{ WebkitOverflowScrolling: 'touch' }}>
         <SidebarMenu>
           {navigationItems.map((item) => (
             <SidebarMenuItem key={item.id} className="px-2 bg-white">

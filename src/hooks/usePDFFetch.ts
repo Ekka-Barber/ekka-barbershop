@@ -73,6 +73,9 @@ export const usePDFFetch = (
       throw error;
     }
 
+    console.log(`[DEBUG] Fetched ${category} files:`, data);
+    console.log(`[DEBUG] Data length:`, data?.length || 0);
+
     if (data && data.length > 0) {
       // Get public URLs for all files
       const filesWithUrls = await Promise.all(data.map(async (file) => {

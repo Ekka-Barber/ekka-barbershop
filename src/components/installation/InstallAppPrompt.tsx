@@ -11,7 +11,6 @@ export const InstallAppPrompt = () => {
   const { t, language } = useLanguage();
   const [isInstalling, setIsInstalling] = useState(false);
   const [isPromptDismissed, setIsPromptDismissed] = useState(false);
-  const [showInstructions, setShowInstructions] = useState(false);
   const install = usePWAInstall();
   const { toast } = useToast();
   const platform = getPlatformType();
@@ -54,7 +53,7 @@ export const InstallAppPrompt = () => {
         setIsInstalling(false);
       }
     } else if (platform === 'ios') {
-      setShowInstructions(true);
+      // iOS installation handled by IOSInstallGuide component
     }
   };
 
@@ -76,7 +75,6 @@ export const InstallAppPrompt = () => {
       onClick={handleInstallClick}
       isInstalling={isInstalling}
       onDismiss={handleDismiss}
-      showInstructions={showInstructions}
       handleInstallClick={handleInstallClick}
     />
   );

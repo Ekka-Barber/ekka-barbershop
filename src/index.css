@@ -1,6 +1,52 @@
 /* Import IBM Plex Sans Arabic font */
 @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@100;200;300;400;500;600;700&display=swap');
 
+/* Hide any Lovable-related elements and triggers */
+div[id*="lovable"],
+div[class*="lovable"],
+button[id*="lovable"],
+button[class*="lovable"],
+a[id*="lovable"],
+a[class*="lovable"],
+span[id*="lovable"],
+span[class*="lovable"],
+div[data-lovable],
+div[data-testid*="lovable"],
+.flocktory-widget,
+.flocktory,
+.lovable-widget,
+.lovable-trigger,
+.lovable-button,
+#lovable-dev-tools,
+#lovable-trigger,
+[data-lovable-id],
+[data-lovable-trigger],
+/* Hide any elements with lovable in src or href */
+*[src*="lovable"],
+*[href*="lovable"],
+iframe[src*="lovable"],
+script[src*="lovable"],
+/* Hide Flocktory widgets (Lovable's widget system) */
+div[id*="flocktory"],
+div[class*="flocktory"],
+.flocktory-overlay,
+.flocktory-popup,
+.flocktory-modal,
+/* Hide any injected scripts from lovable domains */
+script[src*="lovable.app"],
+script[src*="flocktory.com"] {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  height: 0 !important;
+  width: 0 !important;
+  overflow: hidden !important;
+  position: absolute !important;
+  left: -9999px !important;
+  top: -9999px !important;
+  pointer-events: none !important;
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -25,6 +71,32 @@
   .touch-target {
     min-height: 44px;
     min-width: 44px;
+  }
+
+  /* Brand-aligned scrollbar styling - gold accent scrollbar */
+  .custom-scrollbar {
+    scrollbar-width: auto;
+    scrollbar-color: #C4A36F #FBF7F2;
+  }
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 12px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: #FBF7F2;
+    border-radius: 6px;
+    border: 1px solid #E4D8C8;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #D4B87A, #C4A36F, #B8956A);
+    border-radius: 6px;
+    border: 2px solid #FBF7F2;
+    box-shadow: inset 0 0 2px rgba(0, 0, 0, 0.1);
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, #E5C98B, #D4B87A, #C4A36F);
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb:active {
+    background: linear-gradient(180deg, #C4A36F, #B8956A, #A8855A);
   }
 }
 

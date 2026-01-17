@@ -27,8 +27,10 @@ const Offers = () => {
     language
   });
 
+  console.log('[DEBUG] Offers page - offersFiles:', offersFiles, 'isLoading:', isLoading, 'fetchError:', fetchError);
+
   if (fetchError) {
-    // Error handling is done through the UI, no need for console.error
+    console.error('[DEBUG] Offers fetch error:', fetchError);
   }
 
   const getBadgeText = (branchName: string | null) => {

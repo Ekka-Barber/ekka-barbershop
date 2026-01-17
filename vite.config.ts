@@ -75,7 +75,6 @@ export default defineConfig(({ mode }) => ({
       '@supabase/supabase-js',
       'recharts',
       'date-fns',
-      'lodash',
       'clsx',
       'framer-motion',
       '@emotion/is-prop-valid',

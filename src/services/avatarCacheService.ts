@@ -31,16 +31,20 @@ export async function getCachedAvatar(googleAvatarUrl: string): Promise<string |
       return null;
     }
 
+    // Type assertion for Supabase query result
+    type CacheData = { cached_avatar_url: string; access_count: number };
+    const cacheData = data as CacheData;
+
     // Update last accessed time and increment access count
     await supabase
       .from('review_avatar_cache')
       .update({
         last_accessed_at: new Date().toISOString(),
-        access_count: (data.access_count || 0) + 1
+        access_count: (cacheData.access_count || 0) + 1
       })
       .eq('google_avatar_url', googleAvatarUrl);
 
-    return data.cached_avatar_url;
+    return cacheData.cached_avatar_url;
   } catch (error) {
     console.error('Error getting cached avatar:', error);
     return null;
@@ -137,8 +141,12 @@ export async function cleanupOldAvatars(): Promise<void> {
       return;
     }
 
+    // Type assertion for old avatars
+    type OldAvatar = { id: string; cached_avatar_url: string };
+    const typedOldAvatars = oldAvatars as OldAvatar[];
+
     // Delete from storage
-    for (const avatar of oldAvatars) {
+    for (const avatar of typedOldAvatars) {
       const fileName = avatar.cached_avatar_url.split('/').pop();
       if (fileName) {
         await supabase.storage.from(BUCKET_NAME).remove([fileName]);

@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { Suspense, useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2, PieChart, QrCode } from "lucide-react";
@@ -11,8 +11,17 @@ import QRCodeDisplay from "./QRCodeDisplay";
 import QRCodeList from "./qr-code/QRCodeList";
 import UpdateQRCodeUrl from "./qr-code/UpdateQRCodeUrl";
 import { useOwnerAccess } from "./qr-code/useOwnerAccess";
-import { QRCodeAnalytics } from "./qr-code/QRCodeAnalytics";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { lazyWithRetry } from "@/utils/lazyWithRetry";
+
+const QRCodeAnalytics = lazyWithRetry(() => import("./qr-code/QRCodeAnalytics").then(mod => ({ default: mod.QRCodeAnalytics })));
+
+const AnalyticsFallback = () => (
+  <div className="flex items-center justify-center p-8 text-muted-foreground">
+    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+    <span>Loading analytics...</span>
+  </div>
+);
 
 const QRCodeManager = () => {
   const [selectedQrId, setSelectedQrId] = useState<string | null>(null);
@@ -120,7 +129,7 @@ const QRCodeManager = () => {
   return (
     <div className="space-y-6 pb-20 md:pb-0">
       <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'management' | 'analytics')} className="w-full">
-        <div className="overflow-x-auto pb-2">
+        <div className="overflow-x-auto pb-2 custom-scrollbar momentum-scroll" style={{ WebkitOverflowScrolling: 'touch' }}>
           <TabsList className="grid w-full grid-cols-2 mb-4">
             <TabsTrigger value="management" className="flex items-center gap-2">
               <QrCode className="h-4 w-4" />
@@ -171,7 +180,9 @@ const QRCodeManager = () => {
         </TabsContent>
         
         <TabsContent value="analytics">
-          <QRCodeAnalytics qrCodes={qrCodes || []} />
+          <Suspense fallback={<AnalyticsFallback />}>
+            <QRCodeAnalytics qrCodes={qrCodes || []} />
+          </Suspense>
         </TabsContent>
       </Tabs>
     </div>

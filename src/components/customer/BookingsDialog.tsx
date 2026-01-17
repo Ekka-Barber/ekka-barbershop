@@ -1,5 +1,11 @@
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+} from "@/components/ui/sheet";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { motion } from "@/lib/motion";
 import { MapPin } from "lucide-react";
@@ -52,15 +58,18 @@ const BookingsDialog = ({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[calc(100vw-2rem)] sm:max-w-xl bg-gradient-to-br from-white/98 to-white/95 border-2 border-white/40 shadow-[0_40px_100px_-40px_rgba(0,0,0,0.5),0_20px_50px_-20px_rgba(117,106,248,0.25)] p-0 overflow-hidden rounded-2xl backdrop-blur-xl max-h-[90vh] overflow-y-auto" showCloseButton={false}>
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent
+        side="bottom"
+        className="bg-gradient-to-br from-white/98 to-white/95 border-2 border-white/40 shadow-[0_40px_100px_-40px_rgba(0,0,0,0.5),0_20px_50px_-20px_rgba(232,198,111,0.25)] rounded-t-2xl sm:rounded-2xl overflow-hidden backdrop-blur-xl max-h-[90vh] pb-[calc(var(--sab)+1rem)] sm:max-w-xl sm:mx-auto"
+      >
         <motion.div
           initial="hidden"
           animate="visible"
           variants={fadeIn}
           className="relative w-full"
         >
-          <div className="h-24 bg-gradient-to-r from-[#9B6CF6] via-[#8B5CF6] to-[#7C3AED] flex items-center justify-center relative overflow-hidden shadow-[0_10px_40px_-10px_rgba(139,92,246,0.5)]">
+          <SheetHeader className="h-24 bg-gradient-to-r from-[#E8C66F] via-[#D6B35A] to-[#C79A2A] flex items-center justify-center relative overflow-hidden shadow-[0_10px_40px_-10px_rgba(232,198,111,0.5)] flex-shrink-0">
             <motion.div
               className="absolute inset-0 w-full h-full opacity-20"
               style={{
@@ -103,18 +112,19 @@ const BookingsDialog = ({
                 {isRTL ? 'احجز موعدك أونلاين' : 'Book Online'}
               </h1>
             </motion.div>
-          </div>
+          </SheetHeader>
 
-          <DialogHeader className="px-4 sm:px-6 pt-4 sm:pt-6 pb-2">
-            <DialogTitle className="text-center text-xl font-bold text-[#222222] mb-4">
-              {isRTL ? 'اختر الفرع' : 'Select Branch'}
-            </DialogTitle>
-            <DialogDescription className="text-center text-gray-600 text-sm max-w-md mx-auto">
-              {isRTL
-                ? 'احجز موعدك أونلاين عبر منصة فريشا واختر الخدمات التي تناسبك في أي وقت وفي أي مكان.'
-                : 'Book your appointment online through Fresha platform and choose services that suit you anytime, anywhere.'}
-            </DialogDescription>
-          </DialogHeader>
+          <div className="flex-1 overflow-y-auto min-h-0 momentum-scroll custom-scrollbar" style={{ WebkitOverflowScrolling: 'touch' }}>
+            <div className="px-4 sm:px-6 pt-4 sm:pt-6 pb-2">
+              <SheetTitle className="text-center text-xl font-bold text-[#222222] mb-4">
+                {isRTL ? 'اختر الفرع' : 'Select Branch'}
+              </SheetTitle>
+              <SheetDescription className="text-center text-gray-600 text-sm max-w-md mx-auto">
+                {isRTL
+                  ? 'احجز موعدك أونلاين عبر منصة فريشا واختر الخدمات التي تناسبك في أي وقت وفي أي مكان.'
+                  : 'Book your appointment online through Fresha platform and choose services that suit you anytime, anywhere.'}
+              </SheetDescription>
+            </div>
 
           <motion.div
             variants={containerVariants}
@@ -158,7 +168,7 @@ const BookingsDialog = ({
             ))}
           </motion.div>
 
-          <div className="p-4 bg-gradient-to-b from-white/50 to-purple-50/60 border-t border-white/60 text-center backdrop-blur-sm">
+          <div className="p-4 bg-gradient-to-b from-white/50 to-yellow-50/60 border-t border-white/60 text-center backdrop-blur-sm flex-shrink-0">
             <motion.p
               className="text-xs text-gray-500"
               initial={{ opacity: 0 }}
@@ -170,9 +180,10 @@ const BookingsDialog = ({
                 : 'Book your appointment now to avoid waiting and save time'}
             </motion.p>
           </div>
+        </div>
         </motion.div>
-      </DialogContent>
-    </Dialog>
+      </SheetContent>
+    </Sheet>
   );
 };
 

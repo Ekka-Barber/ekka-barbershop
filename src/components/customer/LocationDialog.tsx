@@ -1,7 +1,14 @@
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+} from "@/components/ui/sheet";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { motion } from "@/lib/motion";
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { MapPin, ExternalLink, Building } from "lucide-react";
 import { Branch } from "@/types/branch";
 
@@ -51,24 +58,28 @@ export const LocationDialog = ({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[calc(100vw-2rem)] sm:max-w-xl bg-gradient-to-br from-white/98 to-white/95 border-2 border-white/40 shadow-[0_40px_100px_-40px_rgba(0,0,0,0.5),0_20px_50px_-20px_rgba(74,74,74,0.2)] p-0 overflow-hidden rounded-2xl backdrop-blur-xl max-h-[90vh] overflow-y-auto" showCloseButton={false}>
-        <DialogTitle className="sr-only">
-          {isRTL ? 'فروعنا' : 'Our Branches'}
-        </DialogTitle>
-        <DialogDescription className="sr-only">
-          {isRTL
-            ? 'انقر على أي فرع للانتقال مباشرة إلى خرائط جوجل'
-            : 'Click on any branch to navigate directly to Google Maps'}
-        </DialogDescription>
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent
+        side="bottom"
+        className="bg-gradient-to-br from-white/98 to-white/95 border-2 border-white/40 shadow-[0_40px_100px_-40px_rgba(0,0,0,0.5),0_20px_50px_-20px_rgba(232,198,111,0.2)] rounded-t-2xl sm:rounded-2xl overflow-hidden backdrop-blur-xl max-h-[90vh] pb-[calc(var(--sab)+1rem)] sm:max-w-xl sm:mx-auto"
+      >
+        <VisuallyHidden>
+          <SheetTitle>
+            {isRTL ? 'فروعنا' : 'Our Branches'}
+          </SheetTitle>
+          <SheetDescription>
+            {isRTL
+              ? 'انقر على أي فرع للانتقال مباشرة إلى خرائط جوجل'
+              : 'Click on any branch to navigate directly to Google Maps'}
+          </SheetDescription>
+        </VisuallyHidden>
         <motion.div
           initial="hidden"
           animate="visible"
           variants={fadeIn}
           className="relative w-full"
         >
-          {/* Decorative top banner */}
-          <div className="h-24 bg-gradient-to-r from-[#5a5a5a] via-[#4a4a4a] to-[#3a3a3a] flex items-center justify-center relative overflow-hidden shadow-[0_10px_40px_-10px_rgba(0,0,0,0.4)]">
+          <SheetHeader className="h-24 bg-gradient-to-r from-[#5a5a5a] via-[#4a4a4a] to-[#3a3a3a] flex items-center justify-center relative overflow-hidden shadow-[0_10px_40px_-10px_rgba(0,0,0,0.4)] flex-shrink-0">
             <motion.div
               className="absolute inset-0 w-full h-full opacity-20"
               initial={{ backgroundPosition: '0% 0%' }}
@@ -101,13 +112,14 @@ export const LocationDialog = ({
                 {isRTL ? 'فروعنا' : 'Our Branches'}
               </h1>
             </motion.div>
-          </div>
+          </SheetHeader>
 
           <motion.div
             variants={containerVariants}
             initial="hidden"
             animate="visible"
-            className="grid grid-cols-1 xs:grid-cols-2 gap-3 p-4 sm:p-6"
+            className="flex-1 overflow-y-auto min-h-0 momentum-scroll custom-scrollbar grid grid-cols-1 xs:grid-cols-2 gap-3 p-4 sm:p-6"
+            style={{ WebkitOverflowScrolling: 'touch' }}
           >
             {branches?.map((branch) => (
               <motion.div
@@ -159,7 +171,7 @@ export const LocationDialog = ({
             </motion.p>
           </div>
         </motion.div>
-      </DialogContent>
-    </Dialog>
+      </SheetContent>
+    </Sheet>
   );
 };

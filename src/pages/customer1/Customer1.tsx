@@ -79,9 +79,9 @@ const Customer1 = () => {
         refetchBranches()
       ]);
       toast({
-        title: t('loading'),
-        description: 'Content has been updated',
-        duration: 2000,
+        title: t('success'),
+        description: t('branches.updated', 'Branches and content have been refreshed successfully'),
+        duration: 3000,
       });
     } catch {
       toast({

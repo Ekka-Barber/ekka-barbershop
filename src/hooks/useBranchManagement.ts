@@ -3,6 +3,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
 import { logger } from '@/utils/logger';
+import { BranchFormData } from '@/types/branch';
+import { updateData, insertData } from '@/lib/supabase-helpers';
 
 interface WorkingHours {
   [day: string]: {
@@ -25,17 +27,6 @@ export interface Branch {
   working_hours?: WorkingHours;
   created_at: string;
   updated_at: string;
-}
-
-export interface BranchFormData {
-  name: string;
-  name_ar: string;
-  address: string;
-  address_ar: string;
-  is_main: boolean;
-  whatsapp_number: string;
-  google_maps_url: string;
-  google_place_id?: string;
 }
 
 export const useBranchManagement = () => {
@@ -74,13 +65,13 @@ export const useBranchManagement = () => {
       if (branchData.is_main) {
         await supabase
           .from('branches')
-          .update({ is_main: false })
+          .update(updateData('branches', { is_main: false }))
           .neq('id', '00000000-0000-0000-0000-000000000000'); // This ensures all branches are updated
       }
       
-      const { data, error } = await supabase
+      const { data, error} = await supabase
         .from('branches')
-        .insert([branchData])
+        .insert(insertData('branches', [branchData]))
         .select()
         .single();
         
