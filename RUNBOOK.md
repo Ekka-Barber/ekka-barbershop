@@ -5,12 +5,13 @@
 - Supabase project credentials
 
 ## Environment Variables
-Set these before running the app:
+Set these before running the app (optional for deploy: the app uses fallbacks for project `jfnjvphxhzxojxgptmtu` if unset):
 
-- `VITE_SUPABASE_URL`
-- `VITE_SUPABASE_ANON_KEY`
+- `VITE_SUPABASE_URL` — Supabase project URL
+- `VITE_SUPABASE_ANON_KEY` — Supabase anon or publishable key
 
-You can add them to a local `.env` file in `ekka-app/`.
+- **Local**: add them to a `.env` file in the project root (see `.env.example`).
+- **Deploy (Netlify/Vercel/etc.)**: set the same vars in the host’s environment so they are available at build time. If they are not set, the built app still loads using the built-in fallbacks.
 
 ## Install + Run
 ```bash
