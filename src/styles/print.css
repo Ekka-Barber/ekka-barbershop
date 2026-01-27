@@ -1,0 +1,318 @@
+/* Print styles for performance reports */
+@media print {
+  /* Hide non-essential elements when printing */
+  .no-print,
+  .export-controls,
+  .navigation,
+  .sidebar,
+  .footer,
+  button:not(.print-button),
+  .tabs-list,
+  .dialog-trigger {
+    display: none !important;
+  }
+
+  /* Reset page styles for printing */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  body {
+    font-family:
+      -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-size: 12pt;
+    line-height: 1.4;
+    margin: 0;
+    padding: 20pt;
+    background: white !important;
+    color: black !important;
+  }
+
+  /* Page layout */
+  @page {
+    margin: 1in;
+    size: A4;
+    color: black;
+    background: white;
+  }
+
+  .print-container {
+    max-width: 100%;
+    margin: 0;
+    padding: 0;
+  }
+
+  /* Headers and titles */
+  .print-header {
+    text-align: center;
+    margin-bottom: 30pt;
+    border-bottom: 2pt solid #333;
+    padding-bottom: 15pt;
+  }
+
+  .print-title {
+    font-size: 24pt;
+    font-weight: bold;
+    margin-bottom: 8pt;
+    color: #333 !important;
+  }
+
+  .print-subtitle {
+    font-size: 14pt;
+    color: #666 !important;
+    margin-bottom: 8pt;
+  }
+
+  .print-date {
+    font-size: 10pt;
+    color: #666 !important;
+  }
+
+  /* Performance metrics grid */
+  .print-metrics {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20pt;
+    margin-bottom: 30pt;
+  }
+
+  .print-metric-card {
+    border: 1pt solid #ccc;
+    padding: 15pt;
+    border-radius: 4pt;
+    background: #f9f9f9 !important;
+  }
+
+  .print-metric-title {
+    font-size: 14pt;
+    font-weight: bold;
+    margin-bottom: 8pt;
+    color: #333 !important;
+  }
+
+  .print-metric-value {
+    font-size: 20pt;
+    font-weight: bold;
+    color: #000 !important;
+  }
+
+  /* Tables */
+  .print-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20pt;
+    page-break-inside: avoid;
+  }
+
+  .print-table th,
+  .print-table td {
+    border: 1pt solid #333;
+    padding: 8pt;
+    text-align: left;
+    font-size: 10pt;
+  }
+
+  .print-table th {
+    background-color: #e9e9e9 !important;
+    font-weight: bold;
+    color: #333 !important;
+  }
+
+  .print-table tr:nth-child(even) {
+    background-color: #f5f5f5 !important;
+  }
+
+  /* Section headers */
+  .print-section {
+    margin-bottom: 25pt;
+    page-break-inside: avoid;
+  }
+
+  .print-section-title {
+    font-size: 16pt;
+    font-weight: bold;
+    margin-bottom: 12pt;
+    color: #333 !important;
+    border-bottom: 1pt solid #ccc;
+    padding-bottom: 5pt;
+  }
+
+  /* Top performers section */
+  .print-performers {
+    margin-bottom: 25pt;
+  }
+
+  .print-performer-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8pt;
+    border-bottom: 1pt solid #ddd;
+    background: none !important;
+  }
+
+  .print-performer-rank {
+    font-weight: bold;
+    font-size: 14pt;
+    color: #333 !important;
+    margin-right: 10pt;
+  }
+
+  .print-performer-name {
+    flex: 1;
+    font-size: 12pt;
+    color: #000 !important;
+  }
+
+  .print-performer-value {
+    font-weight: bold;
+    font-size: 12pt;
+    color: #000 !important;
+  }
+
+  /* Department performance */
+  .print-departments {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15pt;
+    margin-bottom: 25pt;
+  }
+
+  .print-department-card {
+    border: 1pt solid #ccc;
+    padding: 12pt;
+    border-radius: 4pt;
+    background: #f9f9f9 !important;
+  }
+
+  .print-department-name {
+    font-weight: bold;
+    font-size: 12pt;
+    margin-bottom: 5pt;
+    color: #333 !important;
+  }
+
+  .print-department-stats {
+    font-size: 10pt;
+    color: #666 !important;
+  }
+
+  /* Page breaks */
+  .print-page-break {
+    page-break-before: always;
+  }
+
+  .print-avoid-break {
+    page-break-inside: avoid;
+  }
+
+  /* Footer */
+  .print-footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    text-align: center;
+    font-size: 9pt;
+    color: #666 !important;
+    border-top: 1pt solid #ccc;
+    padding-top: 5pt;
+    background: white !important;
+  }
+
+  /* Charts - hide complex charts, show simple alternatives */
+  .chart-container,
+  canvas {
+    display: none !important;
+  }
+
+  .print-chart-placeholder {
+    border: 1pt solid #ccc;
+    padding: 20pt;
+    text-align: center;
+    background: #f9f9f9 !important;
+    color: #666 !important;
+    margin: 15pt 0;
+  }
+
+  /* Progress bars for print */
+  .print-progress-bar {
+    width: 100%;
+    height: 8pt;
+    background-color: #e0e0e0 !important;
+    border: 1pt solid #ccc;
+    margin: 5pt 0;
+  }
+
+  .print-progress-fill {
+    height: 100%;
+    background-color: #666 !important;
+    transition: none;
+  }
+
+  /* Badge styles for print */
+  .print-badge {
+    display: inline-block;
+    padding: 2pt 6pt;
+    border: 1pt solid #333;
+    border-radius: 2pt;
+    font-size: 9pt;
+    font-weight: bold;
+    background: #f0f0f0 !important;
+    color: #333 !important;
+  }
+
+  .print-badge-success {
+    background: #e8f5e8 !important;
+    border-color: #4caf50;
+    color: #2e7d32 !important;
+  }
+
+  .print-badge-warning {
+    background: #fff3e0 !important;
+    border-color: #ff9800;
+    color: #f57c00 !important;
+  }
+
+  .print-badge-error {
+    background: #ffebee !important;
+    border-color: #f44336;
+    color: #c62828 !important;
+  }
+
+  /* Responsive print adjustments */
+  @media print and (max-width: 8.5in) {
+    .print-metrics {
+      grid-template-columns: 1fr;
+    }
+
+    .print-departments {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  /* Force page breaks for long content */
+  .print-section:nth-child(3n) {
+    page-break-after: always;
+  }
+
+  /* Ensure tables don't break across pages poorly */
+  .print-table tbody tr {
+    page-break-inside: avoid;
+  }
+
+  /* Optimize font sizes for print */
+  .print-small-text {
+    font-size: 9pt;
+  }
+
+  .print-medium-text {
+    font-size: 11pt;
+  }
+
+  .print-large-text {
+    font-size: 14pt;
+  }
+}
