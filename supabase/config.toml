@@ -1,8 +1,0 @@
-
-project_id = "jfnjvphxhzxojxgptmtu"
-
-[functions.google-places]
-  verify_jwt = false  # Explicitly disable JWT verification for this function
-
-[functions.qr-redirect]
-  verify_jwt = false  # Disable JWT verification for public QR redirection
