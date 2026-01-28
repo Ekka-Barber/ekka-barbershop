@@ -1,13 +1,13 @@
 # KNIP Reality Check Plan
 
-**Last Updated**: 2026-01-28 (Phase 1 Complete)  
+**Last Updated**: 2026-01-28 (Phase 2 Complete)  
 **Knip Version**: 5.82.1  
 **Build/Lint/TypeCheck**: All passing
 
 ## Summary
 - Ran `npm run find-unused:report` to audit unused files, dependencies, exports, and duplicates.
 - **Current**: 53 unused files, 8 unused dependencies, 9 unused devDependencies, 199 unused exports, 95 unused types, 5 duplicate exports.
-- **Progress**: 23 files deleted (Phase 1 complete - all 6 tasks completed on 2026-01-28)
+- **Progress**: 34 files deleted (Phase 1 & 2 complete - all 11 tasks completed on 2026-01-28)
 - Documented true positives, false positives, and action items below.
 
 ---
@@ -109,20 +109,22 @@
 
 **Status**: Completed 2026-01-28. Verified: lint ?, build ?, typecheck ?. Files confirmed removed from knip report.
 
-### 1.14 Supplanted Salary Engine Code (9 files)
-- `packages/shared/src/lib/salary/index.ts`
-- `packages/shared/src/lib/salary/calculators/BaseCalculator.ts`
-- `packages/shared/src/lib/salary/calculators/CalculatorFactory.ts`
-- `packages/shared/src/lib/salary/calculators/CommissionCalculator.ts`
-- `packages/shared/src/lib/salary/calculators/DynamicBasicCalculator.ts`
-- `packages/shared/src/lib/salary/calculators/FixedCalculator.ts`
-- `packages/shared/src/lib/salary/calculators/TieredCommissionCalculator.ts`
-- `packages/shared/src/lib/salary/hooks/useCalculator.ts`
-- `packages/shared/src/lib/salary/types/salary.ts`
-- `packages/shared/src/lib/salary/utils/calculatorUtils.ts`
-- `packages/shared/src/lib/salary/calculators/types/calculatorTypes.ts`
+### 1.14 Supplanted Salary Engine Code (11 files) ? **COMPLETED**
+- ~~`packages/shared/src/lib/salary/index.ts`~~ ? **DELETED**
+- ~~`packages/shared/src/lib/salary/calculators/BaseCalculator.ts`~~ ? **DELETED**
+- ~~`packages/shared/src/lib/salary/calculators/CalculatorFactory.ts`~~ ? **DELETED**
+- ~~`packages/shared/src/lib/salary/calculators/CommissionCalculator.ts`~~ ? **DELETED**
+- ~~`packages/shared/src/lib/salary/calculators/DynamicBasicCalculator.ts`~~ ? **DELETED**
+- ~~`packages/shared/src/lib/salary/calculators/FixedCalculator.ts`~~ ? **DELETED**
+- ~~`packages/shared/src/lib/salary/calculators/TieredCommissionCalculator.ts`~~ ? **DELETED**
+- ~~`packages/shared/src/lib/salary/hooks/useCalculator.ts`~~ ? **DELETED**
+- ~~`packages/shared/src/lib/salary/types/salary.ts`~~ ? **DELETED**
+- ~~`packages/shared/src/lib/salary/utils/calculatorUtils.ts`~~ ? **DELETED**
+- ~~`packages/shared/src/lib/salary/calculators/types/calculatorTypes.ts`~~ ? **DELETED**
 
 **Reason**: App only imports from `@shared/lib/salary/calculations/`. The higher-level API, calculators, and hooks are unused.
+
+**Status**: Completed 2026-01-28. Verified: lint ?, build ?, typecheck ?. Files confirmed removed from knip report.
 
 ### 1.15 Empty Barrel Exports (21 files)
 Multiple `index.ts` files that re-export symbols never imported through the barrel:
@@ -251,13 +253,13 @@ Multiple `index.ts` files that re-export symbols never imported through the barr
 5. ? **COMPLETED** - Delete unused constants: `design-tokens.ts`, `tables.ts` (2026-01-28)
 6. ? **COMPLETED** - Delete dead PDF chain: `salary-pdf-constants.ts`, `salary-pdf-html-generator.ts`, `salary-pdf-styles.ts`, `salary-pdf-utils.ts` (2026-01-28)
 
-### Phase 2: Salary Module Cleanup
-1. Delete entire `packages/shared/src/lib/salary/calculators/` directory
-2. Delete `packages/shared/src/lib/salary/hooks/useCalculator.ts`
-3. Delete `packages/shared/src/lib/salary/types/salary.ts`
-4. Delete `packages/shared/src/lib/salary/utils/calculatorUtils.ts`
-5. Delete `packages/shared/src/lib/salary/index.ts`
-6. Keep `packages/shared/src/lib/salary/calculations/` (actively used)
+### Phase 2: Salary Module Cleanup ? **COMPLETED**
+1. ? **COMPLETED** - Delete entire `packages/shared/src/lib/salary/calculators/` directory (2026-01-28)
+2. ? **COMPLETED** - Delete `packages/shared/src/lib/salary/hooks/useCalculator.ts` (2026-01-28)
+3. ? **COMPLETED** - Delete `packages/shared/src/lib/salary/types/salary.ts` (2026-01-28)
+4. ? **COMPLETED** - Delete `packages/shared/src/lib/salary/utils/calculatorUtils.ts` (2026-01-28)
+5. ? **COMPLETED** - Delete `packages/shared/src/lib/salary/index.ts` (2026-01-28)
+6. ? **KEPT** - Keep `packages/shared/src/lib/salary/calculations/` (actively used)
 
 ### Phase 3: Dependency Cleanup
 ```bash
@@ -293,15 +295,15 @@ npm run find-unused # Verify reductions
 
 ## 8. Metrics
 
-| Category | Before | After Phase 1 (Complete) | Target |
+| Category | Before | After Phase 1 & 2 | Target |
 | --- | --- | --- | --- |
-| Unused files | 64 | **46** (18 deleted) | <10 (barrels only) |
+| Unused files | 64 | **35** (29 deleted) | <10 (barrels only) |
 | Unused deps | 8 | 8 (not started) | 1 (@ekka/shared) |
 | Unused devDeps | 9 | 9 (not started) | 5 (testing tools) |
 | Unused exports | 199 | 199 (not started) | <50 |
 | Duplicate exports | 5 | 5 (not started) | 0 |
 
-**Progress**: Phase 1 complete (18 files removed). All Phase 1 tasks completed. Next: Phase 2 (Salary Module Cleanup).
+**Progress**: Phase 1 & 2 complete (29 files removed). Next: Phase 3 (Dependency Cleanup) or Phase 4 (Team Decisions).
 
 ---
 
@@ -331,6 +333,30 @@ npm run find-unused # Verify reductions
 - 4 dead PDF chain files
 
 **Next Steps**: Phase 2 - Salary Module Cleanup (11 files)
+
+---
+
+### 2026-01-28 - Phase 2 Complete (All Tasks Done)
+**Tasks Completed**:
+- ? Deleted entire calculators/ directory (7 files: BaseCalculator, CalculatorFactory, CommissionCalculator, DynamicBasicCalculator, FixedCalculator, TieredCommissionCalculator, calculatorTypes)
+- ? Deleted salary module infrastructure (4 files: useCalculator hook, salary.ts types, calculatorUtils, index.ts)
+
+**Verification**:
+- ? `npm run lint` - Passed
+- ? `npm run build` - Passed (37.94s)
+- ? `npx tsc --noEmit` - Passed
+- ? No external imports found before deletion
+
+**Files Removed**: 11 total
+- 7 calculator files
+- 1 hook file
+- 1 types file
+- 1 utils file
+- 1 index barrel
+
+**Kept**: `packages/shared/src/lib/salary/calculations/` (3 files: index.ts, payrollWindow.ts, salaryCalculations.ts)
+
+**Next Steps**: Phase 3 - Dependency Cleanup (7 deps + 3 devDeps) or Phase 4 - Team Decisions
 
 ---
 
