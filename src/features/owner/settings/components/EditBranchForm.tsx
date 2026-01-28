@@ -2,14 +2,7 @@ import { Button } from '@shared/ui/components/button';
 import { Checkbox } from '@shared/ui/components/checkbox';
 import { Input } from '@shared/ui/components/input';
 import { Label } from '@shared/ui/components/label';
-
-interface Branch {
-  id: string;
-  name: string;
-  address?: string;
-  is_main: boolean;
-  google_maps_url?: string;
-}
+import type { Branch } from '@shared/types/domains';
 
 interface EditBranchFormProps {
   editingBranch: Branch;

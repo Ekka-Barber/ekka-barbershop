@@ -44,6 +44,19 @@ export const SalariesTab = ({
   sponsors,
   isSponsorsLoading = false,
 }: SalariesTabProps) => {
+  // Transform employees to convert null values to undefined for type compatibility
+  const transformedEmployees = employees?.map(emp => ({
+    ...emp,
+    name_ar: emp.name_ar ?? undefined,
+    branches: emp.branches ? {
+      ...emp.branches,
+      name_ar: emp.branches.name_ar ?? undefined,
+    } : null,
+    sponsors: emp.sponsors ? {
+      name_ar: emp.sponsors.name_ar ?? undefined,
+    } : null,
+  }));
+
   const {
     isCalculating,
     isRecalculating,
@@ -92,7 +105,7 @@ export const SalariesTab = ({
         monthlyDeductions={monthlyDeductions}
         monthlyLoans={monthlyLoans}
         monthlyBonuses={monthlyBonuses}
-        employees={employees}
+        employees={transformedEmployees}
       />
 
       <PDFPreviewModal

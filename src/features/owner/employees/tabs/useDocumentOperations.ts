@@ -4,7 +4,7 @@ import type { EmployeeDocumentWithStatus, DocumentFormData } from '../types';
 import type { SetStateAction } from 'react';
 
 interface DocumentOperationsProps {
-  createDocument: (data: Partial<DocumentFormData>) => Promise<void>;
+  createDocument: (data: DocumentFormData) => Promise<void>;
   updateDocument: (params: {
     id: string;
     updates: Partial<DocumentFormData>;
@@ -22,16 +22,18 @@ export const useDocumentOperations = ({
   const [editingDocument, setEditingDocument] =
     useState<EmployeeDocumentWithStatus | null>(null);
 
-  const handleDocumentSelection = useCallback(
-    (documentId: string | null, selected: boolean) => {
-      if (selected) {
-        setSelectedDocuments((prev) => [...prev, documentId]);
-      } else {
-        setSelectedDocuments((prev) => prev.filter((id) => id !== documentId));
-      }
-    },
-    []
-  );
+   const handleDocumentSelection = useCallback(
+     (documentId: string | null, selected: boolean) => {
+       if (selected) {
+         if (documentId !== null) {
+           setSelectedDocuments((prev) => [...prev, documentId]);
+         }
+       } else {
+         setSelectedDocuments((prev) => prev.filter((id) => id !== documentId));
+       }
+     },
+     []
+   );
 
   const handleSelectAll = useCallback(
     (documents: EmployeeDocumentWithStatus[]) => {
@@ -40,11 +42,11 @@ export const useDocumentOperations = ({
       if (isAllSelected) {
         setSelectedDocuments([]);
       } else {
-        setSelectedDocuments(
-          documents
-            .map((doc) => doc.id)
-            .filter((id): id is string | null => id !== null)
-        );
+         setSelectedDocuments(
+           documents
+             .map((doc) => doc.id)
+             .filter((id): id is string => id !== null)
+         );
       }
     },
     [selectedDocuments.length]
@@ -71,18 +73,19 @@ export const useDocumentOperations = ({
     []
   );
 
-  const handleDeleteDocument = useCallback(
-    async (documentId: string) => {
-      try {
-        await deleteDocument(documentId);
-        // Remove from selection if selected
-        setSelectedDocuments((prev) => prev.filter((id) => id !== documentId));
-      } catch {
-        // Error handling is managed by the hook
-      }
-    },
-    [deleteDocument]
-  );
+   const handleDeleteDocument = useCallback(
+     async (documentId: string | null) => {
+       if (documentId === null) return;
+       try {
+         await deleteDocument(documentId);
+         // Remove from selection if selected
+         setSelectedDocuments((prev) => prev.filter((id) => id !== documentId));
+       } catch {
+         // Error handling is managed by the hook
+       }
+     },
+     [deleteDocument]
+   );
 
   const handleBulkDelete = useCallback(async () => {
     try {
@@ -104,25 +107,25 @@ export const useDocumentOperations = ({
     }
   }, []);
 
-  const handleFormSubmit = useCallback(
-    async (formData: Partial<DocumentFormData & { employee_id: string }>) => {
-      try {
-        if (editingDocument) {
-          await updateDocument({
-            id: editingDocument.id!,
-            updates: formData,
-          });
-        } else {
-          await createDocument(formData as DocumentFormData);
-        }
-        setShowForm(false);
-        setEditingDocument(null);
-      } catch {
-        // Error handling is managed by the hook
-      }
-    },
-    [createDocument, updateDocument, editingDocument]
-  );
+   const handleFormSubmit = useCallback(
+     async (formData: DocumentFormData) => {
+       try {
+         if (editingDocument) {
+           await updateDocument({
+             id: editingDocument.id!,
+             updates: formData,
+           });
+         } else {
+           await createDocument(formData);
+         }
+         setShowForm(false);
+         setEditingDocument(null);
+       } catch {
+         // Error handling is managed by the hook
+       }
+     },
+     [createDocument, updateDocument, editingDocument]
+   );
 
   const handleFormCancel = useCallback(() => {
     setShowForm(false);

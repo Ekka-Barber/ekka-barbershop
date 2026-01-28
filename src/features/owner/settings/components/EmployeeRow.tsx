@@ -15,7 +15,7 @@ import {
 interface EmployeeRowProps {
   employee: EmployeeWithBranch;
   onEdit: (employee: EmployeeWithBranch) => void;
-  onDelete: (id: string | null) => void;
+  onDelete: (id: string) => void;
   forceDesktop?: boolean; // Force desktop table rendering
 }
 

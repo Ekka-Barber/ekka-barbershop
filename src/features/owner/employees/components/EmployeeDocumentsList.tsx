@@ -24,7 +24,7 @@ interface EmployeeDocumentsListProps {
   selectedDocuments: (string | null)[];
   onDocumentSelect: (documentId: string | null, selected: boolean) => void;
   onDocumentEdit: (document: EmployeeDocumentWithStatus) => void;
-  onDocumentDelete: (documentId: string | null) => void;
+  onDocumentDelete: (documentId: string | null) => Promise<void> | void;
   onAddDocument: (employeeId: string) => void;
   isLoading?: boolean;
   className?: string;

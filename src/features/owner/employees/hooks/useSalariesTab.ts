@@ -14,12 +14,12 @@ interface UseSalariesTabProps {
   employees?: Array<{
     id: string;
     name: string;
-    name_ar?: string | undefined;
-    branches?: { name: string; name_ar?: string | undefined } | null;
+    name_ar?: string | null;
+    branches?: { id: string; name: string; name_ar?: string | null } | null;
     sponsor_id?: string | null;
-    sponsors?: { name_ar?: string | undefined } | null;
+    sponsors?: { name_ar?: string | null } | null;
   }>;
-  sponsors?: Array<{ id: string; name_ar: string } | null> | undefined;
+  sponsors?: Array<{ id: string; name_ar: string }> | null;
   isSponsorsLoading?: boolean;
   onCalculate: () => void;
   onRecalculate?: () => void;
@@ -96,7 +96,7 @@ export const useSalariesTab = ({
     try {
       setIsGeneratingGrossPDF(true);
       setIsGrossPreview(true);
-      const blob = await generateGrossPDFBlob(calculations, selectedMonth, employees, sponsors);
+      const blob = await generateGrossPDFBlob(calculations, selectedMonth, employees || [], sponsors || []);
       setPdfBlob(blob);
       setIsPreviewOpen(true);
     } catch {
@@ -113,7 +113,7 @@ export const useSalariesTab = ({
   const handleDownloadPDF = useCallback(async () => {
     try {
       if (isGrossPreview) {
-        await generateGrossPDF(calculations, selectedMonth, employees, sponsors);
+        await generateGrossPDF(calculations, selectedMonth, employees || [], sponsors || []);
       } else {
         await generatePDF(calculations, selectedMonth, employees);
       }
