@@ -4,7 +4,7 @@
 
 ```bash
 npm run dev                    # Start Vite dev server
-npm run build                  # Build for production
+npm run build                  # Build for production (~16s after cleanup)
 npm run preview                # Preview production build
 npm run lint                   # ESLint (TS/TSX) - passes with 0 errors
 npx tsc --noEmit               # Type check (no output means success)
@@ -41,6 +41,18 @@ npm run find-unused:report     # Run knip without exit code (for CI)
 - i18n: English/Arabic in `src/i18n/translations.ts`
 - Monorepo: Workspaces in `packages/` (`shared`, `ui`)
 
+**Current State**: All consolidation phases and dead code cleanup complete (Phase 1-5). Build, lint, typecheck pass. Use specific aliases (`@shared/*`, `@features/*`, `@app/*`) for new code. `@/` retained for contexts, assets, i18n.
+
+## Cleanup Status (Phase 1-5 Complete)
+✅ **68 files deleted** across 5 phases:
+- **Phase 1**: Legacy Supabase files, Customer1 subpages, unused manager hooks, UI components
+- **Phase 2**: Salary calculators/ directory (11 files), supplanted salary engine
+- **Phase 3**: Dependencies removed: `cmdk`, `date-fns-tz`, `embla-carousel-react`, `input-otp`, `react-dropzone`, `react-resizable-panels`, `vaul`
+- **Phase 4**: Admin layout components, duplicate QRCodeManager, empty barrel exports
+- **Phase 5**: Export normalization (5 duplicates), unused salary/platform exports
+
+**Build time improvement**: ~37.94s → ~15.92s. Knip reports 0 unused files (1 false positive).
+
 ## Key Paths (Current Structure)
 - `src/app/` — App shell (providers, router, stores)
 - `src/features/` — Business features by role (auth/owner/manager/customer/shared-features)
@@ -50,24 +62,14 @@ npm run find-unused:report     # Run knip without exit code (for CI)
 - `packages/shared/src/` — Shared layer (lib/hooks/utils/types/constants/services)
 - `packages/ui/src/components/` — UI components (shadcn/ui + custom)
 
-**Current State**: All consolidation phases complete. Build, lint, typecheck pass. Use specific aliases (`@shared/*`, `@features/*`, `@app/*`) for new code. `@/` retained for contexts, assets, i18n.
-
 ## Monorepo Workspaces
-The project uses a monorepo structure with workspaces defined in `package.json` (`"workspaces": ["packages/*"]`). Two packages exist:
+The project uses a monorepo with workspaces defined in `package.json` (`"workspaces": ["packages/*"]`). Two packages exist:
 - `packages/shared/`: Shared utilities, types, hooks, services, constants, and integrations.
 - `packages/ui/`: UI components (shadcn/ui plus custom components).
 
 Use `npx turbo` to run commands across workspaces (e.g., `npx turbo build`). Vite aliases map `@shared/*` to `packages/shared/src/*` and `@shared/ui/*` to `packages/ui/src/*`.
 
-## Import Patterns & Cleanup
-- **Import ordering**: ESLint configured with import/order rules (external → internal absolute → relative → type-only). Lint passes with 0 errors.
-- **Alias usage**: Keep `@/` alias for backward compatibility (contexts, assets, i18n). Prefer specific aliases (`@shared/*`, `@features/*`, `@app/*`) for new code.
-- **Contexts**: `src/contexts/` remains; import via `@/contexts/LanguageContext`.
-- **Assets**: `src/assets/` remains; import via `@/assets/*`.
-- **i18n**: `src/i18n/translations.ts` remains; import via `@/i18n/translations`.
-- **Gradual migration**: Over time, migrate remaining `@/` imports to specific aliases where appropriate (e.g., `@/components/ui` → `@shared/ui/*`).
-
-## Aliases (configured in vite.config.ts and tsconfig.app.json)
+## Aliases (configured in vite.config.ts)
 - `@/*` → `src/*`
 - `@app/*` → `src/app/*`
 - `@features/*` → `src/features/*`
@@ -80,33 +82,30 @@ Use `npx turbo` to run commands across workspaces (e.g., `npx turbo build`). Vit
 - `@shared/constants/*` → `packages/shared/src/constants/*`
 - `@shared/services/*` → `packages/shared/src/services/*`
 
-## Imports & Formatting
-- Use `@/` alias (configured in `vite.config.ts`); avoid deep relative paths.
-- Group imports: external -> internal absolute -> relative -> type-only.
-- Use `import type` and `export type` for types.
-- Prefer single quotes in TS/TSX; match existing file style in configs.
-- Use semicolons; 2-space indent; wrap long JSX props.
-- ESLint restricts certain import patterns (see `eslint.config.js`):
-  - `@/components/**` → use `@shared/ui/components/` instead
-  - `@/hooks/**` → use `@shared/hooks/` instead
-  - `@/utils/**` → use `@shared/utils/` instead
-  - `@/services/**` → use `@shared/services/` instead
+## Code Conventions
 
-## Types
+### Imports & Formatting
+- **Import ordering**: ESLint configured with import/order rules (external → internal absolute → relative → type-only). Lint passes with 0 errors.
+- **Alias usage**: Keep `@/` alias for backward compatibility (contexts, assets, i18n). Prefer specific aliases (`@shared/*`, `@features/*`, `@app/*`) for new code.
+- **ESLint restrictions**: `@/components/**` → use `@shared/ui/components/`; `@/hooks/**` → `@shared/hooks/`; `@/utils/**` → `@shared/utils/`; `@/services/**` → `@shared/services/`.
+- Use `import type` and `export type` for types.
+- Prefer single quotes in TS/TSX; 2-space indent; semicolons; wrap long JSX props.
+
+### Types
 - Prefer explicit types; avoid `any`.
 - `interface` for props that may extend; `type` for aliases/unions.
 - Database types: `@shared/types/database.types.ts`.
 - Domain types: `@shared/types/domains/index.ts`.
 - Supabase `Database` re-export: `@shared/lib/supabase/types.ts`.
 
-## Naming & Files
+### Naming & Files
 - Components: PascalCase (`FileManagement.tsx`, `TopBar.tsx`).
 - Hooks: camelCase with `use` prefix (`useBranches`, `useEmployeeForm`).
 - Types: `*.ts` in `@shared/types/` (use local `index.ts` where present).
 - Utilities: camelCase file names (`formatters.ts`, `lazyWithRetry.ts`).
 - Constants: UPPER_SNAKE_CASE for values, PascalCase for config objects.
 
-## Components & Hooks
+### Components & Hooks
 - Components in PascalCase; hooks in camelCase `useX`.
 - Prefer named exports; default export only when existing pattern uses it.
 - Keep feature logic in `features/**/hooks` or `features/**/components`.
@@ -115,31 +114,6 @@ Use `npx turbo` to run commands across workspaces (e.g., `npx turbo build`). Vit
 - **Single Source of Truth**: Every hook/component exists in exactly ONE location.
 - Shared hooks → `@shared/hooks/`; feature hooks → `@features/*/hooks/`.
 
-### Component Structure
-```tsx
-import { useState } from 'react';
-import { Button } from '@shared/ui/button';
-import type { Employee } from '@shared/types/domains';
-
-interface Props {
-  employee: Employee;
-}
-
-export const Example = ({ employee }: Props) => {
-  const [count, setCount] = useState(0);
-
-  const handleClick = () => setCount((prev) => prev + 1);
-
-  if (!employee) return null;
-
-  return (
-    <Button onClick={handleClick}>
-      {employee.name} ({count})
-    </Button>
-  );
-};
-```
-
 ## Styling
 - Tailwind utilities; use `cn()` from `@shared/lib/utils` to merge classes.
 - Variants via `class-variance-authority` (see `@shared/ui/components/button-variants.ts`).
@@ -147,9 +121,6 @@ export const Example = ({ employee }: Props) => {
 - Font stack includes `IBM Plex Sans Arabic` for `font-sans`.
 - Brand colors: `brand-primary` (#e9b353), `brand-secondary` (#4A4A4A).
 - Design tokens documented in `wrapup_plan/DESIGN_TOKENS.md` (colors, spacing, typography, animations).
-- CSS custom properties: `--primary`, `--background`, `--muted`, `--radius`, etc.
-- Safe area insets: `--sat`, `--sar`, `--sab`, `--sal` for iOS notch support.
-- Utilities: `content`, `header`, `bottom-nav`, `tap-target`, `app` for consistent spacing.
 
 ## State & Data
 - Zustand store: `src/app/stores/appStore.ts` uses `devtools`, `persist`, `immer`.
@@ -171,15 +142,12 @@ const { data, isLoading, error } = useQuery({
 });
 ```
 
-## Error Handling & Logging
+## Error Handling & Supabase
 - Wrap async Supabase calls in try/catch; throw on `error`.
 - User-facing errors via `toast` from `@shared/ui/components/use-toast` or `sonner`.
 - Centralized logging via `errorHandler` in `@shared/services/errorHandler.ts`.
 - Use `logger` from `@shared/utils/logger.ts` (disabled in production).
 - Never log sensitive data (passwords, tokens, secrets).
-- ErrorHandler provides severity levels (low/medium/high/critical) and source tracking.
-
-## Supabase
 - Use client from `@shared/lib/supabase/client.ts`.
 - Required env vars: `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`.
 - Optional: `VITE_ERROR_REPORTING_ENDPOINT` (used by logger).
@@ -191,63 +159,41 @@ const { data, isLoading, error } = useQuery({
 - Icons from `lucide-react`.
 - Use `asChild` prop when composing Radix primitives.
 
-## PDF Generation
-The app uses an HTML-to-PDF approach with jsPDF + html2canvas:
-- **Active pipeline**: `@shared/lib/pdf/salary-html-generator.ts` → `salary-pdf-generator.ts`
-- **Payslip generation**: `@shared/lib/pdf/payslip-pdf-generator.ts` (via `payslip-html-template.ts`)
-- **Lazy loading**: PDF libraries are dynamically imported only when needed
-- **Dead code**: `salary-pdf-constants.ts`, `salary-pdf-html-generator.ts`, `salary-pdf-styles.ts`, `salary-pdf-utils.ts` (orphaned chain, safe to delete)
+## PDF & Salary Modules
+- **PDF generation**: HTML-to-PDF with jsPDF + html2canvas.
+  - Active pipeline: `@shared/lib/pdf/salary-html-generator.ts` → `salary-pdf-generator.ts`
+  - Payslip generation: `@shared/lib/pdf/payslip-pdf-generator.ts` (via `payslip-html-template.ts`)
+  - Lazy loading: PDF libraries are dynamically imported only when needed
+  - Dead code cleaned: `salary-pdf-constants.ts`, `salary-pdf-html-generator.ts`, `salary-pdf-styles.ts`, `salary-pdf-utils.ts` (orphaned chain, deleted)
+- **Salary calculations**: Active module: `@shared/lib/salary/calculations/` (salaryCalculations.ts, payrollWindow.ts)
+  - Used by: `useEmployeeCalculationActions`, `useSalaryCalculation`, `usePayrollData`
+  - Dead code cleaned: `@shared/lib/salary/calculators/*`, `hooks/useCalculator.ts`, `types/salary.ts`, `utils/calculatorUtils.ts`, `index.ts` (supplanted by calculations/)
 
-## Salary Calculations
-- **Active module**: `@shared/lib/salary/calculations/` (salaryCalculations.ts, payrollWindow.ts)
-- **Used by**: `useEmployeeCalculationActions`, `useSalaryCalculation`, `usePayrollData`
-- **Dead code**: `@shared/lib/salary/calculators/*`, `hooks/useCalculator.ts`, `types/salary.ts`, `utils/calculatorUtils.ts`, `index.ts` (supplanted by calculations/)
-
-## Internationalization & RTL
+## Internationalization, Accessibility & Performance
 - Translations in `src/i18n/translations.ts` (en/ar keys).
 - Use translation keys rather than inline strings in shared/customer views.
 - Ensure RTL layouts when `ar` is active; avoid hard-coded left/right.
 - Use `dir="rtl"` on html element for Arabic.
-
-## Accessibility & Performance
 - Use semantic HTML + aria labels for icon buttons.
 - Keep touch targets >= 44px (see Tailwind `min-h-tap-target` utility).
 - Lazy load large routes; use `lazyWithRetry` from `@shared/utils/lazyWithRetry.ts` when chunk errors matter.
 - Use `React.memo()` only when profiling shows benefit.
 - Manual chunks configured in `vite.config.ts` for vendor libraries.
 
-## Routing
-- React Router v6 with `Routes` and `Route` components.
-- Role-based routes: `src/features/*/routes.tsx` (customer/owner/manager).
-- Route guards (e.g., `OwnerGuard`) for access control.
-- Lazy loading with `React.lazy` for code splitting.
-
-## File Organization within Features
-```
-features/owner/employees/
-  hooks/              # Feature-specific hooks
-  components/         # Feature-specific components
-  tabs/              # Tab-related components
-  utils/             # Feature utilities
-  types/             # Feature types
-  templates/         # Document templates
-  pages/             # Feature pages
-  index.ts           # Barrel exports
-```
-
 ## Bundle Optimization
 - Manual chunks configured in `vite.config.ts`:
   - `vendor-react`: React, ReactDOM, Router
   - `vendor-state`: Zustand, React Query
   - `vendor-forms`: React Hook Form, Zod
-  - `vendor-ui`: All Radix UI packages + cmdk, input-otp, vaul (some unused)
+  - `vendor-ui`: All Radix UI packages + class-variance-authority, clsx, tailwind-merge, tailwindcss-animate, sonner
   - `vendor-icons`: Lucide React
   - `vendor-charts`: Recharts
   - `vendor-jspdf`: jsPDF, html2canvas
   - `vendor-dnd`: @hello-pangea/dnd
   - `vendor-animation`: framer-motion
-  - `vendor-dates`: date-fns, date-fns-tz, react-day-picker
+  - `vendor-dates`: date-fns, react-day-picker
   - `vendor-supabase`: Supabase packages
+- **Removed dependencies** (cleanup Phase 3): `cmdk`, `input-otp`, `vaul`, `date-fns-tz`, `embla-carousel-react`, `react-dropzone`, `react-resizable-panels`
 - Use `lazyWithRetry` for critical chunks that may fail loading.
 
 ## Security
@@ -255,19 +201,6 @@ features/owner/employees/
 - Logger sanitizes sensitive keys automatically.
 - Error handler redacts sensitive context in production logs.
 - Use environment variables for all configuration.
-
-## Known Dead Code (Pending Cleanup)
-See `knip_plan` for full details. Key items:
-- **Legacy files**: `src/integrations/supabase/*` (use `@shared/lib/supabase/*` instead)
-- **Empty barrels**: Many `index.ts` files in features that re-export unused symbols
-- **Customer1 subpages**: 8 unused components in `src/features/customer/pages/Customer1/`
-- **Admin layout**: `AdminHeader.tsx`, `AdminSidebar.tsx` (never imported)
-- **Unused hooks**: `useCurrency.ts`, `useFullscreen.ts` in manager
-- **Unused UI**: `custom-badge.tsx`, `price-display.tsx`, `RiyalIcon.tsx`, `ErrorFallback.tsx`
-- **Unused services**: `googlePlacesService.ts`, `platformUtils.ts`
-- **Unused constants**: `design-tokens.ts`, `tables.ts`
-- **Unused salary code**: calculators/, hooks/useCalculator.ts, and salary-pdf-* chain
-- **Unused deps**: cmdk, input-otp, vaul, embla-carousel-react, react-dropzone, react-resizable-panels, date-fns-tz
 
 ## Anti-Hallucination Rules
 Run these checks BEFORE making ANY code changes:

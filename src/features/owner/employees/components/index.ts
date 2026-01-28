@@ -14,7 +14,6 @@ export { EmployeeTabs } from './EmployeeTabs';
 
 // Salary calculation components
 export { SalaryCalculationCards } from './SalaryCalculationCards';
-export { default as SalaryCalculationCardsDefault } from './SalaryCalculationCards';
 
 // =============================================================================
 // FLATTENED COMPONENTS (from /components directory)
