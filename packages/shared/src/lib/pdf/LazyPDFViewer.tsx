@@ -22,18 +22,27 @@ export const LazyPDFViewer: React.FC<LazyPDFViewerProps> = ({
   const { t } = useLanguage();
   const [loaded, setLoaded] = useState(false);
   const [errored, setErrored] = useState(false);
+  const isAndroid = useMemo(() => (
+    typeof navigator !== 'undefined' && /Android/i.test(navigator.userAgent)
+  ), []);
+  const isIOS = useMemo(() => (
+    typeof navigator !== 'undefined' && /iPad|iPhone|iPod/.test(navigator.userAgent)
+  ), []);
 
   // Fallback: if onLoad never fires (some PDF viewers don't emit), clear the overlay after a short delay
   useEffect(() => {
-    if (loaded || errored) return;
+    if (loaded || errored || isAndroid) return;
     const id = setTimeout(() => setLoaded(true), 1500);
     return () => clearTimeout(id);
-  }, [loaded, errored]);
+  }, [loaded, errored, isAndroid]);
 
   const iframeUrl = useMemo(() => {
     // Hide unnecessary chrome in most PDF viewers
-    return `${pdfUrl}#toolbar=0&navpanes=0&scrollbar=0`;
-  }, [pdfUrl]);
+    const toolbar = isAndroid ? 1 : 0;
+    const navpanes = isAndroid ? 1 : 0;
+    const view = isIOS ? 'FitH' : 'FitH';
+    return `${pdfUrl}#toolbar=${toolbar}&navpanes=${navpanes}&scrollbar=0&view=${view}`;
+  }, [pdfUrl, isAndroid, isIOS]);
 
   const handleOpen = () => {
     window.open(pdfUrl, '_blank', 'noopener,noreferrer');
@@ -77,15 +86,22 @@ export const LazyPDFViewer: React.FC<LazyPDFViewerProps> = ({
   // Dialog variant - simple, no extra scroll, iframe fills space naturally
   if (variant === 'dialog') {
     return (
-      <div className={cn('relative w-full h-full bg-[#FBF7F2]', className)}>
+      <div className={cn('relative w-full h-full bg-brand-gold-50', className)}>
         {!loaded && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-[#FBF7F2] z-10">
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-brand-gold-50 z-10">
             <div className="h-10 w-10 border-4 border-[#e9b353]/30 border-t-[#e9b353] rounded-full animate-spin" />
             <p className="text-sm text-muted-foreground">
               {t('pdf.viewer.loading') || 'Loading PDF...'}
             </p>
             <Button variant="secondary" size="sm" onClick={handleOpen}>
               {t('pdf.viewer.open') || 'Open in new tab'}
+            </Button>
+          </div>
+        )}
+        {isAndroid && !errored && (
+          <div className="absolute bottom-3 left-3 right-3 flex justify-center pointer-events-none z-20">
+            <Button variant="secondary" size="sm" onClick={handleOpen} className="pointer-events-auto">
+              {t('pdf.viewer.open') || 'Open PDF'}
             </Button>
           </div>
         )}
@@ -111,10 +127,10 @@ export const LazyPDFViewer: React.FC<LazyPDFViewerProps> = ({
     >
       <CardContent className="p-0">
         <div
-          className="relative w-full bg-[#FBF7F2] overflow-hidden"
+          className="relative w-full bg-brand-gold-50 overflow-hidden"
           style={{ minHeight: height }}
         >
-          {!loaded && (
+          {!loaded && !isAndroid && (
             <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 pointer-events-none">
               <div className="h-10 w-10 border-4 border-[#e9b353]/30 border-t-[#e9b353] rounded-full animate-spin" />
               <p className="text-sm text-muted-foreground">
@@ -126,11 +142,19 @@ export const LazyPDFViewer: React.FC<LazyPDFViewerProps> = ({
             </div>
           )}
 
+          {(isAndroid || errored) && (
+            <div className="absolute bottom-3 left-3 right-3 flex justify-center pointer-events-none z-10">
+              <Button variant="secondary" size="sm" onClick={handleOpen} className="pointer-events-auto">
+                {t('pdf.viewer.open') || 'Open PDF'}
+              </Button>
+            </div>
+          )}
+
           <iframe
             title="PDF preview"
             src={iframeUrl}
-            className="w-full border-0 pdf-iframe min-h-[300px]"
-            style={{ minHeight: height }}
+            className="w-full h-full border-0 pdf-iframe"
+            style={{ minHeight: height, height }}
             loading="lazy"
             onLoad={() => setLoaded(true)}
             onError={() => setErrored(true)}

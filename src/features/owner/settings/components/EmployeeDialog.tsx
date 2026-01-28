@@ -2,6 +2,7 @@ import {
   Dialog,
   DialogContent,
   DialogHeader,
+  DialogDescription,
   DialogTitle,
   DialogTrigger,
 } from '@shared/ui/components/dialog';
@@ -98,6 +99,9 @@ export const EmployeeDialog = ({
           <DialogTitle>
             {editingEmployee ? 'Edit Employee' : 'Add New Employee'}
           </DialogTitle>
+          <DialogDescription className="sr-only">
+            Create or edit employee details, roles, and assignments.
+          </DialogDescription>
         </DialogHeader>
         <EmployeeForm
           editingEmployee={editingEmployee}

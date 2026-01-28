@@ -1,18 +1,17 @@
-import { MapPin } from "lucide-react";
+﻿import { MapPin } from 'lucide-react';
 
-import { motion } from "@shared/lib/motion";
-import { Branch } from "@shared/types/branch";
-import { Button } from "@shared/ui/components/button";
+import { motion } from '@shared/lib/motion';
+import { Branch } from '@shared/types/branch';
+import { Button } from '@shared/ui/components/button';
 import {
   Sheet,
   SheetContent,
   SheetHeader,
   SheetTitle,
   SheetDescription,
-} from "@shared/ui/components/sheet";
+} from '@shared/ui/components/sheet';
 
-import { useLanguage } from "@/contexts/LanguageContext";
-
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface BookingsDialogProps {
   open: boolean;
@@ -25,15 +24,14 @@ const BookingsDialog = ({
   open,
   onOpenChange,
   branches,
-  onBranchSelect
+  onBranchSelect,
 }: BookingsDialogProps) => {
   const { language } = useLanguage();
   const isRTL = language === 'ar';
 
-
   const fadeIn = {
     hidden: { opacity: 0 },
-    visible: { opacity: 1, transition: { duration: 0.3 } }
+    visible: { opacity: 1, transition: { duration: 0.3 } },
   };
 
   const containerVariants = {
@@ -42,9 +40,9 @@ const BookingsDialog = ({
       opacity: 1,
       transition: {
         staggerChildren: 0.1,
-        delayChildren: 0.2
-      }
-    }
+        delayChildren: 0.2,
+      },
+    },
   };
 
   const branchVariants = {
@@ -53,43 +51,49 @@ const BookingsDialog = ({
       y: 0,
       opacity: 1,
       transition: {
-        type: "spring",
+        type: 'spring',
         stiffness: 300,
-        damping: 24
-      }
-    }
+        damping: 24,
+      },
+    },
   };
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
         side="bottom"
-        className="bg-gradient-to-br from-white/98 to-white/95 border-2 border-white/40 shadow-[0_40px_100px_-40px_rgba(0,0,0,0.5),0_20px_50px_-20px_rgba(232,198,111,0.25)] rounded-t-2xl sm:rounded-2xl overflow-hidden backdrop-blur-xl max-h-[90vh] pb-[calc(var(--sab)+1rem)] sm:max-w-xl sm:mx-auto"
+        className="bg-gradient-to-br from-white/98 to-white/95 border-2 border-white/40 shadow-[0_40px_100px_-40px_rgba(0,0,0,0.5),0_20px_50px_-20px_rgba(232,198,111,0.25)] rounded-t-2xl sm:rounded-2xl overflow-hidden backdrop-blur-xl flex flex-col h-auto max-h-[90vh] pb-[calc(var(--sab)+1rem)] sm:max-w-xl sm:mx-auto"
       >
         <motion.div
           initial="hidden"
           animate="visible"
           variants={fadeIn}
-          className="relative w-full"
+          className="relative flex h-full flex-col min-h-0 w-full"
         >
-          <SheetHeader className="h-24 bg-gradient-to-r from-[#f2d197] via-[#efc780] to-[#e39f26] flex items-center justify-center relative overflow-hidden shadow-[0_10px_40px_-10px_rgba(232,198,111,0.5)] flex-shrink-0">
+          <SheetHeader className="h-24 bg-gradient-to-r from-brand-gold-200 via-brand-gold-300 to-brand-gold-500 flex items-center justify-center relative overflow-hidden shadow-[0_10px_40px_-10px_rgba(232,198,111,0.5)] flex-shrink-0">
             <motion.div
               className="absolute inset-0 w-full h-full opacity-20"
               style={{
-                backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'100\' height=\'100\' viewBox=\'0 0 100 100\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cpath d=\'M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z\' fill=\'%23ffffff\' fill-opacity=\'1\' fill-rule=\'evenodd\'/%3E%3C/svg%3E")',
-                backgroundPosition: '0% 0%'
+                backgroundImage:
+                  'url("data:image/svg+xml,%3Csvg width=\'100\' height=\'100\' viewBox=\'0 0 100 100\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cpath d=\'M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z\' fill=\'%23ffffff\' fill-opacity=\'1\' fill-rule=\'evenodd\'/%3E%3C/svg%3E")',
+                backgroundPosition: '0% 0%',
               } as React.CSSProperties}
             />
             <motion.div
               initial={{ y: -50, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
-              transition={{ duration: 0.5, type: "spring", stiffness: 200 }}
+              transition={{ duration: 0.5, type: 'spring', stiffness: 200 }}
               className="absolute w-20 h-20 rounded-full bg-white/10 -top-10 -left-10"
             />
             <motion.div
               initial={{ y: 50, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
-              transition={{ duration: 0.5, delay: 0.2, type: "spring", stiffness: 200 }}
+              transition={{
+                duration: 0.5,
+                delay: 0.2,
+                type: 'spring',
+                stiffness: 200,
+              }}
               className="absolute w-12 h-12 rounded-full bg-white/10 -bottom-5 -right-5"
             />
             <motion.div
@@ -117,9 +121,12 @@ const BookingsDialog = ({
             </motion.div>
           </SheetHeader>
 
-          <div className="flex-1 overflow-y-auto min-h-0 momentum-scroll custom-scrollbar" style={{ WebkitOverflowScrolling: 'touch' }}>
+          <div
+            className="flex-1 overflow-y-auto min-h-0 momentum-scroll custom-scrollbar"
+            style={{ WebkitOverflowScrolling: 'touch' }}
+          >
             <div className="px-4 sm:px-6 pt-4 sm:pt-6 pb-2">
-              <SheetTitle className="text-center text-xl font-bold text-[#222222] mb-4">
+              <SheetTitle className="text-center text-xl font-bold text-brand-gray-900 mb-4">
                 {isRTL ? 'اختر الفرع' : 'Select Branch'}
               </SheetTitle>
               <SheetDescription className="text-center text-gray-600 text-sm max-w-md mx-auto">
@@ -129,49 +136,69 @@ const BookingsDialog = ({
               </SheetDescription>
             </div>
 
-          <motion.div
-            variants={containerVariants}
-            initial="hidden"
-            animate="visible"
-            className="grid grid-cols-1 xs:grid-cols-2 gap-3 p-4 sm:p-6"
-          >
-            {branches?.map((branch) => (
-              <motion.div
-                key={branch.id}
-                variants={branchVariants}
-                className="rounded-2xl relative"
-                whileHover={{ scale: 1.04, y: -4, boxShadow: "0 25px 50px -12px rgba(139,92,246,0.35), 0 15px 30px -10px rgba(124,58,237,0.25)" }}
-                whileTap={{ scale: 0.98, y: 0 }}
-              >
-                <Button
-                  variant="outline"
-                  className="w-full min-h-[120px] flex flex-col items-start justify-between gap-3 px-5 py-5 bg-gradient-to-br from-white/95 to-white/85 hover:from-white/98 hover:to-white/90 hover:bg-[#8B5CF6]/[0.03] border-2 border-white/60 hover:border-[#9B6CF6]/40 transition-all duration-300 rounded-2xl group shadow-[0_15px_35px_-10px_rgba(0,0,0,0.12),0_5px_15px_-5px_rgba(139,92,246,0.15)] backdrop-blur-sm"
-                  onClick={() => {
-                    onBranchSelect(branch.id);
+            <motion.div
+              variants={containerVariants}
+              initial="hidden"
+              animate="visible"
+              className="grid grid-cols-1 xs:grid-cols-2 gap-3 p-4 sm:p-6"
+            >
+              {branches?.map((branch) => (
+                <motion.div
+                  key={branch.id}
+                  variants={branchVariants}
+                  className="rounded-2xl relative"
+                  whileHover={{
+                    scale: 1.04,
+                    y: -4,
+                    boxShadow:
+                      '0 25px 50px -12px rgba(232,198,111,0.35), 0 15px 30px -10px rgba(214,179,90,0.25)',
                   }}
-                  aria-label={`Select ${isRTL ? branch.name_ar : branch.name} branch`}
+                  whileTap={{ scale: 0.98, y: 0 }}
                 >
-                  <div className={`flex flex-col items-${isRTL ? 'end' : 'start'} flex-shrink min-w-0 w-full`}>
-                    <div className="w-full flex items-center mb-2">
-                      <MapPin className={`w-4.5 h-4.5 text-[#9B6CF6] ${isRTL ? 'ml-1.5' : 'mr-1.5'} drop-shadow-[0_2px_4px_rgba(155,108,246,0.3)]`} />
-                      <span className="font-semibold text-base text-[#1a1a1a] group-hover:text-[#9B6CF6] transition-colors truncate drop-shadow-[0_1px_3px_rgba(0,0,0,0.08)]">
-                        {isRTL ? branch.name_ar : branch.name}
+                  <Button
+                    variant="outline"
+                    className="w-full min-h-[120px] flex flex-col items-start justify-between gap-3 px-5 py-5 bg-gradient-to-br from-white/95 to-white/85 hover:from-white/98 hover:to-white/90 hover:bg-brand-gold-200/10 border-2 border-white/60 hover:border-brand-gold-300/40 transition-all duration-300 rounded-2xl group shadow-[0_15px_35px_-10px_rgba(0,0,0,0.12),0_5px_15px_-5px_rgba(214,179,90,0.15)] backdrop-blur-sm"
+                    onClick={() => {
+                      onBranchSelect(branch.id);
+                    }}
+                    aria-label={`Select ${
+                      isRTL ? branch.name_ar : branch.name
+                    } branch`}
+                  >
+                    <div
+                      className={`flex flex-col items-${
+                        isRTL ? 'end' : 'start'
+                      } flex-shrink min-w-0 w-full`}
+                    >
+                      <div className="w-full flex items-center mb-2">
+                        <MapPin
+                          className={`w-4.5 h-4.5 text-brand-gold-400 ${
+                            isRTL ? 'ml-1.5' : 'mr-1.5'
+                          } drop-shadow-[0_2px_4px_rgba(232,198,111,0.3)]`}
+                        />
+                        <span className="font-semibold text-base text-brand-gray-900 group-hover:text-brand-gold-400 transition-colors truncate drop-shadow-[0_1px_3px_rgba(0,0,0,0.08)]">
+                          {isRTL ? branch.name_ar : branch.name}
+                        </span>
+                      </div>
+                      <span className="w-full text-sm text-brand-gray-500 group-hover:text-brand-gold-300 transition-colors truncate flex items-center">
+                        <MapPin
+                          className={`w-3.5 h-3.5 ${
+                            isRTL ? 'ml-1.5' : 'mr-1.5'
+                          } text-brand-gold-400/60`}
+                        />
+                        {isRTL ? branch.address_ar : branch.address}
                       </span>
+                      <div className="text-xs mt-2.5 text-brand-gold-400 font-medium">
+                        {isRTL ? 'انقر للحجز أونلاين ←' : 'Click to book online →'}
+                      </div>
                     </div>
-                    <span className="w-full text-sm text-[#5a5a5a] group-hover:text-[#8B5CF6] transition-colors truncate flex items-center">
-                      <MapPin className={`w-3.5 h-3.5 ${isRTL ? 'ml-1.5' : 'mr-1.5'} text-[#9B6CF6]/60`} />
-                      {isRTL ? branch.address_ar : branch.address}
-                    </span>
-                    <div className="text-xs mt-2.5 text-[#9B6CF6] font-medium">
-                      {isRTL ? 'انقر للحجز أونلاين ←' : 'Click to book online →'}
-                    </div>
-                  </div>
-                </Button>
-              </motion.div>
-            ))}
-          </motion.div>
+                  </Button>
+                </motion.div>
+              ))}
+            </motion.div>
+          </div>
 
-          <div className="p-4 bg-gradient-to-b from-white/50 to-yellow-50/60 border-t border-white/60 text-center backdrop-blur-sm flex-shrink-0">
+          <div className="p-4 bg-gradient-to-b from-white/50 to-brand-gold-50/60 border-t border-white/60 text-center backdrop-blur-sm flex-shrink-0">
             <motion.p
               className="text-xs text-gray-500"
               initial={{ opacity: 0 }}
@@ -183,7 +210,6 @@ const BookingsDialog = ({
                 : 'Book your appointment now to avoid waiting and save time'}
             </motion.p>
           </div>
-        </div>
         </motion.div>
       </SheetContent>
     </Sheet>

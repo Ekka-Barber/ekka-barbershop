@@ -46,7 +46,7 @@ export const IOSInstallGuide = ({ language, onCancel, trigger }: IOSInstallGuide
           
           <div className="space-y-6">
             <div className={`flex items-center gap-4 ${isRTL ? 'flex-row-reverse' : 'flex-row'}`}>
-              <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-r from-[#f2d197] to-[#efc780] text-[#181C27] flex items-center justify-center font-bold shadow-md">
+              <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-r from-brand-gold-200 to-brand-gold-300 text-brand-gray-900 flex items-center justify-center font-bold shadow-md">
                 1
               </div>
               <div className="flex items-center gap-3 flex-1">
@@ -58,7 +58,7 @@ export const IOSInstallGuide = ({ language, onCancel, trigger }: IOSInstallGuide
             </div>
 
             <div className={`flex items-center gap-4 ${isRTL ? 'flex-row-reverse' : 'flex-row'}`}>
-              <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-r from-[#efc780] to-[#e39f26] text-[#181C27] flex items-center justify-center font-bold shadow-md">
+              <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-r from-brand-gold-300 to-brand-gold-500 text-brand-gray-900 flex items-center justify-center font-bold shadow-md">
                 2
               </div>
               <div className="flex items-center gap-3 flex-1">
@@ -70,7 +70,7 @@ export const IOSInstallGuide = ({ language, onCancel, trigger }: IOSInstallGuide
             </div>
 
             <div className={`flex items-center gap-4 ${isRTL ? 'flex-row-reverse' : 'flex-row'}`}>
-              <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-r from-[#e39f26] to-[#f2d197] text-[#181C27] flex items-center justify-center font-bold shadow-md">
+              <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-r from-brand-gold-500 to-brand-gold-200 text-brand-gray-900 flex items-center justify-center font-bold shadow-md">
                 3
               </div>
               <div className="flex items-center gap-3 flex-1">
@@ -107,7 +107,7 @@ export const IOSInstallGuide = ({ language, onCancel, trigger }: IOSInstallGuide
             </SheetClose>
             <SheetClose asChild>
               <Button
-                className="flex-1 bg-gradient-to-r from-[#f2d197] to-[#efc780] hover:from-[#FBC252] hover:to-[#f2d197] text-[#181C27] min-h-12"
+                className="flex-1 bg-gradient-to-r from-brand-gold-200 to-brand-gold-300 hover:from-brand-gold-300 hover:to-brand-gold-200 text-brand-gray-900 min-h-12"
               >
                 {isRTL ? 'فهمت' : 'Got it'}
               </Button>

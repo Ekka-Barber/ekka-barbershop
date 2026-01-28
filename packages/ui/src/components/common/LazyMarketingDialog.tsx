@@ -15,7 +15,7 @@ const MarketingDialogSkeleton: React.FC = () => {
       <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
         <div className="p-6">
           <div className="flex items-center justify-center space-x-2">
-            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#e9b353]"></div>
+            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-brand-gold-400"></div>
             <span className="text-sm text-gray-600">
               {language === 'ar' ? 'جاري التحميل...' : 'Loading...'}
             </span>

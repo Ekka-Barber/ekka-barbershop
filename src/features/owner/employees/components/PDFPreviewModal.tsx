@@ -6,6 +6,7 @@ import {
   Dialog,
   DialogContent,
   DialogHeader,
+  DialogDescription,
   DialogTitle,
 } from '@shared/ui/components/dialog';
 
@@ -56,6 +57,9 @@ export const PDFPreviewModal: React.FC<PDFPreviewModalProps> = ({
               year: 'numeric',
             }) : 'Current Month'}
           </DialogTitle>
+          <DialogDescription className="sr-only">
+            Preview and download the monthly PDF report.
+          </DialogDescription>
         </DialogHeader>
 
         <div className="flex flex-col h-full">

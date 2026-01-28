@@ -8,17 +8,22 @@ type AppLayoutProps = {
 const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
   return (
     // Outer flex container to center content horizontally
-    <div className="flex flex-1 justify-center w-full h-full">
+    <div
+      className="flex min-h-screen w-full justify-center"
+      style={{ minHeight: '100dvh' }}
+    >
       {/* Removed max-w-md to allow content width to be page-specific */}
-      <div className="w-full flex flex-1 flex-col">
+      <div className="w-full flex flex-col">
         {/* Main content area with comprehensive safe area support for iOS notches */}
-        <main className="flex-1 w-full"
-              style={{
-                paddingLeft: 'calc(1rem + var(--sal))',
-                paddingRight: 'calc(1rem + var(--sar))',
-                paddingBottom: 'calc(0.5rem + var(--sab))',
-                paddingTop: 'var(--sat)' // Add top safe area for dynamic island
-              }}>
+        <main
+          className="w-full flex-1"
+          style={{
+            paddingLeft: 'calc(1rem + var(--sal))',
+            paddingRight: 'calc(1rem + var(--sar))',
+            paddingBottom: 'calc(0.5rem + var(--sab))',
+            paddingTop: 'var(--sat)' // Add top safe area for dynamic island
+          }}
+        >
           {children}
         </main>
       </div>

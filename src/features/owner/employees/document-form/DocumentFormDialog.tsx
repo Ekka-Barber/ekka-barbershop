@@ -7,6 +7,7 @@ import {
   Dialog,
   DialogContent,
   DialogHeader,
+  DialogDescription,
   DialogTitle,
 } from '@shared/ui/components/dialog';
 import {
@@ -60,6 +61,9 @@ export const DocumentFormDialog: React.FC<DocumentFormDialogProps> = ({
           <DialogTitle>
             {document ? 'Edit Document' : 'Add New Document'}
           </DialogTitle>
+          <DialogDescription className="sr-only">
+            Add or update employee document details.
+          </DialogDescription>
         </DialogHeader>
 
         <Form {...form}>

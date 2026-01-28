@@ -61,11 +61,11 @@ const LoyaltySection = ({ element, isVisible }: LoyaltySectionProps) => {
         <div className="mt-3 bg-gradient-to-br from-white/95 via-white/90 to-white/85 rounded-2xl shadow-[0_20px_45px_-15px_rgba(0,0,0,0.15),0_10px_25px_-10px_rgba(59,130,246,0.1)] border-2 border-white/40 p-5 cursor-pointer hover:border-blue-300/40 transition-all duration-300 backdrop-blur-sm">
           <div className="flex items-center justify-between">
             <div className={`flex-1 ${language === 'ar' ? 'ml-3' : 'mr-3'}`}>
-              <h2 className={`text-lg font-bold text-[#1a1a1a] mb-1.5 drop-shadow-[0_1px_3px_rgba(0,0,0,0.1)] ${language === 'ar' ? 'text-right' : 'text-left'}`}>
+              <h2 className={`text-lg font-bold text-brand-gray-900 mb-1.5 drop-shadow-[0_1px_3px_rgba(0,0,0,0.1)] ${language === 'ar' ? 'text-right' : 'text-left'}`}>
                 {language === 'ar' ? element.display_name_ar : element.display_name}
               </h2>
               {element.description && (
-                <p className={`text-[#4a4a4a] text-sm font-medium ${language === 'ar' ? 'text-right' : 'text-left'}`}>
+                <p className={`text-brand-gray-600 text-sm font-medium ${language === 'ar' ? 'text-right' : 'text-left'}`}>
                   {language === 'ar' ? element.description_ar : element.description}
                 </p>
               )}
@@ -89,7 +89,7 @@ const LoyaltySection = ({ element, isVisible }: LoyaltySectionProps) => {
       >
         <Separator
           orientation="horizontal"
-          className="bg-gradient-to-r from-transparent via-[#f2d197]/40 to-transparent h-[2px] shadow-[0_0_15px_rgba(232,198,111,0.25)] w-full"
+          className="bg-gradient-to-r from-transparent via-brand-gold-200/40 to-transparent h-[2px] shadow-[0_0_15px_rgba(232,198,111,0.25)] w-full"
         />
       </motion.div>
     </>

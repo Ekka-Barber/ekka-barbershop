@@ -43,11 +43,11 @@ const ContentMetadata: React.FC<{
     new Date(content.created_at).getTime() > Date.now() - (7 * 24 * 60 * 60 * 1000);
 
   return (
-    <div className="flex flex-wrap items-center gap-2 px-4 bg-[#FBF7F2]" style={{ height: '25px', paddingTop: 0, paddingBottom: 0 }}>
+    <div className="flex flex-wrap items-center gap-2 px-4 bg-brand-gold-50" style={{ height: '25px', paddingTop: 0, paddingBottom: 0 }}>
       {/* Content type badge */}
       <Badge 
         variant="secondary" 
-        className="flex items-center gap-1 text-xs bg-white border border-[#E4D8C8] text-[#8B7355]"
+        className="flex items-center gap-1 text-xs bg-white border border-brand-gold-100 text-brand-gold-600"
       >
         {content.file_type.includes('pdf') ? (
           <FileText className="w-3 h-3" />
@@ -61,7 +61,7 @@ const ContentMetadata: React.FC<{
       {isNew && (
         <Badge
           variant="outline"
-          className="flex items-center gap-1 text-xs bg-[#e9b353]/10 text-[#8B7355] border-[#e9b353]/30"
+          className="flex items-center gap-1 text-xs bg-brand-gold-200/10 text-brand-gold-600 border-brand-gold-300/30"
         >
           <Calendar className="w-3 h-3" />
           {language === 'ar' ? 'جديد' : 'New'}
@@ -90,7 +90,7 @@ const ContentRenderer: React.FC<{
   // Image content - scrollable container with custom scrollbar
   return (
     <div
-      className="relative w-full h-full overflow-auto custom-scrollbar momentum-scroll bg-[#FBF7F2]"
+      className="relative w-full h-full overflow-auto custom-scrollbar momentum-scroll bg-brand-gold-50"
       style={{ WebkitOverflowScrolling: 'touch' }}
     >
       <img
@@ -141,17 +141,17 @@ export const MarketingDialog: React.FC<MarketingDialogProps> = ({
           <div className="flex flex-col items-center justify-center w-full h-full gap-4">
             {isLoading ? (
               <>
-                <div className="w-16 h-16 border-4 border-[#e9b353]/30 border-t-[#e9b353] rounded-full animate-spin" />
-                <p className="text-sm text-[#555]">
+                <div className="w-16 h-16 border-4 border-brand-gold-300/30 border-t-brand-gold-400 rounded-full animate-spin" />
+                <p className="text-sm text-brand-gray-600">
                   {language === 'ar' ? 'جاري تحميل المحتوى...' : 'Loading marketing content...'}
                 </p>
               </>
             ) : (
               <>
-                <SheetTitle className="text-lg font-semibold text-[#222222]">
+                <SheetTitle className="text-lg font-semibold text-brand-gray-900">
                   {language === 'ar' ? 'لا يوجد محتوى متاح حالياً' : 'No content available yet'}
                 </SheetTitle>
-                <SheetDescription className="text-sm text-[#555] text-center px-4">
+                <SheetDescription className="text-sm text-brand-gray-600 text-center px-4">
                   {language === 'ar'
                     ? 'تحقق من لوحة التحكم للتأكد من نشر الملفات لهذا القسم.'
                     : 'Please verify in the dashboard that files are published for this section.'}
@@ -176,7 +176,7 @@ export const MarketingDialog: React.FC<MarketingDialogProps> = ({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
         side="bottom"
-        className="p-0 max-w-4xl w-full mx-auto rounded-t-2xl overflow-hidden bg-[#FBF7F2]"
+        className="p-0 max-w-4xl w-full mx-auto rounded-t-2xl overflow-hidden bg-brand-gold-50"
         style={{
           height: '85vh',
           maxHeight: 'calc(100dvh - 2rem)'
@@ -192,7 +192,7 @@ export const MarketingDialog: React.FC<MarketingDialogProps> = ({
             className="flex flex-col h-full"
           >
             {/* Compact Header */}
-            <SheetHeader className="px-4 py-2.5 border-b border-[#E4D8C8]/50 flex-shrink-0 bg-white" style={{ height: '45px' }}>
+            <SheetHeader className="px-4 py-2.5 border-b border-brand-gold-100/50 flex-shrink-0 bg-white" style={{ height: '45px' }}>
               <VisuallyHidden>
                 <SheetTitle>
                   {contentType === 'menu'
@@ -208,14 +208,14 @@ export const MarketingDialog: React.FC<MarketingDialogProps> = ({
                 }
               </SheetDescription>
               <div className="flex items-center justify-between">
-                <h2 className="text-base font-bold text-[#222222]">
+                <h2 className="text-base font-bold text-brand-gray-900">
                   {contentType === 'menu'
                     ? (language === 'ar' ? 'قائمة الأسعار' : 'Menu')
                     : (language === 'ar' ? 'العروض' : 'Special Offers')
                   }
                 </h2>
                 {initialContent.length > 1 && (
-                  <span className="text-xs text-[#8B7355] font-medium">
+                  <span className="text-xs text-brand-gold-600 font-medium">
                     {currentIndex + 1} / {initialContent.length}
                   </span>
                 )}
@@ -244,20 +244,20 @@ export const MarketingDialog: React.FC<MarketingDialogProps> = ({
                         <Button
                           variant="outline"
                           size="icon"
-                          className="h-8 w-8 border-[#E4D8C8] hover:bg-[#FBF7F2] hover:border-[#e9b353]"
+                          className="h-8 w-8 border-brand-gold-100 hover:bg-brand-gold-50 hover:border-brand-gold-400"
                           onClick={handlePrevious}
                           aria-label="Previous"
                         >
-                          <ChevronLeft className="w-4 h-4 text-[#8B7355]" />
+                          <ChevronLeft className="w-4 h-4 text-brand-gold-600" />
                         </Button>
                         <Button
                           variant="outline"
                           size="icon"
-                          className="h-8 w-8 border-[#E4D8C8] hover:bg-[#FBF7F2] hover:border-[#e9b353]"
+                          className="h-8 w-8 border-brand-gold-100 hover:bg-brand-gold-50 hover:border-brand-gold-400"
                           onClick={handleNext}
                           aria-label="Next"
                         >
-                          <ChevronRight className="w-4 h-4 text-[#8B7355]" />
+                          <ChevronRight className="w-4 h-4 text-brand-gold-600" />
                         </Button>
                       </>
                     )}
@@ -268,7 +268,7 @@ export const MarketingDialog: React.FC<MarketingDialogProps> = ({
                       variant="outline"
                       size="sm"
                       onClick={() => window.open(currentContent.url, '_blank')}
-                      className="h-8 text-xs border-[#e9b353] text-[#8B7355] hover:bg-[#e9b353] hover:text-white"
+                      className="h-8 text-xs border-brand-gold-400 text-brand-gold-600 hover:bg-brand-gold-400 hover:text-white"
                     >
                       {language === 'ar' ? 'فتح PDF كامل' : 'Open Full PDF'}
                     </Button>

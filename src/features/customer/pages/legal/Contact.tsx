@@ -59,11 +59,11 @@ const Contact: React.FC = () => {
               </h3>
               <div className="space-y-3">
                 <div className="flex items-center gap-3">
-                  <Mail className="w-5 h-5 text-[#e9b353]" />
+                  <Mail className="w-5 h-5 text-brand-gold-400" />
                   <span className="text-gray-700">ekka.barber@gmail.com</span>
                 </div>
                 <div className="flex items-center gap-3">
-                  <Clock className="w-5 h-5 text-[#e9b353]" />
+                  <Clock className="w-5 h-5 text-brand-gold-400" />
                   <div className="text-gray-700">
                     <p className="font-medium">{t('legal.contact.business.hours.title')}</p>
                     <p className="text-sm">{t('legal.contact.business.hours.saturdayThursday')}</p>
@@ -93,7 +93,7 @@ const Contact: React.FC = () => {
 
           {isLoading ? (
             <div className="text-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#e9b353] mx-auto"></div>
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-gold-400 mx-auto"></div>
               <p className="text-gray-600 mt-2">{t('loading')}</p>
             </div>
           ) : (
@@ -117,7 +117,7 @@ const Contact: React.FC = () => {
                         <h3 className="text-xl font-semibold text-gray-900 mb-2">
                           {displayName}
                           {branch.name === 'Al-Waslyia' && (
-                            <span className="ml-2 text-sm bg-[#e9b353] text-white px-2 py-1 rounded">
+                            <span className="ml-2 text-sm bg-brand-gold-400 text-white px-2 py-1 rounded">
                               {t('legal.contact.branches.mainBranch')}
                             </span>
                           )}

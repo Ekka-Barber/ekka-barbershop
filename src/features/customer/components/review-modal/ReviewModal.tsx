@@ -31,7 +31,7 @@ export const ReviewModal = ({ isOpen, onClose, selectedReview, language }: Revie
         </DialogTitle>
         {/* Decorative header with gradient */}
         <motion.div 
-          className="bg-gradient-to-r from-[#5a5a5a] via-[#4a4a4a] to-[#f2d197] px-6 py-6 rounded-t-2xl relative overflow-hidden shadow-[0_10px_40px_-10px_rgba(232,198,111,0.3)]"
+          className="bg-gradient-to-r from-brand-gray-500 via-brand-gray-600 to-brand-gold-200 px-6 py-6 rounded-t-2xl relative overflow-hidden shadow-[0_10px_40px_-10px_rgba(232,198,111,0.3)]"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.4 }}
@@ -67,7 +67,7 @@ export const ReviewModal = ({ isOpen, onClose, selectedReview, language }: Revie
                     damping: 15
                   }}
                 >
-                  <Star className="w-5 h-5 fill-[#f2d197] text-[#f2d197] drop-shadow-[0_2px_6px_rgba(232,198,111,0.4)]" />
+                  <Star className="w-5 h-5 fill-brand-gold-400 text-brand-gold-400 drop-shadow-[0_2px_6px_rgba(232,198,111,0.4)]" />
                 </motion.div>
               ))}
             </div>
@@ -86,27 +86,27 @@ export const ReviewModal = ({ isOpen, onClose, selectedReview, language }: Revie
                 googleAvatarUrl={selectedReview.profile_photo_url || null}
                 cachedAvatarUrl={selectedReview.cached_avatar_url || null}
                 authorName={selectedReview.author_name}
-                className="w-13 h-13 border-2 border-[#f2d197]/30 mr-3 shadow-[0_4px_12px_-4px_rgba(232,198,111,0.3)]"
-                fallbackClassName="bg-gradient-to-br from-[#f2d197]/20 to-[#efc780]/10 text-[#f2d197]"
+                className="w-13 h-13 border-2 border-brand-gold-200/30 mr-3 shadow-[0_4px_12px_-4px_rgba(232,198,111,0.3)]"
+                fallbackClassName="bg-gradient-to-br from-brand-gold-200/20 to-brand-gold-300/10 text-brand-gold-400"
                 size={52}
               />
               <div>
-                <h3 className="font-bold text-[#1a1a1a] drop-shadow-[0_1px_3px_rgba(0,0,0,0.08)]">{selectedReview.author_name}</h3>
-                <p className="text-xs text-[#5a5a5a] flex items-center mt-1">
-                  <MapPin className="w-3.5 h-3.5 mr-1 text-[#f2d197] drop-shadow-[0_2px_4px_rgba(232,198,111,0.3)]" />
+                <h3 className="font-bold text-brand-gray-900 drop-shadow-[0_1px_3px_rgba(0,0,0,0.08)]">{selectedReview.author_name}</h3>
+                <p className="text-xs text-brand-gray-500 flex items-center mt-1">
+                  <MapPin className="w-3.5 h-3.5 mr-1 text-brand-gold-400 drop-shadow-[0_2px_4px_rgba(232,198,111,0.3)]" />
                   {language === 'ar' ? selectedReview.branch_name_ar : selectedReview.branch_name}
                 </p>
               </div>
             </motion.div>
             
             <motion.div
-              className="bg-gradient-to-br from-[#5a5a5a]/[0.03] to-[#f2d197]/[0.03] p-5 rounded-2xl border-2 border-[#f2d197]/15 relative shadow-[0_10px_25px_-10px_rgba(232,198,111,0.1),inset_0_1px_2px_rgba(255,255,255,0.5)] backdrop-blur-sm"
+              className="bg-gradient-to-br from-brand-gray-500/[0.03] to-brand-gold-200/[0.03] p-5 rounded-2xl border-2 border-brand-gold-200/15 relative shadow-[0_10px_25px_-10px_rgba(232,198,111,0.1),inset_0_1px_2px_rgba(255,255,255,0.5)] backdrop-blur-sm"
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: 0.4 }}
             >
-              <Quote className="absolute text-[#f2d197]/20 w-11 h-11 -top-2 -left-2 transform -rotate-180 drop-shadow-[0_2px_8px_rgba(232,198,111,0.2)]" />
-              <DialogDescription className="whitespace-pre-wrap text-[#2a2a2a] leading-relaxed relative z-10 drop-shadow-[0_1px_2px_rgba(0,0,0,0.05)]">
+              <Quote className="absolute text-brand-gold-400/20 w-11 h-11 -top-2 -left-2 transform -rotate-180 drop-shadow-[0_2px_8px_rgba(232,198,111,0.2)]" />
+              <DialogDescription className="whitespace-pre-wrap text-brand-gray-800 leading-relaxed relative z-10 drop-shadow-[0_1px_2px_rgba(0,0,0,0.05)]">
                 {selectedReview.text}
               </DialogDescription>
             </motion.div>
@@ -125,7 +125,7 @@ export const ReviewModal = ({ isOpen, onClose, selectedReview, language }: Revie
             >
               <Button 
                 onClick={() => onClose()} 
-                className="bg-gradient-to-r from-[#5a5a5a] via-[#4a4a4a] to-[#f2d197] hover:from-[#4a4a4a] hover:via-[#3a3a3a] hover:to-[#efc780] text-white shadow-[0_15px_35px_-10px_rgba(232,198,111,0.4)] hover:shadow-[0_20px_45px_-10px_rgba(232,198,111,0.5)] font-medium rounded-2xl"
+                className="bg-gradient-to-r from-brand-gray-500 via-brand-gray-600 to-brand-gold-200 hover:from-brand-gray-600 hover:via-brand-gray-700 hover:to-brand-gold-300 text-white shadow-[0_15px_35px_-10px_rgba(232,198,111,0.4)] hover:shadow-[0_20px_45px_-10px_rgba(232,198,111,0.5)] font-medium rounded-2xl"
               >
                 {language === 'ar' ? 'إغلاق' : 'Close'}
               </Button>

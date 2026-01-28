@@ -44,10 +44,10 @@ export const CustomerHeader = ({ animatingElements }: CustomerHeaderProps) => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
-            <h2 className="text-xl font-medium text-[#222222]">
+            <h2 className="text-xl font-medium text-brand-gray-900">
               {t('welcome.line1')}
             </h2>
-            <h1 className="text-2xl md:text-3xl font-bold text-[#222222]">
+            <h1 className="text-2xl md:text-3xl font-bold text-brand-gray-900">
               {t('welcome.line2')}
             </h1>
           </motion.div>
@@ -58,7 +58,7 @@ export const CustomerHeader = ({ animatingElements }: CustomerHeaderProps) => {
         {animatingElements.includes('divider') && (
           <motion.div 
             key="divider"
-            className="h-1.5 w-24 bg-gradient-to-r from-[#f2d197] via-[#efc780] to-[#e9b353] mx-auto mt-3 md:mt-4 mb-6 shadow-[0_4px_20px_rgba(232,198,111,0.4)]"
+            className="h-1.5 w-24 bg-gradient-to-r from-brand-gold-200 via-brand-gold-300 to-brand-gold-400 mx-auto mt-3 md:mt-4 mb-6 shadow-[0_4px_20px_rgba(232,198,111,0.4)]"
             initial={{ scaleX: 0, opacity: 0 }}
             animate={{ scaleX: 1, opacity: 1 }}
             transition={{ duration: 0.5 }}

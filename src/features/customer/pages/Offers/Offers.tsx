@@ -62,7 +62,7 @@ const Offers = () => {
     return (
       <AppLayout>
         <div className="w-full flex flex-1 flex-col items-center justify-center max-w-2xl mx-auto">
-          <div className="text-center py-8 text-[#222222]">{t('loading.offers')}</div>
+          <div className="text-center py-8 text-brand-gray-900">{t('loading.offers')}</div>
         </div>
       </AppLayout>
     );
@@ -88,13 +88,13 @@ const Offers = () => {
                }}
              />
           </Link>
-          <h1 className="text-3xl font-bold text-[#222222] mb-2">{t('special.offers.title')}</h1>
-          <div className="h-1 w-24 bg-[#e9b353] mx-auto mb-6"></div>
+          <h1 className="text-3xl font-bold text-brand-gray-900 mb-2">{t('special.offers.title')}</h1>
+          <div className="h-1 w-24 bg-brand-gold-400 mx-auto mb-6"></div>
           <Button 
             onClick={() => {
               navigate('/customer');
             }}
-            className="bg-[#4A4A4A] hover:bg-[#3A3A3A] text-white transition-all duration-300"
+            className="bg-brand-gray-600 hover:bg-brand-gray-700 text-white transition-all duration-300"
           >
             {t('back.home')}
           </Button>
@@ -102,10 +102,10 @@ const Offers = () => {
         
         <div className="w-full max-w-2xl space-y-8">
           {isLoading ? (
-            <div className="text-center py-8 text-[#222222]">{t('loading.offers')}</div>
+            <div className="text-center py-8 text-brand-gray-900">{t('loading.offers')}</div>
           ) : offersFiles && offersFiles.length > 0 ? (
             offersFiles!.map((file) => (
-              <Card key={file!.id} className="w-full overflow-hidden bg-white shadow-xl rounded-xl border-[#e9b353]/20">
+              <Card key={file!.id} className="w-full overflow-hidden bg-white shadow-xl rounded-xl border-brand-gold-400/20">
                 <div className="p-4 sm:p-6">
                   {file!.branchName && (
                     <div className="mb-4">
@@ -165,7 +165,7 @@ const Offers = () => {
               </Card>
             ))
           ) : (
-            <div className="text-center py-8 text-[#222222]">{t('no.offers')}</div>
+            <div className="text-center py-8 text-brand-gray-900">{t('no.offers')}</div>
           )}
         </div>
       </div>

@@ -51,11 +51,11 @@ export const ActionButton = ({ element, onClick }: ActionButtonProps) => {
       <Button
         className={`w-full h-auto min-h-[60px] text-lg font-medium flex items-center justify-center px-5 py-4 ${
           element.name === 'view_menu' || element.name === 'book_now'
-            ? 'bg-gradient-to-r from-[#f2d197] via-[#efc780] to-[#e39f26] hover:from-[#f2d197] hover:via-[#f2d197] hover:to-[#efc780] shadow-[0_20px_45px_-15px_rgba(232,198,111,0.5),0_10px_25px_-10px_rgba(214,179,90,0.3)]'
-            : 'bg-gradient-to-br from-[#4A4A4A] via-[#3A3A3A] to-[#2A2A2A] hover:from-[#5A5A5A] hover:via-[#4A4A4A] hover:to-[#3A3A3A] shadow-[0_20px_45px_-15px_rgba(0,0,0,0.4),inset_0_1px_2px_rgba(255,255,255,0.1)]'
+            ? 'bg-gradient-to-r from-brand-gold-200 via-brand-gold-300 to-brand-gold-500 hover:from-brand-gold-200 hover:via-brand-gold-200 hover:to-brand-gold-300 shadow-[0_20px_45px_-15px_rgba(232,198,111,0.5),0_10px_25px_-10px_rgba(214,179,90,0.3)]'
+            : 'bg-gradient-to-br from-brand-gray-600 via-brand-gray-700 to-brand-gray-800 hover:from-brand-gray-500 hover:via-brand-gray-600 hover:to-brand-gray-700 shadow-[0_20px_45px_-15px_rgba(0,0,0,0.4),inset_0_1px_2px_rgba(255,255,255,0.1)]'
         } text-white transition-all duration-300 border-2 ${
           element.name === 'view_menu' || element.name === 'book_now'
-            ? 'border-[#f2d197]/30'
+            ? 'border-brand-gold-200/30'
             : 'border-white/10'
         } backdrop-blur-sm rounded-2xl touch-target`}
         onClick={onClick}

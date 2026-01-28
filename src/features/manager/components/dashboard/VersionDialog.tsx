@@ -5,6 +5,7 @@ import {
   Dialog,
   DialogContent,
   DialogHeader,
+  DialogDescription,
   DialogTitle,
 } from "@shared/ui/components/dialog";
 import { ScrollArea } from "@shared/ui/components/scroll-area";
@@ -122,6 +123,9 @@ export const VersionDialog = ({ open, onOpenChange }: VersionDialogProps) => {
           <DialogTitle className="font-['Changa'] text-xl text-center text-gray-800">
             سجل التغييرات والتحديثات
           </DialogTitle>
+          <DialogDescription className="sr-only">
+            عرض سجل التحديثات والتغييرات للإصدارات السابقة.
+          </DialogDescription>
         </DialogHeader>
         
         <ScrollArea className="h-[60vh] pr-4">

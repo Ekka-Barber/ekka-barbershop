@@ -19,7 +19,7 @@ export const AnimatedBackground: React.FC<AnimatedBackgroundProps> = ({
       {/* Animated gradient orbs - disabled on mobile and if user prefers reduced motion */}
       {/* Hidden on mobile (< 768px) for better performance */}
       <motion.div
-        className="absolute -top-1/4 -left-1/4 h-[900px] w-[900px] rounded-full bg-gradient-to-br from-[#f2d197]/30 via-[#efc780]/25 to-[#e39f26]/15 blur-[80px] hidden md:block"
+        className="absolute -top-1/4 -left-1/4 h-[900px] w-[900px] rounded-full bg-gradient-to-br from-brand-gold-200/30 via-brand-gold-300/25 to-brand-gold-500/15 blur-[80px] hidden md:block"
         style={{
           willChange: prefersReducedMotion ? ANIMATION_PERFORMANCE.WILL_CHANGE.AUTO : 'transform',
           backfaceVisibility: ANIMATION_PERFORMANCE.HARDWARE_ACCELERATION.BACKFACE_VISIBILITY,
@@ -36,7 +36,7 @@ export const AnimatedBackground: React.FC<AnimatedBackgroundProps> = ({
         }}
       />
       <motion.div
-        className="absolute top-1/3 -right-1/4 h-[700px] w-[700px] rounded-full bg-gradient-to-br from-[#3a3a3a]/40 via-[#2a2a2a]/30 to-transparent blur-[70px] hidden md:block"
+        className="absolute top-1/3 -right-1/4 h-[700px] w-[700px] rounded-full bg-gradient-to-br from-brand-gray-700/40 via-brand-gray-800/30 to-transparent blur-[70px] hidden md:block"
         style={{
           willChange: prefersReducedMotion ? ANIMATION_PERFORMANCE.WILL_CHANGE.AUTO : 'transform',
           backfaceVisibility: ANIMATION_PERFORMANCE.HARDWARE_ACCELERATION.BACKFACE_VISIBILITY,
@@ -53,7 +53,7 @@ export const AnimatedBackground: React.FC<AnimatedBackgroundProps> = ({
         }}
       />
       <motion.div
-        className="absolute bottom-1/4 left-1/3 h-[600px] w-[600px] rounded-full bg-gradient-to-br from-[#4a4a4a]/25 via-[#3a3a3a]/15 to-transparent blur-[60px] hidden md:block"
+        className="absolute bottom-1/4 left-1/3 h-[600px] w-[600px] rounded-full bg-gradient-to-br from-brand-gray-600/25 via-brand-gray-700/15 to-transparent blur-[60px] hidden md:block"
         style={{
           willChange: prefersReducedMotion ? ANIMATION_PERFORMANCE.WILL_CHANGE.AUTO : 'transform',
           backfaceVisibility: ANIMATION_PERFORMANCE.HARDWARE_ACCELERATION.BACKFACE_VISIBILITY,

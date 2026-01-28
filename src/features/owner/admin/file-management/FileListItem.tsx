@@ -8,7 +8,12 @@ import { FileMetadata } from "@shared/types/admin";
 import { Alert, AlertDescription } from "@shared/ui/components/alert";
 import { Badge } from "@shared/ui/components/badge";
 import { Button } from "@shared/ui/components/button";
-import { Dialog, DialogContent, DialogTitle } from "@shared/ui/components/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogTitle,
+} from "@shared/ui/components/dialog";
 
 import { FileEndDateManager } from "./FileEndDateManager";
 
@@ -181,6 +186,9 @@ export const FileListItem = ({
           <Dialog open={showFilePreview} onOpenChange={setShowFilePreview}>
             <DialogContent className="max-w-3xl w-[90vw] p-0 overflow-hidden">
               <DialogTitle className="sr-only">File Preview: {file.file_name}</DialogTitle>
+              <DialogDescription className="sr-only">
+                Preview the selected file content before downloading.
+              </DialogDescription>
               <div className="p-4 border-b">
                 <h2 className="font-semibold">{file.file_name}</h2>
               </div>

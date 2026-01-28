@@ -5,6 +5,7 @@ import {
   Dialog,
   DialogContent,
   DialogHeader,
+  DialogDescription,
   DialogTitle,
   DialogTrigger,
 } from '@shared/ui/components/dialog';
@@ -61,6 +62,9 @@ export const AddLeaveDialog: React.FC<AddLeaveDialogProps> = ({
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Add Leave Record</DialogTitle>
+          <DialogDescription className="sr-only">
+            Create a leave record for an employee and select dates and reason.
+          </DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
           <div>

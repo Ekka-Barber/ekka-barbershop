@@ -131,7 +131,7 @@ const Customer1 = () => {
       <AnimatedBackground prefersReducedMotion={prefersReducedMotion} />
 
       <motion.div
-        className="flex flex-1 flex-col justify-start items-center w-full max-w-md mx-auto pb-40 relative z-1"
+        className="flex flex-1 flex-col justify-start items-center w-full max-w-md mx-auto pb-40 relative z-0"
         style={{
           willChange: prefersReducedMotion ? ANIMATION_PERFORMANCE.WILL_CHANGE.AUTO : ANIMATION_PERFORMANCE.WILL_CHANGE.TRANSFORM_OPACITY,
           backfaceVisibility: ANIMATION_PERFORMANCE.HARDWARE_ACCELERATION.BACKFACE_VISIBILITY
@@ -184,7 +184,7 @@ const Customer1 = () => {
           className="w-full max-w-xs mx-auto my-6"
           style={{ transformOrigin: 'center' }}
         >
-          <Separator className="bg-gradient-to-r from-transparent via-[#f2d197]/40 to-transparent h-[2px] shadow-[0_0_20px_rgba(232,198,111,0.3)]" />
+          <Separator className="bg-gradient-to-r from-transparent via-brand-gold-200/40 to-transparent h-[2px] shadow-[0_0_20px_rgba(232,198,111,0.3)]" />
         </AnimatedSection>
 
         {/* Enhanced InstallAppPrompt */}
@@ -201,25 +201,25 @@ const Customer1 = () => {
             <div className="flex flex-wrap justify-center gap-4 text-sm">
               <Link
                 to="/privacy"
-                className="text-white/70 hover:text-[#f2d197] transition-colors"
+                className="text-white/70 hover:text-brand-gold-200 transition-colors"
               >
                 {t('footer.privacy')}
               </Link>
               <Link
                 to="/terms"
-                className="text-white/70 hover:text-[#f2d197] transition-colors"
+                className="text-white/70 hover:text-brand-gold-200 transition-colors"
               >
                 {t('footer.terms')}
               </Link>
               <Link
                 to="/refund"
-                className="text-white/70 hover:text-[#f2d197] transition-colors"
+                className="text-white/70 hover:text-brand-gold-200 transition-colors"
               >
                 {t('footer.refund')}
               </Link>
               <Link
                 to="/contact"
-                className="text-white/70 hover:text-[#f2d197] transition-colors"
+                className="text-white/70 hover:text-brand-gold-200 transition-colors"
               >
                 {t('footer.contact')}
               </Link>

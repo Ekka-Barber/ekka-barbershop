@@ -54,22 +54,22 @@ const Menu = () => {
                  }}
                />
             </Link>
-            <h1 className="text-3xl font-bold text-[#222222] mb-2">{t('our.menu')}</h1>
-            <div className="h-1 w-24 bg-[#e9b353] mx-auto mb-6"></div>
+            <h1 className="text-3xl font-bold text-brand-gray-900 mb-2">{t('our.menu')}</h1>
+            <div className="h-1 w-24 bg-brand-gold-400 mx-auto mb-6"></div>
             <Button
               onClick={() => {
                 navigate('/customer');
               }}
-              className="bg-[#4A4A4A] hover:bg-[#3A3A3A] text-white transition-all duration-300 touch-target"
+              className="bg-brand-gray-600 hover:bg-brand-gray-700 text-white transition-all duration-300 touch-target"
             >
               {t('back.home')}
             </Button>
           </div>
 
-          <Card className="overflow-hidden bg-white shadow-xl rounded-xl border-[#e9b353]/20 w-full max-w-2xl mt-8 mb-8">
+          <Card className="overflow-hidden bg-white shadow-xl rounded-xl border-brand-gold-400/20 w-full max-w-2xl mt-8 mb-8">
             <div className="p-4 sm:p-6">
               {isLoading ? (
-                <div className="text-center py-8 text-[#222222]">{t('loading.menu')}</div>
+                <div className="text-center py-8 text-brand-gray-900">{t('loading.menu')}</div>
               ) : menuFiles && menuFiles.length > 0 ? (
                 <div className="space-y-4">
                   {menuFiles.length > 1 && (
@@ -107,7 +107,7 @@ const Menu = () => {
                   )}
                 </div>
               ) : (
-                <div className="text-center py-8 text-[#222222]">{t('no.menu')}</div>
+                <div className="text-center py-8 text-brand-gray-900">{t('no.menu')}</div>
               )}
             </div>
           </Card>

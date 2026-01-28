@@ -105,7 +105,7 @@ export const UIElementRenderer = ({
                 <div className="space-y-3">
                   <div className="h-3 bg-white/10 rounded w-full"></div>
                   <div className="h-3 bg-white/10 rounded w-3/4"></div>
-                  <div className="h-8 bg-[#e9b353]/20 rounded-xl w-full mt-4"></div>
+                  <div className="h-8 bg-brand-gold-200/20 rounded-xl w-full mt-4"></div>
                 </div>
               </div>
             }>
@@ -127,7 +127,7 @@ export const UIElementRenderer = ({
                 <div className="space-y-3">
                   <div className="h-3 bg-white/10 rounded w-full"></div>
                   <div className="h-3 bg-white/10 rounded w-2/3"></div>
-                  <div className="h-8 bg-[#e9b353]/20 rounded-xl w-full mt-4"></div>
+                  <div className="h-8 bg-brand-gold-200/20 rounded-xl w-full mt-4"></div>
                 </div>
               </div>
             }>
@@ -149,7 +149,7 @@ export const UIElementRenderer = ({
                 <div className="space-y-3">
                   <div className="h-3 bg-white/10 rounded w-full"></div>
                   <div className="h-3 bg-white/10 rounded w-4/5"></div>
-                  <div className="h-8 bg-[#e9b353]/20 rounded-xl w-full mt-4"></div>
+                  <div className="h-8 bg-brand-gold-200/20 rounded-xl w-full mt-4"></div>
                 </div>
               </div>
             }>
@@ -165,7 +165,7 @@ export const UIElementRenderer = ({
               <div className="h-20 rounded-2xl border border-white/10 bg-white/[0.02] p-4 animate-pulse">
                 <div className="flex items-center gap-2 mb-3">
                   <div className="flex gap-1">
-                    {[1,2,3,4,5].map(i => <div key={i} className="h-3 w-3 bg-[#e9b353]/30 rounded"></div>)}
+                    {[1,2,3,4,5].map(i => <div key={i} className="h-3 w-3 bg-brand-gold-200/30 rounded"></div>)}
                   </div>
                   <div className="h-3 bg-white/10 rounded w-16"></div>
                 </div>

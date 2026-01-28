@@ -250,7 +250,7 @@ export const ReviewCarousel = ({
               >
                 <Card className="bg-white border border-gray-100 h-full flex flex-col rounded-xl overflow-hidden">
                   <motion.div 
-                    className="h-1 bg-[#e9b353]"
+                    className="h-1 bg-brand-gold-400"
                     initial={{ width: 0 }}
                     animate={{ width: '100%' }}
                     transition={{ duration: 0.5, delay: 0.2 }}
@@ -262,7 +262,7 @@ export const ReviewCarousel = ({
                         animate={{ opacity: 0.3, rotate: 0 }}
                         transition={{ duration: 0.5 }}
                       >
-                        <Quote className="w-5 h-5 text-[#e9b353]/20 mb-2" />
+                        <Quote className="w-5 h-5 text-brand-gold-400/20 mb-2" />
                       </motion.div>
                       
                       <div className={cn("flex items-start mb-2", language === 'ar' ? "space-x-reverse space-x-3" : "space-x-3")}>
@@ -276,7 +276,7 @@ export const ReviewCarousel = ({
                             cachedAvatarUrl={review.cached_avatar_url || null}
                             authorName={review.author_name}
                             className="w-10 h-10 border border-gray-200"
-                            fallbackClassName="bg-[#e9b353]/10 text-[#e9b353] text-xs"
+                            fallbackClassName="bg-brand-gold-400/10 text-brand-gold-400 text-xs"
                             size={40}
                           />
                         </motion.div>
@@ -333,16 +333,16 @@ export const ReviewCarousel = ({
                         <button 
                           onClick={() => onReadMore(review)} 
                           className={cn(
-                            "text-xs py-1 px-2 rounded-md bg-[#4c4c4c]/10 hover:bg-[#4c4c4c]/15 font-medium inline-flex items-center transition-all",
+                            "text-xs py-1 px-2 rounded-md bg-brand-gray-200/40 hover:bg-brand-gray-200/50 font-medium inline-flex items-center transition-all",
                             language === 'ar' ? "flex-row-reverse" : "flex-row"
                           )}
                         >
-                          <span className="text-[#4c4c4c]">
+                          <span className="text-brand-gray-600">
                             {language === 'ar' ? 'اقرأ المزيد' : 'Read More'}
                           </span>
                           <motion.span 
                             className={cn(
-                              "text-[#4c4c4c]",
+                              "text-brand-gray-600",
                               language === 'ar' ? "mr-1.5 transform rotate-180" : "ml-1.5"
                             )}
                             initial={{ x: 0 }}
@@ -375,7 +375,7 @@ export const ReviewCarousel = ({
               onClick={() => setCurrentPage(i)} 
               className={cn(
                 "rounded-full transition-all duration-300 focus:outline-none",
-                i === currentPage ? "bg-[#e9b353]" : "bg-gray-300 opacity-70 hover:opacity-100"
+                i === currentPage ? "bg-brand-gold-400" : "bg-brand-gray-200 opacity-70 hover:opacity-100"
               )}
               initial={false}
               animate={{ 

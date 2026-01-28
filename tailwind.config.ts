@@ -5,6 +5,7 @@ const config: Config = {
   content: [
     './index.html',
     './src/**/*.{js,ts,jsx,tsx}',
+    './packages/**/*.{js,ts,jsx,tsx}',
   ],
   theme: {
     extend: {
@@ -47,6 +48,29 @@ const config: Config = {
         card: {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
+        },
+        brand: {
+          gold: {
+            50: '#fff9f0',
+            100: '#f9e7c7',
+            200: '#f2d197',
+            300: '#efc780',
+            400: '#e9b353',
+            500: '#e39f26',
+            600: '#d18b1a',
+            700: '#b77512',
+          },
+          gray: {
+            50: '#f8f8f8',
+            100: '#f1f1f1',
+            200: '#e0e0e0',
+            300: '#c8c8c8',
+            500: '#5a5a5a',
+            600: '#4a4a4a',
+            700: '#3a3a3a',
+            800: '#2a2a2a',
+            900: '#1a1a1a',
+          },
         },
         'brand-primary': '#e9b353',
         'brand-secondary': '#4A4A4A',

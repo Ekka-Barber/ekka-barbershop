@@ -43,7 +43,7 @@ const MarketingErrorFallback: React.FC<{
           <div className="flex justify-center mb-4">
             <AlertTriangle className="w-12 h-12 text-amber-500" />
           </div>
-          <h2 className="text-xl font-bold text-[#222222] mb-2">
+          <h2 className="text-xl font-bold text-brand-gray-900 mb-2">
             {content.title}
           </h2>
           <p className="text-gray-600 mb-6 text-sm leading-relaxed">
@@ -51,7 +51,7 @@ const MarketingErrorFallback: React.FC<{
           </p>
           <Button
             onClick={resetErrorBoundary}
-            className="bg-[#e9b353] hover:bg-[#e9b353] text-white"
+            className="bg-brand-gold-400 hover:bg-brand-gold-400 text-white"
             size="sm"
           >
             <RefreshCw className="w-4 h-4 mr-2" />

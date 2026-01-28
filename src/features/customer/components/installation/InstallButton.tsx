@@ -37,7 +37,7 @@ export const InstallButton = React.forwardRef<HTMLDivElement, InstallButtonProps
     <div ref={ref} className="flex flex-col items-center text-center">
       <div className="relative space-y-1 mt-1 mb-1 transform-gpu">
         <Button
-          className={`w-full flex items-center justify-center gap-3 py-6 text-lg font-semibold bg-gradient-to-r from-[#f2d197] via-[#efc780] to-[#e39f26] hover:from-[#FBC252] hover:via-[#f2d197] hover:to-[#efc780] text-[#181C27] transition-all duration-300 group shadow-[0_20px_45px_-15px_rgba(232,198,111,0.5),0_10px_25px_-10px_rgba(214,179,90,0.3)] hover:shadow-[0_25px_55px_-15px_rgba(232,198,111,0.6),0_15px_35px_-10px_rgba(214,179,90,0.4)] ${prefersReducedMotion ? '' : 'transform hover:-translate-y-1'} active:translate-y-0 disabled:opacity-70 border-2 border-white/20 backdrop-blur-sm rounded-2xl`}
+          className={`w-full flex items-center justify-center gap-3 py-6 text-lg font-semibold bg-gradient-to-r from-brand-gold-200 via-brand-gold-300 to-brand-gold-500 hover:from-brand-gold-300 hover:via-brand-gold-200 hover:to-brand-gold-300 text-brand-gray-900 transition-all duration-300 group shadow-[0_20px_45px_-15px_rgba(232,198,111,0.5),0_10px_25px_-10px_rgba(214,179,90,0.3)] hover:shadow-[0_25px_55px_-15px_rgba(232,198,111,0.6),0_15px_35px_-10px_rgba(214,179,90,0.4)] ${prefersReducedMotion ? '' : 'transform hover:-translate-y-1'} active:translate-y-0 disabled:opacity-70 border-2 border-white/20 backdrop-blur-sm rounded-2xl`}
           onClick={onClickHandler}
           disabled={isInstalling}
         >
@@ -55,7 +55,7 @@ export const InstallButton = React.forwardRef<HTMLDivElement, InstallButtonProps
         <div className="flex items-center justify-center gap-4 mt-3">
           <button
             onClick={onDismiss}
-            className="text-sm text-[#f2d197] hover:text-[#efc780] transition-colors font-medium underline underline-offset-2"
+            className="text-sm text-brand-gold-200 hover:text-brand-gold-300 transition-colors font-medium underline underline-offset-2"
           >
             {isRTL ? 'ليس الآن' : 'Not now'}
           </button>
@@ -67,7 +67,7 @@ export const InstallButton = React.forwardRef<HTMLDivElement, InstallButtonProps
             className="p-1.5 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
             aria-label={isRTL ? "إغلاق" : "Close"}
           >
-            <X size={14} className="text-[#f2d197]" />
+            <X size={14} className="text-brand-gold-200" />
           </button>
         </div>
         <p className={`text-sm text-muted-foreground text-center font-semibold mt-2 ${isRTL ? 'rtl' : 'ltr'}`}>

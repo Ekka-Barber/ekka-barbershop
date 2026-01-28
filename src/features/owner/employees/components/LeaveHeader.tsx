@@ -8,6 +8,7 @@ import {
   Dialog,
   DialogContent,
   DialogHeader,
+  DialogDescription,
   DialogTitle,
   DialogTrigger,
 } from '@shared/ui/components/dialog';
@@ -73,6 +74,9 @@ export const LeaveHeader: React.FC<LeaveHeaderProps> = ({
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
               <DialogTitle>Add New Leave Request</DialogTitle>
+              <DialogDescription className="sr-only">
+                Submit a new leave request for an employee.
+              </DialogDescription>
             </DialogHeader>
             <AddLeaveForm
               employees={employees}

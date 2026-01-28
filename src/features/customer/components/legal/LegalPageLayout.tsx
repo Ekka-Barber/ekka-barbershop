@@ -30,7 +30,7 @@ export const LegalPageLayout: React.FC<LegalPageLayoutProps> = ({
           <div className="flex items-center justify-between h-16">
             <Link
               to="/customer"
-              className="flex items-center gap-2 text-gray-600 hover:text-[#e9b353] transition-colors"
+              className="flex items-center gap-2 text-gray-600 hover:text-brand-gold-400 transition-colors"
             >
               <ArrowLeft className="w-5 h-5" />
               <span className="font-medium">Back to Ekka</span>

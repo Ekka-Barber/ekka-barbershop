@@ -65,7 +65,7 @@ const EidBookingsDialog = ({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
         side="bottom"
-        className="bg-gradient-to-br from-white/98 to-white/95 border-2 border-white/40 shadow-[0_40px_100px_-40px_rgba(0,0,0,0.5),0_20px_50px_-20px_rgba(232,198,111,0.25)] rounded-t-2xl sm:rounded-2xl overflow-hidden backdrop-blur-xl max-h-[90vh] pb-[calc(var(--sab)+1rem)] sm:max-w-2xl sm:mx-auto"
+        className="bg-gradient-to-br from-white/98 to-white/95 border-2 border-white/40 shadow-[0_40px_100px_-40px_rgba(0,0,0,0.5),0_20px_50px_-20px_rgba(232,198,111,0.25)] rounded-t-2xl sm:rounded-2xl overflow-hidden backdrop-blur-xl flex flex-col h-auto max-h-[90vh] pb-[calc(var(--sab)+1rem)] sm:max-w-2xl sm:mx-auto"
       >
         <VisuallyHidden>
           <SheetTitle>
@@ -82,9 +82,9 @@ const EidBookingsDialog = ({
           initial="hidden"
           animate="visible"
           variants={fadeIn}
-          className="relative w-full"
+          className="relative flex h-full flex-col min-h-0 w-full"
         >
-          <SheetHeader className="h-28 bg-gradient-to-r from-[#f2d197] via-[#efc780] to-[#e39f26] flex items-center justify-center relative overflow-hidden shadow-[0_10px_40px_-10px_rgba(232,198,111,0.5)] flex-shrink-0">
+          <SheetHeader className="h-28 bg-gradient-to-r from-brand-gold-200 via-brand-gold-300 to-brand-gold-500 flex items-center justify-center relative overflow-hidden shadow-[0_10px_40px_-10px_rgba(232,198,111,0.5)] flex-shrink-0">
             <motion.div
               className="absolute inset-0 w-full h-full opacity-20"
               style={{
@@ -142,32 +142,32 @@ const EidBookingsDialog = ({
                   key={branch.id}
                   variants={branchVariants}
                   className="rounded-2xl relative"
-                  whileHover={{ scale: 1.04, y: -4, boxShadow: "0 25px 50px -12px rgba(139,92,246,0.35), 0 15px 30px -10px rgba(124,58,237,0.25)" }}
+                  whileHover={{ scale: 1.04, y: -4, boxShadow: "0 25px 50px -12px rgba(232,198,111,0.35), 0 15px 30px -10px rgba(214,179,90,0.25)" }}
                   whileTap={{ scale: 0.98, y: 0 }}
                 >
                   <Button
                     variant="outline"
-                    className="w-full h-full min-h-[140px] flex flex-col items-center justify-center gap-3 px-4 py-4 bg-gradient-to-br from-white/95 to-white/85 hover:from-white/98 hover:to-white/90 hover:bg-[#8B5CF6]/[0.03] border-2 border-white/60 hover:border-[#9B6CF6]/40 transition-all duration-300 rounded-2xl group shadow-[0_15px_35px_-10px_rgba(0,0,0,0.12),0_5px_15px_-5px_rgba(139,92,246,0.15)] backdrop-blur-sm"
+                    className="w-full h-full min-h-[140px] flex flex-col items-center justify-center gap-3 px-4 py-4 bg-gradient-to-br from-white/95 to-white/85 hover:from-white/98 hover:to-white/90 hover:bg-brand-gold-200/10 border-2 border-white/60 hover:border-brand-gold-300/40 transition-all duration-300 rounded-2xl group shadow-[0_15px_35px_-10px_rgba(0,0,0,0.12),0_5px_15px_-5px_rgba(214,179,90,0.15)] backdrop-blur-sm"
                     onClick={() => {
                       onBranchSelect(branch.id);
                     }}
                     aria-label={`Select ${isRTL ? branch.name_ar : branch.name} branch`}
                   >
                     <div className={`flex-1 flex flex-col items-center text-center`}>
-                      <div className="flex-shrink-0 bg-gradient-to-br from-[#9B6CF6]/20 to-[#7C3AED]/10 p-3 rounded-full mb-2 shadow-[0_4px_12px_-4px_rgba(155,108,246,0.2)]">
-                        <MapPin className="w-5 h-5 text-[#9B6CF6] drop-shadow-[0_2px_4px_rgba(155,108,246,0.2)]" />
+                      <div className="flex-shrink-0 bg-gradient-to-br from-brand-gold-200/20 to-brand-gold-500/10 p-3 rounded-full mb-2 shadow-[0_4px_12px_-4px_rgba(232,198,111,0.2)]">
+                        <MapPin className="w-5 h-5 text-brand-gold-400 drop-shadow-[0_2px_4px_rgba(232,198,111,0.2)]" />
                       </div>
                       <div className="flex flex-col min-w-0 gap-1">
-                        <span className="font-bold text-lg text-[#1a1a1a] group-hover:text-[#9B6CF6] transition-colors truncate drop-shadow-[0_1px_3px_rgba(0,0,0,0.08)]">
+                        <span className="font-bold text-lg text-brand-gray-900 group-hover:text-brand-gold-400 transition-colors truncate drop-shadow-[0_1px_3px_rgba(0,0,0,0.08)]">
                           {isRTL ? branch.name_ar : branch.name}
                         </span>
-                        <span className="text-sm text-[#5a5a5a] group-hover:text-[#8B5CF6] transition-colors truncate max-w-full">
+                        <span className="text-sm text-brand-gray-500 group-hover:text-brand-gold-300 transition-colors truncate max-w-full">
                           {isRTL ? branch.address_ar : branch.address}
                         </span>
                       </div>
                     </div>
 
-                    <div className="mt-2 text-sm text-[#9B6CF6] font-medium flex items-center gap-1">
+                    <div className="mt-2 text-sm text-brand-gold-400 font-medium flex items-center gap-1">
                       {isRTL ? 'انقر للحجز أونلاين' : 'Click to book online'}
                       <span className="transform transition-transform group-hover:translate-x-1 rtl:group-hover:-translate-x-1">
                         {isRTL ? '←' : '→'}
@@ -180,7 +180,7 @@ const EidBookingsDialog = ({
           </div>
 
           {/* Footer */}
-          <div className="p-4 bg-gradient-to-b from-white/50 to-yellow-50/60 border-t border-white/60 text-center backdrop-blur-sm flex-shrink-0">
+          <div className="p-4 bg-gradient-to-b from-white/50 to-brand-gold-50/60 border-t border-white/60 text-center backdrop-blur-sm flex-shrink-0">
             <motion.p
               className="text-xs text-gray-500"
               initial={{ opacity: 0 }}

@@ -61,7 +61,7 @@ export const BranchDialog = ({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
         side="bottom"
-        className="bg-gradient-to-br from-white/98 to-white/95 border-2 border-white/40 shadow-[0_40px_100px_-40px_rgba(0,0,0,0.5),0_20px_50px_-20px_rgba(232,198,111,0.2)] rounded-t-2xl sm:rounded-2xl overflow-hidden backdrop-blur-xl max-h-[90vh] pb-[calc(var(--sab)+1rem)] sm:max-w-2xl sm:mx-auto"
+        className="bg-gradient-to-br from-white/98 to-white/95 border-2 border-white/40 shadow-[0_40px_100px_-40px_rgba(0,0,0,0.5),0_20px_50px_-20px_rgba(232,198,111,0.2)] rounded-t-2xl sm:rounded-2xl overflow-hidden backdrop-blur-xl flex flex-col h-[90vh] pb-[calc(var(--sab)+1rem)] sm:max-w-2xl sm:mx-auto"
       >
         <VisuallyHidden>
           <SheetTitle>
@@ -77,9 +77,9 @@ export const BranchDialog = ({
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.3 }}
-          className="relative"
+          className="relative flex h-full flex-col min-h-0"
         >
-          <SheetHeader className="relative h-28 bg-gradient-to-br from-[#f2d197] via-[#efc780] to-[#e39f26] flex items-center justify-center overflow-hidden shadow-[0_10px_40px_-10px_rgba(232,198,111,0.4)] flex-shrink-0">
+          <SheetHeader className="relative h-28 bg-gradient-to-br from-brand-gold-200 via-brand-gold-300 to-brand-gold-500 flex items-center justify-center overflow-hidden shadow-[0_10px_40px_-10px_rgba(232,198,111,0.4)] flex-shrink-0">
             <motion.div
               className="absolute inset-0 opacity-10"
               animate={{
@@ -131,7 +131,7 @@ export const BranchDialog = ({
               </p>
             </motion.div>
 
-            <Separator className="mb-6 bg-gradient-to-r from-transparent via-[#f2d197]/30 to-transparent h-[2px] shadow-[0_0_15px_rgba(232,198,111,0.2)]" />
+            <Separator className="mb-6 bg-gradient-to-r from-transparent via-brand-gold-200/30 to-transparent h-[2px] shadow-[0_0_15px_rgba(232,198,111,0.2)]" />
 
             {/* Enhanced Branch Grid */}
             <motion.div
@@ -150,7 +150,7 @@ export const BranchDialog = ({
                   transition={{ type: "spring", stiffness: 400, damping: 20 }}
                 >
                   <Card
-                    className="group cursor-pointer border-2 border-white/60 hover:border-[#f2d197]/50 transition-all duration-300 shadow-[0_15px_35px_-10px_rgba(0,0,0,0.1),0_5px_15px_-5px_rgba(232,198,111,0.1)] bg-gradient-to-br from-white/95 to-white/85 backdrop-blur-sm rounded-2xl"
+                    className="group cursor-pointer border-2 border-white/60 hover:border-brand-gold-200/50 transition-all duration-300 shadow-[0_15px_35px_-10px_rgba(0,0,0,0.1),0_5px_15px_-5px_rgba(232,198,111,0.1)] bg-gradient-to-br from-white/95 to-white/85 backdrop-blur-sm rounded-2xl"
                     onClick={() => onBranchSelect(branch.id)}
                   >
                     <CardContent className="p-5">
@@ -158,18 +158,18 @@ export const BranchDialog = ({
                         <div className="flex items-start gap-3 flex-1">
                           <motion.div
                             whileHover={{ rotate: 15, scale: 1.15 }}
-                            className="w-11 h-11 rounded-full bg-gradient-to-br from-[#f2d197]/20 to-[#efc780]/10 flex items-center justify-center group-hover:bg-gradient-to-br group-hover:from-[#f2d197]/30 group-hover:to-[#efc780]/20 transition-all flex-shrink-0 mt-0.5 shadow-[0_4px_12px_-4px_rgba(232,198,111,0.3)]"
+                            className="w-11 h-11 rounded-full bg-gradient-to-br from-brand-gold-200/20 to-brand-gold-300/10 flex items-center justify-center group-hover:bg-gradient-to-br group-hover:from-brand-gold-200/30 group-hover:to-brand-gold-300/20 transition-all flex-shrink-0 mt-0.5 shadow-[0_4px_12px_-4px_rgba(232,198,111,0.3)]"
                           >
-                            <MapPin className="w-5 h-5 text-[#f2d197] drop-shadow-[0_2px_4px_rgba(0,0,0,0.1)]" />
+                            <MapPin className="w-5 h-5 text-brand-gold-400 drop-shadow-[0_2px_4px_rgba(0,0,0,0.1)]" />
                           </motion.div>
 
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 mb-2">
-                              <h3 className="font-bold text-lg text-[#1a1a1a] group-hover:text-[#f2d197] transition-colors truncate drop-shadow-[0_1px_3px_rgba(0,0,0,0.1)]">
+                              <h3 className="font-bold text-lg text-brand-gray-900 group-hover:text-brand-gold-400 transition-colors truncate drop-shadow-[0_1px_3px_rgba(0,0,0,0.1)]">
                                 {isRTL ? branch.name_ar : branch.name}
                               </h3>
                               {branch.is_main && (
-                                <Badge variant="outline" className="bg-gradient-to-r from-[#f2d197]/20 to-[#efc780]/10 text-[#f2d197] border-[#f2d197]/30 text-xs flex-shrink-0 shadow-[0_2px_8px_-2px_rgba(232,198,111,0.3)]">
+                                <Badge variant="outline" className="bg-gradient-to-r from-brand-gold-200/20 to-brand-gold-300/10 text-brand-gold-400 border-brand-gold-200/30 text-xs flex-shrink-0 shadow-[0_2px_8px_-2px_rgba(232,198,111,0.3)]">
                                   <Star className="w-3 h-3 mr-1 fill-current" />
                                   {isRTL ? 'رئيسي' : 'Main'}
                                 </Badge>
@@ -207,11 +207,11 @@ export const BranchDialog = ({
                           whileHover={{ x: 4, scale: 1.1 }}
                           className="flex-shrink-0 ml-3"
                         >
-                          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#f2d197]/20 to-[#efc780]/10 flex items-center justify-center group-hover:bg-gradient-to-br group-hover:from-[#f2d197]/30 group-hover:to-[#efc780]/20 transition-all shadow-[0_4px_12px_-4px_rgba(232,198,111,0.3)]">
+                          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-brand-gold-200/20 to-brand-gold-300/10 flex items-center justify-center group-hover:bg-gradient-to-br group-hover:from-brand-gold-200/30 group-hover:to-brand-gold-300/20 transition-all shadow-[0_4px_12px_-4px_rgba(232,198,111,0.3)]">
                             <motion.div
                               animate={{ x: [0, 4, 0] }}
                               transition={{ duration: 1.5, repeat: Infinity }}
-                              className="text-[#f2d197] text-base font-bold drop-shadow-[0_2px_4px_rgba(0,0,0,0.1)]"
+                              className="text-brand-gold-400 text-base font-bold drop-shadow-[0_2px_4px_rgba(0,0,0,0.1)]"
                             >
                               →
                             </motion.div>

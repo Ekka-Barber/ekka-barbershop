@@ -19,8 +19,8 @@ export const LanguageSwitcher = ({ className = '' }: LanguageSwitcherProps) => {
     <button 
       onClick={handleLanguageToggle}
       className={`
-        z-[9999] flex items-center justify-center w-10 h-10 rounded-full 
-        bg-[#e9b353] text-white shadow-lg hover:bg-[#B39260] 
+        z-50 flex items-center justify-center w-10 h-10 rounded-full 
+        bg-brand-gold-400 text-white shadow-lg hover:bg-brand-gold-500 
         transition-colors duration-300 border-2 border-white/30
         ${className}
       `}
