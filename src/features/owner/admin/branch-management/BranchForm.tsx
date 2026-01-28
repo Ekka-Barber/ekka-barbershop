@@ -2,7 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
 
-import { Branch } from '@shared/hooks/useBranchManagement';
+import type { Branch } from '@shared/types/branch';
 import { Button } from '@shared/ui/components/button';
 import {
   Form,
@@ -49,7 +49,7 @@ export const BranchForm = ({
       name_ar: branchData?.name_ar || '',
       address: branchData?.address || '',
       address_ar: branchData?.address_ar || '',
-      is_main: branchData ? branchData.is_main : false,
+      is_main: branchData?.is_main ?? false,
       whatsapp_number: branchData?.whatsapp_number || '',
       google_maps_url: branchData?.google_maps_url || '',
       google_place_id: branchData?.google_place_id || '',

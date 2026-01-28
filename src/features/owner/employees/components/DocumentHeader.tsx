@@ -26,6 +26,7 @@ interface EmployeeWithBranch extends Employee {
 interface DocumentHeaderProps {
   employee: EmployeeWithBranch;
   documents: EmployeeDocumentWithStatus[];
+  selectedDocuments: (string | null)[];
   allDocsSelected: boolean;
   onDocumentSelectAll: (checked: boolean) => void;
   onAddDocument: (employeeId: string) => void;

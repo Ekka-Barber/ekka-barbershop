@@ -1,7 +1,7 @@
-import { DynamicField } from '@shared/types/business';
-import { EmployeeLoan } from '@shared/types/domains';
+import type { DynamicField } from '@shared/types/business';
+import type { EmployeeLoan } from '@shared/types/domains';
 
-// EmployeeLoan is now imported from @/types/domains
+export type { EmployeeLoan };
 
 export interface LoansTabProps {
   loanFields: Record<string, DynamicField[]>;

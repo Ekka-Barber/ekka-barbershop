@@ -7,6 +7,7 @@ import {
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
+  useSidebar,
 } from '@shared/ui/components/sidebar';
 
 interface AdminSidebarProps {

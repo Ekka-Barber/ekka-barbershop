@@ -10,10 +10,10 @@ import type { EmployeeDocumentWithStatus } from '@/features/owner/employees/type
 
 interface DocumentListProps {
   documents: EmployeeDocumentWithStatus[];
-  selectedDocuments: string[];
-  onDocumentSelect: (documentId: string, selected: boolean) => void;
+  selectedDocuments: (string | null)[];
+  onDocumentSelect: (documentId: string | null, selected: boolean) => void;
   onDocumentEdit: (document: EmployeeDocumentWithStatus) => void;
-  onDocumentDelete: (documentId: string) => void;
+  onDocumentDelete: (documentId: string | null) => void;
   onAddDocument: (employeeId: string) => void;
   employeeId: string;
   isExpanded: boolean;

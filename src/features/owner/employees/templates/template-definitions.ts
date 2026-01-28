@@ -1,7 +1,7 @@
 import { TIME } from '@shared/constants/time';
 import { UI } from '@shared/constants/ui';
 
-import type { DocumentTemplateData } from '../types';
+import type { DocumentTemplateData } from './types';
 
 /**
  * Predefined document templates data for employee document management

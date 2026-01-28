@@ -1,11 +1,11 @@
 import { Building2, Briefcase } from 'lucide-react';
 import React, { useMemo } from 'react';
 
-import { Employee } from '@shared/types/domains';
+import type { EmployeeWithBranch } from '@/features/owner/employees/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@shared/ui/components/avatar';
 
 interface EmployeeHeaderProps {
-  employee: Employee;
+  employee: EmployeeWithBranch;
 }
 
 export const EmployeeHeader: React.FC<EmployeeHeaderProps> = ({ employee }) => {

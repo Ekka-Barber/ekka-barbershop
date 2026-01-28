@@ -1,11 +1,8 @@
 import React from 'react';
 
 import { useBranches } from '@shared/hooks/useBranches';
-import type {
-  DynamicField,
-  EmployeeDeduction,
-  Employee,
-} from '@shared/types/domains';
+import type { DynamicField } from '@shared/types/business';
+import type { EmployeeDeduction, Employee } from '@shared/types/domains';
 import {
   Accordion,
   AccordionItem,

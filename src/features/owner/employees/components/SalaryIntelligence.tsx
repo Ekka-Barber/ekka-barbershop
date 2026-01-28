@@ -104,7 +104,7 @@ export const SalaryIntelligence: React.FC<SalaryIntelligenceProps> = memo(
     return (
       <div className="space-y-4">
         <div className="text-sm text-gray-600 mb-2">
-          Plan: {employee.salary_plans?.name || 'Default Plan'}
+          Plan: {employee.salary_plan_id || 'Default Plan'}
         </div>
 
         <div className="grid grid-cols-2 gap-3 text-center">

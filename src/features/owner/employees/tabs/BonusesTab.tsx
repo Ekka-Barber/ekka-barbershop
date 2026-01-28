@@ -18,6 +18,11 @@ interface BonusesTabProps {
     index: number,
     value: string
   ) => void;
+  onBonusDateChange?: (
+    employeeName: string,
+    index: number,
+    value: string
+  ) => void;
   saveBonuses: (employeeName: string, bonuses: DynamicField[]) => void;
   employees: EmployeeWithBranch[];
   monthlyBonuses: EmployeeBonus[];

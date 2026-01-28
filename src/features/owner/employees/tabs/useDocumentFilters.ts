@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 
-import type { DocumentFilters, Employee } from '../../types';
+import type { DocumentFilters, Employee } from '../types';
 
 export const useDocumentFilters = (_employees: Employee[]) => {
   const [filters, setFilters] = useState<DocumentFilters>({});
@@ -53,21 +53,21 @@ export const useDocumentFilters = (_employees: Employee[]) => {
   );
 
   const handleEmployeeFilterChange = useCallback((employeeId: string) => {
-    setFilters((prev) => ({
+    setFilters((prev: DocumentFilters) => ({
       ...prev,
       employeeId: employeeId === 'all' ? undefined : employeeId,
     }));
   }, []);
 
   const handleDocumentTypeFilterChange = useCallback((documentType: string) => {
-    setFilters((prev) => ({
+    setFilters((prev: DocumentFilters) => ({
       ...prev,
       documentType: documentType === 'all' ? undefined : documentType,
     }));
   }, []);
 
   const handleStatusFilterChange = useCallback((status: string) => {
-    setFilters((prev) => ({
+    setFilters((prev: DocumentFilters) => ({
       ...prev,
       status: status === 'all' ? undefined : status,
     }));

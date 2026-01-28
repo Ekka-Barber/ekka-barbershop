@@ -1,12 +1,12 @@
 import type { UseMutationResult } from '@tanstack/react-query';
 import React from 'react';
 
+import { LeaveHeader, LeaveGrid, LoadingSkeleton, EmptyState } from '../index';
 import type {
   LeaveTabProps,
   AddLeaveResponse,
   AddLeaveData,
-} from '../../types/leaveTypes';
-import { LeaveHeader, LeaveGrid, LoadingSkeleton, EmptyState } from '../index';
+} from '../types/leaveTypes';
 
 import { useLeaveTab } from '@/features/owner/employees/hooks/useLeaveTab';
 

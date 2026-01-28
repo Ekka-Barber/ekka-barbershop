@@ -2,8 +2,10 @@ import type {
   EmployeeBonus,
   EmployeeDeduction,
   EmployeeLoan,
+  SalaryPlan,
 } from '@shared/types/domains';
 
+export type { EmployeeBonus, EmployeeDeduction, EmployeeLoan, SalaryPlan };
 export type SalaryPlanType = 'fixed' | 'dynamic_basic';
 
 export interface SalaryBlock {

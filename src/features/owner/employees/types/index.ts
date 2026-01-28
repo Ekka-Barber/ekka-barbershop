@@ -1,9 +1,9 @@
 import type { ReactNode } from 'react';
 
 import { TIME } from '@shared/constants/time';
-import { SalaryCalculation } from '@shared/types/business';
+import { SalaryCalculation, EmployeeWithBranch } from '@shared/types/business';
 import { Database } from '@shared/types/database.types';
-import {
+import type {
   Employee,
   EmployeeDeduction,
   EmployeeLoan,
@@ -28,7 +28,54 @@ export type EmployeeDocumentWithStatus =
   Database['public']['Views']['employee_documents_with_status']['Row'];
 
 // Re-export Employee type for components
-export type { Employee };
+export type { Employee, EmployeeDeduction, EmployeeLoan, EmployeeBonus };
+
+// Re-export EmployeeWithBranch from business types
+export type { EmployeeWithBranch };
+
+export interface DocumentFilters {
+  employeeId?: string;
+  documentType?: string;
+  status?: string;
+  searchTerm?: string;
+  issueDateFrom?: string;
+  issueDateTo?: string;
+  expiryDateFrom?: string;
+  expiryDateTo?: string;
+}
+
+// Transaction types for Sales/Bonus/Loan tabs
+export interface SimpleTransaction {
+  id: string;
+  employee_name: string;
+  description: string;
+  amount: number;
+  date: string;
+}
+
+export interface SimpleBonus {
+  id: string;
+  employee_name: string;
+  description: string;
+  amount: number;
+  date: string;
+}
+
+export interface SimpleDeduction {
+  id: string;
+  employee_name: string;
+  description: string;
+  amount: number;
+  date: string;
+}
+
+export interface SimpleLoan {
+  id: string;
+  employee_name: string;
+  description: string;
+  amount: number;
+  date: string;
+}
 
 // Local component-specific types
 export interface DocumentsTabProps {
@@ -47,20 +94,6 @@ export interface DocumentFormData {
   notification_threshold_days?: number;
   document_url?: string;
   notes?: string;
-}
-
-
-
-// Enhanced filters for Task 3
-export interface DocumentFilters {
-  employeeId?: string;
-  documentType?: string;
-  status?: string;
-  searchTerm?: string;
-  issueDateFrom?: string;
-  issueDateTo?: string;
-  expiryDateFrom?: string;
-  expiryDateTo?: string;
 }
 
 export type DocumentStatus =
@@ -109,10 +142,10 @@ export interface SalaryCalculationCardsProps {
   employees?: Array<{
     id: string;
     name: string;
-    name_ar?: string | null;
-    branches?: { id: string; name: string; name_ar?: string | null } | null;
+    name_ar?: string | undefined;
+    branches?: { id: string; name: string; name_ar?: string | undefined } | null;
     sponsor_id?: string | null;
-    sponsors?: { name_ar?: string | null } | null;
+    sponsors?: { name_ar?: string | undefined } | null;
   }>;
 }
 
@@ -142,3 +175,5 @@ export type {
   EmployeeFinancialRecords,
   SalaryData,
 } from './page.types';
+
+export type { EmployeeCardData } from '../components/EnhancedEmployeeCard.types';

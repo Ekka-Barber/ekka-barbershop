@@ -17,10 +17,10 @@ interface EmployeeWithBranch extends Employee {
 interface EmployeeDocumentCardProps {
   employee: EmployeeWithBranch;
   documents: EmployeeDocumentWithStatus[];
-  selectedDocuments: string[];
-  onDocumentSelect: (documentId: string, selected: boolean) => void;
+  selectedDocuments: (string | null)[];
+  onDocumentSelect: (documentId: string | null, selected: boolean) => void;
   onDocumentEdit: (document: EmployeeDocumentWithStatus) => void;
-  onDocumentDelete: (documentId: string) => void;
+  onDocumentDelete: (documentId: string | null) => void;
   onAddDocument: (employeeId: string) => void;
   className?: string;
 }
@@ -40,11 +40,13 @@ export const EmployeeDocumentCard: React.FC<EmployeeDocumentCardProps> = ({
   // Check if all documents are selected for this employee
   const allDocsSelected =
     documents.length > 0 &&
-    documents.every((doc) => selectedDocuments.includes(doc.id));
-
+    documents.every((doc) => doc.id !== null && selectedDocuments.includes(doc.id));
+  
   const handleSelectAllForEmployee = (checked: boolean) => {
     documents.forEach((doc) => {
-      onDocumentSelect(doc.id, checked);
+      if (doc.id !== null) {
+        onDocumentSelect(doc.id, checked);
+      }
     });
   };
 

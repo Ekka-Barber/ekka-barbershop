@@ -2,11 +2,11 @@ import { format } from 'date-fns';
 import { Calendar, Mail } from 'lucide-react';
 import React, { useMemo } from 'react';
 
-import { Employee } from '@shared/types/domains';
+import type { EmployeeWithBranch } from '@/features/owner/employees/types';
 import { Badge } from '@shared/ui/components/badge';
 
 interface EmployeeDetailsProps {
-  employee: Employee;
+  employee: EmployeeWithBranch;
 }
 
 export const EmployeeDetails: React.FC<EmployeeDetailsProps> = ({
@@ -21,8 +21,8 @@ export const EmployeeDetails: React.FC<EmployeeDetailsProps> = ({
   );
 
   const salaryPlanName = useMemo(
-    () => employee.salary_plans?.name || 'No Salary Plan',
-    [employee.salary_plans?.name]
+    () => employee.branches?.name || 'No Salary Plan',
+    [employee.branches?.name]
   );
 
   return (

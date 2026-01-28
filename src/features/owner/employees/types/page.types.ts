@@ -10,6 +10,16 @@ export interface EmployeeFinancialRecord {
 }
 
 export interface SalaryData {
+  baseSalary: number;
+  commission: number;
+  targetBonus: number;
+  totalSalary: number;
+  deductions: number;
+  loans: number;
+  bonuses: number;
+}
+
+export interface CategorySalaryData {
   category: {
     id: string;
     name_en: string;

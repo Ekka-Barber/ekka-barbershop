@@ -14,15 +14,15 @@ interface UseSalariesTabProps {
   employees?: Array<{
     id: string;
     name: string;
-    name_ar?: string | null;
-    branches?: { name: string; name_ar?: string | null } | null;
+    name_ar?: string | undefined;
+    branches?: { name: string; name_ar?: string | undefined } | null;
     sponsor_id?: string | null;
-    sponsors?: { name_ar?: string | null } | null;
+    sponsors?: { name_ar?: string | undefined } | null;
   }>;
-  sponsors?: Array<{ id: string; name_ar: string }> | null;
+  sponsors?: Array<{ id: string; name_ar: string } | null> | undefined;
   isSponsorsLoading?: boolean;
   onCalculate: () => void;
-  onRecalculate?: () => void; // Made optional
+  onRecalculate?: () => void;
 }
 
 export const useSalariesTab = ({

@@ -1,9 +1,10 @@
-import * as ReactNamespace from "react-original"
+import * as ReactNamespace from 'react';
 
 const GLOBAL_KEY = "__EKKA_REACT_SINGLETON__"
 
 type ReactWithInternals = typeof ReactNamespace & {
-  __SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED?: unknown
+  __SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED?: unknown;
+  unstable_act?: unknown;
 }
 
 const globalObject = globalThis as typeof globalThis & {
@@ -42,7 +43,7 @@ const {
   lazy,
   memo,
   startTransition,
-  unstable_act,
+  unstable_act: _unstable_act,
   useCallback,
   useContext,
   useDebugValue,
@@ -59,7 +60,9 @@ const {
   useSyncExternalStore,
   useTransition,
   version,
-} = reactInstance
+} = reactInstance as ReactWithInternals & { unstable_act?: unknown };
+
+const unstable_act = _unstable_act;
 
 export {
   Children,
@@ -100,5 +103,4 @@ export {
   version,
 }
 
-export * from "react-original"
-export default reactInstance
+export default reactInstance;

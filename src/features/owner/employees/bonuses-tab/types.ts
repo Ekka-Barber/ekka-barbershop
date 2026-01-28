@@ -15,7 +15,7 @@ export interface BonusesTabProps {
     index: number,
     value: string
   ) => void;
-  onBonusDateChange: (
+  onBonusDateChange?: (
     employeeName: string,
     index: number,
     value: string

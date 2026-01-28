@@ -42,6 +42,9 @@ export interface Transaction {
   date: string;
   description: string;
   employee_id: string;
+  employee_name: string;
+  created_at: string;
+  updated_at: string;
 }
 
 

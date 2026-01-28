@@ -21,9 +21,9 @@ import type { EmployeeDocumentWithStatus } from '@/features/owner/employees/type
 interface DocumentItemProps {
   document: EmployeeDocumentWithStatus;
   isSelected: boolean;
-  onSelect: (documentId: string, selected: boolean) => void;
+  onSelect: (documentId: string | null, selected: boolean) => void;
   onEdit: (document: EmployeeDocumentWithStatus) => void;
-  onDelete: (documentId: string) => void;
+  onDelete: (documentId: string | null) => void;
 }
 
 export const DocumentItem: React.FC<DocumentItemProps> = ({
@@ -48,7 +48,7 @@ export const DocumentItem: React.FC<DocumentItemProps> = ({
       {/* Document Selection */}
       <Checkbox
         checked={isSelected}
-        onCheckedChange={(checked) => onSelect(document.id, checked as boolean)}
+        onCheckedChange={(checked) => onSelect(document.id ?? '', checked as boolean)}
         className="w-5 h-5 sm:w-4 sm:h-4"
       />
 
@@ -60,9 +60,9 @@ export const DocumentItem: React.FC<DocumentItemProps> = ({
         <div className="flex items-center gap-2 mb-1">
           <h4
             className="font-medium text-sm truncate"
-            title={document.document_name}
+            title={document.document_name ?? ''}
           >
-            {document.document_name}
+            {document.document_name ?? ''}
           </h4>
           <StatusBadge
             status={
@@ -72,7 +72,7 @@ export const DocumentItem: React.FC<DocumentItemProps> = ({
                 | 'expired'
                 | 'needs_renewal'
             }
-            daysRemaining={document.days_remaining}
+            daysRemaining={document.days_remaining ?? undefined}
           />
         </div>
 
@@ -85,16 +85,16 @@ export const DocumentItem: React.FC<DocumentItemProps> = ({
           </div>
           <div className="flex items-center gap-1">
             <Calendar className="h-3 w-3" />
-            <span>Expires: {formatDocumentDate(document.expiry_date)}</span>
+            <span>Expires: {formatDocumentDate(document.expiry_date ?? '')}</span>
           </div>
         </div>
 
         {document.notes && (
           <p
             className="text-xs text-gray-500 mt-1 truncate"
-            title={document.notes}
+            title={document.notes ?? ''}
           >
-            Note: {document.notes}
+            Note: {document.notes ?? ''}
           </p>
         )}
       </div>
@@ -116,7 +116,7 @@ export const DocumentItem: React.FC<DocumentItemProps> = ({
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem
-            onClick={() => onDelete(document.id)}
+            onClick={() => onDelete(document.id ?? '')}
             className="text-red-600"
           >
             Delete

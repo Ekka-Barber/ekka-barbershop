@@ -34,30 +34,45 @@ const RealEmployeeTest = () => {
       {
         id: "bonus-1",
         employee_id: "EMP-001",
+        employee_name: "John Doe",
         amount: 300,
         description: "مكافأة الأداء",
         date: "2023-06-15",
         created_at: "2023-06-15T10:00:00Z",
+        updated_at: "2023-06-15T10:00:00Z",
+        branch_id: "BR-001",
+        cash_deposit_id: "CD-001",
+        source: "cash_deposit",
       }
     ],
     deductionsList: [
       {
         id: "deduction-1",
         employee_id: "EMP-001",
+        employee_name: "John Doe",
         amount: 200,
         description: "تأخر",
         date: "2023-06-10",
         created_at: "2023-06-10T10:00:00Z",
+        updated_at: "2023-06-10T10:00:00Z",
+        branch_id: "BR-001",
+        cash_deposit_id: "CD-001",
+        source: "cash_deposit",
       }
     ],
     loansList: [
       {
         id: "loan-1",
         employee_id: "EMP-001",
+        employee_name: "John Doe",
         amount: 300,
         description: "سلفة",
         date: "2023-06-05",
         created_at: "2023-06-05T10:00:00Z",
+        updated_at: "2023-06-05T10:00:00Z",
+        branch_id: "BR-001",
+        cash_deposit_id: "CD-001",
+        source: "cash_deposit",
       }
     ],
     deductions: 200,

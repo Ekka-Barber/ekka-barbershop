@@ -22,10 +22,10 @@ import {
   SelectValue,
 } from '@shared/ui/components/select';
 
-import type { DocumentFilters, Employee } from '../../types';
+import type { DocumentFilters as DocumentFiltersType, Employee } from '../types';
 
 interface DocumentFiltersProps {
-  filters: DocumentFilters;
+  filters: DocumentFiltersType;
   searchTerm: string;
   employees: Employee[];
   onEmployeeFilterChange: (employeeId: string) => void;

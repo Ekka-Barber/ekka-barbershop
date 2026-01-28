@@ -1,7 +1,8 @@
-// Export components only - hooks exported from ./context
+// Export components and hooks
 export { SidebarProvider } from './provider';
 export { Sidebar } from './core';
 export { SidebarTrigger } from './trigger';
+export { useSidebar } from './hooks';
 export {
   SidebarHeader,
   SidebarFooter,

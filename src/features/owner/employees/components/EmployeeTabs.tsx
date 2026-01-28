@@ -5,7 +5,7 @@ import type {
   SalaryCalculation,
   DynamicField,
 } from '@shared/types/business/calculations';
-import type { Employee } from '@shared/types/domains';
+import type { Employee, EmployeeBonus, EmployeeLoan } from '@shared/types/domains';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@shared/ui/components/tabs';
 
 import type { EmployeeFinancialRecords } from '../types';
@@ -28,8 +28,6 @@ interface EmployeeTabsProps {
   monthlyDeductionsRecord: EmployeeFinancialRecords;
   monthlyLoansRecord: EmployeeFinancialRecords;
   monthlyBonusesRecord: EmployeeFinancialRecords;
-  selectedBranch: string;
-  branchName: string;
   deductionsFields: Record<string, DynamicField[]>;
   onAddDeduction: (employeeName: string) => void;
   onRemoveDeduction: (employeeName: string, index: number) => void;
@@ -74,13 +72,7 @@ interface EmployeeTabsProps {
     value: string
   ) => void;
   saveLoans: () => void;
-  monthlyLoans: Array<{
-    id: string;
-    employee_name: string;
-    description: string;
-    amount: number;
-    date: string;
-  }>;
+  monthlyLoans: EmployeeLoan[];
   bonusFields: Record<string, DynamicField[]>;
   onAddBonus: (employeeName: string) => void;
   onRemoveBonus: (employeeName: string, index: number) => void;
@@ -94,17 +86,15 @@ interface EmployeeTabsProps {
     index: number,
     value: string
   ) => void;
-  saveBonuses: () => void;
-  monthlyBonuses: Array<{
-    id: string;
-    employee_name: string;
-    description: string;
-    amount: number;
-    date: string;
-  }>;
+  onBonusDateChange: (
+    employeeName: string,
+    index: number,
+    value: string
+  ) => void;
+  saveBonuses: (employeeName: string, bonuses: DynamicField[]) => void;
+  monthlyBonuses: EmployeeBonus[];
   calculations: SalaryCalculation[];
   onCalculate: () => void;
-  onSubmitSalaries: () => void;
 }
 
 export const EmployeeTabs: React.FC<EmployeeTabsProps> = ({
@@ -116,8 +106,6 @@ export const EmployeeTabs: React.FC<EmployeeTabsProps> = ({
   monthlyDeductionsRecord,
   monthlyLoansRecord,
   monthlyBonusesRecord,
-  selectedBranch,
-  branchName,
   deductionsFields = {},
   onAddDeduction,
   onRemoveDeduction,
@@ -138,11 +126,11 @@ export const EmployeeTabs: React.FC<EmployeeTabsProps> = ({
   onRemoveBonus,
   onBonusDescriptionChange,
   onBonusAmountChange,
+  onBonusDateChange,
   saveBonuses,
   monthlyBonuses = [],
   calculations = [],
   onCalculate,
-  onSubmitSalaries,
 }) => {
   // Use URL-persisted tab navigation
   const { currentTab, setActiveTab } = useTabNavigation({
@@ -215,7 +203,6 @@ export const EmployeeTabs: React.FC<EmployeeTabsProps> = ({
             monthlyDeductions={monthlyDeductionsRecord}
             monthlyLoans={monthlyLoansRecord}
             monthlyBonuses={monthlyBonusesRecord}
-            selectedBranch={selectedBranch}
             refetchEmployees={() => {}}
           />
         </TabsContent>
@@ -253,6 +240,7 @@ export const EmployeeTabs: React.FC<EmployeeTabsProps> = ({
             onRemoveBonus={onRemoveBonus}
             onBonusDescriptionChange={onBonusDescriptionChange}
             onBonusAmountChange={onBonusAmountChange}
+            onBonusDateChange={onBonusDateChange}
             saveBonuses={saveBonuses}
             employees={employees}
             monthlyBonuses={monthlyBonuses}
@@ -263,13 +251,10 @@ export const EmployeeTabs: React.FC<EmployeeTabsProps> = ({
           <SalariesTab
             calculations={calculations}
             onCalculate={onCalculate}
-            onSubmitSalaries={onSubmitSalaries}
             selectedMonth={selectedMonth}
             monthlyDeductions={monthlyDeductions}
             monthlyLoans={monthlyLoans}
             monthlyBonuses={monthlyBonuses}
-            selectedBranch={selectedBranch}
-            branchName={branchName}
           />
         </TabsContent>
         <TabsContent value="leave" className="mt-0">

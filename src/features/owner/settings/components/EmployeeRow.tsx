@@ -1,7 +1,7 @@
 import { Pencil, Trash2, Calendar, Clock } from 'lucide-react';
 
 import { useIsMobile } from '@shared/hooks/use-mobile';
-import { Employee } from '@shared/types/domains';
+import type { EmployeeWithBranch } from '@/features/owner/employees/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@shared/ui/components/avatar';
 import { Badge } from '@shared/ui/components/badge';
 import { Button } from '@shared/ui/components/button';
@@ -13,9 +13,9 @@ import {
 } from '@/features/owner/employees/hooks/useEmployeeData';
 
 interface EmployeeRowProps {
-  employee: Employee;
-  onEdit: (employee: Employee) => void;
-  onDelete: (id: string) => void;
+  employee: EmployeeWithBranch;
+  onEdit: (employee: EmployeeWithBranch) => void;
+  onDelete: (id: string | null) => void;
   forceDesktop?: boolean; // Force desktop table rendering
 }
 
@@ -31,8 +31,8 @@ export const EmployeeRow = ({
   // Calculate employee status and tenure
   const isActive = isEmployeeActiveOnDate(employee);
   const tenure = calculateEmployeeTenure(
-    employee.start_date,
-    employee.end_date
+    employee.start_date ?? '',
+    employee.end_date ?? undefined
   );
   const roleLabel = employee.role
     ? employee.role.replace(/_/g, ' ')
@@ -99,7 +99,7 @@ export const EmployeeRow = ({
             <div className="flex items-center gap-1 text-muted-foreground">
               <Calendar className="h-3 w-3" />
               <span className="text-xs">
-                Started: {new Date(employee.start_date).toLocaleDateString()}
+                Started: {new Date(employee.start_date ?? '').toLocaleDateString()}
               </span>
             </div>
           )}
@@ -115,7 +115,7 @@ export const EmployeeRow = ({
             <div className="flex items-center gap-1 text-red-600">
               <Calendar className="h-3 w-3" />
               <span className="text-xs">
-                Ended: {new Date(employee.end_date).toLocaleDateString()}
+                Ended: {new Date(employee.end_date ?? '').toLocaleDateString()}
               </span>
             </div>
           )}

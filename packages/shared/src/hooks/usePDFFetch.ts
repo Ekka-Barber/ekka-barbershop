@@ -118,9 +118,9 @@ export const usePDFFetch = (
         // Add branch information for offers
         if (includeBranchInfo && file.branch) {
           const branchData = file.branch as MarketingFileBranch;
-          enhancedFile.branchName = language === 'ar'
-            ? (branchData.name_ar || branchData.name)
-            : branchData.name;
+          enhancedFile.branchName = (language === 'ar'
+            ? (branchData.name_ar ?? branchData.name)
+            : branchData.name) ?? undefined;
 
           // Add expiration logic for offers
           if (file.end_date) {

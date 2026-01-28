@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 
-import type { EmployeeDocumentWithStatus, DocumentFormData } from '../../types';
+import type { EmployeeDocumentWithStatus, DocumentFormData } from '../types';
+import type { SetStateAction } from 'react';
 
 interface DocumentOperationsProps {
   createDocument: (data: Partial<DocumentFormData>) => Promise<void>;
@@ -22,7 +23,7 @@ export const useDocumentOperations = ({
     useState<EmployeeDocumentWithStatus | null>(null);
 
   const handleDocumentSelection = useCallback(
-    (documentId: string, selected: boolean) => {
+    (documentId: string | null, selected: boolean) => {
       if (selected) {
         setSelectedDocuments((prev) => [...prev, documentId]);
       } else {
@@ -42,7 +43,7 @@ export const useDocumentOperations = ({
         setSelectedDocuments(
           documents
             .map((doc) => doc.id)
-            .filter((id): id is string => id !== null)
+            .filter((id): id is string | null => id !== null)
         );
       }
     },
@@ -104,7 +105,7 @@ export const useDocumentOperations = ({
   }, []);
 
   const handleFormSubmit = useCallback(
-    async (formData: Partial<DocumentFormData>) => {
+    async (formData: Partial<DocumentFormData & { employee_id: string }>) => {
       try {
         if (editingDocument) {
           await updateDocument({
@@ -112,7 +113,7 @@ export const useDocumentOperations = ({
             updates: formData,
           });
         } else {
-          await createDocument(formData);
+          await createDocument(formData as DocumentFormData);
         }
         setShowForm(false);
         setEditingDocument(null);
@@ -120,7 +121,7 @@ export const useDocumentOperations = ({
         // Error handling is managed by the hook
       }
     },
-    [editingDocument, updateDocument, createDocument]
+    [createDocument, updateDocument, editingDocument]
   );
 
   const handleFormCancel = useCallback(() => {

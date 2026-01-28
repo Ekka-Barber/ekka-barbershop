@@ -3,32 +3,11 @@ import { useState } from 'react';
 
 import { supabase } from '@shared/lib/supabase/client';
 import { updateData, insertData } from '@shared/lib/supabase-helpers';
-import { BranchFormData } from '@shared/types/branch';
+import type { Branch, BranchFormData } from '@shared/types/branch';
 import { useToast } from '@shared/ui/components/use-toast';
 import { logger } from '@shared/utils/logger';
 
-interface WorkingHours {
-  [day: string]: {
-    isOpen: boolean;
-    openTime?: string;
-    closeTime?: string;
-  };
-}
-
-export interface Branch {
-  id: string;
-  name: string;
-  name_ar: string;
-  address: string;
-  address_ar: string;
-  is_main: boolean;
-  whatsapp_number: string | null;
-  google_maps_url: string | null;
-  google_place_id: string | null;
-  working_hours?: WorkingHours;
-  created_at: string;
-  updated_at: string;
-}
+export type { Branch } from '@shared/types/branch';
 
 export const useBranchManagement = () => {
   const { toast } = useToast();

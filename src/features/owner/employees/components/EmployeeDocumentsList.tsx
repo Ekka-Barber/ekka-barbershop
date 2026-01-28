@@ -21,10 +21,10 @@ interface EmployeeWithBranch extends Employee {
 interface EmployeeDocumentsListProps {
   employees: EmployeeWithBranch[];
   documents: EmployeeDocumentWithStatus[];
-  selectedDocuments: string[];
-  onDocumentSelect: (documentId: string, selected: boolean) => void;
+  selectedDocuments: (string | null)[];
+  onDocumentSelect: (documentId: string | null, selected: boolean) => void;
   onDocumentEdit: (document: EmployeeDocumentWithStatus) => void;
-  onDocumentDelete: (documentId: string) => void;
+  onDocumentDelete: (documentId: string | null) => void;
   onAddDocument: (employeeId: string) => void;
   isLoading?: boolean;
   className?: string;
@@ -94,15 +94,18 @@ export const EmployeeDocumentsList: React.FC<EmployeeDocumentsListProps> = ({
   const employeeDocumentGroups = useMemo(() => {
     const documentsByEmployee = documents.reduce(
       (acc, doc) => {
-        if (!acc[doc.employee_id]) {
-          acc[doc.employee_id] = [];
+        const employeeId = doc.employee_id;
+        if (employeeId !== null) {
+          if (!acc[employeeId]) {
+            acc[employeeId] = [];
+          }
+          acc[employeeId].push(doc);
         }
-        acc[doc.employee_id].push(doc);
         return acc;
       },
       {} as Record<string, EmployeeDocumentWithStatus[]>
     );
-
+    
     // Create employee groups with their documents and sort by priority
     const groups = employees.map((employee) => {
       const employeeDocs = documentsByEmployee[employee.id] || [];
