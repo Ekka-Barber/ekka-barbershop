@@ -1,8 +1,9 @@
 import { Building2, Briefcase } from 'lucide-react';
 import React, { useMemo } from 'react';
 
-import type { EmployeeWithBranch } from '@/features/owner/employees/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@shared/ui/components/avatar';
+
+import type { EmployeeWithBranch } from '@/features/owner/employees/types';
 
 interface EmployeeHeaderProps {
   employee: EmployeeWithBranch;

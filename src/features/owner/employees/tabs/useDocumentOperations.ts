@@ -1,7 +1,6 @@
 import { useState, useCallback } from 'react';
 
 import type { EmployeeDocumentWithStatus, DocumentFormData } from '../types';
-import type { SetStateAction } from 'react';
 
 interface DocumentOperationsProps {
   createDocument: (data: DocumentFormData) => Promise<void>;

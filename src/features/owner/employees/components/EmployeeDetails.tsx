@@ -2,8 +2,9 @@ import { format } from 'date-fns';
 import { Calendar, Mail } from 'lucide-react';
 import React, { useMemo } from 'react';
 
-import type { EmployeeWithBranch } from '@/features/owner/employees/types';
 import { Badge } from '@shared/ui/components/badge';
+
+import type { EmployeeWithBranch } from '@/features/owner/employees/types';
 
 interface EmployeeDetailsProps {
   employee: EmployeeWithBranch;

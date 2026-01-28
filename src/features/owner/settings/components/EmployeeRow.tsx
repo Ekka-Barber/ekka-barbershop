@@ -1,16 +1,16 @@
-import { Pencil, Trash2, Calendar, Clock } from 'lucide-react';
+import { Calendar, Clock, Pencil, Trash2 } from 'lucide-react';
 
 import { useIsMobile } from '@shared/hooks/use-mobile';
-import type { EmployeeWithBranch } from '@/features/owner/employees/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@shared/ui/components/avatar';
 import { Badge } from '@shared/ui/components/badge';
 import { Button } from '@shared/ui/components/button';
 import { TableCell, TableRow } from '@shared/ui/components/table';
 
 import {
-  isEmployeeActiveOnDate,
   calculateEmployeeTenure,
+  isEmployeeActiveOnDate,
 } from '@/features/owner/employees/hooks/useEmployeeData';
+import type { EmployeeWithBranch } from '@/features/owner/employees/types';
 
 interface EmployeeRowProps {
   employee: EmployeeWithBranch;

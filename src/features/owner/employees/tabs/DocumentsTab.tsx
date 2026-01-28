@@ -1,20 +1,16 @@
-import { Loader2, AlertTriangle } from 'lucide-react';
+import { AlertTriangle, Loader2 } from 'lucide-react';
 import React from 'react';
 
 import { Alert, AlertDescription } from '@shared/ui/components/alert';
 import { Button } from '@shared/ui/components/button';
 
-import type { DocumentsTabProps } from '../types';
 import { EmployeeDocumentsList, DocumentForm } from '../index';
+import type { DocumentsTabProps } from '../types';
 
-
-
-// Import the new components
 import { DocumentActionBar } from './DocumentActionBar';
 import { DocumentBulkActions } from './DocumentBulkActions';
 import { DocumentFilters } from './DocumentFilters';
 import { DocumentSummaryCards } from './DocumentSummaryCards';
-// Import the new hooks
 import { useDocumentFilters } from './useDocumentFilters';
 import { useDocumentOperations } from './useDocumentOperations';
 

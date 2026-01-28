@@ -1,26 +1,16 @@
 import {
   Users,
-  Settings,
   Building,
-  UserPlus,
   Cog,
-  ShoppingCart,
   CreditCard,
-  Minus,
-  Plus,
   Coins,
-  CalendarDays,
-  Archive,
   ShieldCheck,
   FileText,
   QrCode,
   Layout,
   Home,
-  Briefcase,
-  Monitor,
-  Cpu,
   TrendingUp,
-  Calendar
+  Calendar,
 } from 'lucide-react';
 
 import { NavigationSection } from '@shared/types/navigation';
