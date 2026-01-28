@@ -126,7 +126,7 @@ body {
 
 /* Make the root div scrollable instead */
 #root {
-  height: 100%;
+  min-height: 100%;
   width: 100%;
   overflow-y: auto;
   overflow-x: hidden;
