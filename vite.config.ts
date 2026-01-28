@@ -71,9 +71,7 @@ export default defineConfig({
             'tailwind-merge',
             'tailwindcss-animate',
             'sonner',
-            'cmdk',
-            'input-otp',
-            'vaul',
+
           ],
           'vendor-icons': ['lucide-react'],
           'vendor-charts': ['recharts'],
@@ -81,7 +79,7 @@ export default defineConfig({
           'vendor-jspdf': ['jspdf', 'html2canvas'],
           'vendor-dnd': ['@hello-pangea/dnd'],
           'vendor-animation': ['framer-motion'],
-          'vendor-dates': ['date-fns', 'date-fns-tz', 'react-day-picker'],
+           'vendor-dates': ['date-fns', 'react-day-picker'],
           'vendor-supabase': [
             '@supabase/auth-helpers-react',
             '@supabase/auth-ui-react',

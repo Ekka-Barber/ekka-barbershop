@@ -6,8 +6,8 @@
 
 ## Summary
 - Ran `npm run find-unused:report` to audit unused files, dependencies, exports, and duplicates.
-- **Current**: 53 unused files, 8 unused dependencies, 9 unused devDependencies, 199 unused exports, 95 unused types, 5 duplicate exports.
-- **Progress**: 34 files deleted (Phase 1 & 2 complete - all 11 tasks completed on 2026-01-28)
+- **Current**: 30 unused files, 1 unused dependency, 6 unused devDependencies, 199 unused exports, 95 unused types, 5 duplicate exports.
+- **Progress**: 34 files deleted, 7 dependencies + 3 devDependencies removed (Phase 1, 2 & 3 complete - all 18 tasks completed on 2026-01-28)
 - Documented true positives, false positives, and action items below.
 
 ---
@@ -295,15 +295,15 @@ npm run find-unused # Verify reductions
 
 ## 8. Metrics
 
-| Category | Before | After Phase 1 & 2 | Target |
-| --- | --- | --- | --- |
-| Unused files | 64 | **30** (34 deleted) | <10 (barrels only) |
-| Unused deps | 8 | 8 (not started) | 1 (@ekka/shared) |
-| Unused devDeps | 9 | 9 (not started) | 5 (testing tools) |
-| Unused exports | 199 | 199 (not started) | <50 |
-| Duplicate exports | 5 | 5 (not started) | 0 |
+| Category | Before | After Phase 1 & 2 | After Phase 3 | Target |
+| --- | --- | --- | --- | --- |
+| Unused files | 64 | **30** (34 deleted) | **30** (0 deleted) | <10 (barrels only) |
+| Unused deps | 8 | 8 (not started) | **1** (7 removed) | 1 (@ekka/shared) |
+| Unused devDeps | 9 | 9 (not started) | **6** (3 removed) | 5 (testing tools) |
+| Unused exports | 199 | 199 (not started) | 199 (not started) | <50 |
+| Duplicate exports | 5 | 5 (not started) | 5 (not started) | 0 |
 
-**Progress**: Phase 1 & 2 complete (34 files removed). Next: Phase 3 (Dependency Cleanup) or Phase 4 (Team Decisions).
+**Progress**: Phase 1, 2 & 3 complete (34 files removed, 7 deps + 3 devDeps removed). Next: Phase 4 (Team Decisions) or Phase 5 (Export Cleanup).
 
 ---
 
@@ -357,6 +357,28 @@ npm run find-unused # Verify reductions
 **Kept**: `packages/shared/src/lib/salary/calculations/` (3 files: index.ts, payrollWindow.ts, salaryCalculations.ts)
 
 **Next Steps**: Phase 3 - Dependency Cleanup (7 deps + 3 devDeps) or Phase 4 - Team Decisions
+
+---
+
+### 2026-01-28 - Phase 3 Complete (All Tasks Done)
+**Tasks Completed**:
+- ? Uninstalled 7 unused dependencies: `cmdk`, `date-fns-tz`, `embla-carousel-react`, `input-otp`, `react-dropzone`, `react-resizable-panels`, `vaul`
+- ? Uninstalled 3 unused devDependencies: `@babel/plugin-transform-react-jsx`, `@tailwindcss/typography`, `baseline-browser-mapping`
+- ? Updated `vite.config.ts` manualChunks to remove references to removed packages
+
+**Verification**:
+- ? `npm run lint` - Passed
+- ? `npm run build` - Passed (26.00s, down from 27.18s)
+- ? `npx tsc --noEmit` - Passed
+- ? Knip report confirms unused dependencies reduced from 8 to 1 (false positive `@ekka/shared`), devDependencies from 9 to 6 (testing tools retained)
+
+**Packages Removed**: 10 total
+- 7 dependencies
+- 3 devDependencies
+
+**Kept**: Testing tools (`@testing-library/*`, `jsdom`, `vitest`, `turbo`, `unimported`) for future test implementation.
+
+**Next Steps**: Phase 4 - Team Decisions (AdminHeader/AdminSidebar, Settings.tsx, QRCodeManager.tsx, barrel exports) or Phase 5 - Export Cleanup.
 
 ---
 
