@@ -5,7 +5,7 @@ import { useTabNavigation } from '@shared/hooks/useTabNavigation';
 import { Card } from '@shared/ui/components/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@shared/ui/components/tabs';
 
-import { BranchManagement, SponsorManagement } from '@/features/owner/settings/components';
+import { SponsorManagement } from '@/features/owner/settings/components';
 import { EmployeeManagement } from '@/features/owner/settings/components/EmployeeManagement';
 
 const LoadingFallback = () => (
@@ -22,7 +22,7 @@ const LoadingFallback = () => (
 const Settings = () => {
   // Use URL-persisted tab navigation
   const { currentTab, setActiveTab } = useTabNavigation({
-    defaultTab: 'branches',
+    defaultTab: 'employees',
   });
 
   return (
@@ -32,12 +32,6 @@ const Settings = () => {
       <Card className="overflow-hidden">
         <Tabs value={currentTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="tabs-underline-list px-2 sm:px-3 md:px-4">
-            <TabsTrigger
-              value="branches"
-              className="tabs-underline-trigger text-xs sm:text-sm md:text-base min-w-max flex-shrink-0"
-            >
-              Studio Network
-            </TabsTrigger>
             <TabsTrigger
               value="employees"
               className="tabs-underline-trigger text-xs sm:text-sm md:text-base min-w-max flex-shrink-0"
@@ -54,10 +48,6 @@ const Settings = () => {
 
           <div className="p-3 sm:p-4 md:p-6">
             <Suspense fallback={<LoadingFallback />}>
-              <TabsContent value="branches" className="mt-0 space-y-4">
-                <BranchManagement />
-              </TabsContent>
-
               <TabsContent value="employees" className="mt-0 space-y-4">
                 <EmployeeManagement />
               </TabsContent>

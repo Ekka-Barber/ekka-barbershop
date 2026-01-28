@@ -9,14 +9,6 @@ export { EmployeeForm } from './EmployeeForm';
 export { EmployeeTable } from './EmployeeTable';
 export { EmployeeRow } from './EmployeeRow';
 
-// Branch management components
-export { BranchManagement } from './BranchManagement';
-export { BranchList } from './BranchList';
-export { BranchTable } from './BranchTable';
-export { CreateBranchForm } from './CreateBranchForm';
-export { EditBranchForm } from './EditBranchForm';
-export { DeleteBranchDialog } from './DeleteBranchDialog';
-export { EditBranchDialog } from './EditBranchDialog';
 export { ImageUpload } from './ImageUpload';
 
 // Sponsor management components
