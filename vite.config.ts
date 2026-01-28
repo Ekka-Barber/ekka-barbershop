@@ -87,7 +87,6 @@ export default defineConfig({
 
           ],
           'vendor-icons': ['lucide-react'],
-          'vendor-charts': ['recharts'],
           // 'vendor-react-pdf': ['@react-pdf/renderer'], // Removed - using jsPDF/html2canvas instead
           // PDF libraries removed from manualChunks to prevent unwanted preloading
           // They will be automatically code-split and only loaded when PDF features are used

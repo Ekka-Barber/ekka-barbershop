@@ -12,7 +12,7 @@
 
 This document provides a corrected, actionable plan based on deep analysis of the actual build artifacts. The previous plan identified symptoms correctly but misdiagnosed root causes and proposed ineffective solutions.
 
-**Key Finding**: The `vendor-jspdf` chunk is preloaded not because of Vite heuristic errors, but because it contains a shared helper function (`_` - likely the lazy loading wrapper) that is imported by **17+ route chunks**, including customer-facing routes.
+**Key Finding**: Removing the manual `vendor-jspdf`/`vendor-charts` chunks eliminated the shared helper that used to drag `jspdf` into every preload list, so the PDF libraries now sit at **376 KB** and **196 KB** respectively but only download when a manager triggers PDF flows while `vendor-charts` (Recharts) disappears entirely from the build.
 
 ### Implementation Status
 
@@ -27,12 +27,12 @@ This document provides a corrected, actionable plan based on deep analysis of th
 
 | Metric | Before | After | Improvement |
 |--------|--------|-------|-------------|
-| Total JS (uncompressed) | ~2,900 KB | 2,752 KB | -5% |
-| Total Transfer (gzip) | ~850 KB | **827 KB** | -3% |
-| Total Transfer (brotli) | N/A | **708 KB** | **New** |
+| Total JS (uncompressed) | ~2,900 KB | **2,360 KB** | **-19%** |
+| Total Transfer (gzip) | ~850 KB | **721 KB** | **-15%** |
+| Total Transfer (brotli) | N/A | **621 KB** | **New** |
 | Largest Preloaded Chunk | 576 KB (vendor-jspdf) | **210 KB** (vendor-ui) | **-63%** |
 | PDF Libraries Preloaded | ✅ Yes (all routes) | ❌ **No** (on-demand) | **Critical** |
-| Compression Savings | N/A | **74.3%** (brotli) | **New** |
+| Compression Savings | N/A | **73.7%** (brotli) | **New** |
 | Build Commands Pass | - | ✅ lint, typecheck, build | All pass |
 
 ---
@@ -43,20 +43,24 @@ This document provides a corrected, actionable plan based on deep analysis of th
 
 | Category | Uncompressed | Gzipped (Est.) | Notes |
 |----------|--------------|----------------|-------|
-| **JavaScript** | ~2,900 KB | ~800-900 KB | Pre-compression matters for CDN |
+| **JavaScript** | ~2,360 KB | ~700-750 KB | Compression shrinks over-the-wire cost |
 | **CSS** | 100 KB | ~15-20 KB | Single Tailwind-generated file |
-| **Total Transfer** | ~3.0 MB | ~850 KB | Modern CDNs serve compressed |
+| **Total Transfer** | ~2.5 MB | ~720 KB gzip / ~621 KB brotli | Modern CDNs serve compressed |
 
 ### 1.2 Vendor Chunk Breakdown
 
-| Chunk | Uncompressed | Gzipped | Preloaded? | Contains Shared Helper? |
-|-------|--------------|---------|------------|------------------------|
-| `vendor-jspdf` | 576 KB | ~150 KB | ✅ **YES** | ✅ **YES** - `_` helper |
-| `vendor-charts` | 396 KB | ~110 KB | ❌ No | No |
-| `vendor-ui` | 212 KB | ~65 KB | ✅ Yes | No |
-| `vendor-supabase` | 168 KB | ~50 KB | ✅ Yes | No |
-| `vendor-react` | 164 KB | ~48 KB | ✅ Yes | No |
-| `vendor-animation` | 100 KB | ~30 KB | ❌ No | No |
+| Chunk | Uncompressed | Gzipped | Preloaded? | Notes |
+|-------|--------------|---------|------------|-------|
+| `jspdf.es.min-*` | 376 KB | ~123 KB | ❌ No | Bundled with PDF routes, only loads when needed |
+| `html2canvas.esm-*` | 196 KB | ~46 KB | ❌ No | Same demand-driven loading |
+| `vendor-ui` | 212 KB | ~65 KB | ✅ Yes | Keeps UI primitives ready |
+| `vendor-supabase` | 167 KB | ~44 KB | ✅ Yes | Shared Supabase helpers |
+| `vendor-react` | 160 KB | ~53 KB | ✅ Yes | React + Router core |
+| `vendor-state` | ~36 KB | ~11 KB | ✅ Yes | Zustand + React Query remain preloaded |
+| `vendor-icons` | ~19 KB | ~6 KB | ✅ Yes | Lucide icon pack |
+| `vendor-animation` | 100 KB | ~30 KB | ❌ No | Still code-split, not preloaded |
+
+- `vendor-charts` vanished once Recharts was removed, trimming the bundle by ~396 KB and simplifying lazy-loading.
 
 ### 1.3 Root Cause of vendor-jspdf Preload
 
@@ -79,7 +83,8 @@ This document provides a corrected, actionable plan based on deep analysis of th
 - `EidBookingsSection-DkLd4Z40.js`
 - `EidBookingsDialog-aDuZxD6x.js`
 
-**Why This Happens**: The manualChunks configuration forces `jspdf` and `html2canvas` into a single chunk that also contains Vite's module preload helper.
+**Why This Happens**: The manualChunks configuration used to force `jspdf` and `html2canvas` into a single chunk that also contained Vite's module preload helper, which every lazy route then imported.  
+After removing the explicit manual chunk, the helper no longer appears in `index`'s `__vite__mapDeps`, so PDF code is only fetched when the manager or owner opens a PDF flow.
 
 ---
 
@@ -126,15 +131,15 @@ This document provides a corrected, actionable plan based on deep analysis of th
 - Consider lazy-loading Mapbox only when map component mounts
 - Add `preconnect` hints for external domains
 
-### 2.4 MEDIUM: Verify QRCodeAnalytics Chunking
+### 2.4 MEDIUM: QRCodeAnalytics Should Stay Lightweight
 
 **Location**: `src/features/shared-features/qr-code/`
 
-**Status**: Currently only used in owner routes via lazy import.
+**Status**: Still lazily loaded from the owner-only analytics tab.
 
-**Risk**: The "shared-features" naming convention suggests potential for misuse.
+**Assessment**: We replaced the Recharts-based charts with CSS-based summaries, so there is no longer any direct dependency on the heavy chart library and the `vendor-charts` chunk disappears from the build.
 
-**Action**: Add ESLint rule or documentation to prevent static imports of recharts-using components.
+**Action**: Keep this feature behind `lazyWithRetry`, avoid introducing new third-party charting libraries, and continue monitoring the `dist/assets` directory to ensure QR analytics stays optional.
 
 ### 2.5 LOW: Service Worker Cache Strategy
 
@@ -259,7 +264,7 @@ This document provides a corrected, actionable plan based on deep analysis of th
    - ✅ `npm run lint` - 0 errors
    - ✅ `npx tsc --noEmit` - 0 type errors
    - ✅ `npm run build` - successful
-   - ✅ `node scripts/check-bundle-size.js` - **708 KB brotli** (within 1000KB limit)
+   - ✅ `node scripts/check-bundle-size.js` - **621 KB brotli** (within 1000KB limit)
    - ✅ `dist/stats.html` generated for visual analysis
 
 **Current Bundle Metrics**:
@@ -267,17 +272,17 @@ This document provides a corrected, actionable plan based on deep analysis of th
 📦 Bundle Size Report
 =====================
 Total Sizes:
-  Uncompressed: 2,751.75 KB
-  Gzip:         826.87 KB (70.0% savings)
-  Brotli:       707.95 KB (74.3% savings)
+  Uncompressed: 2,360.34 KB
+  Gzip:         720.96 KB (69.5% savings)
+  Brotli:       621.43 KB (73.7% savings)
 
-✅ Bundle size (707.95 KB brotli) within limit (1000 KB)
-   Total files: 80
+✅ Bundle size (621.43 KB brotli) within limit (1000 KB)
+   Total files: 79
 
 Insights:
-  Largest chunk: vendor-charts-CR3YFhP1.js (392.40 KB uncompressed)
-  Gzip compression saves: 70.0%
-  Brotli compression saves: 74.3%
+  Largest chunk: jspdf.es.min-DDzIpCvY.js (376.22 KB uncompressed)
+  Gzip compression saves: 69.5%
+  Brotli compression saves: 73.7%
 ```
 
 ---
@@ -286,12 +291,12 @@ Insights:
 
 | Metric | Current | After Phase 1 | After Phase 2 | Notes |
 |--------|---------|---------------|---------------|-------|
-| Initial JS (gzip) | ~850 KB | ~850 KB | ~850 KB | No change from preload fix |
-| Initial Transfer | ~850 KB | **~280 KB** | ~280 KB | Compression is the big win |
-| Largest Preloaded Chunk | 576 KB | 576 KB | **~200 KB** | vendor-jspdf removed from preload |
-| Lighthouse Performance | ~75-80 | **~85-90** | ~85-90 | From compression + script defer |
+| Initial JS (gzip) | ~850 KB | **~720 KB** | ~720 KB | Compression + Recharts removal drop the transfer size |
+| Total JS (uncompressed) | ~2,900 KB | **~2,360 KB** | ~2,360 KB | About 540 KB saved once `vendor-charts` disappears |
+| Largest Preloaded Chunk | 576 KB | 576 KB | **~200 KB** | vendor-jspdf removed from preload, UI chunk now the biggest |
+| Lighthouse Performance | ~75-80 | **~85-90** | ~85-90 | Compression + script defer lift scores |
 
-**Key Insight**: The preload elimination (Phase 2) will reduce the *number* of requests on initial load, but compression (Phase 1) will have the biggest impact on actual transfer size and performance score.
+**Key Insight**: Dropping Recharts (no `vendor-charts`) plus disabling the PDF helper preload trims the payload before compression, letting Phase 1/2 deliver the 621 KB brotli budget while keeping request counts minimized.
 
 ---
 
@@ -339,7 +344,7 @@ npm run find-unused:report
 - `dist/index.html` - verify preload links here
 - `src/index.html` - source template for script loading changes
 - `packages/shared/src/lib/pdf/` - PDF generation modules
-- `src/features/shared-features/qr-code/` - recharts usage
+- `src/features/shared-features/qr-code/` - lightweight analytics UI (Recharts replaced with custom progress bars)
 
 ---
 
@@ -348,7 +353,7 @@ npm run find-unused:report
 2. ✅ ~~Test Phase 2 (preload fix)~~ - COMPLETED - PDF libs no longer preloaded
 3. ✅ ~~Monitor Lighthouse scores~~ - COMPLETED - All metrics within budget
 4. Monitor bundle size over time using `npm run build:check`
-5. Consider further optimizations (tree-shaking, dynamic imports for charts)
+5. Keep QR code analytics lightweight (no new chart libraries) and monitor chunk sizes as features evolve
 
 ---
 
@@ -356,10 +361,14 @@ npm run find-unused:report
 
 | File | Changes |
 |------|---------|
-| `vite.config.ts` | Added compression plugins, removed jspdf/html2canvas from manualChunks |
-| `index.html` | Added preconnect hints, defer attribute to Mapbox |
-| `package.json` | Added `build:check` script, vite-plugin-compression2 dependency |
-| `scripts/check-bundle-size.js` | Created bundle size monitoring script (NEW) |
+| `vite.config.ts` | Added compression plugins, removed the `vendor-jspdf`/`vendor-charts` manual chunks |
+| `index.html` | Added preconnect hints + deferred Mapbox script |
+| `package.json` | Added `build:check`, `vite-plugin-compression2`, removed `recharts`, kept `knip`/core scripts |
+| `package-lock.json` | Synchronized lockfile after deleting `recharts` and rerunning installs |
+| `scripts/check-bundle-size.js` | Bundle size monitoring + gzip/brotli checks |
+| `src/features/shared-features/qr-code/OverviewCard.tsx` | Replaced bar chart with a compact history bar list |
+| `src/features/shared-features/qr-code/BreakdownCard.tsx` | Replaced PieChart widgets with data lists and progress bars |
+| `PERFORMANCE_OPTIMIZATION_PLAN.md` | Documented Recharts removal, updated metrics, added QR analytics note |
 
 ## Verification Commands
 
