@@ -297,13 +297,13 @@ npm run find-unused # Verify reductions
 
 | Category | Before | After Phase 1 & 2 | Target |
 | --- | --- | --- | --- |
-| Unused files | 64 | **35** (29 deleted) | <10 (barrels only) |
+| Unused files | 64 | **30** (34 deleted) | <10 (barrels only) |
 | Unused deps | 8 | 8 (not started) | 1 (@ekka/shared) |
 | Unused devDeps | 9 | 9 (not started) | 5 (testing tools) |
 | Unused exports | 199 | 199 (not started) | <50 |
 | Duplicate exports | 5 | 5 (not started) | 0 |
 
-**Progress**: Phase 1 & 2 complete (29 files removed). Next: Phase 3 (Dependency Cleanup) or Phase 4 (Team Decisions).
+**Progress**: Phase 1 & 2 complete (34 files removed). Next: Phase 3 (Dependency Cleanup) or Phase 4 (Team Decisions).
 
 ---
 
