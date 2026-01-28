@@ -26,16 +26,22 @@ npx vitest -t "test name"
 ```
 Note: Vitest is installed but tests are not implemented yet.
 
+### Dead Code Analysis
+```bash
+npm run find-unused            # Run knip to find unused code
+npm run find-unused:report     # Run knip without exit code (for CI)
+```
+
 ## Project Overview
-- Stack: React 18 + TypeScript + Vite
+- Stack: React 18 + TypeScript + Vite 7.x
 - Styling: Tailwind CSS + shadcn/ui (Radix primitives)
 - State: Zustand (global) with immer middleware + React hooks (local)
 - Data: Supabase + @tanstack/react-query
-- Routing: react-router-dom
+- Routing: react-router-dom v6
 - i18n: English/Arabic in `src/i18n/translations.ts`
 - Monorepo: Workspaces in `packages/` (`shared`, `ui`)
 
-## Key Paths (Target Structure)
+## Key Paths (Current Structure)
 - `src/app/` — App shell (providers, router, stores)
 - `src/features/` — Business features by role (auth/owner/manager/customer/shared-features)
 - `src/contexts/` — React context providers
@@ -44,7 +50,7 @@ Note: Vitest is installed but tests are not implemented yet.
 - `packages/shared/src/` — Shared layer (lib/hooks/utils/types/constants/services)
 - `packages/ui/src/components/` — UI components (shadcn/ui + custom)
 
-**Current State**: All consolidation phases (1-6) complete. Build, lint, typecheck pass. Use specific aliases (`@shared/*`, `@features/*`, `@app/*`) for new code. `@/` retained for contexts, assets, i18n.
+**Current State**: All consolidation phases complete. Build, lint, typecheck pass. Use specific aliases (`@shared/*`, `@features/*`, `@app/*`) for new code. `@/` retained for contexts, assets, i18n.
 
 ## Monorepo Workspaces
 The project uses a monorepo structure with workspaces defined in `package.json` (`"workspaces": ["packages/*"]`). Two packages exist:
@@ -61,7 +67,7 @@ Use `npx turbo` to run commands across workspaces (e.g., `npx turbo build`). Vit
 - **i18n**: `src/i18n/translations.ts` remains; import via `@/i18n/translations`.
 - **Gradual migration**: Over time, migrate remaining `@/` imports to specific aliases where appropriate (e.g., `@/components/ui` → `@shared/ui/*`).
 
-## Aliases (configured in vite.config.ts)
+## Aliases (configured in vite.config.ts and tsconfig.app.json)
 - `@/*` → `src/*`
 - `@app/*` → `src/app/*`
 - `@features/*` → `src/features/*`
@@ -167,7 +173,7 @@ const { data, isLoading, error } = useQuery({
 
 ## Error Handling & Logging
 - Wrap async Supabase calls in try/catch; throw on `error`.
-- User-facing errors via `toast` from `@/hooks/use-toast` or `sonner`.
+- User-facing errors via `toast` from `@shared/ui/components/use-toast` or `sonner`.
 - Centralized logging via `errorHandler` in `@shared/services/errorHandler.ts`.
 - Use `logger` from `@shared/utils/logger.ts` (disabled in production).
 - Never log sensitive data (passwords, tokens, secrets).
@@ -184,6 +190,18 @@ const { data, isLoading, error } = useQuery({
 - Keep imports consistent with surrounding feature; do not mix both in one file.
 - Icons from `lucide-react`.
 - Use `asChild` prop when composing Radix primitives.
+
+## PDF Generation
+The app uses an HTML-to-PDF approach with jsPDF + html2canvas:
+- **Active pipeline**: `@shared/lib/pdf/salary-html-generator.ts` → `salary-pdf-generator.ts`
+- **Payslip generation**: `@shared/lib/pdf/payslip-pdf-generator.ts` (via `payslip-html-template.ts`)
+- **Lazy loading**: PDF libraries are dynamically imported only when needed
+- **Dead code**: `salary-pdf-constants.ts`, `salary-pdf-html-generator.ts`, `salary-pdf-styles.ts`, `salary-pdf-utils.ts` (orphaned chain, safe to delete)
+
+## Salary Calculations
+- **Active module**: `@shared/lib/salary/calculations/` (salaryCalculations.ts, payrollWindow.ts)
+- **Used by**: `useEmployeeCalculationActions`, `useSalaryCalculation`, `usePayrollData`
+- **Dead code**: `@shared/lib/salary/calculators/*`, `hooks/useCalculator.ts`, `types/salary.ts`, `utils/calculatorUtils.ts`, `index.ts` (supplanted by calculations/)
 
 ## Internationalization & RTL
 - Translations in `src/i18n/translations.ts` (en/ar keys).
@@ -222,9 +240,13 @@ features/owner/employees/
   - `vendor-react`: React, ReactDOM, Router
   - `vendor-state`: Zustand, React Query
   - `vendor-forms`: React Hook Form, Zod
-  - `vendor-ui`: All Radix UI packages
+  - `vendor-ui`: All Radix UI packages + cmdk, input-otp, vaul (some unused)
   - `vendor-icons`: Lucide React
   - `vendor-charts`: Recharts
+  - `vendor-jspdf`: jsPDF, html2canvas
+  - `vendor-dnd`: @hello-pangea/dnd
+  - `vendor-animation`: framer-motion
+  - `vendor-dates`: date-fns, date-fns-tz, react-day-picker
   - `vendor-supabase`: Supabase packages
 - Use `lazyWithRetry` for critical chunks that may fail loading.
 
@@ -234,6 +256,19 @@ features/owner/employees/
 - Error handler redacts sensitive context in production logs.
 - Use environment variables for all configuration.
 
+## Known Dead Code (Pending Cleanup)
+See `knip_plan` for full details. Key items:
+- **Legacy files**: `src/integrations/supabase/*` (use `@shared/lib/supabase/*` instead)
+- **Empty barrels**: Many `index.ts` files in features that re-export unused symbols
+- **Customer1 subpages**: 8 unused components in `src/features/customer/pages/Customer1/`
+- **Admin layout**: `AdminHeader.tsx`, `AdminSidebar.tsx` (never imported)
+- **Unused hooks**: `useCurrency.ts`, `useFullscreen.ts` in manager
+- **Unused UI**: `custom-badge.tsx`, `price-display.tsx`, `RiyalIcon.tsx`, `ErrorFallback.tsx`
+- **Unused services**: `googlePlacesService.ts`, `platformUtils.ts`
+- **Unused constants**: `design-tokens.ts`, `tables.ts`
+- **Unused salary code**: calculators/, hooks/useCalculator.ts, and salary-pdf-* chain
+- **Unused deps**: cmdk, input-otp, vaul, embla-carousel-react, react-dropzone, react-resizable-panels, date-fns-tz
+
 ## Anti-Hallucination Rules
 Run these checks BEFORE making ANY code changes:
 1. Run `npm run lint` — Fix ALL errors before proceeding
@@ -242,6 +277,7 @@ Run these checks BEFORE making ANY code changes:
 4. Verify file exists before editing
 5. Search for existing implementations before creating new code
 6. Check for existing imports before adding duplicates
+7. Run `npm run find-unused` to verify dead code claims
 
 ## Cursor / Copilot Rules
 - No `.cursor/rules`, `.cursorrules`, or `.github/copilot-instructions.md` found.
@@ -250,4 +286,5 @@ Run these checks BEFORE making ANY code changes:
 - `wrapup_plan/DESIGN_TOKENS.md` — Comprehensive design system (colors, spacing, typography, animations)
 - `wrapup_plan/09_SINGLE_SOURCE_TRUTH.md` — Canonical locations for all code entities
 - `wrapup_plan/08_TARGET_STRUCTURE.md` — Final folder structure after consolidation
-
+- `knip_plan` — Dead code analysis and cleanup plan
+- `KNIP_REPORT_AND_REALITY_CHECKS.md` — Detailed knip findings with verification

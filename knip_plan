@@ -1,66 +1,335 @@
 # KNIP Reality Check Plan
 
+**Last Updated**: 2026-01-28  
+**Knip Version**: 5.82.1  
+**Build/Lint/TypeCheck**: All passing
+
 ## Summary
-- Ran a line-by-line audit of the KNIP findings (unused files, dependencies, exports, duplicates, configuration hints).
-- Confirmed high-confidence deletions, documented false positives, and captured outstanding decisions.
-- Captured the next-phase cleanup plan below; no actionable edits yet, per request.
+- Ran `npm run find-unused:report` to audit unused files, dependencies, exports, and duplicates.
+- **Current**: 53 unused files, 8 unused dependencies, 9 unused devDependencies, 199 unused exports, 95 unused types, 5 duplicate exports.
+- **Progress**: 11 files deleted (Phase 1 tasks 1, 3, 4 & 5 completed on 2026-01-28)
+- Documented true positives, false positives, and action items below.
 
-## 1. True-positive dead assets (logically removable)
-1. **Legacy Supabase helpers** (`src/integrations/supabase/{client,types}.ts`) – no other source imports these paths (`rg "integrations/supabase"` returns only the files themselves and the KNIP report). App uses `@shared/lib/supabase/*` instead.
-2. **Customer1 subpages (8 components)** under `src/features/customer/pages/Customer1/` (BranchShowcase, ExperienceHighlights, FeaturesAndActions, HeroSection, QuickActions, ReviewsShowcase, SectionSeparator, ServicesShowcase). None appear in `Customer1.tsx` or anywhere else (`rg "BranchShowcase"` etc only hits the component file and documentation). Mark safe to delete.
-3. **Manager dead helpers** (`src/features/manager/hooks/useCurrency.ts`, `useFullscreen.ts`) plus the unused `payslip` barrel index/settings (no imports for `@/features/manager/employees/payslip`, `BonusList.tsx`, or `styleConstants.ts`). Search (`rg "@/features/manager/employees/payslip"`) returns nothing.
-4. **UI components never used** (`packages/ui/src/components/{custom-badge.tsx,price-display.tsx,icons/RiyalIcon.tsx,common/ErrorFallback.tsx}`) – no import usages, `ErrorBoundary` uses its own inline fallback, and `RiyalIcon` is only referenced by the unused `price-display`.
-5. **Shared constants/services** (`packages/shared/src/constants/{design-tokens.ts,tables.ts}`, `hooks/types.ts`, `services/googlePlacesService.ts`, `utils/platformUtils.ts`) – there are zero references to those exports (`rg "@shared/constants/design-tokens"` etc).
-6. **Dead PDF chain** under `packages/shared/src/lib/pdf/salary-pdf-*` (html-generator, utils, styles, constants) – only the unused `salary-pdf-generator` imports them, and `salary-pdf-generator` itself is unreferenced.
-7. **Supplanted salary engine code** in `packages/shared/src/lib/salary/{index.ts,calculators/**,hooks/useCalculator.ts,types/salary.ts,utils/calculatorUtils.ts,calculators/types/calculatorTypes.ts}` – the app only imports `@shared/lib/salary/calculations`, so the higher-level API, calculators, and hooks remain unused.
+---
 
-## 2. Manual decisions / mid-confidence assets
-- `src/features/owner/admin/layout/AdminHeader.tsx` and `AdminSidebar.tsx` contain complete UI but are never imported (`rg "AdminHeader"`/`AdminSidebar` return only the files). Need team decision: integrate them or delete.
-- `src/features/shared-features/qr-code/QRCodeManager.tsx` page file is not used; the owner-admin QR manager uses shared fragments instead. Safe to archive but flag for confirmation if someone intended to reuse it.
-- Barrels under `src/features/manager/{components,index,employees,index,...}` and owner barrels are reporting unused exports because everyone imports the concrete files directly. Decide whether to switch consumers to barrels or prune the re-exports.
+## 1. True-Positive Dead Files (Safe to Delete)
 
-## 3. Dependencies to drop (Knip true positives)
+### 1.1 Legacy Supabase Helpers (2 files) ? **COMPLETED**
+- ~~`src/integrations/supabase/client.ts`~~ ? **DELETED**
+- ~~`src/integrations/supabase/types.ts`~~ ? **DELETED**
+
+**Reason**: App uses `@shared/lib/supabase/*` instead. No imports found (`rg "integrations/supabase"` returns only the files themselves).
+
+**Status**: Completed 2026-01-28. Verified: lint ?, build ?, typecheck ?. Files confirmed removed from knip report.
+
+### 1.2 Customer1 Subpages (8 files)
+All in `src/features/customer/pages/Customer1/`:
+- `BranchShowcase.tsx`
+- `ExperienceHighlights.tsx`
+- `FeaturesAndActions.tsx`
+- `HeroSection.tsx`
+- `QuickActions.tsx`
+- `ReviewsShowcase.tsx`
+- `SectionSeparator.tsx`
+- `ServicesShowcase.tsx`
+
+**Reason**: `Customer1.tsx` doesn't import any of these. They were likely intended for a different layout but never integrated.
+
+### 1.3 Manager Dead Hooks (3 files) ? **COMPLETED**
+- ~~`src/features/manager/hooks/useCurrency.ts`~~ ? **DELETED**
+- ~~`src/features/manager/hooks/useFullscreen.ts`~~ ? **DELETED**
+- ~~`src/features/manager/types/fullscreen.ts`~~ ? **DELETED**
+
+**Reason**: No imports anywhere in the codebase. `fullscreen.ts` type file was only used by `useFullscreen.ts`.
+
+**Status**: Completed 2026-01-28. Verified: lint ?, build ?, typecheck ?. Files confirmed removed from knip report.
+
+### 1.4 Manager Payslip Dead Code (3 files)
+- `src/features/manager/employees/salary/BonusList.tsx`
+- `src/features/manager/employees/payslip/index.ts`
+- `src/features/manager/employees/payslip/styleConstants.ts`
+
+**Reason**: No imports for these files.
+
+### 1.5 Owner Admin Layout (2 files)
+- `src/features/owner/admin/layout/AdminHeader.tsx`
+- `src/features/owner/admin/layout/AdminSidebar.tsx`
+
+**Reason**: Complete UI components but never imported. Decision needed: integrate or delete.
+
+### 1.6 Owner Settings Page (1 file)
+- `src/features/owner/pages/Settings.tsx`
+
+**Reason**: Not imported in routes or anywhere else.
+
+### 1.7 Shared Features QRCodeManager (1 file)
+- `src/features/shared-features/qr-code/QRCodeManager.tsx`
+
+**Reason**: Owner-admin uses shared QR fragments instead.
+
+### 1.8 UI Components Never Used (4 files) ? **COMPLETED**
+- ~~`packages/ui/src/components/custom-badge.tsx`~~ ? **DELETED**
+- ~~`packages/ui/src/components/price-display.tsx`~~ ? **DELETED**
+- ~~`packages/ui/src/components/icons/RiyalIcon.tsx`~~ ? **DELETED**
+- ~~`packages/ui/src/components/common/ErrorFallback.tsx`~~ ? **DELETED**
+
+**Reason**: No imports. `ErrorBoundary.tsx` uses its own inline fallback. `RiyalIcon` is only imported by the unused `price-display`.
+
+**Status**: Completed 2026-01-28. Verified: lint ?, build ?, typecheck ?. Files confirmed removed from knip report.
+
+### 1.9 Shared Constants (2 files)
+- `packages/shared/src/constants/design-tokens.ts`
+- `packages/shared/src/constants/tables.ts`
+
+**Reason**: Zero imports found.
+
+### 1.10 Shared Hooks Types (1 file)
+- `packages/shared/src/hooks/types.ts`
+
+**Reason**: No imports (subdirectory types.ts files are used, but not root level).
+
+### 1.11 Shared Utils (1 file)
+- `packages/shared/src/utils/platformUtils.ts`
+
+**Reason**: No imports found.
+
+### 1.12 Shared Services (1 file)
+- `packages/shared/src/services/googlePlacesService.ts`
+
+**Reason**: No imports found.
+
+### 1.13 Dead PDF Chain (4 files)
+- `packages/shared/src/lib/pdf/salary-pdf-constants.ts`
+- `packages/shared/src/lib/pdf/salary-pdf-html-generator.ts`
+- `packages/shared/src/lib/pdf/salary-pdf-styles.ts`
+- `packages/shared/src/lib/pdf/salary-pdf-utils.ts`
+
+**Reason**: Orphaned chain. `salary-pdf-generator.ts` imports from `salary-html-generator.ts` instead. These files import each other but have no external consumers.
+
+### 1.14 Supplanted Salary Engine Code (9 files)
+- `packages/shared/src/lib/salary/index.ts`
+- `packages/shared/src/lib/salary/calculators/BaseCalculator.ts`
+- `packages/shared/src/lib/salary/calculators/CalculatorFactory.ts`
+- `packages/shared/src/lib/salary/calculators/CommissionCalculator.ts`
+- `packages/shared/src/lib/salary/calculators/DynamicBasicCalculator.ts`
+- `packages/shared/src/lib/salary/calculators/FixedCalculator.ts`
+- `packages/shared/src/lib/salary/calculators/TieredCommissionCalculator.ts`
+- `packages/shared/src/lib/salary/hooks/useCalculator.ts`
+- `packages/shared/src/lib/salary/types/salary.ts`
+- `packages/shared/src/lib/salary/utils/calculatorUtils.ts`
+- `packages/shared/src/lib/salary/calculators/types/calculatorTypes.ts`
+
+**Reason**: App only imports from `@shared/lib/salary/calculations/`. The higher-level API, calculators, and hooks are unused.
+
+### 1.15 Empty Barrel Exports (21 files)
+Multiple `index.ts` files that re-export symbols never imported through the barrel:
+- `src/features/auth/{components,pages,utils,types}/index.ts`
+- `src/features/manager/{components,hooks,employees,pages,types,utils}/index.ts`
+- `src/features/manager/employees/salary/index.ts`
+- `src/features/owner/{components,hooks,types,utils}/index.ts`
+- `src/features/customer/{components,pages,types,utils}/index.ts`
+
+**Reason**: Consumers import concrete files directly (e.g., `@features/owner/employees/hooks/useEmployeeData` not the barrel).
+
+---
+
+## 2. Dependencies to Remove (7 packages)
+
 | Package | Notes |
 | --- | --- |
-| `cmdk`, `input-otp`, `vaul` | Only referenced inside `vite.config.ts` manual chunk definitions, no source imports (`rg` finds them only in the chunk array). |
-| `date-fns-tz` | Only used inside the chunk grouping, no imports (`rg "date-fns-tz"` shows only config/lockfile). |
-| `embla-carousel-react` | No imports anywhere; not part of manual chunks. |
-| `react-dropzone` | No imports anywhere. |
-| `react-resizable-panels` | No imports anywhere. |
-| `@ekka/shared` in `packages/ui` | False positive; the workspace needs this dependency even though source imports use the Vite alias. Keep it. |
+| `cmdk` | Only in vite.config.ts manual chunks, no source imports |
+| `date-fns-tz` | Only in vite.config.ts manual chunks, no source imports |
+| `embla-carousel-react` | No imports anywhere |
+| `input-otp` | Only in vite.config.ts manual chunks, no source imports |
+| `react-dropzone` | No imports anywhere |
+| `react-resizable-panels` | No imports anywhere |
+| `vaul` | Only in vite.config.ts manual chunks, no source imports |
 
-## 4. DevDependencies to revisit
-- `@babel/plugin-transform-react-jsx`, `@tailwindcss/typography`, `baseline-browser-mapping` are present in `package.json` but not referenced in configs, scripts, or source files (`rg` shows no matches outside the lockfile). Consider removing or justifying their retention before the next clean-up cycle.
-- `@testing-library/*`, `jsdom`, `vitest`, `turbo` are intentionally retained for future testing/monorepo orchestration despite limited usage so far.
-- `unimported` is only mentioned in `wrapup_plan/10_VERIFICATION.md`; treat as optional verification tooling rather than a production requirement.
+**Note**: `@ekka/shared` in `packages/ui/package.json` is a FALSE POSITIVE ? it's a workspace dependency needed even though Vite aliases handle imports.
 
-## 5. Export hygiene (Knip’s 199 exports)
-- Most of the flagged exports come from barrels whose consumers import individual files (e.g., `@features/owner/employees/components/EmployeeGrid` instead of the barrel). Consider standardizing on either the barrel or concrete import and remove the unused re-exports to quiet Knip.
-- Shared utilities like `offlineSupport.ts` and `access-code/auth.ts` are in fact used (`ServiceWorkerRegistration.tsx` imports `registerServiceWorker`/`prefetchCommonResources`, and `validateAndDetectRole`/`ensureOwnerSession` are used by the role guards), so ignore the false-positive warnings for them.
-- The PDF helpers (`packages/shared/src/lib/pdf/payslip-html-template.ts`) and `salary-pdf-*` chain export both a named symbol and `default`. Normalize each file to one export style and avoid re-exporting the same symbol twice.
+---
 
-## 6. Configuration hints
-- Move `knip.json` to the workspace-aware layout recommended by Knip: define a `workspaces` array with entries for `'.'`, `'packages/shared'`, and `'packages/ui'`, then move `entry`/`project` into the workspace entries so Knip sees the actual build entrypoints.
-- Refine the glob patterns under each workspace to explicitly target the relevant directories (`src/**/*.{ts,tsx}` and `packages/<pkg>/src/**/*.{ts,tsx}`) instead of the broad `packages/**/*.{ts,tsx}` currently in place.
+## 3. DevDependencies to Revisit (4 packages)
 
-## 7. Clean-up action plan
-1. Delete confirmed dead files (list from Section 1) or move them to an archive if deletion requires extra approvals.
-2. Remove unused dependencies and clean up `package.json`/`package-lock` after verifying with `npm uninstall` (preserve `@ekka/shared`).
-3. Drop unused devDependencies (e.g., `@babel/plugin-transform-react-jsx`, `@tailwindcss/typography`, `baseline-browser-mapping`) once the team confirms they are not required by future tooling.
-4. Decide on barrel usage: either import through the barrels or prune the re-exports and keep only concrete imports.
-5. Normalize duplicate exports (Employees, FileManagement, SalaryCalculationCards, Progress, generatePayslipHTML) to one style per file.
-6. Remove the dead PDF files and the unused `lib/salary` layers, leaving `@shared/lib/salary/calculations` intact.
-7. Rework `knip.json` as per Section 6 before rerunning Knip to ensure the workspace entrypoints are visible.
-8. After each set of deletions, rerun `npm run lint`, `npm run build`, and `npx tsc --noEmit` to keep the project stable.
-9. Before deleting, grep for `import(`, string references, or dynamic lookups that could resurrect these paths (the previous audit already ran `rg` for most candidates, but re-check the ones you remove).
+| Package | Status |
+| --- | --- |
+| `@babel/plugin-transform-react-jsx` | Not used anywhere ? REMOVE |
+| `@tailwindcss/typography` | Not referenced in tailwind.config.ts ? REMOVE |
+| `baseline-browser-mapping` | Not used anywhere ? REMOVE |
+| `unimported` | Verification tooling ? KEEP (optional) |
 
-## 8. Verification log
-- `npm run lint` succeeds (import-order issues in the sidebar exports and owner/employee components were addressed).
-- `npm run build` succeeds (Vite built the project and emitted the dist artifacts shown in the console output).
-- `npm run find-unused` (workspace-aware `knip.json`) currently still reports the same unused files/deps/exports listed earlier; rerunning after lint keeps the dataset consistent before any clean-up.
-- `npx tsc --noEmit` succeeds.
+**Keep for future testing**:
+- `@testing-library/jest-dom`
+- `@testing-library/react`
+- `jsdom`
+- `vitest`
+- `turbo`
 
-Flags: do not delete or rewrite anything yet; this plan captures what needs doing once the lint errors are addressed and the team approves the deletions.
+---
 
-## 9. Report-sync reminder
-- After touching any files/dependencies, immediately rerun `npm run find-unused`. That keeps the KNIP output aligned with this workspace-aware configuration and documents any further changes before updating KNIP_REPORT_AND_REALITY_CHECKS.md or knip_plan.
+## 4. Export Hygiene (199 unused exports)
+
+### Key Categories:
+
+1. **Barrel re-exports**: Most flagged exports come from index.ts files that re-export symbols consumers don't use through the barrel. Decision: either switch consumers to barrels OR prune the re-exports.
+
+2. **False positives** (keep these):
+   - `offlineSupport.ts` exports (`registerServiceWorker`, `prefetchCommonResources`) ? used by ServiceWorkerRegistration
+   - `access-code/auth.ts` exports ? used by role guards
+
+3. **True unused exports to clean up**:
+   - `salary/calculations/index.ts`: `calculateOriginalPlan`, `calculateFixedPlan`, `calculateDynamicBasicPlan`, `parseDateAsUTC`
+   - `platformDetection.ts`: Most exports (keep `getPlatformType` if used)
+   - `form-validation/schemas.ts`: Individual schema exports (only composite schemas used)
+   - Manager payslip formatters
+
+### Duplicate Exports (5):
+| Name | Files |
+| --- | --- |
+| `Employees\|default` | `src/features/owner/pages/Employees.tsx` |
+| `FileManagement\|default` | `src/features/owner/admin/FileManagement.tsx` |
+| `SalaryCalculationCards\|default` | `src/features/owner/employees/components/SalaryCalculationCards.tsx` |
+| `Progress\|default` | `packages/ui/src/components/progress.tsx` |
+| `generatePayslipHTML\|default` | `packages/shared/src/lib/pdf/payslip-html-template.ts` |
+
+**Fix**: Normalize each file to one export style (named OR default, not both).
+
+---
+
+## 5. Configuration Status
+
+### knip.json (Current - workspace-aware)
+```json
+{
+  "$schema": "https://unpkg.com/knip@5/schema.json",
+  "workspaces": {
+    ".": {
+      "entry": ["src/main.tsx", "index.html"],
+      "project": ["src/**/*.{ts,tsx}", "index.html"]
+    },
+    "packages/shared": {
+      "entry": ["src/index.ts"],
+      "project": ["src/**/*.{ts,tsx}"]
+    },
+    "packages/ui": {
+      "entry": ["src/index.ts"],
+      "project": ["src/**/*.{ts,tsx}"]
+    }
+  },
+  "ignore": [
+    "wrapup_plan/**",
+    "**/*.md",
+    "public/**",
+    "dist/**",
+    "**/*.config.{ts,js,mjs}"
+  ],
+  "ignoreDependencies": [
+    "@radix-ui/*",
+    "@supabase/*",
+    "class-variance-authority",
+    "tailwindcss-animate"
+  ]
+}
+```
+
+### Potential Improvements:
+- Add `cmdk`, `input-otp`, `vaul` to `ignoreDependencies` if keeping in manual chunks
+- Or remove from vite.config.ts manual chunks AND uninstall
+
+---
+
+## 6. Clean-Up Action Plan
+
+### Phase 1: Low-Risk Deletions
+1. ? **COMPLETED** - Delete legacy supabase files: `src/integrations/supabase/*` (2026-01-28)
+2. Delete Customer1 subpages (8 files)
+3. ? **COMPLETED** - Delete manager dead hooks: `useCurrency.ts`, `useFullscreen.ts`, `fullscreen.ts` (2026-01-28)
+4. ? **COMPLETED** - Delete unused UI components: `custom-badge.tsx`, `price-display.tsx`, `RiyalIcon.tsx`, `ErrorFallback.tsx` (2026-01-28)
+5. ? **COMPLETED** - Delete unused constants: `design-tokens.ts`, `tables.ts` (2026-01-28)
+6. Delete dead PDF chain: `salary-pdf-constants.ts`, `salary-pdf-html-generator.ts`, `salary-pdf-styles.ts`, `salary-pdf-utils.ts`
+
+### Phase 2: Salary Module Cleanup
+1. Delete entire `packages/shared/src/lib/salary/calculators/` directory
+2. Delete `packages/shared/src/lib/salary/hooks/useCalculator.ts`
+3. Delete `packages/shared/src/lib/salary/types/salary.ts`
+4. Delete `packages/shared/src/lib/salary/utils/calculatorUtils.ts`
+5. Delete `packages/shared/src/lib/salary/index.ts`
+6. Keep `packages/shared/src/lib/salary/calculations/` (actively used)
+
+### Phase 3: Dependency Cleanup
+```bash
+npm uninstall cmdk date-fns-tz embla-carousel-react input-otp react-dropzone react-resizable-panels vaul
+npm uninstall -D @babel/plugin-transform-react-jsx @tailwindcss/typography baseline-browser-mapping
+```
+**Note**: After uninstalling, also remove from vite.config.ts manualChunks.
+
+### Phase 4: Team Decisions Required
+1. **AdminHeader/AdminSidebar**: Integrate into admin layout OR delete
+2. **Settings.tsx**: Wire up to routes OR delete
+3. **QRCodeManager.tsx**: Use or delete
+4. **Barrel exports**: Standardize on barrel OR concrete imports (not both)
+
+### Phase 5: Export Cleanup
+1. Remove duplicate default exports (use named exports consistently)
+2. Clean up unused re-exports from barrel files
+3. Mark intentionally-unused exports with knip comments if needed
+
+---
+
+## 7. Verification Checklist
+
+After each cleanup phase:
+```bash
+npm run lint        # Must pass
+npm run build       # Must succeed
+npx tsc --noEmit    # Zero errors
+npm run find-unused # Verify reductions
+```
+
+---
+
+## 8. Metrics
+
+| Category | Before | After Phase 1 (Partial) | Target |
+| --- | --- | --- | --- |
+| Unused files | 64 | **58** (6 deleted) | <10 (barrels only) |
+| Unused deps | 8 | 8 (not started) | 1 (@ekka/shared) |
+| Unused devDeps | 9 | 9 (not started) | 5 (testing tools) |
+| Unused exports | 199 | 199 (not started) | <50 |
+| Duplicate exports | 5 | 5 (not started) | 0 |
+
+**Progress**: Phase 1 tasks 1 & 4 completed (6 files removed). Remaining Phase 1: 2, 3, 5, 6 (18 files).
+
+---
+
+## 9. Completion Log
+
+### 2026-01-28 - Phase 1 Tasks 1, 3, 4 & 5 Completed
+**Tasks Completed**:
+- ? Deleted 2 legacy Supabase files (`src/integrations/supabase/*`)
+- ? Deleted 3 manager dead hooks/types (`useCurrency.ts`, `useFullscreen.ts`, `fullscreen.ts`)
+- ? Deleted 4 unused UI components (`custom-badge.tsx`, `price-display.tsx`, `RiyalIcon.tsx`, `ErrorFallback.tsx`)
+- ? Deleted 2 unused constants (`design-tokens.ts`, `tables.ts`)
+
+**Verification**:
+- ? `npm run lint` - Passed
+- ? `npm run build` - Passed (40.01s)
+- ? `npx tsc --noEmit` - Passed
+- ? Deleted files confirmed absent from codebase
+
+**Files Removed**: 11 total
+- 2 legacy Supabase files
+- 3 manager hooks/types
+- 4 unused UI components
+- 2 unused constants
+
+**Next Steps**: Continue with Phase 1 tasks 2, 6 (12 remaining files)
+
+---
+
+## 10. Notes
+
+- **Do not delete** `packages/ui/package.json` dependency on `@ekka/shared` ? it's required for the workspace, even though imports use aliases.
+- **Keep testing deps** even though unused ? they're intentionally retained for future test implementation.
+- Some exports flagged as "unused" are actually used via dynamic imports or string references ? always verify with `rg` before deleting.
+- The `salary-pdf-generator.ts` IS actively used (by `useSalaryPDFGenerator.ts`), but it imports from `salary-html-generator.ts`, NOT the `salary-pdf-*` chain.
