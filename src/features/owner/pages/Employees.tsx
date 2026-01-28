@@ -324,5 +324,3 @@ const EmployeeContent: React.FC<EmployeesProps> = ({ selectedBranch }) => {
 export const Employees: React.FC<EmployeesProps> = (props) => (
   <EmployeeContent {...props} />
 );
-
-export default Employees;

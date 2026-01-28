@@ -1,4 +1,4 @@
-import generatePayslipHTML from './payslip-html-template';
+import { generatePayslipHTML } from './payslip-html-template';
 
 import type { PayslipData } from '@/features/manager/types/payslip';
 

@@ -11,7 +11,7 @@ import { lazyWithRetry } from '@shared/utils/lazyWithRetry';
 import { AppInitializer } from '@/app/providers/AppInitializer';
 
 const Dashboard = lazyWithRetry(() => import('@/features/owner/pages/Dashboard'));
-const Employees = lazyWithRetry(() => import('@/features/owner/pages/Employees'));
+const Employees = lazyWithRetry(() => import('@/features/owner/pages/Employees').then(mod => ({ default: mod.Employees })));
 const Admin = lazyWithRetry(() => import('@/features/owner/pages/Admin/Admin'));
 
 interface OwnerAppRoutesProps {

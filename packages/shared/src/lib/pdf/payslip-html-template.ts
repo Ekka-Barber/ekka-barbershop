@@ -265,5 +265,3 @@ export const generatePayslipHTML = (data: PayslipData): string => {
 </body>
 </html>`;
 };
-
-export default generatePayslipHTML;

@@ -123,5 +123,3 @@ export const SalaryCalculationCards: React.FC<SalaryCalculationCardsProps> = ({
     </div>
   );
 };
-
-export default SalaryCalculationCards;
