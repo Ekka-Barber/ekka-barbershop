@@ -13,7 +13,8 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "find-unused": "knip",
-    "find-unused:report": "knip --no-exit-code"
+    "find-unused:report": "knip --no-exit-code",
+    "build:check": "npm run build && node scripts/check-bundle-size.js --verbose"
   },
   "dependencies": {
     "@hello-pangea/dnd": "^17.0.0",
@@ -99,6 +100,7 @@
     "typescript-eslint": "^8.0.1",
     "unimported": "^1.31.0",
     "vite": "^7.1.6",
+    "vite-plugin-compression2": "^2.4.0",
     "vitest": "^3.1.1"
   }
 }

@@ -3,11 +3,24 @@ import path from 'path';
 import react from '@vitejs/plugin-react';
 import { visualizer } from 'rollup-plugin-visualizer';
 import { defineConfig } from 'vite';
+import { compression } from 'vite-plugin-compression2';
 
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [
     react(),
+    // Gzip compression for static assets
+    compression({
+      algorithms: ['gzip'],
+      exclude: [/\.(br)$/, /\.(gz)$/],
+      threshold: 1024, // Only compress files > 1KB
+    }),
+    // Brotli compression for better compression ratios
+    compression({
+      algorithms: ['brotliCompress'],
+      exclude: [/\.(br)$/, /\.(gz)$/],
+      threshold: 1024,
+    }),
     visualizer({
       filename: 'dist/stats.html',
       open: false,
@@ -76,7 +89,9 @@ export default defineConfig({
           'vendor-icons': ['lucide-react'],
           'vendor-charts': ['recharts'],
           // 'vendor-react-pdf': ['@react-pdf/renderer'], // Removed - using jsPDF/html2canvas instead
-          'vendor-jspdf': ['jspdf', 'html2canvas'],
+          // PDF libraries removed from manualChunks to prevent unwanted preloading
+          // They will be automatically code-split and only loaded when PDF features are used
+          // Previously: 'vendor-jspdf': ['jspdf', 'html2canvas'] - caused 576KB preload on all routes
           'vendor-dnd': ['@hello-pangea/dnd'],
           'vendor-animation': ['framer-motion'],
            'vendor-dates': ['date-fns', 'react-day-picker'],

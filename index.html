@@ -34,8 +34,14 @@
   <link rel="apple-touch-icon" href="/logo_Header/logo12-32x32.png" sizes="32x32" />
   <link rel="apple-touch-icon" href="/logo_Header/logo12-180x180.png" sizes="180x180" />
   
-  <!-- Add Mapbox GL JS -->
-  <script src='https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js'></script>
+  <!-- Preconnect to external domains for faster resource loading -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://api.mapbox.com" crossorigin>
+  <link rel="preconnect" href="https://www.googletagmanager.com" crossorigin>
+  
+  <!-- Add Mapbox GL JS with defer to prevent render blocking -->
+  <script defer src='https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js'></script>
   <link href='https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css' rel='stylesheet' />
   
   <!-- Set language and direction with JavaScript -->
