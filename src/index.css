@@ -115,8 +115,8 @@ script[src*="flocktory.com"] {
 /* Global scroll behavior for mobile */
 html,
 body {
-  overscroll-behavior-y: none;
-  overscroll-behavior-x: none;
+  overscroll-behavior-y: contain;
+  overscroll-behavior-x: contain;
   touch-action: pan-y;
   min-height: 100%;
   width: 100%;

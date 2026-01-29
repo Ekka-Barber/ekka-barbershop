@@ -128,6 +128,27 @@ export const LazyPDFViewer: React.FC<LazyPDFViewerProps> = ({
     </div>
   );
 
+  const renderLoadingOverlay = () => (
+    <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-brand-gold-50/90 backdrop-blur-md z-10 pointer-events-none">
+      <div className="h-10 w-10 border-4 border-[#e9b353]/30 border-t-[#e9b353] rounded-full animate-spin" />
+      <p className="text-sm text-muted-foreground">
+        {t('loading.pdf.viewer') || 'Loading PDF viewer...'}
+      </p>
+    </div>
+  );
+
+  const embedIframe = () => (
+    <iframe
+      title="PDF preview"
+      src={iframeUrl}
+      className="w-full h-full border-0 pdf-iframe"
+      style={{ minHeight: height, height }}
+      loading="lazy"
+      onLoad={() => setLoaded(true)}
+      onError={() => setErrored(true)}
+    />
+  );
+
   // Error state
   if (errored) {
     if (variant === 'dialog') {
@@ -163,28 +184,8 @@ export const LazyPDFViewer: React.FC<LazyPDFViewerProps> = ({
   if (variant === 'dialog') {
     return (
       <div className={cn('relative w-full h-full bg-brand-gold-50', className)}>
-        {!loaded && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-brand-gold-50 z-10 pointer-events-none">
-            <div className="h-10 w-10 border-4 border-[#e9b353]/30 border-t-[#e9b353] rounded-full animate-spin" />
-            <p className="text-sm text-muted-foreground">
-              {t('loading.pdf.viewer') || 'Loading PDF viewer...'}
-            </p>
-            <ActionButtons className="pointer-events-auto" />
-          </div>
-        )}
-        <iframe
-          title="PDF preview"
-          src={iframeUrl}
-          className="w-full h-full border-0"
-          loading="lazy"
-          onLoad={() => setLoaded(true)}
-          onError={() => setErrored(true)}
-        />
-        {isAndroid && loaded && (
-          <div className="absolute inset-x-0 bottom-3 flex justify-center pointer-events-none">
-            <ActionButtons className="pointer-events-auto" />
-          </div>
-        )}
+        {embedIframe()}
+        {!loaded && !errored && renderLoadingOverlay()}
       </div>
     );
   }
@@ -202,29 +203,8 @@ export const LazyPDFViewer: React.FC<LazyPDFViewerProps> = ({
           className="relative w-full bg-brand-gold-50 overflow-hidden"
           style={{ minHeight: height }}
         >
-          {!loaded && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 pointer-events-none">
-              <div className="h-10 w-10 border-4 border-[#e9b353]/30 border-t-[#e9b353] rounded-full animate-spin" />
-              <p className="text-sm text-muted-foreground">
-                {t('loading.pdf.viewer') || 'Loading PDF viewer...'}
-              </p>
-              <ActionButtons className="pointer-events-auto" />
-            </div>
-          )}
-          <iframe
-            title="PDF preview"
-            src={iframeUrl}
-            className="w-full h-full border-0 pdf-iframe"
-            style={{ minHeight: height, height }}
-            loading="lazy"
-            onLoad={() => setLoaded(true)}
-            onError={() => setErrored(true)}
-          />
-          {isAndroid && loaded && (
-            <div className="absolute inset-x-0 bottom-3 flex justify-center pointer-events-none">
-              <ActionButtons className="pointer-events-auto" />
-            </div>
-          )}
+          {embedIframe()}
+          {!loaded && !errored && renderLoadingOverlay()}
         </div>
       </CardContent>
     </Card>
