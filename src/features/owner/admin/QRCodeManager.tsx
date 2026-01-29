@@ -132,7 +132,7 @@ const QRCodeManager = () => {
   return (
     <div className="space-y-6 pb-20 md:pb-0">
       <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'management' | 'analytics')} className="w-full">
-        <div className="overflow-x-auto pb-2 custom-scrollbar momentum-scroll" style={{ WebkitOverflowScrolling: 'touch' }}>
+        <div className="overflow-x-auto pb-2 custom-scrollbar momentum-scroll touch-action-pan-x" style={{ WebkitOverflowScrolling: 'touch' }}>
           <TabsList className="grid w-full grid-cols-2 mb-4">
             <TabsTrigger value="management" className="flex items-center gap-2">
               <QrCode className="h-4 w-4" />

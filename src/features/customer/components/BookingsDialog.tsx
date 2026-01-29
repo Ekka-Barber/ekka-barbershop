@@ -122,7 +122,7 @@ const BookingsDialog = ({
           </SheetHeader>
 
           <div
-            className="flex-1 overflow-y-auto min-h-0 momentum-scroll custom-scrollbar"
+            className="flex-1 overflow-y-auto min-h-0 momentum-scroll custom-scrollbar touch-action-pan-y"
             style={{ WebkitOverflowScrolling: 'touch' }}
           >
             <div className="px-4 sm:px-6 pt-4 sm:pt-6 pb-2">

@@ -83,6 +83,7 @@ const ContentRenderer: React.FC<{
         pdfUrl={content.url}
         className="w-full h-full"
         variant="dialog"
+        fileName={content.file_name}
       />
     );
   }
@@ -90,7 +91,7 @@ const ContentRenderer: React.FC<{
   // Image content - scrollable container with custom scrollbar
   return (
     <div
-      className="relative w-full h-full overflow-auto custom-scrollbar momentum-scroll bg-brand-gold-50"
+      className="relative w-full h-full overflow-auto custom-scrollbar momentum-scroll touch-action-pan-y bg-brand-gold-50"
       style={{ WebkitOverflowScrolling: 'touch' }}
     >
       <img
@@ -267,7 +268,7 @@ export const MarketingDialog: React.FC<MarketingDialogProps> = ({
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => window.open(currentContent.url, '_blank')}
+                      onClick={() => window.open(currentContent.url, '_blank', 'noopener,noreferrer')}
                       className="h-8 text-xs border-brand-gold-400 text-brand-gold-600 hover:bg-brand-gold-400 hover:text-white"
                     >
                       {language === 'ar' ? 'فتح PDF كامل' : 'Open Full PDF'}

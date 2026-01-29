@@ -117,7 +117,7 @@ export const BranchDialog = ({
           </SheetHeader>
 
           {/* Content Section */}
-          <div className="flex-1 overflow-y-auto min-h-0 p-4 sm:p-6 momentum-scroll custom-scrollbar" style={{ WebkitOverflowScrolling: 'touch' }}>
+          <div className="flex-1 overflow-y-auto min-h-0 p-4 sm:p-6 momentum-scroll custom-scrollbar touch-action-pan-y" style={{ WebkitOverflowScrolling: 'touch' }}>
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}

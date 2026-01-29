@@ -22,7 +22,7 @@ export const ReviewModal = ({ isOpen, onClose, selectedReview, language }: Revie
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent
-        className="max-h-[80vh] overflow-y-auto momentum-scroll custom-scrollbar sm:max-w-xl p-0 border-2 border-white/40 shadow-[0_40px_100px_-40px_rgba(0,0,0,0.5),0_20px_50px_-20px_rgba(196,163,111,0.2)] rounded-2xl backdrop-blur-xl bg-gradient-to-br from-white/98 to-white/95"
+        className="max-h-[80vh] overflow-y-auto momentum-scroll custom-scrollbar touch-action-pan-y sm:max-w-xl p-0 border-2 border-white/40 shadow-[0_40px_100px_-40px_rgba(0,0,0,0.5),0_20px_50px_-20px_rgba(196,163,111,0.2)] rounded-2xl backdrop-blur-xl bg-gradient-to-br from-white/98 to-white/95"
         style={{ WebkitOverflowScrolling: 'touch' }}
         showCloseButton={false}
       >

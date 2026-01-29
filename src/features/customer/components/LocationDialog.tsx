@@ -124,7 +124,7 @@ export const LocationDialog = ({
             variants={containerVariants}
             initial="hidden"
             animate="visible"
-            className="flex-1 overflow-y-auto min-h-0 momentum-scroll custom-scrollbar grid grid-cols-1 xs:grid-cols-2 gap-3 p-4 sm:p-6"
+            className="flex-1 overflow-y-auto min-h-0 momentum-scroll custom-scrollbar touch-action-pan-y grid grid-cols-1 xs:grid-cols-2 gap-3 p-4 sm:p-6"
             style={{ WebkitOverflowScrolling: 'touch' }}
           >
             {branches?.map((branch) => (

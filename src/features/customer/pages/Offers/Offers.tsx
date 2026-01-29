@@ -129,7 +129,7 @@ const Offers = () => {
                     {file!.isExpired && renderExpiredSticker()}
                       {file!.file_type.includes('pdf') ? (
                         <div key={`pdf-${file!.id}`}>
-                          <LazyPDFViewer pdfUrl={file!.url} />
+                          <LazyPDFViewer pdfUrl={file!.url} fileName={file!.file_name} />
                         </div>
                       ) : (
                       <div className={`relative ${file!.isExpired ? 'filter grayscale blur-[2px]' : ''}`}>

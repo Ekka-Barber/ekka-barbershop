@@ -130,7 +130,7 @@ const EidBookingsDialog = ({
           </SheetHeader>
 
           {/* Content Wrapper */}
-          <div className="flex-1 overflow-y-auto min-h-0 momentum-scroll custom-scrollbar p-4 sm:p-6" style={{ WebkitOverflowScrolling: 'touch' }}>
+          <div className="flex-1 overflow-y-auto min-h-0 momentum-scroll custom-scrollbar touch-action-pan-y p-4 sm:p-6" style={{ WebkitOverflowScrolling: 'touch' }}>
             <motion.div
               variants={containerVariants}
               initial="hidden"

@@ -23,6 +23,8 @@ const Menu = () => {
   // Use the shared PDF fetch hook
   const { pdfFiles: menuFiles, isLoading, error } = usePDFFetch('menu', { language });
 
+  const activeMenuFile = menuFiles.find((file) => file.url === activeMenuUrl);
+
   // Use the first menu file as the active one when data loads
   useEffect(() => {
     if (menuFiles && menuFiles.length > 0) {
@@ -91,7 +93,7 @@ const Menu = () => {
                   {activeMenuUrl && (
                     menuFiles.find(f => f.url === activeMenuUrl)?.file_type.includes('pdf') ? (
                       <div key={`pdf-menu-${activeMenuUrl}`}>
-                        <LazyPDFViewer pdfUrl={activeMenuUrl} />
+                        <LazyPDFViewer pdfUrl={activeMenuUrl} fileName={activeMenuFile?.file_name} />
                       </div>
                     ) : (
                       <img
