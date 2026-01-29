@@ -23,7 +23,7 @@ export const LegalPageLayout: React.FC<LegalPageLayoutProps> = ({
   const isRTL = language === 'ar';
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-white via-gray-50 to-gray-100">
+    <div className="h-[100dvh] min-h-[100dvh] overflow-y-auto bg-gradient-to-br from-white via-gray-50 to-gray-100">
       {/* Header */}
       <div className="bg-white shadow-sm border-b border-gray-200">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">

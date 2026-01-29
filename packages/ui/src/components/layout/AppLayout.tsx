@@ -7,16 +7,11 @@ type AppLayoutProps = {
 // This layout is updated to work with our new scrolling behavior
 const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
   return (
-    // Outer flex container to center content horizontally
-    <div
-      className="flex min-h-screen w-full justify-center"
-      style={{ minHeight: '100dvh' }}
-    >
-      {/* Removed max-w-md to allow content width to be page-specific */}
-      <div className="w-full flex flex-col">
-        {/* Main content area with comprehensive safe area support for iOS notches */}
+    // Fixed-height scroll container to avoid body scroll lock on Android
+    <div className="flex h-[100dvh] w-full justify-center overflow-hidden">
+      <div className="w-full flex flex-col min-h-0">
         <main
-          className="w-full flex-1 touch-action-pan-y"
+          className="w-full flex-1 min-h-0 overflow-y-auto momentum-scroll touch-action-pan-y"
           style={{
             paddingLeft: 'calc(1rem + var(--sal))',
             paddingRight: 'calc(1rem + var(--sar))',

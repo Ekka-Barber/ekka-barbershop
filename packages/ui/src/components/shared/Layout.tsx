@@ -19,7 +19,7 @@ const Layout = ({ children }: LayoutProps) => {
 
   return (
     <SidebarProvider>
-      <div className="flex min-h-screen bg-transparent">
+      <div className="flex h-[100dvh] min-h-[100dvh] bg-transparent overflow-hidden">
         {/* Enhanced Desktop Sidebar with hierarchical navigation */}
         {!isMobile && (
           <Sidebar collapsible="none">
@@ -28,7 +28,7 @@ const Layout = ({ children }: LayoutProps) => {
         )}
 
         {/* Main Content Area */}
-        <div className="flex-1 flex min-w-0 flex-col min-h-screen">
+        <div className="flex-1 flex min-w-0 flex-col min-h-0">
           {/* Top Bar - visible on all screens */}
           <TopBar
             title="Ekka Barbershop"
