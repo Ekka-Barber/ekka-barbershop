@@ -7,6 +7,7 @@ import { lazyWithRetry } from '@shared/utils/lazyWithRetry';
 const Menu = lazyWithRetry(() => import('@/features/customer/pages/Menu/Menu'));
 const Offers = lazyWithRetry(() => import('@/features/customer/pages/Offers/Offers'));
 const Customer1 = lazyWithRetry(() => import('@/features/customer/pages/Customer1/Customer1'));
+const Customer2 = lazyWithRetry(() => import('@/features/customer/pages/Customer2/Customer2'));
 const PrivacyPolicy = lazyWithRetry(() => import('@/features/customer/pages/legal/PrivacyPolicy'));
 const TermsOfService = lazyWithRetry(() => import('@/features/customer/pages/legal/TermsOfService'));
 const RefundPolicy = lazyWithRetry(() => import('@/features/customer/pages/legal/RefundPolicy'));
@@ -20,6 +21,14 @@ export const CustomerRoutes = () => (
       element={
         <Suspense fallback={<PageLoader message="Preparing Ekka experience..." />}>
           <Customer1 />
+        </Suspense>
+      }
+    />
+    <Route
+      path="/customer2"
+      element={
+        <Suspense fallback={<PageLoader message="Loading Customer2..." />}>
+          <Customer2 />
         </Suspense>
       }
     />
