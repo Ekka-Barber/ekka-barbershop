@@ -16,7 +16,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
       <div className="w-full flex flex-col">
         {/* Main content area with comprehensive safe area support for iOS notches */}
         <main
-          className="w-full flex-1"
+          className="w-full flex-1 touch-action-pan-y"
           style={{
             paddingLeft: 'calc(1rem + var(--sal))',
             paddingRight: 'calc(1rem + var(--sar))',

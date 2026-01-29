@@ -52,10 +52,10 @@ export const LazyPDFViewer: React.FC<LazyPDFViewerProps> = ({
 
   // Fallback: if onLoad never fires (some PDF viewers don't emit), clear the overlay after a short delay
   useEffect(() => {
-    if (loaded || errored || isAndroid) return;
+    if (loaded || errored) return;
     const id = setTimeout(() => setLoaded(true), 1500);
     return () => clearTimeout(id);
-  }, [loaded, errored, isAndroid]);
+  }, [loaded, errored]);
 
   const iframeUrl = useMemo(() => {
     // Hide unnecessary chrome in most PDF viewers
@@ -105,10 +105,6 @@ export const LazyPDFViewer: React.FC<LazyPDFViewerProps> = ({
   const errorTitle = t('pdf.viewer.failed') || 'Unable to load this PDF';
   const errorMessage =
     t('pdf.viewer.fallbackMessage') || 'Open the PDF in a new tab or download it instead.';
-  const androidMessage =
-    t('pdf.viewer.androidFallback') ||
-    'PDF preview is not supported on Android. Open or download the file.';
-
   const ActionButtons = ({
     primaryVariant = 'secondary',
     className: actionClassName,
@@ -165,19 +161,6 @@ export const LazyPDFViewer: React.FC<LazyPDFViewerProps> = ({
 
   // Dialog variant - simple, no extra scroll, iframe fills space naturally
   if (variant === 'dialog') {
-    if (isAndroid) {
-      return (
-        <div className={cn('relative w-full h-full bg-brand-gold-50', className)}>
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 p-6 text-center">
-            <p className="text-sm text-muted-foreground">
-              {androidMessage}
-            </p>
-            <ActionButtons />
-          </div>
-        </div>
-      );
-    }
-
     return (
       <div className={cn('relative w-full h-full bg-brand-gold-50', className)}>
         {!loaded && (
@@ -197,6 +180,11 @@ export const LazyPDFViewer: React.FC<LazyPDFViewerProps> = ({
           onLoad={() => setLoaded(true)}
           onError={() => setErrored(true)}
         />
+        {isAndroid && loaded && (
+          <div className="absolute inset-x-0 bottom-3 flex justify-center pointer-events-none">
+            <ActionButtons className="pointer-events-auto" />
+          </div>
+        )}
       </div>
     );
   }
@@ -214,7 +202,7 @@ export const LazyPDFViewer: React.FC<LazyPDFViewerProps> = ({
           className="relative w-full bg-brand-gold-50 overflow-hidden"
           style={{ minHeight: height }}
         >
-          {!loaded && !isAndroid && (
+          {!loaded && (
             <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 pointer-events-none">
               <div className="h-10 w-10 border-4 border-[#e9b353]/30 border-t-[#e9b353] rounded-full animate-spin" />
               <p className="text-sm text-muted-foreground">
@@ -223,24 +211,19 @@ export const LazyPDFViewer: React.FC<LazyPDFViewerProps> = ({
               <ActionButtons className="pointer-events-auto" />
             </div>
           )}
-
-          {isAndroid ? (
-            <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 p-6 text-center">
-              <p className="text-sm text-muted-foreground">
-                {androidMessage}
-              </p>
-              <ActionButtons />
+          <iframe
+            title="PDF preview"
+            src={iframeUrl}
+            className="w-full h-full border-0 pdf-iframe"
+            style={{ minHeight: height, height }}
+            loading="lazy"
+            onLoad={() => setLoaded(true)}
+            onError={() => setErrored(true)}
+          />
+          {isAndroid && loaded && (
+            <div className="absolute inset-x-0 bottom-3 flex justify-center pointer-events-none">
+              <ActionButtons className="pointer-events-auto" />
             </div>
-          ) : (
-            <iframe
-              title="PDF preview"
-              src={iframeUrl}
-              className="w-full h-full border-0 pdf-iframe"
-              style={{ minHeight: height, height }}
-              loading="lazy"
-              onLoad={() => setLoaded(true)}
-              onError={() => setErrored(true)}
-            />
           )}
         </div>
       </CardContent>

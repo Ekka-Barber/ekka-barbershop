@@ -112,11 +112,12 @@ script[src*="flocktory.com"] {
   }
 }
 
-/* Prevent pull-to-refresh on the body level */
+/* Global scroll behavior for mobile */
 html,
 body {
-  overscroll-behavior-y: contain;
+  overscroll-behavior-y: none;
   overscroll-behavior-x: none;
+  touch-action: pan-y;
   min-height: 100%;
   width: 100%;
   overflow-x: hidden;
@@ -134,6 +135,7 @@ body {
   min-height: 100dvh;
   width: 100%;
   overflow: visible;
+  touch-action: pan-y;
 }
 
 @layer base {

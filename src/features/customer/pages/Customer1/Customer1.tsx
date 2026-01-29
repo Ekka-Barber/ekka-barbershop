@@ -51,7 +51,7 @@ const Customer1 = () => {
   // Page component logic
 
   // Get branches data
-  const { data: branches, error: branchesError, isError: branchesIsError, refetch: refetchBranches } = useQuery({
+  const { data: branches, error: branchesError, isError: branchesIsError } = useQuery({
     queryKey: ['branches'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -75,28 +75,8 @@ const Customer1 = () => {
   }, [branchesIsError, branchesError, t, toast]);
 
   // Use our custom hooks
-  const { visibleElements, isLoadingUiElements, refetchUiElements } = useUIElements();
+  const { visibleElements, isLoadingUiElements } = useUIElements();
 
-  // Combined refresh function for pull-to-refresh (currently unused)
-  const _handleRefresh = async () => {
-    try {
-      await Promise.all([
-        refetchUiElements(),
-        refetchBranches()
-      ]);
-      toast({
-        title: t('customer1.refresh.success.title'),
-        description: t('customer1.refresh.success.body'),
-        duration: 3000,
-      });
-    } catch {
-      toast({
-        title: t('error.occurred'),
-        description: t('please.try.again'),
-        variant: "destructive"
-      });
-    }
-  };
   const { animatingElements } = useElementAnimation(visibleElements);
   const {
     branchDialogOpen,

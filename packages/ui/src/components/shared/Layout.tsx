@@ -38,7 +38,7 @@ const Layout = ({ children }: LayoutProps) => {
           />
 
           {/* Page Content - Added safe area padding for mobile */}
-          <main className="relative z-0 flex-1 overflow-y-auto pb-20 md:pb-6">
+          <main className="relative z-0 flex-1 min-h-0 overflow-y-auto pb-20 md:pb-6 momentum-scroll touch-action-pan-y">
             <div className="page-shell page-padding py-4 md:py-6">
               <div className="app-surface app-rise-in">
                 {children({ selectedBranch })}

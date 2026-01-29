@@ -102,7 +102,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
   ];
 
   return (
-      <div className="min-h-screen bg-gradient-to-br from-[#fdf8ef] via-white to-[#f1e3d1]" dir="rtl">
+      <div className="min-h-screen flex flex-col bg-gradient-to-br from-[#fdf8ef] via-white to-[#f1e3d1]" dir="rtl">
       {/* Header */}
       <header className="bg-white shadow-sm border-b border-gray-200/60 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -143,7 +143,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
       </header>
 
       {/* Main Content */}
-      <main className="flex-1">
+      <main className="flex-1 min-h-0 overflow-y-auto momentum-scroll touch-action-pan-y">
         {children}
       </main>
 
