@@ -16,6 +16,8 @@ export const Customer2PdfPreview = ({ url }: Customer2PdfPreviewProps) => {
   const { t } = useLanguage();
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [width, setWidth] = useState(0);
+  const [useIframeFallback, setUseIframeFallback] = useState(false);
+  const [errored, setErrored] = useState(false);
 
   useEffect(() => {
     const updateWidth = () => {
@@ -26,8 +28,17 @@ export const Customer2PdfPreview = ({ url }: Customer2PdfPreviewProps) => {
 
     updateWidth();
     window.addEventListener('resize', updateWidth);
-    return () => window.removeEventListener('resize', updateWidth);
+    window.addEventListener('orientationchange', updateWidth);
+    return () => {
+      window.removeEventListener('resize', updateWidth);
+      window.removeEventListener('orientationchange', updateWidth);
+    };
   }, []);
+
+  useEffect(() => {
+    setUseIframeFallback(false);
+    setErrored(false);
+  }, [url]);
 
   if (!url) {
     return (
@@ -39,28 +50,51 @@ export const Customer2PdfPreview = ({ url }: Customer2PdfPreviewProps) => {
     );
   }
 
+  if (errored) {
+    return (
+      <div className="customer2-pdf" ref={containerRef}>
+        <p className="customer2-pdf-message">
+          {t('customer2.preview.error') || 'Preview unavailable. Open the PDF instead.'}
+        </p>
+      </div>
+    );
+  }
+
+  const iframeUrl = `${url}#view=FitH&toolbar=0&navpanes=0&scrollbar=0`;
+
   return (
     <div className="customer2-pdf" ref={containerRef}>
-      <Document
-        file={url}
-        loading={
-          <p className="customer2-pdf-message">
-            {t('customer2.preview.loading') || 'Loading preview...' }
-          </p>
-        }
-        error={
-          <p className="customer2-pdf-message">
-            {t('customer2.preview.error') || 'Preview unavailable. Open the PDF instead.'}
-          </p>
-        }
-      >
-        <Page
-          pageNumber={1}
-          width={Math.max(240, width - 24)}
-          renderTextLayer={false}
-          renderAnnotationLayer={false}
+      {useIframeFallback ? (
+        <iframe
+          title="PDF preview"
+          src={iframeUrl}
+          className="customer2-pdf-iframe"
+          loading="lazy"
+          onError={() => setErrored(true)}
         />
-      </Document>
+      ) : (
+        <Document
+          file={{ url, withCredentials: false }}
+          loading={
+            <p className="customer2-pdf-message">
+              {t('customer2.preview.loading') || 'Loading preview...'}
+            </p>
+          }
+          error={
+            <p className="customer2-pdf-message">
+              {t('customer2.preview.error') || 'Preview unavailable. Open the PDF instead.'}
+            </p>
+          }
+          onLoadError={() => setUseIframeFallback(true)}
+        >
+          <Page
+            pageNumber={1}
+            width={Math.max(240, width - 24)}
+            renderTextLayer={false}
+            renderAnnotationLayer={false}
+          />
+        </Document>
+      )}
     </div>
   );
 };

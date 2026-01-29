@@ -1,10 +1,15 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { Document, Page, pdfjs } from 'react-pdf';
 
 import { cn } from '@shared/lib/utils';
-import { Button } from '@shared/ui/components/button';
 import { Card, CardContent } from '@shared/ui/components/card';
 
 import { useLanguage } from '@/contexts/LanguageContext';
+
+pdfjs.GlobalWorkerOptions.workerSrc = new URL(
+  'pdfjs-dist/build/pdf.worker.min.mjs',
+  import.meta.url
+).toString();
 
 interface LazyPDFViewerProps {
   pdfUrl: string;
@@ -14,48 +19,55 @@ interface LazyPDFViewerProps {
   fileName?: string;
 }
 
-export const LazyPDFViewer: React.FC<LazyPDFViewerProps> = ({
-  pdfUrl,
-  className,
-  height = '70vh',
-  variant = 'default',
-  fileName,
-}) => {
+export const LazyPDFViewer: React.FC<LazyPDFViewerProps> = (props) => {
+  const {
+    pdfUrl,
+    className,
+    height = '70vh',
+    variant = 'default',
+  } = props;
   const { t } = useLanguage();
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const [pageWidth, setPageWidth] = useState(0);
   const [loaded, setLoaded] = useState(false);
   const [errored, setErrored] = useState(false);
-  const [downloading, setDownloading] = useState(false);
+  const [useIframeFallback, setUseIframeFallback] = useState(false);
   const isAndroid = useMemo(() => (
     typeof navigator !== 'undefined' && /Android/i.test(navigator.userAgent)
   ), []);
   const isIOS = useMemo(() => (
     typeof navigator !== 'undefined' && /iPad|iPhone|iPod/.test(navigator.userAgent)
   ), []);
-  const resolvedFileName = useMemo(() => {
-    if (fileName?.trim()) {
-      const trimmedName = fileName.trim();
-      return trimmedName.toLowerCase().endsWith('.pdf')
-        ? trimmedName
-        : `${trimmedName}.pdf`;
-    }
 
-    try {
-      const url = new URL(pdfUrl);
-      const lastSegment = url.pathname.split('/').pop();
-      const decoded = lastSegment ? decodeURIComponent(lastSegment) : 'document.pdf';
-      if (!decoded) return 'document.pdf';
-      return decoded.toLowerCase().endsWith('.pdf') ? decoded : `${decoded}.pdf`;
-    } catch {
-      return 'document.pdf';
-    }
-  }, [fileName, pdfUrl]);
+  useEffect(() => {
+    setLoaded(false);
+    setErrored(false);
+    setUseIframeFallback(false);
+  }, [pdfUrl]);
+
+  useEffect(() => {
+    const updateWidth = () => {
+      if (containerRef.current) {
+        setPageWidth(containerRef.current.clientWidth);
+      }
+    };
+
+    updateWidth();
+    window.addEventListener('resize', updateWidth);
+    window.addEventListener('orientationchange', updateWidth);
+    return () => {
+      window.removeEventListener('resize', updateWidth);
+      window.removeEventListener('orientationchange', updateWidth);
+    };
+  }, []);
 
   // Fallback: if onLoad never fires (some PDF viewers don't emit), clear the overlay after a short delay
   useEffect(() => {
     if (loaded || errored) return;
+    if (!useIframeFallback) return;
     const id = setTimeout(() => setLoaded(true), 1500);
     return () => clearTimeout(id);
-  }, [loaded, errored]);
+  }, [loaded, errored, useIframeFallback]);
 
   const iframeUrl = useMemo(() => {
     // Hide unnecessary chrome in most PDF viewers
@@ -70,63 +82,9 @@ export const LazyPDFViewer: React.FC<LazyPDFViewerProps> = ({
     return `${pdfUrl}#${params.toString()}`;
   }, [pdfUrl, isAndroid, isIOS]);
 
-  const handleOpen = () => {
-    window.open(pdfUrl, '_blank', 'noopener,noreferrer');
-  };
-
-  const handleDownload = async () => {
-    if (downloading) return;
-    setDownloading(true);
-    try {
-      const response = await fetch(pdfUrl, { credentials: 'omit' });
-      if (!response.ok) {
-        throw new Error('Failed to fetch PDF');
-      }
-      const blob = await response.blob();
-      const blobUrl = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = blobUrl;
-      link.download = resolvedFileName;
-      link.rel = 'noopener';
-      link.target = '_blank';
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      window.URL.revokeObjectURL(blobUrl);
-    } catch {
-      window.open(pdfUrl, '_blank', 'noopener,noreferrer');
-    } finally {
-      setDownloading(false);
-    }
-  };
-
-  const openLabel = t('pdf.viewer.openExternal') || 'Open in new tab';
-  const downloadLabel = t('pdf.viewer.download') || 'Download PDF';
   const errorTitle = t('pdf.viewer.failed') || 'Unable to load this PDF';
   const errorMessage =
-    t('pdf.viewer.fallbackMessage') || 'Open the PDF in a new tab or download it instead.';
-  const ActionButtons = ({
-    primaryVariant = 'secondary',
-    className: actionClassName,
-  }: {
-    primaryVariant?: 'default' | 'secondary' | 'destructive' | 'outline' | 'ghost' | 'link';
-    className?: string;
-  }) => (
-    <div className={cn('flex flex-col items-center gap-2 sm:flex-row', actionClassName)}>
-      <Button variant={primaryVariant} size="sm" onClick={handleOpen}>
-        {openLabel}
-      </Button>
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={handleDownload}
-        disabled={downloading}
-        aria-busy={downloading}
-      >
-        {downloadLabel}
-      </Button>
-    </div>
-  );
+    t('pdf.viewer.fallbackMessage') || 'Open the PDF in a new tab to view it.';
 
   const renderLoadingOverlay = () => (
     <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-brand-gold-50/90 backdrop-blur-md z-10 pointer-events-none">
@@ -149,6 +107,41 @@ export const LazyPDFViewer: React.FC<LazyPDFViewerProps> = ({
     />
   );
 
+  const renderPdfPreview = () => (
+    <div ref={containerRef} className="w-full">
+      <Document
+        file={{ url: pdfUrl, withCredentials: false }}
+        onLoadSuccess={() => setLoaded(true)}
+        onLoadError={() => {
+          if (!useIframeFallback) {
+            setUseIframeFallback(true);
+            setLoaded(false);
+            setErrored(false);
+            return;
+          }
+          setErrored(true);
+        }}
+        loading={
+          <p className="sr-only">
+            {t('loading.pdf.viewer') || 'Loading PDF viewer...'}
+          </p>
+        }
+        error={
+          <p className="sr-only">
+            {t('pdf.viewer.failed') || 'Unable to load this PDF'}
+          </p>
+        }
+      >
+        <Page
+          pageNumber={1}
+          width={Math.max(240, pageWidth || 0)}
+          renderTextLayer={false}
+          renderAnnotationLayer={false}
+        />
+      </Document>
+    </div>
+  );
+
   // Error state
   if (errored) {
     if (variant === 'dialog') {
@@ -160,7 +153,6 @@ export const LazyPDFViewer: React.FC<LazyPDFViewerProps> = ({
           <p className="text-sm text-red-600 text-center">
             {errorMessage}
           </p>
-          <ActionButtons primaryVariant="destructive" />
         </div>
       );
     }
@@ -174,7 +166,6 @@ export const LazyPDFViewer: React.FC<LazyPDFViewerProps> = ({
           <p className="text-sm text-red-600">
             {errorMessage}
           </p>
-          <ActionButtons primaryVariant="destructive" />
         </CardContent>
       </Card>
     );
@@ -184,7 +175,7 @@ export const LazyPDFViewer: React.FC<LazyPDFViewerProps> = ({
   if (variant === 'dialog') {
     return (
       <div className={cn('relative w-full h-full bg-brand-gold-50', className)}>
-        {embedIframe()}
+        {useIframeFallback ? embedIframe() : renderPdfPreview()}
         {!loaded && !errored && renderLoadingOverlay()}
       </div>
     );
@@ -203,7 +194,7 @@ export const LazyPDFViewer: React.FC<LazyPDFViewerProps> = ({
           className="relative w-full bg-brand-gold-50 overflow-hidden"
           style={{ minHeight: height }}
         >
-          {embedIframe()}
+          {useIframeFallback ? embedIframe() : renderPdfPreview()}
           {!loaded && !errored && renderLoadingOverlay()}
         </div>
       </CardContent>
