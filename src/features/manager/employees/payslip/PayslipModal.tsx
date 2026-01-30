@@ -1,4 +1,5 @@
 import * as DialogPrimitive from "@radix-ui/react-dialog";
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { Download, X, AlertTriangle, FileText } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import * as React from "react";
@@ -26,22 +27,47 @@ import { mapSalaryToPayslipData } from '@/features/manager/types/payslip';
 const DialogContent = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>
->(({ className, children, ...props }, ref) => (
-  <DialogPrimitive.Portal>
-    <DialogPrimitive.Overlay className="fixed inset-0 z-[1200] bg-black/80 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
-    <DialogPrimitive.Content
-      ref={ref}
-      className={cn(
-        "fixed left-[50%] top-[50%] z-[1210] grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-lg",
-        className
-      )}
-      {...props}
-    >
-      {children}
-      {/* No default close button */}
-    </DialogPrimitive.Content>
-  </DialogPrimitive.Portal>
-));
+>(({ className, children, ...props }, ref) => {
+  // Check for DialogTitle and DialogDescription to provide fallbacks for accessibility
+  const childElements = React.Children.toArray(children);
+  const hasTitle = childElements.some(
+    (child) => React.isValidElement(child) && child.type === DialogTitle
+  );
+  const hasDescription = childElements.some(
+    (child) => React.isValidElement(child) && child.type === DialogDescription
+  );
+
+  const descriptionId = React.useId();
+  const fallbackDescriptionId = !hasDescription ? descriptionId : undefined;
+
+  return (
+    <DialogPrimitive.Portal>
+      <DialogPrimitive.Overlay className="fixed inset-0 z-[1200] bg-black/80 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
+      <DialogPrimitive.Content
+        ref={ref}
+        className={cn(
+          "fixed left-[50%] top-[50%] z-[1210] grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-lg",
+          className
+        )}
+        aria-describedby={fallbackDescriptionId}
+        {...props}
+      >
+        {!hasTitle && (
+          <VisuallyHidden>
+            <DialogTitle>كشف الراتب</DialogTitle>
+          </VisuallyHidden>
+        )}
+        {!hasDescription && (
+          <VisuallyHidden>
+            <DialogDescription id={descriptionId}>عرض كشف الراتب والتحميل</DialogDescription>
+          </VisuallyHidden>
+        )}
+        {children}
+        {/* No default close button */}
+      </DialogPrimitive.Content>
+    </DialogPrimitive.Portal>
+  );
+});
 
 const PayslipModal: React.FC<PayslipModalProps> = ({
   isOpen,
