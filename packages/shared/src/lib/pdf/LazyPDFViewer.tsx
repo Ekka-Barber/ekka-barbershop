@@ -87,20 +87,22 @@ export const LazyPDFViewer: React.FC<LazyPDFViewerProps> = ({
   const shouldAutoHideControls = autoHideControls && isMobile;
 
   const containerStyle = useMemo(() => {
-    if (!isMobile) {
-      return { minHeight: height };
+    if (isDialogVariant) {
+      return { height: '100%', minHeight: '300px' };
     }
 
-    const mobileHeight = isDialogVariant
-      ? '100%'
-      : isFullscreenVariant
-        ? '100dvh'
-        : 'calc(100dvh - 120px)';
+    if (isFullscreenVariant) {
+      return { height: '100dvh', minHeight: '300px' };
+    }
 
-    return {
-      height: mobileHeight,
-      minHeight: '300px',
-    };
+    if (isMobile) {
+      return {
+        height: 'calc(100dvh - 120px)',
+        minHeight: '300px',
+      };
+    }
+
+    return { height, minHeight: height };
   }, [height, isMobile, isDialogVariant, isFullscreenVariant]);
 
   const clearControlsTimeout = useCallback(() => {
@@ -307,15 +309,18 @@ export const LazyPDFViewer: React.FC<LazyPDFViewerProps> = ({
       try {
         const page = await pdfDocRef.current!.getPage(currentPage);
         const viewport = page.getViewport({ scale: 1 });
-        const targetWidth = Math.max(280, containerSize.width || viewport.width);
+        const targetWidth =
+          containerSize.width > 0 ? containerSize.width : viewport.width;
+        const targetHeight =
+          containerSize.height > 0 ? containerSize.height : viewport.height;
+
+        // Calculate scale to fit PDF within container (contain mode)
         const widthScale = targetWidth / viewport.width;
-        const heightScale = containerSize.height
-          ? containerSize.height / viewport.height
-          : widthScale;
-        const cssScale = isMobile ? Math.min(widthScale, heightScale) : widthScale;
+        const heightScale = targetHeight / viewport.height;
+        const cssScale = Math.min(widthScale, heightScale);
+
+        const scaledViewport = page.getViewport({ scale: cssScale });
         const dpr = typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1;
-        const renderScale = cssScale * dpr;
-        const renderViewport = page.getViewport({ scale: renderScale });
 
         const canvas = canvasRef.current;
         if (!canvas) {
@@ -327,18 +332,25 @@ export const LazyPDFViewer: React.FC<LazyPDFViewerProps> = ({
           throw new Error('Unable to access canvas context');
         }
 
-        canvas.width = renderViewport.width;
-        canvas.height = renderViewport.height;
-        canvas.style.width = '100%';
-        canvas.style.height = 'auto';
+        // Set internal canvas resolution (high DPI)
+        const pixelWidth = Math.floor(scaledViewport.width * dpr);
+        const pixelHeight = Math.floor(scaledViewport.height * dpr);
+        canvas.width = pixelWidth;
+        canvas.height = pixelHeight;
+
+        // Set CSS display size to fit within container
+        canvas.style.width = `${scaledViewport.width}px`;
+        canvas.style.height = `${scaledViewport.height}px`;
+        canvas.style.maxWidth = '100%';
+        canvas.style.maxHeight = '100%';
 
         context.setTransform(1, 0, 0, 1, 0, 0);
-        context.scale(dpr, dpr);
         context.clearRect(0, 0, canvas.width, canvas.height);
 
         await page.render({
           canvasContext: context,
-          viewport: renderViewport,
+          viewport: scaledViewport,
+          transform: dpr !== 1 ? [dpr, 0, 0, dpr, 0, 0] : undefined,
         }).promise;
       } catch (error) {
         if (!active) {
@@ -523,7 +535,7 @@ export const LazyPDFViewer: React.FC<LazyPDFViewerProps> = ({
     <div
       ref={containerRef}
       className={cn(
-        'pdf-viewer-container pdf-preview relative w-full h-full overflow-hidden bg-white',
+        'pdf-viewer-container relative w-full h-full overflow-hidden bg-white',
         isMobile ? 'pdf-viewer-mobile' : 'pdf-viewer-desktop'
       )}
       style={containerStyle}
