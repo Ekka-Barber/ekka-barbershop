@@ -17,13 +17,11 @@ export const useEmployeeLeaveBalance = (employeeId: string) => {
           .eq('employee_id', employeeId);
 
         if (error) {
-          console.error("Error fetching leave data:", error);
           return [];
         }
 
         return data || [];
-      } catch (err) {
-        console.error("Error in employee_holidays query:", err);
+      } catch {
         return [];
       }
     }
@@ -41,13 +39,11 @@ export const useEmployeeLeaveBalance = (employeeId: string) => {
           .single();
 
         if (error) {
-          console.error("Error fetching employee data:", error);
           return null;
         }
 
         return data;
-      } catch (err) {
-        console.error("Error in employees query:", err);
+      } catch {
         return null;
       }
     }

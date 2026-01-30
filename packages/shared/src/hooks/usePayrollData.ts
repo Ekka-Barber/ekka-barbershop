@@ -25,7 +25,7 @@ interface PayrollTotals {
   bonuses: number;
 }
 
-export interface PayrollDataResult {
+interface PayrollDataResult {
   sales: EmployeeSales[];
   deductions: EmployeeDeduction[];
   loans: EmployeeLoan[];

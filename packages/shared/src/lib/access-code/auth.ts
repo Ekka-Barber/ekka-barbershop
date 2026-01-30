@@ -2,7 +2,7 @@ import { supabase } from '@shared/lib/supabase/client';
 
 import { accessCodeStorage, sessionAuth } from './storage';
 
-export type AccessRole = 'owner' | 'manager' | 'super_manager';
+type AccessRole = 'owner' | 'manager' | 'super_manager';
 
 export const normalizeAccessCode = (code: string) => code.trim().toLowerCase();
 
@@ -27,7 +27,7 @@ export const validateAndDetectRole = async (
   return normalized === 'ma225' ? 'super_manager' : 'manager';
 };
 
-  export const validateOwnerCode = async (code: string) => {
+const validateOwnerCode = async (code: string) => {
     const normalized = normalizeAccessCode(code);
     if (!normalized) {
       return false;
@@ -62,7 +62,7 @@ export const validateAndDetectRole = async (
     return true;
   };
 
-  export const validateManagerCode = async (code: string) => {
+const validateManagerCode = async (code: string) => {
     const normalized = normalizeAccessCode(code);
     if (!normalized) {
       return false;

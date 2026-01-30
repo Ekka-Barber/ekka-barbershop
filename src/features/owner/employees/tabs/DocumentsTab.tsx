@@ -4,7 +4,8 @@ import React from 'react';
 import { Alert, AlertDescription } from '@shared/ui/components/alert';
 import { Button } from '@shared/ui/components/button';
 
-import { EmployeeDocumentsList, DocumentForm } from '../index';
+import { DocumentForm } from '../components/DocumentForm';
+import { EmployeeDocumentsList } from '../components/EmployeeDocumentsList';
 import type { DocumentsTabProps } from '../types';
 
 import { DocumentActionBar } from './DocumentActionBar';

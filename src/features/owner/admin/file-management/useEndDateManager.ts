@@ -11,7 +11,6 @@ export const useEndDateManager = ({
   
   const handleEndDateUpdate = (fileId: string) => {
     if (!selectedDate) {
-      console.error('No date selected');
       return;
     }
 

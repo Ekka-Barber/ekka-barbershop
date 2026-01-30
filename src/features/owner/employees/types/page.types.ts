@@ -19,17 +19,6 @@ export interface SalaryData {
   bonuses: number;
 }
 
-export interface CategorySalaryData {
-  category: {
-    id: string;
-    name_en: string;
-  };
-  subcategory?: {
-    id: string;
-    name_en: string;
-  } | null;
-}
-
 export interface EmployeeFinancialRecords {
   [employeeName: string]: Array<{
     description: string;

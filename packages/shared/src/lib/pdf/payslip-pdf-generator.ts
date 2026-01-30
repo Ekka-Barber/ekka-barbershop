@@ -2,7 +2,7 @@ import { generatePayslipHTML } from './payslip-html-template';
 
 import type { PayslipData } from '@/features/manager/types/payslip';
 
-export class PayslipPDFGenerator {
+class PayslipPDFGenerator {
   constructor(_rtl?: boolean) {
     // HTML-to-PDF approach - RTL is handled in HTML template
   }
@@ -146,6 +146,3 @@ export class PayslipPDFGenerator {
 
 // Export singleton instance for convenience
 export const payslipPDFGenerator = new PayslipPDFGenerator();
-
-// Re-export types for convenience
-export type { PayslipData } from '@/features/manager/types/payslip';

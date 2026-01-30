@@ -26,8 +26,7 @@ export const formatCurrencySAR = (amount: number | null | undefined, defaultValu
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
     }).format(roundedAmount);
-  } catch (error) {
-    console.error('Error formatting currency:', error);
+  } catch {
     return defaultValue;
   }
 };

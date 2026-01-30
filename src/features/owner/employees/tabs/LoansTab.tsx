@@ -5,12 +5,10 @@ import type { DynamicField } from '@shared/types/business';
 import type { EmployeeLoan } from '@shared/types/domains';
 import { TransferRecordDialog } from '@shared/ui/components/shared/TransferRecordDialog';
 
-import { EmployeeLoanCard } from '../index';
+import { EmployeeLoanCard } from '../components/EmployeeLoanCard';
 
-import {
-  useLoanEditing,
-  useLoanSaving,
-} from '@/features/owner/employees/hooks';
+import { useLoanEditing } from '@/features/owner/employees/hooks/useLoanEditing';
+import { useLoanSaving } from '@/features/owner/employees/hooks/useLoanSaving';
 import { useRecordTransfer } from '@/features/owner/employees/hooks/useRecordTransfer';
 import { LoansTabProps } from '@/features/owner/employees/types/loansTypes';
 import { formatMonthYear } from '@/features/owner/employees/utils';

@@ -3,7 +3,7 @@ interface ArabicNumerals {
   [key: string]: string;
 }
 
-export const arabicNumerals: ArabicNumerals = {
+const arabicNumerals: ArabicNumerals = {
   '0': '٠',
   '1': '١',
   '2': '٢',

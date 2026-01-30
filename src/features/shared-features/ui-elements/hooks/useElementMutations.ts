@@ -32,13 +32,12 @@ export function useElementMutations({ language }: UseElementMutationsProps) {
                 description: language === 'ar' ? 'تم تحديث حالة العنصر' : 'Element visibility updated',
             });
         },
-        onError: (error) => {
+        onError: () => {
             toast({
                 title: language === 'ar' ? 'خطأ' : 'Error',
                 description: language === 'ar' ? 'حدث خطأ أثناء التحديث' : 'An error occurred while updating',
                 variant: 'destructive',
             });
-            console.error('Error updating visibility:', error);
         },
     });
 
@@ -64,13 +63,12 @@ export function useElementMutations({ language }: UseElementMutationsProps) {
                 description: language === 'ar' ? 'تم تحديث ترتيب العناصر' : 'Elements order updated',
             });
         },
-        onError: (error) => {
+        onError: () => {
             toast({
                 title: language === 'ar' ? 'خطأ' : 'Error',
                 description: language === 'ar' ? 'حدث خطأ أثناء تحديث الترتيب' : 'An error occurred while updating order',
                 variant: 'destructive',
             });
-            console.error('Error updating order:', error);
         },
     });
 

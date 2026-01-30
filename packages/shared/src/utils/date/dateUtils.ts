@@ -48,13 +48,11 @@ export const isCurrentMonth = (dateStr: string): boolean => {
 export const formatMonthForDisplay = (month: string): string => {
   try {
     if (!isValidMonth(month)) {
-      console.warn('Invalid month format provided to formatMonthForDisplay:', month);
       return getCurrentMonth();
     }
     
     const date = new Date(month);
     if (isNaN(date.getTime())) {
-      console.warn('Invalid date created from month:', month);
       return getCurrentMonth();
     }
     
@@ -63,8 +61,7 @@ export const formatMonthForDisplay = (month: string): string => {
       month: 'long',
       calendar: 'gregory'
     }).format(date);
-  } catch (error) {
-    console.error('Error formatting month for display:', error);
+  } catch {
     return 'الشهر الحالي';
   }
 };
@@ -92,8 +89,7 @@ export const getMonthOptions = (): Array<{value: string, label: string}> => {
     }
     
     return options;
-  } catch (error) {
-    console.error('Error generating month options:', error);
+  } catch {
     // Fallback to at least current month
     const currentMonth = getCurrentMonth();
     return [{
@@ -133,8 +129,7 @@ export const isValidMonth = (month: string): boolean => {
     const inputMonth = new Date(date.getFullYear(), date.getMonth(), 1);
     
     return inputMonth <= currentMonth;
-  } catch (error) {
-    console.error('Error validating month:', error);
+  } catch {
     return false;
   }
 };
@@ -178,8 +173,7 @@ export const formatDateDDMMYYYY = (dateString: string | null | undefined, defaul
     const year = date.getFullYear();
     
     return `${day}/${month}/${year}`;
-  } catch (error) {
-    console.error('Error formatting date:', error);
+  } catch {
     return defaultValue;
   }
 };

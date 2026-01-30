@@ -24,37 +24,6 @@ export interface DynamicField {
   date?: string;
 }
 
-export interface SalaryCalculationResult {
-  employeeId: string;
-  employeeName: string;
-  calculation: SalaryCalculation;
-  period: string;
-  generatedAt: Date;
-}
-
-
-
-export interface SalaryBreakdown {
-  baseSalary: number;
-  commissions: number;
-  bonuses: number;
-  deductions: number;
-  loans: number;
-  total: number;
-}
-
-export interface PayrollSummary {
-  totalEmployees: number;
-  totalBaseSalary: number;
-  totalCommissions: number;
-  totalBonuses: number;
-  totalDeductions: number;
-  totalLoans: number;
-  totalGrossPay: number;
-  totalNetPay: number;
-  period: string;
-}
-
 // Employee with joined branch data
 export interface EmployeeWithBranch extends Employee {
   branches: {
@@ -70,29 +39,3 @@ export interface EmployeeWithSalaryPlan extends Employee {
 }
 
 // Business-level SalaryPlan with parsed config
-export interface SalaryPlanConfig {
-  blocks: Array<{
-    type: string;
-    config: {
-      basic_salary?: number;
-      tiered_bonus?: Array<{
-        sales_target: number;
-        bonus: number;
-      }>;
-      commission?: number;
-      [key: string]: unknown;
-    };
-  }>;
-  [key: string]: unknown;
-}
-
-export interface SalaryPlanWithConfig {
-  id: string;
-  name_en: string;
-  name_ar: string | null;
-  description_en: string | null;
-  description_ar: string | null;
-  config: SalaryPlanConfig;
-  created_at: string;
-  updated_at: string;
-}

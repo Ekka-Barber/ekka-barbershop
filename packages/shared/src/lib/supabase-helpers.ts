@@ -6,7 +6,6 @@
  */
 
 export type TableName = string;
-export type TableRow<_TableName extends TableName> = Record<string, unknown>;
 export type TableInsert<_TableName extends TableName> = Record<string, unknown>;
 export type TableUpdate<_TableName extends TableName> = Record<string, unknown>;
 
@@ -30,12 +29,4 @@ export function insertData<T extends TableName>(
   data: TableInsert<T> | TableInsert<T>[]
 ): TableInsert<T> | TableInsert<T>[] {
   return data;
-}
-
-/**
- * Type-safe helper for RPC function parameters
- * Usage: .rpc('function_name', rpcParams({ param: value }))
- */
-export function rpcParams<T extends Record<string, unknown>>(params: T): T {
-  return params;
 }

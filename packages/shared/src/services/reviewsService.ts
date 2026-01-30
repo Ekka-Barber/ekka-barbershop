@@ -37,7 +37,6 @@ export async function fetchReviewsFromDatabase(language: 'ar' | 'en'): Promise<R
       .order('google_review_time', { ascending: false });
 
     if (error) {
-      console.error('Error fetching reviews from database:', error);
       throw error;
     }
 
@@ -51,8 +50,7 @@ export async function fetchReviewsFromDatabase(language: 'ar' | 'en'): Promise<R
       branch_name: review.branches?.name || '',
       branch_name_ar: review.branches?.name_ar || null,
     }));
-  } catch (error) {
-    console.error('Error fetching reviews:', error);
+  } catch {
     return [];
   }
 }
@@ -70,20 +68,14 @@ export async function fetchReviewsFromDatabase(language: 'ar' | 'en'): Promise<R
  * and call the edge function directly from server-side code only.
  */
 export async function syncReviewsFromGoogle(): Promise<{ success: boolean; message: string }> {
-  try {
-    const { data, error } = await supabase.functions.invoke('sync-reviews');
+  const { data, error } = await supabase.functions.invoke('sync-reviews');
 
-    if (error) {
-      throw error;
-    }
-
-    return {
-      success: data?.success || false,
-      message: data?.message || `Synced ${data?.synced || 0} reviews from ${data?.branches || 0} branches`,
-    };
-  } catch (error) {
-    console.error('Error syncing reviews:', error);
+  if (error) {
     throw error;
   }
-}
 
+  return {
+    success: data?.success || false,
+    message: data?.message || `Synced ${data?.synced || 0} reviews from ${data?.branches || 0} branches`,
+  };
+}

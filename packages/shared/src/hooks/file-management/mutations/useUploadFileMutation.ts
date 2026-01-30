@@ -2,10 +2,10 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { format } from 'date-fns';
 
-import { supabase } from "@shared/lib/supabase/client";
+import { supabase } from '@shared/lib/supabase/client';
 import { insertData } from '@shared/lib/supabase-helpers';
 import { FilePreview } from '@shared/types/admin';
-import { useToast } from "@shared/ui/components/use-toast";
+import { useToast } from '@shared/ui/components/use-toast';
 
 import { FileUploadParams } from '../types';
 
@@ -51,7 +51,6 @@ export const useUploadFileMutation = (
           .upload(fileName, file);
 
         if (uploadError) {
-          console.error('Storage upload failed:', uploadError);
           throw uploadError;
         }
 
@@ -64,7 +63,7 @@ export const useUploadFileMutation = (
           is_active: true,
           display_order: 0,
           branch_name: undefined as string | undefined,
-          end_date: undefined as string | undefined
+          end_date: undefined as string | undefined,
         };
 
         // Only add end date if it's provided (for either category)
@@ -83,11 +82,10 @@ export const useUploadFileMutation = (
               .single();
 
             if (branchError || !branchCheck) {
-              console.error('Branch verification failed:', branchError);
               throw new Error(`Branch "${branchName}" not found. Please select a valid branch.`);
             }
 
-            recordData.branch_name = branchCheck.name;  // Use branch name for relationship (matches database schema)
+            recordData.branch_name = branchCheck.name; // Use branch name for relationship (matches database schema)
           }
           // For all branches, branch_name remains null (already set to undefined by default)
         }
@@ -98,36 +96,20 @@ export const useUploadFileMutation = (
           .insert(insertData('marketing_files', recordData))
           .select();
 
-
         if (dbError) {
-          console.error('Database insertion error:', dbError);
-          console.error('Error code:', dbError.code);
-          console.error('Error message:', dbError.message);
-          console.error('Error details:', dbError.details);
-          console.error('Error hint:', dbError.hint);
-
           // Cleanup the uploaded file if the database insert fails
           try {
             await supabase.storage
               .from('marketing_files')
               .remove([fileName]);
-          } catch (cleanupError) {
-            console.error('Failed to cleanup uploaded file:', cleanupError);
+          } catch {
+            // ignore cleanup failure
           }
           throw dbError;
         }
 
         // Return the inserted data
         return insertedData;
-      } catch (error: unknown) {
-        console.error('Upload error:', error);
-        if (error instanceof Error) {
-          console.error('Error type:', error.constructor.name);
-          console.error('Error message:', error.message);
-        } else {
-          console.error('Error details:', error);
-        }
-        throw error;
       } finally {
         setUploading(false);
         setFilePreview(null);
@@ -137,17 +119,17 @@ export const useUploadFileMutation = (
       queryClient.invalidateQueries({ queryKey: ['marketing-files'] });
       queryClient.invalidateQueries({ queryKey: ['active-menu-files'] });
       toast({
-        title: "Success",
-        description: "File uploaded successfully",
+        title: 'Success',
+        description: 'File uploaded successfully',
       });
       resetUploadState();
     },
     onError: (error: Error) => {
       toast({
-        title: "Error",
-        description: error.message || "Failed to upload file",
-        variant: "destructive",
+        title: 'Error',
+        description: error.message || 'Failed to upload file',
+        variant: 'destructive',
       });
-    }
+    },
   });
 };

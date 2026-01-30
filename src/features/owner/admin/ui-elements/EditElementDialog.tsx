@@ -71,13 +71,12 @@ export const EditElementDialog = ({ isOpen, onClose, element }: EditElementDialo
       });
       onClose();
     },
-    onError: (error) => {
+    onError: () => {
       toast({
         title: language === "ar" ? "خطأ" : "Error",
         description: language === "ar" ? "حدث خطأ أثناء التحديث" : "An error occurred while updating",
         variant: "destructive",
       });
-      console.error("Error updating text:", error);
     },
   });
 

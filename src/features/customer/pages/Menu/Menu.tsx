@@ -21,7 +21,7 @@ const Menu = () => {
   }, []);
 
   // Use the shared PDF fetch hook
-  const { pdfFiles: menuFiles, isLoading, error } = usePDFFetch('menu', { language });
+  const { pdfFiles: menuFiles, isLoading } = usePDFFetch('menu', { language });
 
   const activeMenuFile = menuFiles.find((file) => file.url === activeMenuUrl);
 
@@ -31,10 +31,6 @@ const Menu = () => {
       setActiveMenuUrl(menuFiles[0].url);
     }
   }, [menuFiles]);
-
-  if (error) {
-    // Error handling is done through the UI, no need for console.error
-  }
 
   return (
     <AppLayout>
@@ -101,7 +97,6 @@ const Menu = () => {
                         alt="Menu"
                         className="w-full max-w-full h-auto rounded-lg"
                         onError={(e) => {
-                          console.error('Failed to load menu image:', activeMenuUrl);
                           e.currentTarget.src = '/placeholder.svg';
                         }}
                       />

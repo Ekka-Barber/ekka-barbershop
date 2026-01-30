@@ -1,5 +1,3 @@
-import { CheckCircle, Clock, AlertTriangle, FileText } from 'lucide-react';
-
 import type { EmployeeDocumentWithStatus } from '@/features/owner/employees/types';
 
 /**
@@ -11,24 +9,6 @@ export const formatDocumentDate = (dateString: string): string => {
     month: 'short',
     day: 'numeric',
   });
-};
-
-/**
- * Gets the appropriate status icon for a document status
- */
-export const getDocumentStatusIcon = (status: string) => {
-  switch (status) {
-    case 'valid':
-      return CheckCircle;
-    case 'expiring_soon':
-      return Clock;
-    case 'expired':
-      return AlertTriangle;
-    case 'needs_renewal':
-      return AlertTriangle;
-    default:
-      return FileText;
-  }
 };
 
 /**

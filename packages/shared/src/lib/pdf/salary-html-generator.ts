@@ -3,9 +3,5 @@ export {
     generateSalaryHTML,
     formatMonthForFilename,
     calculateSummaries,
-    deriveSponsorSummaries,
-    type SalaryPDFData,
-    type PDFSummary,
-    type BranchSummary,
-    type SponsorSummary
+    type SalaryPDFData
 } from './salary-html-template';

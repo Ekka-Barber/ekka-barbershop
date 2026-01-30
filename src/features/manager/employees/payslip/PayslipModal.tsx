@@ -66,12 +66,9 @@ const PayslipModal: React.FC<PayslipModalProps> = ({
     getCurrentPayPeriod()
   );
   
-  // For debugging - log the generated payslip data
-  console.log("PayslipModal generated data for month:", selectedMonth, payslipData);
 
   // Handle viewer error by generating a direct PDF as fallback
   const handleViewerError = (error: Error) => {
-    console.error("PayslipModal: PDF viewer error detected:", error);
     setViewerError(error);
     
     if (!pdfBlob && !isGeneratingFallback) {
@@ -84,12 +81,10 @@ const PayslipModal: React.FC<PayslipModalProps> = ({
     setIsGeneratingFallback(true);
     
     try {
-      console.log("Generating fallback PDF...");
       const blob = await generatePDFBlob(payslipData);
-      console.log("Fallback PDF generated successfully");
       setPdfBlob(blob);
     } catch (error) {
-      console.error("Failed to generate fallback PDF:", error);
+      void error;
     } finally {
       setIsGeneratingFallback(false);
     }

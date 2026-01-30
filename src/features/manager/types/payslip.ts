@@ -93,22 +93,6 @@ export interface PayslipViewerProps {
   onError?: (error: Error) => void;
 }
 
-// Style constants for consistency
-export interface PayslipColors {
-  primaryGold: string;
-  secondaryGold: string;
-  tertiaryGold: string;
-  backgroundGray: string;
-  documentBg: string;
-  textPrimary: string;
-  textSecondary: string;
-  positive: string;
-  negative: string;
-  progressBarLight: string;
-  progressBarMedium: string;
-  progressBarDark: string;
-}
-
 // Original helper function to map salary data to payslip format (kept for backward compatibility)
 export const mapSalaryToPayslipData = (
   employeeData: PayslipButtonProps['employeeData'],

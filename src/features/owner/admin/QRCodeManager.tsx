@@ -33,7 +33,7 @@ const QRCodeManager = () => {
   const isMobile = useIsMobile();
   const { toast } = useToast();
 
-  // Debug mobile detection (removed console.log for cleaner output)
+  // Mobile state tracking (no debug output)
   useEffect(() => {
     // Mobile state tracking - no console output needed
   }, [isMobile]);
@@ -52,7 +52,6 @@ const QRCodeManager = () => {
         .order('created_at', { ascending: false });
 
       if (error) {
-        console.error("Error fetching QR codes:", error);
         throw error;
       }
 

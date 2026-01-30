@@ -6,11 +6,9 @@
       "project": ["src/**/*.{ts,tsx}", "index.html"]
     },
     "packages/shared": {
-      "entry": ["src/index.ts"],
       "project": ["src/**/*.{ts,tsx}"]
     },
     "packages/ui": {
-      "entry": ["src/index.ts"],
       "project": ["src/**/*.{ts,tsx}"]
     }
   },

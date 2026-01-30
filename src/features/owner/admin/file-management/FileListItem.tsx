@@ -18,7 +18,7 @@ import {
 import { FileEndDateManager } from "./FileEndDateManager";
 
 
-export interface FileListItemProps {
+interface FileListItemProps {
   file: FileMetadata;
   index: number;
   selectedDate: Date | undefined;

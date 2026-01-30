@@ -9,7 +9,6 @@ import {
 
 import type { PayslipData } from '@/features/manager/types/payslip';
 
-export { BRAND_COLORS } from './payslip-html-constants';
 
 /** Generate HTML for individual employee payslip (RTL, Arabic, A4). */
 export const generatePayslipHTML = (data: PayslipData): string => {

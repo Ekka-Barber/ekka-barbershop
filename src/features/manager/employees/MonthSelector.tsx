@@ -87,4 +87,3 @@ const MonthSelector: React.FC<MonthSelectorProps> = React.memo(({
 MonthSelector.displayName = 'MonthSelector';
 
 export { MonthSelector };
-export default MonthSelector; 

@@ -8,12 +8,10 @@ import { Input } from '@shared/ui/components/input';
 
 import { EnhancedEmployeeCardProps } from './EnhancedEmployeeCard.types';
 
-import {
-  EmployeeHeader,
-  QuickSummaryCards,
-  ExpandedContent,
-  SalaryPlanSelector,
-} from '@/features/owner/employees';
+import { EmployeeHeader } from '@/features/owner/employees/components/EmployeeHeader';
+import { ExpandedContent } from '@/features/owner/employees/components/ExpandedContent';
+import { QuickSummaryCards } from '@/features/owner/employees/components/QuickSummaryCards';
+import { SalaryPlanSelector } from '@/features/owner/employees/components/SalaryPlanSelector';
 import { useEmployeeCardData } from '@/features/owner/employees/hooks/useEmployeeCardData';
 
 export const EnhancedEmployeeCard: React.FC<EnhancedEmployeeCardProps> = memo(

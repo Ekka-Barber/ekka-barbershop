@@ -78,12 +78,8 @@ export const usePDFFetch = (
     const { data, error } = await query;
 
     if (error) {
-      console.error(`Error fetching ${category} files:`, error);
       throw error;
     }
-
-    console.log(`[DEBUG] Fetched ${category} files:`, data);
-    console.log(`[DEBUG] Data length:`, data?.length || 0);
 
     if (data && data.length > 0) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -97,7 +93,6 @@ export const usePDFFetch = (
           .getPublicUrl(file.file_path);
 
         if (!publicUrlData?.publicUrl) {
-          console.error('Failed to get public URL for file:', file.file_path);
           return null;
         }
 
@@ -105,7 +100,6 @@ export const usePDFFetch = (
         try {
           new URL(publicUrlData.publicUrl);
         } catch {
-          console.error('Invalid URL generated:', publicUrlData.publicUrl);
           return null;
         }
 

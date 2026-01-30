@@ -42,16 +42,3 @@ export interface AddLeaveResponse {
 }
 
 export type LeavesByEmployee = Record<string, LeaveRecord[]>;
-
-export interface LeaveHeaderProps {
-  employees: Employee[];
-  selectedMonth: string;
-  totalLeaveRequests: number;
-  approvedRequests: number;
-  pendingRequests: number;
-  rejectedRequests: number;
-  addLeaveMutation: {
-    mutateAsync: (data: AddLeaveData) => Promise<AddLeaveResponse>;
-    isPending: boolean;
-  };
-}

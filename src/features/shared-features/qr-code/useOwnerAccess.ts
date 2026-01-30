@@ -29,8 +29,7 @@ export const useOwnerAccess = () => {
       }
 
       return true;
-    } catch (error) {
-      console.error('Error setting owner access:', error);
+    } catch {
       toast({
         title: "Error",
         description: "Failed to set owner access. Please try again.",

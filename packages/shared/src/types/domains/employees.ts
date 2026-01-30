@@ -1,7 +1,5 @@
 import type { Database } from '@shared/types/database.types';
 
-export type DocumentType = 'health_certificate' | 'residency_permit' | 'work_license' | 'custom';
-
 export type Employee = Database['public']['Tables']['employees']['Row'];
 export type EmployeeInsert =
   Database['public']['Tables']['employees']['Insert'];

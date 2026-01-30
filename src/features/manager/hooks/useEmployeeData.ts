@@ -94,7 +94,6 @@ export const useEmployeeData = (selectedMonth?: string, selectedBranchId?: strin
           .single();
 
         if (managerError) {
-          console.error("Error fetching manager:", managerError);
           return [];
         }
 
@@ -105,19 +104,14 @@ export const useEmployeeData = (selectedMonth?: string, selectedBranchId?: strin
       const { data: employees, error } = await query;
 
       if (error) {
-        console.error("Error fetching employees:", error);
         throw error;
       }
 
       // Fetch sales for the selected month only (no month fallback)
-      const { data: monthlySales, error: salesError } = await supabase
+      const { data: monthlySales } = await supabase
         .from('employee_sales')
         .select('employee_id, employee_name, month, sales_amount, updated_at')
         .eq('month', monthStart);
-
-      if (salesError) {
-        console.error('Error fetching monthly sales:', salesError);
-      }
 
       interface MonthlySalesRow {
         employee_id: string | null;
@@ -199,7 +193,6 @@ export const useEmployeeData = (selectedMonth?: string, selectedBranchId?: strin
         .single();
 
       if (error) {
-        console.error("Error fetching branch data:", error);
         return { branch_id: '', name: '' };
       }
 

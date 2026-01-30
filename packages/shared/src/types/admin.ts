@@ -33,22 +33,6 @@ export interface FilePreview {
   name: string; // This was missing
 }
 
-// Blocked dates types
-export interface BlockedDate {
-  id: string;
-  date: string;
-  reason: string | null;
-  is_recurring: boolean;
-  recurrence_pattern: string | null;
-  created_at: string;
-}
-
-export interface BlockedDateInput {
-  date: Date;
-  reason: string;
-  is_recurring: boolean;
-}
-
 // QR Code types
 export interface QRCode {
   id: string;

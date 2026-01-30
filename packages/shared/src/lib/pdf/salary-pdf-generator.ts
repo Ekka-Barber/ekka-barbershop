@@ -6,12 +6,7 @@ import {
 import type { SalaryPDFData } from './salary-html-generator';
 
 // Re-export types for backward compatibility
-export type {
-    SalaryPDFData,
-    PDFSummary,
-    BranchSummary,
-    SponsorSummary
-} from './salary-html-generator';
+export type { SalaryPDFData } from './salary-html-generator';
 
 export class SalaryPDFGenerator {
     constructor(_rtl?: boolean) {

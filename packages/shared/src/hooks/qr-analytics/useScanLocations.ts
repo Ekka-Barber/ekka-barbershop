@@ -1,5 +1,5 @@
 
-import { supabase } from "@shared/lib/supabase/client";
+import { supabase } from '@shared/lib/supabase/client';
 
 interface QrScanLocation {
   location: string | null;
@@ -18,31 +18,26 @@ export async function fetchScanLocations(selectedQrId: string, startDate: Date) 
 
     if (!error && data) {
       locationData = data.filter(
-        item => item.latitude != null && item.longitude != null
+        (item) => item.latitude != null && item.longitude != null
       );
     }
-  } catch (error) {
-    console.error('Error fetching location data:', error);
-    // Continue even if location data fails
+  } catch {
+    return [];
   }
 
   // Process location data
   const locationMap = new Map();
-  try {
-    if (Array.isArray(locationData)) {
-      locationData.forEach(item => {
-        if (item.latitude && item.longitude) {
-          const key = `${item.latitude},${item.longitude}`;
-          if (locationMap.has(key)) {
-            locationMap.set(key, locationMap.get(key) + 1);
-          } else {
-            locationMap.set(key, 1);
-          }
+  if (Array.isArray(locationData)) {
+    locationData.forEach((item) => {
+      if (item.latitude && item.longitude) {
+        const key = `${item.latitude},${item.longitude}`;
+        if (locationMap.has(key)) {
+          locationMap.set(key, locationMap.get(key) + 1);
+        } else {
+          locationMap.set(key, 1);
         }
-      });
-    }
-  } catch (e) {
-    console.error('Error processing location data:', e);
+      }
+    });
   }
 
   return Array.from(locationMap.entries()).map(([key, count]) => {

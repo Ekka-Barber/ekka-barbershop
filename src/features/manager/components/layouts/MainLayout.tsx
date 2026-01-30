@@ -49,7 +49,6 @@ const MainLayout = ({ children }: MainLayoutProps) => {
           .maybeSingle();
 
         if (error || !data) {
-          console.error("Error loading branch details:", error);
           return;
         }
 
@@ -58,8 +57,8 @@ const MainLayout = ({ children }: MainLayoutProps) => {
           : data.branches;
         setManagerName(data.name);
         setBranchName(branch?.name_ar || branch?.name || '');
-      } catch (error) {
-        console.error("Error loading user info:", error);
+      } catch {
+        return;
       }
     };
 

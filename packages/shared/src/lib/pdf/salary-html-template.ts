@@ -13,7 +13,29 @@ export const BRAND_COLORS = {
 
 // Generate HTML template - PORTRAIT with two-column grid for TABLES only
 // Full A4 page with footer at bottom
-export const generateSalaryHTML = (data: SalaryPDFData[], summary: PDFSummary, selectedMonth: string, isGross: boolean = false): string => {
+export const generateSalaryHTML = (
+    data: SalaryPDFData[],
+    summary: {
+        totalEmployees: number;
+        totalTransferAmount: number;
+        totalLoansAmount: number;
+        branchSummaries: Array<{
+            branchName: string;
+            employeeCount: number;
+            totalTransfer: number;
+            totalLoans: number;
+        }>;
+        sponsorSummaries: Array<{
+            sponsorId?: string | null;
+            sponsorName: string;
+            sponsorNameAr?: string;
+            employeeCount: number;
+            totalTransfer: number;
+        }>;
+    },
+    selectedMonth: string,
+    isGross: boolean = false
+): string => {
     const monthNameAr = new Date(selectedMonth).toLocaleDateString('ar-SA', { month: 'long', year: 'numeric' });
     const monthNameEn = new Date(selectedMonth).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
     const branchGroups = data.reduce((groups, item) => {
@@ -171,29 +193,6 @@ export interface SalaryPDFData {
     sponsorId?: string | null;
 }
 
-export interface PDFSummary {
-    totalEmployees: number;
-    totalTransferAmount: number;
-    totalLoansAmount: number;
-    branchSummaries: BranchSummary[];
-    sponsorSummaries: SponsorSummary[];
-}
-
-export interface BranchSummary {
-    branchName: string;
-    employeeCount: number;
-    totalTransfer: number;
-    totalLoans: number;
-}
-
-export interface SponsorSummary {
-    sponsorId?: string | null;
-    sponsorName: string;
-    sponsorNameAr?: string;
-    employeeCount: number;
-    totalTransfer: number;
-}
-
 // Helper function to format month for filename
 export const formatMonthForFilename = (selectedMonth: string): string => {
     try {
@@ -207,7 +206,24 @@ export const formatMonthForFilename = (selectedMonth: string): string => {
 };
 
 // Helper function to calculate summaries
-export const calculateSummaries = (data: SalaryPDFData[]): PDFSummary => {
+export const calculateSummaries = (data: SalaryPDFData[]): {
+    totalEmployees: number;
+    totalTransferAmount: number;
+    totalLoansAmount: number;
+    branchSummaries: Array<{
+        branchName: string;
+        employeeCount: number;
+        totalTransfer: number;
+        totalLoans: number;
+    }>;
+    sponsorSummaries: Array<{
+        sponsorId?: string | null;
+        sponsorName: string;
+        sponsorNameAr?: string;
+        employeeCount: number;
+        totalTransfer: number;
+    }>;
+} => {
     const branchGroups = data.reduce((groups, item) => {
         if (!groups[item.branch]) {
             groups[item.branch] = [];
@@ -256,7 +272,7 @@ export const calculateSummaries = (data: SalaryPDFData[]): PDFSummary => {
     };
 };
 
-export const deriveSponsorSummaries = (data: SalaryPDFData[]): SponsorSummary[] => {
+const deriveSponsorSummaries = (data: SalaryPDFData[]) => {
     const sponsorGroups = data.reduce((groups, item) => {
         const sponsorKey = item.sponsorId || item.sponsorNameAr || item.sponsorName || 'Unassigned';
         if (!groups[sponsorKey]) {

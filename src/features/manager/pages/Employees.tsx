@@ -53,8 +53,7 @@ const EmployeesContent: React.FC = () => {
       await queryClient.invalidateQueries({ queryKey: ['employees'] });
       await queryClient.invalidateQueries({ queryKey: ['branch'] });
       toast({ title: "تم التحديث", description: "تم تحديث بيانات الموظفين بنجاح" });
-    } catch (error) {
-      console.error('Refresh error:', error);
+    } catch {
       toast({ variant: "destructive", title: "خطأ في التحديث", description: "حدث خطأ أثناء تحديث البيانات" });
     } finally {
       setIsRefreshing(false);

@@ -27,16 +27,10 @@ const Offers = () => {
   }, []);
   
   // Use the shared PDF fetch hook with branch information
-  const { pdfFiles: offersFiles, isLoading, error: fetchError } = usePDFFetch('offers', {
+  const { pdfFiles: offersFiles, isLoading } = usePDFFetch('offers', {
     includeBranchInfo: true,
     language
   });
-
-  console.log('[DEBUG] Offers page - offersFiles:', offersFiles, 'isLoading:', isLoading, 'fetchError:', fetchError);
-
-  if (fetchError) {
-    console.error('[DEBUG] Offers fetch error:', fetchError);
-  }
 
   const getBadgeText = (branchName: string | null) => {
     if (!branchName) return '';
@@ -139,19 +133,11 @@ const Offers = () => {
                           className="w-full max-w-full h-auto rounded-lg transition-all duration-300"
                           onLoad={() => {}}
                           onError={(e) => {
-                            console.error('Image failed to load:', file!.url);
-                            // Log detailed error information
-                            console.error('Image error details:', {
-                              fileName: file!.file_name,
-                              filePath: file!.file_path,
-                              fileType: file!.file_type,
-                              generatedUrl: file!.url
-                            });
                             e.currentTarget.src = '/placeholder.svg';
                             // Show toast for better user feedback
-                            toast({ 
-                              title: 'Failed to load offer image', 
-                              variant: 'destructive' 
+                            toast({
+                              title: 'Failed to load offer image',
+                              variant: 'destructive'
                             });
                           }}
                         />

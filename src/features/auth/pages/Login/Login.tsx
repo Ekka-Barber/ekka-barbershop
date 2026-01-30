@@ -57,8 +57,7 @@ const Login = () => {
         sessionAuth.clearBranchId();
         navigate('/manager');
       }
-    } catch (loginError) {
-      console.error('Login error:', loginError);
+    } catch {
       setError(t('login.error.generic'));
     } finally {
       setIsLoading(false);

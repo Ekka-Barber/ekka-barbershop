@@ -221,5 +221,3 @@ const BranchDetails = ({ branch }: { branch: Branch }) => {
     </div>
   );
 };
-
-export default { BranchesTab };

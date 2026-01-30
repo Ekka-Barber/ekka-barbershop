@@ -21,10 +21,3 @@ export interface NavigationSection {
   label: string;
   items: NavigationItem[];
 }
-
-export interface SidebarState {
-  isExpanded: boolean;
-  expandedItems: string[];
-  activeItem: string | null;
-  activeTab: string | null;
-}

@@ -30,7 +30,7 @@ class PDFErrorBoundary extends React.Component<
   }
 
   componentDidCatch(error: Error, info: React.ErrorInfo) {
-    console.error(`PDF Error caught in boundary (${this.props.context}):`, error, info);
+    void info;
     this.props.onError(error, this.props.context);
   }
 
@@ -44,7 +44,6 @@ class PDFErrorBoundary extends React.Component<
 }
 
 const PDFViewerWrapper = ({ data, onError }: { data: ReturnType<typeof mapSalaryToPayslipData>; onError: (error: Error, context: string) => void }) => {
-  console.log("[PDFViewerWrapper] Rendering with data length:", data ? Object.keys(data).length : 0);
   return (
     <PDFErrorBoundary onError={onError} context="PDFViewerWrapper">
       <LazyPDFViewer data={data} />
@@ -74,11 +73,9 @@ const PayslipViewer: React.FC<PayslipViewerProps> = ({
   const getCurrentPayPeriod = useCallback((): string => {
     // Use provided payPeriod if available, otherwise fall back to current date
     if (payPeriod) {
-      console.log("[PayslipViewer] Using provided payPeriod:", payPeriod);
       return payPeriod;
     }
-    
-    console.log("[PayslipViewer] No payPeriod provided, falling back to current date");
+
     const date = new Date();
     // Use Arabic locale with Gregorian calendar for consistency
     return new Intl.DateTimeFormat('ar', {
@@ -104,55 +101,29 @@ const PayslipViewer: React.FC<PayslipViewerProps> = ({
 
   useEffect(() => {
     setIsClient(true);
-    console.log("[PayslipViewer] Component mounted, isClient set to true.");
-    console.log("[PayslipViewer] Browser info:", {
-      userAgent: navigator.userAgent,
-      platform: navigator.platform,
-      vendor: navigator.vendor,
-      pdfViewerEnabled: navigator.pdfViewerEnabled,
-    });
-
-    // Font check removed for lazy loading - will be checked when PDF components load
-    console.log("[PayslipViewer] Font check deferred for lazy loading.");
-
-    if ('fonts' in document) {
-      document.fonts.ready.then(() => {
-        console.log('[PayslipViewer] All browser document fonts loaded and ready');
-        const fontAvailable = document.fonts.check('12px "IBM Plex Sans Arabic"');
-        console.log('[PayslipViewer] Browser check for "IBM Plex Sans Arabic" available:', fontAvailable);
-      }).catch(err => console.error('[PayslipViewer] Error with document.fonts.ready:', err));
-    } else {
-      console.warn('[PayslipViewer] document.fonts API not available.');
-    }
   }, []);
 
-  const internalHandleError = (error: Error, context: string) => {
-    console.error(`[PayslipViewer] Internal error caught from ${context}:`, error);
+  const internalHandleError = (error: Error, _context: string) => {
     setRenderError(error);
     setMountPDF(false); 
     if (onError) {
-      console.log("[PayslipViewer] Calling external onError callback.");
       onError(error); 
     }
   };
   
   const generatePdfBlob = async (context: string): Promise<Blob | null> => {
     if (!payslipDataRef.current) {
-      console.error(`[PayslipViewer] Cannot generate PDF blob, payslipData is null. Context: ${context}`);
       internalHandleError(new Error("Payslip data is not available for PDF generation."), `generatePdfBlob (${context}) - data missing`);
       return null;
     }
-    console.log(`[PayslipViewer] Attempting to generate PDF blob. Context: ${context}`);
     setIsGeneratingBlob(true);
     setRenderError(null); 
     try {
       const blob = await generatePDFBlob(payslipDataRef.current);
-      console.log(`[PayslipViewer] PDF blob generated successfully. Context: ${context}. Size:`, blob.size);
       setPdfBlob(blob);
       setIsGeneratingBlob(false);
       return blob;
     } catch (error) {
-      console.error(`[PayslipViewer] Error generating PDF blob. Context: ${context}:`, error);
       internalHandleError(error instanceof Error ? error : new Error(String(error)), `generatePdfBlob (${context})`);
       setIsGeneratingBlob(false);
       return null;
@@ -160,7 +131,6 @@ const PayslipViewer: React.FC<PayslipViewerProps> = ({
   };
 
   const handleForceRefresh = () => {
-    console.log("[PayslipViewer] Force refreshing PDF viewer manually.");
     uniquePdfKeyRef.current = Date.now();
     setRenderError(null);
     setPdfBlob(null);
@@ -172,7 +142,6 @@ const PayslipViewer: React.FC<PayslipViewerProps> = ({
   };
 
   if (!isClient || !payslipDataRef.current) {
-    console.log("[PayslipViewer] Not client-side, or payslipData not ready. Showing skeleton.");
     return (
       <div className="w-full min-h-[75vh] flex flex-col space-y-4 p-4">
         <Skeleton className="h-10 w-1/4 self-end" />
@@ -257,13 +226,11 @@ const PayslipViewer: React.FC<PayslipViewerProps> = ({
             fileName={`${currentPayslipData.employee.nameAr}_${currentPayslipData.payPeriod}_Payslip.pdf`}
             className={cn(buttonVariants({variant: 'default'}), "flex items-center gap-2")}
             onClick={() => {
-                console.log("[PayslipViewer] PDFDownloadLink clicked.");
                 setDownloadLinkError(null); // Clear previous errors before attempting new download
             }}
           >
             {({ loading, error }) => {
               if (error && !downloadLinkError) { // Avoid state update loop
-                console.error("[PayslipViewer] PDFDownloadLink error state:", error);
                 // Use a timeout to prevent React state update errors during render
                 setTimeout(() => setDownloadLinkError(error instanceof Error ? error : new Error(String(error))),0);
               }

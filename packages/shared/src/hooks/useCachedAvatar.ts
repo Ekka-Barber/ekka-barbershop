@@ -27,8 +27,7 @@ export function useCachedAvatar(googleAvatarUrl: string | null | undefined, auth
         if (!cancelled) {
           setCachedUrl(url);
         }
-      } catch (error) {
-        console.error('Error fetching cached avatar:', error);
+      } catch {
         if (!cancelled) {
           setCachedUrl(null);
         }
@@ -48,4 +47,3 @@ export function useCachedAvatar(googleAvatarUrl: string | null | undefined, auth
 
   return { cachedUrl, isLoading };
 }
-

@@ -89,11 +89,8 @@ class MarketingErrorBoundaryClass extends React.Component<
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    // Log error for monitoring (in production, send to error reporting service)
-    console.error('Marketing content error:', error, errorInfo);
-
-    // Could send to analytics/error reporting service here
-    // Example: analytics.track('marketing_error', { error: error.message, type: this.props.fallbackType });
+    void error;
+    void errorInfo;
   }
 
   handleReset = () => {

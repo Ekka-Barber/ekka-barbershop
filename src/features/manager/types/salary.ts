@@ -8,11 +8,6 @@ import type {
 export type { EmployeeBonus, EmployeeDeduction, EmployeeLoan, SalaryPlan };
 export type SalaryPlanType = 'fixed' | 'dynamic_basic';
 
-export interface SalaryBlock {
-  type: string;
-  config?: Record<string, unknown>;
-}
-
 export interface SalaryCalculationResult {
   baseSalary: number;
   commission: number;

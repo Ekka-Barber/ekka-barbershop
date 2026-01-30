@@ -84,7 +84,7 @@ export function useEmployeeSalaryData(
          const { data: planData, error: planError } = await fetchSalaryPlan(salaryPlanId);
         
         if (planError) {
-          console.error("Salary plan fetch error:", planError);
+          // ignore plan errors; salary plan stays null
          } else if (planData) {
            const plan = planData as SalaryPlan;
           setSalaryPlan(plan);
@@ -137,7 +137,6 @@ export function useEmployeeSalaryData(
         loansList: resolvedLoansList,
       };
     } catch (err: Error | unknown) {
-      console.error("Error fetching salary data:", err);
       setError(err instanceof Error ? err.message : "Error fetching salary data");
       toast({
         variant: "destructive",

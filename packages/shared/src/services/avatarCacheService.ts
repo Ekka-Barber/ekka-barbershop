@@ -45,8 +45,7 @@ export async function getCachedAvatar(googleAvatarUrl: string): Promise<string |
       .eq('google_avatar_url', googleAvatarUrl);
 
     return cacheData.cached_avatar_url;
-  } catch (error) {
-    console.error('Error getting cached avatar:', error);
+  } catch {
     return null;
   }
 }
@@ -73,7 +72,6 @@ export async function cacheAvatar(
     });
 
     if (error) {
-      console.error('Error caching avatar via Edge Function:', error);
       return null;
     }
 
@@ -82,8 +80,7 @@ export async function cacheAvatar(
     }
 
     return null;
-  } catch (error) {
-    console.error('Error caching avatar:', error);
+  } catch {
     return null;
   }
 }
@@ -137,7 +134,6 @@ export async function cleanupOldAvatars(): Promise<void> {
       .lt('last_accessed_at', cutoffDate.toISOString());
 
     if (fetchError || !oldAvatars) {
-      console.error('Error fetching old avatars:', fetchError);
       return;
     }
 
@@ -158,8 +154,7 @@ export async function cleanupOldAvatars(): Promise<void> {
       .from('review_avatar_cache')
       .delete()
       .lt('last_accessed_at', cutoffDate.toISOString());
-  } catch (error) {
-    console.error('Error cleaning up old avatars:', error);
+  } catch {
+    return;
   }
 }
-

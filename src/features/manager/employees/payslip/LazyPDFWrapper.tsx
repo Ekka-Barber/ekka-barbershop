@@ -1,4 +1,4 @@
-import { Download, AlertCircle } from 'lucide-react';
+import { AlertCircle } from 'lucide-react';
 import React, { useState, useEffect, useRef } from 'react';
 
 import { payslipPDFGenerator } from '@shared/lib/pdf/payslip-pdf-generator';
@@ -47,7 +47,6 @@ export const LazyPDFViewer: React.FC<LazyPDFViewerProps> = ({ data }) => {
         setLoading(false);
       } catch (err) {
         if (!mounted) return;
-        console.error('Failed to generate PDF:', err);
         setError(err instanceof Error ? err : new Error('Failed to generate PDF'));
         setLoading(false);
       }
@@ -123,7 +122,6 @@ export const LazyPDFDownloadLink: React.FC<LazyPDFDownloadLinkProps> = ({
       setError(undefined);
       await payslipPDFGenerator.generatePayslipPDF(data, fileName);
     } catch (err) {
-      console.error('Failed to generate/download PDF:', err);
       setError(err instanceof Error ? err : new Error('Failed to generate PDF'));
     } finally {
       setLoading(false);
@@ -145,67 +143,4 @@ export const LazyPDFDownloadLink: React.FC<LazyPDFDownloadLinkProps> = ({
 // Utility function to generate PDF blob
 export const generatePDFBlob = async (data: PayslipData): Promise<Blob> => {
   return await payslipPDFGenerator.generatePayslipPDFBlob(data);
-};
-
-// Utility function for preview (lower quality, faster)
-export const generatePDFPreviewBlob = async (data: PayslipData): Promise<Blob> => {
-  // For now, use the same as full quality
-  // In future, we could implement a lower quality preview
-  return await payslipPDFGenerator.generatePayslipPDFBlob(data);
-};
-
-// Simple download button component for convenience
-interface PDFDownloadButtonProps {
-  data: PayslipData;
-  fileName?: string;
-  variant?: 'default' | 'outline' | 'secondary' | 'ghost' | 'destructive';
-  size?: 'default' | 'sm' | 'lg' | 'icon';
-  className?: string;
-  icon?: React.ReactNode;
-  children?: React.ReactNode;
-}
-
-export const PDFDownloadButton: React.FC<PDFDownloadButtonProps> = ({
-  data,
-  fileName,
-  variant = 'default',
-  size = 'default',
-  className,
-  icon = <Download className="h-4 w-4" />,
-  children = 'Download Payslip',
-}) => {
-  const [loading, setLoading] = useState(false);
-
-  const handleDownload = async () => {
-    try {
-      setLoading(true);
-      await payslipPDFGenerator.generatePayslipPDF(data, fileName);
-    } catch (error) {
-      console.error('Failed to download PDF:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <Button
-      variant={variant}
-      size={size}
-      className={className}
-      onClick={handleDownload}
-      disabled={loading}
-    >
-      {loading ? (
-        <>
-          <div className="h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2" />
-          Generating...
-        </>
-      ) : (
-        <>
-          {icon && <span className="mr-2">{icon}</span>}
-          {children}
-        </>
-      )}
-    </Button>
-  );
 };

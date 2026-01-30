@@ -1,16 +1,9 @@
-import { calculateTotal } from '@shared/utils/math';
-
 import { PayslipData, PayslipButtonProps } from '@/features/manager/types/payslip';
-import { EmployeeBonus, EmployeeDeduction, EmployeeLoan } from '@/features/manager/types/salary';
-
-export { formatCurrencySAR as formatCurrency } from '@shared/utils/currency';
-
-export { formatDateDDMMYYYY as formatDate } from '@shared/utils/date/dateUtils';
 
 /**
  * Get the current pay period (month and year) in Gregorian format
  */
-export const getCurrentPayPeriod = (): string => {
+const getCurrentPayPeriod = (): string => {
   const date = new Date();
   try {
     // Use Arabic locale with Gregorian calendar for consistency
@@ -19,25 +12,12 @@ export const getCurrentPayPeriod = (): string => {
       month: 'long',
       calendar: 'gregory'
     }).format(date);
-  } catch (error) {
-    console.error('Error getting current pay period:', error);
+  } catch {
     // Fallback to basic format
     return `${date.getMonth() + 1}/${date.getFullYear()}`;
   }
 };
 
-export { safeGet } from '@shared/utils/object';
-
-/**
- * Calculate total bonuses amount from a list of bonuses
- */
-export const calculateTotalBonuses = (bonusList: Array<EmployeeBonus> = []): number => {
-  if (!Array.isArray(bonusList)) return 0;
-  return bonusList.reduce((sum, bonus) => {
-    const amount = Number(bonus?.amount || 0);
-    return sum + (isNaN(amount) ? 0 : amount);
-  }, 0);
-};
 
 /**
  * Enhanced data mapping function with validation and fallbacks
@@ -109,13 +89,6 @@ export const enhancedMapSalaryToPayslipData = (
   
   // Ensure all earnings are properly added
   const totalBonuses = validatedBonuses.reduce((sum, bonus) => sum + bonus.amount, 0);
-  console.log('Payslip data calculation:', { 
-    baseSalary, 
-    commission, 
-    targetBonus, 
-    validatedBonuses, 
-    totalBonuses 
-  });
   const totalEarnings = baseSalary + commission + totalBonuses;
   
   // Ensure all deductions are properly calculated
@@ -150,61 +123,3 @@ export const enhancedMapSalaryToPayslipData = (
     }
   };
 };
-
-export { isNegativeAmount, isPositiveAmount } from '@shared/utils/math';
-
-export { calculateTotal } from '@shared/utils/math';
-
-/**
- * Get a summarized version of financial lists for display
- * @param items Array of financial items
- * @param limit Maximum number of items to include
- * @returns Limited array with a summarized "Other" item if needed
- */
-export const getSummarizedList = <T extends EmployeeBonus | EmployeeDeduction | EmployeeLoan>(
-  items: T[],
-  limit: number = 5
-): Array<T | { amount: number; description: string; date: string; id?: string }> => {
-  if (items.length <= limit) return items;
-
-  const shownItems = items.slice(0, limit - 1);
-  const remainingItems = items.slice(limit - 1);
-  
-  const otherAmount = calculateTotal(remainingItems);
-  const otherItem = {
-    amount: otherAmount,
-    description: `أخرى (${remainingItems.length})`,
-    date: new Date().toISOString().split('T')[0],
-    id: 'summarized'
-  };
-
-  return [...shownItems, otherItem];
-};
-
-/**
- * Convert English numerals to Arabic numerals
- * @param value Number or string with English numerals
- * @returns String with Arabic numerals
- */
-export { convertToArabic as toArabicNumerals } from '@shared/utils/arabicNumerals';
-
-export { getValueType } from '@shared/utils/math';
-
-export { getReadableFileSize } from '@shared/utils/file';
-
-/**
- * Create a filename for the downloaded payslip
- * @param employeeName Employee name
- * @param payPeriod Pay period string
- * @returns Formatted filename
- */
-export const createPayslipFilename = (employeeName: string, payPeriod: string): string => {
-  // Remove any special characters that might cause issues in filenames
-  const sanitizedName = employeeName.replace(/[^\w\s]/gi, '');
-  const sanitizedPeriod = payPeriod.replace(/[^\w\s]/gi, '');
-  
-  return `payslip_${sanitizedName}_${sanitizedPeriod}.pdf`.replace(/\s+/g, '_');
-};
-
-// Saudi Riyal symbol path that can be used in React components
-export const SAUDI_RIYAL_SYMBOL = '/Saudi_Riyal_Symbol.svg'; 

@@ -204,11 +204,10 @@ export const LazyPDFViewer: React.FC<LazyPDFViewerProps> = ({
         if (!controller.signal.aborted) {
           setPdfBuffer(buffer);
         }
-      } catch (error) {
+      } catch {
         if (controller.signal.aborted) {
           return;
         }
-        console.error('[LazyPDFViewer] Failed to fetch PDF preview', error);
         setErrored(true);
         setLoading(false);
       }
@@ -272,8 +271,7 @@ export const LazyPDFViewer: React.FC<LazyPDFViewerProps> = ({
         pdfDocRef.current = loadedPdf;
         setPageCount(loadedPdf.numPages);
         setCurrentPage(1);
-      } catch (error) {
-        console.error('[LazyPDFViewer] Failed to load PDF document', error);
+      } catch {
         setErrored(true);
       } finally {
         if (active) {
@@ -355,11 +353,10 @@ export const LazyPDFViewer: React.FC<LazyPDFViewerProps> = ({
           viewport: scaledViewport,
           transform: dpr !== 1 ? [dpr, 0, 0, dpr, 0, 0] : undefined,
         }).promise;
-      } catch (error) {
+      } catch {
         if (!active) {
           return;
         }
-        console.error('[LazyPDFViewer] Failed to render PDF preview', error);
         setErrored(true);
       } finally {
         if (active) {

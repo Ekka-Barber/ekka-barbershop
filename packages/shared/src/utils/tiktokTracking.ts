@@ -9,12 +9,6 @@ declare global {
   }
 }
 
-interface ViewContentEvent {
-  pageId: string;
-  pageName: string;
-  value?: number;
-}
-
 interface ButtonClickEvent {
   buttonId: string;
   buttonName: string;
@@ -26,35 +20,6 @@ interface LocationViewEvent {
   name_en: string;
   value?: number;
 }
-
-interface SocialMediaClickEvent {
-  platform: string;
-  url: string;
-  value?: number;
-}
-
-export const trackViewContent = (params: ViewContentEvent) => {
-  try {
-    const ttq = window.ttq;
-    if (ttq) {
-      const eventParams: Record<string, unknown> = {
-        content_id: params.pageId,
-        content_name: params.pageName,
-        content_type: 'product',
-      };
-
-      // Only include value and currency if value is provided
-      if (params.value && params.value > 0) {
-        eventParams.value = params.value;
-        eventParams.currency = 'SAR'; // Saudi Riyal for Middle East barbershop
-      }
-
-      ttq.track('ViewContent', eventParams);
-    }
-  } catch {
-    // Silently handle tracking errors
-  }
-};
 
 export const trackButtonClick = (params: ButtonClickEvent) => {
   try {
@@ -94,28 +59,6 @@ export const trackLocationView = (params: LocationViewEvent) => {
       }
 
       ttq.track('ViewLocation', eventParams);
-    }
-  } catch {
-    // Silently handle tracking errors
-  }
-};
-
-export const trackSocialMediaClick = (params: SocialMediaClickEvent) => {
-  try {
-    const ttq = window.ttq;
-    if (ttq) {
-      const eventParams: Record<string, unknown> = {
-        platform: params.platform,
-        url: params.url,
-      };
-
-      // Only include value and currency if value is provided
-      if (params.value && params.value > 0) {
-        eventParams.value = params.value;
-        eventParams.currency = 'SAR'; // Saudi Riyal for Middle East barbershop
-      }
-
-      ttq.track('SocialInteraction', eventParams);
     }
   } catch {
     // Silently handle tracking errors

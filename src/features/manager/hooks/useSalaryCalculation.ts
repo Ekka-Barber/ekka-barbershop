@@ -153,7 +153,6 @@ export function useSalaryCalculation(
       setCalculationDone(true);
       
     } catch (err: Error | unknown) {
-      console.error("Salary calculation error:", err);
       toast({
         variant: "destructive",
         title: "خطأ في حساب الراتب",

@@ -21,15 +21,3 @@ export const calculateTotalPendingBonuses = (
     0
   );
 };
-
-/**
- * Calculate total bonuses (existing + pending) for an employee
- */
-export const calculateTotalBonuses = (
-  existingBonuses: EmployeeBonus[],
-  pendingBonuses: DynamicField[]
-): number => {
-  const totalExisting = calculateTotalExistingBonuses(existingBonuses);
-  const totalPending = calculateTotalPendingBonuses(pendingBonuses);
-  return totalExisting + totalPending;
-};

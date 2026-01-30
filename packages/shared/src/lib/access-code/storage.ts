@@ -54,11 +54,3 @@ export const sessionAuth = {
     removeItem(MANAGER_ACCESS_CODE_KEY);
   },
 };
-
-export const accessCodeKeys = {
-  owner: OWNER_ACCESS_CODE_KEY,
-  manager: MANAGER_ACCESS_CODE_KEY,
-  role: ROLE_KEY,
-  accessCode: ACCESS_CODE_KEY,
-  branchId: BRANCH_ID_KEY,
-};

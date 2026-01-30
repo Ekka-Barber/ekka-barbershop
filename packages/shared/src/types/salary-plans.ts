@@ -1,5 +1,3 @@
-export type SalaryCalculationType = 'fixed' | 'dynamic_basic';
-
 export interface SalaryPlanConfig {
   blocks: Array<{
     type: string;
@@ -8,6 +6,3 @@ export interface SalaryPlanConfig {
   description?: string;
   [key: string]: unknown;
 }
-
-// Re-export from domains for backward compatibility
-export type { SalaryPlan } from './domains';

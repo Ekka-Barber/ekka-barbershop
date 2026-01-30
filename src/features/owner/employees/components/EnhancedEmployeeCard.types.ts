@@ -21,13 +21,3 @@ export interface EmployeeCardData {
   totalBonuses: number;
   salesAmount: number;
 }
-
-export interface SalaryData {
-  baseSalary: number;
-  commission: number;
-  targetBonus: number;
-  totalSalary: number;
-  deductions: number;
-  loans: number;
-  bonuses: number;
-}

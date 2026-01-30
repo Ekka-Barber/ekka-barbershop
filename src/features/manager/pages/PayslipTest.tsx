@@ -189,7 +189,6 @@ const PDFGenerationTest = () => {
       
       await payslipPDFGenerator.generatePayslipPDF(samplePayslipData, 'test-payslip.pdf');
     } catch (err) {
-      console.error('Failed to generate PDF:', err);
       setError(err instanceof Error ? err.message : 'Unknown error');
     } finally {
       setLoading(false);

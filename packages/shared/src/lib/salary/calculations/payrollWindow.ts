@@ -19,7 +19,7 @@ const createUTCDate = (
   return new Date(Date.UTC(year, month, day, hours, minutes, seconds, milliseconds));
 };
 
-export const parseDateAsUTC = (value?: string | null): Date | null => {
+const parseDateAsUTC = (value?: string | null): Date | null => {
   if (!value) return null;
   if (value.includes('T')) {
     return new Date(value);

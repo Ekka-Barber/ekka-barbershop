@@ -1,5 +1,3 @@
-import type { ReactNode } from 'react';
-
 import { TIME } from '@shared/constants/time';
 import { SalaryCalculation, EmployeeWithBranch } from '@shared/types/business';
 import { Database } from '@shared/types/database.types';
@@ -10,20 +8,6 @@ import type {
   EmployeeBonus,
 } from '@shared/types/domains';
 
-
-export interface SelectOption {
-  value: string;
-  label: string;
-  icon?: ReactNode;
-}
-
-// Export relevant types from Supabase schema
-export type EmployeeDocument =
-  Database['public']['Tables']['employee_documents']['Row'];
-export type EmployeeDocumentInsert =
-  Database['public']['Tables']['employee_documents']['Insert'];
-export type EmployeeDocumentUpdate =
-  Database['public']['Tables']['employee_documents']['Update'];
 export type EmployeeDocumentWithStatus =
   Database['public']['Views']['employee_documents_with_status']['Row'];
 
@@ -44,39 +28,6 @@ export interface DocumentFilters {
   expiryDateTo?: string;
 }
 
-// Transaction types for Sales/Bonus/Loan tabs
-export interface SimpleTransaction {
-  id: string;
-  employee_name: string;
-  description: string;
-  amount: number;
-  date: string;
-}
-
-export interface SimpleBonus {
-  id: string;
-  employee_name: string;
-  description: string;
-  amount: number;
-  date: string;
-}
-
-export interface SimpleDeduction {
-  id: string;
-  employee_name: string;
-  description: string;
-  amount: number;
-  date: string;
-}
-
-export interface SimpleLoan {
-  id: string;
-  employee_name: string;
-  description: string;
-  amount: number;
-  date: string;
-}
-
 // Local component-specific types
 export interface DocumentsTabProps {
   employees: Employee[];
@@ -95,12 +46,6 @@ export interface DocumentFormData {
   document_url?: string;
   notes?: string;
 }
-
-export type DocumentStatus =
-  | 'valid'
-  | 'expiring_soon'
-  | 'expired'
-  | 'needs_renewal';
 
 export const DOCUMENT_TYPES = {
   health_certificate: {
@@ -124,8 +69,6 @@ export const DOCUMENT_TYPES = {
     defaultDuration: TIME.MONTHS_PER_YEAR,
   },
 } as const;
-
-export type DocumentType = keyof typeof DOCUMENT_TYPES;
 
 // =============================================================================
 // SALARY CALCULATION TYPES
@@ -157,10 +100,6 @@ export interface SalaryCalculationCardProps {
   employeeBonuses: EmployeeBonus[];
 }
 
-export interface SalaryCalculationsState {
-  totalPayout: number;
-}
-
 export type {
   AddLeaveData,
   AddLeaveResponse,
@@ -170,7 +109,6 @@ export type {
 } from './leaveTypes';
 
 export type {
-  EmployeesProps,
   EmployeeFinancialRecord,
   EmployeeFinancialRecords,
   SalaryData,

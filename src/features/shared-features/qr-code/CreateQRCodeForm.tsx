@@ -48,13 +48,12 @@ const CreateQRCodeForm = () => {
       setNewQrId("");
       setNewUrl("");
     },
-    onError: (error) => {
+    onError: () => {
       toast({
         title: "Error",
         description: "Failed to create QR code. The ID might already be in use.",
         variant: "destructive",
       });
-      console.error("Error creating QR code:", error);
     },
   });
 

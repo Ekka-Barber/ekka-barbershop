@@ -4,7 +4,7 @@ import React from "react";
 
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@shared/ui/components/tooltip";
 
-export interface SalaryRowProps {
+interface SalaryRowProps {
   label: string;
   value: number;
   tooltip?: string;

@@ -16,10 +16,11 @@ export function useLogout() {
       queryClient.clear();
 
       // Optionally clear app caches via service worker helper if available
-      if (typeof window.clearAppCache === 'function') {
+      const clearAppCache = (window as { clearAppCache?: () => void }).clearAppCache;
+      if (typeof clearAppCache === 'function') {
         // Best-effort, do not await
         try {
-          window.clearAppCache();
+          clearAppCache();
         } catch (_) {
           // ignore
         }

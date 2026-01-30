@@ -4,7 +4,7 @@ import { usePDFFetch } from './usePDFFetch';
 
 import { useLanguage } from '@/contexts/LanguageContext';
 
-export interface MarketingDialogState {
+interface MarketingDialogState {
   open: boolean;
   contentType: 'menu' | 'offers';
   currentIndex: number;
