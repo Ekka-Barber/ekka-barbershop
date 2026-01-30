@@ -102,9 +102,6 @@ const DialogContent = React.forwardRef<
     ? ariaDescribedByFromProps
     : ariaDescribedByFromProps ?? (fallbackDescription ? descriptionId : undefined)
 
-  const isRTL =
-    typeof document !== "undefined" && document.documentElement.dir === "rtl"
-
   return (
     <DialogPortal>
       <DialogOverlay />
@@ -129,8 +126,7 @@ const DialogContent = React.forwardRef<
         {showCloseButton && (
           <DialogPrimitive.Close
             className={cn(
-              "absolute top-3 sm:top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground min-h-[44px] min-w-[44px] flex items-center justify-center",
-              isRTL ? "left-3 sm:left-4" : "right-3 sm:right-4"
+              "absolute top-3 sm:top-4 end-3 sm:end-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground min-h-[44px] min-w-[44px] flex items-center justify-center"
             )}
           >
             <X className="h-5 w-5" />
