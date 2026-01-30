@@ -3,7 +3,7 @@ import {
   getDocument,
   GlobalWorkerOptions,
   type PDFDocumentProxy,
-} from 'pdfjs-dist/legacy/build/pdf';
+} from 'pdfjs-dist/legacy/build/pdf.mjs';
 import pdfWorker from 'pdfjs-dist/legacy/build/pdf.worker.min.mjs?url';
 import React, {
   useCallback,
@@ -349,6 +349,7 @@ export const LazyPDFViewer: React.FC<LazyPDFViewerProps> = ({
         context.clearRect(0, 0, canvas.width, canvas.height);
 
         await page.render({
+          canvas,
           canvasContext: context,
           viewport: scaledViewport,
           transform: dpr !== 1 ? [dpr, 0, 0, dpr, 0, 0] : undefined,
