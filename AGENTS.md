@@ -1,10 +1,13 @@
 # Agent Guidelines for Ekka App
 
+## Purpose
+This document is the stable, high-level guide for working on the Ekka app. It explains the tech stack, repo layout, and coding rules. Keep it accurate and concise. Put changelogs or cleanup history in separate docs.
+
 ## Build, Lint, Test
 
 ```bash
 npm run dev                    # Start Vite dev server
-npm run build                  # Build for production (~16s after cleanup)
+npm run build                  # Build for production
 npm run preview                # Preview production build
 npm run lint                   # ESLint (TS/TSX) - passes with 0 errors
 npx tsc --noEmit               # Type check (no output means success)
@@ -41,26 +44,16 @@ npm run find-unused:report     # Run knip without exit code (for CI)
 - i18n: English/Arabic in `src/i18n/translations.ts`
 - Monorepo: Workspaces in `packages/` (`shared`, `ui`)
 
-**Current State**: All consolidation phases and dead code cleanup complete (Phase 1-5). Build, lint, typecheck pass. Use specific aliases (`@shared/*`, `@features/*`, `@app/*`) for new code. `@/` retained for contexts, assets, i18n.
-
-## Cleanup Status (Phase 1-5 Complete)
-✅ **68 files deleted** across 5 phases:
-- **Phase 1**: Legacy Supabase files, Customer1 subpages, unused manager hooks, UI components
-- **Phase 2**: Salary calculators/ directory (11 files), supplanted salary engine
-- **Phase 3**: Dependencies removed: `cmdk`, `date-fns-tz`, `embla-carousel-react`, `input-otp`, `react-dropzone`, `react-resizable-panels`, `vaul`
-- **Phase 4**: Admin layout components, duplicate QRCodeManager, empty barrel exports
-- **Phase 5**: Export normalization (5 duplicates), unused salary/platform exports
-
-**Build time improvement**: ~37.94s → ~15.92s. Knip reports 0 unused files (1 false positive).
+**Current State**: Cleanup complete; lint/build/tsc pass; knip clean. Use specific aliases (`@shared/*`, `@features/*`, `@app/*`) for new code. `@/` retained for contexts, assets, i18n.
 
 ## Key Paths (Current Structure)
-- `src/app/` — App shell (providers, router, stores)
-- `src/features/` — Business features by role (auth/owner/manager/customer/shared-features)
-- `src/contexts/` — React context providers
-- `src/assets/` — Static assets
-- `src/i18n/` — Translations (en/ar)
-- `packages/shared/src/` — Shared layer (lib/hooks/utils/types/constants/services)
-- `packages/ui/src/components/` — UI components (shadcn/ui + custom)
+- `src/app/` - App shell (providers, router, stores)
+- `src/features/` - Business features by role (auth/owner/manager/customer/shared-features)
+- `src/contexts/` - React context providers
+- `src/assets/` - Static assets
+- `src/i18n/` - Translations (en/ar)
+- `packages/shared/src/` - Shared layer (lib/hooks/utils/types/constants/services)
+- `packages/ui/src/components/` - UI components (shadcn/ui + custom)
 
 ## Monorepo Workspaces
 The project uses a monorepo with workspaces defined in `package.json` (`"workspaces": ["packages/*"]`). Two packages exist:
@@ -70,24 +63,29 @@ The project uses a monorepo with workspaces defined in `package.json` (`"workspa
 Use `npx turbo` to run commands across workspaces (e.g., `npx turbo build`). Vite aliases map `@shared/*` to `packages/shared/src/*` and `@shared/ui/*` to `packages/ui/src/*`.
 
 ## Aliases (configured in vite.config.ts)
-- `@/*` → `src/*`
-- `@app/*` → `src/app/*`
-- `@features/*` → `src/features/*`
-- `@shared/*` → `packages/shared/src/*`
-- `@shared/ui/*` → `packages/ui/src/*`
-- `@shared/lib/*` → `packages/shared/src/lib/*`
-- `@shared/types/*` → `packages/shared/src/types/*`
-- `@shared/hooks/*` → `packages/shared/src/hooks/*`
-- `@shared/utils/*` → `packages/shared/src/utils/*`
-- `@shared/constants/*` → `packages/shared/src/constants/*`
-- `@shared/services/*` → `packages/shared/src/services/*`
+- `@/*` -> `src/*`
+- `@app/*` -> `src/app/*`
+- `@features/*` -> `src/features/*`
+- `@shared/*` -> `packages/shared/src/*`
+- `@shared/ui/*` -> `packages/ui/src/*`
+- `@shared/lib/*` -> `packages/shared/src/lib/*`
+- `@shared/types/*` -> `packages/shared/src/types/*`
+- `@shared/hooks/*` -> `packages/shared/src/hooks/*`
+- `@shared/utils/*` -> `packages/shared/src/utils/*`
+- `@shared/constants/*` -> `packages/shared/src/constants/*`
+- `@shared/services/*` -> `packages/shared/src/services/*`
 
 ## Code Conventions
 
 ### Imports & Formatting
-- **Import ordering**: ESLint configured with import/order rules (external → internal absolute → relative → type-only). Lint passes with 0 errors.
-- **Alias usage**: Keep `@/` alias for backward compatibility (contexts, assets, i18n). Prefer specific aliases (`@shared/*`, `@features/*`, `@app/*`) for new code.
-- **ESLint restrictions**: `@/components/**` → use `@shared/ui/components/`; `@/hooks/**` → `@shared/hooks/`; `@/utils/**` → `@shared/utils/`; `@/services/**` → `@shared/services/`.
+- Import order: external -> internal absolute -> relative -> type-only (ESLint enforced).
+- Prefer specific aliases (`@shared/*`, `@features/*`, `@app/*`) for new code.
+- `@/` is only for contexts, assets, i18n.
+- ESLint restrictions:
+  - `@/components/**` -> use `@shared/ui/components/`
+  - `@/hooks/**` -> `@shared/hooks/`
+  - `@/utils/**` -> `@shared/utils/`
+  - `@/services/**` -> `@shared/services/`
 - Use `import type` and `export type` for types.
 - Prefer single quotes in TS/TSX; 2-space indent; semicolons; wrap long JSX props.
 
@@ -112,7 +110,7 @@ Use `npx turbo` to run commands across workspaces (e.g., `npx turbo build`). Vit
 - Routes use `React.lazy` + `Suspense` + `PageLoader` (see `src/app/router`).
 - Wrap lazy routes in `ErrorBoundary` when possible.
 - **Single Source of Truth**: Every hook/component exists in exactly ONE location.
-- Shared hooks → `@shared/hooks/`; feature hooks → `@features/*/hooks/`.
+- Shared hooks -> `@shared/hooks/`; feature hooks -> `@features/*/hooks/`.
 
 ## Styling
 - Tailwind utilities; use `cn()` from `@shared/lib/utils` to merge classes.
@@ -161,7 +159,7 @@ const { data, isLoading, error } = useQuery({
 
 ## PDF & Salary Modules
 - **PDF generation**: HTML-to-PDF with jsPDF + html2canvas.
-  - Active pipeline: `@shared/lib/pdf/salary-html-generator.ts` → `salary-pdf-generator.ts`
+  - Active pipeline: `@shared/lib/pdf/salary-html-generator.ts` -> `salary-pdf-generator.ts`
   - Payslip generation: `@shared/lib/pdf/payslip-pdf-generator.ts` (via `payslip-html-template.ts`)
   - Lazy loading: PDF libraries are dynamically imported only when needed
   - Dead code cleaned: `salary-pdf-constants.ts`, `salary-pdf-html-generator.ts`, `salary-pdf-styles.ts`, `salary-pdf-utils.ts` (orphaned chain, deleted)
@@ -193,7 +191,7 @@ const { data, isLoading, error } = useQuery({
   - `vendor-animation`: framer-motion
   - `vendor-dates`: date-fns, react-day-picker
   - `vendor-supabase`: Supabase packages
-- **Removed dependencies** (cleanup Phase 3): `cmdk`, `input-otp`, `vaul`, `date-fns-tz`, `embla-carousel-react`, `react-dropzone`, `react-resizable-panels`
+- Removed dependencies (cleanup): `cmdk`, `input-otp`, `vaul`, `date-fns-tz`, `embla-carousel-react`, `react-dropzone`, `react-resizable-panels`
 - Use `lazyWithRetry` for critical chunks that may fail loading.
 
 ## Security
@@ -202,22 +200,17 @@ const { data, isLoading, error } = useQuery({
 - Error handler redacts sensitive context in production logs.
 - Use environment variables for all configuration.
 
-## Anti-Hallucination Rules
+## Pre-Change Checklist (Anti-Hallucination)
 Run these checks BEFORE making ANY code changes:
-1. Run `npm run lint` — Fix ALL errors before proceeding
-2. Run `npm run build` — Must complete successfully
-3. Run `npx tsc --noEmit` — Zero type errors required
+1. Run `npm run lint` - Fix ALL errors before proceeding
+2. Run `npm run build` - Must complete successfully
+3. Run `npx tsc --noEmit` - Zero type errors required
 4. Verify file exists before editing
 5. Search for existing implementations before creating new code
 6. Check for existing imports before adding duplicates
 7. Run `npm run find-unused` to verify dead code claims
+8. After major deletions, re-run lint/build and confirm knip clean before continuing
 
 ## Cursor / Copilot Rules
 - No `.cursor/rules`, `.cursorrules`, or `.github/copilot-instructions.md` found.
 
-## Additional Documentation
-- `wrapup_plan/DESIGN_TOKENS.md` — Comprehensive design system (colors, spacing, typography, animations)
-- `wrapup_plan/09_SINGLE_SOURCE_TRUTH.md` — Canonical locations for all code entities
-- `wrapup_plan/08_TARGET_STRUCTURE.md` — Final folder structure after consolidation
-- `knip_plan` — Dead code analysis and cleanup plan
-- `KNIP_REPORT_AND_REALITY_CHECKS.md` — Detailed knip findings with verification
