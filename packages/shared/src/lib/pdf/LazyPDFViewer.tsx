@@ -320,7 +320,10 @@ export const LazyPDFViewer: React.FC<LazyPDFViewerProps> = ({
         const cssScale = Math.min(widthScale, heightScale);
 
         const scaledViewport = page.getViewport({ scale: cssScale });
-        const dpr = typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1;
+        const dpr =
+          typeof window !== 'undefined'
+            ? Math.min(window.devicePixelRatio || 1, isMobile ? 1.5 : 2)
+            : 1;
 
         const canvas = canvasRef.current;
         if (!canvas) {
@@ -535,7 +538,7 @@ export const LazyPDFViewer: React.FC<LazyPDFViewerProps> = ({
     <div
       ref={containerRef}
       className={cn(
-        'pdf-viewer-container relative w-full h-full overflow-hidden bg-white',
+        'pdf-viewer-container relative w-full h-full overflow-hidden bg-white flex items-center justify-center',
         isMobile ? 'pdf-viewer-mobile' : 'pdf-viewer-desktop'
       )}
       style={containerStyle}
@@ -553,7 +556,7 @@ export const LazyPDFViewer: React.FC<LazyPDFViewerProps> = ({
         aria-label={previewLabel}
         role="img"
         className={cn(
-          'pdf-canvas block w-full h-auto rounded-lg bg-white shadow-sm',
+          'pdf-canvas block max-w-full max-h-full rounded-lg bg-white shadow-sm',
           loading ? 'opacity-60' : 'opacity-100'
         )}
       />
