@@ -1,4 +1,4 @@
-import { Home, Users, Settings, ShieldCheck } from 'lucide-react';
+import { Home, Users, ShieldCheck } from 'lucide-react';
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 
@@ -14,11 +14,6 @@ const navItems = [
     icon: Users,
     label: 'Employees',
     path: '/owner/employees',
-  },
-  {
-    icon: Settings,
-    label: 'Settings',
-    path: '/owner/settings',
   },
   {
     icon: ShieldCheck,

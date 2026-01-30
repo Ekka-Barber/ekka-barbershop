@@ -1,7 +1,6 @@
 import {
   Users,
   Building,
-  Cog,
   CreditCard,
   Coins,
   ShieldCheck,
@@ -112,13 +111,6 @@ export const NAVIGATION_CONFIG: NavigationSection[] = [
         icon: Layout,
         path: '/owner/admin?tab=ui-elements',
         description: 'Visual Customization',
-      },
-      {
-        id: 'settings',
-        label: 'System Core',
-        icon: Cog,
-        path: '/owner/admin?tab=general',
-        description: 'Global Configuration',
       },
     ],
   },
