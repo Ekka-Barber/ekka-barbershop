@@ -429,7 +429,23 @@ body {
     }
   }
 
-  .glow-pulse {
-    animation: glow-pulse 2s infinite;
-  }
+.glow-pulse {
+  animation: glow-pulse 2s infinite;
+}
+
+.pdf-preview .pdf-canvas {
+  width: 100% !important;
+  height: auto !important;
+  display: block;
+}
+
+.pdf-loading-overlay {
+  background: rgba(233, 179, 83, 0.9);
+}
+
+.pdf-page-nav button {
+  background: linear-gradient(90deg, rgba(0, 0, 0, 0.15), transparent);
+  height: 100%;
+  transition: opacity 0.2s ease;
+}
 }
