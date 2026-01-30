@@ -1,7 +1,6 @@
 
 /* eslint-disable react-refresh/only-export-components */
 import * as React from 'react';
-import { useLocation } from 'react-router-dom';
 
 import { Language, LanguageContextType } from '@shared/types/language';
 import { detectSystemLanguage, updateManifestLanguage, storeLanguagePreference } from '@shared/utils/languageUtils';
@@ -32,33 +31,61 @@ const LanguageContext = React.createContext<LanguageContextType>({
 });
 
 export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const location = useLocation();
   const [userLanguage, setUserLanguage] = React.useState<Language>(() => {
     return detectSystemLanguage();
   });
+  
+  // Use state to track pathname changes since we can't use useLocation outside Router
+  const [pathname, setPathname] = React.useState(() => 
+    typeof window !== 'undefined' ? window.location.pathname : '/'
+  );
+
+  // Listen for navigation events
+  React.useEffect(() => {
+    if (typeof window === 'undefined') return;
+    
+    const handleLocationChange = () => {
+      setPathname(window.location.pathname);
+    };
+    
+    // Listen for popstate (back/forward buttons)
+    window.addEventListener('popstate', handleLocationChange);
+    
+    // Also check periodically for pushState/replaceState changes
+    const interval = setInterval(() => {
+      if (window.location.pathname !== pathname) {
+        setPathname(window.location.pathname);
+      }
+    }, 100);
+    
+    return () => {
+      window.removeEventListener('popstate', handleLocationChange);
+      clearInterval(interval);
+    };
+  }, [pathname]);
 
   // Determine effective language based on route overrides
   const effectiveLanguage = React.useMemo(() => {
-    const enforced = getEnforcedLanguage(location.pathname);
+    const enforced = getEnforcedLanguage(pathname);
     return enforced ?? userLanguage;
-  }, [location.pathname, userLanguage]);
+  }, [pathname, userLanguage]);
 
   React.useEffect(() => {
     document.documentElement.dir = effectiveLanguage === 'ar' ? 'rtl' : 'ltr';
     document.body.classList.toggle('rtl', effectiveLanguage === 'ar');
     updateManifestLanguage(effectiveLanguage);
     // Only store preference if not on a route with enforced language
-    if (!getEnforcedLanguage(location.pathname)) {
+    if (!getEnforcedLanguage(pathname)) {
       storeLanguagePreference(userLanguage);
     }
-  }, [effectiveLanguage, location.pathname, userLanguage]);
+  }, [effectiveLanguage, pathname, userLanguage]);
 
   const setLanguage = React.useCallback((lang: Language) => {
     // Only allow setting language if not on a route with enforced language
-    if (!getEnforcedLanguage(location.pathname)) {
+    if (!getEnforcedLanguage(window.location.pathname)) {
       setUserLanguage(lang);
     }
-  }, [location.pathname]);
+  }, []);
 
   const t = React.useCallback((key: string): string => {
     return translations[effectiveLanguage][key] || key;
