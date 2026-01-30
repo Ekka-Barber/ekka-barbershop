@@ -437,15 +437,81 @@ body {
   width: 100% !important;
   height: auto !important;
   display: block;
+  transition: opacity 0.2s ease-out;
+  will-change: opacity;
+}
+
+.pdf-viewer-container {
+  touch-action: pan-y;
+}
+
+.pdf-viewer-mobile {
+  overscroll-behavior: contain;
 }
 
 .pdf-loading-overlay {
   background: rgba(233, 179, 83, 0.9);
 }
 
-.pdf-page-nav button {
-  background: linear-gradient(90deg, rgba(0, 0, 0, 0.15), transparent);
-  height: 100%;
-  transition: opacity 0.2s ease;
+.pdf-loading-skeleton {
+  width: min(70%, 320px);
+  height: 160px;
+  border-radius: 12px;
+  background: linear-gradient(
+    110deg,
+    rgba(255, 255, 255, 0.5) 8%,
+    rgba(255, 255, 255, 0.85) 18%,
+    rgba(255, 255, 255, 0.5) 33%
+  );
+  background-size: 200% 100%;
+  animation: pdf-skeleton 1.4s ease infinite;
+}
+
+.pdf-nav-button {
+  width: 48px;
+  height: 48px;
+  border-radius: 9999px;
+  background: rgba(0, 0, 0, 0.4);
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
+  transition: opacity 0.2s ease, transform 0.2s ease, background 0.2s ease;
+}
+
+.pdf-nav-button:hover {
+  background: rgba(0, 0, 0, 0.6);
+}
+
+.pdf-nav-button:active {
+  transform: scale(0.95);
+}
+
+.pdf-nav-button:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+
+.pdf-page-pill {
+  padding: 0.375rem 0.75rem;
+  background: rgba(0, 0, 0, 0.5);
+  color: rgba(255, 255, 255, 0.9);
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+}
+
+@keyframes pdf-skeleton {
+  0% {
+    background-position: 0% 50%;
+  }
+
+  100% {
+    background-position: 100% 50%;
+  }
 }
 }
