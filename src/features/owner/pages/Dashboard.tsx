@@ -12,6 +12,7 @@ import {
 } from '@/features/owner/employees/hooks/useEmployeeData';
 import { useEmployees } from '@/features/owner/employees/hooks/useEmployees';
 import { getPayrollWindow } from '@/features/owner/employees/utils';
+import { QRInsightsWidget } from '@/features/owner/components/QRInsightsWidget';
 
 
 interface IndexProps {
@@ -215,6 +216,11 @@ const Index = ({ selectedBranch }: IndexProps) => {
             </div>
           </CardContent>
         </Card>
+      </div>
+
+      {/* QR Insights Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <QRInsightsWidget />
       </div>
     </div>
   );
