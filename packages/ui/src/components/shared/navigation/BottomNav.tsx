@@ -1,10 +1,16 @@
-import { Home, Users, ShieldCheck } from 'lucide-react';
+import { Home, ShieldCheck, Users } from 'lucide-react';
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 
 import { cn } from '@shared/lib/utils';
 
-const navItems = [
+export interface BottomNavItem {
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+  path: string;
+}
+
+const OWNER_BOTTOM_NAV_ITEMS: BottomNavItem[] = [
   {
     icon: Home,
     label: 'Home',
@@ -22,19 +28,23 @@ const navItems = [
   },
 ];
 
-export const BottomNav = () => {
+interface BottomNavProps {
+  items?: BottomNavItem[];
+}
+
+export const BottomNav = ({ items = OWNER_BOTTOM_NAV_ITEMS }: BottomNavProps) => {
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 border-t border-border/70 bg-background safe-area-pb">
-      <div className="page-shell page-padding flex items-center justify-around h-16">
-        {navItems.map((item) => (
+    <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-border/70 bg-background safe-area-pb md:hidden">
+      <div className="page-shell page-padding flex h-16 items-center justify-around">
+        {items.map((item) => (
           <NavLink
             key={item.path}
             to={item.path}
             className={({ isActive }) =>
               cn(
-                'flex flex-col items-center justify-center flex-1 h-full gap-1 rounded-2xl transition-colors',
+                'flex h-full flex-1 flex-col items-center justify-center gap-1 rounded-2xl transition-colors',
                 isActive
-                  ? 'text-primary font-semibold bg-primary/10'
+                  ? 'bg-primary/10 font-semibold text-primary'
                   : 'text-muted-foreground'
               )
             }

@@ -2,101 +2,124 @@ import { supabase } from '@shared/lib/supabase/client';
 
 import { accessCodeStorage, sessionAuth } from './storage';
 
-type AccessRole = 'owner' | 'manager' | 'super_manager';
+type AccessRole = 'owner' | 'manager' | 'super_manager' | 'hr';
 
 export const normalizeAccessCode = (code: string) => code.trim().toLowerCase();
 
-export const validateAndDetectRole = async (
-  code: string
-): Promise<AccessRole | null> => {
+const isAccessRole = (value: unknown): value is AccessRole => {
+  return value === 'owner' || value === 'manager' || value === 'super_manager' || value === 'hr';
+};
+
+const detectRoleByCode = async (code: string): Promise<AccessRole | null> => {
   const normalized = normalizeAccessCode(code);
   if (!normalized) {
     return null;
   }
 
-  const isOwner = await validateOwnerCode(normalized);
-  if (isOwner) {
-    return 'owner';
+  const { data, error } = await supabase.rpc('detect_access_role', {
+    code: normalized,
+  });
+
+  if (error) {
+    throw error;
   }
 
-  const isManager = await validateManagerCode(normalized);
-  if (!isManager) {
+  if (!isAccessRole(data)) {
     return null;
   }
 
-  return normalized === 'ma225' ? 'super_manager' : 'manager';
+  return data;
 };
 
 const validateOwnerCode = async (code: string) => {
-    const normalized = normalizeAccessCode(code);
-    if (!normalized) {
-      return false;
-    }
+  const normalized = normalizeAccessCode(code);
+  if (!normalized) {
+    return false;
+  }
 
-    const { data: ownerAccess, error: ownerError } = await supabase
-      .from('owner_access')
-      .select('id')
-      .eq('access_code', normalized)
-      .maybeSingle();
+  const { data, error } = await supabase.rpc('verify_owner_access', {
+    code: normalized,
+  });
 
-    if (ownerError) {
-      throw ownerError;
-    }
+  if (error) {
+    throw error;
+  }
 
-    return Boolean(ownerAccess);
-  };
-
-  export const setOwnerSession = async (code: string): Promise<boolean> => {
-    const normalized = normalizeAccessCode(code);
-    if (!normalized) {
-      return false;
-    }
-
-    const { error: ownerError } = await supabase.rpc('set_owner_access', {
-      code: normalized,
-    });
-    if (ownerError) {
-      throw ownerError;
-    }
-
-    return true;
-  };
+  return data === true;
+};
 
 const validateManagerCode = async (code: string) => {
-    const normalized = normalizeAccessCode(code);
-    if (!normalized) {
-      return false;
-    }
+  const normalized = normalizeAccessCode(code);
+  if (!normalized) {
+    return false;
+  }
 
-    const { data: manager, error } = await supabase
-      .from('branch_managers')
-      .select('id')
-      .eq('access_code', normalized)
-      .maybeSingle();
+  const { data, error } = await supabase.rpc('verify_manager_access', {
+    code: normalized,
+  });
 
-    if (error) {
-      throw error;
-    }
+  if (error) {
+    throw error;
+  }
 
-    return Boolean(manager);
-  };
+  return data === true;
+};
 
-  export const setManagerSession = async (code: string): Promise<boolean> => {
-    const normalized = normalizeAccessCode(code);
-    if (!normalized) {
-      return false;
-    }
+const validateHRCode = async (code: string) => {
+  const normalized = normalizeAccessCode(code);
+  if (!normalized) {
+    return false;
+  }
 
-    const { error } = await supabase.rpc('set_branch_manager_code', {
-      access_code: normalized,
-    });
+  const { data, error } = await supabase.rpc('verify_hr_access', {
+    code: normalized,
+  });
 
-    if (error) {
-      throw error;
-    }
+  if (error) {
+    throw error;
+  }
 
-    return true;
-  };
+  return data === true;
+};
+
+export const validateAndDetectRole = async (
+  code: string
+): Promise<AccessRole | null> => {
+  return detectRoleByCode(code);
+};
+
+export const setOwnerSession = async (code: string): Promise<boolean> => {
+  const normalized = normalizeAccessCode(code);
+  if (!normalized) {
+    return false;
+  }
+
+  const { error: ownerError } = await supabase.rpc('set_owner_access', {
+    code: normalized,
+  });
+  if (ownerError) {
+    throw ownerError;
+  }
+
+  return true;
+};
+
+export const setManagerSession = async (code: string): Promise<boolean> => {
+  const normalized = normalizeAccessCode(code);
+  if (!normalized) {
+    return false;
+  }
+
+  const { error } = await supabase.rpc('set_branch_manager_code', {
+    access_code: normalized,
+  });
+
+  if (error) {
+    throw error;
+  }
+
+  return true;
+};
 
 export const ensureOwnerSession = async () => {
   const storedCode = accessCodeStorage.getOwnerAccessCode();
@@ -165,9 +188,57 @@ export const logout = async (): Promise<void> => {
   } catch (_error) {
     // Ignore errors - best effort
   }
-  
+
   // Clear all local storage
   accessCodeStorage.clearOwnerAccessCode();
   accessCodeStorage.clearManagerAccessCode();
+  accessCodeStorage.clearHRAccessCode();
   sessionAuth.clearSession();
+};
+
+export const setHRSession = async (code: string): Promise<boolean> => {
+  const normalized = normalizeAccessCode(code);
+  if (!normalized) {
+    return false;
+  }
+
+  const { error: hrError } = await supabase.rpc('set_hr_access', {
+    code: normalized,
+  });
+  if (hrError) {
+    throw hrError;
+  }
+
+  return true;
+};
+
+export const ensureHRSession = async () => {
+  const storedCode = accessCodeStorage.getHRAccessCode();
+  if (!storedCode) {
+    return false;
+  }
+
+  const normalized = normalizeAccessCode(storedCode);
+
+  try {
+    // Validate the code is still valid
+    const isValid = await validateHRCode(normalized);
+    if (!isValid) {
+      accessCodeStorage.clearHRAccessCode();
+      sessionAuth.clearSession();
+      return false;
+    }
+
+    // Set the session variable
+    await setHRSession(normalized);
+
+    // Ensure role is set
+    sessionAuth.setRole('hr');
+    sessionAuth.setAccessCode(normalized);
+    sessionAuth.clearBranchId();
+    return true;
+  } catch (_error) {
+    // If any error occurs (network, validation, etc.), deny access
+    return false;
+  }
 };

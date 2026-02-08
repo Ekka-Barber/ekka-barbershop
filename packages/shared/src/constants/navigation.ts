@@ -115,3 +115,39 @@ export const NAVIGATION_CONFIG: NavigationSection[] = [
     ],
   },
 ];
+
+export const HR_NAVIGATION_CONFIG: NavigationSection[] = [
+  {
+    id: 'hr-workspace',
+    label: 'الموارد البشرية',
+    items: [
+      {
+        id: 'hr-management',
+        label: 'إدارة الموارد البشرية',
+        icon: Users,
+        path: '/hr',
+        description: 'الموظفون والمستندات والكفلاء',
+        tabs: [
+          {
+            id: 'employees',
+            label: 'الموظفون',
+            icon: Users,
+            description: 'إدارة بيانات الموظفين',
+          },
+          {
+            id: 'documents',
+            label: 'المستندات',
+            icon: FileText,
+            description: 'متابعة المستندات والصلاحيات',
+          },
+          {
+            id: 'sponsors',
+            label: 'الكفلاء',
+            icon: ShieldCheck,
+            description: 'إدارة بيانات الكفلاء',
+          },
+        ],
+      },
+    ],
+  },
+];

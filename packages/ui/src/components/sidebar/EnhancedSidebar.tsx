@@ -4,7 +4,11 @@ import { Link, useLocation, useSearchParams } from 'react-router-dom';
 
 import { NAVIGATION_CONFIG } from '@shared/constants/navigation';
 import { cn } from '@shared/lib/utils';
-import type { NavigationItem, NavigationTab } from '@shared/types/navigation';
+import type {
+  NavigationItem,
+  NavigationSection,
+  NavigationTab,
+} from '@shared/types/navigation';
 import { Badge } from '@shared/ui/components/badge';
 import { Button } from '@shared/ui/components/button';
 import { ScrollArea } from '@shared/ui/components/scroll-area';
@@ -19,10 +23,12 @@ import { useSidebar } from './context';
 
 interface EnhancedSidebarProps {
   className?: string;
+  navigationConfig?: NavigationSection[];
 }
 
 export const EnhancedSidebar: React.FC<EnhancedSidebarProps> = ({
   className,
+  navigationConfig = NAVIGATION_CONFIG,
 }) => {
   const location = useLocation();
   const [searchParams] = useSearchParams();
@@ -45,7 +51,7 @@ export const EnhancedSidebar: React.FC<EnhancedSidebarProps> = ({
 
   // Determine which item is currently active
   const getActiveItem = () => {
-    return NAVIGATION_CONFIG.flatMap((section) => section.items).find(
+    return navigationConfig.flatMap((section) => section.items).find(
       (item) => item.path === location.pathname
     );
   };
@@ -252,7 +258,8 @@ export const EnhancedSidebar: React.FC<EnhancedSidebarProps> = ({
       {/* Navigation */}
       <ScrollArea className="flex-1 px-3 py-4">
         <div className="space-y-6">
-          {NAVIGATION_CONFIG.map((section) => (
+          {navigationConfig.map((section) => {
+            return (
             <div key={section.id} className="space-y-2">
               {!isCollapsed && (
                 <h3 className="px-3 text-[11px] font-semibold text-muted-foreground uppercase tracking-[0.32em]">
@@ -267,7 +274,8 @@ export const EnhancedSidebar: React.FC<EnhancedSidebarProps> = ({
                 ))}
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
       </ScrollArea>
     </div>

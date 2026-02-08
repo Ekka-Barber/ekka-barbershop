@@ -592,6 +592,30 @@ export type Database = {
           },
         ]
       }
+      hr_access: {
+        Row: {
+          access_code: string | null
+          access_code_hash: string
+          created_at: string
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          access_code?: string | null
+          access_code_hash?: string
+          created_at?: string
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          access_code?: string | null
+          access_code_hash?: string
+          created_at?: string
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       owner_access: {
         Row: {
           access_code: string
@@ -891,9 +915,9 @@ export type Database = {
             referencedRelation: "qr_codes"
             referencedColumns: ["id"]
           },
-        ]
-      }
-    }
+         ]
+       }
+     }
     Functions: {
       calculate_commission: {
         Args: { config_json: Json; plan_type: string; sales_amount: number }
@@ -945,6 +969,7 @@ export type Database = {
       clean_orphaned_receipts: { Args: never; Returns: undefined }
       cleanup_old_schedules: { Args: never; Returns: number }
       clear_access_codes: { Args: never; Returns: undefined }
+      detect_access_role: { Args: { code: string }; Returns: string | null }
       complete_idempotency: {
         Args: {
           p_key: string
@@ -1237,6 +1262,7 @@ export type Database = {
         Args: { access_code: string }
         Returns: undefined
       }
+      set_hr_access: { Args: { code: string }; Returns: undefined }
       set_owner_access: { Args: { code: string }; Returns: undefined }
       set_selected_branch: { Args: { branch_id: string }; Returns: undefined }
       submit_monthly_salaries: {
@@ -1325,6 +1351,9 @@ export type Database = {
           issue_type: string
         }[]
       }
+      verify_hr_access: { Args: { code: string }; Returns: boolean }
+      verify_manager_access: { Args: { code: string }; Returns: boolean }
+      verify_owner_access: { Args: { code: string }; Returns: boolean }
     }
     Enums: {
       adjustment_type: "correction" | "refund"
@@ -1360,7 +1389,7 @@ export type Database = {
         | "refunded"
         | "void"
       transaction_type: "income" | "expense"
-      user_role: "owner" | "employee" | "shop_manager" | "accountant"
+      user_role: "owner" | "employee" | "shop_manager" | "accountant" | "hr"
     }
     CompositeTypes: {
       [_ in never]: never

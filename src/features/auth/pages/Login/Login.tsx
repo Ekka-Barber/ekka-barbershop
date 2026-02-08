@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 
 import {
   normalizeAccessCode,
+  setHRSession,
   setManagerSession,
   setOwnerSession,
   validateAndDetectRole,
@@ -48,6 +49,14 @@ const Login = () => {
         sessionAuth.setAccessCode(normalizedCode);
         sessionAuth.clearBranchId();
         navigate('/owner');
+        return;
+      } else if (role === 'hr') {
+        await setHRSession(normalizedCode);
+        accessCodeStorage.setHRAccessCode(normalizedCode);
+        sessionAuth.setRole(role);
+        sessionAuth.setAccessCode(normalizedCode);
+        sessionAuth.clearBranchId();
+        navigate('/hr');
         return;
       } else {
         await setManagerSession(normalizedCode);

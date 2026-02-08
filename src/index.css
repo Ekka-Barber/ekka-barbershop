@@ -115,9 +115,6 @@ script[src*="flocktory.com"] {
 /* Global scroll behavior for mobile */
 html,
 body {
-  overscroll-behavior-y: contain;
-  overscroll-behavior-x: contain;
-  touch-action: pan-y;
   min-height: 100%;
   width: 100%;
   overflow-x: hidden;
@@ -126,7 +123,6 @@ body {
 
 body {
   overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
 }
 
 /* Allow the document to scroll (better Android support) */
@@ -135,7 +131,23 @@ body {
   min-height: 100dvh;
   width: 100%;
   overflow: visible;
-  touch-action: pan-y;
+}
+
+@media (hover: none) and (pointer: coarse) {
+  html,
+  body {
+    overscroll-behavior-y: contain;
+    overscroll-behavior-x: contain;
+    touch-action: pan-y;
+  }
+
+  body {
+    -webkit-overflow-scrolling: touch;
+  }
+
+  #root {
+    touch-action: pan-y;
+  }
 }
 
 @layer base {

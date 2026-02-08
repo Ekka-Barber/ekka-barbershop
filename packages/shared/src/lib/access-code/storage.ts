@@ -1,5 +1,6 @@
 const OWNER_ACCESS_CODE_KEY = 'owner_access_code';
 const MANAGER_ACCESS_CODE_KEY = 'branch_manager_code';
+const HR_ACCESS_CODE_KEY = 'hr_access_code';
 const ROLE_KEY = 'ekka_role';
 const ACCESS_CODE_KEY = 'ekka_access_code';
 const BRANCH_ID_KEY = 'ekka_branch_id';
@@ -34,6 +35,9 @@ export const accessCodeStorage = {
   getManagerAccessCode: () => getItem(MANAGER_ACCESS_CODE_KEY),
   setManagerAccessCode: (code: string) => setItem(MANAGER_ACCESS_CODE_KEY, code),
   clearManagerAccessCode: () => removeItem(MANAGER_ACCESS_CODE_KEY),
+  getHRAccessCode: () => getItem(HR_ACCESS_CODE_KEY),
+  setHRAccessCode: (code: string) => setItem(HR_ACCESS_CODE_KEY, code),
+  clearHRAccessCode: () => removeItem(HR_ACCESS_CODE_KEY),
 };
 
 export const sessionAuth = {
@@ -52,5 +56,6 @@ export const sessionAuth = {
     removeItem(BRANCH_ID_KEY);
     removeItem(OWNER_ACCESS_CODE_KEY);
     removeItem(MANAGER_ACCESS_CODE_KEY);
+    removeItem(HR_ACCESS_CODE_KEY);
   },
 };
