@@ -13,8 +13,8 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
-import { cn } from '@shared/lib/utils';
 import { supabase } from '@shared/lib/supabase/client';
+import { cn } from '@shared/lib/utils';
 import { Card, CardContent, CardHeader, CardTitle } from '@shared/ui/components/card';
 import { Skeleton } from '@shared/ui/components/skeleton';
 

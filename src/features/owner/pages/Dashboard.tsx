@@ -6,13 +6,13 @@ import { TIME } from '@shared/constants/time';
 import { cn } from '@shared/lib/utils';
 import { Card, CardContent, CardHeader, CardTitle } from '@shared/ui/components/card';
 
+import { QRInsightsWidget } from '@/features/owner/components/QRInsightsWidget';
 import {
   isEmployeeActiveOnDate,
   getActiveEmployeesForPeriod,
 } from '@/features/owner/employees/hooks/useEmployeeData';
 import { useEmployees } from '@/features/owner/employees/hooks/useEmployees';
 import { getPayrollWindow } from '@/features/owner/employees/utils';
-import { QRInsightsWidget } from '@/features/owner/components/QRInsightsWidget';
 
 
 interface IndexProps {
@@ -49,7 +49,7 @@ const Index = ({ selectedBranch }: IndexProps) => {
   // Role distribution
   const roleCounts = filteredEmployees.reduce(
     (acc, emp) => {
-      const role = emp.role.replace('_', ' ');
+      const role = emp.role?.replace('_', ' ') || 'Other';
       acc[role] = (acc[role] || 0) + 1;
       return acc;
     },
