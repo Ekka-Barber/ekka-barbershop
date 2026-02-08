@@ -21,7 +21,6 @@ import { Skeleton } from '@shared/ui/components/skeleton';
 interface DailyScan {
   scan_date: string;
   scan_count: number;
-  qr_id: string;
 }
 
 interface QRCode {
