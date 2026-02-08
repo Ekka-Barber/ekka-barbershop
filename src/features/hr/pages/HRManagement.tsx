@@ -412,7 +412,7 @@ export const HRManagement = () => {
               </Badge>
             </div>
 
-            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+            <div className="grid grid-cols-2 gap-3 xl:grid-cols-5">
               {summaryCards.map((card, index) => {
                 const CardIcon = card.icon;
 
