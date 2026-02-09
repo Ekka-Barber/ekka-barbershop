@@ -110,6 +110,10 @@ script[src*="flocktory.com"] {
   .custom-scrollbar::-webkit-scrollbar-thumb:active {
     background: linear-gradient(180deg, #e9b353, #e39f26, #d4921b);
   }
+
+  .squircle {
+    border-radius: 22%;
+  }
 }
 
 /* Global scroll behavior for mobile */

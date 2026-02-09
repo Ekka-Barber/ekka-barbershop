@@ -83,11 +83,8 @@ export const ReviewModal = ({ isOpen, onClose, selectedReview, language }: Revie
               transition={{ duration: 0.3, delay: 0.3 }}
             >
               <CachedAvatar
-                googleAvatarUrl={selectedReview.profile_photo_url || null}
-                cachedAvatarUrl={selectedReview.cached_avatar_url || null}
                 authorName={selectedReview.author_name}
                 className="w-13 h-13 border-2 border-brand-gold-200/30 mr-3 shadow-[0_4px_12px_-4px_rgba(232,198,111,0.3)]"
-                fallbackClassName="bg-gradient-to-br from-brand-gold-200/20 to-brand-gold-300/10 text-brand-gold-400"
                 size={52}
               />
               <div>

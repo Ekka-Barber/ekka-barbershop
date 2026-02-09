@@ -272,11 +272,8 @@ export const ReviewCarousel = ({
                           transition={{ duration: 0.3, delay: 0.1 }}
                         >
                           <CachedAvatar
-                            googleAvatarUrl={review.profile_photo_url || null}
-                            cachedAvatarUrl={review.cached_avatar_url || null}
                             authorName={review.author_name}
                             className="w-10 h-10 border border-gray-200"
-                            fallbackClassName="bg-brand-gold-400/10 text-brand-gold-400 text-xs"
                             size={40}
                           />
                         </motion.div>
