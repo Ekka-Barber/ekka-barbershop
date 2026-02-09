@@ -458,7 +458,6 @@ export type Database = {
         Row: {
           author_name: string
           branch_id: string | null
-          cached_avatar_url: string | null
           created_at: string
           google_place_id: string
           google_review_time: number
@@ -476,7 +475,6 @@ export type Database = {
         Insert: {
           author_name: string
           branch_id?: string | null
-          cached_avatar_url?: string | null
           created_at?: string
           google_place_id: string
           google_review_time: number
@@ -494,7 +492,6 @@ export type Database = {
         Update: {
           author_name?: string
           branch_id?: string | null
-          cached_avatar_url?: string | null
           created_at?: string
           google_place_id?: string
           google_review_time?: number
@@ -696,7 +693,7 @@ export type Database = {
           latitude?: number | null
           location?: string | null
           longitude?: number | null
-          qr_id?: string
+          qr_id: string
           referrer?: string | null
           scanned_at?: string
           user_agent?: string | null
@@ -710,45 +707,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      review_avatar_cache: {
-        Row: {
-          access_count: number
-          author_name: string | null
-          cached_avatar_url: string
-          created_at: string
-          google_avatar_url: string
-          id: string
-          last_accessed_at: string
-          last_refreshed_at: string | null
-          refresh_interval_days: number | null
-          updated_at: string
-        }
-        Insert: {
-          access_count?: number
-          author_name?: string | null
-          cached_avatar_url: string
-          created_at?: string
-          google_avatar_url: string
-          id?: string
-          last_accessed_at?: string
-          last_refreshed_at?: string | null
-          refresh_interval_days?: number | null
-          updated_at?: string
-        }
-        Update: {
-          access_count?: number
-          author_name?: string | null
-          cached_avatar_url?: string
-          created_at?: string
-          google_avatar_url?: string
-          id?: string
-          last_accessed_at?: string
-          last_refreshed_at?: string | null
-          refresh_interval_days?: number | null
-          updated_at?: string
-        }
-        Relationships: []
       }
       salary_plans: {
         Row: {
@@ -860,7 +818,6 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
-      }
     }
     Views: {
       employee_documents_with_status: {
