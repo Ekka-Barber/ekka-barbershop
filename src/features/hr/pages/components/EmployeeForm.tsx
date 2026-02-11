@@ -1,4 +1,3 @@
-import { Camera, User } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 import type {
@@ -99,7 +98,7 @@ export const EmployeeForm: React.FC<EmployeeFormProps> = ({
   };
 
   return (
-    <Card className="overflow-hidden border-[#e2ceab] bg-white/90 shadow-[0_20px_40px_-30px_rgba(82,60,28,0.45)]">
+    <Card className="overflow-hidden border-[#e2ceab] bg-white/90 shadow-[0_20px_40px_-30px_rgba(82,60,28,0.45)]" dir="rtl">
       <CardHeader className="border-b border-[#f0e2c8]">
         <CardTitle>{editingEmployee ? 'تعديل معلومات الموظف' : 'إضافة موظف جديد'}</CardTitle>
         <CardDescription>

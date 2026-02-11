@@ -2,6 +2,7 @@ import {
   FileText,
   LogOut,
   Menu,
+  Settings,
   ShieldCheck,
   Sparkles,
   Users,
@@ -20,7 +21,7 @@ interface HRLayoutProps {
   children: React.ReactNode;
 }
 
-type HRTab = 'employees' | 'documents' | 'sponsors';
+type HRTab = 'employees' | 'documents' | 'sponsors' | 'settings';
 
 const HR_TABS: Array<{
   id: HRTab;
@@ -46,10 +47,16 @@ const HR_TABS: Array<{
     description: 'بيانات الشركات',
     icon: ShieldCheck,
   },
+  {
+    id: 'settings',
+    label: 'الإعدادات',
+    description: 'أنواع المستندات',
+    icon: Settings,
+  },
 ];
 
 const isHRTab = (value: string | null): value is HRTab => {
-  return value === 'employees' || value === 'documents' || value === 'sponsors';
+  return value === 'employees' || value === 'documents' || value === 'sponsors' || value === 'settings';
 };
 
 const getActiveTab = (value: string | null): HRTab => {

@@ -1,8 +1,12 @@
 import { useEffect, useState } from 'react';
 
+import {
+  useDocumentTypeMeta,
+  useDocumentTypeOptions,
+} from '@features/hr/hooks/useDocumentTypes';
+
 import type {
   DocumentFormData,
-  DocumentType,
   HRDocument,
 } from '@shared/types/hr.types';
 import { Button } from '@shared/ui/components/button';
@@ -15,6 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@shared/ui/components/select';
+import { Skeleton } from '@shared/ui/components/skeleton';
 
 interface InlineDocumentFormProps {
   document: HRDocument;
@@ -22,13 +27,6 @@ interface InlineDocumentFormProps {
   onCancel: () => void;
   isSubmitting: boolean;
 }
-
-const DOCUMENT_TYPE_OPTIONS: Array<{ value: DocumentType; label: string }> = [
-  { value: 'health_certificate', label: 'شهادة صحية' },
-  { value: 'residency_permit', label: 'بطاقة إقامة' },
-  { value: 'work_license', label: 'رخصة عمل' },
-  { value: 'custom', label: 'مخصص' },
-];
 
 // Format date to YYYY-MM-DD for HTML date input
 const formatDateForInput = (dateString: string | null | undefined): string => {
@@ -63,6 +61,9 @@ export const InlineDocumentForm: React.FC<InlineDocumentFormProps> = ({
     buildInitialFormData(document)
   );
 
+  const { options, isLoading: isLoadingTypes } = useDocumentTypeOptions();
+  const { requiresDocumentNumber } = useDocumentTypeMeta(formData.document_type);
+
   useEffect(() => {
     setFormData(buildInitialFormData(document));
   }, [document]);
@@ -93,29 +94,33 @@ export const InlineDocumentForm: React.FC<InlineDocumentFormProps> = ({
             <Label htmlFor={`doc-type-${document.id}`} className="text-xs">
               نوع المستند<span className="text-red-500">*</span>
             </Label>
-            <Select
-              value={formData.document_type}
-              onValueChange={(value) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  document_type: value as DocumentType,
-                }))
-              }
-            >
-              <SelectTrigger
-                id={`doc-type-${document.id}`}
-                className="h-9 border-[#dcc49c] bg-white text-sm"
+            {isLoadingTypes ? (
+              <Skeleton className="h-9 w-full" />
+            ) : (
+              <Select
+                value={formData.document_type}
+                onValueChange={(value) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    document_type: value,
+                  }))
+                }
               >
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent dir="rtl">
-                {DOCUMENT_TYPE_OPTIONS.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+                <SelectTrigger
+                  id={`doc-type-${document.id}`}
+                  className="h-9 border-[#dcc49c] bg-white text-sm"
+                >
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent dir="rtl">
+                  {options.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
           </div>
 
           <div className="space-y-1.5">
@@ -139,23 +144,25 @@ export const InlineDocumentForm: React.FC<InlineDocumentFormProps> = ({
         </div>
 
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-          <div className="space-y-1.5">
-            <Label htmlFor={`doc-number-${document.id}`} className="text-xs">
-              رقم المستند
-            </Label>
-            <Input
-              id={`doc-number-${document.id}`}
-              value={formData.document_number ?? ''}
-              onChange={(event) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  document_number: event.target.value,
-                }))
-              }
-              dir="ltr"
-              className="h-9 border-[#dcc49c] bg-white text-sm"
-            />
-          </div>
+          {requiresDocumentNumber && (
+            <div className="space-y-1.5">
+              <Label htmlFor={`doc-number-${document.id}`} className="text-xs">
+                رقم المستند
+              </Label>
+              <Input
+                id={`doc-number-${document.id}`}
+                value={formData.document_number ?? ''}
+                onChange={(event) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    document_number: event.target.value,
+                  }))
+                }
+                dir="ltr"
+                className="h-9 border-[#dcc49c] bg-white text-sm"
+              />
+            </div>
+          )}
 
           <div className="space-y-1.5">
             <Label htmlFor={`issue-date-${document.id}`} className="text-xs">

@@ -1,7 +1,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 
-import { accessCodeStorage } from '@shared/lib/access-code/storage';
+import { accessCodeStorage, sessionAuth } from '@shared/lib/access-code/storage';
 import { supabase } from "@shared/lib/supabase/client";
 import type { Employee as SharedEmployee } from '@shared/types/domains';
 
@@ -45,8 +45,8 @@ export const useEmployeeData = (selectedMonth?: string, selectedBranchId?: strin
 
       // Branch manager session is established during login
 
-      // Determine if super user
-      const isSuper = branchManagerCode === 'ma225';
+      // Determine if super user from database role
+      const isSuper = sessionAuth.getRole() === 'super_manager';
 
       // Compute month start (YYYY-MM-01) for sales filtering
       const monthStart = (() => {
@@ -176,8 +176,8 @@ export const useEmployeeData = (selectedMonth?: string, selectedBranchId?: strin
         return { branch_id: '', name: '' };
       }
 
-      // Check if this is a super admin
-      if (branchManagerCode === 'ma225') {
+      // Check if this is a super admin from database role
+      if (sessionAuth.getRole() === 'super_manager') {
         return { branch_id: '__ALL__', name: 'جميع الفروع' };
       }
 

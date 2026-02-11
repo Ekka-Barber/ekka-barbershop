@@ -46,6 +46,18 @@ export const queryKeys = {
     [...queryKeys.all, 'dashboard', branchId] as const,
   dashboardStats: (branchId?: string, period?: string) =>
     [...queryKeys.dashboard(branchId), 'stats', period] as const,
+
+  // HR queries
+  hr: {
+    documentTypes: (includeInactive?: boolean) =>
+      [...queryKeys.all, 'hr', 'document-types', includeInactive] as const,
+    employees: (filters?: HREmployeeFilters) =>
+      [...queryKeys.all, 'hr', 'employees', filters] as const,
+    documents: (filters?: HRDocumentFilters) =>
+      [...queryKeys.all, 'hr', 'documents', filters] as const,
+    sponsors: (filters?: HRSponsorFilters) =>
+      [...queryKeys.all, 'hr', 'sponsors', filters] as const,
+  },
 };
 
 // Filter interfaces for type safety
@@ -86,6 +98,22 @@ interface PayrollFilters {
   employeeNames?: string[];
 }
 
+// HR filter interfaces
+interface HREmployeeFilters {
+  search?: string;
+  isArchived?: boolean;
+}
+
+interface HRDocumentFilters {
+  employeeId?: string;
+  status?: 'valid' | 'expiring_soon' | 'expired';
+  documentType?: string;
+}
+
+interface HRSponsorFilters {
+  search?: string;
+}
+
 // Export types for use in other files
 export type {
   EmployeeFilters,
@@ -93,4 +121,7 @@ export type {
   ExpenseFilters,
   SalesFilters,
   PayrollFilters,
+  HREmployeeFilters,
+  HRDocumentFilters,
+  HRSponsorFilters,
 };

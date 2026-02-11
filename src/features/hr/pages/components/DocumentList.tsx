@@ -228,7 +228,7 @@ export const DocumentList: React.FC<DocumentListProps> = ({
 
   if (isLoading) {
     return (
-      <Card className="overflow-hidden border-[#e2ceab] bg-white/90 shadow-[0_20px_42px_-30px_rgba(82,60,28,0.45)]">
+      <Card className="overflow-hidden border-[#e2ceab] bg-white/90 shadow-[0_20px_42px_-30px_rgba(82,60,28,0.45)]" dir="rtl">
         <CardHeader className="border-b border-[#f0e2c8] px-6 py-4">
           <div className="flex items-center justify-between">
             <div>
@@ -322,7 +322,7 @@ export const DocumentList: React.FC<DocumentListProps> = ({
       )}
 
       {/* Document List */}
-      <Card className="overflow-hidden border-[#e2ceab] bg-white/90 shadow-[0_20px_42px_-30px_rgba(82,60,28,0.45)]">
+      <Card className="overflow-hidden border-[#e2ceab] bg-white/90 shadow-[0_20px_42px_-30px_rgba(82,60,28,0.45)]" dir="rtl">
         <CardHeader className="border-b border-[#f0e2c8] px-6 py-4">
           <div className="flex items-center justify-between flex-wrap gap-3">
             <div>

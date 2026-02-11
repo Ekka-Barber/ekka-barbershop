@@ -1,4 +1,3 @@
-import { TIME } from '@shared/constants/time';
 import { SalaryCalculation, EmployeeWithBranch } from '@shared/types/business';
 import { Database } from '@shared/types/database.types';
 import type {
@@ -47,28 +46,20 @@ export interface DocumentFormData {
   notes?: string;
 }
 
-export const DOCUMENT_TYPES = {
-  health_certificate: {
-    label: 'Health Certificate',
-    icon: '🏥',
-    defaultDuration: TIME.MONTHS_PER_YEAR,
-  },
-  residency_permit: {
-    label: 'Residency Permit',
-    icon: '🏠',
-    defaultDuration: TIME.MONTHS_PER_YEAR,
-  },
-  work_license: {
-    label: 'Work License',
-    icon: '💼',
-    defaultDuration: TIME.HOURS_PER_DAY,
-  },
-  custom: {
-    label: 'Custom Document',
-    icon: '📄',
-    defaultDuration: TIME.MONTHS_PER_YEAR,
-  },
-} as const;
+// NOTE: Document types are now managed dynamically via the database
+// Use the useDocumentTypes hook from @features/hr/hooks/useDocumentTypes
+// to fetch document types with their configurations (duration, icons, etc.)
+// 
+// The document_types table in Supabase contains:
+// - code: unique identifier (e.g., 'health_certificate')
+// - name_ar/name_en: display names
+// - default_duration_months: default validity period
+// - notification_threshold_days: when to alert before expiry
+// - icon/color: UI theming
+// - is_active: soft delete flag
+//
+// @deprecated Use useDocumentTypes hook and document_types table instead
+export const DOCUMENT_TYPES = {} as const;
 
 // =============================================================================
 // SALARY CALCULATION TYPES

@@ -3,7 +3,7 @@ import { Users } from "lucide-react";
 import { ReactNode, useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 
-import { accessCodeStorage } from '@shared/lib/access-code/storage';
+import { accessCodeStorage, sessionAuth } from '@shared/lib/access-code/storage';
 import { supabase } from "@shared/lib/supabase/client";
 import { Button } from "@shared/ui/components/button";
 
@@ -30,7 +30,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
 
       try {
         // Super admin: show global header not tied to a specific branch
-        if (accessCode === 'ma225') {
+        if (sessionAuth.getRole() === 'super_manager') {
           setManagerName('Super Admin');
           setBranchName('كل الفروع');
           return;

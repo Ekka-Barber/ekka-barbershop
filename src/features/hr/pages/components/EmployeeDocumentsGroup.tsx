@@ -113,6 +113,7 @@ export const EmployeeDocumentsGroup: React.FC<EmployeeDocumentsGroupProps> = ({
     >
       <Card
         className={`overflow-hidden bg-white/95 shadow-[0_4px_20px_-8px_rgba(82,60,28,0.3)] transition-all duration-300 hover:shadow-[0_8px_30px_-12px_rgba(82,60,28,0.4)] ${getEmployeeStatusColor(documents)}`}
+        dir="rtl"
       >
         <CardHeader className="pb-3 pt-4">
           <div className="flex items-center justify-between gap-3">
@@ -123,9 +124,17 @@ export const EmployeeDocumentsGroup: React.FC<EmployeeDocumentsGroupProps> = ({
                 className="border-[#d4c4a8] data-[state=checked]:bg-[#e9b353] data-[state=checked]:border-[#e9b353]"
               />
 
-              <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-[#fff8ea] to-[#f5e7ce] border border-[#e9d5b0]">
-                <User className="h-5 w-5 text-[#8b6914]" />
-              </div>
+              {employee.photo_url ? (
+                <img
+                  src={employee.photo_url}
+                  alt={`صورة الموظف ${employee.name_ar || employee.name}`}
+                  className="h-11 w-11 flex-shrink-0 rounded-xl border border-[#e5cc9e] object-cover shadow-[0_4px_12px_rgba(233,179,83,0.4)]"
+                />
+              ) : (
+                <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-[#fff8ea] to-[#f5e7ce] border border-[#e9d5b0]">
+                  <User className="h-5 w-5 text-[#8b6914]" />
+                </div>
+              )}
 
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2 flex-wrap">

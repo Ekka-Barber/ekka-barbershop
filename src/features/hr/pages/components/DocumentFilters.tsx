@@ -1,6 +1,8 @@
 import { Filter, Search, X } from 'lucide-react';
 import React from 'react';
 
+import { useDocumentTypeOptions } from '@features/hr/hooks/useDocumentTypes';
+
 import type { HREmployee } from '@shared/types/hr.types';
 import { Badge } from '@shared/ui/components/badge';
 import { Button } from '@shared/ui/components/button';
@@ -13,9 +15,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@shared/ui/components/select';
+import { Skeleton } from '@shared/ui/components/skeleton';
 
 export type DocumentStatusFilter = 'all' | 'valid' | 'expiring_soon' | 'expired';
-export type DocumentTypeFilter = 'all' | 'health_certificate' | 'residency_permit' | 'work_license' | 'custom';
+export type DocumentTypeFilter = string;
 
 interface DocumentFiltersProps {
   searchQuery: string;
@@ -38,14 +41,6 @@ const STATUS_OPTIONS: { value: DocumentStatusFilter; label: string }[] = [
   { value: 'expired', label: 'منتهي' },
 ];
 
-const TYPE_OPTIONS: { value: DocumentTypeFilter; label: string }[] = [
-  { value: 'all', label: 'جميع الأنواع' },
-  { value: 'health_certificate', label: 'شهادة صحية' },
-  { value: 'residency_permit', label: 'بطاقة إقامة' },
-  { value: 'work_license', label: 'رخصة عمل' },
-  { value: 'custom', label: 'مخصص' },
-];
-
 export const DocumentFilters: React.FC<DocumentFiltersProps> = ({
   searchQuery,
   onSearchChange,
@@ -59,11 +54,26 @@ export const DocumentFilters: React.FC<DocumentFiltersProps> = ({
   onClearFilters,
   activeFiltersCount,
 }) => {
+  const { options, isLoading } = useDocumentTypeOptions();
+
   const hasActiveFilters =
     searchQuery || statusFilter !== 'all' || typeFilter !== 'all' || employeeFilter !== 'all';
 
+  // Build type options from API + 'all' option
+  const typeOptions = React.useMemo(() => {
+    return [
+      { value: 'all', label: 'جميع الأنواع' },
+      ...options.map((opt) => ({ value: opt.value, label: opt.label })),
+    ];
+  }, [options]);
+
+  // Get label for selected type
+  const selectedTypeLabel = React.useMemo(() => {
+    return typeOptions.find((o) => o.value === typeFilter)?.label || typeFilter;
+  }, [typeOptions, typeFilter]);
+
   return (
-    <Card className="border-[#e2ceab] bg-white/90 shadow-[0_8px_30px_-15px_rgba(82,60,28,0.3)]">
+    <Card className="border-[#e2ceab] bg-white/90 shadow-[0_8px_30px_-15px_rgba(82,60,28,0.3)]" dir="rtl">
       <CardContent className="p-4 sm:p-5">
         <div className="flex flex-col gap-4">
           {/* Search and Status Row */}
@@ -96,21 +106,25 @@ export const DocumentFilters: React.FC<DocumentFiltersProps> = ({
                 </SelectContent>
               </Select>
 
-              <Select
-                value={typeFilter}
-                onValueChange={(value) => onTypeFilterChange(value as DocumentTypeFilter)}
-              >
-                <SelectTrigger className="h-11 w-[140px] border-[#dcc49c] bg-[#fffdfa]">
-                  <SelectValue placeholder="النوع" />
-                </SelectTrigger>
-                <SelectContent>
-                  {TYPE_OPTIONS.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              {isLoading ? (
+                <Skeleton className="h-11 w-[140px]" />
+              ) : (
+                <Select
+                  value={typeFilter}
+                  onValueChange={(value) => onTypeFilterChange(value)}
+                >
+                  <SelectTrigger className="h-11 w-[140px] border-[#dcc49c] bg-[#fffdfa]">
+                    <SelectValue placeholder="النوع" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {typeOptions.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
             </div>
           </div>
 
@@ -194,7 +208,7 @@ export const DocumentFilters: React.FC<DocumentFiltersProps> = ({
                   variant="outline"
                   className="text-xs border-[#dcc49c] bg-[#fffdfa]"
                 >
-                  {TYPE_OPTIONS.find((o) => o.value === typeFilter)?.label}
+                  {selectedTypeLabel}
                   <button
                     onClick={() => onTypeFilterChange('all')}
                     className="me-1 text-[#7a684e] hover:text-[#2f261b]"

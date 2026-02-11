@@ -94,6 +94,51 @@ export type Database = {
         }
         Relationships: []
       }
+      document_types: {
+        Row: {
+          code: string
+          color: string | null
+          created_at: string
+          default_duration_months: number
+          display_order: number
+          id: string
+          is_active: boolean
+          name_ar: string
+          name_en: string | null
+          notification_threshold_days: number
+          requires_document_number: boolean
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          color?: string | null
+          created_at?: string
+          default_duration_months?: number
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          name_ar: string
+          name_en?: string | null
+          notification_threshold_days?: number
+          requires_document_number?: boolean
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          color?: string | null
+          created_at?: string
+          default_duration_months?: number
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          name_ar?: string
+          name_en?: string | null
+          notification_threshold_days?: number
+          requires_document_number?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
       employee_bonuses: {
         Row: {
           amount: number
@@ -516,6 +561,30 @@ export type Database = {
           },
         ]
       }
+      hr_access: {
+        Row: {
+          access_code: string | null
+          access_code_hash: string
+          created_at: string | null
+          id: string
+          updated_at: string | null
+        }
+        Insert: {
+          access_code?: string | null
+          access_code_hash: string
+          created_at?: string | null
+          id?: string
+          updated_at?: string | null
+        }
+        Update: {
+          access_code?: string | null
+          access_code_hash?: string
+          created_at?: string | null
+          id?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       marketing_files: {
         Row: {
           branch_id: string | null
@@ -588,30 +657,6 @@ export type Database = {
             referencedColumns: ["branch_name"]
           },
         ]
-      }
-      hr_access: {
-        Row: {
-          access_code: string | null
-          access_code_hash: string
-          created_at: string
-          id: string
-          updated_at: string
-        }
-        Insert: {
-          access_code?: string | null
-          access_code_hash?: string
-          created_at?: string
-          id?: string
-          updated_at?: string
-        }
-        Update: {
-          access_code?: string | null
-          access_code_hash?: string
-          created_at?: string
-          id?: string
-          updated_at?: string
-        }
-        Relationships: []
       }
       owner_access: {
         Row: {
@@ -693,7 +738,7 @@ export type Database = {
           latitude?: number | null
           location?: string | null
           longitude?: number | null
-          qr_id: string
+          qr_id?: string
           referrer?: string | null
           scanned_at?: string
           user_agent?: string | null
@@ -818,6 +863,7 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
     }
     Views: {
       employee_documents_with_status: {
@@ -872,9 +918,9 @@ export type Database = {
             referencedRelation: "qr_codes"
             referencedColumns: ["id"]
           },
-         ]
-       }
-     }
+        ]
+      }
+    }
     Functions: {
       calculate_commission: {
         Args: { config_json: Json; plan_type: string; sales_amount: number }
@@ -923,10 +969,10 @@ export type Database = {
         Args: { p_employee_id: string; p_month: number; p_year: number }
         Returns: number
       }
+      can_access_business_data: { Args: never; Returns: boolean }
       clean_orphaned_receipts: { Args: never; Returns: undefined }
       cleanup_old_schedules: { Args: never; Returns: number }
       clear_access_codes: { Args: never; Returns: undefined }
-      detect_access_role: { Args: { code: string }; Returns: string | null }
       complete_idempotency: {
         Args: {
           p_key: string
@@ -969,6 +1015,7 @@ export type Database = {
           submission_type: string
         }[]
       }
+      detect_access_role: { Args: { code: string }; Returns: string }
       enqueue_submission: {
         Args: {
           p_branch_id: string
@@ -1184,6 +1231,7 @@ export type Database = {
         }[]
       }
       manage_expired_offers: { Args: never; Returns: undefined }
+      normalize_access_code: { Args: { code: string }; Returns: string }
       refresh_all_materialized_views: { Args: never; Returns: undefined }
       refresh_campaign_metrics: { Args: never; Returns: undefined }
       refresh_mv_branch_salary_aggregates: { Args: never; Returns: undefined }
@@ -1201,6 +1249,8 @@ export type Database = {
       }
       refresh_mv_historical_salary_trends: { Args: never; Returns: undefined }
       refresh_salary_summary_view: { Args: never; Returns: undefined }
+      request_access_code: { Args: never; Returns: string }
+      request_access_role: { Args: never; Returns: string }
       reserve_idempotency: {
         Args: { p_key: string; p_scope: string; p_ttl_seconds?: number }
         Returns: boolean
@@ -1287,6 +1337,7 @@ export type Database = {
         }
         Returns: string
       }
+      validate_hr_access: { Args: { code: string }; Returns: boolean }
       validate_salary_payment_config: {
         Args: { p_employee_id: string }
         Returns: {
@@ -1353,3 +1404,164 @@ export type Database = {
     }
   }
 }
+
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
+
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
+
+export type Tables<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+      Row: infer R
+    }
+    ? R
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
+      DefaultSchema["Views"])
+    ? (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
+        Row: infer R
+      }
+      ? R
+      : never
+    : never
+
+export type TablesInsert<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Insert: infer I
+    }
+    ? I
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Insert: infer I
+      }
+      ? I
+      : never
+    : never
+
+export type TablesUpdate<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Update: infer U
+    }
+    ? U
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Update: infer U
+      }
+      ? U
+      : never
+    : never
+
+export type Enums<
+  DefaultSchemaEnumNameOrOptions extends
+    | keyof DefaultSchema["Enums"]
+    | { schema: keyof DatabaseWithoutInternals },
+  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+    : never = never,
+> = DefaultSchemaEnumNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
+    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
+    : never
+
+export type CompositeTypes<
+  PublicCompositeTypeNameOrOptions extends
+    | keyof DefaultSchema["CompositeTypes"]
+    | { schema: keyof DatabaseWithoutInternals },
+  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    : never = never,
+> = PublicCompositeTypeNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
+    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+    : never
+
+export const Constants = {
+  public: {
+    Enums: {
+      adjustment_type: ["correction", "refund"],
+      basic_payment_method: ["cash", "bank_transfer"],
+      calendar_view_type: ["month", "week", "quick_select"],
+      device_type: ["mobile", "tablet", "desktop"],
+      employee_role: [
+        "manager",
+        "barber",
+        "receptionist",
+        "cleaner",
+        "massage_therapist",
+        "hammam_specialist",
+      ],
+      expense_payment_method: ["cash", "deposit", "bank_transfer"],
+      payment_method_type: ["cash", "deposit", "bank_transfer"],
+      rent_expense_type: ["cleaning", "other", "commission"],
+      salary_calculation_type: ["fixed", "dynamic_basic"],
+      sales_payment_method: [
+        "tabby",
+        "master_card",
+        "visa_card",
+        "mada_card",
+        "cash",
+        "fresha_online",
+        "bank_transfer",
+        "deposit",
+      ],
+      transaction_adjustment_type: ["correction", "refund"],
+      transaction_status: [
+        "pending",
+        "completed",
+        "cancelled",
+        "adjusted",
+        "refunded",
+        "void",
+      ],
+      transaction_type: ["income", "expense"],
+      user_role: ["owner", "employee", "shop_manager", "accountant", "hr"],
+    },
+  },
+} as const

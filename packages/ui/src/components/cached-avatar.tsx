@@ -1,5 +1,5 @@
-import { Avatar } from "@shared/ui/components/avatar";
 import { cn } from "@shared/lib/utils";
+import { Avatar } from "@shared/ui/components/avatar";
 
 interface CachedAvatarProps {
   authorName?: string;

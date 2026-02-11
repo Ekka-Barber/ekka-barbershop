@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 
 import { useLogout } from "@shared/hooks/auth/useLogout";
 import { useToast } from "@shared/hooks/use-toast";
-import { accessCodeStorage } from '@shared/lib/access-code/storage';
+import { sessionAuth } from '@shared/lib/access-code/storage';
 import { supabase } from "@shared/lib/supabase/client";
 import { Button } from "@shared/ui/components/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@shared/ui/components/select";
@@ -69,8 +69,8 @@ const EmployeesContent: React.FC = () => {
   // Load branches for super filter
   useEffect(() => {
     const loadBranches = async () => {
-      const accessCode = accessCodeStorage.getManagerAccessCode();
-      if (accessCode !== 'ma225') return;
+      const role = sessionAuth.getRole();
+      if (role !== 'super_manager') return;
       const { data } = await supabase.from('branches').select('id,name').order('name');
       if (data) setBranches(data);
     };

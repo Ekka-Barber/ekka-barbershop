@@ -49,11 +49,12 @@ import { EmployeeForm } from './components/EmployeeForm';
 import { EmployeeTable } from './components/EmployeeTable';
 import { SponsorForm } from './components/SponsorForm';
 import { SponsorTable } from './components/SponsorTable';
+import { DocumentTypesSettings } from './DocumentTypesSettings';
 
-type HRTab = 'employees' | 'documents' | 'sponsors';
+type HRTab = 'employees' | 'documents' | 'sponsors' | 'settings';
 
 const isHRTab = (value: string | null): value is HRTab => {
-  return value === 'employees' || value === 'documents' || value === 'sponsors';
+  return value === 'employees' || value === 'documents' || value === 'sponsors' || value === 'settings';
 };
 
 const getActiveTab = (tab: string | null): HRTab => {
@@ -383,7 +384,7 @@ export const HRManagement = () => {
 
   return (
     <div className="page-stack pb-2">
-      <Card className="overflow-hidden border-[#e2cba2] bg-white/85 shadow-[0_24px_48px_-30px_rgba(84,57,24,0.45)]">
+      <Card className="overflow-hidden border-[#e2cba2] bg-white/85 shadow-[0_24px_48px_-30px_rgba(84,57,24,0.45)]" dir="rtl">
         <CardContent className="relative p-6 sm:p-7">
           <div className="pointer-events-none absolute -top-20 start-0 h-44 w-44 rounded-full bg-[#e9b353]/20 blur-3xl" />
           <div className="pointer-events-none absolute -bottom-24 end-0 h-56 w-56 rounded-full bg-[#0f766e]/12 blur-3xl" />
@@ -472,7 +473,7 @@ export const HRManagement = () => {
           value="employees"
           className="mt-0 space-y-4 data-[state=active]:animate-in data-[state=active]:fade-in-0 data-[state=active]:slide-in-from-bottom-1 data-[state=active]:duration-300"
         >
-          <Card className="border-[#e2ceab] bg-white/85 shadow-[0_18px_40px_-30px_rgba(80,60,30,0.5)]">
+          <Card className="border-[#e2ceab] bg-white/85 shadow-[0_18px_40px_-30px_rgba(80,60,30,0.5)]" dir="rtl">
             <CardContent className="p-4 sm:p-5">
               <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
                 <div className="relative flex-1">
@@ -536,7 +537,7 @@ export const HRManagement = () => {
           value="documents"
           className="mt-0 space-y-4 data-[state=active]:animate-in data-[state=active]:fade-in-0 data-[state=active]:slide-in-from-bottom-1 data-[state=active]:duration-300"
         >
-          <Card className="border-[#e2ceab] bg-white/85 shadow-[0_18px_40px_-30px_rgba(80,60,30,0.5)]">
+          <Card className="border-[#e2ceab] bg-white/85 shadow-[0_18px_40px_-30px_rgba(80,60,30,0.5)]" dir="rtl">
             <CardContent className="p-4 sm:p-5">
               <div className="flex justify-end">
                 <Button
@@ -583,7 +584,7 @@ export const HRManagement = () => {
           value="sponsors"
           className="mt-0 space-y-4 data-[state=active]:animate-in data-[state=active]:fade-in-0 data-[state=active]:slide-in-from-bottom-1 data-[state=active]:duration-300"
         >
-          <Card className="border-[#e2ceab] bg-white/85 shadow-[0_18px_40px_-30px_rgba(80,60,30,0.5)]">
+          <Card className="border-[#e2ceab] bg-white/85 shadow-[0_18px_40px_-30px_rgba(80,60,30,0.5)]" dir="rtl">
             <CardContent className="p-4 sm:p-5">
               <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
                 <div className="relative flex-1">
@@ -629,6 +630,13 @@ export const HRManagement = () => {
             onDelete={handleSponsorDelete}
             isLoading={isSponsorLoading || deleteSponsor.isPending}
           />
+        </TabsContent>
+
+        <TabsContent
+          value="settings"
+          className="mt-0 data-[state=active]:animate-in data-[state=active]:fade-in-0 data-[state=active]:slide-in-from-bottom-1 data-[state=active]:duration-300"
+        >
+          <DocumentTypesSettings />
         </TabsContent>
       </Tabs>
     </div>

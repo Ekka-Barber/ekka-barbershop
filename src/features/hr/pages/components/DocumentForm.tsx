@@ -1,5 +1,10 @@
 import { useEffect, useState } from 'react';
 
+import {
+  useDocumentTypeMeta,
+  useDocumentTypeOptions,
+} from '@features/hr/hooks/useDocumentTypes';
+
 import type {
   DocumentFormData,
   DocumentType,
@@ -16,6 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@shared/ui/components/select';
+import { Skeleton } from '@shared/ui/components/skeleton';
 
 interface DocumentFormProps {
   employees: HREmployee[];
@@ -28,19 +34,12 @@ interface DocumentFormProps {
 
 const NO_EMPLOYEE_VALUE = '__no_employee__';
 
-const DOCUMENT_TYPE_OPTIONS: Array<{ value: DocumentType; label: string }> = [
-  { value: 'health_certificate', label: 'شهادة صحية' },
-  { value: 'residency_permit', label: 'بطاقة إقامة' },
-  { value: 'work_license', label: 'رخصة عمل' },
-  { value: 'custom', label: 'مخصص' },
-];
-
 const buildInitialFormData = (
   editingDocument: HRDocument | null,
   defaultEmployeeId: string | null
 ): DocumentFormData => ({
   employee_id: editingDocument?.employee_id ?? defaultEmployeeId ?? '',
-  document_type: editingDocument?.document_type ?? 'health_certificate',
+  document_type: editingDocument?.document_type ?? '',
   document_name: editingDocument?.document_name ?? '',
   document_number: editingDocument?.document_number ?? null,
   issue_date:
@@ -61,6 +60,38 @@ export const DocumentForm: React.FC<DocumentFormProps> = ({
   const [formData, setFormData] = useState<DocumentFormData>(() =>
     buildInitialFormData(editingDocument, defaultEmployeeId)
   );
+
+  const { options, isLoading: isLoadingTypes } = useDocumentTypeOptions();
+  const { 
+    defaultDurationMonths, 
+    requiresDocumentNumber,
+    nameAr,
+  } = useDocumentTypeMeta(formData.document_type);
+
+  // Auto-set document name when type changes
+  useEffect(() => {
+    if (formData.document_type && !editingDocument && !formData.document_name) {
+      setFormData((prev) => ({
+        ...prev,
+        document_name: nameAr,
+      }));
+    }
+  }, [formData.document_type, editingDocument, formData.document_name, nameAr]);
+
+  // Auto-calculate expiry date when issue date or document type changes
+  useEffect(() => {
+    if (formData.issue_date && formData.document_type && !editingDocument) {
+      const issueDate = new Date(formData.issue_date);
+      const expiryDate = new Date(issueDate);
+      expiryDate.setMonth(expiryDate.getMonth() + defaultDurationMonths);
+      
+      setFormData((prev) => ({
+        ...prev,
+        duration_months: defaultDurationMonths,
+        expiry_date: expiryDate.toISOString().split('T')[0],
+      }));
+    }
+  }, [formData.document_type, formData.issue_date, defaultDurationMonths, editingDocument]);
 
   useEffect(() => {
     setFormData(buildInitialFormData(editingDocument, defaultEmployeeId));
@@ -84,8 +115,25 @@ export const DocumentForm: React.FC<DocumentFormProps> = ({
     await onSubmit(payload);
   };
 
+  const updateField = <K extends keyof DocumentFormData>(
+    field: K,
+    value: DocumentFormData[K]
+  ) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleTypeChange = (value: DocumentType) => {
+    updateField('document_type', value);
+    // Auto-set document name to the type name
+    const typeName = options.find((opt) => opt.value === value)?.label || '';
+    updateField('document_name', typeName);
+  };
+
   return (
-    <div className="rounded-2xl border border-[#e2ceab] bg-white/90 p-5 shadow-[0_20px_40px_-30px_rgba(82,60,28,0.45)]">
+    <div
+      className="rounded-2xl border border-[#e2ceab] bg-white/90 p-5 shadow-[0_20px_40px_-30px_rgba(82,60,28,0.45)]"
+      dir="rtl"
+    >
       <h3 className="mb-4 text-lg font-semibold">
         {editingDocument ? 'تعديل المستند' : 'إضافة مستند جديد'}
       </h3>
@@ -98,13 +146,16 @@ export const DocumentForm: React.FC<DocumentFormProps> = ({
           <Select
             value={formData.employee_id || NO_EMPLOYEE_VALUE}
             onValueChange={(value) =>
-              setFormData((prev) => ({
-                ...prev,
-                employee_id: value === NO_EMPLOYEE_VALUE ? '' : value,
-              }))
+              updateField(
+                'employee_id',
+                value === NO_EMPLOYEE_VALUE ? '' : value
+              )
             }
           >
-            <SelectTrigger id="employee_id" className="border-[#dcc49c] bg-[#fffdfa]">
+            <SelectTrigger
+              id="employee_id"
+              className="border-[#dcc49c] bg-[#fffdfa]"
+            >
               <SelectValue placeholder="اختر الموظف" />
             </SelectTrigger>
             <SelectContent dir="rtl">
@@ -123,26 +174,28 @@ export const DocumentForm: React.FC<DocumentFormProps> = ({
             <Label htmlFor="document_type">
               نوع المستند<span className="text-red-500">*</span>
             </Label>
-            <Select
-              value={formData.document_type}
-              onValueChange={(value) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  document_type: value as DocumentType,
-                }))
-              }
-            >
-              <SelectTrigger id="document_type" className="border-[#dcc49c] bg-[#fffdfa]">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent dir="rtl">
-                {DOCUMENT_TYPE_OPTIONS.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            {isLoadingTypes ? (
+              <Skeleton className="h-10 w-full" />
+            ) : (
+              <Select
+                value={formData.document_type}
+                onValueChange={handleTypeChange}
+              >
+                <SelectTrigger
+                  id="document_type"
+                  className="border-[#dcc49c] bg-[#fffdfa]"
+                >
+                  <SelectValue placeholder="اختر نوع المستند" />
+                </SelectTrigger>
+                <SelectContent dir="rtl">
+                  {options.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
           </div>
 
           <div className="space-y-2">
@@ -153,32 +206,30 @@ export const DocumentForm: React.FC<DocumentFormProps> = ({
               id="document_name"
               value={formData.document_name}
               onChange={(event) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  document_name: event.target.value,
-                }))
+                updateField('document_name', event.target.value)
               }
               required
               dir="rtl"
+              className="border-[#dcc49c] bg-[#fffdfa]"
             />
           </div>
         </div>
 
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <div className="space-y-2">
-            <Label htmlFor="document_number">رقم المستند</Label>
-            <Input
-              id="document_number"
-              value={formData.document_number ?? ''}
-              onChange={(event) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  document_number: event.target.value,
-                }))
-              }
-              dir="ltr"
-            />
-          </div>
+          {requiresDocumentNumber && (
+            <div className="space-y-2">
+              <Label htmlFor="document_number">رقم المستند</Label>
+              <Input
+                id="document_number"
+                value={formData.document_number ?? ''}
+                onChange={(event) =>
+                  updateField('document_number', event.target.value)
+                }
+                dir="ltr"
+                className="border-[#dcc49c] bg-[#fffdfa]"
+              />
+            </div>
+          )}
 
           <div className="space-y-2">
             <Label htmlFor="duration_months">المدة (بالأشهر)</Label>
@@ -189,13 +240,12 @@ export const DocumentForm: React.FC<DocumentFormProps> = ({
               value={formData.duration_months ?? 12}
               onChange={(event) => {
                 const parsedValue = Number.parseInt(event.target.value, 10);
-                setFormData((prev) => ({
-                  ...prev,
-                  duration_months: Number.isNaN(parsedValue)
-                    ? 12
-                    : parsedValue,
-                }));
+                updateField(
+                  'duration_months',
+                  Number.isNaN(parsedValue) ? 12 : parsedValue
+                );
               }}
+              className="border-[#dcc49c] bg-[#fffdfa]"
             />
           </div>
         </div>
@@ -210,12 +260,10 @@ export const DocumentForm: React.FC<DocumentFormProps> = ({
               type="date"
               value={formData.issue_date}
               onChange={(event) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  issue_date: event.target.value,
-                }))
+                updateField('issue_date', event.target.value)
               }
               required
+              className="border-[#dcc49c] bg-[#fffdfa]"
             />
           </div>
 
@@ -228,12 +276,10 @@ export const DocumentForm: React.FC<DocumentFormProps> = ({
               type="date"
               value={formData.expiry_date}
               onChange={(event) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  expiry_date: event.target.value,
-                }))
+                updateField('expiry_date', event.target.value)
               }
               required
+              className="border-[#dcc49c] bg-[#fffdfa]"
             />
           </div>
         </div>
@@ -244,10 +290,11 @@ export const DocumentForm: React.FC<DocumentFormProps> = ({
             id="notes"
             value={formData.notes ?? ''}
             onChange={(event) =>
-              setFormData((prev) => ({ ...prev, notes: event.target.value }))
+              updateField('notes', event.target.value)
             }
             placeholder="أضف أي ملاحظات إضافية..."
             dir="rtl"
+            className="border-[#dcc49c] bg-[#fffdfa]"
           />
         </div>
 

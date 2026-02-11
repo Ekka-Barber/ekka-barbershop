@@ -1,8 +1,10 @@
-import { Edit, Trash2 } from 'lucide-react';
+import { Edit, FileText, Trash2 } from 'lucide-react';
 import React from 'react';
 
+import { useDocumentTypeMeta } from '@features/hr/hooks/useDocumentTypes';
+
 import { motion, useReducedMotion } from '@shared/lib/motion';
-import type { DocumentType, HRDocument } from '@shared/types/hr.types';
+import type { HRDocument } from '@shared/types/hr.types';
 import { Badge } from '@shared/ui/components/badge';
 import { Button } from '@shared/ui/components/button';
 import { Checkbox } from '@shared/ui/components/checkbox';
@@ -14,20 +16,6 @@ interface DocumentItemProps {
   onEdit: () => void;
   onDelete: () => void;
 }
-
-const DOCUMENT_TYPE_LABELS: Record<DocumentType, string> = {
-  health_certificate: 'شهادة صحية',
-  residency_permit: 'بطاقة إقامة',
-  work_license: 'رخصة عمل',
-  custom: 'مخصص',
-};
-
-const DOCUMENT_TYPE_ICONS: Record<DocumentType, string> = {
-  health_certificate: '🏥',
-  residency_permit: '🏠',
-  work_license: '💼',
-  custom: '📄',
-};
 
 const formatDate = (date: string) =>
   new Date(date).toLocaleDateString('ar-SA', {
@@ -60,6 +48,9 @@ export const DocumentItem: React.FC<DocumentItemProps> = ({
   const daysUntil = getDaysUntil(document.expiry_date);
   const expired = isExpired(document.expiry_date);
   const expiringSoon = isExpiringSoon(document.expiry_date);
+
+  // Get dynamic metadata for document type
+  const { nameAr } = useDocumentTypeMeta(document.document_type);
 
   const getStatusConfig = () => {
     if (expired) {
@@ -119,8 +110,8 @@ export const DocumentItem: React.FC<DocumentItemProps> = ({
         className="border-[#d4c4a8] data-[state=checked]:bg-[#e9b353] data-[state=checked]:border-[#e9b353]"
       />
 
-      <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-white border border-[#e9e1d5] text-lg">
-        {DOCUMENT_TYPE_ICONS[document.document_type]}
+      <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-white border border-[#e9e1d5] text-[#8b6914]">
+        <FileText className="h-5 w-5" />
       </div>
 
       <div className="min-w-0 flex-1">
@@ -129,7 +120,7 @@ export const DocumentItem: React.FC<DocumentItemProps> = ({
             {document.document_name}
           </h4>
           <span className="text-xs text-[#9a8b6e]">
-            {DOCUMENT_TYPE_LABELS[document.document_type]}
+            {nameAr}
           </span>
         </div>
 
@@ -138,9 +129,11 @@ export const DocumentItem: React.FC<DocumentItemProps> = ({
           <span className={`text-xs ${statusConfig.daysColor}`}>
             {statusConfig.daysText}
           </span>
-          <span className="text-xs text-[#9a8b6e]">
-            رقم: {document.document_number || '-'}
-          </span>
+          {document.document_number && (
+            <span className="text-xs text-[#9a8b6e]">
+              رقم: {document.document_number}
+            </span>
+          )}
         </div>
 
         {document.notes && (

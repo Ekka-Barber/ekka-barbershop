@@ -59,7 +59,7 @@ export const DocumentStats: React.FC<DocumentStatsProps> = ({
   ];
 
   return (
-    <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+    <div className="grid grid-cols-2 gap-3 lg:grid-cols-4" dir="rtl">
       {stats.map((stat, index) => {
         const Icon = stat.icon;
         return (

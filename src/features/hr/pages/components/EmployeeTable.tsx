@@ -47,20 +47,6 @@ const isEmployeeActive = (employee: HREmployee) => {
 
 const getEmployeeDisplayName = (employee: HREmployee) => employee.name_ar || employee.name;
 
-const getEmployeeInitials = (employee: HREmployee) => {
-  const sourceName = getEmployeeDisplayName(employee).trim();
-  if (!sourceName) {
-    return '؟';
-  }
-
-  const words = sourceName.split(/\s+/).filter(Boolean);
-  if (words.length === 1) {
-    return words[0].slice(0, 1).toUpperCase();
-  }
-
-  return `${words[0].slice(0, 1)}${words[1].slice(0, 1)}`.toUpperCase();
-};
-
 export const EmployeeTable: React.FC<EmployeeTableProps> = ({
   employees,
   onEdit,
@@ -71,7 +57,7 @@ export const EmployeeTable: React.FC<EmployeeTableProps> = ({
   const shouldReduceMotion = useReducedMotion();
 
   return (
-    <Card className="overflow-hidden border-[#e2ceab] bg-white/90 shadow-[0_20px_42px_-30px_rgba(82,60,28,0.45)]">
+    <Card className="overflow-hidden border-[#e2ceab] bg-white/90 shadow-[0_20px_42px_-30px_rgba(82,60,28,0.45)]" dir="rtl">
       <CardHeader className="border-b border-[#f0e2c8] px-6 py-4">
         <CardTitle className="text-lg text-[#2f261b]">قائمة الموظفين</CardTitle>
         <p className="text-sm text-[#7a684e]">

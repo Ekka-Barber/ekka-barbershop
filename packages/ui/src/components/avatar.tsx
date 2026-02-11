@@ -1,8 +1,8 @@
-import * as React from "react";
 import {
   Facehash,
   type FacehashProps,
 } from "facehash";
+import * as React from "react";
 
 import { cn } from "@shared/lib/utils";
 
@@ -24,7 +24,6 @@ function getAnimationAndColors(name: string): {
   colors: [string, string];
 } {
   const hash = name?.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0) ?? 0;
-  const seed = hash % 100;
 
   return {
     enableBlink: true,
@@ -33,7 +32,7 @@ function getAnimationAndColors(name: string): {
 }
 
 const Avatar = React.forwardRef<React.ElementRef<typeof Facehash>, AvatarProps>(
-  ({ className, name, size = 40, variant = "solid", colors, ...props }, ref) => {
+  ({ className, name, size = 40, variant = "solid", colors: _colors, ...props }, ref) => {
     const { enableBlink, colors: assignedColors } = getAnimationAndColors(name || "default");
     
     return (

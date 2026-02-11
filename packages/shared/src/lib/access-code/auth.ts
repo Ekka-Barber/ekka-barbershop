@@ -170,9 +170,10 @@ export const ensureManagerSession = async () => {
 
     // Set the session variable
     await setManagerSession(normalized);
-    
-    // Ensure role is set
-    sessionAuth.setRole(normalized === 'ma225' ? 'super_manager' : 'manager');
+
+    // Detect role from database (checks is_super_manager column)
+    const role = await detectRoleByCode(normalized);
+    sessionAuth.setRole(role ?? 'manager');
     sessionAuth.setAccessCode(normalized);
     return true;
   } catch (_error) {

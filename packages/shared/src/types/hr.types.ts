@@ -13,11 +13,24 @@ import type {
 
 export type EmployeeRole = Employee['role'];
 
-export type DocumentType =
-  | 'health_certificate'
-  | 'residency_permit'
-  | 'work_license'
-  | 'custom';
+// Document type code is now dynamic from database
+export type DocumentType = string;
+
+// Document Type Configuration from database
+export interface DocumentTypeConfig {
+  id: string;
+  code: DocumentType;
+  name_ar: string;
+  name_en?: string;
+  default_duration_months: number;
+  notification_threshold_days: number;
+  is_active: boolean;
+  requires_document_number: boolean;
+  color?: string;
+  display_order: number;
+  created_at: string;
+  updated_at: string;
+}
 
 export type HRBranchOption = Pick<Branch, 'id' | 'name' | 'name_ar'>;
 
@@ -50,3 +63,5 @@ export type SponsorFormData = SponsorInsert;
 export type SponsorUpdatePayload = SponsorUpdate & {
   id: string;
 };
+
+
