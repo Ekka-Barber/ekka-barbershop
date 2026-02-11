@@ -7,7 +7,7 @@ import type {
   HREmployee,
   HRSponsor,
 } from '@shared/types/hr.types';
-import { Avatar } from '@shared/ui/components/avatar';
+import { Avatar, AvatarImage, AvatarFallback } from '@shared/ui/components/avatar';
 import { Button } from '@shared/ui/components/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@shared/ui/components/card';
 import { Input } from '@shared/ui/components/input';
@@ -321,19 +321,16 @@ export const EmployeeForm: React.FC<EmployeeFormProps> = ({
             </div>
 
             <div className="flex items-center gap-3 rounded-2xl border border-[#e5cc9e] bg-white px-3 py-2">
-              {photoPreviewUrl ? (
-                <img
-                  src={photoPreviewUrl}
-                  alt={`معاينة صورة ${photoPreviewName}`}
-                  className="h-12 w-12 rounded-[22%] border border-[#e5cc9e] object-cover shadow-[0_4px_12px_rgba(233,179,83,0.4)]"
-                />
-              ) : (
-                <Avatar
-                  name={photoPreviewName}
-                  size={48}
-                  className="h-12 w-12 border border-[#e5cc9e]"
-                />
-              )}
+              <Avatar className="h-12 w-12">
+                {photoPreviewUrl ? (
+                  <AvatarImage
+                    src={photoPreviewUrl}
+                    alt={`معاينة صورة ${photoPreviewName}`}
+                  />
+                ) : (
+                  <AvatarFallback name={photoPreviewName} />
+                )}
+              </Avatar>
               <div className="text-sm">
                 <p className="font-medium text-[#2f261b]">
                   {photoPreviewUrl ? 'معاينة الصورة الشخصية' : 'لم يتم إدخال صورة بعد'}

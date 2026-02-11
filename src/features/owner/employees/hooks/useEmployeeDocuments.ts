@@ -41,8 +41,14 @@ export const useEmployeeDocuments = (filters: DocumentFilters = {}) => {
       }
 
       if (filters.searchTerm) {
+        // Escape special characters for ILIKE: backslash, percent, underscore
+        const safeTerm = filters.searchTerm
+          .replace(/\\/g, '\\\\') // escape backslash
+          .replace(/%/g, '\\%')   // escape percent
+          .replace(/_/g, '\\_')   // escape underscore
+          .replace(/,/g, '');     // remove commas (filter separator)
         query = query.or(
-          `document_name.ilike.%${filters.searchTerm}%,employee_name.ilike.%${filters.searchTerm}%,document_number.ilike.%${filters.searchTerm}%`
+          `document_name.ilike.%${safeTerm}%,employee_name.ilike.%${safeTerm}%,document_number.ilike.%${safeTerm}%`
         );
       }
 

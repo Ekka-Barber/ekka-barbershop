@@ -6,8 +6,11 @@ import * as React from "react";
 
 import { cn } from "@shared/lib/utils";
 
+import { getColorsFromName } from "./avatar-utils";
+
 type AvatarProps = FacehashProps & {
   className?: string;
+  children?: React.ReactNode;
 };
 
 const COLOR_PALETTE = [
@@ -31,14 +34,38 @@ function getAnimationAndColors(name: string): {
   };
 }
 
-const Avatar = React.forwardRef<React.ElementRef<typeof Facehash>, AvatarProps>(
-  ({ className, name, size = 40, variant = "solid", colors: _colors, ...props }, ref) => {
+const Avatar = React.forwardRef<HTMLDivElement, AvatarProps>(
+  ({ className, name, size = 40, variant = "solid", colors: _colors, children, ...props }, ref) => {
+    // If children are provided, render a container div (for AvatarImage/AvatarFallback pattern)
+    if (children) {
+      const hasWidthClass = className && /\bw-/.test(className);
+      const hasHeightClass = className && /\bh-/.test(className);
+      const style: React.CSSProperties = {};
+      if (!hasWidthClass) style.width = size;
+      if (!hasHeightClass) style.height = size;
+      
+      return (
+        <div
+          ref={ref}
+          className={cn(
+            "relative flex shrink-0 overflow-hidden rounded-[22%]",
+            className
+          )}
+          style={Object.keys(style).length > 0 ? style : undefined}
+          {...props}
+        >
+          {children}
+        </div>
+      );
+    }
+    
+    // Otherwise, render Facehash (for Google reviews, etc.)
     const { enableBlink, colors: assignedColors } = getAnimationAndColors(name || "default");
     
     return (
       <Facehash
         ref={ref as never}
-        name={name}
+        name={name || ""}
         size={size}
         variant={variant}
         colors={assignedColors}
@@ -57,35 +84,81 @@ const Avatar = React.forwardRef<React.ElementRef<typeof Facehash>, AvatarProps>(
 );
 Avatar.displayName = "Avatar";
 
+interface AvatarImageProps extends Omit<React.ComponentPropsWithoutRef<typeof Facehash>, 'name'> {
+  src?: string;
+  alt?: string;
+  name?: string;
+}
+
 const AvatarImage = React.forwardRef<
   React.ElementRef<typeof Facehash>,
-  React.ComponentPropsWithoutRef<typeof Facehash>
->(({ className, name, ...props }, ref) => {
-  const { enableBlink, colors } = getAnimationAndColors(name || "default");
+  AvatarImageProps
+>(({ className, name, src, alt, ...props }, ref) => {
+  const [hasError, setHasError] = React.useState(false);
+  
+  React.useEffect(() => {
+    setHasError(false);
+  }, [src]);
+  
+  if (!src || src.trim() === '' || hasError) {
+    return null;
+  }
   
   return (
-    <Facehash
-      ref={ref as never}
-      name={name}
-      className={cn("squircle", className)}
+    <img
+      ref={ref as React.Ref<HTMLImageElement>}
+      src={src}
+      alt={alt || name || ""}
+      className={cn(
+        "absolute inset-0 h-full w-full object-cover rounded-[22%] border border-[#e5cc9e] z-10",
+        className
+      )}
       style={{
-        borderRadius: "22%",
         boxShadow: "0 4px 12px rgba(233, 179, 83, 0.4)",
       }}
-      enableBlink={enableBlink}
-      interactive={false}
-      intensity3d="dramatic"
-      colors={colors}
+      onError={() => setHasError(true)}
+      onLoad={() => setHasError(false)}
       {...props}
     />
   );
 });
 AvatarImage.displayName = "AvatarImage";
 
+interface AvatarFallbackProps extends Omit<React.ComponentPropsWithoutRef<typeof Facehash>, 'name'> {
+  name?: string;
+  children?: React.ReactNode;
+}
+
 const AvatarFallback = React.forwardRef<
   React.ElementRef<typeof Facehash>,
-  React.ComponentPropsWithoutRef<typeof Facehash>
->(({ className, name, ...props }, ref) => {
+  AvatarFallbackProps
+>(({ className, name, children, ...props }, ref) => {
+  // If children provided, render custom fallback
+  if (children) {
+    const colors = getColorsFromName(name || "");
+    const hasBackgroundClass = className && /bg-/.test(className);
+    const style = {
+      boxShadow: "0 4px 12px rgba(233, 179, 83, 0.4)",
+      border: "1px solid #e5cc9e",
+      ...(!hasBackgroundClass && { background: `linear-gradient(135deg, ${colors[0]}, ${colors[1]})` }),
+    };
+    
+    return (
+      <div
+        ref={ref as React.Ref<HTMLDivElement>}
+        className={cn(
+          "absolute inset-0 h-full w-full flex items-center justify-center rounded-[22%] z-0",
+          className
+        )}
+        style={style}
+        {...props}
+      >
+        {children}
+      </div>
+    );
+  }
+  
+  // Otherwise, use Facehash (for backward compatibility)
   const { enableBlink, colors } = getAnimationAndColors(name || "");
   
   return (

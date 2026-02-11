@@ -24,7 +24,7 @@ export const EmployeeInfo = ({ name, name_ar, role, photo_url, nationality }: Em
     <div className="flex items-center gap-6 mb-5 relative">
       <div className="relative">
         <Avatar className="w-20 h-20 border-4 border-white shadow-lg transition-all duration-300 hover:scale-105 z-10">
-          <AvatarImage src={photo_url} alt={name} className="object-cover" />
+           <AvatarImage src={photo_url} name={name} className="object-cover" />
           <AvatarFallback className="bg-gradient-to-br from-blue-100 to-blue-200 text-blue-700">
             <User className="w-8 h-8" />
           </AvatarFallback>

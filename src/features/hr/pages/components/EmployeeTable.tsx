@@ -2,7 +2,7 @@ import { Archive, Edit, RotateCcw, Users } from 'lucide-react';
 
 import { motion, useReducedMotion } from '@shared/lib/motion';
 import type { EmployeeRole, HREmployee } from '@shared/types/hr.types';
-import { Avatar } from '@shared/ui/components/avatar';
+import { Avatar, AvatarImage, AvatarFallback } from '@shared/ui/components/avatar';
 import { Badge } from '@shared/ui/components/badge';
 import { Button } from '@shared/ui/components/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@shared/ui/components/card';
@@ -117,19 +117,16 @@ export const EmployeeTable: React.FC<EmployeeTableProps> = ({
                   className="flex items-center justify-between rounded-2xl border border-[#ead8b8] bg-gradient-to-r from-[#fffdf9] to-[#fff7ea] p-4 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_18px_30px_-30px_rgba(82,60,28,0.7)]"
                 >
                   <div className="flex min-w-0 flex-1 items-center gap-4">
-                    {employee.photo_url ? (
-                      <img
-                        src={employee.photo_url}
-                        alt={`صورة الموظف ${getEmployeeDisplayName(employee)}`}
-                        className="h-12 w-12 rounded-[22%] border border-[#e5cc9e] object-cover shadow-[0_4px_12px_rgba(233,179,83,0.4)]"
-                      />
-                    ) : (
-                      <Avatar
-                        name={getEmployeeDisplayName(employee)}
-                        size={48}
-                        className="h-12 w-12 border border-[#e5cc9e]"
-                      />
-                    )}
+                    <Avatar className="h-12 w-12">
+                      {employee.photo_url ? (
+                        <AvatarImage
+                          src={employee.photo_url}
+                          alt={`صورة الموظف ${getEmployeeDisplayName(employee)}`}
+                        />
+                      ) : (
+                        <AvatarFallback name={getEmployeeDisplayName(employee)} />
+                      )}
+                    </Avatar>
 
                     <div className="min-w-0 flex-1">
                       <div className="mb-1 flex items-center gap-2">
