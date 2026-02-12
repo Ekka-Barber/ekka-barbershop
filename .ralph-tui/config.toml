@@ -1,5 +1,0 @@
-defaultAgent = "opencode"
-defaultTracker = "json"
-maxIterations = 10
-iterationDelay = 1000
-configVersion = "2.1"

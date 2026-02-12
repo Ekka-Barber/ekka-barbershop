@@ -13,13 +13,6 @@ npm run lint                   # ESLint (TS/TSX) - passes with 0 errors
 npx tsc --noEmit               # Type check (no output means success)
 ```
 
-### Turbo (Monorepo)
-```bash
-npx turbo build                # Build all workspace packages
-npx turbo lint                 # Lint all workspaces
-npx turbo test                 # Run tests across workspaces (if configured)
-```
-
 ### Tests (Vitest, no npm script)
 ```bash
 npx vitest                     # Run all tests
@@ -60,7 +53,7 @@ The project uses a monorepo with workspaces defined in `package.json` (`"workspa
 - `packages/shared/`: Shared utilities, types, hooks, services, constants, and integrations.
 - `packages/ui/`: UI components (shadcn/ui plus custom components).
 
-Use `npx turbo` to run commands across workspaces (e.g., `npx turbo build`). Vite aliases map `@shared/*` to `packages/shared/src/*` and `@shared/ui/*` to `packages/ui/src/*`.
+Vite aliases map `@shared/*` to `packages/shared/src/*` and `@shared/ui/*` to `packages/ui/src/*`.
 
 ## Aliases (configured in vite.config.ts)
 - `@/*` -> `src/*`
