@@ -97,19 +97,18 @@ export const useEmployeeData = (selectedMonth?: string, selectedBranchId?: strin
           query = query.eq("branch_id", selectedBranchId);
         }
       } else {
-        // Get the manager's branch
-        const { data: manager, error: managerError } = await supabase
-          .from("branch_managers")
-          .select("branch_id")
-          .eq("access_code", branchManagerCode)
+        // Get the manager's branch via RPC (uses hash comparison)
+        const { data: managerBranch, error: managerError } = await supabase
+          .rpc('get_current_manager_branch')
           .single();
 
-        if (managerError) {
+        if (managerError || !managerBranch) {
           return [];
         }
 
+        const branch = managerBranch as { branch_id: string; is_super_manager: boolean; manager_name: string; branch_name: string };
         // Managers only see their branch employees
-        query = query.eq("branch_id", manager.branch_id);
+        query = query.eq("branch_id", branch.branch_id);
       }
 
       const { data: employees, error } = await query;
@@ -192,32 +191,24 @@ export const useEmployeeData = (selectedMonth?: string, selectedBranchId?: strin
         return { branch_id: '__ALL__', name: 'جميع الفروع' };
       }
 
-      const { data: manager, error } = await supabase
-        .from("branch_managers")
-        .select(`
-          branch_id,
-          branches (
-            name
-          )
-        `)
-        .eq("access_code", branchManagerCode)
+      // Get manager branch via RPC (uses hash comparison)
+      const { data: managerBranch, error: branchError } = await supabase
+        .rpc('get_current_manager_branch')
         .single();
 
-      if (error) {
+      if (branchError || !managerBranch) {
         return { branch_id: '', name: '' };
       }
 
-      const managerRecord = manager as {
+      const branchInfo = managerBranch as {
         branch_id: string;
-        branches?: { name?: string } | { name?: string }[] | null;
+        is_super_manager: boolean;
+        branch_name: string;
       };
-      const branch = Array.isArray(managerRecord.branches)
-        ? managerRecord.branches[0]
-        : managerRecord.branches;
-
+      
       return {
-        branch_id: managerRecord.branch_id,
-        name: branch?.name || '',
+        branch_id: branchInfo.branch_id,
+        name: branchInfo.branch_name || '',
       };
     }
   });

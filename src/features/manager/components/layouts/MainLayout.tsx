@@ -37,26 +37,21 @@ const MainLayout = ({ children }: MainLayoutProps) => {
         }
 
         const { data, error } = await supabase
-          .from("branch_managers")
-          .select(`
-            name,
-            branches (
-              name_ar,
-              name
-            )
-          `)
-          .eq("access_code", accessCode)
+          .rpc('get_current_manager_branch')
           .maybeSingle();
 
         if (error || !data) {
           return;
         }
 
-        const branch = Array.isArray(data.branches)
-          ? data.branches[0]
-          : data.branches;
-        setManagerName(data.name);
-        setBranchName(branch?.name_ar || branch?.name || '');
+        const managerInfo = data as {
+          manager_name: string;
+          branch_name: string;
+          branch_id: string;
+          is_super_manager: boolean;
+        };
+        setManagerName(managerInfo.manager_name || '');
+        setBranchName(managerInfo.branch_name || '');
       } catch {
         return;
       }
