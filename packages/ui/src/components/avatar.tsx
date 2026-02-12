@@ -8,7 +8,8 @@ import { cn } from "@shared/lib/utils";
 
 import { getColorsFromName } from "./avatar-utils";
 
-type AvatarProps = FacehashProps & {
+type AvatarProps = Omit<FacehashProps, 'name'> & {
+  name?: string;
   className?: string;
   children?: React.ReactNode;
 };

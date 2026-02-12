@@ -21,6 +21,7 @@ import {
   SheetDescription,
   SheetFooter,
 } from '@shared/ui/components/sheet';
+import { trackMenuView, trackOffersView } from '@shared/utils/gadsTracking';
 
 import { useLanguage } from '@/contexts/LanguageContext';
 
@@ -124,6 +125,16 @@ export const MarketingDialog: React.FC<MarketingDialogProps> = ({
       setCurrentIndex(initialIndex);
     }
   }, [open, initialIndex]);
+
+  // Fire Google Ads conversion when user opens menu or offers dialog (customer page)
+  useEffect(() => {
+    if (!open) return;
+    if (contentType === 'menu') {
+      trackMenuView();
+    } else if (contentType === 'offers') {
+      trackOffersView();
+    }
+  }, [open, contentType]);
 
   const currentContent = initialContent[currentIndex];
   const hasContent = Boolean(currentContent);

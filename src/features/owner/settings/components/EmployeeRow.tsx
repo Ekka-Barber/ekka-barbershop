@@ -17,6 +17,8 @@ interface EmployeeRowProps {
   onEdit: (employee: EmployeeWithBranch) => void;
   onDelete: (id: string) => void;
   forceDesktop?: boolean; // Force desktop table rendering
+  /** When true, always render card layout (avoids invalid <tr> inside <div> when parent uses mobile layout) */
+  forceCardLayout?: boolean;
 }
 
 export const EmployeeRow = ({
@@ -24,9 +26,10 @@ export const EmployeeRow = ({
   onEdit,
   onDelete,
   forceDesktop = false,
+  forceCardLayout = false,
 }: EmployeeRowProps) => {
   const isMobile = useIsMobile();
-  const shouldRenderMobile = isMobile && !forceDesktop;
+  const shouldRenderMobile = forceCardLayout || (isMobile && !forceDesktop);
 
   // Calculate employee status and tenure
   const isActive = isEmployeeActiveOnDate(employee);

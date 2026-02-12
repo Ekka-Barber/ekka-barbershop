@@ -242,7 +242,7 @@ export function QRInsightsWidget() {
                 const isToday = i === stats.dailyData.length - 1;
                 return (
                   <div 
-                    key={day.scan_date} 
+                    key={day.scan_date ? `${day.scan_date}-${i}` : `day-${i}`} 
                     className="flex-1 flex flex-col items-center gap-1"
                   >
                     <div 

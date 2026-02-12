@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo } from 'react';
 
 import { useTabNavigation } from '@shared/hooks/useTabNavigation';
 import { supabase } from '@shared/lib/supabase/client';
@@ -27,7 +27,6 @@ interface EmployeeTabsProps {
   renderBonusesTab: () => React.ReactNode;
   renderSalariesTab: () => React.ReactNode;
   renderLeaveTab: () => React.ReactNode;
-  renderDocumentsTab: () => React.ReactNode;
 }
 
 const EmployeeTabs: React.FC<EmployeeTabsProps> = ({
@@ -39,7 +38,6 @@ const EmployeeTabs: React.FC<EmployeeTabsProps> = ({
   renderBonusesTab,
   renderSalariesTab,
   renderLeaveTab,
-  renderDocumentsTab,
 }) => (
   <Card className="overflow-hidden">
     <Tabs value={currentTab} onValueChange={setActiveTab} className="w-full">
@@ -80,12 +78,6 @@ const EmployeeTabs: React.FC<EmployeeTabsProps> = ({
         >
             Leave
         </TabsTrigger>
-        <TabsTrigger
-          value="documents"
-          className="tabs-underline-trigger text-xs sm:text-sm md:text-base min-w-max flex-shrink-0"
-        >
-            Documents
-        </TabsTrigger>
       </TabsList>
       <div className="p-3 sm:p-4 md:p-6">
         <TabsContent value="sales" className="mt-0">
@@ -106,9 +98,6 @@ const EmployeeTabs: React.FC<EmployeeTabsProps> = ({
         <TabsContent value="leave" className="mt-0">
           {renderLeaveTab()}
         </TabsContent>
-        <TabsContent value="documents" className="mt-0">
-          {renderDocumentsTab()}
-        </TabsContent>
       </div>
     </Tabs>
   </Card>
@@ -127,10 +116,18 @@ const EmployeeContent: React.FC<EmployeesProps> = ({ selectedBranch }) => {
     },
   });
 
-  // Use URL-persisted tab navigation
+  // Use URL-persisted tab navigation (documents tab removed; HR has full document system)
   const { currentTab, setActiveTab } = useTabNavigation({
     defaultTab: 'sales',
   });
+  const effectiveTab = currentTab === 'documents' ? 'sales' : currentTab;
+
+  // Redirect legacy ?tab=documents to sales
+  useEffect(() => {
+    if (currentTab === 'documents') {
+      setActiveTab('sales');
+    }
+  }, [currentTab, setActiveTab]);
 
   // Get selectedMonth first from useEmployeeSales hook
   const {
@@ -232,7 +229,6 @@ const EmployeeContent: React.FC<EmployeesProps> = ({ selectedBranch }) => {
     renderBonusesTab,
     renderSalariesTab,
     renderLeaveTab,
-    renderDocumentsTab,
   } = useTabRenderers({
     salesInputs,
     handleSalesChange,
@@ -297,7 +293,7 @@ const EmployeeContent: React.FC<EmployeesProps> = ({ selectedBranch }) => {
       />
 
       <EmployeeTabs
-        currentTab={currentTab}
+        currentTab={effectiveTab}
         setActiveTab={setActiveTab}
         renderSalesTab={renderSalesTab}
         renderDeductionsTab={renderDeductionsTab}
@@ -305,7 +301,6 @@ const EmployeeContent: React.FC<EmployeesProps> = ({ selectedBranch }) => {
         renderBonusesTab={renderBonusesTab}
         renderSalariesTab={renderSalariesTab}
         renderLeaveTab={renderLeaveTab}
-        renderDocumentsTab={renderDocumentsTab}
       />
 
       {totalPages > 1 && (

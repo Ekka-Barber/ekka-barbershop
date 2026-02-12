@@ -54,12 +54,14 @@ const Layout = ({
             settingsPath="/owner/settings"
           />
 
-          {/* Page Content - Added safe area padding for mobile */}
-          <main className="relative z-0 flex-1 min-h-full overflow-y-auto pb-20 md:pb-6 momentum-scroll touch-action-pan-y">
+          {/* Page Content - Spacer at end keeps content above fixed bottom nav on mobile */}
+          <main className="relative z-0 flex-1 min-h-full overflow-y-auto pb-6 momentum-scroll touch-action-pan-y">
             <div className="page-shell page-padding py-4 md:py-6">
               <div className="app-surface app-rise-in">
                 {children({ selectedBranch })}
               </div>
+              {/* Fixed-height spacer so last content (e.g. Submit Sales) scrolls above bottom nav on mobile */}
+              <div aria-hidden className="h-32 shrink-0 md:h-0 md:invisible" />
             </div>
           </main>
 

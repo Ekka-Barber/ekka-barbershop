@@ -73,7 +73,7 @@ export const trackLocationClick = (branchName: string) => {
 };
 
 /**
- * Customer viewed the menu / offers content.
+ * Customer viewed the menu (opened menu dialog / sheet on customer page).
  */
 export const trackMenuView = () => {
   fireConversion('menu_view', {
@@ -82,18 +82,10 @@ export const trackMenuView = () => {
 };
 
 /**
- * Generic page-view event (useful for remarketing audiences).
- * Fired automatically by gtag config, but available for SPA route changes.
+ * Customer viewed the offers (opened offers dialog / sheet on customer page).
  */
-export const trackPageView = (pagePath: string) => {
-  try {
-    if (typeof window !== 'undefined' && window.gtag) {
-      window.gtag('event', 'page_view', {
-        page_path: pagePath,
-        send_to: AW_ID,
-      });
-    }
-  } catch {
-    // Silently handle
-  }
+export const trackOffersView = () => {
+  fireConversion('offers_view', {
+    event_category: 'engagement',
+  });
 };

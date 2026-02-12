@@ -34,12 +34,13 @@ interface BottomNavProps {
 
 export const BottomNav = ({ items = OWNER_BOTTOM_NAV_ITEMS }: BottomNavProps) => {
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-border/70 bg-background safe-area-pb md:hidden">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-border/70 bg-background pb-safe-b md:hidden">
       <div className="page-shell page-padding flex h-16 items-center justify-around">
         {items.map((item) => (
           <NavLink
             key={item.path}
             to={item.path}
+            end={item.path === '/owner'}
             className={({ isActive }) =>
               cn(
                 'flex h-full flex-1 flex-col items-center justify-center gap-1 rounded-2xl transition-colors',

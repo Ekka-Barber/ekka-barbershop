@@ -6,8 +6,7 @@ import {
   QrCode,
   Layout,
   Cog,
-  Settings as SettingsIcon,
-  ChevronRight
+  ChevronRight,
 } from 'lucide-react';
 import { Suspense, useMemo } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
@@ -59,18 +58,6 @@ const Management = () => {
           <p className="text-muted-foreground text-lg">
             Manage system configurations, branches, and high-level assets.
           </p>
-        </div>
-
-        <div className="flex items-center gap-3">
-          <div className="bg-primary/5 border border-primary/10 rounded-2xl p-4 flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
-              <SettingsIcon className="h-5 w-5" />
-            </div>
-            <div>
-              <div className="text-xs font-semibold text-primary uppercase tracking-wider">Status</div>
-              <div className="text-sm font-bold">System Optimized</div>
-            </div>
-          </div>
         </div>
       </div>
 

@@ -17,7 +17,6 @@ import {
   SalariesTab,
   SalesTab,
   LeaveTab,
-  DocumentsTab,
 } from '@/features/owner/employees/shared/LazyTabComponents';
 import { TabLoading } from '@/features/owner/employees/shared/TabLoading';
 
@@ -140,7 +139,6 @@ export const useTabRenderers = ({
   renderBonusesTab: () => React.ReactNode;
   renderSalariesTab: () => React.ReactNode;
   renderLeaveTab: () => React.ReactNode;
-  renderDocumentsTab: () => React.ReactNode;
 } => {
   const renderSalesTab = () => (
     <Suspense fallback={<TabLoading />}>
@@ -232,15 +230,6 @@ export const useTabRenderers = ({
     </Suspense>
   );
 
-  const renderDocumentsTab = () => (
-    <Suspense fallback={<TabLoading />}>
-      <DocumentsTab
-        employees={currentEmployees as Employee[]}
-        selectedMonth={selectedMonth}
-      />
-    </Suspense>
-  );
-
   return {
     renderSalesTab,
     renderDeductionsTab,
@@ -248,6 +237,5 @@ export const useTabRenderers = ({
     renderBonusesTab,
     renderSalariesTab,
     renderLeaveTab,
-    renderDocumentsTab,
   };
 };

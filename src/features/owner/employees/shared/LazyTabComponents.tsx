@@ -36,9 +36,3 @@ export const LeaveTab = lazy(() =>
     default: module.LeaveTab,
   }))
 );
-
-export const DocumentsTab = lazy(() =>
-  import('@/features/owner/employees/tabs/DocumentsTab').then((module) => ({
-    default: module.DocumentsTab,
-  }))
-);

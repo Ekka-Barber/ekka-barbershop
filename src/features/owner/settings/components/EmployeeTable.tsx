@@ -41,6 +41,7 @@ export const EmployeeTable = ({
               employee={employee}
               onEdit={onEdit}
               onDelete={onDelete}
+              forceCardLayout
             />
             {editingEmployee?.id === employee.id && (
               <div className="border rounded-lg p-4 mb-3 shadow-sm bg-card overflow-x-auto">
