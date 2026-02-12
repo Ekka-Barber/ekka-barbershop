@@ -1,11 +1,17 @@
-import { useEffect } from 'react';
+import { Suspense, useEffect } from 'react';
 import { Route, Routes, useLocation } from 'react-router-dom';
 
-import Login from '@/features/auth/pages/Login/Login';
-import { CustomerRoutes } from '@/features/customer/routes';
-import { HRRoutes } from '@/features/hr/routes';
-import { ManagerRoutes } from '@/features/manager/routes';
-import { OwnerRoutes } from '@/features/owner/routes';
+import { PageLoader } from '@shared/ui/components/shared/loaders/PageLoader';
+import { lazyWithRetry } from '@shared/utils/lazyWithRetry';
+
+// Lazy load route shells — only the matching role's code loads (saves ~200KB+ on customer visit)
+const Login = lazyWithRetry(() => import('@/features/auth/pages/Login/Login').then((m) => ({ default: m.default })));
+const CustomerRoutes = lazyWithRetry(() => import('@/features/customer/routes').then((m) => ({ default: m.CustomerRoutes })));
+const HRRoutes = lazyWithRetry(() => import('@/features/hr/routes').then((m) => ({ default: m.HRRoutes })));
+const ManagerRoutes = lazyWithRetry(() => import('@/features/manager/routes').then((m) => ({ default: m.ManagerRoutes })));
+const OwnerRoutes = lazyWithRetry(() => import('@/features/owner/routes').then((m) => ({ default: m.OwnerRoutes })));
+
+const RouteFallback = () => <PageLoader message="Loading..." />;
 
 export const AppRouter = () => {
   const location = useLocation();
@@ -24,12 +30,14 @@ export const AppRouter = () => {
   }, [location.pathname]);
 
   return (
-    <Routes>
-      <Route path="/login" element={<Login />} />
-      <Route path="/hr/*" element={<HRRoutes />} />
-      <Route path="/owner/*" element={<OwnerRoutes />} />
-      <Route path="/manager/*" element={<ManagerRoutes />} />
-      <Route path="/*" element={<CustomerRoutes />} />
-    </Routes>
+    <Suspense fallback={<RouteFallback />}>
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route path="/hr/*" element={<HRRoutes />} />
+        <Route path="/owner/*" element={<OwnerRoutes />} />
+        <Route path="/manager/*" element={<ManagerRoutes />} />
+        <Route path="/*" element={<CustomerRoutes />} />
+      </Routes>
+    </Suspense>
   );
 };

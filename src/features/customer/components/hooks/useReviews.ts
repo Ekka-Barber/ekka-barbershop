@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useState, useCallback, useRef, useEffect } from 'react';
 
+import { useRealtimeSubscription } from '@shared/hooks/useRealtimeSubscription';
 import { fetchReviewsFromDatabase, Review } from '@shared/services/reviewsService';
 import { Language } from '@shared/types/language';
 
@@ -16,6 +17,12 @@ export const useReviews = (language: Language) => {
 
   // Cache time - reviews are stored in DB, so we can cache longer
   const CACHE_STALE_TIME = 5 * 60 * 1000; // 5 minutes
+
+  // Realtime: auto-refetch when new Google reviews are synced
+  useRealtimeSubscription({
+    table: 'google_reviews',
+    queryKeys: [['google-reviews', language], ['google-reviews-all']],
+  });
 
   // Fetch reviews from database filtered by language
   const {

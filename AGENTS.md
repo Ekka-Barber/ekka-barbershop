@@ -3,7 +3,24 @@
 ## Purpose
 This document is the stable, high-level guide for working on the Ekka app. It explains the tech stack, repo layout, and coding rules. Keep it accurate and concise. Put changelogs or cleanup history in separate docs.
 
+## `/init` — Project Initialization
+
+**What `/init` means**: Running `/init` instructs the AI agent to update this `AGENTS.md` file so it accurately reflects the current state of the app. The agent will:
+
+1. Inspect the project structure, `package.json`, and config files
+2. Run verification checks (lint, typecheck, build)
+3. Update AGENTS.md with any structural, dependency, or convention changes
+4. Ensure paths, aliases, scripts, and bundle config match reality
+
+Run `/init` when onboarding, after major refactors, or when AGENTS.md feels stale.
+
 ## Build, Lint, Test
+
+**First-time setup:**
+```bash
+npm install                    # Install dependencies (workspaces: shared, ui)
+cp .env.example .env           # Add Supabase URL and anon key
+```
 
 ```bash
 npm run dev                    # Start Vite dev server
@@ -11,6 +28,7 @@ npm run build                  # Build for production
 npm run preview                # Preview production build
 npm run lint                   # ESLint (TS/TSX) - passes with 0 errors
 npx tsc --noEmit               # Type check (no output means success)
+npm run build:check            # Build + bundle size check
 ```
 
 ### Tests (Vitest, no npm script)
@@ -29,15 +47,18 @@ npm run find-unused:report     # Run knip without exit code (for CI)
 ```
 
 ## Project Overview
-- Stack: React 18 + TypeScript + Vite 7.x
-- Styling: Tailwind CSS + shadcn/ui (Radix primitives)
-- State: Zustand (global) with immer middleware + React hooks (local)
-- Data: Supabase + @tanstack/react-query
-- Routing: react-router-dom v6
-- i18n: English/Arabic in `src/i18n/translations.ts`
-- Monorepo: Workspaces in `packages/` (`shared`, `ui`)
 
-**Current State**: Cleanup complete; lint/build/tsc pass; knip clean. Use specific aliases (`@shared/*`, `@features/*`, `@app/*`) for new code. `@/` retained for contexts, assets, i18n.
+**Ekka** is a barbershop management app with role-based dashboards (Owner, Manager, HR, Customer).
+
+- **Stack**: React 18 + TypeScript + Vite 7.x
+- **Styling**: Tailwind CSS + shadcn/ui (Radix primitives)
+- **State**: Zustand (global) with immer middleware + React hooks (local)
+- **Data**: Supabase + @tanstack/react-query
+- **Routing**: react-router-dom v6
+- **i18n**: English/Arabic in `src/i18n/translations.ts`
+- **Monorepo**: Workspaces in `packages/` (`shared`, `ui`)
+
+**Current State**: lint/build/tsc pass; knip clean. Use specific aliases (`@shared/*`, `@features/*`, `@app/*`) for new code. `@/` retained for contexts, assets, i18n.
 
 ## Key Paths (Current Structure)
 - `src/app/` - App shell (providers, router, stores)
@@ -108,10 +129,9 @@ Vite aliases map `@shared/*` to `packages/shared/src/*` and `@shared/ui/*` to `p
 ## Styling
 - Tailwind utilities; use `cn()` from `@shared/lib/utils` to merge classes.
 - Variants via `class-variance-authority` (see `@shared/ui/components/button-variants.ts`).
-- Theme tokens from CSS variables in `index.css` + `tailwind.config.ts`.
+- Theme tokens from CSS variables in `src/index.css` + `tailwind.config.ts`.
 - Font stack includes `IBM Plex Sans Arabic` for `font-sans`.
 - Brand colors: `brand-primary` (#e9b353), `brand-secondary` (#4A4A4A).
-- Design tokens documented in `wrapup_plan/DESIGN_TOKENS.md` (colors, spacing, typography, animations).
 
 ## State & Data
 - Zustand store: `src/app/stores/appStore.ts` uses `devtools`, `persist`, `immer`.
@@ -173,18 +193,16 @@ const { data, isLoading, error } = useQuery({
 
 ## Bundle Optimization
 - Manual chunks configured in `vite.config.ts`:
-  - `vendor-react`: React, ReactDOM, Router
+  - `vendor-react`: React, ReactDOM, react-router-dom
   - `vendor-state`: Zustand, React Query
-  - `vendor-forms`: React Hook Form, Zod
-  - `vendor-ui`: All Radix UI packages + class-variance-authority, clsx, tailwind-merge, tailwindcss-animate, sonner
+  - `vendor-forms`: React Hook Form, @hookform/resolvers, Zod
+  - `vendor-ui`: Radix UI packages + class-variance-authority, clsx, tailwind-merge, tailwindcss-animate, sonner
   - `vendor-icons`: Lucide React
-  - `vendor-charts`: Recharts
-  - `vendor-jspdf`: jsPDF, html2canvas
   - `vendor-dnd`: @hello-pangea/dnd
   - `vendor-animation`: framer-motion
   - `vendor-dates`: date-fns, react-day-picker
   - `vendor-supabase`: Supabase packages
-- Removed dependencies (cleanup): `cmdk`, `input-otp`, `vaul`, `date-fns-tz`, `embla-carousel-react`, `react-dropzone`, `react-resizable-panels`
+- PDF libs (jsPDF, html2canvas): not in manual chunks; dynamically imported when PDF features are used.
 - Use `lazyWithRetry` for critical chunks that may fail loading.
 
 ## Security

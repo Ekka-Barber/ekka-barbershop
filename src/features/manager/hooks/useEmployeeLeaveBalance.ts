@@ -1,11 +1,17 @@
 
 import { useQuery } from "@tanstack/react-query";
 
+import { useRealtimeSubscription } from '@shared/hooks/useRealtimeSubscription';
 import { supabase } from "@shared/lib/supabase/client";
 
 import { LeaveBalance } from "@/features/manager/types/employeeHolidays";
 
 export const useEmployeeLeaveBalance = (employeeId: string) => {
+  // Realtime: auto-refetch when holidays change
+  useRealtimeSubscription({
+    table: 'employee_holidays',
+    queryKeys: [['employee_holidays', employeeId], ['employee', employeeId]],
+  });
   // Fetch employee holidays
   const { data: leaveData, isLoading: isLoadingLeave } = useQuery({
     queryKey: ['employee_holidays', employeeId],

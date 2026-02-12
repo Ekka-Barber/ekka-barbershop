@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 
+import { useRealtimeSubscription } from '@shared/hooks/useRealtimeSubscription';
 import { supabase } from "@shared/lib/supabase/client";
 import { Language } from "@shared/types/language";
 
@@ -149,6 +150,13 @@ export const usePDFFetch = (
 
     return [];
   };
+
+  // Realtime: auto-refetch when marketing files change
+  useRealtimeSubscription({
+    table: 'marketing_files',
+    queryKeys: [queryKey],
+    enabled,
+  });
 
   const { data: pdfFiles, isLoading, error } = useQuery({
     queryKey,

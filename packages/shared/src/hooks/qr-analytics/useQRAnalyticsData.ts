@@ -1,6 +1,8 @@
 
 import { useQuery } from "@tanstack/react-query";
 
+import { useRealtimeSubscription } from '@shared/hooks/useRealtimeSubscription';
+
 import { QRScanData } from "./types";
 import { fetchDailyScans, fetchTotalScanCount } from "./useDailyScans";
 import { fetchDeviceBreakdown, fetchReferrerBreakdown } from "./useDeviceBreakdown";
@@ -8,6 +10,13 @@ import { fetchRecentScans } from "./useRecentScans";
 import { fetchScanLocations } from "./useScanLocations";
 
 export function useQRAnalyticsData(selectedQrId: string | null, timeRange: string) {
+  // Realtime: auto-refetch when new scans arrive
+  useRealtimeSubscription({
+    table: 'qr_scans',
+    queryKeys: [['qrAnalytics', selectedQrId, timeRange]],
+    enabled: !!selectedQrId,
+  });
+
   return useQuery({
     queryKey: ["qrAnalytics", selectedQrId, timeRange],
     queryFn: async () => {

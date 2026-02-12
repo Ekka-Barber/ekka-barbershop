@@ -1,6 +1,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 
+import { useRealtimeSubscription } from '@shared/hooks/useRealtimeSubscription';
 import { accessCodeStorage, sessionAuth } from '@shared/lib/access-code/storage';
 import { supabase } from "@shared/lib/supabase/client";
 import type { Employee as SharedEmployee } from '@shared/types/domains';
@@ -33,6 +34,16 @@ interface BranchData {
 }
 
 export const useEmployeeData = (selectedMonth?: string, selectedBranchId?: string | null) => {
+  // Realtime: auto-refetch when employees or sales change
+  useRealtimeSubscription({
+    table: 'employees',
+    queryKeys: [['employees', selectedMonth, selectedBranchId]],
+  });
+  useRealtimeSubscription({
+    table: 'employee_sales',
+    queryKeys: [['employees', selectedMonth, selectedBranchId]],
+  });
+
   const query = useQuery({
     queryKey: ["employees", selectedMonth, selectedBranchId],
     queryFn: async (): Promise<SupabaseEmployee[]> => {

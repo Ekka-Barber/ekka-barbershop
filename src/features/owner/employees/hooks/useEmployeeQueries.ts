@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
 
 import { usePayrollData } from '@shared/hooks/usePayrollData';
+import { useRealtimeSubscription } from '@shared/hooks/useRealtimeSubscription';
 import { supabase } from '@shared/lib/supabase/client';
 
 import {
@@ -43,6 +44,12 @@ export const useEmployeeQueries = (
       if (error) throw error;
       return data || [];
     },
+  });
+
+  // Realtime: auto-refetch when employees change
+  useRealtimeSubscription({
+    table: 'employees',
+    queryKeys: [['employees', selectedBranch]],
   });
 
   const { windowStart, windowEnd } = getPayrollWindow(selectedMonth);

@@ -1,9 +1,16 @@
 import { useQuery } from '@tanstack/react-query';
 
+import { useRealtimeSubscription } from '@shared/hooks/useRealtimeSubscription';
 import { supabase } from '@shared/lib/supabase/client';
 import { SalaryPlanConfig } from '@shared/types/salary-plans';
 
 export const useSalaryPlans = () => {
+  // Realtime: auto-refetch when salary plans change
+  useRealtimeSubscription({
+    table: 'salary_plans',
+    queryKeys: [['salary_plans']],
+  });
+
   return useQuery({
     queryKey: ['salary_plans'],
     queryFn: async () => {

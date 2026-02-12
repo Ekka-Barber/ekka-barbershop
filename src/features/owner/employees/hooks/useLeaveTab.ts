@@ -1,6 +1,7 @@
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 
 import { useToast } from '@shared/hooks/use-toast';
+import { useRealtimeSubscription } from '@shared/hooks/useRealtimeSubscription';
 import { supabase } from '@shared/lib/supabase/client';
 import { logger } from '@shared/utils/logger';
 
@@ -29,6 +30,12 @@ export const useLeaveTab = (selectedMonth: string) => {
       if (error) throw error;
       return data as LeaveRecord[];
     },
+  });
+
+  // Realtime: auto-refetch when employee holidays change
+  useRealtimeSubscription({
+    table: 'employee_holidays',
+    queryKeys: [['employee-leaves', selectedMonth]],
   });
 
   // Add leave mutation

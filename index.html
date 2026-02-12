@@ -7,18 +7,24 @@
   <link rel="icon" type="image/png" href="/logo_Header/logo12-32x32.png" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <!-- Google tag (gtag.js) - Analytics + Ads (Ads only on customer routes to avoid owner/manager script errors) -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-85975JPERF"></script>
+  <!-- Google tag (gtag.js) - Deferred to after page load for better LCP/FCP -->
   <script>
     window.dataLayer = window.dataLayer || [];
     function gtag(){dataLayer.push(arguments);}
+    // Queue config immediately so events aren't lost, but defer script loading
     gtag('js', new Date());
-
     gtag('config', 'G-85975JPERF');
     var path = typeof window !== 'undefined' ? window.location.pathname : '';
     if (path !== '' && !/^\/(owner|manager)(\/|$)/.test(path)) {
       gtag('config', 'AW-11225595244');
     }
+    // Load GTM script after page is interactive (saves ~168ms main thread)
+    window.addEventListener('load', function() {
+      var s = document.createElement('script');
+      s.src = 'https://www.googletagmanager.com/gtag/js?id=G-85975JPERF';
+      s.async = true;
+      document.head.appendChild(s);
+    });
   </script>
   
   <title>Ekka Barbershop | صالون إكّه</title>
@@ -41,12 +47,12 @@
   <!-- Preconnect to external domains for faster resource loading -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="preconnect" href="https://api.mapbox.com" crossorigin>
-  <link rel="preconnect" href="https://www.googletagmanager.com" crossorigin>
   
-  <!-- Add Mapbox GL JS with defer to prevent render blocking -->
-  <script defer src='https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js'></script>
-  <link href='https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css' rel='stylesheet' />
+  <!-- Load Google Fonts from HTML (not CSS @import) to avoid render-blocking chain -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap">
+  
+  <!-- Preload LCP image (customer home logo) - discovered early for faster paint -->
+  <link rel="preload" href="/logo_Header/header11.svg" as="image" type="image/svg+xml" fetchpriority="high">
   
   <!-- Set language and direction with JavaScript -->
   <script>

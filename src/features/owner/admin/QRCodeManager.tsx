@@ -4,6 +4,7 @@ import { Loader2, PieChart, QrCode } from "lucide-react";
 import { Suspense, useState, useEffect } from "react";
 
 import { useIsMobile } from "@shared/hooks/use-mobile";
+import { useRealtimeSubscription } from "@shared/hooks/useRealtimeSubscription";
 import { supabase } from "@shared/lib/supabase/client";
 import { Button } from "@shared/ui/components/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@shared/ui/components/tabs";
@@ -37,6 +38,9 @@ const QRCodeManager = () => {
   useEffect(() => {
     // Mobile state tracking - no console output needed
   }, [isMobile]);
+
+  // Realtime: auto-refetch when QR codes change
+  useRealtimeSubscription({ table: 'qr_codes', queryKeys: [['qrCodes']] });
 
   const { data: qrCodes, isLoading, error: fetchError } = useQuery({
     queryKey: ["qrCodes"],

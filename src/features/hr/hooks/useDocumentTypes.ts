@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
+import { useRealtimeSubscription } from '@shared/hooks/useRealtimeSubscription';
 import { queryKeys } from '@shared/lib/query-keys';
 import { supabase } from '@shared/lib/supabase/client';
 import type { DocumentTypeConfig } from '@shared/types/hr.types';
@@ -9,6 +10,15 @@ import type { DocumentTypeConfig } from '@shared/types/hr.types';
  * Returns active document types sorted by display_order
  */
 export const useDocumentTypes = (includeInactive = false) => {
+  // Realtime: auto-refetch when document types change
+  useRealtimeSubscription({
+    table: 'document_types',
+    queryKeys: [
+      queryKeys.hr.documentTypes(true) as unknown as readonly unknown[],
+      queryKeys.hr.documentTypes(false) as unknown as readonly unknown[],
+    ],
+  });
+
   return useQuery({
     queryKey: queryKeys.hr.documentTypes(includeInactive),
     queryFn: async () => {

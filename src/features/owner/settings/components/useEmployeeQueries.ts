@@ -1,8 +1,14 @@
 import { useQuery } from '@tanstack/react-query';
 
+import { useRealtimeSubscription } from '@shared/hooks/useRealtimeSubscription';
 import { supabase } from '@shared/lib/supabase/client';
 
 export const useEmployeeQueries = () => {
+  // Realtime: auto-refetch when core tables change
+  useRealtimeSubscription({ table: 'employees', queryKeys: [['employees']] });
+  useRealtimeSubscription({ table: 'branches', queryKeys: [['branches']] });
+  useRealtimeSubscription({ table: 'salary_plans', queryKeys: [['salary_plans']] });
+  useRealtimeSubscription({ table: 'sponsors', queryKeys: [['sponsors']] });
   const { data: employees, refetch: refetchEmployees } = useQuery({
     queryKey: ['employees'],
     queryFn: async () => {

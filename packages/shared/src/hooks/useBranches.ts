@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useEffect } from 'react';
 
 import { TIME } from '@shared/constants/time';
+import { useRealtimeSubscription } from '@shared/hooks/useRealtimeSubscription';
 import { queryKeys } from '@shared/lib/query-keys';
 import { supabase } from '@shared/lib/supabase/client';
 
@@ -42,6 +43,12 @@ export const useBranches = () => {
   useEffect(() => {
     setLoadingBranches(isLoading);
   }, [isLoading, setLoadingBranches]);
+
+  // Realtime: auto-refetch when branches change in the database
+  useRealtimeSubscription({
+    table: 'branches',
+    queryKeys: [queryKeys.branches()],
+  });
 
   return {
     data: queriedBranches,

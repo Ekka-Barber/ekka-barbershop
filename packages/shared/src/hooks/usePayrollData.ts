@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
 
+import { useRealtimeSubscription } from '@shared/hooks/useRealtimeSubscription';
 import { queryKeys } from '@shared/lib/query-keys';
 import { getPayrollWindow } from '@shared/lib/salary/calculations';
 import { supabase } from '@shared/lib/supabase/client';
@@ -71,6 +72,17 @@ export const usePayrollData = ({
     [employeeNames]
   );
   const { windowStartDate, windowEndDate } = getPayrollWindow(monthKey);
+
+  // Realtime: auto-refetch when any payroll-related table changes
+  const payrollQueryKey = queryKeys.payroll({
+    month: monthKey,
+    employeeIds: normalizedEmployeeIds,
+    employeeNames: normalizedEmployeeNames,
+  });
+  useRealtimeSubscription({ table: 'employee_sales', queryKeys: [payrollQueryKey] });
+  useRealtimeSubscription({ table: 'employee_deductions', queryKeys: [payrollQueryKey] });
+  useRealtimeSubscription({ table: 'employee_loans', queryKeys: [payrollQueryKey] });
+  useRealtimeSubscription({ table: 'employee_bonuses', queryKeys: [payrollQueryKey] });
 
   return useQuery({
     queryKey: queryKeys.payroll({

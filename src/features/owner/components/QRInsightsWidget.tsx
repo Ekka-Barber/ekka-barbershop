@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
+import { useRealtimeSubscription } from '@shared/hooks/useRealtimeSubscription';
 import { supabase } from '@shared/lib/supabase/client';
 import { cn } from '@shared/lib/utils';
 import { Card, CardContent, CardHeader, CardTitle } from '@shared/ui/components/card';
@@ -31,6 +32,12 @@ interface QRCode {
 }
 
 export function QRInsightsWidget() {
+  // Realtime: auto-refetch when QR codes or scans change
+  useRealtimeSubscription({
+    table: 'qr_scans',
+    queryKeys: [['qrScans', 'dashboard', 'stats'], ['qrCodes', 'dashboard']],
+  });
+
   // Fetch all QR codes
   const { data: qrCodes = [] } = useQuery<QRCode[]>({
     queryKey: ['qrCodes', 'dashboard'],

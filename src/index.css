@@ -1,5 +1,5 @@
-/* Import IBM Plex Sans Arabic font */
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@100;200;300;400;500;600;700&display=swap');
+/* IBM Plex Sans Arabic — loaded from <link> in index.html to avoid render-blocking @import chain.
+   Do NOT add @import url(...) here; CSS @import blocks rendering until the font CSS is fetched. */
 
 /* Import print styles for performance reports */
 @import './styles/print.css';

@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
+import { useRealtimeSubscription } from '@shared/hooks/useRealtimeSubscription';
 import { supabase } from '@shared/lib/supabase/client';
 import type {
   DocumentFormData,
@@ -20,6 +21,12 @@ const QUERY_KEY_SPONSORS = ['hr-sponsors'] as const;
 
 export const useEmployeeManagement = () => {
   const queryClient = useQueryClient();
+
+  // Realtime: auto-refetch when employees change
+  useRealtimeSubscription({
+    table: 'employees',
+    queryKeys: [QUERY_KEY_EMPLOYEES as unknown as readonly unknown[], QUERY_KEY_EMPLOYEES_ARCHIVED as unknown as readonly unknown[]],
+  });
 
   const employeesQuery = useQuery({
     queryKey: QUERY_KEY_EMPLOYEES,
@@ -152,6 +159,12 @@ export const useEmployeeManagement = () => {
 export const useDocumentManagement = () => {
   const queryClient = useQueryClient();
 
+  // Realtime: auto-refetch when documents change
+  useRealtimeSubscription({
+    table: 'employee_documents',
+    queryKeys: [['hr-documents']],
+  });
+
   const documentsQuery = useQuery({
     queryKey: QUERY_KEY_DOCUMENTS,
     queryFn: async () => {
@@ -233,6 +246,12 @@ export const useDocumentManagement = () => {
 
 export const useSponsorManagement = () => {
   const queryClient = useQueryClient();
+
+  // Realtime: auto-refetch when sponsors change
+  useRealtimeSubscription({
+    table: 'sponsors',
+    queryKeys: [['hr-sponsors']],
+  });
 
   const sponsorsQuery = useQuery({
     queryKey: QUERY_KEY_SPONSORS,

@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 
+import { useRealtimeSubscription } from '@shared/hooks/useRealtimeSubscription';
 import { supabase } from '@shared/lib/supabase/client';
 import { updateData, insertData } from '@shared/lib/supabase-helpers';
 import type { Branch, BranchFormData } from '@shared/types/branch';
@@ -32,6 +33,9 @@ export const useBranchManagement = () => {
       return data as Branch[];
     },
   });
+
+  // Realtime: auto-refetch when branches change
+  useRealtimeSubscription({ table: 'branches', queryKeys: [['branches']] });
 
   // Get selected branch
   const selectedBranch = selectedBranchId && branches 

@@ -6,7 +6,7 @@ import { errorHandler } from '@shared/services/errorHandler';
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 5 * TIME.SECONDS_PER_MINUTE * TIME.SECOND_IN_MS, // 5 minutes
+      staleTime: 30 * TIME.SECOND_IN_MS, // 30s — realtime subscriptions invalidate on DB change
       gcTime: 10 * TIME.SECONDS_PER_MINUTE * TIME.SECOND_IN_MS, // 10 minutes
       retry: (failureCount, error) => {
         // Log error through our error handler

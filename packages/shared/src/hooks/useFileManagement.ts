@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 
+import { useRealtimeSubscription } from '@shared/hooks/useRealtimeSubscription';
 import { supabase } from "@shared/lib/supabase/client";
 import { FileMetadata, FilePreview } from '@shared/types/admin';
 
@@ -52,6 +53,12 @@ export const useFileManagement = () => {
       if (error) throw error;
       return data as FileMetadata[];
     }
+  });
+
+  // Realtime: auto-refetch when marketing files change
+  useRealtimeSubscription({
+    table: 'marketing_files',
+    queryKeys: [['marketing-files']],
   });
 
   const mutations = useFileMutations(setUploading, setFilePreview, resetUploadState);
