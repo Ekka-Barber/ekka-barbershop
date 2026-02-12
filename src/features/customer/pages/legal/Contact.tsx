@@ -7,6 +7,7 @@ import { LegalPageLayout } from '@features/customer/components/legal/LegalPageLa
 import { motion } from '@shared/lib/motion';
 import { supabase } from '@shared/lib/supabase/client';
 import type { Branch } from '@shared/types/domains';
+import { trackWhatsAppClick, trackLocationClick } from '@shared/utils/gadsTracking';
 
 import { useLanguage } from '@/contexts/LanguageContext';
 
@@ -28,12 +29,14 @@ const Contact: React.FC = () => {
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
-  const handleWhatsAppClick = (phoneNumber: string) => {
+  const handleWhatsAppClick = (phoneNumber: string, branchName?: string) => {
+    trackWhatsAppClick(branchName ?? 'unknown');
     const message = encodeURIComponent("Hello, I'd like to book an appointment");
     window.open(`https://wa.me/${phoneNumber}?text=${message}`, '_blank');
   };
 
-  const handleMapsClick = (mapsUrl: string) => {
+  const handleMapsClick = (mapsUrl: string, branchName?: string) => {
+    trackLocationClick(branchName ?? 'unknown');
     window.open(mapsUrl, '_blank');
   };
 
@@ -139,7 +142,7 @@ const Contact: React.FC = () => {
                       <div className="flex gap-3">
                         {hasWhatsApp ? (
                           <button
-                            onClick={() => handleWhatsAppClick(branch.whatsapp_number!)}
+                            onClick={() => handleWhatsAppClick(branch.whatsapp_number!, branch.name)}
                             className="flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition-colors"
                           >
                             <Phone className="w-4 h-4" />
@@ -157,7 +160,7 @@ const Contact: React.FC = () => {
                         )}
                         {hasMaps ? (
                           <button
-                            onClick={() => handleMapsClick(branch.google_maps_url!)}
+                            onClick={() => handleMapsClick(branch.google_maps_url!, branch.name)}
                             className="flex items-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg transition-colors"
                           >
                             <ExternalLink className="w-4 h-4" />

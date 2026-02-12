@@ -2,6 +2,7 @@ import { useState } from 'react';
 
 import { Branch } from "@shared/types/branch";
 import { useToast } from "@shared/ui/components/use-toast";
+import { trackBookingClick, trackLocationClick } from "@shared/utils/gadsTracking";
 import { trackButtonClick, trackLocationView } from "@shared/utils/tiktokTracking";
 
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -26,6 +27,9 @@ export const useDialogState = (branches: Branch[] | undefined) => {
       const selectedBranch = branches.find(branch => branch.id === branchId);
 
       if (selectedBranch) {
+        // Google Ads conversion: booking click
+        trackBookingClick(selectedBranch.name);
+
         // Use branch IDs instead of hard-coded names for better maintainability
         if (selectedBranch.id === "4b11ca76-a282-4a14-947b-0fad49239d3b") {
           // Ash-Sharai branch
@@ -65,6 +69,9 @@ export const useDialogState = (branches: Branch[] | undefined) => {
       const selectedBranch = branches.find(branch => branch.id === branchId);
 
       if (selectedBranch) {
+        // Google Ads conversion: booking click
+        trackBookingClick(selectedBranch.name);
+
         // Use branch IDs instead of hard-coded names for better maintainability
         if (selectedBranch.id === "4b11ca76-a282-4a14-947b-0fad49239d3b") {
           // Ash-Sharai branch
@@ -104,6 +111,9 @@ export const useDialogState = (branches: Branch[] | undefined) => {
       const selectedBranch = branches.find(branch => branch.id === branchId);
 
       if (selectedBranch) {
+        // Google Ads conversion: booking click
+        trackBookingClick(selectedBranch.name);
+
         // Use branch IDs instead of hard-coded names for better maintainability
         if (selectedBranch.id === "4b11ca76-a282-4a14-947b-0fad49239d3b") {
           // Ash-Sharai branch
@@ -132,8 +142,10 @@ export const useDialogState = (branches: Branch[] | undefined) => {
     });
   };
 
-  const handleLocationClick = (url: string | null) => {
+  const handleLocationClick = (url: string | null, branchName?: string) => {
     if (url) {
+      // Google Ads conversion: location click
+      trackLocationClick(branchName ?? 'unknown');
       window.open(url, '_blank');
     }
   };

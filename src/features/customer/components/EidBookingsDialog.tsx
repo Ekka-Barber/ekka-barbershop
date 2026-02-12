@@ -12,8 +12,8 @@ import {
   SheetDescription,
 } from "@shared/ui/components/sheet";
 
-import { useLanguage } from "@/contexts/LanguageContext";
 import freshLogoWhite from "@/assets/fresh-logo-white.svg";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 
 interface EidBookingsDialogProps {

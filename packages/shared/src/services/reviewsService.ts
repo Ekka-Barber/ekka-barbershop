@@ -55,27 +55,3 @@ export async function fetchReviewsFromDatabase(language: 'ar' | 'en'): Promise<R
   }
 }
 
-/**
- * Triggers review sync from Google Places API
- * 
- * ⚠️ SECURITY WARNING: This function should NOT be exposed to public frontend code.
- * It calls an expensive Google Places API endpoint and should only be used:
- * - Server-side (e.g., in admin API routes)
- * - Behind admin authentication
- * - Via scheduled cron jobs
- * 
- * For production use, implement proper access control or remove this export
- * and call the edge function directly from server-side code only.
- */
-export async function syncReviewsFromGoogle(): Promise<{ success: boolean; message: string }> {
-  const { data, error } = await supabase.functions.invoke('sync-reviews');
-
-  if (error) {
-    throw error;
-  }
-
-  return {
-    success: data?.success || false,
-    message: data?.message || `Synced ${data?.synced || 0} reviews from ${data?.branches || 0} branches`,
-  };
-}
