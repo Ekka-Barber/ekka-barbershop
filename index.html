@@ -15,7 +15,7 @@
     gtag('js', new Date());
     gtag('config', 'G-85975JPERF');
     var path = typeof window !== 'undefined' ? window.location.pathname : '';
-    if (path !== '' && !/^\/(owner|manager)(\/|$)/.test(path)) {
+    if (path !== '' && !/^\/(owner|manager|hr)(\/|$)/.test(path)) {
       gtag('config', 'AW-11225595244');
     }
     // Load GTM script after page is interactive (saves ~168ms main thread)
