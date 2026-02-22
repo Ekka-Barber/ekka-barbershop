@@ -789,6 +789,110 @@ export type Database = {
         }
         Relationships: []
       }
+      insurance_companies: {
+        Row: {
+          id: string
+          name: string
+          contact_phone: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          contact_phone?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          contact_phone?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      insurance_hospitals: {
+        Row: {
+          id: string
+          company_id: string
+          name: string
+          city: string
+          google_maps_url: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          company_id: string
+          name: string
+          city: string
+          google_maps_url?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          company_id?: string
+          name?: string
+          city?: string
+          google_maps_url?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "insurance_hospitals_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "insurance_companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      employee_insurance: {
+        Row: {
+          id: string
+          employee_id: string
+          company_id: string
+          expiry_date: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          employee_id: string
+          company_id: string
+          expiry_date: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          employee_id?: string
+          company_id?: string
+          expiry_date?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_insurance_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: true
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_insurance_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "insurance_companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sponsors: {
         Row: {
           cr_number: string
@@ -815,6 +919,111 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
+      }
+      sponsor_document_types: {
+        Row: {
+          id: string
+          code: string
+          name_en: string
+          name_ar: string
+          description: string | null
+          is_active: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          code: string
+          name_en: string
+          name_ar: string
+          description?: string | null
+          is_active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          code?: string
+          name_en?: string
+          name_ar?: string
+          description?: string | null
+          is_active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      sponsor_documents: {
+        Row: {
+          id: string
+          sponsor_id: string
+          document_type_id: string
+          file_url: string
+          file_name: string
+          file_size: number | null
+          mime_type: string | null
+          issue_date: string
+          expiry_date: string
+          duration_months: number
+          notification_threshold_days: number
+          notes: string | null
+          is_active: boolean
+          uploaded_by: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          sponsor_id: string
+          document_type_id: string
+          file_url: string
+          file_name: string
+          file_size?: number | null
+          mime_type?: string | null
+          issue_date: string
+          expiry_date: string
+          duration_months?: number
+          notification_threshold_days?: number
+          notes?: string | null
+          is_active?: boolean
+          uploaded_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          sponsor_id?: string
+          document_type_id?: string
+          file_url?: string
+          file_name?: string
+          file_size?: number | null
+          mime_type?: string | null
+          issue_date?: string
+          expiry_date?: string
+          duration_months?: number
+          notification_threshold_days?: number
+          notes?: string | null
+          is_active?: boolean
+          uploaded_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sponsor_documents_sponsor_id_fkey"
+            columns: ["sponsor_id"]
+            isOneToOne: false
+            referencedRelation: "sponsors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sponsor_documents_document_type_id_fkey"
+            columns: ["document_type_id"]
+            isOneToOne: false
+            referencedRelation: "sponsor_document_types"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       ui_elements: {
         Row: {

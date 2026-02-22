@@ -57,6 +57,22 @@ export const queryKeys = {
       [...queryKeys.all, 'hr', 'documents', filters] as const,
     sponsors: (filters?: HRSponsorFilters) =>
       [...queryKeys.all, 'hr', 'sponsors', filters] as const,
+    insuranceCompanies: () =>
+      [...queryKeys.all, 'hr', 'insurance-companies'] as const,
+    insuranceHospitals: (companyId?: string, city?: string) =>
+      [...queryKeys.all, 'hr', 'insurance-hospitals', { companyId, city }] as const,
+    employeeInsurance: (employeeId?: string) =>
+      [...queryKeys.all, 'hr', 'employee-insurance', employeeId] as const,
+    expiringInsurance: (daysThreshold?: number) =>
+      [...queryKeys.all, 'hr', 'expiring-insurance', daysThreshold] as const,
+    sponsorDocumentTypes: (includeInactive?: boolean) =>
+      [...queryKeys.all, 'hr', 'sponsor-document-types', includeInactive] as const,
+    sponsorDocuments: (filters?: HRSponsorDocumentFilters) =>
+      [...queryKeys.all, 'hr', 'sponsor-documents', filters] as const,
+    sponsorDocument: (id: string) =>
+      [...queryKeys.all, 'hr', 'sponsor-documents', 'detail', id] as const,
+    expiringSponsorDocuments: (daysThreshold?: number) =>
+      [...queryKeys.all, 'hr', 'expiring-sponsor-documents', daysThreshold] as const,
   },
 };
 
@@ -114,6 +130,12 @@ interface HRSponsorFilters {
   search?: string;
 }
 
+interface HRSponsorDocumentFilters {
+  sponsorId?: string;
+  status?: 'valid' | 'expiring_soon' | 'expired';
+  documentTypeId?: string;
+}
+
 // Export types for use in other files
 export type {
   EmployeeFilters,
@@ -124,4 +146,5 @@ export type {
   HREmployeeFilters,
   HRDocumentFilters,
   HRSponsorFilters,
+  HRSponsorDocumentFilters,
 };

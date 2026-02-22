@@ -3,10 +3,12 @@ import {
   Archive,
   FileClock,
   FileText,
+  HeartPulse,
   Search,
   ShieldCheck,
   UserPlus,
   Users,
+  FileCheck,
 } from 'lucide-react';
 import { useEffect, useMemo, useState, useTransition } from 'react';
 import { useSearchParams } from 'react-router-dom';
@@ -14,6 +16,7 @@ import { toast } from 'sonner';
 
 import { useBranches } from '@shared/hooks/useBranches';
 import { motion, useReducedMotion } from '@shared/lib/motion';
+import type { SponsorDocumentWithStatus } from '@shared/types/domains';
 import type {
   DocumentFormData,
   DocumentUpdatePayload,
@@ -42,6 +45,13 @@ import {
   useEmployeeManagement,
   useSponsorManagement,
 } from '../hooks/useHRManagement';
+import { useExpiringInsurance } from '../hooks/useInsuranceManagement';
+import {
+  useExpiringSponsorDocuments,
+  useSponsorDocumentTypes,
+  useSponsorDocumentsWithStatus,
+} from '../hooks/useSponsorDocuments';
+import type { SponsorDocumentFormData } from '../hooks/useSponsorDocuments';
 
 import { DocumentForm } from './components/DocumentForm';
 import { DocumentList } from './components/DocumentList';
@@ -50,11 +60,12 @@ import { EmployeeTable } from './components/EmployeeTable';
 import { SponsorForm } from './components/SponsorForm';
 import { SponsorTable } from './components/SponsorTable';
 import { DocumentTypesSettings } from './DocumentTypesSettings';
+import { InsuranceManagement } from './InsuranceManagement';
 
-type HRTab = 'employees' | 'documents' | 'sponsors' | 'settings';
+type HRTab = 'employees' | 'documents' | 'sponsors' | 'insurance' | 'settings';
 
 const isHRTab = (value: string | null): value is HRTab => {
-  return value === 'employees' || value === 'documents' || value === 'sponsors' || value === 'settings';
+  return value === 'employees' || value === 'documents' || value === 'sponsors' || value === 'insurance' || value === 'settings';
 };
 
 const getActiveTab = (tab: string | null): HRTab => {
@@ -129,6 +140,16 @@ export const HRManagement = () => {
     updateSponsor,
     deleteSponsor,
   } = useSponsorManagement();
+
+  const { expiringQuery: expiringInsuranceQuery } = useExpiringInsurance(30);
+  const { data: expiringSponsorDocs = [] } = useExpiringSponsorDocuments(30);
+
+  const { data: sponsorDocTypes = [] } = useSponsorDocumentTypes();
+  const {
+    documentsQuery: sponsorDocsQuery,
+    createDocument: createSponsorDoc,
+    deleteDocument: deleteSponsorDoc,
+  } = useSponsorDocumentsWithStatus();
 
   const employees = useMemo(() => employeesQuery.data ?? [], [employeesQuery.data]);
   const archivedEmployees = useMemo(
@@ -341,6 +362,32 @@ const handleTabChange = (nextTab: string) => {
     }
   };
 
+  const handleSponsorDocUpload = async (sponsorId: string, formData: FormData) => {
+    try {
+      const docFormData: SponsorDocumentFormData = {
+        sponsor_id: sponsorId,
+        document_type_id: formData.get('document_type_id') as string,
+        file: formData.get('file') as File,
+        issue_date: formData.get('issue_date') as string,
+        expiry_date: formData.get('expiry_date') as string,
+        duration_months: Number(formData.get('duration_months')) || 12,
+      };
+      await createSponsorDoc.mutateAsync(docFormData);
+      toast.success('تم رفع المستند بنجاح.');
+    } catch {
+      toast.error('تعذر رفع المستند.');
+    }
+  };
+
+  const handleSponsorDocDelete = async (doc: SponsorDocumentWithStatus) => {
+    try {
+      await deleteSponsorDoc.mutateAsync(doc);
+      toast.success('تم حذف المستند بنجاح.');
+    } catch {
+      toast.error('تعذر حذف المستند.');
+    }
+  };
+
   const summaryCards: Array<{
     id: string;
     label: string;
@@ -383,6 +430,20 @@ const handleTabChange = (nextTab: string) => {
       icon: ShieldCheck,
       tone: 'from-[#eef4ff] to-[#f9fbff] text-[#2d4f8f]',
     },
+    {
+      id: 'expiring-insurance',
+      label: 'تأمين ينتهي خلال 30 يوما',
+      value: expiringInsuranceQuery.data?.length ?? 0,
+      icon: HeartPulse,
+      tone: 'from-[#fce7f3] to-[#fdf2f8] text-[#be185d]',
+    },
+    {
+      id: 'expiring-sponsor-docs',
+      label: 'مستندات كفلاء تنتهي قريبا',
+      value: expiringSponsorDocs.length,
+      icon: FileCheck,
+      tone: 'from-[#e0f2fe] to-[#f0f9ff] text-[#0369a1]',
+    },
   ];
 
   return (
@@ -416,7 +477,7 @@ const handleTabChange = (nextTab: string) => {
               </Badge>
             </div>
 
-            <div className="grid grid-cols-2 gap-3 xl:grid-cols-5">
+            <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-7">
               {summaryCards.map((card, index) => {
                 const CardIcon = card.icon;
 
@@ -448,7 +509,7 @@ const handleTabChange = (nextTab: string) => {
       </Card>
 
       <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-4">
-        <TabsList className="grid h-auto w-full grid-cols-3 rounded-2xl bg-[#2f261b] p-1.5">
+        <TabsList className="grid h-auto w-full grid-cols-4 rounded-2xl bg-[#2f261b] p-1.5">
           <TabsTrigger
             value="employees"
             className="flex items-center gap-2 rounded-xl py-2.5 text-xs font-medium text-[#f8e9d0] data-[state=active]:bg-white data-[state=active]:text-[#2f261b] sm:text-sm"
@@ -469,6 +530,13 @@ const handleTabChange = (nextTab: string) => {
           >
             <ShieldCheck className="h-4 w-4" />
             إدارة الكفلاء
+          </TabsTrigger>
+          <TabsTrigger
+            value="insurance"
+            className="flex items-center gap-2 rounded-xl py-2.5 text-xs font-medium text-[#f8e9d0] data-[state=active]:bg-white data-[state=active]:text-[#2f261b] sm:text-sm"
+          >
+            <HeartPulse className="h-4 w-4" />
+            التأمين الطبي
           </TabsTrigger>
         </TabsList>
 
@@ -632,7 +700,22 @@ const handleTabChange = (nextTab: string) => {
             }}
             onDelete={handleSponsorDelete}
             isLoading={isSponsorLoading || deleteSponsor.isPending}
+            documentTypes={sponsorDocTypes}
+            getDocumentsForSponsor={(sponsorId) => {
+              const docs = sponsorDocsQuery.data ?? [];
+              return docs.filter((d) => d.sponsor_id === sponsorId);
+            }}
+            onUploadDocument={handleSponsorDocUpload}
+            onDeleteDocument={handleSponsorDocDelete}
+            isUploading={createSponsorDoc.isPending}
           />
+        </TabsContent>
+
+        <TabsContent
+          value="insurance"
+          className="mt-0 space-y-4 data-[state=active]:animate-in data-[state=active]:fade-in-0 data-[state=active]:slide-in-from-bottom-1 data-[state=active]:duration-300"
+        >
+          <InsuranceManagement />
         </TabsContent>
 
         <TabsContent

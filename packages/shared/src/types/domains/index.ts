@@ -74,6 +74,23 @@ export type SponsorUpdate = {
   updated_at?: string;
 };
 
+export type SponsorDocumentType = Database['public']['Tables']['sponsor_document_types']['Row'];
+export type SponsorDocumentTypeInsert = Database['public']['Tables']['sponsor_document_types']['Insert'];
+export type SponsorDocumentTypeUpdate = Database['public']['Tables']['sponsor_document_types']['Update'];
+
+export type SponsorDocument = Database['public']['Tables']['sponsor_documents']['Row'];
+export type SponsorDocumentInsert = Database['public']['Tables']['sponsor_documents']['Insert'];
+export type SponsorDocumentUpdate = Database['public']['Tables']['sponsor_documents']['Update'];
+
+export interface SponsorDocumentWithType extends SponsorDocument {
+  document_type: SponsorDocumentType;
+}
+
+export interface SponsorDocumentWithStatus extends SponsorDocumentWithType {
+  days_remaining: number | null;
+  status: 'valid' | 'expiring_soon' | 'expired';
+}
+
 // ============================================================================
 // BRANCH DOMAIN TYPES
 // ============================================================================
@@ -94,6 +111,30 @@ export type BranchManagerUpdate =
 // ============================================================================
 
 export type SalaryPlan = Database['public']['Tables']['salary_plans']['Row'];
+
+// ============================================================================
+// INSURANCE DOMAIN TYPES
+// ============================================================================
+
+export type InsuranceCompany = Database['public']['Tables']['insurance_companies']['Row'];
+export type InsuranceCompanyInsert = Database['public']['Tables']['insurance_companies']['Insert'];
+export type InsuranceCompanyUpdate = Database['public']['Tables']['insurance_companies']['Update'];
+
+export type InsuranceHospital = Database['public']['Tables']['insurance_hospitals']['Row'];
+export type InsuranceHospitalInsert = Database['public']['Tables']['insurance_hospitals']['Insert'];
+export type InsuranceHospitalUpdate = Database['public']['Tables']['insurance_hospitals']['Update'];
+
+export type EmployeeInsurance = Database['public']['Tables']['employee_insurance']['Row'];
+export type EmployeeInsuranceInsert = Database['public']['Tables']['employee_insurance']['Insert'];
+export type EmployeeInsuranceUpdate = Database['public']['Tables']['employee_insurance']['Update'];
+
+export interface EmployeeInsuranceWithCompany extends EmployeeInsurance {
+  company: InsuranceCompany;
+}
+
+export interface InsuranceHospitalWithCompany extends InsuranceHospital {
+  company: InsuranceCompany;
+}
 
 // ============================================================================
 // TRANSACTION DOMAIN TYPES
