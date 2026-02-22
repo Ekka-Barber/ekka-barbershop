@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import {
   AlertTriangle,
   ChevronDown,
@@ -11,6 +10,7 @@ import {
   FileUp,
   Trash2,
 } from 'lucide-react';
+import { useState } from 'react';
 
 import { motion, AnimatePresence, useReducedMotion } from '@shared/lib/motion';
 import type { SponsorDocumentType, SponsorDocumentWithStatus } from '@shared/types/domains';

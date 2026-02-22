@@ -1,12 +1,10 @@
-import { ArrowRight, Building2, FileClock, HeartPulse, Phone, Plus, Search } from 'lucide-react';
+import { HeartPulse, Phone, Plus, Search } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
 import type { InsuranceCompany, InsuranceHospital } from '@shared/types/domains';
-import { Badge } from '@shared/ui/components/badge';
 import { Button } from '@shared/ui/components/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@shared/ui/components/card';
-import { Input } from '@shared/ui/components/input';
+import { Card, CardContent } from '@shared/ui/components/card';
 import {
   Dialog,
   DialogContent,
@@ -14,6 +12,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@shared/ui/components/dialog';
+import { Input } from '@shared/ui/components/input';
 
 import {
   useBranchCities,
@@ -21,12 +20,12 @@ import {
   useInsuranceHospitals,
 } from '../hooks/useInsuranceManagement';
 
+import { HospitalForm } from './components/HospitalForm';
+import type { HospitalFormData } from './components/HospitalForm';
+import { HospitalTable } from './components/HospitalTable';
+import { InsuranceCompaniesTable } from './components/InsuranceCompaniesTable';
 import type { InsuranceCompanyFormData } from './components/InsuranceCompanyForm';
 import { InsuranceCompanyForm } from './components/InsuranceCompanyForm';
-import { InsuranceCompaniesTable } from './components/InsuranceCompaniesTable';
-import type { HospitalFormData } from './components/HospitalForm';
-import { HospitalForm } from './components/HospitalForm';
-import { HospitalTable } from './components/HospitalTable';
 
 export const InsuranceManagement: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -54,14 +53,14 @@ export const InsuranceManagement: React.FC = () => {
 
   const filteredCompanies = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
-    if (!query) return companies;
+    if (!query) return companiesQuery.data ?? [];
 
-    return companies.filter(
+    return (companiesQuery.data ?? []).filter(
       (company) =>
         company.name.toLowerCase().includes(query) ||
         company.contact_phone?.toLowerCase().includes(query)
     );
-  }, [companies, searchQuery]);
+  }, [companiesQuery.data, searchQuery]);
 
   useEffect(() => {
     if (!selectedCompany) return;

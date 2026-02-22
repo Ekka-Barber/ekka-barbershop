@@ -16,26 +16,32 @@ export type Database = {
     Tables: {
       branch_managers: {
         Row: {
-          access_code: string
+          access_code: string | null
+          access_code_hash: string | null
           branch_id: string
           created_at: string
           id: string
+          is_super_manager: boolean
           name: string
           updated_at: string
         }
         Insert: {
-          access_code: string
+          access_code?: string | null
+          access_code_hash?: string | null
           branch_id: string
           created_at?: string
           id?: string
+          is_super_manager?: boolean
           name: string
           updated_at?: string
         }
         Update: {
-          access_code?: string
+          access_code?: string | null
+          access_code_hash?: string | null
           branch_id?: string
           created_at?: string
           id?: string
+          is_super_manager?: boolean
           name?: string
           updated_at?: string
         }
@@ -56,7 +62,6 @@ export type Database = {
           created_at: string
           google_maps_url: string | null
           google_place_id: string | null
-          google_places_api_key: string | null
           id: string
           is_main: boolean | null
           name: string
@@ -70,7 +75,6 @@ export type Database = {
           created_at?: string
           google_maps_url?: string | null
           google_place_id?: string | null
-          google_places_api_key?: string | null
           id?: string
           is_main?: boolean | null
           name: string
@@ -84,7 +88,6 @@ export type Database = {
           created_at?: string
           google_maps_url?: string | null
           google_place_id?: string | null
-          google_places_api_key?: string | null
           id?: string
           is_main?: boolean | null
           name?: string
@@ -561,24 +564,24 @@ export type Database = {
           },
         ]
       }
-      hr_access: {
+hr_access: {
         Row: {
           access_code: string | null
-          access_code_hash: string
+          access_code_hash: string | null
           created_at: string | null
           id: string
           updated_at: string | null
         }
         Insert: {
           access_code?: string | null
-          access_code_hash: string
+          access_code_hash?: string | null
           created_at?: string | null
           id?: string
           updated_at?: string | null
         }
         Update: {
           access_code?: string | null
-          access_code_hash?: string
+          access_code_hash?: string | null
           created_at?: string | null
           id?: string
           updated_at?: string | null
@@ -658,21 +661,24 @@ export type Database = {
           },
         ]
       }
-      owner_access: {
+owner_access: {
         Row: {
-          access_code: string
+          access_code: string | null
+          access_code_hash: string | null
           created_at: string
           id: string
           updated_at: string
         }
         Insert: {
-          access_code: string
+          access_code?: string | null
+          access_code_hash?: string | null
           created_at?: string
           id?: string
           updated_at?: string
         }
         Update: {
-          access_code?: string
+          access_code?: string | null
+          access_code_hash?: string | null
           created_at?: string
           id?: string
           updated_at?: string
@@ -1320,9 +1326,22 @@ export type Database = {
           year: number
         }[]
       }
-      get_employee_with_aggregated_json: {
+get_employee_with_aggregated_json: {
         Args: { p_employee_id: string }
         Returns: Json
+      }
+      get_current_manager_branch: {
+        Args: never
+        Returns: {
+          branch_id: string
+          is_super_manager: boolean
+          manager_name: string
+          branch_name: string
+        }[]
+      }
+      current_manager_branch_id: {
+        Args: never
+        Returns: string
       }
       get_feature_flags: {
         Args: { p_branch_id?: string; p_user_id?: string }

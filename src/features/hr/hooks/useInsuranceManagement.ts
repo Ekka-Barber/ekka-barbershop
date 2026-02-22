@@ -1,18 +1,14 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { useRealtimeSubscription } from '@shared/hooks/useRealtimeSubscription';
-import { queryKeys } from '@shared/lib/query-keys';
 import { supabase } from '@shared/lib/supabase/client';
 import type {
   EmployeeInsurance,
-  EmployeeInsuranceInsert,
   EmployeeInsuranceUpdate,
   EmployeeInsuranceWithCompany,
   InsuranceCompany,
-  InsuranceCompanyInsert,
   InsuranceCompanyUpdate,
   InsuranceHospital,
-  InsuranceHospitalInsert,
   InsuranceHospitalUpdate,
 } from '@shared/types/domains';
 
