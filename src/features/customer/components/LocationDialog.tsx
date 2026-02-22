@@ -160,7 +160,7 @@ export const LocationDialog = ({
                   </div>
 
                   <div className="mt-2">
-                    <div className="bg-gradient-to-br from-brand-gray-500 to-brand-gray-600 text-white p-2 rounded-full transform transition-all group-hover:scale-115 group-hover:from-brand-gray-600 group-hover:to-brand-gray-700 shadow-[0_4px_12px_-4px_rgba(0,0,0,0.3)]">
+                    <div className="bg-gradient-to-br from-brand-gray-500 to-brand-gray-600 text-white p-2 rounded-full transform transition-all group-hover:from-brand-gray-600 group-hover:to-brand-gray-700 shadow-[0_4px_12px_-4px_rgba(0,0,0,0.3)]">
                       <ExternalLink className="w-3.5 h-3.5 drop-shadow-[0_2px_4px_rgba(0,0,0,0.2)]" />
                     </div>
                   </div>

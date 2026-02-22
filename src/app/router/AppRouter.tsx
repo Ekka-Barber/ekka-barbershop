@@ -2,14 +2,14 @@ import { Suspense, useEffect } from 'react';
 import { Route, Routes, useLocation } from 'react-router-dom';
 
 import { PageLoader } from '@shared/ui/components/shared/loaders/PageLoader';
-import { lazyWithRetry } from '@shared/utils/lazyWithRetry';
 
-// Lazy load route shells — only the matching role's code loads (saves ~200KB+ on customer visit)
-const Login = lazyWithRetry(() => import('@/features/auth/pages/Login/Login').then((m) => ({ default: m.default })));
-const CustomerRoutes = lazyWithRetry(() => import('@/features/customer/routes').then((m) => ({ default: m.CustomerRoutes })));
-const HRRoutes = lazyWithRetry(() => import('@/features/hr/routes').then((m) => ({ default: m.HRRoutes })));
-const ManagerRoutes = lazyWithRetry(() => import('@/features/manager/routes').then((m) => ({ default: m.ManagerRoutes })));
-const OwnerRoutes = lazyWithRetry(() => import('@/features/owner/routes').then((m) => ({ default: m.OwnerRoutes })));
+import { routeLoaders } from './routeLoaders';
+
+const { Component: Login } = routeLoaders.login;
+const { Component: CustomerRoutes } = routeLoaders.customer;
+const { Component: HRRoutes } = routeLoaders.hr;
+const { Component: ManagerRoutes } = routeLoaders.manager;
+const { Component: OwnerRoutes } = routeLoaders.owner;
 
 const RouteFallback = () => <PageLoader message="Loading..." />;
 

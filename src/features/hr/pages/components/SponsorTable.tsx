@@ -56,7 +56,7 @@ export const SponsorTable: React.FC<SponsorTableProps> = ({
               </p>
             </div>
           </div>
-        ) : (
+) : (
           <div className="space-y-3">
             {sponsors.map((sponsor, index) => (
               <motion.div
@@ -68,7 +68,7 @@ export const SponsorTable: React.FC<SponsorTableProps> = ({
                   delay: shouldReduceMotion ? 0 : index * 0.05,
                   ease: 'easeOut',
                 }}
-                className="flex items-center justify-between rounded-2xl border border-[#ead8b8] bg-gradient-to-r from-[#fffdf9] to-[#fff7ea] p-4 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_18px_30px_-30px_rgba(82,60,28,0.7)]"
+                className="virtualized-card-item flex items-center justify-between rounded-2xl border border-[#ead8b8] bg-gradient-to-r from-[#fffdf9] to-[#fff7ea] p-4 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_18px_30px_-30px_rgba(82,60,28,0.7)]"
               >
                 <div className="min-w-0 flex-1">
                   <h3 className="mb-2 text-lg font-semibold text-[#2f261b]">{sponsor.name_ar}</h3>

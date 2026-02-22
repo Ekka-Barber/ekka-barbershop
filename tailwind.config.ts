@@ -107,6 +107,16 @@ const config: Config = {
         'gold': '0 10px 40px -10px rgba(233, 179, 83, 0.5)',
         'gold-light': '0 4px 12px -4px rgba(233, 179, 83, 0.3)',
       },
+      zIndex: {
+        'toast': '100',
+        'dropdown': '1000',
+        'sticky': '1020',
+        'fixed': '1030',
+        'overlay': '1200',
+        'modal': '1210',
+        'popover': '1300',
+        'tooltip': '1400',
+      },
       transitionDuration: {
         'fast': 'var(--transition-fast, 150ms)',
         'medium': 'var(--transition-medium, 250ms)',

@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { usePWAInstall } from 'react-use-pwa-install';
 
 import { getPlatformType, getInstallationStatus } from "@shared/services/platformDetection";
 import { useToast } from "@shared/ui/components/use-toast";
+import { getStorageItem, setStorageItem } from "@shared/utils/cachedStorage";
 import { trackButtonClick } from "@shared/utils/tiktokTracking";
 
 import { InstallButton } from './InstallButton';
@@ -10,26 +11,22 @@ import { IOSInstallGuide } from './IOSInstallGuide';
 
 import { useLanguage } from "@/contexts/LanguageContext";
 
+const INSTALL_DISMISSED_KEY = 'app_install_dismissed';
+
 export const InstallAppPrompt = () => {
   const { t, language } = useLanguage();
   const [isInstalling, setIsInstalling] = useState(false);
-  const [isPromptDismissed, setIsPromptDismissed] = useState(false);
+  const [isPromptDismissed, setIsPromptDismissed] = useState(() => 
+    getStorageItem(INSTALL_DISMISSED_KEY, 'false') === 'true'
+  );
   const install = usePWAInstall();
   const { toast } = useToast();
   const platform = getPlatformType();
   const installationStatus = getInstallationStatus();
 
-  // Check local storage for user's dismissal preference
-  useEffect(() => {
-    const dismissed = localStorage.getItem('app_install_dismissed');
-    if (dismissed === 'true') {
-      setIsPromptDismissed(true);
-    }
-  }, []);
-
   const handleDismiss = () => {
     setIsPromptDismissed(true);
-    localStorage.setItem('app_install_dismissed', 'true');
+    setStorageItem(INSTALL_DISMISSED_KEY, 'true');
   };
 
   const handleInstallClick = async () => {

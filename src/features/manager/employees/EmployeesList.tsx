@@ -1,9 +1,19 @@
-
 import { useMemo } from "react";
 import React from "react";
 
 import { EmployeeCard } from "@/features/manager/employees/EmployeeCard";
 import { Employee, GroupedEmployees } from "@/features/manager/hooks/useEmployeeData";
+
+const ROLE_TITLES: Record<string, string> = {
+  manager: "المدير",
+  barber: "الحلاقين",
+  receptionist: "موظفي الاستقبال",
+  cleaner: "عمال النظافة",
+  massage_therapist: "أخصائيي المساج",
+  hammam_specialist: "أخصائيي الحمام"
+};
+
+const getRoleTitle = (role: string): string => ROLE_TITLES[role] || role;
 
 interface EmployeesListProps {
   employees: Employee[] | undefined;
@@ -12,13 +22,10 @@ interface EmployeesListProps {
 }
 
 export const EmployeesList = React.memo<EmployeesListProps>(({ employees, searchQuery, onUpdate }) => {
-  // Memoize filtered and grouped employees
-  // Note: employees are already filtered for active status (not archived and no end date) at the database level
   const filteredAndGroupedEmployees = useMemo(() => {
     if (!employees || !Array.isArray(employees)) return {};
 
     const filtered = employees.filter(employee => {
-      // Only filter by search query since active employee filtering is done at database level
       const searchLower = searchQuery.toLowerCase();
       return (
         employee.name.toLowerCase().includes(searchLower) ||
@@ -35,18 +42,6 @@ export const EmployeesList = React.memo<EmployeesListProps>(({ employees, search
       return groups;
     }, {});
   }, [employees, searchQuery]);
-
-  const getRoleTitle = useMemo(() => (role: string): string => {
-    const roleTitles: Record<string, string> = {
-      manager: "المدير",
-      barber: "الحلاقين",
-      receptionist: "موظفي الاستقبال",
-      cleaner: "عمال النظافة",
-      massage_therapist: "أخصائيي المساج",
-      hammam_specialist: "أخصائيي الحمام"
-    };
-    return roleTitles[role] || role;
-  }, []);
 
   if (Object.keys(filteredAndGroupedEmployees).length === 0) {
     return (

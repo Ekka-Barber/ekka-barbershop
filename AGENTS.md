@@ -222,6 +222,39 @@ Run these checks BEFORE making ANY code changes:
 7. Run `npm run find-unused` to verify dead code claims
 8. After major deletions, re-run lint/build and confirm knip clean before continuing
 
+## KISS Principles (Keep It Simple, Stupid)
+
+Inspired by the KISS AI framework philosophy:
+
+### Anti-Bloat Guidelines
+- Write simple, readable code with minimal indirection
+- Avoid unnecessary object attributes and local variables
+- No redundant abstractions or duplicate code
+- Each function should do one thing well
+- Remove unnecessary conditional checks
+- Avoid deep attribute chains (a.b.c.d) - extract to variables
+- **After implementing, aggressively simplify:**
+  - Remove redundant code
+  - Remove unnecessary comments
+  - Merge similar functions
+  - Eliminate thin wrapper methods
+
+### Testing Philosophy
+- Tests MUST NOT use mocks, patches, or test doubles
+- Integration tests with real Supabase calls (test database)
+- Test edge cases: empty inputs, null values, boundary conditions
+- Test error conditions with actual invalid inputs
+- Each test should be independent and verify actual behavior
+- Aim for meaningful coverage, not percentage targets
+
+### Code Simplification Checklist
+Before considering code complete:
+- [ ] Can any function be merged?
+- [ ] Can any parameter be removed?
+- [ ] Is there duplicate logic that can be extracted?
+- [ ] Are there unnecessary intermediate variables?
+- [ ] Can deep nesting be flattened?
+
 ## Cursor / Copilot Rules
 - No `.cursor/rules`, `.cursorrules`, or `.github/copilot-instructions.md` found.
 

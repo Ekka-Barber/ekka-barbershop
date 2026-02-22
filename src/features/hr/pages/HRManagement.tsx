@@ -8,7 +8,7 @@ import {
   UserPlus,
   Users,
 } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useTransition } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 
@@ -75,6 +75,7 @@ const getDaysUntil = (dateValue: string) => {
 
 export const HRManagement = () => {
   const [searchParams, setSearchParams] = useSearchParams();
+  const [_isPending, startTransition] = useTransition();
 
   const [showEmployeeForm, setShowEmployeeForm] = useState(false);
   const [showDocumentForm, setShowDocumentForm] = useState(false);
@@ -197,14 +198,16 @@ export const HRManagement = () => {
   const isDocumentLoading = documentsQuery.isLoading;
   const isSponsorLoading = sponsorsQuery.isLoading;
 
-  const handleTabChange = (nextTab: string) => {
+const handleTabChange = (nextTab: string) => {
     if (!isHRTab(nextTab)) {
       return;
     }
 
-    const nextSearchParams = new URLSearchParams(searchParams);
-    nextSearchParams.set('tab', nextTab);
-    setSearchParams(nextSearchParams, { replace: true });
+    startTransition(() => {
+      const nextSearchParams = new URLSearchParams(searchParams);
+      nextSearchParams.set('tab', nextTab);
+      setSearchParams(nextSearchParams, { replace: true });
+    });
   };
 
   const handleEmployeeSubmit = async (data: EmployeeFormData) => {

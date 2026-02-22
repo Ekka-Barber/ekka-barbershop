@@ -67,6 +67,37 @@ script[src*="flocktory.com"] {
     /* Safari and Chrome */
   }
 
+  .content-visibility-auto {
+    content-visibility: auto;
+  }
+
+  .contain-intrinsic-80 {
+    contain-intrinsic-size: 80px;
+  }
+
+  .contain-intrinsic-100 {
+    contain-intrinsic-size: 100px;
+  }
+
+  .contain-intrinsic-120 {
+    contain-intrinsic-size: 120px;
+  }
+
+  .virtualized-list-item {
+    content-visibility: auto;
+    contain-intrinsic-size: 100px;
+  }
+
+  .virtualized-card-item {
+    content-visibility: auto;
+    contain-intrinsic-size: 80px;
+  }
+
+  .virtualized-table-row {
+    content-visibility: auto;
+    contain-intrinsic-size: 60px;
+  }
+
   /* Add momentum scrolling utility class */
   .momentum-scroll {
     -webkit-overflow-scrolling: touch;
@@ -238,6 +269,10 @@ body {
 
   html {
     @apply h-full;
+  }
+
+  :focus-visible {
+    @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
   }
 }
 

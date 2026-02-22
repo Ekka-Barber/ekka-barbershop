@@ -1,6 +1,7 @@
 import { Star, Quote } from 'lucide-react';
 import React, { useEffect, useState, useRef, TouchEvent, useCallback, useMemo } from 'react';
 
+import { useViewportWidth } from '@shared/hooks/useViewport';
 import { motion, AnimatePresence } from '@shared/lib/motion';
 import { cn } from "@shared/lib/utils";
 import { Review } from '@shared/services/reviewsService';
@@ -84,13 +85,10 @@ export const ReviewCarousel = ({
   onReadMore
 }: ReviewCarouselProps) => {
   const { language } = useLanguage();
-  const MAX_CHARS_BEFORE_TRUNCATE = 150;
+const MAX_CHARS_BEFORE_TRUNCATE = 150;
 
-  // Track visible reviews
   const [currentPage, setCurrentPage] = useState(0);
-
-  // Get viewport width to determine how many reviews to show
-  const [viewportWidth, setViewportWidth] = useState(window.innerWidth);
+  const viewportWidth = useViewportWidth();
   const getReviewsPerPage = useCallback(() => {
     if (viewportWidth < 640) return REVIEWS_PER_PAGE.mobile;
     if (viewportWidth < 1024) return REVIEWS_PER_PAGE.tablet;
@@ -144,22 +142,14 @@ export const ReviewCarousel = ({
       // Swiped left (go to next)
       goToNextPage();
     }
-    touchStartXRef.current = null;
+touchStartXRef.current = null;
   };
 
-  // Update viewport width on resize
-  useEffect(() => {
-    const handleResize = () => setViewportWidth(window.innerWidth);
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
-  // Create stable references for dependencies
   const reviewsLength = balancedReviews.length;
   const reviewsPerPage = getReviewsPerPage();
-  
+
   useEffect(() => {
-    setCurrentPage(0); // Reset to first page on language change or reviews change
+    setCurrentPage(0);
   }, [reviewsLength, language, viewportWidth, reviewsPerPage, totalPages]);
 
   if (!balancedReviews || balancedReviews.length === 0) {

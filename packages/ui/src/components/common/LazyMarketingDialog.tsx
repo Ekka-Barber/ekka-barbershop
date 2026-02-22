@@ -11,7 +11,7 @@ const MarketingDialogSkeleton: React.FC = () => {
   const { language } = useLanguage();
 
   return (
-    <div className="fixed inset-0 z-[1200] flex items-center justify-center bg-black/50">
+    <div className="fixed inset-0 z-overlay flex items-center justify-center bg-black/50">
       <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
         <div className="p-6">
           <div className="flex items-center justify-center space-x-2">

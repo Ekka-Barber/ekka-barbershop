@@ -14,6 +14,12 @@ interface LazyRetryOptions {
   onRetry?: (attempt: number, error: unknown) => void;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+interface LazyWithPreload<T extends ComponentType<any>> {
+  Component: LazyExoticComponent<T>;
+  preload: () => Promise<void>;
+}
+
 const CHUNK_ERROR_PATTERNS = [
   "ChunkLoadError",
   "Loading chunk",
@@ -89,4 +95,28 @@ export const lazyWithRetry = <T extends ComponentType<any>>(
   const delay = options?.delay ?? 1000;
 
   return lazy(() => retryImport(factory, 1, retries, delay, options?.onRetry));
+};
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const lazyWithPreload = <T extends ComponentType<any>>(
+  factory: AsyncFactory<T>,
+  options?: LazyRetryOptions
+): LazyWithPreload<T> => {
+  const retries = options?.retries ?? 3;
+  const delay = options?.delay ?? 1000;
+
+  const Component = lazy(() => retryImport(factory, 1, retries, delay, options?.onRetry));
+
+  const preload = async () => {
+    try {
+      await factory();
+    } catch (error) {
+      if (!isChunkLoadError(error)) {
+        throw error;
+      }
+      logger.warn('Preload failed for lazy component', error);
+    }
+  };
+
+  return { Component, preload };
 };

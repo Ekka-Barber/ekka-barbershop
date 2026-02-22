@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback, useRef } from "react";
 
 import { useToast } from "@shared/hooks/use-toast";
 import {
@@ -9,7 +9,7 @@ import {
 } from "@shared/lib/salary/calculations";
 
 import { useEmployeeSalaryData } from "@/features/manager/hooks/salary/useEmployeeSalaryData";
-import { SalaryPlanType, SalaryCalculationResult, EmployeeBonus, EmployeeDeduction, EmployeeLoan } from "@/features/manager/types/salary";
+import { SalaryPlanType, SalaryCalculationResult } from "@/features/manager/types/salary";
 
 export function useSalaryCalculation(
   employeeId: string,
@@ -27,27 +27,16 @@ export function useSalaryCalculation(
   const [planType, setPlanType] = useState<SalaryPlanType | null>(null);
   const [planName, setPlanName] = useState<string | null>(null);
   const [calculationDone, setCalculationDone] = useState<boolean>(false);
-  const [bonusList, setBonusList] = useState<EmployeeBonus[]>([]);
-  const [deductionsList, setDeductionsList] = useState<EmployeeDeduction[]>([]);
-  const [loansList, setLoansList] = useState<EmployeeLoan[]>([]);
   const { toast } = useToast();
 
   const previousMonthRef = useRef(selectedMonth);
 
-  // Reset calculation when month changes
-  useEffect(() => {
-    if (previousMonthRef.current !== selectedMonth) {
-      setCalculationDone(false);
-      previousMonthRef.current = selectedMonth;
-    }
-  }, [selectedMonth, employeeId]);
-
   const {
     totalDeductions,
     totalLoans,
-    bonusList: fetchedBonusList,
-    deductionsList: fetchedDeductionsList,
-    loansList: fetchedLoansList,
+    bonusList,
+    deductionsList,
+    loansList,
     isLoading, 
     error,
     fetchData 
@@ -59,24 +48,11 @@ export function useSalaryCalculation(
     salaryPlanId
   );
 
-  // Update lists when data is fetched
-  useEffect(() => {
-    if (fetchedBonusList) {
-      setBonusList(fetchedBonusList);
-    }
-  }, [fetchedBonusList]);
-  
-  useEffect(() => {
-    if (fetchedDeductionsList) {
-      setDeductionsList(fetchedDeductionsList);
-    }
-  }, [fetchedDeductionsList]);
-  
-  useEffect(() => {
-    if (fetchedLoansList) {
-      setLoansList(fetchedLoansList);
-    }
-  }, [fetchedLoansList]);
+  // Reset calculation when month changes - derived during render
+  if (previousMonthRef.current !== selectedMonth) {
+    setCalculationDone(false);
+    previousMonthRef.current = selectedMonth;
+  }
   
   const calculate = useCallback(async () => {
     try {

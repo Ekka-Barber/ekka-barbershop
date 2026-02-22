@@ -1,8 +1,9 @@
 import { QueryClientProvider } from '@tanstack/react-query';
-import { PropsWithChildren, useEffect } from 'react';
+import { PropsWithChildren, useEffect, useRef } from 'react';
 
 import { ServiceWorkerRegistration } from '@app/components/ServiceWorkerRegistration';
 
+import { useVisibilityChange } from '@shared/hooks/useVisibilityChange';
 import { queryClient } from '@shared/lib/query-client';
 import { ErrorBoundary } from '@shared/ui/components/common/ErrorBoundary';
 import { OfflineNotification } from '@shared/ui/components/common/OfflineNotification';
@@ -14,10 +15,11 @@ import { LanguageProvider } from '@/contexts/LanguageContext';
 
 
 export const AppProviders = ({ children }: PropsWithChildren) => {
+  const maybeUnlockRef = useRef<(() => void) | null>(null);
+  const isAndroid = typeof window !== 'undefined' && /Android/i.test(navigator.userAgent || '');
+
   useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const userAgent = navigator.userAgent || '';
-    if (!/Android/i.test(userAgent)) return;
+    if (typeof window === 'undefined' || !isAndroid) return;
 
     const root = document.documentElement;
     const body = document.body;
@@ -72,6 +74,8 @@ export const AppProviders = ({ children }: PropsWithChildren) => {
       }
     };
 
+    maybeUnlockRef.current = maybeUnlock;
+
     const observer = new MutationObserver(() => {
       maybeUnlock();
     });
@@ -85,29 +89,26 @@ export const AppProviders = ({ children }: PropsWithChildren) => {
       attributeFilter: ['style', 'class', 'data-scroll-locked'],
     });
 
-    const handleVisibility = () => {
-      if (!document.hidden) {
-        maybeUnlock();
-      }
-    };
-
     const handleTouch = () => {
       maybeUnlock();
     };
 
-    document.addEventListener('visibilitychange', handleVisibility);
     window.addEventListener('touchstart', handleTouch, { passive: true });
     window.addEventListener('wheel', handleTouch, { passive: true });
 
     maybeUnlock();
 
     return () => {
+      maybeUnlockRef.current = null;
       observer.disconnect();
-      document.removeEventListener('visibilitychange', handleVisibility);
       window.removeEventListener('touchstart', handleTouch);
       window.removeEventListener('wheel', handleTouch);
     };
-  }, []);
+  }, [isAndroid]);
+
+  useVisibilityChange(() => {
+    maybeUnlockRef.current?.();
+  }, isAndroid);
 
   return (
     <ErrorBoundary>

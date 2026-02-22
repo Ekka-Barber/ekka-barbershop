@@ -1,33 +1,56 @@
 import { create } from 'zustand';
-import { devtools, persist } from 'zustand/middleware';
+import { devtools, persist, createJSONStorage } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
 
 import type { Branch } from '@shared/types/domains';
 
 interface AppState {
-  // Branch Management
   selectedBranch: string;
   branches: Branch[];
-
-  // User Preferences
   theme: 'light' | 'dark' | 'system';
   sidebarCollapsed: boolean;
-
-  // Loading states
   isLoadingBranches: boolean;
-
-  // Actions
   setSelectedBranch: (branchId: string) => void;
   setBranches: (branches: Branch[]) => void;
   toggleSidebar: () => void;
   setTheme: (theme: 'light' | 'dark' | 'system') => void;
   setLoadingBranches: (loading: boolean) => void;
-
-  // Branch utilities
   getSelectedBranchData: () => Branch | null;
   isBranchSelected: (branchId: string) => boolean;
   getAllBranchIds: () => string[];
 }
+
+type PersistedState = Pick<AppState, 'selectedBranch' | 'theme' | 'sidebarCollapsed'>;
+
+const CURRENT_VERSION = 1;
+
+const migratePersistedState = (persistedState: unknown, version: number): PersistedState => {
+  const defaultState: PersistedState = {
+    selectedBranch: 'all',
+    theme: 'system',
+    sidebarCollapsed: false,
+  };
+
+  if (!persistedState || typeof persistedState !== 'object') {
+    return defaultState;
+  }
+
+  const state = persistedState as Partial<PersistedState>;
+
+  if (version < 1) {
+    return {
+      selectedBranch: typeof state.selectedBranch === 'string' ? state.selectedBranch : 'all',
+      theme: state.theme || 'system',
+      sidebarCollapsed: typeof state.sidebarCollapsed === 'boolean' ? state.sidebarCollapsed : false,
+    };
+  }
+
+  return {
+    selectedBranch: state.selectedBranch ?? defaultState.selectedBranch,
+    theme: state.theme ?? defaultState.theme,
+    sidebarCollapsed: state.sidebarCollapsed ?? defaultState.sidebarCollapsed,
+  };
+};
 
 export const useAppStore = create<AppState>()(
   devtools(
@@ -87,12 +110,14 @@ export const useAppStore = create<AppState>()(
       })),
       {
         name: 'app-storage',
-        partialize: (state) => ({
+        version: CURRENT_VERSION,
+        storage: createJSONStorage(() => localStorage),
+        partialize: (state): PersistedState => ({
           selectedBranch: state.selectedBranch,
           theme: state.theme,
           sidebarCollapsed: state.sidebarCollapsed,
-          // Don't persist branches - they should be fetched fresh
         }),
+        migrate: migratePersistedState,
       }
     ),
     {

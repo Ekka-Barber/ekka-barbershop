@@ -181,7 +181,7 @@ const Index = ({ selectedBranch }: IndexProps) => {
                 to="/owner/employees"
                 className="flex items-center gap-4 p-5 hover:bg-muted/50 transition-colors border-b border-border/50 group"
               >
-                <div className="h-10 w-10 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-600 group-hover:scale-110 transition-transform">
+                <div className="h-10 w-10 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-600 group-hover:bg-blue-500/20 transition-colors">
                   <Users className="h-5 w-5" />
                 </div>
                 <div className="flex-1">
@@ -193,7 +193,7 @@ const Index = ({ selectedBranch }: IndexProps) => {
                 to="/owner/employees?tab=salaries"
                 className="flex items-center gap-4 p-5 hover:bg-muted/50 transition-colors border-b border-border/50 group"
               >
-                <div className="h-10 w-10 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-600 group-hover:scale-110 transition-transform">
+                <div className="h-10 w-10 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-600 group-hover:bg-amber-500/20 transition-colors">
                   <Calendar className="h-5 w-5" />
                 </div>
                 <div className="flex-1">
@@ -205,7 +205,7 @@ const Index = ({ selectedBranch }: IndexProps) => {
                 to="/owner/management"
                 className="flex items-center gap-4 p-5 hover:bg-muted/50 transition-colors group"
               >
-                <div className="h-10 w-10 rounded-xl bg-slate-500/10 flex items-center justify-center text-slate-600 group-hover:scale-110 transition-transform">
+                <div className="h-10 w-10 rounded-xl bg-slate-500/10 flex items-center justify-center text-slate-600 group-hover:bg-slate-500/20 transition-colors">
                   <Settings className="h-5 w-5" />
                 </div>
                 <div className="flex-1">

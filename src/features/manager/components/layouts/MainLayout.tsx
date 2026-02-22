@@ -1,8 +1,9 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { Users } from "lucide-react";
-import { ReactNode, useState, useEffect } from "react";
+import { ReactNode, useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 
+import { useVisibilityChange } from "@shared/hooks/useVisibilityChange";
 import { accessCodeStorage, sessionAuth } from '@shared/lib/access-code/storage';
 import { supabase } from "@shared/lib/supabase/client";
 import { Button } from "@shared/ui/components/button";
@@ -18,18 +19,34 @@ const MainLayout = ({ children }: MainLayoutProps) => {
   const queryClient = useQueryClient();
   const [branchName, setBranchName] = useState("");
   const [managerName, setManagerName] = useState("");
+  const lastRefreshedAtRef = useRef(0);
 
   const isDashboard =
     location.pathname === '/manager' || location.pathname === '/manager/';
 
-  // Load manager and branch info from database
+  const maybeRefresh = useCallback(() => {
+    const now = Date.now();
+    const THROTTLE_MS = 120_000;
+    if (now - lastRefreshedAtRef.current < THROTTLE_MS) return;
+    lastRefreshedAtRef.current = now;
+    const keysToInvalidate = [['employees'], ['branch'], ['current-manager']] as const;
+    keysToInvalidate.forEach((key) => queryClient.invalidateQueries({ queryKey: key as unknown as string[] }));
+  }, [queryClient]);
+
+  useVisibilityChange(maybeRefresh);
+
+  useEffect(() => {
+    const handleFocus = () => maybeRefresh();
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
+  }, [maybeRefresh]);
+
   useEffect(() => {
     const loadUserInfo = async () => {
       const accessCode = accessCodeStorage.getManagerAccessCode();
       if (!accessCode) return;
 
       try {
-        // Super admin: show global header not tied to a specific branch
         if (sessionAuth.getRole() === 'super_manager') {
           setManagerName('Super Admin');
           setBranchName('كل الفروع');
@@ -59,32 +76,6 @@ const MainLayout = ({ children }: MainLayoutProps) => {
 
     loadUserInfo();
   }, []);
-
-  // Auto-refresh data for PWA - invalidate cache every time app comes into focus
-  useEffect(() => {
-    let lastRefreshedAt = 0;
-    const keysToInvalidate = [['employees'], ['branch'], ['current-manager']] as const;
-
-    const maybeRefresh = () => {
-      const now = Date.now();
-      const THROTTLE_MS = 120_000; // 2 minutes
-      if (now - lastRefreshedAt < THROTTLE_MS) return;
-      lastRefreshedAt = now;
-      keysToInvalidate.forEach((key) => queryClient.invalidateQueries({ queryKey: key as unknown as string[] }));
-    };
-
-    const handleFocus = () => maybeRefresh();
-    const handleVisibilityChange = () => { if (!document.hidden) maybeRefresh(); };
-
-    // Listen for focus and visibility changes
-    window.addEventListener('focus', handleFocus);
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-
-    return () => {
-      window.removeEventListener('focus', handleFocus);
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
-  }, [queryClient]);
 
   const menuItems = [
     {

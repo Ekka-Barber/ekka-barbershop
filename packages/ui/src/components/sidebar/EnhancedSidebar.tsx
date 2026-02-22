@@ -3,6 +3,8 @@ import React, { useState } from 'react';
 import { Link, useLocation, useSearchParams } from 'react-router-dom';
 
 import { NAVIGATION_CONFIG } from '@shared/constants/navigation';
+import { usePrefetch } from '@shared/hooks/usePrefetch';
+import { getPreloader } from '@shared/lib/route-preload-registry';
 import { cn } from '@shared/lib/utils';
 import type {
   NavigationItem,
@@ -34,6 +36,7 @@ export const EnhancedSidebar: React.FC<EnhancedSidebarProps> = ({
   const [searchParams] = useSearchParams();
   const { state, isMobile, setOpenMobile } = useSidebar();
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
+  const { prefetch, cancelPrefetch } = usePrefetch({ delay: 100 });
   // Navigation hook removed as it's not currently used
 
   const currentTab = searchParams.get('tab');
@@ -75,6 +78,13 @@ export const EnhancedSidebar: React.FC<EnhancedSidebarProps> = ({
     );
   };
 
+  const handlePrefetch = (path: string) => {
+    const preloader = getPreloader(path);
+    if (preloader) {
+      prefetch(preloader, path);
+    }
+  };
+
   // Render navigation tab
   const renderTab = (tab: NavigationTab, parentPath: string) => {
     const tabUrl = `${parentPath}?tab=${tab.id}`;
@@ -89,6 +99,7 @@ export const EnhancedSidebar: React.FC<EnhancedSidebarProps> = ({
             <Link
               to={tabUrl}
               onClick={closeSidebar}
+              onMouseEnter={() => handlePrefetch(parentPath)}
               className={cn(
                 'flex items-center justify-center w-8 h-8 rounded-lg transition-colors ml-6',
                 isActiveTab
@@ -119,6 +130,7 @@ export const EnhancedSidebar: React.FC<EnhancedSidebarProps> = ({
             : 'text-muted-foreground hover:text-sidebar-foreground hover:bg-sidebar-accent/80'
         )}
         onClick={closeSidebar}
+        onMouseEnter={() => handlePrefetch(parentPath)}
       >
         {TabIcon && (
           <TabIcon
@@ -155,6 +167,8 @@ export const EnhancedSidebar: React.FC<EnhancedSidebarProps> = ({
               <Link
                 to={item.path}
                 onClick={closeSidebar}
+                onMouseEnter={() => handlePrefetch(item.path)}
+                onMouseLeave={cancelPrefetch}
                 className={cn(
                   'flex items-center justify-center w-10 h-10 rounded-xl transition-colors',
                   isActive
@@ -191,6 +205,8 @@ export const EnhancedSidebar: React.FC<EnhancedSidebarProps> = ({
           <Link
             to={item.path}
             onClick={closeSidebar}
+            onMouseEnter={() => handlePrefetch(item.path)}
+            onMouseLeave={cancelPrefetch}
             className={cn(
               'flex items-center gap-3 px-3 py-2 rounded-xl text-[13px] font-medium transition-colors flex-1 group',
               isActive

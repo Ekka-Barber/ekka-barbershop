@@ -10,7 +10,7 @@ export const queryClient = new QueryClient({
       gcTime: 10 * TIME.SECONDS_PER_MINUTE * TIME.SECOND_IN_MS, // 10 minutes
       retry: (failureCount, error) => {
         // Log error through our error handler
-        errorHandler.handleQueryError(error);
+        errorHandler.handle(error, { source: 'query' });
 
         // Don't retry on authentication errors
         if (error && typeof error === 'object' && 'status' in error) {
@@ -28,7 +28,7 @@ export const queryClient = new QueryClient({
     mutations: {
       retry: (failureCount, error) => {
         // Log error through our error handler
-        errorHandler.handleMutationError(error);
+        errorHandler.handle(error, { source: 'mutation' });
 
         // Don't retry mutations on client errors (4xx)
         if (error && typeof error === 'object' && 'status' in error) {

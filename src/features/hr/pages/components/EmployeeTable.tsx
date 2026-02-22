@@ -99,7 +99,7 @@ export const EmployeeTable: React.FC<EmployeeTableProps> = ({
               </p>
             </div>
           </div>
-        ) : (
+) : (
           <div className="space-y-3">
             {employees.map((employee, index) => {
               const isActive = isEmployeeActive(employee);
@@ -114,7 +114,7 @@ export const EmployeeTable: React.FC<EmployeeTableProps> = ({
                     delay: shouldReduceMotion ? 0 : index * 0.05,
                     ease: 'easeOut',
                   }}
-                  className="flex items-center justify-between rounded-2xl border border-[#ead8b8] bg-gradient-to-r from-[#fffdf9] to-[#fff7ea] p-4 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_18px_30px_-30px_rgba(82,60,28,0.7)]"
+                  className="virtualized-card-item flex items-center justify-between rounded-2xl border border-[#ead8b8] bg-gradient-to-r from-[#fffdf9] to-[#fff7ea] p-4 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_18px_30px_-30px_rgba(82,60,28,0.7)]"
                 >
                   <div className="flex min-w-0 flex-1 items-center gap-4">
                     <Avatar className="h-12 w-12">

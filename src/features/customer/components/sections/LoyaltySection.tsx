@@ -40,8 +40,8 @@ const LoyaltySection = ({ element, isVisible }: LoyaltySectionProps) => {
 
   return (
     <>
-      <motion.div
-        className="rounded-2xl"
+<motion.div
+        className="rounded-2xl cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2"
         variants={fadeUpVariants}
         initial="hidden"
         animate="visible"
