@@ -8,6 +8,7 @@ import { lazyWithRetry } from '@shared/utils/lazyWithRetry';
 
 const Dashboard = lazyWithRetry(() => import('./pages/Dashboard'));
 const Employees = lazyWithRetry(() => import('./pages/Employees'));
+const EmployeeDocuments = lazyWithRetry(() => import('./pages/EmployeeDocuments'));
 const PayslipTest = lazyWithRetry(() => import('./pages/PayslipTest'));
 
 
@@ -45,6 +46,18 @@ export const ManagerRoutes = () => (
             fallback={<PageLoader message="Loading employee tools..." />}
           >
             <Employees />
+          </Suspense>
+        </ManagerGuard>
+      }
+    />
+    <Route
+      path="employee-documents"
+      element={
+        <ManagerGuard>
+          <Suspense
+            fallback={<PageLoader message="Loading employee documents..." />}
+          >
+            <EmployeeDocuments />
           </Suspense>
         </ManagerGuard>
       }

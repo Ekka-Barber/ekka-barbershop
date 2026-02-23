@@ -462,7 +462,7 @@ const handleTabChange = (nextTab: string) => {
             <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
               <div>
                 <p className="mb-1 text-xs font-semibold tracking-[0.25em] text-[#9a6d2d]">
-                  منصة إيكا للموارد البشرية
+                  منصة إكّه للموارد البشرية
                 </p>
                 <h1 className="text-2xl font-semibold leading-tight text-[#2f261b] sm:text-3xl">
                   إدارة الموارد البشرية

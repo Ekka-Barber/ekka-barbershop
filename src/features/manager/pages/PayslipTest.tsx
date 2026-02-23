@@ -139,7 +139,7 @@ const PDFGenerationTest = () => {
     try {
       // Create sample payslip data matching PayslipData interface
       const samplePayslipData = {
-        companyName: 'إكه للعناية بالرجل',
+        companyName: 'إكّه للعناية بالرجل',
          companyLogoUrl: '/logo_Header/header11.png',
         payPeriod: 'يناير 2023',
         issueDate: new Date().toISOString(),

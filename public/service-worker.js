@@ -75,11 +75,27 @@ const cleanupOldCaches = async () => {
   return Promise.all(cacheCleanupPromises);
 };
 
+// Check if URL scheme is cacheable
+const isCacheableUrl = (url) => {
+  const cacheableSchemes = ['http:', 'https:'];
+  try {
+    const urlObj = new URL(url);
+    return cacheableSchemes.includes(urlObj.protocol);
+  } catch {
+    return false;
+  }
+};
+
 // Handle fetch requests with a cache-first, network-fallback strategy
 // Changed from network-first to cache-first for improved mobile experience
 const handleFetch = async (event) => {
   // Skip caching for non-GET requests (POST, DELETE, etc.)
   if (event.request.method !== 'GET') {
+    return fetch(event.request);
+  }
+  
+  // Skip caching for non-cacheable URL schemes (chrome-extension, etc.)
+  if (!isCacheableUrl(event.request.url)) {
     return fetch(event.request);
   }
   

@@ -189,7 +189,7 @@ export const HRLayout: React.FC<HRLayoutProps> = ({ children }) => {
                 />
                 <div>
                   <p className="text-[11px] font-semibold tracking-[0.22em] text-[#8c6327]">
-                    إيكا | الموارد البشرية
+                    إكّه | الموارد البشرية
                   </p>
                   <h2 className="text-base font-semibold text-[#2f261b] sm:text-lg">
                     منصة الإدارة البشرية
