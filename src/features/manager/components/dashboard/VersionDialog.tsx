@@ -141,35 +141,34 @@ export const VersionDialog = ({ open, onOpenChange }: VersionDialogProps) => {
           </DialogDescription>
         </DialogHeader>
         
-        <ScrollArea className="h-[60vh] pr-4">
+        <ScrollArea className="h-[60vh] ps-4">
           <div className="space-y-6">
             {changelog.map((version) => (
               <div key={version.version} className="border border-gray-200 rounded-lg p-4 bg-white">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-3">
-                    <h3 className="text-lg font-bold font-['Changa'] text-gray-800">
-                      النسخة {version.version}
-                    </h3>
+                <div className="flex flex-row items-center justify-between mb-4">
+                  <span className="text-sm text-gray-500">
+                    {version.date}
+                  </span>
+                  <div className="flex flex-row-reverse items-center gap-3">
                     {version.type === "current" && (
                       <Badge className="bg-gray-800 text-white hover:bg-gray-700">
                         النسخة الحالية
                       </Badge>
                     )}
+                    <h3 className="text-lg font-bold font-['Changa'] text-gray-800">
+                      النسخة {version.version}
+                    </h3>
                   </div>
-                  <span className="text-sm text-gray-500">
-                    {version.date}
-                  </span>
                 </div>
                 
                 <div className="space-y-3">
                   {version.changes.map((change, index) => (
                     <div
                       key={index}
-                      className={`flex items-start gap-3 p-3 rounded-lg border ${getChangeColor(change.type)}`}
+                      className={`flex flex-row-reverse items-start gap-3 p-3 rounded-lg border ${getChangeColor(change.type)}`}
                     >
-                      {getChangeIcon(change.type)}
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
+                      <div className="flex-1 text-end">
+                        <div className="flex flex-row-reverse items-center justify-end gap-2 mb-1">
                           <Badge variant="outline" className="text-xs border-gray-300">
                             {getChangeLabel(change.type)}
                           </Badge>
@@ -178,6 +177,7 @@ export const VersionDialog = ({ open, onOpenChange }: VersionDialogProps) => {
                           {change.text}
                         </p>
                       </div>
+                      {getChangeIcon(change.type)}
                     </div>
                   ))}
                 </div>
