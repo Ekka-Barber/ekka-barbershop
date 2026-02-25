@@ -13,7 +13,7 @@ export function SalaryNetBlock({ netSalary, isLoading: _isLoading }: { netSalary
         <span className="text-white font-bold text-xl drop-shadow-sm">صافي الراتب</span>
       </div>
       <span className="text-3xl font-extrabold text-white tracking-wide mb-0.5 drop-shadow-lg">
-        {(isNaN(netSalary) ? 0 : netSalary).toLocaleString(undefined, {
+        {(isNaN(netSalary) ? 0 : netSalary).toLocaleString('en-US', {
           minimumFractionDigits: 0,
           maximumFractionDigits: 0,
         })} ر.س

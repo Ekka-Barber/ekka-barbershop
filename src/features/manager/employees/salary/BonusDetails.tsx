@@ -21,7 +21,7 @@ export function BonusDetails({ bonuses }: { bonuses: Array<EmployeeBonus> }) {
                   }) : ""}
                 </span>
                 <span className="font-semibold text-green-600">
-                  {Number(bonus.amount || 0).toLocaleString()} ر.س
+                  {Number(bonus.amount || 0).toLocaleString('en-US')} ر.س
                 </span>
               </div>
             </div>

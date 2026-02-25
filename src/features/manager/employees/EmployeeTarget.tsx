@@ -90,7 +90,7 @@ export const EmployeeTarget = ({
               </span>
               <div className="flex items-baseline gap-2">
                 <span className="text-[#ea384c] font-bold text-xl">
-                  {sales.amount.toLocaleString()}
+                  {sales.amount.toLocaleString('en-US')}
                 </span>
                 <span className="font-bold text-gray-600 text-sm">ر.س</span>
               </div>

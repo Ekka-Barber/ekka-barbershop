@@ -16,7 +16,7 @@ interface SalaryRowProps {
 }
 
 export const SalaryRow = ({ label, value, tooltip, positive, negative, bold, lightText, icon }: SalaryRowProps) => {
-  const formattedValue = value.toLocaleString(undefined, {
+  const formattedValue = value.toLocaleString('en-US', {
     minimumFractionDigits: 0,
     maximumFractionDigits: 0
   });

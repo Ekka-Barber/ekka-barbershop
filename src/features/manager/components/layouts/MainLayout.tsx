@@ -1,5 +1,5 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { Users } from "lucide-react";
+import { FileCheck, Home, Users } from "lucide-react";
 import { ReactNode, useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 
@@ -79,10 +79,22 @@ const MainLayout = ({ children }: MainLayoutProps) => {
 
   const menuItems = [
     {
+      title: "الرئيسية",
+      icon: Home,
+      path: '/manager',
+      onClick: () => navigate('/manager'),
+    },
+    {
       title: "الموظفين",
       icon: Users,
       path: '/manager/employees',
       onClick: () => navigate('/manager/employees'),
+    },
+    {
+      title: "المستندات",
+      icon: FileCheck,
+      path: '/manager/employee-documents',
+      onClick: () => navigate('/manager/employee-documents'),
     },
   ];
 
@@ -128,31 +140,30 @@ const MainLayout = ({ children }: MainLayoutProps) => {
       </header>
 
       {/* Main Content */}
-      <main className={`flex-1 min-h-full overflow-y-auto momentum-scroll touch-action-pan-y ${!isDashboard ? 'pb-28' : 'pb-6'}`}>
+      <main className="flex-1 min-h-full overflow-y-auto momentum-scroll touch-action-pan-y pb-24">
         {children}
       </main>
 
-      {/* Bottom Navigation Menu - Show on all pages EXCEPT Dashboard */}
-      {!isDashboard && (
-        <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-50">
-          <div className="grid grid-cols-3 gap-1 p-2">
-            {menuItems.map((item) => (
-              <Button
-                key={item.path}
-                onClick={item.onClick}
-                className="h-16 flex flex-col items-center justify-center space-y-1 bg-white hover:bg-gray-50 text-gray-700 border-0 rounded-lg transition-all duration-200"
-                variant="ghost"
-              >
-                <item.icon className="h-5 w-5 text-gray-600" />
-                 <span className="text-xs font-medium">{item.title}</span>
-              </Button>
-            ))}
-          </div>
-        </nav>
-      )}
-
-      {/* Add bottom padding when navigation is visible */}
-      {!isDashboard && null}
+      {/* Bottom Navigation Menu */}
+      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-50">
+        <div className="grid grid-cols-3 gap-1 p-2">
+          {menuItems.map((item) => (
+            <Button
+              key={item.path}
+              onClick={item.onClick}
+              className={`h-16 flex flex-col items-center justify-center space-y-1 border-0 rounded-lg transition-all duration-200 ${
+                location.pathname === item.path
+                  ? 'bg-primary/10 text-primary'
+                  : 'bg-white hover:bg-gray-50 text-gray-700'
+              }`}
+              variant="ghost"
+            >
+              <item.icon className={`h-5 w-5 ${location.pathname === item.path ? 'text-primary' : 'text-gray-600'}`} />
+               <span className="text-xs font-medium">{item.title}</span>
+            </Button>
+          ))}
+        </div>
+      </nav>
     </div>
   );
 };

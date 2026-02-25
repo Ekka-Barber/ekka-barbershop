@@ -23,7 +23,7 @@ export function LoanDetails({ loans }: { loans: Array<EmployeeLoan> }) {
                   }) : ""}
                 </span>
                 <span className="font-semibold text-purple-600">
-                  {Number(loan.amount || 0).toLocaleString()} ر.س
+                  {Number(loan.amount || 0).toLocaleString('en-US')} ر.س
                 </span>
               </div>
             </div>

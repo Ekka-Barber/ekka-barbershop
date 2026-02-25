@@ -23,7 +23,7 @@ export function DeductionDetails({ deductions }: { deductions: Array<EmployeeDed
                   }) : ""}
                 </span>
                 <span className="font-semibold text-red-600">
-                  {Number(deduction.amount || 0).toLocaleString()} ر.س
+                  {Number(deduction.amount || 0).toLocaleString('en-US')} ر.س
                 </span>
               </div>
             </div>
