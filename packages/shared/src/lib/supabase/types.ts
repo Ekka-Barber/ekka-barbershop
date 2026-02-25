@@ -1392,6 +1392,16 @@ get_employee_with_aggregated_json: {
           referrer: string
         }[]
       }
+      get_qr_scans_count: { Args: never; Returns: number }
+      get_qr_scans_count_for_qr: {
+        Args: { p_qr_id: string; p_since: string }
+        Returns: number
+      }
+      get_qr_scans_count_range: {
+        Args: { p_end: string; p_start: string }
+        Returns: number
+      }
+      get_qr_scans_count_since: { Args: { p_since: string }; Returns: number }
       get_salary_period_summary: {
         Args: { p_end_date: string; p_start_date: string }
         Returns: {
@@ -1476,6 +1486,7 @@ get_employee_with_aggregated_json: {
         Returns: undefined
       }
       refresh_mv_historical_salary_trends: { Args: never; Returns: undefined }
+      refresh_qr_scans_stats: { Args: never; Returns: undefined }
       refresh_salary_summary_view: { Args: never; Returns: undefined }
       request_access_code: { Args: never; Returns: string }
       request_access_role: { Args: never; Returns: string }

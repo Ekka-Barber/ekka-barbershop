@@ -32,11 +32,11 @@ export async function fetchDailyScans(selectedQrId: string, startDate: Date, end
 }
 
 export async function fetchTotalScanCount(selectedQrId: string, startDate: Date) {
-  const { count: scanCount, error: countError } = await supabase
-    .from('qr_scans')
-    .select('*', { count: 'exact', head: true })
-    .eq('qr_id', selectedQrId)
-    .gte('scanned_at', startDate.toISOString());
+  const { data: scanCount, error: countError } = await supabase
+    .rpc('get_qr_scans_count_for_qr', {
+      p_qr_id: selectedQrId,
+      p_since: startDate.toISOString(),
+    });
     
   if (countError) throw countError;
   

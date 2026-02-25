@@ -59,26 +59,22 @@ export function QRInsightsWidget() {
       const sevenDaysAgo = subDays(new Date(), 7);
       const fourteenDaysAgo = subDays(new Date(), 14);
 
-      // Get scans for last 7 days
-      const { count: currentWeekScans } = await supabase
-        .from('qr_scans')
-        .select('*', { count: 'exact', head: true })
-        .gte('scanned_at', sevenDaysAgo.toISOString());
-
-      // Get scans for previous 7 days (for comparison)
-      const { count: previousWeekScans } = await supabase
-        .from('qr_scans')
-        .select('*', { count: 'exact', head: true })
-        .gte('scanned_at', fourteenDaysAgo.toISOString())
-        .lt('scanned_at', sevenDaysAgo.toISOString());
-
-      // Get today's scans
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const { count: todayScans } = await supabase
-        .from('qr_scans')
-        .select('*', { count: 'exact', head: true })
-        .gte('scanned_at', today.toISOString());
+      const [
+        { data: currentWeekScans },
+        { data: previousWeekScans },
+        { data: todayScans },
+      ] = await Promise.all([
+        supabase.rpc('get_qr_scans_count_since', { p_since: sevenDaysAgo.toISOString() }),
+        supabase.rpc('get_qr_scans_count_range', {
+          p_start: fourteenDaysAgo.toISOString(),
+          p_end: sevenDaysAgo.toISOString(),
+        }),
+        (() => {
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          return supabase.rpc('get_qr_scans_count_since', { p_since: today.toISOString() });
+        })(),
+      ]);
 
       // Get daily breakdown for sparkline
       const { data: dailyData } = await supabase
