@@ -1,5 +1,6 @@
 import {
   FileText,
+  HeartPulse,
   LogOut,
   Menu,
   Settings,
@@ -21,7 +22,7 @@ interface HRLayoutProps {
   children: React.ReactNode;
 }
 
-type HRTab = 'employees' | 'documents' | 'sponsors' | 'settings';
+type HRTab = 'employees' | 'documents' | 'sponsors' | 'insurance' | 'settings';
 
 const HR_TABS: Array<{
   id: HRTab;
@@ -48,6 +49,12 @@ const HR_TABS: Array<{
     icon: ShieldCheck,
   },
   {
+    id: 'insurance',
+    label: 'التأمين',
+    description: 'الشركات والمستشفيات',
+    icon: HeartPulse,
+  },
+  {
     id: 'settings',
     label: 'الإعدادات',
     description: 'أنواع المستندات',
@@ -56,7 +63,7 @@ const HR_TABS: Array<{
 ];
 
 const isHRTab = (value: string | null): value is HRTab => {
-  return value === 'employees' || value === 'documents' || value === 'sponsors' || value === 'settings';
+  return value === 'employees' || value === 'documents' || value === 'sponsors' || value === 'insurance' || value === 'settings';
 };
 
 const getActiveTab = (value: string | null): HRTab => {
