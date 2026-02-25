@@ -128,7 +128,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 min-h-full overflow-y-auto momentum-scroll touch-action-pan-y pb-24">
+      <main className={`flex-1 min-h-full overflow-y-auto momentum-scroll touch-action-pan-y ${!isDashboard ? 'pb-28' : 'pb-6'}`}>
         {children}
       </main>
 

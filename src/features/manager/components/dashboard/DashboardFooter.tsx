@@ -8,7 +8,7 @@ export const DashboardFooter = () => {
 
   return (
     <>
-      <div className="mt-12 pt-8 border-t border-gray-200">
+      <div className="mt-12 pt-8 pb-6 border-t border-gray-200">
         <div className="text-center space-y-3">
           <div className="flex items-center justify-center gap-2 text-gray-600">
             <span className="font-['Changa'] text-sm">صنع بحب</span>
