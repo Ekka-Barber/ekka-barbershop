@@ -10,6 +10,14 @@ export const queryKeys = {
   branches: () => [...queryKeys.all, 'branches'] as const,
   branch: (id: string) => [...queryKeys.branches(), 'detail', id] as const,
 
+  // Access Users queries
+  accessUsers: {
+    all: () => [...queryKeys.all, 'access-users'] as const,
+    owners: () => [...queryKeys.accessUsers.all(), 'owners'] as const,
+    managers: () => [...queryKeys.accessUsers.all(), 'managers'] as const,
+    hr: () => [...queryKeys.accessUsers.all(), 'hr'] as const,
+  },
+
   // Employee queries
   employees: (filters?: EmployeeFilters) =>
     [...queryKeys.all, 'employees', filters] as const,

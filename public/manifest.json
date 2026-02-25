@@ -1,8 +1,9 @@
 {
   "name": "Ekka Barbershop",
   "short_name": "Ekka",
-  "description": "Book your appointment at Ekka Barbershop",
+  "description": "Book your appointment at Ekka Barbershop - Premium grooming services in Taif and Makkah",
   "start_url": "/?source=pwa",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#C4A36F",
@@ -14,10 +15,11 @@
   ],
   "categories": [
     "business",
-    "lifestyle"
+    "lifestyle",
+    "shopping"
   ],
-  "lang": "en",
-  "dir": "auto",
+  "lang": "ar",
+  "dir": "rtl",
   "prefer_related_applications": false,
   "related_applications": [],
   "launch_handler": {
@@ -27,10 +29,10 @@
     ]
   },
   "handle_links": "preferred",
-  "scope": "/",
   "shortcuts": [
     {
       "name": "Book Appointment",
+      "short_name": "Book",
       "url": "/bookings",
       "icons": [
         {
@@ -42,6 +44,7 @@
     },
     {
       "name": "Special Offers",
+      "short_name": "Offers",
       "url": "/offers",
       "icons": [
         {

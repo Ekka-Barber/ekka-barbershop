@@ -38,7 +38,7 @@ export const TopBar = ({
                 onError={(e) => {
                   e.currentTarget.onerror = null;
                   e.currentTarget.src =
-                    '/lovable-uploads/7eb81221-fbf5-4b1d-8327-eb0e707236d8.png';
+                    '/lovable-uploads/7eb81221-fbf5-4b1d-8327-eb0e707236d8.webp';
                 }}
               />
             </div>

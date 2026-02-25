@@ -19,7 +19,7 @@ const RealEmployeeTest = () => {
     name: "John Doe",
     name_ar: "محمد أحمد",
     role: "مصفف شعر",
-    photo_url: "/lovable-uploads/7eb81221-fbf5-4b1d-8327-eb0e707236d8.png",
+    photo_url: "/lovable-uploads/7eb81221-fbf5-4b1d-8327-eb0e707236d8.webp",
     nationality: "سعودي",
     branch: "الرياض",
   };

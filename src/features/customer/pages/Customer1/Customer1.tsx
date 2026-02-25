@@ -212,7 +212,7 @@ const Customer1 = () => {
       </motion.div>
 
       {/* Lazy-loaded Dialogs with Suspense */}
-      <Suspense fallback={null}>
+      <Suspense fallback={<div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"><div className="h-8 w-8 animate-spin rounded-full border-4 border-brand-gold-200 border-t-transparent" /></div>}>
         <BranchDialog
           open={branchDialogOpen}
           onOpenChange={setBranchDialogOpen}
@@ -221,7 +221,7 @@ const Customer1 = () => {
         />
       </Suspense>
 
-      <Suspense fallback={null}>
+      <Suspense fallback={<div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"><div className="h-8 w-8 animate-spin rounded-full border-4 border-brand-gold-200 border-t-transparent" /></div>}>
         <LocationDialog
           open={locationDialogOpen}
           onOpenChange={setLocationDialogOpen}
@@ -230,7 +230,7 @@ const Customer1 = () => {
         />
       </Suspense>
 
-      <Suspense fallback={null}>
+      <Suspense fallback={<div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"><div className="h-8 w-8 animate-spin rounded-full border-4 border-brand-gold-200 border-t-transparent" /></div>}>
         <BookingsDialog
           open={bookingsDialogOpen}
           onOpenChange={setBookingsDialogOpen}
@@ -239,7 +239,7 @@ const Customer1 = () => {
         />
       </Suspense>
 
-      <Suspense fallback={null}>
+      <Suspense fallback={<div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"><div className="h-8 w-8 animate-spin rounded-full border-4 border-brand-gold-200 border-t-transparent" /></div>}>
         <EidBookingsDialog
           open={eidBookingsDialogOpen}
           onOpenChange={setEidBookingsDialogOpen}
@@ -249,7 +249,7 @@ const Customer1 = () => {
       </Suspense>
 
       {/* Marketing Dialog for Menus and Offers */}
-      <Suspense fallback={null}>
+      <Suspense fallback={<div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"><div className="h-8 w-8 animate-spin rounded-full border-4 border-brand-gold-200 border-t-transparent" /></div>}>
         <LazyMarketingDialog
           open={marketingDialogState.open}
           onOpenChange={closeMarketingDialog}

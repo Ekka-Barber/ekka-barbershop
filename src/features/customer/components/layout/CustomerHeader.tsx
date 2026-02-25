@@ -26,7 +26,7 @@ export const CustomerHeader = ({ animatingElements }: CustomerHeaderProps) => {
             onError={(event) => {
               event.currentTarget.onerror = null;
               event.currentTarget.src =
-                '/lovable-uploads/7eb81221-fbf5-4b1d-8327-eb0e707236d8.png';
+                '/lovable-uploads/7eb81221-fbf5-4b1d-8327-eb0e707236d8.webp';
             }}
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}

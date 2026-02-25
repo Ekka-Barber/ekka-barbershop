@@ -3,3 +3,4 @@
 
 export * from './errorHandler';
 export * from './reviewsService';
+export * from './accessUsersService';

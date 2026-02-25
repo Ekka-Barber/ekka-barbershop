@@ -149,6 +149,72 @@ export type MarketingCategory = 'menu' | 'offers';
 export type LoanSource = 'cash_deposit' | 'other';
 
 // ============================================================================
+// ACCESS USER DOMAIN TYPES
+// ============================================================================
+
+export type AccessRole = 'owner' | 'manager' | 'super_manager' | 'hr';
+
+export interface AccessUser {
+  id: string;
+  name: string;
+  role: AccessRole;
+  branch_id: string | null;
+  branch_name: string | null;
+  is_super_manager: boolean;
+  last_login: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface OwnerAccessUser extends AccessUser {
+  role: 'owner';
+  branch_id: null;
+  branch_name: null;
+  is_super_manager: false;
+}
+
+export interface ManagerAccessUser extends AccessUser {
+  role: 'manager' | 'super_manager';
+  branch_id: string | null;
+  branch_name: string | null;
+  is_super_manager: boolean;
+}
+
+export interface HRAccessUser extends AccessUser {
+  role: 'hr';
+  branch_id: null;
+  branch_name: null;
+  is_super_manager: false;
+}
+
+export interface CreateAccessUserInput {
+  name: string;
+  role: AccessRole;
+  branch_id?: string | null;
+  is_super_manager?: boolean;
+  access_code: string;
+}
+
+export interface UpdateAccessUserInput {
+  name?: string;
+  branch_id?: string | null;
+}
+
+export interface UpdateAccessCodeInput {
+  new_code: string;
+}
+
+export interface CanDeleteOwnerResult {
+  can_delete: boolean;
+  reason: string | null;
+}
+
+export interface DeleteOwnerResult {
+  success: boolean;
+  error?: string;
+}
+
+// ============================================================================
 // UTILITY TYPES
 // ============================================================================
 

@@ -12,14 +12,13 @@ import { useEmployeeDocumentsData } from "@/features/manager/hooks/useEmployeeDo
 const Dashboard = () => {
   const navigate = useNavigate();
   const logout = useLogout();
+  const { summary, isLoading } = useEmployeeDocumentsData();
 
   const accessCode = accessCodeStorage.getManagerAccessCode();
   if (!accessCode) {
     navigate('/customer');
     return null;
   }
-
-  const { summary, isLoading } = useEmployeeDocumentsData();
 
   const handleLogout = () => logout();
 

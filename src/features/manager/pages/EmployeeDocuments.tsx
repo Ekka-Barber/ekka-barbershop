@@ -1,11 +1,12 @@
 import { ArrowRight, FileCheck, RefreshCw, ShieldAlert, AlertTriangle, FileX } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
-import MainLayout from '@/features/manager/components/layouts/MainLayout';
-import { useEmployeeDocumentsData } from '@/features/manager/hooks/useEmployeeDocumentsData';
 import { Button } from '@shared/ui/components/button';
 
 import { EmployeeDocumentCard } from './components/EmployeeDocumentCard';
+
+import MainLayout from '@/features/manager/components/layouts/MainLayout';
+import { useEmployeeDocumentsData } from '@/features/manager/hooks/useEmployeeDocumentsData';
 
 const Dashboard = () => {
   const navigate = useNavigate();

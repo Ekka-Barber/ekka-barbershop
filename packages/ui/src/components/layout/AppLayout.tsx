@@ -11,6 +11,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
     <div className="flex h-[100dvh] w-full justify-center overflow-hidden">
       <div className="w-full flex flex-col min-h-0">
         <main
+          id="main-content"
           className="w-full flex-1 min-h-0 overflow-y-auto momentum-scroll touch-action-pan-y"
           style={{
             paddingLeft: 'calc(1rem + var(--sal))',

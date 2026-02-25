@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -11,14 +10,12 @@
   <script>
     window.dataLayer = window.dataLayer || [];
     function gtag(){dataLayer.push(arguments);}
-    // Queue config immediately so events aren't lost, but defer script loading
     gtag('js', new Date());
     gtag('config', 'G-85975JPERF');
     var path = typeof window !== 'undefined' ? window.location.pathname : '';
     if (path !== '' && !/^\/(owner|manager|hr)(\/|$)/.test(path)) {
       gtag('config', 'AW-11225595244');
     }
-    // Load GTM script after page is interactive (saves ~168ms main thread)
     window.addEventListener('load', function() {
       var s = document.createElement('script');
       s.src = 'https://www.googletagmanager.com/gtag/js?id=G-85975JPERF';
@@ -30,42 +27,87 @@
   <title>Ekka Barbershop | صالون إكّه</title>
   <meta name="description" content="Ekka Barbershop - Premium grooming services in Taif and Makkah. Haircut, beard trim, and styling. صالون إكّه - خدمات حلاقة متميزة في الطائف ومكة." />
   <meta name="theme-color" content="#C4A36F" />
+  <meta name="robots" content="index, follow" />
+  
+  <!-- Open Graph -->
   <meta property="og:title" content="Ekka Barbershop | صالون إكّه" />
   <meta property="og:description" content="Premium grooming services in Taif and Makkah. Haircut, beard trim, and styling." />
-  <meta property="og:image" content="https://ekka-barbershop.lovable.app/og-image.png" />
+  <meta property="og:image" content="https://ekka-barbershop.com/logo_Header/logo12-512x512.png" />
+  <meta property="og:image:width" content="512" />
+  <meta property="og:image:height" content="512" />
+  <meta property="og:image:alt" content="Ekka Barbershop Logo" />
   <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://ekka-barbershop.com/" />
+  <meta property="og:locale" content="ar_SA" />
+  <meta property="og:locale:alternate" content="en_US" />
+  <meta property="og:site_name" content="Ekka Barbershop" />
+  
+  <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="Ekka Barbershop | صالون إكّه" />
   <meta name="twitter:description" content="Premium grooming services in Taif and Makkah. Haircut, beard trim, and styling." />
-  <meta name="twitter:image" content="https://ekka-barbershop.lovable.app/og-image.png" />
-  <link rel="canonical" href="https://ekka-barbershop.lovable.app/" />
+  <meta name="twitter:image" content="https://ekka-barbershop.com/logo_Header/logo12-512x512.png" />
+  
+  <link rel="canonical" href="https://ekka-barbershop.com/" />
   <link rel="manifest" href="/manifest.json" />
-  <link rel="apple-touch-icon" href="/logo_Header/logo12-16x16.png" sizes="16x16" />
-  <link rel="apple-touch-icon" href="/logo_Header/logo12-32x32.png" sizes="32x32" />
   <link rel="apple-touch-icon" href="/logo_Header/logo12-180x180.png" sizes="180x180" />
   
   <!-- Preconnect to external domains for faster resource loading -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   
-  <!-- Load Google Fonts from HTML (not CSS @import) to avoid render-blocking chain -->
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap">
+  <!-- Self-hosted WOFF2 font (69% smaller than TTF) for Regular weight -->
+  <style>
+    @font-face {
+      font-family: 'IBM Plex Sans Arabic';
+      font-style: normal;
+      font-weight: 400;
+      font-display: swap;
+      src: url('/fonts/IBMPlexSansArabic-Regular.woff2') format('woff2');
+    }
+  </style>
   
-  <!-- Preload LCP image (customer home logo) - discovered early for faster paint -->
+  <!-- Load all font weights from Google Fonts (500, 600, 700 will be used, 400 falls back to self-hosted) -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" media="print" onload="this.media='all'">
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap"></noscript>
+  
+  <!-- Preload LCP image (customer home logo) -->
   <link rel="preload" href="/logo_Header/header11.svg" as="image" type="image/svg+xml" fetchpriority="high">
   
   <!-- Set language and direction with JavaScript -->
   <script>
-    // Get language from URL parameters or default to Arabic
     const urlParams = new URLSearchParams(window.location.search);
     const lang = urlParams.get('lang') || 'ar';
-    
-    // Update html tag attributes
     document.documentElement.lang = lang;
     document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
   </script>
+  
+  <style>
+    /* Skip to content link for keyboard accessibility */
+    .skip-to-content {
+      position: absolute;
+      top: -40px;
+      left: 0;
+      background: #C4A36F;
+      color: #1a1a1a;
+      padding: 8px 16px;
+      z-index: 10000;
+      text-decoration: none;
+      font-weight: 600;
+      border-radius: 0 0 4px 0;
+      transition: top 0.2s ease;
+    }
+    .skip-to-content:focus {
+      top: 0;
+      outline: 2px solid #1a1a1a;
+      outline-offset: 2px;
+    }
+  </style>
 </head>
 <body>
+  <!-- Skip to main content link for keyboard users -->
+  <a href="#main-content" class="skip-to-content">Skip to main content</a>
+  
   <noscript>
     <div style="padding: 20px; text-align: center; font-family: sans-serif; color: #333;">
       <h1>Ekka Barbershop | صالون إكّه</h1>
@@ -76,26 +118,41 @@
       <p><strong>Makkah:</strong> +966 12 565 4193</p>
     </div>
   </noscript>
-  <div id="root">  </div>
+  
+  <div id="root"></div>
   
   <script type="application/ld+json">
     {
       "@context": "https://schema.org",
       "@type": "HairSalon",
       "name": "Ekka Barbershop",
-      "url": "https://ekka-barbershop.lovable.app/",
-      "image": "https://ekka-barbershop.lovable.app/og-image.png",
+      "alternateName": "صالون إكّه",
+      "url": "https://ekka-barbershop.com/",
+      "logo": "https://ekka-barbershop.com/logo_Header/logo12-512x512.png",
+      "image": "https://ekka-barbershop.com/logo_Header/logo12-512x512.png",
       "priceRange": "$$",
-      "address": {
-        "@type": "PostalAddress",
-        "addressLocality": "Taif",
-        "addressRegion": "Makkah",
-        "addressCountry": "SA"
-      },
+      "address": [
+        {
+          "@type": "PostalAddress",
+          "streetAddress": "Al Wasayliyah District",
+          "addressLocality": "Taif",
+          "addressRegion": "Makkah",
+          "postalCode": "26511",
+          "addressCountry": "SA"
+        },
+        {
+          "@type": "PostalAddress",
+          "addressLocality": "Makkah",
+          "addressRegion": "Makkah",
+          "addressCountry": "SA"
+        }
+      ],
       "telephone": "+966599791440",
       "paymentAccepted": "Cash, Credit Card",
+      "currenciesAccepted": "SAR",
       "sameAs": [
-        "https://wa.me/966599791440"
+        "https://wa.me/966599791440",
+        "https://instagram.com/ekka.barbershop"
       ],
       "hasMap": "https://maps.app.goo.gl/hXXagzfCV8Fr9H546",
       "openingHoursSpecification": [

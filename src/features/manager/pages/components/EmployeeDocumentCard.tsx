@@ -1,5 +1,4 @@
 import {
-  Badge,
   Building2,
   ChevronDown,
   ChevronUp,
@@ -10,9 +9,10 @@ import {
 } from 'lucide-react';
 import { useState } from 'react';
 
-import type { EmployeeWithDocuments } from '@/features/manager/hooks/useEmployeeDocumentsData';
 import { motion, useReducedMotion } from '@shared/lib/motion';
-import { Badge as UIBadge } from '@shared/ui/components/badge';
+import { Badge } from '@shared/ui/components/badge';
+
+import type { EmployeeWithDocuments } from '@/features/manager/hooks/useEmployeeDocumentsData';
 
 const formatDate = (date: string) =>
   new Date(date).toLocaleDateString('ar-SA', {
@@ -80,9 +80,9 @@ export const EmployeeDocumentCard = ({ employee }: EmployeeDocumentCardProps) =>
                   {employee.name_ar || employee.name}
                 </h3>
                 {employee.role && (
-                  <UIBadge variant="outline" className="text-xs">
+                  <Badge variant="outline" className="text-xs">
                     {employee.role}
-                  </UIBadge>
+                  </Badge>
                 )}
               </div>
               {employee.branch_name && (
@@ -96,19 +96,19 @@ export const EmployeeDocumentCard = ({ employee }: EmployeeDocumentCardProps) =>
             <div className="flex items-center gap-2">
               <div className="flex items-center gap-1.5">
                 {employee.document_counts.expired > 0 && (
-                  <UIBadge variant="destructive" className="text-xs">
+                  <Badge variant="destructive" className="text-xs">
                     {employee.document_counts.expired} منتهي
-                  </UIBadge>
+                  </Badge>
                 )}
                 {employee.document_counts.expiring_soon > 0 && (
-                  <UIBadge className="text-xs bg-amber-100 text-amber-800 border-amber-200">
+                  <Badge className="text-xs bg-amber-100 text-amber-800 border-amber-200">
                     {employee.document_counts.expiring_soon} قريب
-                  </UIBadge>
+                  </Badge>
                 )}
                 {employee.document_counts.valid > 0 && !hasIssues && (
-                  <UIBadge className="text-xs bg-emerald-50 text-emerald-700 border-emerald-200">
+                  <Badge className="text-xs bg-emerald-50 text-emerald-700 border-emerald-200">
                     {employee.documents.length} ساري
-                  </UIBadge>
+                  </Badge>
                 )}
               </div>
 
@@ -183,7 +183,7 @@ export const EmployeeDocumentCard = ({ employee }: EmployeeDocumentCardProps) =>
                           )}
                         </div>
                         <div className="flex items-center gap-2 mt-1">
-                          <UIBadge
+                          <Badge
                             variant="outline"
                             className={`text-xs ${
                               doc.status === 'expired'
@@ -198,7 +198,7 @@ export const EmployeeDocumentCard = ({ employee }: EmployeeDocumentCardProps) =>
                               : doc.status === 'expiring_soon'
                                 ? 'ينتهي قريباً'
                                 : 'ساري'}
-                          </UIBadge>
+                          </Badge>
                           {doc.document_number && (
                             <span className="text-xs text-gray-500">
                               رقم: {doc.document_number}
@@ -257,7 +257,7 @@ export const EmployeeDocumentCard = ({ employee }: EmployeeDocumentCardProps) =>
                           {employee.insurance.company?.name || 'شركة التأمين'}
                         </span>
                         <div className="flex items-center gap-2 mt-1">
-                          <UIBadge
+                          <Badge
                             variant="outline"
                             className={`text-xs ${
                               employee.insurance.status === 'expired'
@@ -272,7 +272,7 @@ export const EmployeeDocumentCard = ({ employee }: EmployeeDocumentCardProps) =>
                               : employee.insurance.status === 'expiring_soon'
                                 ? 'ينتهي قريباً'
                                 : 'ساري'}
-                          </UIBadge>
+                          </Badge>
                         </div>
                       </div>
                     </div>

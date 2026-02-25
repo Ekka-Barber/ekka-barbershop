@@ -1,5 +1,5 @@
-import { HeartPulse, Phone, Plus, Search } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { Building2, Plus, Search } from 'lucide-react';
+import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
 import type { InsuranceCompany, InsuranceHospital } from '@shared/types/domains';
@@ -22,18 +22,17 @@ import {
 
 import { HospitalForm } from './components/HospitalForm';
 import type { HospitalFormData } from './components/HospitalForm';
-import { HospitalTable } from './components/HospitalTable';
-import { InsuranceCompaniesTable } from './components/InsuranceCompaniesTable';
-import type { InsuranceCompanyFormData } from './components/InsuranceCompanyForm';
+import { InsuranceCompanyCard } from './components/InsuranceCompanyCard';
 import { InsuranceCompanyForm } from './components/InsuranceCompanyForm';
+import type { InsuranceCompanyFormData } from './components/InsuranceCompanyForm';
 
 export const InsuranceManagement: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [showCompanyForm, setShowCompanyForm] = useState(false);
   const [editingCompany, setEditingCompany] = useState<InsuranceCompany | null>(null);
-  const [selectedCompany, setSelectedCompany] = useState<InsuranceCompany | null>(null);
-  const [showHospitalForm, setShowHospitalForm] = useState(false);
+  const [showHospitalDialog, setShowHospitalDialog] = useState(false);
   const [editingHospital, setEditingHospital] = useState<InsuranceHospital | null>(null);
+  const [hospitalCompanyId, setHospitalCompanyId] = useState<string | null>(null);
 
   const {
     companiesQuery,
@@ -42,32 +41,23 @@ export const InsuranceManagement: React.FC = () => {
     deleteCompany,
   } = useInsuranceCompanies();
 
-  const { hospitalsQuery, createHospital, updateHospital, deleteHospital } = useInsuranceHospitals(
-    selectedCompany?.id
-  );
+  const { hospitalsQuery, createHospital, updateHospital, deleteHospital } = useInsuranceHospitals();
 
   const { data: branchCities = [] } = useBranchCities();
 
-  const companies = companiesQuery.data ?? [];
-  const hospitals = hospitalsQuery.data ?? [];
+  const companies = useMemo(() => companiesQuery.data ?? [], [companiesQuery.data]);
+  const hospitals = useMemo(() => hospitalsQuery.data ?? [], [hospitalsQuery.data]);
 
   const filteredCompanies = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
-    if (!query) return companiesQuery.data ?? [];
+    if (!query) return companies;
 
-    return (companiesQuery.data ?? []).filter(
+    return companies.filter(
       (company) =>
         company.name.toLowerCase().includes(query) ||
         company.contact_phone?.toLowerCase().includes(query)
     );
-  }, [companiesQuery.data, searchQuery]);
-
-  useEffect(() => {
-    if (!selectedCompany) return;
-
-    setEditingHospital(null);
-    setShowHospitalForm(false);
-  }, [selectedCompany]);
+  }, [companies, searchQuery]);
 
   const handleCompanySubmit = async (data: InsuranceCompanyFormData) => {
     try {
@@ -89,9 +79,6 @@ export const InsuranceManagement: React.FC = () => {
     try {
       await deleteCompany.mutateAsync(id);
       toast.success('تم حذف شركة التأمين بنجاح.');
-      if (selectedCompany?.id === id) {
-        setSelectedCompany(null);
-      }
     } catch {
       toast.error('تعذر حذف شركة التأمين.');
     }
@@ -106,8 +93,9 @@ export const InsuranceManagement: React.FC = () => {
         await createHospital.mutateAsync(data);
         toast.success('تمت إضافة المستشفى بنجاح.');
       }
-      setShowHospitalForm(false);
+      setShowHospitalDialog(false);
       setEditingHospital(null);
+      setHospitalCompanyId(null);
     } catch {
       toast.error('تعذر حفظ المستشفى.');
     }
@@ -122,8 +110,16 @@ export const InsuranceManagement: React.FC = () => {
     }
   };
 
-  const handleViewHospitals = (company: InsuranceCompany) => {
-    setSelectedCompany(company);
+  const handleAddHospital = (companyId: string) => {
+    setHospitalCompanyId(companyId);
+    setEditingHospital(null);
+    setShowHospitalDialog(true);
+  };
+
+  const handleEditHospital = (hospital: InsuranceHospital) => {
+    setHospitalCompanyId(hospital.company_id);
+    setEditingHospital(hospital);
+    setShowHospitalDialog(true);
   };
 
   const handleEditCompany = (company: InsuranceCompany) => {
@@ -136,24 +132,6 @@ export const InsuranceManagement: React.FC = () => {
     setShowCompanyForm(true);
   };
 
-  const handleEditHospital = (hospital: InsuranceHospital) => {
-    setEditingHospital(hospital);
-    setShowHospitalForm(true);
-  };
-
-  const handleAddHospital = () => {
-    setEditingHospital(null);
-    setShowHospitalForm(true);
-  };
-
-  const handleCloseHospitalDialog = () => {
-    setSelectedCompany(null);
-    setShowHospitalForm(false);
-    setEditingHospital(null);
-  };
-
-  const isCompanyLoading = companiesQuery.isLoading;
-  const isHospitalLoading = hospitalsQuery.isLoading;
   const isSubmitting =
     createCompany.isPending ||
     updateCompany.isPending ||
@@ -201,67 +179,56 @@ export const InsuranceManagement: React.FC = () => {
         />
       )}
 
-      <InsuranceCompaniesTable
-        companies={filteredCompanies}
-        onEdit={handleEditCompany}
-        onDelete={handleCompanyDelete}
-        onViewHospitals={handleViewHospitals}
-        isLoading={isCompanyLoading || isSubmitting}
-      />
+      {filteredCompanies.length === 0 ? (
+        <Card className="border-[#e2ceab] bg-white/80" dir="rtl">
+          <CardContent className="py-12 text-center text-[#7a6b55]">
+            <Building2 className="mx-auto mb-3 h-12 w-12 text-[#d6c4a8]" />
+            <p className="text-lg font-medium">لا توجد شركات تأمين مسجلة</p>
+            <p className="mt-1 text-sm">قم بإضافة شركة تأمين جديدة للبدء</p>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="space-y-3">
+          {filteredCompanies.map((company) => (
+            <InsuranceCompanyCard
+              key={company.id}
+              company={company}
+              hospitals={hospitals}
+              onEdit={handleEditCompany}
+              onDelete={handleCompanyDelete}
+              onAddHospital={handleAddHospital}
+              onEditHospital={handleEditHospital}
+              onDeleteHospital={handleHospitalDelete}
+              isLoading={isSubmitting}
+            />
+          ))}
+        </div>
+      )}
 
-      <Dialog open={!!selectedCompany} onOpenChange={(open) => !open && handleCloseHospitalDialog()}>
-        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-3xl" dir="rtl">
+      <Dialog open={showHospitalDialog} onOpenChange={(open) => !open && (setShowHospitalDialog(false), setEditingHospital(null), setHospitalCompanyId(null))}>
+        <DialogContent className="max-w-lg" dir="rtl">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-[#2f261b]">
-              <HeartPulse className="h-5 w-5 text-[#e9b353]" />
-              مستشفيات {selectedCompany?.name}
+            <DialogTitle className="text-[#2f261b]">
+              {editingHospital ? 'تعديل المستشفى' : 'إضافة مستشفى جديد'}
             </DialogTitle>
             <DialogDescription className="text-[#6f5b40]">
-              إدارة المستشفيات المعتمدة لشركة {selectedCompany?.name}
+              {editingHospital ? 'قم بتعديل بيانات المستشفى' : 'أدخل تفاصيل المستشفى الجديد'}
             </DialogDescription>
           </DialogHeader>
 
-          <div className="mt-4 space-y-4">
-            {selectedCompany?.contact_phone && (
-              <div className="flex items-center gap-2 rounded-lg border border-[#e8dcc4] bg-[#fffbf4] p-3">
-                <Phone className="h-4 w-4 text-[#e9b353]" />
-                <span className="text-sm text-[#5a4a30]">رقم الهاتف:</span>
-                <span className="font-medium text-[#3a3020]" dir="ltr">
-                  {selectedCompany.contact_phone}
-                </span>
-              </div>
-            )}
-
-            <div className="flex justify-end">
-              <Button
-                onClick={handleAddHospital}
-                className="h-10 bg-[#e9b353] text-white hover:bg-[#deaa4f]"
-              >
-                <Plus className="ms-2 h-4 w-4" />
-                إضافة مستشفى
-              </Button>
-            </div>
-
-            {showHospitalForm && (
-              <HospitalForm
-                onSubmit={handleHospitalSubmit}
-                onCancel={() => {
-                  setShowHospitalForm(false);
-                  setEditingHospital(null);
-                }}
-                editingHospital={editingHospital}
-                companies={companies}
-                cities={branchCities}
-                defaultCompanyId={selectedCompany?.id}
-                isSubmitting={createHospital.isPending || updateHospital.isPending}
-              />
-            )}
-
-            <HospitalTable
-              hospitals={hospitals}
-              onEdit={handleEditHospital}
-              onDelete={handleHospitalDelete}
-              isLoading={isHospitalLoading || isSubmitting}
+          <div className="mt-4">
+            <HospitalForm
+              onSubmit={handleHospitalSubmit}
+              onCancel={() => {
+                setShowHospitalDialog(false);
+                setEditingHospital(null);
+                setHospitalCompanyId(null);
+              }}
+              editingHospital={editingHospital}
+              companies={companies}
+              cities={branchCities}
+              defaultCompanyId={hospitalCompanyId ?? undefined}
+              isSubmitting={createHospital.isPending || updateHospital.isPending}
             />
           </div>
         </DialogContent>

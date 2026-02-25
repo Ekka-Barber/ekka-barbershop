@@ -1,12 +1,15 @@
-import { Archive, Edit, RotateCcw, Users } from 'lucide-react';
+import { Archive, ChevronDown, ChevronUp, Edit, RotateCcw, Users } from 'lucide-react';
+import { useState } from 'react';
 
-import { motion, useReducedMotion } from '@shared/lib/motion';
+import { motion, AnimatePresence, useReducedMotion } from '@shared/lib/motion';
 import type { EmployeeRole, HREmployee } from '@shared/types/hr.types';
 import { Avatar, AvatarImage, AvatarFallback } from '@shared/ui/components/avatar';
 import { Badge } from '@shared/ui/components/badge';
 import { Button } from '@shared/ui/components/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@shared/ui/components/card';
 import { Skeleton } from '@shared/ui/components/skeleton';
+
+import { EmployeeInsuranceSection } from './EmployeeInsuranceSection';
 
 interface EmployeeTableProps {
   employees: HREmployee[];
@@ -54,7 +57,12 @@ export const EmployeeTable: React.FC<EmployeeTableProps> = ({
   onRestore,
   isLoading = false,
 }) => {
+  const [expandedEmployeeId, setExpandedEmployeeId] = useState<string | null>(null);
   const shouldReduceMotion = useReducedMotion();
+
+  const toggleExpand = (employeeId: string) => {
+    setExpandedEmployeeId(expandedEmployeeId === employeeId ? null : employeeId);
+  };
 
   return (
     <Card className="overflow-hidden border-[#e2ceab] bg-white/90 shadow-[0_20px_42px_-30px_rgba(82,60,28,0.45)]" dir="rtl">
@@ -104,97 +112,134 @@ export const EmployeeTable: React.FC<EmployeeTableProps> = ({
             {employees.map((employee, index) => {
               const isActive = isEmployeeActive(employee);
 
-              return (
-                <motion.div
-                  key={employee.id}
-                  initial={shouldReduceMotion ? false : { opacity: 0, y: 12 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{
-                    duration: 0.25,
-                    delay: shouldReduceMotion ? 0 : index * 0.05,
-                    ease: 'easeOut',
-                  }}
-                  className="virtualized-card-item flex items-center justify-between rounded-2xl border border-[#ead8b8] bg-gradient-to-r from-[#fffdf9] to-[#fff7ea] p-4 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_18px_30px_-30px_rgba(82,60,28,0.7)]"
-                >
-                  <div className="flex min-w-0 flex-1 items-center gap-4">
-                    <Avatar className="h-12 w-12">
-                      {employee.photo_url ? (
-                        <AvatarImage
-                          src={employee.photo_url}
-                          alt={`صورة الموظف ${getEmployeeDisplayName(employee)}`}
-                        />
-                      ) : (
-                        <AvatarFallback name={getEmployeeDisplayName(employee)} />
-                      )}
-                    </Avatar>
+               const isExpanded = expandedEmployeeId === employee.id;
 
-                    <div className="min-w-0 flex-1">
-                      <div className="mb-1 flex items-center gap-2">
-                        <h3 className="truncate font-medium">{getEmployeeDisplayName(employee)}</h3>
-                        {isActive ? (
-                          <Badge variant="secondary" className="text-xs">
-                            نشط
-                          </Badge>
-                        ) : (
-                          <Badge variant="destructive" className="text-xs">
-                            مؤرشف
-                          </Badge>
-                        )}
-                      </div>
+               return (
+                 <motion.div
+                   key={employee.id}
+                   initial={shouldReduceMotion ? false : { opacity: 0, y: 12 }}
+                   animate={{ opacity: 1, y: 0 }}
+                   transition={{
+                     duration: 0.25,
+                     delay: shouldReduceMotion ? 0 : index * 0.05,
+                     ease: 'easeOut',
+                   }}
+                   className="rounded-2xl border border-[#ead8b8] bg-gradient-to-r from-[#fffdf9] to-[#fff7ea] transition-all duration-300 hover:shadow-[0_18px_30px_-30px_rgba(82,60,28,0.7)]"
+                 >
+                   <div className="flex items-center justify-between p-4">
+                     <div className="flex min-w-0 flex-1 items-center gap-4">
+                       <Avatar className="h-12 w-12">
+                         {employee.photo_url ? (
+                           <AvatarImage
+                             src={employee.photo_url}
+                             alt={`صورة الموظف ${getEmployeeDisplayName(employee)}`}
+                           />
+                         ) : (
+                           <AvatarFallback name={getEmployeeDisplayName(employee)} />
+                         )}
+                       </Avatar>
 
-                      <p className="text-sm text-[#69563e]">{ROLE_LABELS[employee.role]}</p>
-                      <p className="mt-1 text-xs text-muted-foreground">
-                        {employee.email || 'بدون بريد إلكتروني'}
-                      </p>
-                      <p className="mt-1 text-[11px] text-[#8f7a5d]">
-                        {employee.photo_url ? 'الصورة الشخصية مضافة' : 'الصورة الشخصية غير مضافة'}
-                      </p>
-                    </div>
-                  </div>
+                       <div className="min-w-0 flex-1">
+                         <div className="mb-1 flex items-center gap-2">
+                           <h3 className="truncate font-medium">{getEmployeeDisplayName(employee)}</h3>
+                           {isActive ? (
+                             <Badge variant="secondary" className="text-xs">
+                               نشط
+                             </Badge>
+                           ) : (
+                             <Badge variant="destructive" className="text-xs">
+                               مؤرشف
+                             </Badge>
+                           )}
+                         </div>
 
-                  <div className="flex items-center gap-2">
-                    <div className="hidden min-w-[120px] rounded-xl border border-[#ecdabc] bg-white/80 px-3 py-2 text-xs text-[#77644c] md:block">
-                      <p className="font-semibold text-[#5f4c34]">البدء: {formatDate(employee.start_date)}</p>
-                      <p className="mt-1">الانتهاء: {formatDate(employee.end_date)}</p>
-                    </div>
+                         <p className="text-sm text-[#69563e]">{ROLE_LABELS[employee.role]}</p>
+                         <p className="mt-1 text-xs text-muted-foreground">
+                           {employee.email || 'بدون بريد إلكتروني'}
+                         </p>
+                         <p className="mt-1 text-[11px] text-[#8f7a5d]">
+                           {employee.photo_url ? 'الصورة الشخصية مضافة' : 'الصورة الشخصية غير مضافة'}
+                         </p>
+                       </div>
+                     </div>
 
-                    <div className="flex gap-1">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => onEdit(employee)}
-                        aria-label="تعديل الموظف"
-                        className="h-9 w-9 rounded-xl text-[#5a4830] hover:bg-[#f5e7ce]"
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
+                     <div className="flex items-center gap-2">
+                       <div className="hidden min-w-[120px] rounded-xl border border-[#ecdabc] bg-white/80 px-3 py-2 text-xs text-[#77644c] md:block">
+                         <p className="font-semibold text-[#5f4c34]">البدء: {formatDate(employee.start_date)}</p>
+                         <p className="mt-1">الانتهاء: {formatDate(employee.end_date)}</p>
+                       </div>
 
-                      {employee.is_archived ? (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => onRestore?.(employee.id)}
-                          disabled={!onRestore}
-                          aria-label="استعادة الموظف"
-                          className="h-9 w-9 rounded-xl text-green-700 hover:bg-green-50 hover:text-green-800"
-                        >
-                          <RotateCcw className="h-4 w-4" />
-                        </Button>
-                      ) : (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => onDelete(employee.id)}
-                          aria-label="أرشفة الموظف"
-                          className="h-9 w-9 rounded-xl text-red-600 hover:bg-red-50 hover:text-red-700"
-                        >
-                          <Archive className="h-4 w-4" />
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-                </motion.div>
-              );
+                       <div className="flex gap-1">
+                         <Button
+                           variant="ghost"
+                           size="sm"
+                           onClick={() => toggleExpand(employee.id)}
+                           aria-label="التأمين الطبي"
+                           className="h-9 w-9 rounded-xl text-[#5a4830] hover:bg-[#f5e7ce]"
+                         >
+                           {isExpanded ? (
+                             <ChevronUp className="h-4 w-4" />
+                           ) : (
+                             <ChevronDown className="h-4 w-4" />
+                           )}
+                         </Button>
+                         <Button
+                           variant="ghost"
+                           size="sm"
+                           onClick={() => onEdit(employee)}
+                           aria-label="تعديل الموظف"
+                           className="h-9 w-9 rounded-xl text-[#5a4830] hover:bg-[#f5e7ce]"
+                         >
+                           <Edit className="h-4 w-4" />
+                         </Button>
+
+                         {employee.is_archived ? (
+                           <Button
+                             variant="ghost"
+                             size="sm"
+                             onClick={() => onRestore?.(employee.id)}
+                             disabled={!onRestore}
+                             aria-label="استعادة الموظف"
+                             className="h-9 w-9 rounded-xl text-green-700 hover:bg-green-50 hover:text-green-800"
+                           >
+                             <RotateCcw className="h-4 w-4" />
+                           </Button>
+                         ) : (
+                           <Button
+                             variant="ghost"
+                             size="sm"
+                             onClick={() => onDelete(employee.id)}
+                             aria-label="أرشفة الموظف"
+                             className="h-9 w-9 rounded-xl text-red-600 hover:bg-red-50 hover:text-red-700"
+                           >
+                             <Archive className="h-4 w-4" />
+                           </Button>
+                         )}
+                       </div>
+                     </div>
+                   </div>
+
+                   <AnimatePresence>
+                     {isExpanded && (
+                       <motion.div
+                         initial={shouldReduceMotion ? { opacity: 1 } : { height: 0, opacity: 0 }}
+                         animate={{ height: 'auto', opacity: 1 }}
+                         exit={shouldReduceMotion ? { opacity: 1 } : { height: 0, opacity: 0 }}
+                         transition={{ duration: 0.2 }}
+                         className="overflow-hidden"
+                       >
+                         <div className="border-t border-[#ead8b8] px-4 pb-4 pt-4">
+                           <EmployeeInsuranceSection
+                             employeeId={employee.id}
+                             branchId={employee.branch_id}
+                             employeeName={getEmployeeDisplayName(employee)}
+                           />
+                         </div>
+                       </motion.div>
+                     )}
+                   </AnimatePresence>
+                 </motion.div>
+               );
             })}
           </div>
         )}

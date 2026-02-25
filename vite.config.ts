@@ -44,6 +44,7 @@ export default defineConfig({
     },
   },
   build: {
+    target: 'esnext',
     chunkSizeWarningLimit: 2000,
     rollupOptions: {
       output: {

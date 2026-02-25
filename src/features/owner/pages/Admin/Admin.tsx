@@ -7,12 +7,14 @@ import {
   Layout,
   Cog,
   ChevronRight,
+  KeyRound,
 } from 'lucide-react';
 import { Suspense, useMemo } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 
 import { BranchesTab } from '@features/owner/admin/branch-management/BranchesTab';
 import { TabContent as AdminTabContent } from '@features/owner/admin/tabs/TabContent';
+import { AccessControlTab } from '@features/owner/admin/user-access';
 
 
 import { Card } from '@shared/ui/components/card';
@@ -30,6 +32,7 @@ const Management = () => {
   const navigationItems = useMemo(() => [
     { id: 'branches', label: 'Studio Network', icon: Building, description: 'Locations & details' },
     { id: 'employees', label: 'Staff Authority', icon: Users, description: 'Staff access & roles' },
+    { id: 'access-control', label: 'Access Control', icon: KeyRound, description: 'System users & codes' },
     { id: 'sponsors', label: 'Partner Hub', icon: ShieldCheck, description: 'Sponsorships' },
     { id: 'files', label: 'Asset Library', icon: FileText, description: 'System resources' },
     { id: 'qrcodes', label: 'Smart Codes', icon: QrCode, description: 'QR analytics' },
@@ -106,6 +109,20 @@ const Management = () => {
                   <h2 className="text-2xl font-bold tracking-tight">System Access</h2>
                   <Separator className="opacity-50" />
                   <EmployeeManagement />
+                </div>
+              </TabsContent>
+
+              {/* Access Control - System Users */}
+              <TabsContent value="access-control" className="m-0 focus-visible:outline-none">
+                <div className="space-y-6">
+                  <div>
+                    <h2 className="text-2xl font-bold tracking-tight">Access Control</h2>
+                    <p className="text-muted-foreground">
+                      Manage system users with access codes - owners, managers, and HR personnel.
+                    </p>
+                  </div>
+                  <Separator className="opacity-50" />
+                  <AccessControlTab />
                 </div>
               </TabsContent>
 

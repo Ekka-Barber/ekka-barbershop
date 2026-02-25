@@ -178,7 +178,7 @@ const UiElementsManager = () => {
         element={editingElement}
       />
 
-      <Suspense fallback={null}>
+      <Suspense fallback={<div className="flex items-center justify-center p-4"><div className="h-6 w-6 animate-spin rounded-full border-2 border-brand-gold-200 border-t-transparent" /></div>}>
         <IconSelectorDialog
           isOpen={!!iconElement}
           onClose={() => setIconElement(null)}
