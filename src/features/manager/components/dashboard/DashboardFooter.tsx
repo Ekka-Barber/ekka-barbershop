@@ -20,7 +20,7 @@ export const DashboardFooter = () => {
             onClick={() => setShowVersionDialog(true)}
             className="text-xs text-gray-500 hover:text-ekka-gold transition-colors duration-200 font-['Changa'] underline decoration-dotted underline-offset-2"
           >
-            النسخة: v1.2.0
+            النسخة: v1.4.0
           </button>
           
           <p className="text-xs text-gray-400 font-['Changa']">

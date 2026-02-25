@@ -19,9 +19,22 @@ interface VersionDialogProps {
 export const VersionDialog = ({ open, onOpenChange }: VersionDialogProps) => {
   const changelog = [
     {
+      version: "1.4.0",
+      date: "2025-02-25",
+      type: "current",
+      changes: [
+        { type: "feature", text: "لوحة تحكم محسنة مع إحصائيات الموظفين (الإجمالي، النشطين، في إجازة)" },
+        { type: "feature", text: "عرض حالة المستندات والتأمين مع أشرطة تقدم ملونة" },
+        { type: "feature", text: "قائمة أفضل المبيعات لأعلى 3 موظفين" },
+        { type: "improvement", text: "توحيد تنسيق الأرقام إلى الإنجليزية في جميع أنحاء المسار" },
+        { type: "improvement", text: "شريط تنقل سفلي محدث مع 3 عناصر (الرئيسية، الموظفين، المستندات)" },
+        { type: "improvement", text: "تحسين التحميل مع هيكل عظمي للإحصائيات" },
+      ]
+    },
+    {
       version: "1.3.0",
       date: "2024-01-20",
-      type: "current",
+      type: "previous",
       changes: [
         { type: "simplification", text: "تبسيط لوحة التحكم الرئيسية لتحسين تجربة المستخدم" },
         { type: "simplification", text: "إزالة البطاقات الإحصائية المعقدة والاحتفاظ بالبساطة" },
