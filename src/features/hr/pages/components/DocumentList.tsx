@@ -1,5 +1,5 @@
 import { FileText, Trash2, Users } from 'lucide-react';
-import React, { useMemo, useState, useCallback } from 'react';
+import React, { useState, useCallback, memo } from 'react';
 
 import { motion, useReducedMotion } from '@shared/lib/motion';
 import type { DocumentFormData, HRDocument, HREmployee } from '@shared/types/hr.types';
@@ -18,9 +18,10 @@ import { Button } from '@shared/ui/components/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@shared/ui/components/card';
 import { Skeleton } from '@shared/ui/components/skeleton';
 
-import { DocumentFilters, type DocumentStatusFilter, type DocumentTypeFilter } from './DocumentFilters';
+import { DocumentFilters } from './DocumentFilters';
 import { DocumentStats } from './DocumentStats';
 import { EmployeeDocumentsGroup } from './EmployeeDocumentsGroup';
+import { useDocumentFilters, useDocumentStats, useDocumentGrouping } from './useDocumentFilters';
 
 interface DocumentListProps {
   documents: HRDocument[];
@@ -31,18 +32,7 @@ interface DocumentListProps {
   isLoading?: boolean;
 }
 
-const isExpiringSoon = (expiryDate: string) => {
-  const expiry = new Date(expiryDate);
-  const today = new Date();
-  const daysUntilExpiry = Math.ceil(
-    (expiry.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
-  );
-  return daysUntilExpiry <= 30 && daysUntilExpiry > 0;
-};
-
-const isExpired = (expiryDate: string) => new Date(expiryDate) < new Date();
-
-export const DocumentList: React.FC<DocumentListProps> = ({
+const DocumentListComponent: React.FC<DocumentListProps> = ({
   documents,
   employees,
   onUpdate,
@@ -52,115 +42,28 @@ export const DocumentList: React.FC<DocumentListProps> = ({
 }) => {
   const shouldReduceMotion = useReducedMotion();
   const [selectedDocuments, setSelectedDocuments] = useState<string[]>([]);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState<DocumentStatusFilter>('all');
-  const [typeFilter, setTypeFilter] = useState<DocumentTypeFilter>('all');
-  const [employeeFilter, setEmployeeFilter] = useState<string>('all');
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [documentToDelete, setDocumentToDelete] = useState<string | null>(null);
   const [editingDocumentId, setEditingDocumentId] = useState<string | null>(null);
 
-  // Filter to only active employees (not archived)
-  const activeEmployees = useMemo(() => {
-    return employees.filter((e) => !e.is_archived);
-  }, [employees]);
+  const {
+    searchQuery,
+    setSearchQuery,
+    statusFilter,
+    setStatusFilter,
+    typeFilter,
+    setTypeFilter,
+    employeeFilter,
+    setEmployeeFilter,
+    activeFiltersCount,
+    filteredDocuments,
+    activeEmployees,
+    handleClearFilters,
+  } = useDocumentFilters({ documents, employees });
 
-  // Filter documents - only from active employees
-  const filteredDocuments = useMemo(() => {
-    return documents.filter((doc) => {
-      // Only show documents from active employees
-      const employee = activeEmployees.find((e) => e.id === doc.employee_id);
-      if (!employee) return false;
+  const employeeDocumentGroups = useDocumentGrouping(filteredDocuments, activeEmployees);
 
-      // Search filter
-      if (searchQuery) {
-        const searchLower = searchQuery.toLowerCase();
-        const matchesSearch =
-          doc.document_name.toLowerCase().includes(searchLower) ||
-          doc.document_number?.toLowerCase().includes(searchLower) ||
-          employee.name.toLowerCase().includes(searchLower) ||
-          employee.name_ar?.toLowerCase().includes(searchLower);
-        if (!matchesSearch) return false;
-      }
-
-      // Status filter
-      if (statusFilter !== 'all') {
-        const docExpired = isExpired(doc.expiry_date);
-        const docExpiringSoon = isExpiringSoon(doc.expiry_date);
-
-        if (statusFilter === 'expired' && !docExpired) return false;
-        if (statusFilter === 'expiring_soon' && !docExpiringSoon) return false;
-        if (statusFilter === 'valid' && (docExpired || docExpiringSoon)) return false;
-      }
-
-      // Type filter
-      if (typeFilter !== 'all' && doc.document_type !== typeFilter) {
-        return false;
-      }
-
-      // Employee filter
-      if (employeeFilter !== 'all' && doc.employee_id !== employeeFilter) {
-        return false;
-      }
-
-      return true;
-    });
-  }, [documents, searchQuery, statusFilter, typeFilter, employeeFilter, activeEmployees]);
-
-  // Group documents by active employee with priority sorting
-  const employeeDocumentGroups = useMemo(() => {
-    const groups = new Map<string, HRDocument[]>();
-
-    filteredDocuments.forEach((doc) => {
-      const existing = groups.get(doc.employee_id) || [];
-      existing.push(doc);
-      groups.set(doc.employee_id, existing);
-    });
-
-    // Convert to array and sort by priority (only active employees)
-    const sortedGroups = Array.from(groups.entries())
-      .map(([employeeId, docs]) => {
-        const employee = activeEmployees.find((e) => e.id === employeeId);
-        if (!employee) return null;
-
-        // Calculate priority score
-        const priorityScore = docs.reduce((score, doc) => {
-          if (isExpired(doc.expiry_date)) return score + 100;
-          if (isExpiringSoon(doc.expiry_date)) return score + 50;
-          return score + 1;
-        }, 0);
-
-        return {
-          employee,
-          documents: docs,
-          priorityScore,
-        };
-      })
-      .filter(Boolean)
-      .sort((a, b) => b!.priorityScore - a!.priorityScore);
-
-    return sortedGroups;
-  }, [filteredDocuments, activeEmployees]);
-
-  // Statistics
-  const stats = useMemo(() => {
-    const total = filteredDocuments.length;
-    const expired = filteredDocuments.filter((d) => isExpired(d.expiry_date)).length;
-    const expiringSoon = filteredDocuments.filter((d) => isExpiringSoon(d.expiry_date)).length;
-    const valid = total - expired - expiringSoon;
-
-    return { total, valid, expiringSoon, expired };
-  }, [filteredDocuments]);
-
-  // Active filters count
-  const activeFiltersCount = useMemo(() => {
-    let count = 0;
-    if (searchQuery) count++;
-    if (statusFilter !== 'all') count++;
-    if (typeFilter !== 'all') count++;
-    if (employeeFilter !== 'all') count++;
-    return count;
-  }, [searchQuery, statusFilter, typeFilter, employeeFilter]);
+  const stats = useDocumentStats(filteredDocuments);
 
   // Selection handlers
   const handleDocumentSelect = useCallback((documentId: string, selected: boolean) => {
@@ -194,15 +97,6 @@ export const DocumentList: React.FC<DocumentListProps> = ({
     setShowDeleteDialog(false);
   }, []);
 
-  // Clear all filters
-  const handleClearFilters = useCallback(() => {
-    setSearchQuery('');
-    setStatusFilter('all');
-    setTypeFilter('all');
-    setEmployeeFilter('all');
-  }, []);
-
-  // Add document handler
   const handleAddDocument = useCallback((employeeId: string) => {
     onAddDocumentForEmployee?.(employeeId);
   }, [onAddDocumentForEmployee]);
@@ -426,3 +320,5 @@ export const DocumentList: React.FC<DocumentListProps> = ({
     </motion.div>
   );
 };
+
+export const DocumentList = memo(DocumentListComponent);

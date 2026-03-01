@@ -31,23 +31,16 @@ export function useQRAnalyticsData(selectedQrId: string | null, timeRange: strin
       const startDate = new Date();
       startDate.setDate(startDate.getDate() - daysLookback);
       
-      // Fetch total scan count
-      const scanCount = await fetchTotalScanCount(selectedQrId, startDate);
-      
-      // Fetch daily scan counts
-      const dailyScans = await fetchDailyScans(selectedQrId, startDate, endDate);
-      
-      // Fetch device breakdown
-      const deviceBreakdown = await fetchDeviceBreakdown(selectedQrId, startDate);
-      
-      // Fetch referrer breakdown
-      const referrerBreakdown = await fetchReferrerBreakdown(selectedQrId, startDate);
-      
-      // Fetch recent scans
-      const recentScans = await fetchRecentScans(selectedQrId);
-
-      // Fetch scan locations
-      const scanLocations = await fetchScanLocations(selectedQrId, startDate);
+      // Fetch all data in parallel to avoid waterfall (async-parallel pattern)
+      const [scanCount, dailyScans, deviceBreakdown, referrerBreakdown, recentScans, scanLocations] = 
+        await Promise.all([
+          fetchTotalScanCount(selectedQrId, startDate),
+          fetchDailyScans(selectedQrId, startDate, endDate),
+          fetchDeviceBreakdown(selectedQrId, startDate),
+          fetchReferrerBreakdown(selectedQrId, startDate),
+          fetchRecentScans(selectedQrId),
+          fetchScanLocations(selectedQrId, startDate),
+        ]);
       
       return {
         qr_id: selectedQrId,

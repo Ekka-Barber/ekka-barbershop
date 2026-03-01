@@ -7,6 +7,27 @@ interface CustomerHeaderProps {
   animatingElements: string[];
 }
 
+const logoVariants = {
+  initial: { opacity: 0, y: -20 },
+  animate: { opacity: 1, y: 0 },
+};
+
+const logoTransition = { duration: 0.6 };
+
+const headingsVariants = {
+  initial: { opacity: 0, y: -10 },
+  animate: { opacity: 1, y: 0 },
+};
+
+const headingsTransition = { duration: 0.5 };
+
+const dividerVariants = {
+  initial: { scaleX: 0, opacity: 0 },
+  animate: { scaleX: 1, opacity: 1 },
+};
+
+const dividerTransition = { duration: 0.5 };
+
 export const CustomerHeader = ({ animatingElements }: CustomerHeaderProps) => {
   const { t } = useLanguage();
   
@@ -28,9 +49,9 @@ export const CustomerHeader = ({ animatingElements }: CustomerHeaderProps) => {
               event.currentTarget.src =
                 '/lovable-uploads/7eb81221-fbf5-4b1d-8327-eb0e707236d8.webp';
             }}
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
+            initial={logoVariants.initial}
+            animate={logoVariants.animate}
+            transition={logoTransition}
           />
         )}
       </AnimatePresence>
@@ -40,9 +61,9 @@ export const CustomerHeader = ({ animatingElements }: CustomerHeaderProps) => {
           <motion.div 
             className="space-y-1 md:space-y-2"
             key="headings"
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
+            initial={headingsVariants.initial}
+            animate={headingsVariants.animate}
+            transition={headingsTransition}
           >
             <h2 className="text-xl font-medium text-brand-gray-900">
               {t('welcome.line1')}
@@ -59,9 +80,9 @@ export const CustomerHeader = ({ animatingElements }: CustomerHeaderProps) => {
           <motion.div 
             key="divider"
             className="h-1.5 w-24 bg-gradient-to-r from-brand-gold-200 via-brand-gold-300 to-brand-gold-400 mx-auto mt-3 md:mt-4 mb-6 shadow-[0_4px_20px_rgba(232,198,111,0.4)]"
-            initial={{ scaleX: 0, opacity: 0 }}
-            animate={{ scaleX: 1, opacity: 1 }}
-            transition={{ duration: 0.5 }}
+            initial={dividerVariants.initial}
+            animate={dividerVariants.animate}
+            transition={dividerTransition}
             style={{ originX: 0.5 }}
           />
         )}

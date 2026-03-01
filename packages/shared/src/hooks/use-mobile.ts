@@ -1,5 +1,6 @@
-import { useIsMobile as useIsMobileViewport } from './useViewport';
+import { useViewportWidth } from './useViewport';
 
 export const useIsMobile = (breakpoint = 768) => {
-  return useIsMobileViewport(breakpoint);
+  const width = useViewportWidth();
+  return width < breakpoint;
 };

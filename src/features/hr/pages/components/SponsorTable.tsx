@@ -10,7 +10,7 @@ import {
   FileUp,
   Trash2,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useCallback, memo } from 'react';
 
 import { motion, AnimatePresence, useReducedMotion } from '@shared/lib/motion';
 import type { SponsorDocumentType, SponsorDocumentWithStatus } from '@shared/types/domains';
@@ -18,16 +18,9 @@ import type { HRSponsor } from '@shared/types/hr.types';
 import { Badge } from '@shared/ui/components/badge';
 import { Button } from '@shared/ui/components/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@shared/ui/components/card';
-import { Input } from '@shared/ui/components/input';
-import { Label } from '@shared/ui/components/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@shared/ui/components/select';
 import { Skeleton } from '@shared/ui/components/skeleton';
+
+import { SponsorDocumentUploadForm } from './SponsorDocumentUploadForm';
 
 interface SponsorTableProps {
   sponsors: HRSponsor[];
@@ -67,7 +60,7 @@ const getStatusBadge = (status: 'valid' | 'expiring_soon' | 'expired', daysRemai
   }
 };
 
-export const SponsorTable: React.FC<SponsorTableProps> = ({
+const SponsorTableComponent: React.FC<SponsorTableProps> = ({
   sponsors,
   onEdit,
   onDelete,
@@ -89,13 +82,7 @@ export const SponsorTable: React.FC<SponsorTableProps> = ({
   });
   const shouldReduceMotion = useReducedMotion();
 
-  const toggleExpand = (sponsorId: string) => {
-    setExpandedSponsorId(expandedSponsorId === sponsorId ? null : sponsorId);
-    setShowUploadForm(false);
-    resetUploadForm();
-  };
-
-  const resetUploadForm = () => {
+  const resetUploadForm = useCallback(() => {
     setUploadFormData({
       document_type_id: '',
       file: null,
@@ -103,16 +90,15 @@ export const SponsorTable: React.FC<SponsorTableProps> = ({
       expiry_date: '',
       duration_months: 12,
     });
-  };
+  }, []);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setUploadFormData((prev) => ({ ...prev, file }));
-    }
-  };
+  const toggleExpand = useCallback((sponsorId: string) => {
+    setExpandedSponsorId((prev) => (prev === sponsorId ? null : sponsorId));
+    setShowUploadForm(false);
+    resetUploadForm();
+  }, [resetUploadForm]);
 
-  const handleSubmitUpload = async (sponsorId: string) => {
+  const handleSubmitUpload = useCallback(async (sponsorId: string) => {
     if (!uploadFormData.file || !uploadFormData.document_type_id) return;
 
     const formData = new FormData();
@@ -126,23 +112,20 @@ export const SponsorTable: React.FC<SponsorTableProps> = ({
     await onUploadDocument(sponsorId, formData);
     resetUploadForm();
     setShowUploadForm(false);
-  };
+  }, [uploadFormData, onUploadDocument, resetUploadForm]);
 
-  const handleDeleteDocument = async (doc: SponsorDocumentWithStatus) => {
+  const handleDeleteDocument = useCallback(async (doc: SponsorDocumentWithStatus) => {
     if (!window.confirm('هل أنت متأكد من حذف هذا المستند؟')) return;
     await onDeleteDocument(doc);
-  };
+  }, [onDeleteDocument]);
 
-  const openFile = (url: string) => {
+  const openFile = useCallback((url: string) => {
     window.open(url, '_blank', 'noopener,noreferrer');
-  };
+  }, []);
 
-  const updateExpiryDate = (issueDate: string, months: number) => {
-    const issue = new Date(issueDate);
-    const expiry = new Date(issue);
-    expiry.setMonth(expiry.getMonth() + months);
-    return expiry.toISOString().split('T')[0];
-  };
+  const toggleUploadForm = useCallback(() => {
+    setShowUploadForm((prev) => !prev);
+  }, []);
 
   return (
     <Card className="overflow-hidden border-[#e2ceab] bg-white/90 shadow-[0_20px_42px_-30px_rgba(82,60,28,0.45)]" dir="rtl">
@@ -273,7 +256,7 @@ export const SponsorTable: React.FC<SponsorTableProps> = ({
                             <h4 className="text-sm font-semibold text-[#3e3020]">المستندات</h4>
                             <Button
                               size="sm"
-                              onClick={() => setShowUploadForm(!showUploadForm)}
+                              onClick={toggleUploadForm}
                               className="h-8 bg-[#e9b353] text-white hover:bg-[#deaa4f]"
                             >
                               <FileUp className="ms-1 h-3.5 w-3.5" />
@@ -282,99 +265,17 @@ export const SponsorTable: React.FC<SponsorTableProps> = ({
                           </div>
 
                           {showUploadForm && (
-                            <div className="mb-4 rounded-xl border border-[#d4c4a5] bg-white/60 p-4">
-                              <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-                                <div className="space-y-1.5">
-                                  <Label className="text-xs text-[#5a4830]">نوع المستند</Label>
-                                  <Select
-                                    value={uploadFormData.document_type_id}
-                                    onValueChange={(value) => {
-                                      setUploadFormData((prev) => ({
-                                        ...prev,
-                                        document_type_id: value,
-                                        duration_months: 12,
-                                        expiry_date: updateExpiryDate(prev.issue_date, 12),
-                                      }));
-                                    }}
-                                  >
-                                    <SelectTrigger className="h-9 border-[#dcc49c] bg-white text-sm">
-                                      <SelectValue placeholder="اختر النوع" />
-                                    </SelectTrigger>
-                                    <SelectContent dir="rtl">
-                                      {documentTypes.map((type) => (
-                                        <SelectItem key={type.id} value={type.id}>
-                                          {type.name_ar}
-                                        </SelectItem>
-                                      ))}
-                                    </SelectContent>
-                                  </Select>
-                                </div>
-
-                                <div className="space-y-1.5">
-                                  <Label className="text-xs text-[#5a4830]">الملف</Label>
-                                  <Input
-                                    type="file"
-                                    accept=".pdf,.jpg,.jpeg,.png"
-                                    onChange={handleFileChange}
-                                    className="h-9 border-[#dcc49c] bg-white text-sm file:ms-2 file:h-7 file:rounded-lg file:border-0 file:bg-[#e9b353] file:px-3 file:text-xs file:text-white"
-                                  />
-                                </div>
-
-                                <div className="space-y-1.5">
-                                  <Label className="text-xs text-[#5a4830]">تاريخ الإصدار</Label>
-                                  <Input
-                                    type="date"
-                                    value={uploadFormData.issue_date}
-                                    onChange={(e) => {
-                                      const newDate = e.target.value;
-                                      setUploadFormData((prev) => ({
-                                        ...prev,
-                                        issue_date: newDate,
-                                        expiry_date: updateExpiryDate(newDate, prev.duration_months),
-                                      }));
-                                    }}
-                                    className="h-9 border-[#dcc49c] bg-white text-sm"
-                                  />
-                                </div>
-
-                                <div className="space-y-1.5">
-                                  <Label className="text-xs text-[#5a4830]">تاريخ الانتهاء</Label>
-                                  <Input
-                                    type="date"
-                                    value={uploadFormData.expiry_date}
-                                    onChange={(e) =>
-                                      setUploadFormData((prev) => ({
-                                        ...prev,
-                                        expiry_date: e.target.value,
-                                      }))
-                                    }
-                                    className="h-9 border-[#dcc49c] bg-white text-sm"
-                                  />
-                                </div>
-                              </div>
-
-                              <div className="mt-3 flex justify-end gap-2">
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={() => {
-                                    setShowUploadForm(false);
-                                    resetUploadForm();
-                                  }}
-                                  className="h-8 border-[#cfb180] text-[#5a4830]"
-                                >
-                                  إلغاء
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  onClick={() => handleSubmitUpload(sponsor.id)}
-                                  disabled={!uploadFormData.file || !uploadFormData.document_type_id || isUploading}
-                                  className="h-8 bg-[#e9b353] text-white hover:bg-[#deaa4f]"
-                                >
-                                  {isUploading ? 'جاري...' : 'رفع'}
-                                </Button>
-                              </div>
-                            </div>
+                            <SponsorDocumentUploadForm
+                              documentTypes={documentTypes}
+                              formData={uploadFormData}
+                              onFormDataChange={setUploadFormData}
+                              onSubmit={() => handleSubmitUpload(sponsor.id)}
+                              onCancel={() => {
+                                setShowUploadForm(false);
+                                resetUploadForm();
+                              }}
+                              isUploading={isUploading}
+                            />
                           )}
 
                           {documents.length === 0 ? (
@@ -446,3 +347,5 @@ export const SponsorTable: React.FC<SponsorTableProps> = ({
     </Card>
   );
 };
+
+export const SponsorTable = memo(SponsorTableComponent);

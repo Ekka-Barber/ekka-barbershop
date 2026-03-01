@@ -98,28 +98,8 @@ const MAX_CHARS_BEFORE_TRUNCATE = 150;
   // Refs for touch gesture handling
   const containerRef = useRef<HTMLDivElement>(null);
   const touchStartXRef = useRef<number | null>(null);
-  
-  // Track previous reviews to detect changes
-  const previousReviewsRef = useRef<Review[]>([]);
 
-  // Create balanced reviews on every mount or when reviews array changes
-  // Using useState with lazy initialization ensures balance happens on every mount
-  const [balancedReviews, setBalancedReviews] = useState<Review[]>(() => {
-    // This function runs only on mount, ensuring fresh balance on each page load
-    return createBalancedReviews(reviews);
-  });
-
-  // Re-balance when reviews array changes (by reference or length)
-  useEffect(() => {
-    const reviewsChanged =
-      previousReviewsRef.current.length !== reviews.length ||
-      previousReviewsRef.current !== reviews;
-
-    if (reviewsChanged) {
-      previousReviewsRef.current = reviews;
-      setBalancedReviews(createBalancedReviews(reviews));
-    }
-  }, [reviews]);
+  const balancedReviews = useMemo(() => createBalancedReviews(reviews), [reviews]);
 
   // Calculate total pages based on balanced reviews
   const totalPages = useMemo(() => Math.ceil(balancedReviews.length / getReviewsPerPage()), [balancedReviews.length, getReviewsPerPage]);

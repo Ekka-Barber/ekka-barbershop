@@ -1,5 +1,5 @@
 import { Archive, ChevronDown, ChevronUp, Edit, RotateCcw, Users } from 'lucide-react';
-import { useState } from 'react';
+import { useState, memo, useCallback } from 'react';
 
 import { motion, AnimatePresence, useReducedMotion } from '@shared/lib/motion';
 import type { EmployeeRole, HREmployee } from '@shared/types/hr.types';
@@ -50,7 +50,7 @@ const isEmployeeActive = (employee: HREmployee) => {
 
 const getEmployeeDisplayName = (employee: HREmployee) => employee.name_ar || employee.name;
 
-export const EmployeeTable: React.FC<EmployeeTableProps> = ({
+const EmployeeTableComponent: React.FC<EmployeeTableProps> = ({
   employees,
   onEdit,
   onDelete,
@@ -60,9 +60,9 @@ export const EmployeeTable: React.FC<EmployeeTableProps> = ({
   const [expandedEmployeeId, setExpandedEmployeeId] = useState<string | null>(null);
   const shouldReduceMotion = useReducedMotion();
 
-  const toggleExpand = (employeeId: string) => {
-    setExpandedEmployeeId(expandedEmployeeId === employeeId ? null : employeeId);
-  };
+  const toggleExpand = useCallback((employeeId: string) => {
+    setExpandedEmployeeId((prev) => (prev === employeeId ? null : employeeId));
+  }, []);
 
   return (
     <Card className="overflow-hidden border-[#e2ceab] bg-white/90 shadow-[0_20px_42px_-30px_rgba(82,60,28,0.45)]" dir="rtl">
@@ -247,3 +247,5 @@ export const EmployeeTable: React.FC<EmployeeTableProps> = ({
     </Card>
   );
 };
+
+export const EmployeeTable = memo(EmployeeTableComponent);

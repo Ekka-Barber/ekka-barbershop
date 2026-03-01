@@ -185,8 +185,8 @@ const Index = ({ selectedBranch }: IndexProps) => {
                   <Users className="h-5 w-5" />
                 </div>
                 <div className="flex-1">
-                  <div className="font-semibold text-sm">Staff Authority</div>
-                  <p className="text-xs text-muted-foreground">Manage contracts and records</p>
+                  <div className="font-semibold text-sm">Employee List</div>
+                  <p className="text-xs text-muted-foreground">Manage staff & roles</p>
                 </div>
               </Link>
               <Link

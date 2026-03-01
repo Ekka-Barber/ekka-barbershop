@@ -378,22 +378,6 @@ export const useExpiringInsurance = (daysThreshold = 30) => {
   };
 };
 
-export const useCities = () => {
-  const { hospitalsQuery } = useInsuranceHospitals();
-
-  const cities = useQuery({
-    queryKey: ['insurance-cities', hospitalsQuery.data],
-    queryFn: async () => {
-      const hospitals = hospitalsQuery.data ?? [];
-      const uniqueCities = [...new Set(hospitals.map((h) => h.city))];
-      return uniqueCities.sort();
-    },
-    enabled: hospitalsQuery.isSuccess,
-  });
-
-  return cities;
-};
-
 export const useBranchCities = () => {
   return useQuery({
     queryKey: ['branch-cities'],

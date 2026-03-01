@@ -54,8 +54,10 @@ export const TabContent = () => {
       </TabsContent>
 
       <TabsContent value="ui-elements" className="space-y-4 animate-in fade-in-0 slide-in-from-right-2 duration-300">
+        <h2 className="text-2xl font-bold">UI Elements</h2>
+        <Separator />
         <ErrorBoundary>
-          <Suspense fallback={<TabLoader feature="UI Elements Management" />}>
+          <Suspense fallback={<TabLoader feature="UI Elements" />}>
             <UiElementsManager />
           </Suspense>
         </ErrorBoundary>

@@ -73,10 +73,3 @@ const Calendar = ({
 };
 
 export { Calendar };
-export const CalendarCell = Calendar;
-export const CalendarGrid = Calendar;
-export const CalendarGridBody = Calendar;
-export const CalendarGridHeader = Calendar;
-export const CalendarHeaderCell = Calendar;
-export const CalendarHeading = Calendar;
-export const RangeCalendar = Calendar;

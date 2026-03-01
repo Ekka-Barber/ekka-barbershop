@@ -1,5 +1,5 @@
 import { Calculator, Loader2, ChevronDown, ChevronUp, TrendingUp } from "lucide-react";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 
 import { Button } from "@shared/ui/components/button";
 import { Card } from "@shared/ui/components/card";
@@ -51,29 +51,22 @@ export const EmployeeTarget = ({
     employee.end_date ?? null
   );
 
-  // Trigger calculation when expanded and not done yet
-  useEffect(() => {
-    if (expanded && !calculationDone && !isLoading) {
+  const handleExpand = useCallback(() => {
+    if (!expanded && !calculationDone && !isLoading) {
       calculate();
     }
-  }, [expanded, calculationDone, isLoading, calculate, employee.id, employee.name, selectedMonth, sales.amount]);
-
-  // Reset expanded state when month changes to force fresh calculation
-  useEffect(() => {
-    setExpanded(false);
-  }, [selectedMonth]);
-
-  const handleExpand = useCallback(() => {
     setExpanded(!expanded);
-  }, [expanded]);
+  }, [expanded, calculationDone, isLoading, calculate]);
 
-  const netSalary =
+  const netSalary = useMemo(() =>
     Number(baseSalary || 0) +
     Number(commission || 0) +
     Number(targetBonus || 0) +
     bonusList.reduce((sum, bonus) => sum + Number(bonus.amount || 0), 0) -
     Number(deductions || 0) -
-    Number(loans || 0);
+    Number(loans || 0),
+    [baseSalary, commission, targetBonus, bonusList, deductions, loans]
+  );
 
   return (
     <Card className="w-full overflow-hidden border-none shadow-md mb-6 bg-gradient-to-br from-white to-gray-50">

@@ -30,14 +30,14 @@ const Management = () => {
   const activeTab = searchParams.get('tab') || 'branches';
 
   const navigationItems = useMemo(() => [
-    { id: 'branches', label: 'Studio Network', icon: Building, description: 'Locations & details' },
-    { id: 'employees', label: 'Staff Authority', icon: Users, description: 'Staff access & roles' },
-    { id: 'access-control', label: 'Access Control', icon: KeyRound, description: 'System users & codes' },
-    { id: 'sponsors', label: 'Partner Hub', icon: ShieldCheck, description: 'Sponsorships' },
-    { id: 'files', label: 'Asset Library', icon: FileText, description: 'System resources' },
-    { id: 'qrcodes', label: 'Smart Codes', icon: QrCode, description: 'QR analytics' },
-    { id: 'ui-elements', label: 'Interface Lab', icon: Layout, description: 'Visual overrides' },
-    { id: 'general', label: 'System Core', icon: Cog, description: 'Global preferences' },
+    { id: 'branches', label: 'Branches', icon: Building, description: 'Locations & operations' },
+    { id: 'employees', label: 'Employee List', icon: Users, description: 'Staff & roles' },
+    { id: 'access-control', label: 'Access Control', icon: KeyRound, description: 'Users & codes' },
+    { id: 'sponsors', label: 'Sponsors', icon: ShieldCheck, description: 'Sponsorships' },
+    { id: 'files', label: 'Files', icon: FileText, description: 'Documents & media' },
+    { id: 'qrcodes', label: 'QR Codes', icon: QrCode, description: 'Entry analytics' },
+    { id: 'ui-elements', label: 'UI Elements', icon: Layout, description: 'Visual customization' },
+    { id: 'general', label: 'General', icon: Cog, description: 'Preferences' },
   ], []);
 
   const handleTabChange = (tab: string) => {
@@ -106,7 +106,7 @@ const Management = () => {
               {/* Employee Admin */}
               <TabsContent value="employees" className="m-0 focus-visible:outline-none">
                 <div className="space-y-6">
-                  <h2 className="text-2xl font-bold tracking-tight">System Access</h2>
+                  <h2 className="text-2xl font-bold tracking-tight">Employee List</h2>
                   <Separator className="opacity-50" />
                   <EmployeeManagement />
                 </div>

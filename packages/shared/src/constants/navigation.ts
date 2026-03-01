@@ -34,10 +34,10 @@ export const NAVIGATION_CONFIG: NavigationSection[] = [
     items: [
       {
         id: 'employees',
-        label: 'Staff Authority',
+        label: 'Employee List',
         icon: Users,
         path: '/owner/employees',
-        description: 'Personnel & Access',
+        description: 'Staff & Roles',
         tabs: [
           {
             id: 'sales',
@@ -63,6 +63,18 @@ export const NAVIGATION_CONFIG: NavigationSection[] = [
             icon: CreditCard,
             description: 'Financial Adjustments',
           },
+          {
+            id: 'bonuses',
+            label: 'Bonuses',
+            icon: Coins,
+            description: 'Bonus Management',
+          },
+          {
+            id: 'deductions',
+            label: 'Deductions',
+            icon: CreditCard,
+            description: 'Salary Deductions',
+          },
         ],
       },
     ],
@@ -73,21 +85,21 @@ export const NAVIGATION_CONFIG: NavigationSection[] = [
     items: [
       {
         id: 'branches',
-        label: 'Studio Network',
+        label: 'Branches',
         icon: Building,
         path: '/owner/admin?tab=branches',
-        description: 'Locations & Operations',
+        description: 'Locations & Settings',
       },
       {
         id: 'sponsors',
-        label: 'Partner Hub',
+        label: 'Sponsors',
         icon: ShieldCheck,
         path: '/owner/admin?tab=sponsors',
         description: 'Sponsorships & Contracts',
       },
       {
         id: 'qrcodes',
-        label: 'Smart Codes',
+        label: 'QR Codes',
         icon: QrCode,
         path: '/owner/admin?tab=qrcodes',
         description: 'Entry Points & Analytics',
@@ -100,53 +112,17 @@ export const NAVIGATION_CONFIG: NavigationSection[] = [
     items: [
       {
         id: 'files',
-        label: 'Asset Library',
+        label: 'Files',
         icon: FileText,
         path: '/owner/admin?tab=files',
         description: 'Documents & Media',
       },
       {
         id: 'ui',
-        label: 'Interface Lab',
+        label: 'UI Elements',
         icon: Layout,
         path: '/owner/admin?tab=ui-elements',
         description: 'Visual Customization',
-      },
-    ],
-  },
-];
-
-export const HR_NAVIGATION_CONFIG: NavigationSection[] = [
-  {
-    id: 'hr-workspace',
-    label: 'الموارد البشرية',
-    items: [
-      {
-        id: 'hr-management',
-        label: 'إدارة الموارد البشرية',
-        icon: Users,
-        path: '/hr',
-        description: 'الموظفون والمستندات والكفلاء',
-        tabs: [
-          {
-            id: 'employees',
-            label: 'الموظفون',
-            icon: Users,
-            description: 'إدارة بيانات الموظفين',
-          },
-          {
-            id: 'documents',
-            label: 'المستندات',
-            icon: FileText,
-            description: 'متابعة المستندات والصلاحيات',
-          },
-          {
-            id: 'sponsors',
-            label: 'الكفلاء',
-            icon: ShieldCheck,
-            description: 'إدارة بيانات الكفلاء',
-          },
-        ],
       },
     ],
   },
