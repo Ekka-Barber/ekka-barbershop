@@ -10,38 +10,44 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "12.2.3 (519615d)"
+    PostgrestVersion: "14.1"
   }
   public: {
     Tables: {
       branch_managers: {
         Row: {
-          access_code: string | null
           access_code_hash: string | null
           branch_id: string
           created_at: string
+          failed_attempts: number | null
           id: string
           is_super_manager: boolean
+          last_login: string | null
+          locked_until: string | null
           name: string
           updated_at: string
         }
         Insert: {
-          access_code?: string | null
           access_code_hash?: string | null
           branch_id: string
           created_at?: string
+          failed_attempts?: number | null
           id?: string
           is_super_manager?: boolean
+          last_login?: string | null
+          locked_until?: string | null
           name: string
           updated_at?: string
         }
         Update: {
-          access_code?: string | null
           access_code_hash?: string | null
           branch_id?: string
           created_at?: string
+          failed_attempts?: number | null
           id?: string
           is_super_manager?: boolean
+          last_login?: string | null
+          locked_until?: string | null
           name?: string
           updated_at?: string
         }
@@ -60,6 +66,7 @@ export type Database = {
           address: string | null
           address_ar: string | null
           created_at: string
+          fresha_booking_url: string | null
           google_maps_url: string | null
           google_place_id: string | null
           id: string
@@ -73,6 +80,7 @@ export type Database = {
           address?: string | null
           address_ar?: string | null
           created_at?: string
+          fresha_booking_url?: string | null
           google_maps_url?: string | null
           google_place_id?: string | null
           id?: string
@@ -86,6 +94,7 @@ export type Database = {
           address?: string | null
           address_ar?: string | null
           created_at?: string
+          fresha_booking_url?: string | null
           google_maps_url?: string | null
           google_place_id?: string | null
           id?: string
@@ -318,6 +327,48 @@ export type Database = {
           },
         ]
       }
+      employee_insurance: {
+        Row: {
+          company_id: string
+          created_at: string
+          employee_id: string
+          expiry_date: string
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          employee_id: string
+          expiry_date: string
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          employee_id?: string
+          expiry_date?: string
+          id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_insurance_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "insurance_companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_insurance_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: true
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       employee_loans: {
         Row: {
           amount: number
@@ -493,13 +544,6 @@ export type Database = {
             referencedRelation: "sponsors"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "fk_employee_salary_plan"
-            columns: ["salary_plan_id"]
-            isOneToOne: false
-            referencedRelation: "salary_plans"
-            referencedColumns: ["id"]
-          },
         ]
       }
       google_reviews: {
@@ -564,29 +608,100 @@ export type Database = {
           },
         ]
       }
-hr_access: {
+      hr_access: {
         Row: {
-          access_code: string | null
-          access_code_hash: string | null
+          access_code_hash: string
           created_at: string | null
+          failed_attempts: number | null
           id: string
+          last_login: string | null
+          locked_until: string | null
+          name: string
           updated_at: string | null
         }
         Insert: {
-          access_code?: string | null
-          access_code_hash?: string | null
+          access_code_hash: string
           created_at?: string | null
+          failed_attempts?: number | null
           id?: string
+          last_login?: string | null
+          locked_until?: string | null
+          name?: string
           updated_at?: string | null
         }
         Update: {
-          access_code?: string | null
-          access_code_hash?: string | null
+          access_code_hash?: string
           created_at?: string | null
+          failed_attempts?: number | null
           id?: string
+          last_login?: string | null
+          locked_until?: string | null
+          name?: string
           updated_at?: string | null
         }
         Relationships: []
+      }
+      insurance_companies: {
+        Row: {
+          contact_phone: string | null
+          created_at: string
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          contact_phone?: string | null
+          created_at?: string
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          contact_phone?: string | null
+          created_at?: string
+          id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      insurance_hospitals: {
+        Row: {
+          city: string
+          company_id: string
+          created_at: string
+          google_maps_url: string | null
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          city: string
+          company_id: string
+          created_at?: string
+          google_maps_url?: string | null
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          city?: string
+          company_id?: string
+          created_at?: string
+          google_maps_url?: string | null
+          id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "insurance_hospitals_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "insurance_companies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       marketing_files: {
         Row: {
@@ -661,26 +776,35 @@ hr_access: {
           },
         ]
       }
-owner_access: {
+      owner_access: {
         Row: {
-          access_code: string | null
           access_code_hash: string | null
           created_at: string
+          failed_attempts: number | null
           id: string
+          last_login: string | null
+          locked_until: string | null
+          name: string
           updated_at: string
         }
         Insert: {
-          access_code?: string | null
           access_code_hash?: string | null
           created_at?: string
+          failed_attempts?: number | null
           id?: string
+          last_login?: string | null
+          locked_until?: string | null
+          name?: string
           updated_at?: string
         }
         Update: {
-          access_code?: string | null
           access_code_hash?: string | null
           created_at?: string
+          failed_attempts?: number | null
           id?: string
+          last_login?: string | null
+          locked_until?: string | null
+          name?: string
           updated_at?: string
         }
         Relationships: []
@@ -795,106 +919,107 @@ owner_access: {
         }
         Relationships: []
       }
-      insurance_companies: {
+      sponsor_document_types: {
         Row: {
-          id: string
-          name: string
-          contact_phone: string | null
+          code: string
           created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          name_ar: string
+          name_en: string
           updated_at: string
         }
         Insert: {
-          id?: string
-          name: string
-          contact_phone?: string | null
+          code: string
           created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name_ar: string
+          name_en: string
           updated_at?: string
         }
         Update: {
-          id?: string
-          name?: string
-          contact_phone?: string | null
+          code?: string
           created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name_ar?: string
+          name_en?: string
           updated_at?: string
         }
         Relationships: []
       }
-      insurance_hospitals: {
+      sponsor_documents: {
         Row: {
-          id: string
-          company_id: string
-          name: string
-          city: string
-          google_maps_url: string | null
           created_at: string
+          document_type_id: string
+          duration_months: number
+          expiry_date: string
+          file_name: string
+          file_size: number | null
+          file_url: string
+          id: string
+          is_active: boolean
+          issue_date: string
+          mime_type: string | null
+          notes: string | null
+          notification_threshold_days: number
+          sponsor_id: string
           updated_at: string
+          uploaded_by: string | null
         }
         Insert: {
-          id?: string
-          company_id: string
-          name: string
-          city: string
-          google_maps_url?: string | null
           created_at?: string
+          document_type_id: string
+          duration_months?: number
+          expiry_date: string
+          file_name: string
+          file_size?: number | null
+          file_url: string
+          id?: string
+          is_active?: boolean
+          issue_date: string
+          mime_type?: string | null
+          notes?: string | null
+          notification_threshold_days?: number
+          sponsor_id: string
           updated_at?: string
+          uploaded_by?: string | null
         }
         Update: {
-          id?: string
-          company_id?: string
-          name?: string
-          city?: string
-          google_maps_url?: string | null
           created_at?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "insurance_hospitals_company_id_fkey"
-            columns: ["company_id"]
-            isOneToOne: false
-            referencedRelation: "insurance_companies"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      employee_insurance: {
-        Row: {
-          id: string
-          employee_id: string
-          company_id: string
-          expiry_date: string
-          created_at: string
-          updated_at: string
-        }
-        Insert: {
-          id?: string
-          employee_id: string
-          company_id: string
-          expiry_date: string
-          created_at?: string
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          employee_id?: string
-          company_id?: string
+          document_type_id?: string
+          duration_months?: number
           expiry_date?: string
-          created_at?: string
+          file_name?: string
+          file_size?: number | null
+          file_url?: string
+          id?: string
+          is_active?: boolean
+          issue_date?: string
+          mime_type?: string | null
+          notes?: string | null
+          notification_threshold_days?: number
+          sponsor_id?: string
           updated_at?: string
+          uploaded_by?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "employee_insurance_employee_id_fkey"
-            columns: ["employee_id"]
-            isOneToOne: true
-            referencedRelation: "employees"
+            foreignKeyName: "sponsor_documents_document_type_id_fkey"
+            columns: ["document_type_id"]
+            isOneToOne: false
+            referencedRelation: "sponsor_document_types"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "employee_insurance_company_id_fkey"
-            columns: ["company_id"]
+            foreignKeyName: "sponsor_documents_sponsor_id_fkey"
+            columns: ["sponsor_id"]
             isOneToOne: false
-            referencedRelation: "insurance_companies"
+            referencedRelation: "sponsors"
             referencedColumns: ["id"]
           },
         ]
@@ -925,111 +1050,6 @@ owner_access: {
           updated_at?: string | null
         }
         Relationships: []
-      }
-      sponsor_document_types: {
-        Row: {
-          id: string
-          code: string
-          name_en: string
-          name_ar: string
-          description: string | null
-          is_active: boolean
-          created_at: string
-          updated_at: string
-        }
-        Insert: {
-          id?: string
-          code: string
-          name_en: string
-          name_ar: string
-          description?: string | null
-          is_active?: boolean
-          created_at?: string
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          code?: string
-          name_en?: string
-          name_ar?: string
-          description?: string | null
-          is_active?: boolean
-          created_at?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      sponsor_documents: {
-        Row: {
-          id: string
-          sponsor_id: string
-          document_type_id: string
-          file_url: string
-          file_name: string
-          file_size: number | null
-          mime_type: string | null
-          issue_date: string
-          expiry_date: string
-          duration_months: number
-          notification_threshold_days: number
-          notes: string | null
-          is_active: boolean
-          uploaded_by: string | null
-          created_at: string
-          updated_at: string
-        }
-        Insert: {
-          id?: string
-          sponsor_id: string
-          document_type_id: string
-          file_url: string
-          file_name: string
-          file_size?: number | null
-          mime_type?: string | null
-          issue_date: string
-          expiry_date: string
-          duration_months?: number
-          notification_threshold_days?: number
-          notes?: string | null
-          is_active?: boolean
-          uploaded_by?: string | null
-          created_at?: string
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          sponsor_id?: string
-          document_type_id?: string
-          file_url?: string
-          file_name?: string
-          file_size?: number | null
-          mime_type?: string | null
-          issue_date?: string
-          expiry_date?: string
-          duration_months?: number
-          notification_threshold_days?: number
-          notes?: string | null
-          is_active?: boolean
-          uploaded_by?: string | null
-          created_at?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "sponsor_documents_sponsor_id_fkey"
-            columns: ["sponsor_id"]
-            isOneToOne: false
-            referencedRelation: "sponsors"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "sponsor_documents_document_type_id_fkey"
-            columns: ["document_type_id"]
-            isOneToOne: false
-            referencedRelation: "sponsor_document_types"
-            referencedColumns: ["id"]
-          },
-        ]
       }
       ui_elements: {
         Row: {
@@ -1135,6 +1155,13 @@ owner_access: {
           },
         ]
       }
+      qr_scans_stats: {
+        Row: {
+          last_scan_at: string | null
+          total_scans: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       calculate_commission: {
@@ -1185,6 +1212,7 @@ owner_access: {
         Returns: number
       }
       can_access_business_data: { Args: never; Returns: boolean }
+      can_delete_owner: { Args: { p_user_id: string }; Returns: Json }
       clean_orphaned_receipts: { Args: never; Returns: undefined }
       cleanup_old_schedules: { Args: never; Returns: number }
       clear_access_codes: { Args: never; Returns: undefined }
@@ -1201,6 +1229,10 @@ owner_access: {
         Args: { p_id: string; p_result?: Json }
         Returns: boolean
       }
+      create_hr_access_user: {
+        Args: { p_access_code: string; p_name: string }
+        Returns: string
+      }
       create_loan_from_deposit: {
         Args: {
           p_amount: number
@@ -1212,14 +1244,35 @@ owner_access: {
         }
         Returns: string
       }
+      create_manager_access_user: {
+        Args: {
+          p_access_code: string
+          p_branch_id: string
+          p_is_super_manager?: boolean
+          p_name: string
+        }
+        Returns: string
+      }
+      create_owner_access_user: {
+        Args: { p_access_code: string; p_name: string }
+        Returns: string
+      }
       create_ui_elements_table_if_not_exists: {
         Args: never
         Returns: undefined
       }
+      current_manager_branch_id: { Args: never; Returns: string }
       deactivate_payment_method_bank: {
         Args: { p_branch_id: string; p_payment_method_id: string }
         Returns: undefined
       }
+      debug_headers: { Args: never; Returns: Json }
+      delete_hr_access_user: { Args: { p_user_id: string }; Returns: boolean }
+      delete_manager_access_user: {
+        Args: { p_user_id: string }
+        Returns: boolean
+      }
+      delete_owner_access_user: { Args: { p_user_id: string }; Returns: Json }
       dequeue_submission: {
         Args: { p_lease_seconds?: number; p_now?: string }
         Returns: {
@@ -1282,12 +1335,22 @@ owner_access: {
           tag_option_id: string
         }[]
       }
+      get_cached_access_role: { Args: never; Returns: string }
       get_category_coa_mapping: {
         Args: { p_category_id: string; p_subcategory_id: string }
         Returns: {
           account_id: string
           id: string
           is_active: boolean
+        }[]
+      }
+      get_current_manager_branch: {
+        Args: never
+        Returns: {
+          branch_id: string
+          branch_name: string
+          is_super_manager: boolean
+          manager_name: string
         }[]
       }
       get_device_breakdown: {
@@ -1326,22 +1389,9 @@ owner_access: {
           year: number
         }[]
       }
-get_employee_with_aggregated_json: {
+      get_employee_with_aggregated_json: {
         Args: { p_employee_id: string }
         Returns: Json
-      }
-      get_current_manager_branch: {
-        Args: never
-        Returns: {
-          branch_id: string
-          is_super_manager: boolean
-          manager_name: string
-          branch_name: string
-        }[]
-      }
-      current_manager_branch_id: {
-        Args: never
-        Returns: string
       }
       get_feature_flags: {
         Args: { p_branch_id?: string; p_user_id?: string }
@@ -1349,6 +1399,16 @@ get_employee_with_aggregated_json: {
           enabled: boolean
           flag_key: string
           source: string
+        }[]
+      }
+      get_hr_users: {
+        Args: never
+        Returns: {
+          created_at: string
+          id: string
+          last_login: string
+          name: string
+          updated_at: string
         }[]
       }
       get_idempotent_result: {
@@ -1361,6 +1421,19 @@ get_employee_with_aggregated_json: {
           updated_at: string
         }[]
       }
+      get_managers: {
+        Args: never
+        Returns: {
+          branch_id: string
+          branch_name: string
+          created_at: string
+          id: string
+          is_super_manager: boolean
+          last_login: string
+          name: string
+          updated_at: string
+        }[]
+      }
       get_missing_branch_tag_options: {
         Args: { p_tag_id: string }
         Returns: {
@@ -1369,6 +1442,16 @@ get_employee_with_aggregated_json: {
         }[]
       }
       get_owner_access: { Args: never; Returns: string }
+      get_owners: {
+        Args: never
+        Returns: {
+          created_at: string
+          id: string
+          last_login: string
+          name: string
+          updated_at: string
+        }[]
+      }
       get_payment_bank_account: {
         Args: { p_branch_id: string; p_payment_method_id: string }
         Returns: string
@@ -1383,15 +1466,6 @@ get_employee_with_aggregated_json: {
           last_updated: string
         }[]
       }
-      get_quarter: { Args: { date_value: string }; Returns: string }
-      get_queue_stats: { Args: never; Returns: Json }
-      get_referrer_breakdown: {
-        Args: { p_qr_id: string; p_start_date: string }
-        Returns: {
-          count: string
-          referrer: string
-        }[]
-      }
       get_qr_scans_count: { Args: never; Returns: number }
       get_qr_scans_count_for_qr: {
         Args: { p_qr_id: string; p_since: string }
@@ -1402,6 +1476,15 @@ get_employee_with_aggregated_json: {
         Returns: number
       }
       get_qr_scans_count_since: { Args: { p_since: string }; Returns: number }
+      get_quarter: { Args: { date_value: string }; Returns: string }
+      get_queue_stats: { Args: never; Returns: Json }
+      get_referrer_breakdown: {
+        Args: { p_qr_id: string; p_start_date: string }
+        Returns: {
+          count: string
+          referrer: string
+        }[]
+      }
       get_salary_period_summary: {
         Args: { p_end_date: string; p_start_date: string }
         Returns: {
@@ -1445,7 +1528,10 @@ get_employee_with_aggregated_json: {
           status: string
         }[]
       }
+      is_hr_locked_out: { Args: { p_user_id: string }; Returns: Json }
+      is_manager_locked_out: { Args: { p_user_id: string }; Returns: Json }
       is_owner_access_code: { Args: { code: string }; Returns: boolean }
+      is_owner_locked_out: { Args: { p_user_id: string }; Returns: Json }
       is_time_slot_available: {
         Args: {
           p_date: string
@@ -1470,6 +1556,24 @@ get_employee_with_aggregated_json: {
       }
       manage_expired_offers: { Args: never; Returns: undefined }
       normalize_access_code: { Args: { code: string }; Returns: string }
+      record_hr_login_failure: { Args: { p_user_id: string }; Returns: Json }
+      record_hr_login_success: {
+        Args: { p_user_id: string }
+        Returns: undefined
+      }
+      record_manager_login_failure: {
+        Args: { p_user_id: string }
+        Returns: Json
+      }
+      record_manager_login_success: {
+        Args: { p_user_id: string }
+        Returns: undefined
+      }
+      record_owner_login_failure: { Args: { p_user_id: string }; Returns: Json }
+      record_owner_login_success: {
+        Args: { p_user_id: string }
+        Returns: undefined
+      }
       refresh_all_materialized_views: { Args: never; Returns: undefined }
       refresh_campaign_metrics: { Args: never; Returns: undefined }
       refresh_mv_branch_salary_aggregates: { Args: never; Returns: undefined }
@@ -1527,6 +1631,34 @@ get_employee_with_aggregated_json: {
       transform_employee_json: {
         Args: { employee_id: string; field_name: string; update_value: Json }
         Returns: Json
+      }
+      update_hr_access_code: {
+        Args: { p_new_code: string; p_user_id: string }
+        Returns: boolean
+      }
+      update_hr_name: {
+        Args: { p_new_name: string; p_user_id: string }
+        Returns: boolean
+      }
+      update_manager_access_code: {
+        Args: { p_new_code: string; p_user_id: string }
+        Returns: boolean
+      }
+      update_manager_branch: {
+        Args: { p_branch_id: string; p_user_id: string }
+        Returns: boolean
+      }
+      update_manager_name: {
+        Args: { p_new_name: string; p_user_id: string }
+        Returns: boolean
+      }
+      update_owner_access_code: {
+        Args: { p_new_code: string; p_user_id: string }
+        Returns: boolean
+      }
+      update_owner_name: {
+        Args: { p_new_name: string; p_user_id: string }
+        Returns: boolean
       }
       upsert_branch_tag_option: {
         Args: {
@@ -1648,7 +1780,7 @@ type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
 
 type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
 
-type _Tables<
+export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
     | { schema: keyof DatabaseWithoutInternals },
@@ -1668,7 +1800,7 @@ type _Tables<
     ? R
     : never
   : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
-      DefaultSchema["Views"])
+        DefaultSchema["Views"])
     ? (DefaultSchema["Tables"] &
         DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
         Row: infer R
@@ -1677,7 +1809,7 @@ type _Tables<
       : never
     : never
 
-type _TablesInsert<
+export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
@@ -1702,7 +1834,7 @@ type _TablesInsert<
       : never
     : never
 
-type _TablesUpdate<
+export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
@@ -1727,7 +1859,7 @@ type _TablesUpdate<
       : never
     : never
 
-type _Enums<
+export type Enums<
   DefaultSchemaEnumNameOrOptions extends
     | keyof DefaultSchema["Enums"]
     | { schema: keyof DatabaseWithoutInternals },
@@ -1744,7 +1876,7 @@ type _Enums<
     ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
     : never
 
-type _CompositeTypes<
+export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof DefaultSchema["CompositeTypes"]
     | { schema: keyof DatabaseWithoutInternals },
@@ -1761,7 +1893,7 @@ type _CompositeTypes<
     ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
     : never
 
-const _Constants = {
+export const Constants = {
   public: {
     Enums: {
       adjustment_type: ["correction", "refund"],

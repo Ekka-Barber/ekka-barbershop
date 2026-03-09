@@ -25,6 +25,7 @@ const branchFormSchema = z.object({
   whatsapp_number: z.string().optional(),
   google_maps_url: z.string().url('Must be a valid URL').optional().or(z.literal('')),
   google_place_id: z.string().optional(),
+  fresha_booking_url: z.string().url('Must be a valid URL').optional().or(z.literal('')),
 });
 
 interface BranchFormProps {
@@ -53,6 +54,7 @@ export const BranchForm = ({
       whatsapp_number: branchData?.whatsapp_number || '',
       google_maps_url: branchData?.google_maps_url || '',
       google_place_id: branchData?.google_place_id || '',
+      fresha_booking_url: branchData?.fresha_booking_url || '',
     },
   });
 
@@ -62,6 +64,7 @@ export const BranchForm = ({
       whatsapp_number: values.whatsapp_number || undefined,
       google_maps_url: values.google_maps_url || undefined,
       google_place_id: values.google_place_id || undefined,
+      fresha_booking_url: values.fresha_booking_url || undefined,
     };
 
     onSubmit(submitData);
@@ -192,6 +195,23 @@ export const BranchForm = ({
                 </FormControl>
                 <FormDescription>
                   Used for fetching Google reviews and data
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          
+          <FormField
+            control={form.control}
+            name="fresha_booking_url"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Fresha Booking URL</FormLabel>
+                <FormControl>
+                  <Input placeholder="https://www.fresha.com/book-now/..." {...field} />
+                </FormControl>
+                <FormDescription>
+                  Online booking link for this branch
                 </FormDescription>
                 <FormMessage />
               </FormItem>

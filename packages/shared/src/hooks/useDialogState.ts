@@ -15,40 +15,25 @@ export const useDialogState = (branches: Branch[] | undefined) => {
   const [bookingsDialogOpen, setBookingsDialogOpen] = useState(false);
   const [eidBookingsDialogOpen, setEidBookingsDialogOpen] = useState(false);
   const [locationDialogOpen, setLocationDialogOpen] = useState(false);
-  
-  const handleBranchSelect = (branchId: string) => {
-    trackButtonClick({
-      buttonId: 'book_now',
-      buttonName: 'Book Now'
-    });
-    setBranchDialogOpen(false);
 
-    if (branches) {
-      const selectedBranch = branches.find(branch => branch.id === branchId);
-
-      if (selectedBranch) {
-        // Google Ads conversion: booking click
-        trackBookingClick(selectedBranch.name);
-
-        // Use branch IDs instead of hard-coded names for better maintainability
-        if (selectedBranch.id === "4b11ca76-a282-4a14-947b-0fad49239d3b") {
-          // Ash-Sharai branch
-          const url = language === 'ar'
-            ? "https://www.fresha.com/ar/book-now/ekka-gspkudll/all-offer?id=1532757&share&pId=881059"
-            : "https://www.fresha.com/book-now/ekka-gspkudll/all-offer?id=1532757&share&pId=881059";
-          window.open(url, '_blank');
-          return;
-        } else if (selectedBranch.id === "bc505e80-db4f-4617-b81e-4593a53a219d") {
-          // Al-Waslyia branch
-          const url = language === 'ar'
-            ? "https://www.fresha.com/ar/book-now/ekka-gspkudll/all-offer?id=935949&share&pId=881059"
-            : "https://www.fresha.com/book-now/ekka-gspkudll/all-offer?id=935949&share&pId=881059";
-          window.open(url, '_blank');
-          return;
-        }
-      }
+  const getFreshaUrl = (baseUrl: string | null): string | null => {
+    if (!baseUrl) return null;
+    if (language === 'ar') {
+      return baseUrl.replace('https://www.fresha.com/', 'https://www.fresha.com/ar/');
     }
+    return baseUrl;
+  };
 
+  const openBookingUrl = (branch: Branch) => {
+    const url = getFreshaUrl(branch.fresha_booking_url);
+    if (url) {
+      window.open(url, '_blank');
+      return true;
+    }
+    return false;
+  };
+
+  const showBookingErrorToast = () => {
     toast({
       title: language === 'ar' ? 'خطأ' : 'Error',
       description: language === 'ar'
@@ -58,46 +43,42 @@ export const useDialogState = (branches: Branch[] | undefined) => {
     });
   };
 
+  const handleBranchSelect = (branchId: string) => {
+    trackButtonClick({
+      buttonId: 'book_now',
+      buttonName: 'Book Now'
+    });
+    setBranchDialogOpen(false);
+
+    const selectedBranch = branches?.find(branch => branch.id === branchId);
+
+    if (selectedBranch) {
+      trackBookingClick(selectedBranch.name);
+      if (openBookingUrl(selectedBranch)) {
+        return;
+      }
+    }
+
+    showBookingErrorToast();
+  };
+
   const handleBranchSelectForBookings = (branchId: string) => {
     trackButtonClick({
       buttonId: 'bookings',
       buttonName: 'Bookings'
     });
     setBookingsDialogOpen(false);
-    
-    if (branches) {
-      const selectedBranch = branches.find(branch => branch.id === branchId);
 
-      if (selectedBranch) {
-        // Google Ads conversion: booking click
-        trackBookingClick(selectedBranch.name);
+    const selectedBranch = branches?.find(branch => branch.id === branchId);
 
-        // Use branch IDs instead of hard-coded names for better maintainability
-        if (selectedBranch.id === "4b11ca76-a282-4a14-947b-0fad49239d3b") {
-          // Ash-Sharai branch
-          const url = language === 'ar'
-            ? "https://www.fresha.com/ar/book-now/ekka-gspkudll/all-offer?id=1532757&share&pId=881059"
-            : "https://www.fresha.com/book-now/ekka-gspkudll/all-offer?id=1532757&share&pId=881059";
-          window.open(url, '_blank');
-          return;
-        } else if (selectedBranch.id === "bc505e80-db4f-4617-b81e-4593a53a219d") {
-          // Al-Waslyia branch
-          const url = language === 'ar'
-            ? "https://www.fresha.com/ar/book-now/ekka-gspkudll/all-offer?id=935949&share&pId=881059"
-            : "https://www.fresha.com/book-now/ekka-gspkudll/all-offer?id=935949&share&pId=881059";
-          window.open(url, '_blank');
-          return;
-        }
+    if (selectedBranch) {
+      trackBookingClick(selectedBranch.name);
+      if (openBookingUrl(selectedBranch)) {
+        return;
       }
     }
-    
-    toast({
-      title: language === 'ar' ? 'خطأ' : 'Error',
-      description: language === 'ar' 
-        ? 'لم نتمكن من العثور على رابط الحجز لهذا الفرع' 
-        : 'Could not find booking link for this branch',
-      variant: "destructive"
-    });
+
+    showBookingErrorToast();
   };
 
   const handleEidBranchSelect = (branchId: string) => {
@@ -106,45 +87,21 @@ export const useDialogState = (branches: Branch[] | undefined) => {
       buttonName: 'Eid Bookings'
     });
     setEidBookingsDialogOpen(false);
-    
-    if (branches) {
-      const selectedBranch = branches.find(branch => branch.id === branchId);
 
-      if (selectedBranch) {
-        // Google Ads conversion: booking click
-        trackBookingClick(selectedBranch.name);
+    const selectedBranch = branches?.find(branch => branch.id === branchId);
 
-        // Use branch IDs instead of hard-coded names for better maintainability
-        if (selectedBranch.id === "4b11ca76-a282-4a14-947b-0fad49239d3b") {
-          // Ash-Sharai branch
-          const url = language === 'ar'
-            ? "https://www.fresha.com/ar/book-now/ekka-gspkudll/all-offer?id=1532757&share&pId=881059"
-            : "https://www.fresha.com/book-now/ekka-gspkudll/all-offer?id=1532757&share&pId=881059";
-          window.open(url, '_blank');
-          return;
-        } else if (selectedBranch.id === "bc505e80-db4f-4617-b81e-4593a53a219d") {
-          // Al-Waslyia branch
-          const url = language === 'ar'
-            ? "https://www.fresha.com/ar/book-now/ekka-gspkudll/all-offer?id=935949&share&pId=881059"
-            : "https://www.fresha.com/book-now/ekka-gspkudll/all-offer?id=935949&share&pId=881059";
-          window.open(url, '_blank');
-          return;
-        }
+    if (selectedBranch) {
+      trackBookingClick(selectedBranch.name);
+      if (openBookingUrl(selectedBranch)) {
+        return;
       }
     }
-    
-    toast({
-      title: language === 'ar' ? 'خطأ' : 'Error',
-      description: language === 'ar' 
-        ? 'لم نتمكن من العثور على رابط الحجز لهذا الفرع' 
-        : 'Could not find booking link for this branch',
-      variant: "destructive"
-    });
+
+    showBookingErrorToast();
   };
 
   const handleLocationClick = (url: string | null, branchName?: string) => {
     if (url) {
-      // Google Ads conversion: location click
       trackLocationClick(branchName ?? 'unknown');
       window.open(url, '_blank');
     }

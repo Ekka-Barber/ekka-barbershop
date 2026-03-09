@@ -15,4 +15,5 @@ export type BranchFormData = {
   whatsapp_number?: string;
   google_maps_url?: string;
   google_place_id?: string;
+  fresha_booking_url?: string;
 };
