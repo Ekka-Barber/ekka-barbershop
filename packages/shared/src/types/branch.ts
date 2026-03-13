@@ -12,6 +12,7 @@ export type BranchFormData = {
   address?: string;
   address_ar?: string;
   is_main: boolean;
+  is_active?: boolean;
   whatsapp_number?: string;
   google_maps_url?: string;
   google_place_id?: string;

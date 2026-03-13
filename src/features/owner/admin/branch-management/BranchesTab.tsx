@@ -165,6 +165,10 @@ const BranchDetails = ({ branch }: { branch: Branch }) => {
             <p className="text-sm">{branch.is_main ? 'Yes' : 'No'}</p>
           </div>
           <div>
+            <p className="text-sm font-medium">Active</p>
+            <p className="text-sm">{branch.is_active === false ? 'No' : 'Yes'}</p>
+          </div>
+          <div>
             <p className="text-sm font-medium">WhatsApp Number</p>
             <p className="text-sm">{branch.whatsapp_number || '-'}</p>
           </div>

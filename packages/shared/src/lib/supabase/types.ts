@@ -70,6 +70,7 @@ export type Database = {
           google_maps_url: string | null
           google_place_id: string | null
           id: string
+          is_active: boolean | null
           is_main: boolean | null
           name: string
           name_ar: string | null
@@ -84,6 +85,7 @@ export type Database = {
           google_maps_url?: string | null
           google_place_id?: string | null
           id?: string
+          is_active?: boolean | null
           is_main?: boolean | null
           name: string
           name_ar?: string | null
@@ -98,6 +100,7 @@ export type Database = {
           google_maps_url?: string | null
           google_place_id?: string | null
           id?: string
+          is_active?: boolean | null
           is_main?: boolean | null
           name?: string
           name_ar?: string | null

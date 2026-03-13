@@ -22,6 +22,7 @@ const branchFormSchema = z.object({
   address: z.string().optional(),
   address_ar: z.string().optional(),
   is_main: z.boolean().default(false),
+  is_active: z.boolean().default(true),
   whatsapp_number: z.string().optional(),
   google_maps_url: z.string().url('Must be a valid URL').optional().or(z.literal('')),
   google_place_id: z.string().optional(),
@@ -51,6 +52,7 @@ export const BranchForm = ({
       address: branchData?.address || '',
       address_ar: branchData?.address_ar || '',
       is_main: branchData?.is_main ?? false,
+      is_active: branchData?.is_active ?? true,
       whatsapp_number: branchData?.whatsapp_number || '',
       google_maps_url: branchData?.google_maps_url || '',
       google_place_id: branchData?.google_place_id || '',
@@ -157,6 +159,28 @@ export const BranchForm = ({
                   <FormLabel className="text-base">Main Branch</FormLabel>
                   <FormDescription>
                     Set this as the main branch of your business
+                  </FormDescription>
+                </div>
+                <FormControl>
+                  <Switch
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          
+          <FormField
+            control={form.control}
+            name="is_active"
+            render={({ field }) => (
+              <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                <div className="space-y-0.5">
+                  <FormLabel className="text-base">Active</FormLabel>
+                  <FormDescription>
+                    Inactive branches won't appear in customer app
                   </FormDescription>
                 </div>
                 <FormControl>

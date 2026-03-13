@@ -56,7 +56,8 @@ const Customer1 = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('branches')
-        .select('id, name, name_ar, address, address_ar, is_main, whatsapp_number, google_maps_url, google_place_id, fresha_booking_url');
+        .select('id, name, name_ar, address, address_ar, is_main, is_active, whatsapp_number, google_maps_url, google_place_id, fresha_booking_url')
+        .eq('is_active', true);
       if (error) throw error;
 
       return data as Branch[];
