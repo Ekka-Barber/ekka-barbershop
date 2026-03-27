@@ -66,10 +66,19 @@ export const useSalariesTab = ({
   }, [effectiveOnRecalculate]);
 
   const handlePreviewPDF = useCallback(async () => {
+    if (isSponsorsLoading) {
+      toast({
+        variant: 'destructive',
+        title: 'Please wait',
+        description: 'Sponsors are still loading. Try again in a moment.',
+      });
+      return;
+    }
+
     try {
       setIsGeneratingPDF(true);
       setIsGrossPreview(false);
-      const blob = await generatePDFBlob(calculations, selectedMonth, employees);
+      const blob = await generatePDFBlob(calculations, selectedMonth, employees || [], sponsors || []);
       setPdfBlob(blob);
       setIsPreviewOpen(true);
     } catch {
@@ -81,7 +90,7 @@ export const useSalariesTab = ({
     } finally {
       setIsGeneratingPDF(false);
     }
-  }, [calculations, selectedMonth, employees, generatePDFBlob, toast]);
+  }, [calculations, selectedMonth, employees, sponsors, generatePDFBlob, toast, isSponsorsLoading]);
 
   const handlePreviewGrossPDF = useCallback(async () => {
     if (isSponsorsLoading) {
@@ -115,7 +124,7 @@ export const useSalariesTab = ({
       if (isGrossPreview) {
         await generateGrossPDF(calculations, selectedMonth, employees || [], sponsors || []);
       } else {
-        await generatePDF(calculations, selectedMonth, employees);
+        await generatePDF(calculations, selectedMonth, employees || [], sponsors || []);
       }
     } catch {
       toast({

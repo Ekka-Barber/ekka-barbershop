@@ -51,7 +51,10 @@ const buildSponsorLookup = async (
     });
 
     if (lookup.size === 0) {
-        const { data } = await supabase.from('sponsors').select('id, name_ar');
+        const { data, error } = await supabase.from('sponsors').select('id, name_ar');
+        if (error) {
+            console.error('[SalaryPDF] Failed to fetch sponsors as fallback:', error.message);
+        }
         data?.forEach((sponsor) => {
             if (!sponsor?.id) return;
             const nameAr = sponsor.name_ar?.trim();
