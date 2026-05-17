@@ -281,8 +281,11 @@ export const EnhancedSidebar: React.FC<EnhancedSidebarProps> = ({
             )}
             <div className="flex-1 min-w-0">
               <span className="truncate block">{item.label}</span>
-              {item.description && !isActive && (
-                <span className="text-[10px] text-muted-foreground/70 truncate block">
+              {item.description && (
+                <span className={cn(
+                  'text-[10px] truncate block',
+                  isActive ? 'text-primary-foreground/60' : 'text-muted-foreground/70'
+                )}>
                   {item.description}
                 </span>
               )}

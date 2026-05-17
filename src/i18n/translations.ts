@@ -311,6 +311,20 @@ export const translations: Translations = {
     'legal.contact.additional.booking.content': 'All bookings are processed through Fresha. Contact your preferred branch via WhatsApp for immediate assistance.',
     'legal.contact.additional.support.title': 'Customer Support',
     'legal.contact.additional.support.content': 'For general inquiries, please email us or contact your local branch directly.',
+
+    // Sponsor management
+    'sponsor.empty': 'No sponsors registered',
+    'sponsor.name': 'Sponsor Name',
+    'sponsor.cr_number': 'CR Number',
+    'sponsor.unified_number': 'Unified Number',
+    'sponsor.actions': 'Actions',
+    'sponsor.employees_under': 'Employees under this sponsor',
+    'sponsor.branch': 'Branch',
+    'sponsor.remove': 'Remove',
+    'sponsor.no_employees': 'No linked employees',
+    'sponsor.assign_employee': 'Assign employee to sponsor',
+    'sponsor.select_unassigned': 'Select an unassigned employee',
+    'sponsor.update': 'Update',
   },
   ar: {
     'select.branch': 'اختر فرعاً',
@@ -586,5 +600,19 @@ export const translations: Translations = {
     'legal.contact.additional.booking.content': 'جميع الحجوزات تتم من خلال فريشا. اتصل بفرعك المفضل عبر واتساب للحصول على مساعدة فورية.',
     'legal.contact.additional.support.title': 'دعم العملاء',
     'legal.contact.additional.support.content': 'للاستفسارات العامة، يرجى مراسلتنا عبر البريد الإلكتروني أو الاتصال بفرعك المحلي مباشرة.',
+
+    // إدارة الكفلاء
+    'sponsor.empty': 'لا توجد كفلاء مسجلة',
+    'sponsor.name': 'اسم الكفيل',
+    'sponsor.cr_number': 'رقم السجل التجاري',
+    'sponsor.unified_number': 'الرقم الموحد',
+    'sponsor.actions': 'الإجراءات',
+    'sponsor.employees_under': 'الموظفون تحت الكفيل',
+    'sponsor.branch': 'فرع',
+    'sponsor.remove': 'إزالة',
+    'sponsor.no_employees': 'لا يوجد موظفون مرتبطون',
+    'sponsor.assign_employee': 'إسناد موظف للكفيل',
+    'sponsor.select_unassigned': 'اختر موظفاً غير مرتبط',
+    'sponsor.update': 'تحديث',
   }
 };

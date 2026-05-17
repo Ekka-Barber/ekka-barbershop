@@ -12,7 +12,7 @@ const MILLISECONDS_IN_SECOND = TIME.SECOND_IN_MS;
 
 // Cache durations
 const STALE_TIME_MINUTES = 5;
-const GARBAGE_COLLECTION_TIME_MINUTES = TIME.DAYS_PER_MONTH_APPROX;
+const GARBAGE_COLLECTION_TIME_MS = 30 * TIME.MINUTE_IN_MS;
 
 // Utility function to check if employee is active on a given date
 export const isEmployeeActiveOnDate = (
@@ -63,8 +63,21 @@ export const calculateEmployeeTenure = (
 ) => {
   if (!startDate) return null;
 
-  const start = new Date(startDate);
-  const end = endDate ? new Date(endDate) : new Date();
+  // Parse as UTC to avoid timezone-dependent date shifts
+  const parseUTC = (dateStr: string): Date => {
+    const normalized = dateStr.includes('T') ? dateStr : `${dateStr}T00:00:00Z`;
+    return new Date(normalized);
+  };
+
+  const start = parseUTC(startDate);
+  const end = endDate ? parseUTC(endDate) : new Date();
+
+  // Validate parsed dates — reject NaN or unreasonable values
+  // Min year 1980 covers any realistic hire date; max 2100 prevents far-future data entry errors
+  if (isNaN(start.getTime()) || isNaN(end.getTime())) return null;
+  if (start.getUTCFullYear() < 1980 || start.getUTCFullYear() > 2100) return null;
+  if (end.getUTCFullYear() < 1980 || end.getUTCFullYear() > 2100) return null;
+
   const diffTime = Math.abs(end.getTime() - start.getTime());
   const diffDays = Math.ceil(
     diffTime / (MILLISECONDS_IN_SECOND * MINUTES_IN_HOUR * HOURS_IN_DAY)
@@ -119,9 +132,6 @@ export const useEmployeeData = (selectedBranch: string) => {
       return data || [];
     },
     staleTime: MILLISECONDS_IN_SECOND * MINUTES_IN_HOUR * STALE_TIME_MINUTES,
-    gcTime:
-      MILLISECONDS_IN_SECOND *
-      MINUTES_IN_HOUR *
-      GARBAGE_COLLECTION_TIME_MINUTES,
+    gcTime: GARBAGE_COLLECTION_TIME_MS,
   });
 };

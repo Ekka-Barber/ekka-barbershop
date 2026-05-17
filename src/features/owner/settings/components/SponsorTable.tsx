@@ -12,6 +12,8 @@ import {
   TableRow,
 } from '@shared/ui/components/table';
 
+import { useLanguage } from '@/contexts/LanguageContext';
+
 interface Sponsor {
   id: string;
   name_ar: string;
@@ -60,6 +62,8 @@ export const SponsorTable = ({
   expandedSponsorId,
   setExpandedSponsorId,
 }: SponsorTableProps) => {
+  const { t } = useLanguage();
+
   const toggleExpanded = (sponsor: Sponsor) => {
     const nextId = expandedSponsorId === sponsor.id ? null : sponsor.id;
     setExpandedSponsorId(nextId);
@@ -72,7 +76,7 @@ export const SponsorTable = ({
   if (sponsors.length === 0) {
     return (
       <div className="text-center py-8 text-muted-foreground">
-        لا توجد كفلاء مسجلة
+        {t('sponsor.empty')}
       </div>
     );
   }
@@ -83,10 +87,10 @@ export const SponsorTable = ({
         <TableHeader>
           <TableRow>
             <TableHead className="w-12" />
-            <TableHead>اسم الكفيل</TableHead>
-            <TableHead>رقم السجل التجاري</TableHead>
-            <TableHead>الرقم الموحد</TableHead>
-            <TableHead className="w-24">الإجراءات</TableHead>
+            <TableHead>{t('sponsor.name')}</TableHead>
+            <TableHead>{t('sponsor.cr_number')}</TableHead>
+            <TableHead>{t('sponsor.unified_number')}</TableHead>
+            <TableHead className="w-24">{t('sponsor.actions')}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -138,7 +142,7 @@ export const SponsorTable = ({
       {expandedSponsorId && (
         <div className="border-t bg-muted/50 p-4">
           <div className="mb-4 space-y-2">
-            <div className="font-semibold text-sm">الموظفون تحت الكفيل</div>
+            <div className="font-semibold text-sm">{t('sponsor.employees_under')}</div>
             <div className="space-y-2">
               {(employeesBySponsor[expandedSponsorId] || []).map((emp) => (
                 <div
@@ -149,7 +153,7 @@ export const SponsorTable = ({
                     <span>{emp.name_ar || emp.name}</span>
                     {emp.branches ? (
                       <span className="text-xs text-muted-foreground">
-                        فرع: {emp.branches.name_ar || emp.branches.name || ''}
+                        {t('sponsor.branch')}: {emp.branches.name_ar || emp.branches.name || ''}
                       </span>
                     ) : null}
                   </div>
@@ -159,17 +163,17 @@ export const SponsorTable = ({
                     onClick={() => onUnassignEmployee(emp.id)}
                     disabled={isAssigning}
                   >
-                    إزالة
+                    {t('sponsor.remove')}
                   </Button>
                 </div>
               ))}
               {(employeesBySponsor[expandedSponsorId] || []).length === 0 && (
-                <div className="text-sm text-muted-foreground">لا يوجد موظفون مرتبطون</div>
+                <div className="text-sm text-muted-foreground">{t('sponsor.no_employees')}</div>
               )}
             </div>
             <div className="flex flex-col sm:flex-row gap-2 items-end">
               <div className="flex-1">
-                <Label htmlFor="assign-employee">إسناد موظف للكفيل</Label>
+                <Label htmlFor="assign-employee">{t('sponsor.assign_employee')}</Label>
                 <select
                   id="assign-employee"
                   className="mt-1 w-full rounded-md border px-3 py-2 text-sm"
@@ -183,7 +187,7 @@ export const SponsorTable = ({
                     }
                   }}
                 >
-                  <option value="">اختر موظفاً غير مرتبط</option>
+                  <option value="">{t('sponsor.select_unassigned')}</option>
                   {unassignedEmployees.map((emp) => (
                     <option key={emp.id} value={emp.id}>
                       {emp.name_ar || emp.name} {emp.branches ? `- ${emp.branches.name_ar || emp.branches.name || ''}` : ''}
@@ -197,7 +201,7 @@ export const SponsorTable = ({
           <form onSubmit={onSubmit} className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="edit-name-ar">اسم الكفيل</Label>
+                <Label htmlFor="edit-name-ar">{t('sponsor.name')}</Label>
                 <Input
                   id="edit-name-ar"
                   value={nameAr}
@@ -206,7 +210,7 @@ export const SponsorTable = ({
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="edit-cr-number">رقم السجل التجاري</Label>
+                <Label htmlFor="edit-cr-number">{t('sponsor.cr_number')}</Label>
                 <Input
                   id="edit-cr-number"
                   value={crNumber}
@@ -214,7 +218,7 @@ export const SponsorTable = ({
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="edit-unified-number">الرقم الموحد</Label>
+                <Label htmlFor="edit-unified-number">{t('sponsor.unified_number')}</Label>
                 <Input
                   id="edit-unified-number"
                   value={unifiedNumber}
@@ -229,9 +233,9 @@ export const SponsorTable = ({
                 variant="ghost"
                 onClick={() => setExpandedSponsorId(null)}
               >
-                إلغاء
+                {t('cancel')}
               </Button>
-              <Button type="submit">تحديث</Button>
+              <Button type="submit">{t('sponsor.update')}</Button>
             </div>
           </form>
         </div>
